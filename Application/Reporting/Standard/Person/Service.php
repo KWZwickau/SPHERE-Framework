@@ -75,10 +75,10 @@ class Service extends Extension
             $count = 1;
 
             array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$count) {
-                if (($addressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
-                    $address = $addressList[0];
+                if (($tblToPersonAddressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
+                    $tblToPersonAddress = $tblToPersonAddressList[0];
                 } else {
-                    $address = null;
+                    $tblToPersonAddress = false;
                 }
 
                 $Item['Number'] = $count++;
@@ -90,25 +90,14 @@ class Service extends Extension
                 $Item['Mail'] = '';
                 $Item['ExcelMail'] = '';
 
-                if ($address !== null) {
-                    $Item['StreetName'] = $address->getTblAddress()->getStreetName();
-                    $Item['StreetNumber'] = $address->getTblAddress()->getStreetNumber();
-                    $Item['Code'] = $address->getTblAddress()->getTblCity()->getCode();
-                    $Item['City'] = $address->getTblAddress()->getTblCity()->getName();
-                    $Item['District'] = $address->getTblAddress()->getTblCity()->getDistrict();
-//                    if ($Item['District'] !== '') {
-//                        $Pre = substr($Item['District'], 0, 2);
-//                        if ($Pre != 'OT') {
-//                            $Item['District'] = 'OT '.$Item['District'];
-//                        }
-//                    }
-
-                    $Item['Address'] =
-                        ( $Item['District'] !== '' ? $Item['District'].' ' : '' ).
-                        $address->getTblAddress()->getStreetName().' '.
-                        $address->getTblAddress()->getStreetNumber().', '.
-                        $address->getTblAddress()->getTblCity()->getCode().' '.
-                        $address->getTblAddress()->getTblCity()->getName();
+                if ($tblToPersonAddress && ($tblAddress = $tblToPersonAddress->getTblAddress())) {
+                    $Item['StreetName'] = $tblAddress->getStreetName();
+                    $Item['StreetNumber'] = $tblAddress->getStreetNumber();
+                    $Item['Code'] = $tblAddress->getTblCity()->getCode();
+                    $Item['City'] = $tblAddress->getTblCity()->getName();
+                    $Item['District'] = $tblAddress->getTblCity()->getDistrict();
+                    // show in DataTable
+                    $Item['Address'] = $tblAddress->getGuiString();
                 } else {
                     $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = $Item['District'] = '';
                     $Item['Address'] = '';
@@ -385,30 +374,19 @@ class Service extends Extension
                         $Item['StudentNumber'] = $tblStudent->getIdentifier();
                     }
                 }
-                if (($addressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
-                    $address = $addressList[0];
+                if (($tblToPersonAddressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
+                    $tblToPersonAddress = $tblToPersonAddressList[0];
                 } else {
-                    $address = null;
+                    $tblToPersonAddress = false;
                 }
-                if ($address !== null) {
-                    $Item['StreetName'] = $address->getTblAddress()->getStreetName();
-                    $Item['StreetNumber'] = $address->getTblAddress()->getStreetNumber();
-                    $Item['Code'] = $address->getTblAddress()->getTblCity()->getCode();
-                    $Item['City'] = $address->getTblAddress()->getTblCity()->getName();
-                    $Item['District'] = $address->getTblAddress()->getTblCity()->getDistrict();
-//                    if ($Item['District'] !== '') {
-//                        $Pre = substr($Item['District'], 0, 2);
-//                        if ($Pre != 'OT') {
-//                            $Item['District'] = 'OT '.$Item['District'];
-//                        }
-//                    }
-
-                    $Item['Address'] =
-                        ( $Item['District'] !== '' ? $Item['District'].' ' : '' ).
-                        $address->getTblAddress()->getStreetName().' '.
-                        $address->getTblAddress()->getStreetNumber().', '.
-                        $address->getTblAddress()->getTblCity()->getCode().' '.
-                        $address->getTblAddress()->getTblCity()->getName();
+                if ($tblToPersonAddress && ($tblAddress = $tblToPersonAddress->getTblAddress())) {
+                    $Item['StreetName'] = $tblAddress->getStreetName();
+                    $Item['StreetNumber'] = $tblAddress->getStreetNumber();
+                    $Item['Code'] = $tblAddress->getTblCity()->getCode();
+                    $Item['City'] = $tblAddress->getTblCity()->getName();
+                    $Item['District'] = $tblAddress->getTblCity()->getDistrict();
+                    // show in DataTable
+                    $Item['Address'] = $tblAddress->getGuiString();
                 }
                 $common = Common::useService()->getCommonByPerson($tblPerson);
                 if ($common) {
@@ -604,30 +582,19 @@ class Service extends Extension
                     }
                 }
 
-                if (($addressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
-                    $address = $addressList[0];
+                if (($tblToPersonAddressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
+                    $tblToPersonAddress = $tblToPersonAddressList[0];
                 } else {
-                    $address = null;
+                    $tblToPersonAddress = false;
                 }
-                if ($address !== null) {
-                    $Item['StreetName'] = $address->getTblAddress()->getStreetName();
-                    $Item['StreetNumber'] = $address->getTblAddress()->getStreetNumber();
-                    $Item['Code'] = $address->getTblAddress()->getTblCity()->getCode();
-                    $Item['City'] = $address->getTblAddress()->getTblCity()->getName();
-                    $Item['District'] = $address->getTblAddress()->getTblCity()->getDistrict();
-//                    if ($Item['District'] !== '') {
-//                        $Pre = substr($Item['District'], 0, 2);
-//                        if ($Pre != 'OT') {
-//                            $Item['District'] = 'OT '.$Item['District'];
-//                        }
-//                    }
-
-                    $Item['Address'] =
-                        ( $Item['District'] !== '' ? $Item['District'].' ' : '' ).
-                        $address->getTblAddress()->getStreetName().' '.
-                        $address->getTblAddress()->getStreetNumber().', '.
-                        $address->getTblAddress()->getTblCity()->getCode().' '.
-                        $address->getTblAddress()->getTblCity()->getName();
+                if ($tblToPersonAddress && ($tblAddress = $tblToPersonAddress->getTblAddress())) {
+                    $Item['StreetName'] = $tblAddress->getStreetName();
+                    $Item['StreetNumber'] = $tblAddress->getStreetNumber();
+                    $Item['Code'] = $tblAddress->getTblCity()->getCode();
+                    $Item['City'] = $tblAddress->getTblCity()->getName();
+                    $Item['District'] = $tblAddress->getTblCity()->getDistrict();
+                    // show in DataTable
+                    $Item['Address'] = $tblAddress->getGuiString();
                 }
 
                 $common = Common::useService()->getCommonByPerson($tblPerson);
@@ -767,30 +734,19 @@ class Service extends Extension
                     }
                 }
                 $Item['Name'] = $tblPerson->getLastFirstName();
-                if (($addressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
-                    $address = $addressList[0];
+                if (($tblToPersonAddressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
+                    $tblToPersonAddress = $tblToPersonAddressList[0];
                 } else {
-                    $address = null;
+                    $tblToPersonAddress = false;
                 }
-                if ($address !== null) {
-                    $Item['StreetName'] = $address->getTblAddress()->getStreetName();
-                    $Item['StreetNumber'] = $address->getTblAddress()->getStreetNumber();
-                    $Item['Code'] = $address->getTblAddress()->getTblCity()->getCode();
-                    $Item['City'] = $address->getTblAddress()->getTblCity()->getName();
-                    $Item['District'] = $address->getTblAddress()->getTblCity()->getDistrict();
-//                    if ($Item['District'] !== '') {
-//                        $Pre = substr($Item['District'], 0, 2);
-//                        if ($Pre != 'OT') {
-//                            $Item['District'] = 'OT '.$Item['District'];
-//                        }
-//                    }
-
-                    $Item['Address'] =
-                        ( $Item['District'] !== '' ? $Item['District'].' ' : '' ).
-                        $address->getTblAddress()->getStreetName().' '.
-                        $address->getTblAddress()->getStreetNumber().', '.
-                        $address->getTblAddress()->getTblCity()->getCode().' '.
-                        $address->getTblAddress()->getTblCity()->getName();
+                if ($tblToPersonAddress && ($tblAddress = $tblToPersonAddress->getTblAddress())) {
+                    $Item['StreetName'] = $tblAddress->getStreetName();
+                    $Item['StreetNumber'] = $tblAddress->getStreetNumber();
+                    $Item['Code'] = $tblAddress->getTblCity()->getCode();
+                    $Item['City'] = $tblAddress->getTblCity()->getName();
+                    $Item['District'] = $tblAddress->getTblCity()->getDistrict();
+                    // show in DataTable
+                    $Item['Address'] = $tblAddress->getGuiString();
                 }
 
                 $common = Common::useService()->getCommonByPerson($tblPerson);
@@ -1008,11 +964,7 @@ class Service extends Extension
                 $Item['PhoneNumber'] = '';
                 $Item['MobilPhoneNumber'] = '';
                 $Item['Mail'] = '';
-                if (($addressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
-                    $address = $addressList[0];
-                } else {
-                    $address = null;
-                }
+
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
                 if ($tblCommon) {
                     $tblBirhdates = $tblCommon->getTblCommonBirthDates();
@@ -1024,25 +976,19 @@ class Service extends Extension
                         }
                     }
                 }
-                if ($address !== null) {
-                    $Item['StreetName'] = $address->getTblAddress()->getStreetName();
-                    $Item['StreetNumber'] = $address->getTblAddress()->getStreetNumber();
-                    $Item['Code'] = $address->getTblAddress()->getTblCity()->getCode();
-                    $Item['City'] = $address->getTblAddress()->getTblCity()->getName();
-                    $Item['District'] = $address->getTblAddress()->getTblCity()->getDistrict();
-//                    if ($Item['District'] !== '') {
-//                        $Pre = substr($Item['District'], 0, 2);
-//                        if ($Pre != 'OT') {
-//                            $Item['District'] = 'OT '.$Item['District'];
-//                        }
-//                    }
-
-                    $Item['Address'] =
-                        ( $Item['District'] !== '' ? $Item['District'].' ' : '' ).
-                        $address->getTblAddress()->getStreetName().' '.
-                        $address->getTblAddress()->getStreetNumber().', '.
-                        $address->getTblAddress()->getTblCity()->getCode().' '.
-                        $address->getTblAddress()->getTblCity()->getName();
+                if (($tblToPersonAddressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
+                    $tblToPersonAddress = $tblToPersonAddressList[0];
+                } else {
+                    $tblToPersonAddress = false;
+                }
+                if ($tblToPersonAddress && ($tblAddress = $tblToPersonAddress->getTblAddress())) {
+                    $Item['StreetName'] = $tblAddress->getStreetName();
+                    $Item['StreetNumber'] = $tblAddress->getStreetNumber();
+                    $Item['Code'] = $tblAddress->getTblCity()->getCode();
+                    $Item['City'] = $tblAddress->getTblCity()->getName();
+                    $Item['District'] = $tblAddress->getTblCity()->getDistrict();
+                    // show in DataTable
+                    $Item['Address'] = $tblAddress->getGuiString();
                 }
 
                 $common = Common::useService()->getCommonByPerson($tblPerson);
@@ -1200,23 +1146,19 @@ class Service extends Extension
                 $Item['FatherSalutation'] = $Item['FatherLastName'] = $Item['FatherFirstName'] = $Item['Father'] = '';
                 $Item['MotherSalutation'] = $Item['MotherLastName'] = $Item['MotherFirstName'] = $Item['Mother'] = '';
 
-                if (($addressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
-                    $address = $addressList[0];
+                if (($tblToPersonAddressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
+                    $tblToPersonAddress = $tblToPersonAddressList[0];
                 } else {
-                    $address = null;
+                    $tblToPersonAddress = false;
                 }
-                if ($address !== null) {
-                    $Item['StreetName'] = $address->getTblAddress()->getStreetName();
-                    $Item['StreetNumber'] = $address->getTblAddress()->getStreetNumber();
-                    $Item['Code'] = $address->getTblAddress()->getTblCity()->getCode();
-                    $Item['City'] = $address->getTblAddress()->getTblCity()->getName();
-                    $Item['District'] = $address->getTblAddress()->getTblCity()->getDistrict();
-                    $Item['Address'] =
-                        ( $Item['District'] !== '' ? $Item['District'].' ' : '' ).
-                        $address->getTblAddress()->getStreetName().' '.
-                        $address->getTblAddress()->getStreetNumber().', '.
-                        $address->getTblAddress()->getTblCity()->getCode().' '.
-                        $address->getTblAddress()->getTblCity()->getName();
+                if ($tblToPersonAddress && ($tblAddress = $tblToPersonAddress->getTblAddress())) {
+                    $Item['StreetName'] = $tblAddress->getStreetName();
+                    $Item['StreetNumber'] = $tblAddress->getStreetNumber();
+                    $Item['Code'] = $tblAddress->getTblCity()->getCode();
+                    $Item['City'] = $tblAddress->getTblCity()->getName();
+                    $Item['District'] = $tblAddress->getTblCity()->getDistrict();
+                    // show in DataTable
+                    $Item['Address'] = $tblAddress->getGuiString();
                 }
 
                 $tblProspect = Prospect::useService()->getProspectByPerson($tblPerson);

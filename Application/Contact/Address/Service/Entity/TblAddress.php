@@ -97,11 +97,11 @@ class TblAddress extends Element
         if (null === ($Return = $Cache->getValue($this->getId(), __METHOD__))) {
 
             $Return =
-                ( $this->getTblCity()->getDisplayDistrict() !== '' ? ( $this->getTblCity()->getDisplayDistrict() ).' ' : '' )
-                .$this->getStreetName()
-                . ' ' . $this->getStreetNumber()
-                . ', ' . $this->getTblCity()->getCode()
+                $this->getTblCity()->getCode()
                 .' '.$this->getTblCity()->getName()
+                .($this->getTblCity()->getDisplayDistrict() !== '' ? ' '.($this->getTblCity()->getDisplayDistrict()) : '')
+                .' '.$this->getStreetName()
+                .' '.$this->getStreetNumber()
                 . ($this->getLocation() ? ' (' . $this->getLocation() . ')' : '');
 
             $Cache->setValue($this->getId(), $Return, 0, __METHOD__);
