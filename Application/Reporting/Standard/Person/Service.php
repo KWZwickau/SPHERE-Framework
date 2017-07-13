@@ -363,9 +363,9 @@ class Service extends Extension
                 if ($tblCommon) {
                     $tblBirhdates = $tblCommon->getTblCommonBirthDates();
                     if ($tblBirhdates) {
-                        if ($tblBirhdates->getGender() === 1) {
+                        if ($tblBirhdates->getGender() == 1) {
                             $Item['Gender'] = 'männlich';
-                        } elseif ($tblBirhdates->getGender() === 2) {
+                        } elseif ($tblBirhdates->getGender() == 2) {
                             $Item['Gender'] = 'weiblich';
                         }
                     }
