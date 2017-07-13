@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Setting\Consumer\Service;
 
+use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblSetting;
@@ -18,6 +19,9 @@ class Data extends AbstractData
 
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount && ($tblConsumer = $tblAccount->getServiceTblConsumer())) {
+
+            $this->createSetting('Contact', 'Address', 'Address', 'Format_GuiString',
+                TblSetting::TYPE_STRING, TblAddress::VALUE_PLZ_ORT_OT_STR_NR);
 
             $this->createSetting('Api', 'Document', 'Standard', 'EnrollmentDocument_PictureAddress',
                 TblSetting::TYPE_STRING, '');
