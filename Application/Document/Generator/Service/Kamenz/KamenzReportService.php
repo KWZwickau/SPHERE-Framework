@@ -56,6 +56,7 @@ class KamenzReportService
             $countSecondForeignSubjectArray = array();
             $countReligionArray = array();
             $countOrientationArray = array();
+            $countDivisionStudentArray = array();
             foreach ($tblCurrentYearList as $tblYear) {
                 if (($tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear))) {
                     foreach ($tblDivisionList as $tblDivision) {
@@ -64,6 +65,8 @@ class KamenzReportService
                             && $tblSchoolType->getId() == $tblKamenzSchoolType->getId()
                         ) {
                             if (($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))) {
+                                $countDivisionStudentArray[$tblDivision->getId()][$tblLevel->getName()] = count($tblPersonList);
+
                                 foreach ($tblPersonList as $tblPerson) {
                                     $gender = false;
                                     // Todo extract methods
@@ -211,6 +214,8 @@ class KamenzReportService
                                         }
                                     }
                                 }
+                            } else {
+                                $countDivisionStudentArray[$tblDivision->getId()][$tblLevel->getName()] = 0;
                             }
                         }
                     }
@@ -352,6 +357,27 @@ class KamenzReportService
                 }
 
                 $count++;
+            }
+
+            /**
+             * G01. Klassenfrequenz im Schuljahr zum Stichtag 02. September
+             */
+            $levelCount = array();
+            foreach ($countDivisionStudentArray as $levelArray) {
+                foreach ($levelArray as $level => $value) {
+                    if (isset($levelCount[$level])) {
+                        $levelCount[$level]++;
+                    } else {
+                        $levelCount[$level] = 1;
+                    }
+                    $Content['G01']['D' . $levelCount[$level]]['L' . $level] = $value;
+
+                    if (isset($Content['G01']['L' . $level]['TotalCount'])) {
+                        $Content['G01']['L' . $level]['TotalCount'] += $value;
+                    } else {
+                        $Content['G01']['L' . $level]['TotalCount'] = $value;
+                    }
+                }
             }
         }
 
