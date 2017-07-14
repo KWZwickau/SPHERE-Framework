@@ -2,9 +2,11 @@
 namespace SPHERE\Application\Platform\Gatekeeper\Authentication;
 
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
 use SPHERE\Application\Platform\System\Database\Database;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\Application\Setting\User\Account\Account as UserAccount;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\PasswordField;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -13,6 +15,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Hospital;
+use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\Shield;
@@ -29,6 +32,8 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Info;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
@@ -52,6 +57,45 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Willkommen', '');
         $Stage->addButton(new Backward(true));
         $Stage->setMessage(date('d.m.Y - H:i:s'));
+
+        $tblIdentificationSearch = Account::useService()->getIdentificationByName(TblIdentification::NAME_USER_CREDENTIAL);
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            $tblAuthentication = Account::useService()->getAuthenticationByAccount($tblAccount);
+            if ($tblAuthentication && ($tblIdentification = $tblAuthentication->getTblIdentification())) {
+                if ($tblIdentificationSearch->getId() == $tblIdentification->getId()) {
+                    $IsEqual = false;
+                    $tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount);
+                    if ($tblUserAccount) {
+                        $Password = $tblUserAccount->getUserPassword();
+                        if ($tblAccount->getPassword() == hash('sha256', $Password)) {
+                            $IsEqual = true;
+                        }
+                    }
+
+                    if ($IsEqual) {
+                        $Stage->setContent(
+                            new Layout(
+                                new LayoutGroup(
+                                    new LayoutRow(array(
+                                        new LayoutColumn('', 2),
+                                        new LayoutColumn(
+                                            new Center(new Panel('Warnung',
+                                                new Warning('Bitte ändern Sie ihr Passwort um eine vollständige
+                                            Sicherheit zu gewährleisten.')
+                                                , Panel::PANEL_TYPE_DANGER,
+                                                new Standard('Passwort ändern', '/Setting/MyAccount/Password'
+                                                    , new Key(), array(), 'Schnellzugriff der Passwort Änderung')))
+                                            , 8)
+                                    ))
+                                )
+                            )
+                        );
+                        return $Stage;
+                    }
+                }
+            }
+        }
 
         $Stage->setContent($this->getCleanLocalStorage());
 
@@ -122,18 +166,26 @@ class Frontend extends Extension implements IFrontendInterface
         $Identifier = $this->getModHex($CredentialKey)->getIdentifier();
         if ($Identifier) {
             $tblToken = Token::useService()->getTokenByIdentifier($Identifier);
-            if ($tblToken) {
-                if ($tblToken->getServiceTblConsumer()) {
-                    $Identification = Account::useService()->getIdentificationByName('Token');
-                } else {
-                    $Identification = Account::useService()->getIdentificationByName('System');
-                }
-            } else {
-                $Identification = Account::useService()->getIdentificationByName('Credential');
-            }
+//            if ($tblToken) {
+//                if ($tblToken->getServiceTblConsumer()) {
+//                    $Identification = Account::useService()->getIdentificationByName('Token');
+//                } else {
+//                    $Identification = Account::useService()->getIdentificationByName('System');
+//                }
+////            } else {
+////                $Identification = Account::useService()->getIdentificationByName('Credential');
+//            }
         } else {
-            $Identification = Account::useService()->getIdentificationByName('Credential');
             $tblToken = null;
+        }
+        if ($CredentialName != '' && ($tblAccount = Account::useService()->getAccountByUsername($CredentialName))) {
+            if ($tblAccount->getServiceTblIdentification()) {
+                $Identification = $tblAccount->getServiceTblIdentification();
+            }
+        }
+
+        if (!isset($Identification)) {
+            $Identification = Account::useService()->getIdentificationByName('Credential');
         }
 
         if (!$Identification) {

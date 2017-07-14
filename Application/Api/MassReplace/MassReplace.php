@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Api\MassReplace;
 
 use SPHERE\Application\IApplicationInterface;

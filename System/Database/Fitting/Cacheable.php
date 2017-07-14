@@ -80,6 +80,12 @@ abstract class Cacheable extends Extension
         $Keys = array_keys( (array)$Parameter );
         $Values = array_values( (array)$Parameter );
 
+        array_walk($Values, function (&$Value) {
+            if ($Value instanceof \DateTime) {
+                $Value = $Value->getTimestamp();
+            }
+        });
+
         return md5($EntityName . ':' . implode('#', $Keys). implode('#', $Values));
     }
 

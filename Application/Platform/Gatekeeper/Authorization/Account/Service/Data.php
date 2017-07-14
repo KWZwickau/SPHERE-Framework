@@ -38,6 +38,7 @@ class Data extends AbstractData
         $this->createIdentification('System', 'Benutzername / Passwort & Hardware-Schlüssel', true);
         $this->createIdentification('Token', 'Benutzername / Passwort & Hardware-Schlüssel', true);
         $this->createIdentification('Credential', 'Benutzername / Passwort', true);
+        $this->createIdentification('UserCredential', 'Benutzername / Passwort', true);
 
 //        $tblConsumer = Consumer::useService()->getConsumerById(1);
 //        // Choose the right Identification for Authentication
@@ -465,6 +466,7 @@ class Data extends AbstractData
     public function getAccountByUsername($Username)
     {
 
+        /** @var TblAccount $Entity */
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblAccount')
             ->findOneBy(array(TblAccount::ATTR_USERNAME => $Username));
         return ( null === $Entity ? false : $Entity );
@@ -574,6 +576,7 @@ class Data extends AbstractData
     public function getAccountByCredential($Username, $Password, TblIdentification $tblIdentification = null)
     {
 
+        /** @var TblAccount $tblAccount */
         $tblAccount = $this->getConnection()->getEntityManager()->getEntity('TblAccount')
             ->findOneBy(array(
                 TblAccount::ATTR_USERNAME => $Username,
@@ -759,6 +762,34 @@ class Data extends AbstractData
     }
 
     /**
+     * @param string     $Password (sha256) no clear text
+     * @param TblAccount $tblAccount
+     *
+     * @return bool
+     */
+    public function resetPassword($Password, TblAccount $tblAccount = null)
+    {
+
+        if (null === $tblAccount) {
+            $tblAccount = $this->getAccountBySession();
+        }
+        $Manager = $this->getConnection()->getEntityManager();
+        /**
+         * @var TblAccount $Protocol
+         * @var TblAccount $Entity
+         */
+        $Entity = $Manager->getEntityById('TblAccount', $tblAccount->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setPassword($Password);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param null|string $Session
      *
      * @return bool|TblAccount
@@ -795,6 +826,9 @@ class Data extends AbstractData
                         break;
                     case 'CREDENTIAL':
                         $Timeout = ( 60 * 15 );
+                        break;
+                    case 'USERCREDENTIAL':
+                        $Timeout = (60 * 15);
                         break;
                     default:
                         $Timeout = ( 60 * 10 );
@@ -984,6 +1018,48 @@ class Data extends AbstractData
             $EntityList = null;
         }
         return ( empty( $EntityList ) ? false : $EntityList );
+    }
+
+    /**
+     * @param TblPerson   $tblPerson
+     * @param TblConsumer $tblConsumer
+     * @param bool        $isForce
+     *
+     * @return bool|TblAccount[]
+     */
+    public function getAccountAllByPerson(TblPerson $tblPerson, TblConsumer $tblConsumer, $isForce = false)
+    {
+
+        $tblAccountList = array();
+        if ($isForce) {
+            $EntityList = $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUser',
+                array(
+                    TblUser::SERVICE_TBL_PERSON => $tblPerson->getId(),
+                ));
+        } else {
+            $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                'TblUser',
+                array(
+                    TblUser::SERVICE_TBL_PERSON => $tblPerson->getId(),
+                ));
+        }
+        if ($EntityList) {
+            /** @var TblUser $Entity */
+            foreach ($EntityList as $Entity) {
+                $tblAccount = $Entity->getTblAccount();
+                if ($tblAccount && $tblAccount->getServiceTblConsumer()) {
+                    // ignor System Accounts (support etc.)
+                    if (($tblIdentification = $tblAccount->getServiceTblIdentification())
+                        && $tblIdentification->getName() != 'System'
+                    ) {
+                        if ($tblAccount->getServiceTblConsumer()->getId() == $tblConsumer->getId()) {
+                            $tblAccountList[] = $tblAccount;
+                        }
+                    }
+                }
+            }
+        }
+        return (!empty($tblAccountList) ? $tblAccountList : false);
     }
 
     /**

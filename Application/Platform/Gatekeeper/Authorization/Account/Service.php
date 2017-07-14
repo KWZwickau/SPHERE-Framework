@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Account;
 
-use SPHERE\Application\Api\Platform\Gatekeeper\ApiUserGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Data;
@@ -19,8 +18,6 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
-use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
-use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Ajax\Template\Notify;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -207,7 +204,7 @@ class Service extends AbstractService
      * @param string $CredentialLock
      * @param TblIdentification $tblIdentification
      *
-     * @return IFormInterface|Redirect
+     * @return IFormInterface|string
      */
     public function createSessionCredential(
         IFormInterface &$Form,
@@ -331,7 +328,7 @@ class Service extends AbstractService
      * @param string $CredentialKey
      * @param TblIdentification $tblIdentification
      *
-     * @return IFormInterface|Redirect
+     * @return IFormInterface|string
      */
     public function createSessionCredentialToken(
         IFormInterface &$Form,
@@ -695,7 +692,19 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getPersonAllByAccount($tblAccount);
+    }
 
+    /**
+     * @param TblPerson $tblPerson
+     * @param bool      $isForce
+     *
+     * @return bool|TblAccount[]
+     */
+    public function getAccountAllByPerson(TblPerson $tblPerson, $isForce = false)
+    {
+
+        $tblConsumer = Consumer::useService()->getConsumerBySession();
+        return (new Data($this->getBinding()))->getAccountAllByPerson($tblPerson, $tblConsumer, $isForce);
     }
 
     /**
@@ -766,6 +775,18 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->changePassword($Password, $tblAccount);
+    }
+
+    /**
+     * @param string     $Password (sha256) no clear text
+     * @param TblAccount $tblAccount
+     *
+     * @return bool
+     */
+    public function resetPassword($Password, TblAccount $tblAccount = null)
+    {
+
+        return (new Data($this->getBinding()))->resetPassword($Password, $tblAccount);
     }
 
     /**
