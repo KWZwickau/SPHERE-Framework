@@ -30,8 +30,12 @@ use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Message\Repository\Danger as DangerMessage;
+use SPHERE\Common\Frontend\Message\Repository\Info as InfoMessage;
 use SPHERE\Common\Frontend\Message\Repository\Success as SuccessMessage;
 use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -186,7 +190,17 @@ class ApiContactAddress extends Extension implements IApiInterface
         }
         $Global->savePost();
 
-        return new Well($this->formAddress($PersonId));
+        return
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new InfoMessage('Hiermit ändern Sie die Adressdaten der Person direkt in den Stammdaten')
+                        ),
+                        new LayoutColumn(new Well($this->formAddress($PersonId)))
+                    ))
+                )
+            );
 //            .new Code(print_r($Global->POST, true));
     }
 

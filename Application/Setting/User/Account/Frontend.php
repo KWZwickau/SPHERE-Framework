@@ -62,7 +62,6 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
-use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -149,7 +148,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'order'      => array(array(1, 'asc')),
                 'columnDefs' => array(
                     array('type' => 'german-string', 'targets' => 1),
-//                    array('width' => '1%', 'targets' => 0), //ToDO Ansichtsproblem
+//                    array('width' => '1%', 'targets' => 0), //ToDO handle changing with
 //                    array('width' => '1%', 'targets' => -1),
                 ),
                 'pageLength' => -1,
@@ -532,7 +531,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'order'      => array(array(1, 'asc')),
                 'columnDefs' => array(
                     array('type' => 'german-string', 'targets' => 1),
-//                    array('width' => '1%', 'targets' => 0), //ToDO Ansichtsproblem
+//                    array('width' => '1%', 'targets' => 0), //ToDO handle changing with
 //                    array('width' => '1%', 'targets' => -1),
                 ),
                 'pageLength' => -1,
@@ -719,30 +718,20 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Salutation'] = new Muted('-NA-');
                 $Item['Name'] = '';
                 $Item['UserName'] = new Warning(new WarningIcon().' Keine Accountnamen hinterlegt');
-                $Item['UserPassword'] = '';
                 $Item['Address'] = '';
                 $Item['PersonListCustody'] = '';
                 $Item['PersonListStudent'] = '';
-                $Item['Option'] =
-//                    new Standard('', '/Setting/User/Account/Address/Edit', new Building(),
-//                        array('Id' => $tblUserAccount->getId()), 'Adresse ändern/anlegen')
-//                    .new Standard('', '/Setting/User/Account/Mail/Edit', new MailIcon(),
-//                        array('Id' => $tblUserAccount->getId()), 'E-Mail ändern/anlegen')
-                    new Standard('', '/Setting/User/Account/Reset', new Repeat(),
-                        array('Id' => $tblUserAccount->getId())
+                $Item['Option'] = new Standard('', '/Setting/User/Account/Reset', new Repeat(),
+                        array(
+                            'Id'   => $tblUserAccount->getId(),
+                            'Path' => '/Setting/User/Account/Student/Show'
+                        )
                         , 'Passwort Zurücksetzten')
                     .new Standard('', '/Setting/User/Account/Destroy', new Remove(),
                         array('Id' => $tblUserAccount->getId()), 'Benutzer entfernen');
                 $tblAccount = $tblUserAccount->getServiceTblAccount();
                 if ($tblAccount) {
                     $Item['UserName'] = $tblAccount->getUsername();
-                    if (hash('sha256', $tblUserAccount->getUserPassword()) != $tblAccount->getPassword()) {
-                        $Item['UserPassword'] = new Success(new SuccessIcon().' PW geändert');
-                    } else {
-                        $Item['UserPassword'] = new Warning($tblUserAccount->getUserPassword());
-                    }
-                } else {
-                    $Item['UserPassword'] = $tblUserAccount->getUserPassword();
                 }
 
                 $tblPerson = $tblUserAccount->getServiceTblPerson();
@@ -772,7 +761,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['PersonListCustody'] = implode($CustodyList);
                     }
 
-//                    //ToDO remove all Accounts (Test)
+//                    //remove all Accounts (local Test)
 //                    $tblUserAccount = Account::useService()->getUserAccountByPerson($tblPerson);
 //                    if ($tblUserAccount) {
 //                        $tblAccount = $tblUserAccount->getServiceTblAccount();
@@ -799,7 +788,6 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Salutation'        => 'Anrede',
                                         'Name'              => 'Name',
                                         'UserName'          => 'Account',
-                                        'UserPassword'      => 'Passwort',      //ToDO remove from display
                                         'Address'           => 'Adresse',
                                         'PersonListCustody' => 'Sorgeberechtigte',
                                         'Option'            => ''
@@ -842,20 +830,16 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['PersonListStudent'] = '';
                 $Item['Option'] =
                     new Standard('', '/Setting/User/Account/Reset', new Repeat(),
-                        array('Id' => $tblUserAccount->getId())
+                        array(
+                            'Id'   => $tblUserAccount->getId(),
+                            'Path' => '/Setting/User/Account/Custody/Show'
+                        )
                         , 'Passwort Zurücksetzten')
                     .new Standard('', '/Setting/User/Account/Destroy', new Remove(),
                         array('Id' => $tblUserAccount->getId()), 'Benutzer entfernen');
                 $tblAccount = $tblUserAccount->getServiceTblAccount();
                 if ($tblAccount) {
                     $Item['UserName'] = $tblAccount->getUsername();
-                    if (hash('sha256', $tblUserAccount->getUserPassword()) != $tblAccount->getPassword()) {
-                        $Item['UserPassword'] = new Success(new SuccessIcon().' PW geändert');
-                    } else {
-                        $Item['UserPassword'] = new Warning($tblUserAccount->getUserPassword());
-                    }
-                } else {
-                    $Item['UserPassword'] = $tblUserAccount->getUserPassword();
                 }
 
                 $tblPerson = $tblUserAccount->getServiceTblPerson();
@@ -886,7 +870,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['PersonListStudent'] = implode($StudentList);
                     }
 
-//                    //ToDO remove all Accounts (Test)
+//                    //remove all Accounts (local Test)
 //                    $tblUserAccount = Account::useService()->getUserAccountByPerson($tblPerson);
 //                    if ($tblUserAccount) {
 //                        $tblAccount = $tblUserAccount->getServiceTblAccount();
@@ -913,7 +897,6 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Salutation'        => 'Anrede',
                                         'Name'              => 'Name',
                                         'UserName'          => 'Account',
-                                        'UserPassword'      => 'Passwort',      //ToDO remove from display
                                         'Address'           => 'Adresse',
                                         'PersonListStudent' => 'Sorgeberechtigt für',
                                         'Option'            => ''
@@ -1018,12 +1001,13 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param null $Id
-     * @param bool $Confirm
+     * @param null   $Id
+     * @param bool   $Confirm
+     * @param string $Path
      *
      * @return Stage|string
      */
-    public function frontendResetAccount($Id = null, $Confirm = false)
+    public function frontendResetAccount($Id = null, $Confirm = false, $Path = '/Setting/User')
     {
 
         $Stage = new Stage('Benutzer Passwort', 'Zurücksetzen');
@@ -1072,9 +1056,9 @@ class Frontend extends Extension implements IFrontendInterface
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
                                 'Ja', '/Setting/User/Account/Reset', new Ok(),
-                                array('Id' => $Id, 'Confirm' => true)
+                                array('Id' => $Id, 'Confirm' => true, 'Path' => $Path)
                             )
-                            .new Standard('Nein', '/Setting/User', new Disable())
+                            .new Standard('Nein', $Path, new Disable())
                         )
                     )))))
                 );
@@ -1095,7 +1079,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new SuccessMessage(new SuccessIcon().' Der Benutzer wurde Zurückgesetzt')
                                 : new DangerMessage(new Ban().' Der Benutzer konnte nicht Zurückgesetzt werden')
                             ),
-                            new Redirect('/Setting/User', Redirect::TIMEOUT_SUCCESS)
+                            new Redirect($Path, Redirect::TIMEOUT_SUCCESS)
                         )))
                     )))
                 );
@@ -1105,7 +1089,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
                         new DangerMessage(new Ban().' Der Benutzer konnte nicht gefunden werden'),
-                        new Redirect('/Setting/User', Redirect::TIMEOUT_ERROR)
+                        new Redirect($Path, Redirect::TIMEOUT_ERROR)
                     )))
                 )))
             );
