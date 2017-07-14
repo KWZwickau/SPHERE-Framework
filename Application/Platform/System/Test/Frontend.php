@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Platform\System\Test;
 
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Api\Platform\Test\ApiSystemTest;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Platform\System\Test\Service\Entity\TblTestPicture;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -123,6 +124,19 @@ class Frontend extends Extension implements IFrontendInterface
             }
             ksort($IconList);
         }
+
+        $Receiver = 'Modal benötigt die API Route "/Api/Platform/Test/ApiSystemTest"'
+            .ApiSystemTest::receiverFirstModal()
+            .ApiSystemTest::receiverSecondModal()
+            .ApiSystemTest::receiverThirdModal();
+        $firstReceiverButton = (new Standard('Öffne ein Modal', ApiSystemTest::getEndpoint()))
+            ->ajaxPipelineOnClick(ApiSystemTest::pipelineOpenFirstModal());
+        $secondReceiverButton = (new Standard('Modal mit Form', ApiSystemTest::getEndpoint()))
+            ->ajaxPipelineOnClick(ApiSystemTest::pipelineOpenSecondModal());
+        $thirdReceiverButton = (new Standard('Modal mit "Laden"', ApiSystemTest::getEndpoint()))
+            ->ajaxPipelineOnClick(ApiSystemTest::pipelineOpenThirdModal());
+        $fourReceiverButton = (new Standard('Modal mit "Tabs"', ApiSystemTest::getEndpoint()))
+            ->ajaxPipelineOnClick(ApiSystemTest::pipelineOpenFourthModal());
 
         $Stage->setContent(
             (new Form(
@@ -282,6 +296,19 @@ class Frontend extends Extension implements IFrontendInterface
                     )),
 
                 ), new Title('Layout Development')),
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            $Receiver
+                            , 3),
+                        new LayoutColumn(
+                            $firstReceiverButton
+                            .$secondReceiverButton
+                            .$thirdReceiverButton
+                            .$fourReceiverButton
+                            , 9)
+                    ))
+                    , new Title('ModalReceiver')),
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(implode($IconList)),
