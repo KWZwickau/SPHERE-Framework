@@ -72,24 +72,20 @@ class Service extends Extension
 
                 $count++;
                 $tblCompany->Number = $count;
-                if (( $addressList = Address::useService()->getAddressAllByCompany($tblCompany) )) {
-                    $address = $addressList[0];
+                if (($tblToCompanyAddressList = Address::useService()->getAddressAllByCompany($tblCompany))) {
+                    $tblToCompanyAddress = $tblToCompanyAddressList[0];
                 } else {
-                    $address = null;
+                    $tblToCompanyAddress = false;
                 }
+                if ($tblToCompanyAddress && ($tblAddress = $tblToCompanyAddress->getTblAddress())) {
 
-                if ($address !== null) {
-                    $tblCompany->StreetName = $address->getTblAddress()->getStreetName();
-                    $tblCompany->StreetNumber = $address->getTblAddress()->getStreetNumber();
-                    $tblCompany->Code = $address->getTblAddress()->getTblCity()->getCode();
-                    $tblCompany->City = $address->getTblAddress()->getTblCity()->getName();
-                    $tblCompany->District = $address->getTblAddress()->getTblCity()->getDistrict();
+                    $tblCompany->StreetName = $tblAddress->getStreetName();
+                    $tblCompany->StreetNumber = $tblAddress->getStreetNumber();
+                    $tblCompany->Code = $tblAddress->getTblCity()->getCode();
+                    $tblCompany->City = $tblAddress->getTblCity()->getName();
+                    $tblCompany->District = $tblAddress->getTblCity()->getDistrict();
 
-                    $tblCompany->Address = $address->getTblAddress()->getStreetName().' '.
-                        $address->getTblAddress()->getStreetNumber().' '.
-                        $address->getTblAddress()->getTblCity()->getCode().' '.
-                        $address->getTblAddress()->getTblCity()->getName().' '.
-                        ( $address->getTblAddress()->getTblCity()->getDistrict() != '' ? 'OT '.$address->getTblAddress()->getTblCity()->getDistrict() : '' );
+                    $tblCompany->Address = $tblAddress->getGuiString();
                 } else {
                     $tblCompany->StreetName = $tblCompany->StreetNumber = $tblCompany->Code = $tblCompany->City = $tblCompany->District = '';
                     $tblCompany->Address = '';
