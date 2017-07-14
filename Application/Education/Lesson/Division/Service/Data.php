@@ -1024,7 +1024,8 @@ class Data extends AbstractData
             $Entity = $Manager->getEntity('TblDivisionSubject')
                 ->findOneBy(array(
                     TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId(),
-                    TblDivisionSubject::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+                    TblDivisionSubject::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                    TblDivisionSubject::ATTR_TBL_SUBJECT_GROUP => null
                 ));
         } else {
             $Entity = $Manager->getEntity('TblDivisionSubject')
