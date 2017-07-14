@@ -317,6 +317,10 @@ class Data extends Integration
             $this->createStudentLiberationType($tblStudentLiberationCategory, 'Teilbefreit');
             $this->createStudentLiberationType($tblStudentLiberationCategory, 'Vollbefreit');
         }
+
+        $this->createStudentSchoolEnrollmentType('PREMATURE', 'vorzeitige Einschulung');
+        $this->createStudentSchoolEnrollmentType('REGULAR', 'fristgemäße Einschulung');
+        $this->createStudentSchoolEnrollmentType('POSTPONED', 'Einschulung nach Zurückstellung');
     }
 
     /**

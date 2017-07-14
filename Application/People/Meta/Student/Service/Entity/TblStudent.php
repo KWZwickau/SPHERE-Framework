@@ -60,6 +60,16 @@ class TblStudent extends Element
     protected $tblStudentIntegration;
 
     /**
+     * @Column(type="boolean")
+     */
+    protected $HasMigrationBackground;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsInPreparationDivisionForMigrants;
+
+    /**
      * @return bool|TblStudentMedicalRecord
      */
     public function getTblStudentMedicalRecord()
@@ -256,6 +266,38 @@ class TblStudent extends Element
     {
 
         $this->SchoolAttendanceStartDate = $SchoolAttendanceStartDate;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getHasMigrationBackground()
+    {
+        return (boolean) $this->HasMigrationBackground;
+    }
+
+    /**
+     * @param boolean $HasMigrationBackground
+     */
+    public function setHasMigrationBackground($HasMigrationBackground)
+    {
+        $this->HasMigrationBackground = (boolean) $HasMigrationBackground;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isInPreparationDivisionForMigrants()
+    {
+        return (boolean) $this->IsInPreparationDivisionForMigrants;
+    }
+
+    /**
+     * @param boolean $IsInPreparationDivisionForMigrants
+     */
+    public function setIsInPreparationDivisionForMigrants($IsInPreparationDivisionForMigrants)
+    {
+        $this->IsInPreparationDivisionForMigrants = (boolean) $IsInPreparationDivisionForMigrants;
     }
 
 }

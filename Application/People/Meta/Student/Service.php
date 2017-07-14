@@ -495,7 +495,9 @@ class Service extends Integration
                 $tblStudentLocker,
                 $tblStudentBaptism,
                 $tblStudentIntegration,
-                $Meta['Student']['SchoolAttendanceStartDate']
+                $Meta['Student']['SchoolAttendanceStartDate'],
+                isset($Meta['Student']['HasMigrationBackground']),
+                isset($Meta['Student']['IsInPreparationDivisionForMigrants'])
             );
 
         } else {
@@ -550,7 +552,9 @@ class Service extends Integration
                 $tblStudentLocker,
                 $tblStudentBaptism,
                 $tblStudentIntegration,
-                $Meta['Student']['SchoolAttendanceStartDate']
+                $Meta['Student']['SchoolAttendanceStartDate'],
+                isset($Meta['Student']['HasMigrationBackground']),
+                isset($Meta['Student']['IsInPreparationDivisionForMigrants'])
             );
         }
 
@@ -597,6 +601,9 @@ class Service extends Integration
             $tblCompany = Company::useService()->getCompanyById($Meta['Transfer'][$TransferTypeEnrollment->getId()]['School']);
             $tblType = Type::useService()->getTypeById($Meta['Transfer'][$TransferTypeEnrollment->getId()]['Type']);
             $tblCourse = Course::useService()->getCourseById($Meta['Transfer'][$TransferTypeEnrollment->getId()]['Course']);
+            $tblStudentSchoolEnrollmentType = $this->getStudentSchoolEnrollmentTypeById(
+                $Meta['Transfer'][$TransferTypeEnrollment->getId()]['StudentSchoolEnrollmentType']
+            );
             if ($tblStudentTransferByTypeEnrollment) {
                 (new Data($this->getBinding()))->updateStudentTransfer(
                     $tblStudentTransferByTypeEnrollment,
@@ -606,7 +613,8 @@ class Service extends Integration
                     $tblType ? $tblType : null,
                     $tblCourse ? $tblCourse : null,
                     $Meta['Transfer'][$TransferTypeEnrollment->getId()]['Date'],
-                    $Meta['Transfer'][$TransferTypeEnrollment->getId()]['Remark']
+                    $Meta['Transfer'][$TransferTypeEnrollment->getId()]['Remark'],
+                    $tblStudentSchoolEnrollmentType ? $tblStudentSchoolEnrollmentType : null
                 );
             } else {
                 (new Data($this->getBinding()))->createStudentTransfer(
@@ -616,7 +624,8 @@ class Service extends Integration
                     $tblType ? $tblType : null,
                     $tblCourse ? $tblCourse : null,
                     $Meta['Transfer'][$TransferTypeEnrollment->getId()]['Date'],
-                    $Meta['Transfer'][$TransferTypeEnrollment->getId()]['Remark']
+                    $Meta['Transfer'][$TransferTypeEnrollment->getId()]['Remark'],
+                    $tblStudentSchoolEnrollmentType ? $tblStudentSchoolEnrollmentType : null
                 );
             }
 

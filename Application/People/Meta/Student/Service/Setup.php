@@ -60,7 +60,8 @@ class Setup extends AbstractSetup
         );
 
         $tblStudentTransferType = $this->setTableStudentTransferType($Schema);
-        $this->setTableStudentTransfer($Schema, $tblStudent, $tblStudentTransferType);
+        $tblStudentSchoolEnrollmentType =  $this->setTableStudentSchoolEnrollmentType($Schema);
+        $this->setTableStudentTransfer($Schema, $tblStudent, $tblStudentTransferType, $tblStudentSchoolEnrollmentType);
 
         $tblStudentAgreementCategory = $this->setTableStudentAgreementCategory($Schema);
         $tblStudentAgreementType = $this->setTableStudentAgreementType($Schema, $tblStudentAgreementCategory);
@@ -325,6 +326,8 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblStudent', 'SchoolAttendanceStartDate')) {
             $Table->addColumn('SchoolAttendanceStartDate', 'datetime', array('notnull' => false));
         }
+        $this->createColumn($Table, 'HasMigrationBackground', self::FIELD_TYPE_BOOLEAN, false, false);
+        $this->createColumn($Table, 'IsInPreparationDivisionForMigrants', self::FIELD_TYPE_BOOLEAN, false, false);
         $this->getConnection()->addForeignKey($Table, $tblStudentMedicalRecord, true);
         $this->getConnection()->addForeignKey($Table, $tblStudentTransport, true);
         $this->getConnection()->addForeignKey($Table, $tblStudentBilling, true);
@@ -354,15 +357,17 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table  $tblStudent
-     * @param Table  $tblStudentTransferType
+     * @param Table $tblStudent
+     * @param Table $tblStudentTransferType
+     * @param Table $tblStudentSchoolEnrollmentType
      *
      * @return Table
      */
     private function setTableStudentTransfer(
         Schema &$Schema,
         Table $tblStudent,
-        Table $tblStudentTransferType
+        Table $tblStudentTransferType,
+        Table $tblStudentSchoolEnrollmentType
     ) {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblStudentTransfer');
@@ -383,6 +388,8 @@ class Setup extends AbstractSetup
         }
         $this->getConnection()->addForeignKey($Table, $tblStudent);
         $this->getConnection()->addForeignKey($Table, $tblStudentTransferType);
+        $this->getConnection()->addForeignKey($Table, $tblStudentSchoolEnrollmentType, true);
+
         return $Table;
     }
 
@@ -639,6 +646,21 @@ class Setup extends AbstractSetup
         $this->getConnection()->addForeignKey($Table, $tblStudent);
         $this->getConnection()->addForeignKey($Table, $tblStudentFocusType);
         return $Table;
+    }
+
+    /**
+     * @param Schema $schema
+     *
+     * @return Table
+     */
+    private function setTableStudentSchoolEnrollmentType(Schema &$schema)
+    {
+
+        $table = $this->createTable($schema, 'tblStudentSchoolEnrollmentType');
+        $this->createColumn($table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'Identifier', self::FIELD_TYPE_STRING);
+
+        return $table;
     }
 
 }
