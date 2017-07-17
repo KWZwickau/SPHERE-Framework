@@ -170,6 +170,19 @@ class Service extends AbstractService
             $Form->setError('Division[Name]', 'Bitte geben Sie eine Klassengruppe an');
             $Error = true;
         }
+        // Level
+        if (!isset($Level['Check']) && isset($Level['Name'])) {
+            if (is_numeric($Level)) {
+                $position = strpos($Level, '0');
+                if ($position === 0) {
+                    $Form->setError('Level[Name]', 'Bitte geben Sie eine Natürliche Zahl ein.');
+                    $Error = true;
+                }
+            } else {
+                $Form->setError('Level[Name]', 'Bitte geben Sie eine Zahl ein.');
+                $Error = true;
+            }
+        }
 
         // Level
         if (!$Error) {
