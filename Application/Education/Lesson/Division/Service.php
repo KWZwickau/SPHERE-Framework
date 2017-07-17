@@ -1913,6 +1913,20 @@ class Service extends AbstractService
         }
 
         // Level
+        if (!isset($Level['Check']) && isset($Level['Name'])) {
+            if (is_numeric($Level)) {
+                $position = strpos($Level, '0');
+                if ($position === 0) {
+                    $Form->setError('Level[Name]', 'Bitte geben Sie eine Natürliche Zahl ein.');
+                    $Error = true;
+                }
+            } else {
+                $Form->setError('Level[Name]', 'Bitte geben Sie eine Zahl ein.');
+                $Error = true;
+            }
+        }
+
+        // Level
         if (!$Error) {
             $tblLevel = null;
             if (!isset($Level['Check'])) {
