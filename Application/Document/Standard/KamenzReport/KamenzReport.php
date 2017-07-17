@@ -7,13 +7,17 @@ use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Reporting\AbstractModule;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -32,11 +36,11 @@ class KamenzReport extends AbstractModule implements IModuleInterface
         );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, __CLASS__.'::frontendShowKamenz'
+            __NAMESPACE__, __CLASS__ . '::frontendShowKamenz'
         ));
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '/Validate/SecondarySchool', __CLASS__.'::frontendValidateSecondarySchool'
+            __NAMESPACE__ . '/Validate/SecondarySchool', __CLASS__ . '::frontendValidateSecondarySchool'
         ));
     }
 
@@ -66,13 +70,12 @@ class KamenzReport extends AbstractModule implements IModuleInterface
         $Stage = new Stage('Kamenz-Statistik', 'Auswählen');
 
         $Stage->addButton(new Standard(
-           'Oberschule / Mittelschule', '/Document/Standard/KamenzReport/Validate/SecondarySchool'
+            'Oberschule / Mittelschule', '/Document/Standard/KamenzReport/Validate/SecondarySchool'
         ));
 
 //        $Stage->addButton(new External('Herunterladen: Grundschulstatistik',
 //            'SPHERE\Application\Api\Document\Standard\KamenzReportGS\Create',
 //            new Download(), array(), 'Kamenz-Statistik der GS herunterladen'));
-
 
 
 //        $Stage->addButton(new External('Herunterladen: Gymnasialstatistik',
@@ -108,16 +111,37 @@ class KamenzReport extends AbstractModule implements IModuleInterface
 
         //        Debugger::screenDump(KamenzReportService::setKamenzReportContent(array()));
 
+        $summary = array();
+
+        $countStudentsWithoutDivision = 0;
+        if (($studentsWithoutDivision = KamenzService::getStudentsWithoutDivision($countStudentsWithoutDivision))) {
+            $content[] = new LayoutColumn($studentsWithoutDivision);
+            $summary[] = new Warning($countStudentsWithoutDivision . ' Schüler sind keiner aktuellen Klasse zugeordnet.'
+                , new Exclamation());
+        } else {
+            $summary[] = new Success('Alle Schüler sind einer aktuellen Klasse zugeordnet',
+                new \SPHERE\Common\Frontend\Icon\Repository\Success());
+        }
+
+        $content[] = new LayoutColumn(
+            KamenzService::validate(Type::useService()->getTypeByName('Mittelschule / Oberschule'), $summary)
+        );
+
         $Stage->setContent(
-            new Layout(
-                new LayoutGroup(
-                    new LayoutRow(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
                         new LayoutColumn(
-                            KamenzService::validate(Type::useService()->getTypeByName('Mittelschule / Oberschule'))
-                        )
+                            $summary
+                        ),
+                    ))
+                ), new Title('Zusammenfassung')),
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        $content
                     )
-                )
-            )
+                ))
+            ))
         );
 
         return $Stage;
