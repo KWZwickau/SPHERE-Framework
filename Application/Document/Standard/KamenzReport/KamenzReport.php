@@ -109,7 +109,7 @@ class KamenzReport extends AbstractModule implements IModuleInterface
             'SPHERE\Application\Api\Document\Standard\KamenzReport\Create',
             new Download(), array(), 'Kamenz-Statistik Herungerladen'));
 
-        //        Debugger::screenDump(KamenzReportService::setKamenzReportContent(array()));
+//        Debugger::screenDump(KamenzReportService::setKamenzReportContent(array()));
 
         $summary = array();
 
