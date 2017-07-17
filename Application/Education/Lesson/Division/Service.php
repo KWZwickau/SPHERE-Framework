@@ -175,11 +175,11 @@ class Service extends AbstractService
             if (is_numeric($Level)) {
                 $position = strpos($Level, '0');
                 if ($position === 0) {
-                    $Form->setError('Level[Name]', 'Bitte geben Sie eine Natürliche Zahl ein.');
+                    $Form->setError('Level[Name]', 'Bitte geben Sie eine Zahl ohne führende "0" ein');
                     $Error = true;
                 }
             } else {
-                $Form->setError('Level[Name]', 'Bitte geben Sie eine Zahl ein.');
+                $Form->setError('Level[Name]', 'Bitte geben Sie eine Zahl ein');
                 $Error = true;
             }
         }
@@ -1917,11 +1917,11 @@ class Service extends AbstractService
             if (is_numeric($Level)) {
                 $position = strpos($Level, '0');
                 if ($position === 0) {
-                    $Form->setError('Level[Name]', 'Bitte geben Sie eine Natürliche Zahl ein.');
+                    $Form->setError('Level[Name]', 'Bitte geben Sie eine Zahl ohne führende "0" ein');
                     $Error = true;
                 }
             } else {
-                $Form->setError('Level[Name]', 'Bitte geben Sie eine Zahl ein.');
+                $Form->setError('Level[Name]', 'Bitte geben Sie eine Zahl ein');
                 $Error = true;
             }
         }
