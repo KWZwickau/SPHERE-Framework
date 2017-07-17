@@ -766,7 +766,7 @@ abstract class AbstractDocument
         $picturePath = $this->getEnrollmentDocumentUsedPicture();
         if ($picturePath != '') {
             $height = $this->getEnrollmentDocumentPictureHeight();
-            $column = (new Element\Image($picturePath, $with, $height));
+            $column = (new Element\Image($picturePath, $with, $height))->stylePaddingTop((56 - substr($height, 0, strlen($height) - 2) / 2) . 'px');
         } else {
             $column = (new Element())
                 ->setContent('&nbsp;');
@@ -801,6 +801,6 @@ abstract class AbstractDocument
             $value = (string)$tblSetting->getValue();
         }
 
-        return $value ? $value : '50px';
+        return $value ? $value : '90px';
     }
 }
