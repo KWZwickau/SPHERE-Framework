@@ -23,7 +23,7 @@ class E05
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E05. Schüler im Ethik- bzw. Religionsunterricht im Schuljahr {{Content.Schoolyear.Current}} nach Klassenstufen')
+                ->setContent('E05. Schüler im Ethik- bzw. Religionsunterricht im Schuljahr {{Content.SchoolYear.Current}} nach Klassenstufen')
             );
 
         $sliceList[] = (new Slice())

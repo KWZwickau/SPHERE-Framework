@@ -23,7 +23,7 @@ class E15
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E15. Schüler aus dem Ausland mit individuellem Schulbesuch im Schuljahr {{ Content.Schoolyear.Current }}')
+                ->setContent('E15. Schüler aus dem Ausland mit individuellem Schulbesuch im Schuljahr {{ Content.SchoolYear.Current }}')
             );
 
         $sliceList[] = (new Slice())

@@ -23,7 +23,7 @@ class E11
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E11. Schüler in der zweiten FREMDSPRACHE - abschlussorientiert im Schuljahr {{ Content.Schoolyear.Current }} nach Klassenstufen')
+                ->setContent('E11. Schüler in der zweiten FREMDSPRACHE - abschlussorientiert im Schuljahr {{ Content.SchoolYear.Current }} nach Klassenstufen')
             );
 
         $sliceList[] = (new Slice())

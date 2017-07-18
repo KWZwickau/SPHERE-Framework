@@ -23,7 +23,7 @@ class E06
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E06. Schüler im Sorbischunterricht im Schuljahr {{Content.Schoolyear.Current}} nach Klassenstufen')
+                ->setContent('E06. Schüler im Sorbischunterricht im Schuljahr {{Content.SchoolYear.Current}} nach Klassenstufen')
             );
 
         $sliceList[] = (new Slice())

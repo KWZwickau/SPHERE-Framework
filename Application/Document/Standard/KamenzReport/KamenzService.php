@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Document\Standard\KamenzReport;
 
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
@@ -45,55 +46,64 @@ class KamenzService
         $count['Religion'] = 0;
         $count['Orientation'] = 0;
         $count['Student'] = 0;
+        $count['Nationality'] = 0;
         $studentList = array();
-        if (($tblDivisionList = Division::useService()->getDivisionAll())) {
-            foreach ($tblDivisionList as $tblDivision) {
-                if (($tblLevel = $tblDivision->getTblLevel())
-                    && !$tblLevel->getIsChecked()
-                    && ($tblType = $tblLevel->getServiceTblType())
-                    && ($tblType->getId() == $tblSchoolType->getId())
-                ) {
+        if (($tblCurrentYearList = Term::useService()->getYearByNow())) {
+            foreach ($tblCurrentYearList as $tblYear) {
+                if (($tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear))) {
+                    foreach ($tblDivisionList as $tblDivision) {
+                        if (($tblLevel = $tblDivision->getTblLevel())
+                            && !$tblLevel->getIsChecked()
+                            && ($tblType = $tblLevel->getServiceTblType())
+                            && ($tblType->getId() == $tblSchoolType->getId())
+                        ) {
 
-                    if (($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))) {
-                        foreach ($tblPersonList as $tblPerson) {
-                            if (!isset($studentList[$tblPerson->getId()])) {
-                                $count['Student']++;
-                                $gender = false;
-                                $birthday = false;
-                                $nationality = '';
-                                if (($tblCommon = $tblPerson->getCommon())) {
-                                    if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
-                                        if (($tblGender = $tblCommonBirthDates->getTblCommonGender())) {
-                                            $gender = $tblGender->getName();
+                            if (($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))) {
+                                foreach ($tblPersonList as $tblPerson) {
+                                    if (!isset($studentList[$tblPerson->getId()])) {
+                                        $count['Student']++;
+                                        $gender = false;
+                                        $birthday = false;
+                                        $nationality = '';
+                                        if (($tblCommon = $tblPerson->getCommon())) {
+                                            if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
+                                                if (($tblGender = $tblCommonBirthDates->getTblCommonGender())) {
+                                                    $gender = $tblGender->getName();
+                                                }
+                                                if (($birthdayDate = $tblCommonBirthDates->getBirthday())) {
+                                                    $birthday = $birthdayDate;
+                                                }
+                                            }
+                                            if (($tblCommonInformation = $tblCommon->getTblCommonInformation())) {
+                                                $nationality = $tblCommonInformation->getNationality();
+                                            }
                                         }
-                                        if (($birthdayDate = $tblCommonBirthDates->getBirthday())) {
-                                            $birthday = $birthdayDate;
+
+                                        if (!$gender) {
+                                            $gender = new Warning('Keine Geschlecht hinterlegt.', new Exclamation());
+                                            $count['Gender']++;
                                         }
-                                    }
-                                    if (($tblCommonInformation = $tblCommon->getTblCommonInformation())) {
-                                        $nationality = $tblCommonInformation->getNationality();
-                                    }
-                                }
+                                        if (!$birthday) {
+                                            $birthday = new Warning('Kein Geburtsdatum hinterlegt.', new Exclamation());
+                                            $count['Birthday']++;
+                                        }
 
-                                if (!$gender) {
-                                    $gender = new Warning('Keine Geschlecht hinterlegt.', new Exclamation());
-                                    $count['Gender']++;
-                                }
-                                if (!$birthday) {
-                                    $birthday = new Warning('Kein Geburtsdatum hinterlegt.', new Exclamation());
-                                    $count['Birthday']++;
-                                }
+                                        if (($tblStudent = $tblPerson->getStudent())) {
+                                            $hasMigrationBackground = $tblStudent->getHasMigrationBackground() ? 'ja' : 'nein';
+                                            $isInPreparationDivisionForMigrants = $tblStudent->isInPreparationDivisionForMigrants()
+                                                ? 'ja' : 'nein';
+                                            if ($tblStudent->getHasMigrationBackground()
+                                                && $nationality == ''
+                                            ) {
+                                                $nationality = new Warning('Kein Staatsangehörigkeit hinterlegt.', new Exclamation());
+                                                $count['Nationality']++;
+                                            }
+                                        } else {
+                                            $hasMigrationBackground = 'nein';
+                                            $isInPreparationDivisionForMigrants = 'nein';
+                                        }
 
-                                if (($tblStudent = $tblPerson->getStudent())) {
-                                    $hasMigrationBackground = $tblStudent->getHasMigrationBackground() ? 'ja' : 'nein';
-                                    $isInPreparationDivisionForMigrants = $tblStudent->isInPreparationDivisionForMigrants()
-                                        ? 'ja' : 'nein';
-                                } else {
-                                    $hasMigrationBackground = 'nein';
-                                    $isInPreparationDivisionForMigrants = 'nein';
-                                }
-
-                                // todo Einschulungsart
+                                        // todo Einschulungsart
 //                            if (($tblStudent = $tblPerson->getStudent())
 //                                && ($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT'))
 //                                && ($tblStudentTransfer = Student::useService()->getStudentTransferByType(
@@ -103,39 +113,41 @@ class KamenzService
 //
 //                            }
 
-                                $foreignLanguages = self::getForeignLanguages($tblPerson);
+                                        $foreignLanguages = self::getForeignLanguages($tblPerson);
 
-                                $studentList[$tblPerson->getId()] = array(
-                                    'Division' => $tblDivision->getDisplayName(),
-                                    'Name' => $tblPerson->getLastFirstName(),
-                                    'Gender' => $gender,
-                                    'Birthday' => $birthday,
-                                    'ForeignLanguage1' => isset($foreignLanguages[1]) ? $foreignLanguages[1] : '',
-                                    'ForeignLanguage2' => isset($foreignLanguages[2]) ? $foreignLanguages[2] : '',
-                                    'ForeignLanguage3' => isset($foreignLanguages[3]) ? $foreignLanguages[3] : '',
-                                    'ForeignLanguage4' => isset($foreignLanguages[4]) ? $foreignLanguages[4] : '',
-                                    'Religion' => self::getReligion($tblPerson, $count),
-                                    'Nationality' => $nationality,
-                                    'HasMigrationBackground' => $hasMigrationBackground,
-                                    'IsInPreparationDivisionForMigrants' => $isInPreparationDivisionForMigrants,
-                                    'Option' => new Standard(
-                                        '',
-                                        '/People/Person',
-                                        new Person(),
-                                        array(
-                                            'Id' => $tblPerson->getId()
-                                        ),
-                                        'Zur Person wechseln'
-                                    )
-                                );
+                                        $studentList[$tblPerson->getId()] = array(
+                                            'Division' => $tblDivision->getDisplayName(),
+                                            'Name' => $tblPerson->getLastFirstName(),
+                                            'Gender' => $gender,
+                                            'Birthday' => $birthday,
+                                            'ForeignLanguage1' => isset($foreignLanguages[1]) ? $foreignLanguages[1] : '',
+                                            'ForeignLanguage2' => isset($foreignLanguages[2]) ? $foreignLanguages[2] : '',
+                                            'ForeignLanguage3' => isset($foreignLanguages[3]) ? $foreignLanguages[3] : '',
+                                            'ForeignLanguage4' => isset($foreignLanguages[4]) ? $foreignLanguages[4] : '',
+                                            'Religion' => self::getReligion($tblPerson, $count),
+                                            'Nationality' => $nationality,
+                                            'HasMigrationBackground' => $hasMigrationBackground,
+                                            'IsInPreparationDivisionForMigrants' => $isInPreparationDivisionForMigrants,
+                                            'Option' => new Standard(
+                                                '',
+                                                '/People/Person',
+                                                new Person(),
+                                                array(
+                                                    'Id' => $tblPerson->getId()
+                                                ),
+                                                'Zur Person wechseln'
+                                            )
+                                        );
 
-                                if (($tblSchoolType->getName() == 'Mittelschule / Oberschule')) {
-                                    if (($orientation = self::getOrientation($tblPerson))) {
-                                        $studentList[$tblPerson->getId()]['Orientation'] = $orientation;
-                                    } elseif (preg_match('!(0?(7|8|9))!is', $tblLevel->getName())) {
-                                        $count['Orientation']++;
-                                        $studentList[$tblPerson->getId()]['Orientation']
-                                            = new Warning('Kein Neigungskurs hinterlegt.', new Exclamation());
+                                        if (($tblSchoolType->getName() == 'Mittelschule / Oberschule')) {
+                                            if (($orientation = self::getOrientation($tblPerson))) {
+                                                $studentList[$tblPerson->getId()]['Orientation'] = $orientation;
+                                            } elseif (preg_match('!(0?(7|8|9))!is', $tblLevel->getName())) {
+                                                $count['Orientation']++;
+                                                $studentList[$tblPerson->getId()]['Orientation']
+                                                    = new Warning('Kein Neigungskurs hinterlegt.', new Exclamation());
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -376,6 +388,10 @@ class KamenzService
         }
         if ($count['Orientation'] > 0) {
             $summary[] = new Warning($count['Orientation'] . ' Schüler/n ist kein Neigungskurs zugeordnet.'
+                , new Exclamation());
+        }
+        if ($count['Nationality'] > 0) {
+            $summary[] = new Warning($count['Nationality'] . ' Schüler/n mit Migrationshintergrund ist keine Staatsangehörigkeit zugeordnet.'
                 , new Exclamation());
         }
 

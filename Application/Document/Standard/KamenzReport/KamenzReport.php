@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Document\Standard\KamenzReport;
 
+use SPHERE\Application\Document\Generator\Service\Kamenz\KamenzReportService;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
@@ -21,6 +22,7 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class KamenzReport

@@ -23,7 +23,7 @@ class F01
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('F01. Integrierte Schüler mit sonderpädagogischem Förderbedarf im Schuljahr {{ Content.Schoolyear.Current }} nach Förderschwerpunkten und Klassenstufen')
+                ->setContent('F01. Integrierte Schüler mit sonderpädagogischem Förderbedarf im Schuljahr {{ Content.SchoolYear.Current }} nach Förderschwerpunkten und Klassenstufen')
             );
 
         $sliceList[] = (new Slice())

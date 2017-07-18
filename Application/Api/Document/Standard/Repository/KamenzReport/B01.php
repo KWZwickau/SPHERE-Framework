@@ -253,16 +253,24 @@ class B01
         $section
             ->addElementColumn((new Element())
                 ->setContent('
-                            &nbsp;
-                        ')
+                    {% if (Content.B01.TotalCount.m is not empty) %}
+                        {{ Content.B01.TotalCount.m }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}
+                ')
                 ->styleBackgroundColor('lightgrey')
                 ->styleBorderRight()
                 ->styleTextBold(), '7%'
             )
             ->addElementColumn((new Element())
                 ->setContent('
-                             &nbsp;   
-                            ')
+                    {% if (Content.B01.TotalCount.w is not empty) %}
+                        {{ Content.B01.TotalCount.w }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}
+                ')
                 ->styleBackgroundColor('lightgrey')
                 ->styleTextBold(), '7%'
             );

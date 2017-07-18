@@ -23,7 +23,7 @@ class E02_1
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E02.1 Darunter <u>Schüler mit Migrationshintergrund</u> im Schuljahr {{Content.Schoolyear.Current}} nach Geburtsjahren und Klassenstufen')
+                ->setContent('E02.1 Darunter <u>Schüler mit Migrationshintergrund</u> im Schuljahr {{Content.SchoolYear.Current}} nach Geburtsjahren und Klassenstufen')
 
             );
 
@@ -42,10 +42,11 @@ class E02_1
                     ->stylePaddingBottom('34.7px'), '20%'
                 )
                 ->addSliceColumn((new Slice())
-                    ->styleBorderRight()
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Klassenstufe'), '70%'
+                            ->setContent('Klassenstufe')
+                            ->styleBorderRight()
+                            , '70%'
                         )
                     )
                     ->addSection((new Section())
@@ -93,7 +94,8 @@ class E02_1
                         )
                         ->addElementColumn((new Element())
                             ->setContent('Vorb.-kl. u.<br/>-gruppen f.<br/>Migranten')
-                            ->styleBorderBottom(), '10%'
+                            ->styleBorderBottom()
+                            ->styleBorderRight(), '10%'
                         )
                     )
                     ->addSection((new Section())
@@ -150,7 +152,8 @@ class E02_1
                             ->styleBorderRight(), '5%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('w'), '5%'
+                            ->setContent('w')
+                            ->styleBorderRight(), '5%'
                         )
                     )
                 )
@@ -176,8 +179,7 @@ class E02_1
                 )
             );
 
-        for ($i = 0; $i < 10; $i++)
-        {
+        for ($i = 0; $i < 10; $i++) {
             $sliceList[] = (new Slice())
                 ->styleAlignCenter()
                 ->styleBorderBottom()
@@ -194,7 +196,6 @@ class E02_1
                         ')
                         ->styleBorderRight(), '20%'
                     )
-                    // $Content['E02'][$count][$level][$gender] = $value;
                     ->addElementColumn((new Element())
                         ->setContent('
                             {% if (Content.E02_1.Y' . $i . '.L5.m is not empty) %}
@@ -316,22 +317,46 @@ class E02_1
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
+                        ->setContent('
+                            {% if (Content.E02_1.Y' . $i . '.LMigration.m is not empty) %}
+                                {{ Content.E02_1.Y' . $i . '.LMigration.m }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                         ->styleBackgroundColor('lightgrey')
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
+                        ->setContent('
+                            {% if (Content.E02_1.Y' . $i . '.LMigration.w is not empty) %}
+                                {{ Content.E02_1.Y' . $i . '.LMigration.w }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                         ->styleBackgroundColor('lightgrey')
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
+                        ->setContent('
+                            {% if (Content.E02_1.Y' . $i . '.m is not empty) %}
+                                {{ Content.E02_1.Y' . $i . '.m }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                         ->styleBackgroundColor('lightgrey')
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
+                        ->setContent('
+                            {% if (Content.E02_1.Y' . $i . '.w is not empty) %}
+                                {{ Content.E02_1.Y' . $i . '.w }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                         ->styleBackgroundColor('lightgrey'), '5%'
                     )
                 );
@@ -350,67 +375,163 @@ class E02_1
                     ->styleBorderRight(), '20%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                            {% if (Content.E02_1.TotalCount.L5.m is not empty) %}
+                                {{ Content.E02_1.TotalCount.L5.m }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                            {% if (Content.E02_1.TotalCount.L5.w is not empty) %}
+                                {{ Content.E02_1.TotalCount.L5.w }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                            {% if (Content.E02_1.TotalCount.L6.m is not empty) %}
+                                {{ Content.E02_1.TotalCount.L6.m }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                            {% if (Content.E02_1.TotalCount.L6.w is not empty) %}
+                                {{ Content.E02_1.TotalCount.L6.w }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                            {% if (Content.E02_1.TotalCount.L7.m is not empty) %}
+                                {{ Content.E02_1.TotalCount.L7.m }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                            {% if (Content.E02_1.TotalCount.L7.w is not empty) %}
+                                {{ Content.E02_1.TotalCount.L7.w }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                            {% if (Content.E02_1.TotalCount.L8.m is not empty) %}
+                                {{ Content.E02_1.TotalCount.L8.m }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                            {% if (Content.E02_1.TotalCount.L8.w is not empty) %}
+                                {{ Content.E02_1.TotalCount.L8.w }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                            {% if (Content.E02_1.TotalCount.L9.m is not empty) %}
+                                {{ Content.E02_1.TotalCount.L9.m }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                            {% if (Content.E02_1.TotalCount.L9.w is not empty) %}
+                                {{ Content.E02_1.TotalCount.L9.w }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                            {% if (Content.E02_1.TotalCount.L10.m is not empty) %}
+                                {{ Content.E02_1.TotalCount.L10.m }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                            {% if (Content.E02_1.TotalCount.L10.w is not empty) %}
+                                {{ Content.E02_1.TotalCount.L10.w }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                        {% if (Content.E02_1.TotalCount.LMigration.m is not empty) %}
+                            {{ Content.E02_1.TotalCount.LMigration.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                        {% if (Content.E02_1.TotalCount.LMigration.m is not empty) %}
+                            {{ Content.E02_1.TotalCount.LMigration.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}                    
+                    ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                            {% if (Content.E02_1.TotalCount.m is not empty) %}
+                                {{ Content.E02_1.TotalCount.m }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;'), '5%'
+                    ->setContent('
+                            {% if (Content.E02_1.TotalCount.w is not empty) %}
+                                {{ Content.E02_1.TotalCount.w }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        '), '5%'
                 )
             );
 

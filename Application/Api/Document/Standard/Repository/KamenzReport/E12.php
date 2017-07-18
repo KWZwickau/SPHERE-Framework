@@ -23,7 +23,7 @@ class E12
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E12. Schüler im NEIGUNGSKURSBEREICH im Schuljahr {{ Content.Schoolyear.Current }} nach Klassenstufen')
+                ->setContent('E12. Schüler im NEIGUNGSKURSBEREICH im Schuljahr {{ Content.SchoolYear.Current }} nach Klassenstufen')
             );
 
         $sliceList[] = (new Slice())

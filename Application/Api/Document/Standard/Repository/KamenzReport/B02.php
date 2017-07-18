@@ -271,8 +271,12 @@ class B02
         $section
             ->addElementColumn((new Element())
                 ->setContent('
-                            &nbsp;
-                        ')
+                    {% if (Content.B02.TotalCount.m is not empty) %}
+                        {{ Content.B02.TotalCount.m }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}
+                ')
                 ->styleAlignCenter()
                 ->styleTextBold()
                 ->styleBorderRight(), '9%'
@@ -280,8 +284,12 @@ class B02
         $section
             ->addElementColumn((new Element())
                 ->setContent('
-                            &nbsp;
-                        ')
+                    {% if (Content.B02.TotalCount.w is not empty) %}
+                        {{ Content.B02.TotalCount.w }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}
+                ')
                 ->styleAlignCenter()
                 ->styleTextBold()
                 , '9%'

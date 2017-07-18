@@ -23,7 +23,7 @@ class E08
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E08. Wiederholer im Schuljahr {{ Content.Schoolyear.Current }} nach Klassenstufen')
+                ->setContent('E08. Wiederholer im Schuljahr {{ Content.SchoolYear.Current }} nach Klassenstufen')
             );
 
         $sliceList[] = (new Slice())

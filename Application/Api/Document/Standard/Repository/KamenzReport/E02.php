@@ -23,7 +23,7 @@ class E02
             ->styleTextBold()
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E02. Schüler im Schuljahr {{Content.Schoolyear.Current}} nach Geburtsjahren und Klassenstufen')
+                ->setContent('E02. Schüler im Schuljahr {{Content.SchoolYear.Current}} nach Geburtsjahren und Klassenstufen')
             );
 
         $sliceList[] = (new Slice())
@@ -41,10 +41,11 @@ class E02
                     ->stylePaddingBottom('34.7px'), '20%'
                 )
                 ->addSliceColumn((new Slice())
-                    ->styleBorderRight()
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Klassenstufe'), '70%'
+                            ->setContent('Klassenstufe')
+                            ->styleBorderRight()
+                            , '70%'
                         )
                     )
                     ->addSection((new Section())
@@ -92,7 +93,8 @@ class E02
                         )
                         ->addElementColumn((new Element())
                             ->setContent('Vorb.-kl. u.<br/>-gruppen f.<br/>Migranten')
-                            ->styleBorderBottom(), '10%'
+                            ->styleBorderBottom()
+                            ->styleBorderRight(), '10%'
                         )
                     )
                     ->addSection((new Section())
@@ -149,7 +151,8 @@ class E02
                             ->styleBorderRight(), '5%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('w'), '5%'
+                            ->setContent('w')
+                            ->styleBorderRight(), '5%'
                         )
                     )
                 )
@@ -312,14 +315,25 @@ class E02
                         ')
                         ->styleBorderRight(), '5%'
                     )
-                    // Todo Migranten
                     ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
+                        ->setContent('
+                            {% if (Content.E02.Y' . $i . '.LMigration.m is not empty) %}
+                                {{ Content.E02.Y' . $i . '.LMigration.m }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                         ->styleBackgroundColor('lightgrey')
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
+                        ->setContent('
+                            {% if (Content.E02.Y' . $i . '.LMigration.w is not empty) %}
+                                {{ Content.E02.Y' . $i . '.LMigration.w }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                         ->styleBackgroundColor('lightgrey')
                         ->styleBorderRight(), '5%'
                     )
@@ -479,13 +493,24 @@ class E02
                         ')
                     ->styleBorderRight(), '5%'
                 )
-                // Todo Migranten
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                        {% if (Content.E02.TotalCount.LMigration.m is not empty) %}
+                            {{ Content.E02.TotalCount.LMigration.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                        {% if (Content.E02.TotalCount.LMigration.m is not empty) %}
+                            {{ Content.E02.TotalCount.LMigration.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}                    
+                    ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
