@@ -132,10 +132,15 @@ class E04_1
                     );
             }
 
-            // todo migration
             $section
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                        {% if (Content.E04_1.F' . $i . '.Migration is not empty) %}
+                            {{ Content.E04_1.F' . $i . '.Migration }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight(), '10%'
                 )
@@ -185,10 +190,15 @@ class E04_1
                 );
         }
 
-        // todo migration
         $section
             ->addElementColumn((new Element())
-                ->setContent('&nbsp;')
+                ->setContent('
+                    {% if (Content.E04_1.TotalCount.Migration is not empty) %}
+                        {{ Content.E04_1.TotalCount.Migration }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}
+                ')
                 ->styleBackgroundColor('lightgrey')
                 ->styleBorderRight(), '10%'
             )

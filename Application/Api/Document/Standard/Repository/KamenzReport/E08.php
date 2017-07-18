@@ -41,10 +41,10 @@ class E08
                     ->stylePaddingBottom('17.6px'), '30%'
                 )
                 ->addSliceColumn((new Slice())
-                    ->styleBorderRight()
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Klassenstufe'), '100%'
+                            ->setContent('Klassenstufe')
+                            ->styleBorderRight(), '1&nbsp;%'
                         )
                     )
                     ->addSection((new Section())
@@ -75,7 +75,8 @@ class E08
                         )
                         ->addElementColumn((new Element())
                             ->setContent('10')
-                            ->styleBorderBottom(), '16.67%'
+                            ->styleBorderBottom()
+                            ->styleBorderRight(), '16.67%'
                         )
                     )
                     ->addSection((new Section())
@@ -124,7 +125,8 @@ class E08
                             ->styleBorderRight(), '8.33%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('w'), '8.34%'
+                            ->setContent('w')
+                            ->styleBorderRight(), '8.34%'
                         )
                     ), '60%'
                 )
@@ -135,7 +137,7 @@ class E08
                             ->setContent('Insgesamt')
                             ->styleBorderBottom()
                             ->stylePaddingTop('8.6px')
-                            ->stylePaddingBottom('8.5px'), '100%'
+                            ->stylePaddingBottom('8.6px')
                         )
                     )
                     ->addSection((new Section())
@@ -144,78 +146,41 @@ class E08
                             ->styleBorderRight(), '50%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('w'), '50%'
+                            ->setContent('w')
+                            , '50%'
                         )
                     ), '10%'
                 )
             );
 
+        $section = new Section();
+        $section
+            ->addElementColumn((new Element())
+                ->setContent('Schüler')
+                ->styleBorderRight(), '30%'
+            );
+
+        for ($i = 0; $i < 14; $i++) {
+            if ($i <13) {
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleBorderRight(), '5%'
+                    );
+            } else {
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '5%'
+                    );
+            }
+        }
         $sliceList[] = (new Slice())
             ->styleBackgroundColor('lightgrey')
             ->styleBorderBottom()
             ->styleBorderLeft()
             ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Schüler')
-                    ->styleBorderRight(), '30%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;'), '5%'
-                )
-            );
+            ->addSection($section);
 
         $sliceList[] = (new Slice())
             ->styleBorderBottom()
@@ -228,7 +193,7 @@ class E08
                     ->styleAlignCenter()
                     ->styleBorderRight()
                     ->stylePaddingTop('18.1px')
-                    ->stylePaddingBottom('18.1px'), '10%'
+                    , '10%'
                 )
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
@@ -265,37 +230,37 @@ class E08
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('&nbsp;')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('&nbsp;')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('&nbsp;')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('&nbsp;')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('&nbsp;')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('&nbsp;')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
@@ -360,49 +325,49 @@ class E08
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('&nbsp;')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('&nbsp;')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('&nbsp;')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('&nbsp;')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('&nbsp;')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('&nbsp;')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('&nbsp;')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('&nbsp;')
                                     ->styleAlignCenter()
                                     ->styleBorderBottom()
                                     ->styleBorderRight(), '5.55%'
@@ -425,113 +390,185 @@ class E08
                             )
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
-                                    ->setContent('ohne abschlussbez.<br/>Unterricht')
+                                    ->setContent('ohne abs. Unterricht')
                                     ->styleBackgroundColor('lightgrey')
                                     ->styleBorderRight(), '22.22%'
                                 )
+                                // $Content['E08']['WithoutCourse']['L' . $tblLevel->getName()][$gender]++;
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('
+                                        {% if (Content.E08.WithoutCourse.L5.m is not empty) %}
+                                            {{ Content.E08.WithoutCourse.L5.m }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleAlignCenter()
                                     ->styleBorderRight()
-                                    ->stylePaddingTop('8.6px')
-                                    ->stylePaddingBottom('8.5px'), '5.55%'
+                                    , '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('
+                                        {% if (Content.E08.WithoutCourse.L5.w is not empty) %}
+                                            {{ Content.E08.WithoutCourse.L5.w }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
+                                    ')
                                     ->styleAlignCenter()
                                     ->styleBorderRight()
-                                    ->stylePaddingTop('8.6px')
-                                    ->stylePaddingBottom('8.5px'), '5.55%'
+                                    , '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('
+                                        {% if (Content.E08.WithoutCourse.L6.m is not empty) %}
+                                            {{ Content.E08.WithoutCourse.L6.m }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}                                    
+                                    ')
                                     ->styleAlignCenter()
                                     ->styleBorderRight()
-                                    ->stylePaddingTop('8.6px')
-                                    ->stylePaddingBottom('8.5px'), '5.55%'
+                                    , '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('
+                                        {% if (Content.E08.WithoutCourse.L6.w is not empty) %}
+                                            {{ Content.E08.WithoutCourse.L6.w }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}                                    
+                                    ')
                                     ->styleAlignCenter()
                                     ->styleBorderRight()
-                                    ->stylePaddingTop('8.6px')
-                                    ->stylePaddingBottom('8.5px'), '5.55%'
+                                    , '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('
+                                        {% if (Content.E08.WithoutCourse.L7.m is not empty) %}
+                                            {{ Content.E08.WithoutCourse.L7.m }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}                                    
+                                    ')
                                     ->styleAlignCenter()
                                     ->styleBorderRight()
-                                    ->stylePaddingTop('8.6px')
-                                    ->stylePaddingBottom('8.5px'), '5.55%'
+                                    , '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('
+                                        {% if (Content.E08.WithoutCourse.L7.w is not empty) %}
+                                            {{ Content.E08.WithoutCourse.L7.w }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}                                    
+                                    ')
                                     ->styleAlignCenter()
                                     ->styleBorderRight()
-                                    ->stylePaddingTop('8.6px')
-                                    ->stylePaddingBottom('8.5px'), '5.55%'
+                                    , '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('
+                                        {% if (Content.E08.WithoutCourse.L8.m is not empty) %}
+                                            {{ Content.E08.WithoutCourse.L8.m }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}                                    
+                                    ')
                                     ->styleAlignCenter()
                                     ->styleBorderRight()
-                                    ->stylePaddingTop('8.6px')
-                                    ->stylePaddingBottom('8.5px'), '5.55%'
+                                    , '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('
+                                        {% if (Content.E08.WithoutCourse.L8.w is not empty) %}
+                                            {{ Content.E08.WithoutCourse.L8.w }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}                                    
+                                    ')
                                     ->styleAlignCenter()
                                     ->styleBorderRight()
-                                    ->stylePaddingTop('8.6px')
-                                    ->stylePaddingBottom('8.5px'), '5.55%'
+                                    , '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('
+                                        {% if (Content.E08.WithoutCourse.L9.m is not empty) %}
+                                            {{ Content.E08.WithoutCourse.L9.m }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}                                    
+                                    ')
                                     ->styleAlignCenter()
                                     ->styleBorderRight()
-                                    ->stylePaddingTop('8.6px')
-                                    ->stylePaddingBottom('8.5px'), '5.55%'
+                                    , '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('
+                                        {% if (Content.E08.WithoutCourse.L9.w is not empty) %}
+                                            {{ Content.E08.WithoutCourse.L9.w }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}                                    
+                                    ')
                                     ->styleAlignCenter()
                                     ->styleBorderRight()
-                                    ->stylePaddingTop('8.6px')
-                                    ->stylePaddingBottom('8.5px'), '5.55%'
+                                    , '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('
+                                        {% if (Content.E08.WithoutCourse.L10.m is not empty) %}
+                                            {{ Content.E08.WithoutCourse.L10.m }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}                                    
+                                    ')
                                     ->styleAlignCenter()
                                     ->styleBorderRight()
-                                    ->stylePaddingTop('8.6px')
-                                    ->stylePaddingBottom('8.5px'), '5.55%'
+                                    , '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('00')
+                                    ->setContent('
+                                        {% if (Content.E08.WithoutCourse.L10.w is not empty) %}
+                                            {{ Content.E08.WithoutCourse.L10.w }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}                                    
+                                    ')
                                     ->styleAlignCenter()
                                     ->styleBorderRight()
-                                    ->stylePaddingTop('8.6px')
-                                    ->stylePaddingBottom('8.5px'), '5.55%'
+                                    , '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.WithoutCourse.TotalCount.m is not empty) %}
+                                            {{ Content.E08.WithoutCourse.TotalCount.m }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}                                    
+                                    ')
                                     ->styleBackgroundColor('lightgrey')
                                     ->styleBorderRight()
-                                    ->stylePaddingTop('8.6px')
-                                    ->stylePaddingBottom('8.5px'), '5.55%'
+                                    ->styleAlignCenter()
+                                    , '5.55%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
+                                    ->setContent('
+                                        {% if (Content.E08.WithoutCourse.TotalCount.w is not empty) %}
+                                            {{ Content.E08.WithoutCourse.TotalCount.w }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}                                    
+                                    ')
                                     ->styleBackgroundColor('lightgrey')
-                                    ->stylePaddingTop('8.6px')
-                                    ->stylePaddingBottom('8.5px'), '5.55%'
+                                    ->styleAlignCenter()
+                                    , '5.55%'
                                 )
                             )
                         )
                     ), '90%'
                 )
             );
-
 
         return $sliceList;
     }

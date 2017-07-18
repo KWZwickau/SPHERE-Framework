@@ -47,6 +47,7 @@ class KamenzService
         $count['Orientation'] = 0;
         $count['Student'] = 0;
         $count['Nationality'] = 0;
+        $count['ForeignLanguage1'] = 0;
         $studentList = array();
         if (($tblCurrentYearList = Term::useService()->getYearByNow())) {
             foreach ($tblCurrentYearList as $tblYear) {
@@ -104,23 +105,29 @@ class KamenzService
                                         }
 
                                         // todo Einschulungsart
-//                            if (($tblStudent = $tblPerson->getStudent())
-//                                && ($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT'))
-//                                && ($tblStudentTransfer = Student::useService()->getStudentTransferByType(
-//                                    $tblStudent, $tblStudentTransferType
-//                                ))
-//                            ) {
-//
-//                            }
+                //                            if (($tblStudent = $tblPerson->getStudent())
+                //                                && ($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT'))
+                //                                && ($tblStudentTransfer = Student::useService()->getStudentTransferByType(
+                //                                    $tblStudent, $tblStudentTransferType
+                //                                ))
+                //                            ) {
+                //
+                //                            }
 
                                         $foreignLanguages = self::getForeignLanguages($tblPerson);
+                                        if (isset($foreignLanguages[1])) {
+                                            $foreignLanguage1 = $foreignLanguages[1];
+                                        } else {
+                                            $count['ForeignLanguage1']++;
+                                            $foreignLanguage1 = new Warning('Keine 1. Fremdsprache hinterlegt.', new Exclamation());
+                                        }
 
                                         $studentList[$tblPerson->getId()] = array(
                                             'Division' => $tblDivision->getDisplayName(),
                                             'Name' => $tblPerson->getLastFirstName(),
                                             'Gender' => $gender,
                                             'Birthday' => $birthday,
-                                            'ForeignLanguage1' => isset($foreignLanguages[1]) ? $foreignLanguages[1] : '',
+                                            'ForeignLanguage1' => $foreignLanguage1,
                                             'ForeignLanguage2' => isset($foreignLanguages[2]) ? $foreignLanguages[2] : '',
                                             'ForeignLanguage3' => isset($foreignLanguages[3]) ? $foreignLanguages[3] : '',
                                             'ForeignLanguage4' => isset($foreignLanguages[4]) ? $foreignLanguages[4] : '',
@@ -142,10 +149,12 @@ class KamenzService
                                         if (($tblSchoolType->getName() == 'Mittelschule / Oberschule')) {
                                             if (($orientation = self::getOrientation($tblPerson))) {
                                                 $studentList[$tblPerson->getId()]['Orientation'] = $orientation;
-                                            } elseif (preg_match('!(0?(7|8|9))!is', $tblLevel->getName())) {
+                                            } elseif (preg_match('!(0?(7|8|9))!is', $tblLevel->getName())
+                                                && !isset($foreignLanguages[2])
+                                            ) {
                                                 $count['Orientation']++;
                                                 $studentList[$tblPerson->getId()]['Orientation']
-                                                    = new Warning('Kein Neigungskurs hinterlegt.', new Exclamation());
+                                                    = new Warning('Kein Neigungskurs/2.FS hinterlegt.', new Exclamation());
                                             }
                                         }
                                     }
@@ -372,8 +381,6 @@ class KamenzService
     private static function setSummary(&$summary, $count)
     {
 
-        //todo Fremdsprache abhängig von der Schulart (Koppelung 2.FS und Neigungskurs)
-
         if ($count['Gender'] > 0) {
             $summary[] = new Warning($count['Gender'] . ' Schüler/n ist kein Geschlecht zugeordnet.'
                 , new Exclamation());
@@ -382,12 +389,16 @@ class KamenzService
             $summary[] = new Warning($count['Birthday'] . ' Schüler/n ist kein Geburtsdatum zugeordnet.'
                 , new Exclamation());
         }
+        if ($count['ForeignLanguage1'] > 0) {
+            $summary[] = new Warning($count['ForeignLanguage1'] . ' Schüler/n ist keine 1. Fremdsprache zugeordnet.'
+                , new Exclamation());
+        }
         if ($count['Religion'] > 0) {
             $summary[] = new Warning($count['Religion'] . ' Schüler/n ist keine Religion zugeordnet.'
                 , new Exclamation());
         }
         if ($count['Orientation'] > 0) {
-            $summary[] = new Warning($count['Orientation'] . ' Schüler/n ist kein Neigungskurs zugeordnet.'
+            $summary[] = new Warning($count['Orientation'] . ' Schüler/n ist kein Neigungskurs/2.FS zugeordnet.'
                 , new Exclamation());
         }
         if ($count['Nationality'] > 0) {

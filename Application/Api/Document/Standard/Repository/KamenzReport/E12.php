@@ -165,9 +165,17 @@ class E12
                                 &nbsp;
                             {% endif %}
                         ')
-                    ->styleBorderRight(), '30%'
+                    ->styleBorderRight()
+                    ->styleBackgroundColor('lightgrey')
+                    , '30%'
                 );
             for ($level = 5; $level <= 10; $level++) {
+                if ($level > 6 && $level < 10) {
+                    $isGrey = false;
+                } else {
+                    $isGrey = true;
+                }
+
                 $section
                     ->addElementColumn((new Element())
                         ->setContent('
@@ -177,7 +185,9 @@ class E12
                                 &nbsp;
                             {% endif %}
                         ')
-                        ->styleBorderRight(), '5%'
+                        ->styleBorderRight()
+                        ->styleBackgroundColor($isGrey ? 'lightgrey' : 'white')
+                        , '5%'
                     );
                 $section
                     ->addElementColumn((new Element())
@@ -188,7 +198,9 @@ class E12
                                 &nbsp;
                             {% endif %}
                         ')
-                        ->styleBorderRight(), '5%'
+                        ->styleBorderRight()
+                        ->styleBackgroundColor($isGrey ? 'lightgrey' : 'white')
+                        , '5%'
                     );
             }
             $section

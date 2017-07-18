@@ -5,6 +5,7 @@ namespace SPHERE\Application\Document\Generator\Service\Kamenz;
 use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
@@ -109,7 +110,6 @@ class KamenzReportService
 
                                         if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
                                             && ($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())
-                                            && ($birthDay = $tblCommonBirthDates->getBirthday())
                                         ) {
 
                                             if ($tblCommonGender->getName() == 'Männlich') {
@@ -120,57 +120,59 @@ class KamenzReportService
                                                 $gender = 'x';
                                             }
 
-                                            $birthDayDate = new \DateTime($birthDay);
-                                            if ($birthDayDate) {
-                                                $birthYear = $birthDayDate->format('Y');
+                                            if (($birthDay = $tblCommonBirthDates->getBirthday())) {
+                                                $birthDayDate = new \DateTime($birthDay);
+                                                if ($birthDayDate) {
+                                                    $birthYear = $birthDayDate->format('Y');
 
-                                                if (isset($countArray[$birthYear][$tblLevel->getName()][$gender])) {
-                                                    $countArray[$birthYear][$tblLevel->getName()][$gender]++;
-                                                } else {
-                                                    $countArray[$birthYear][$tblLevel->getName()][$gender] = 1;
-                                                }
-
-                                                if ($isInPreparationDivisionForMigrants) {
-                                                    if (isset($countArray[$birthYear]['Migration'][$gender])) {
-                                                        $countArray[$birthYear]['Migration'][$gender]++;
+                                                    if (isset($countArray[$birthYear][$tblLevel->getName()][$gender])) {
+                                                        $countArray[$birthYear][$tblLevel->getName()][$gender]++;
                                                     } else {
-                                                        $countArray[$birthYear]['Migration'][$gender] = 1;
-                                                    }
-                                                }
-
-                                                /**
-                                                 * E02.1 Darunter Schüler mit Migrationshintergrund im Schuljahr 2016/17 nach Geburtsjahren und Klassenstufen
-                                                 */
-                                                if ($hasMigrationBackground) {
-                                                    if (isset($countMigrantsArray[$birthYear][$tblLevel->getName()][$gender])) {
-                                                        $countMigrantsArray[$birthYear][$tblLevel->getName()][$gender]++;
-                                                    } else {
-                                                        $countMigrantsArray[$birthYear][$tblLevel->getName()][$gender] = 1;
-                                                    }
-
-                                                    /**
-                                                     * E03. Schüler mit Migrationshintergrund im Schuljahr 2016/17 nach dem Land der Staatsangehörigkeit und Klassenstufen
-                                                     */
-                                                    if ($nationality) {
-                                                        if (isset($countMigrantsNationalityArray[$nationality][$tblLevel->getName()][$gender])) {
-                                                            $countMigrantsNationalityArray[$nationality][$tblLevel->getName()][$gender]++;
-                                                        } else {
-                                                            $countMigrantsNationalityArray[$nationality][$tblLevel->getName()][$gender] = 1;
-                                                        }
+                                                        $countArray[$birthYear][$tblLevel->getName()][$gender] = 1;
                                                     }
 
                                                     if ($isInPreparationDivisionForMigrants) {
-                                                        if (isset($countMigrantsArray[$birthYear]['Migration'][$gender])) {
-                                                            $countMigrantsArray[$birthYear]['Migration'][$gender]++;
+                                                        if (isset($countArray[$birthYear]['Migration'][$gender])) {
+                                                            $countArray[$birthYear]['Migration'][$gender]++;
                                                         } else {
-                                                            $countMigrantsArray[$birthYear]['Migration'][$gender] = 1;
+                                                            $countArray[$birthYear]['Migration'][$gender] = 1;
+                                                        }
+                                                    }
+
+                                                    /**
+                                                     * E02.1 Darunter Schüler mit Migrationshintergrund im Schuljahr 2016/17 nach Geburtsjahren und Klassenstufen
+                                                     */
+                                                    if ($hasMigrationBackground) {
+                                                        if (isset($countMigrantsArray[$birthYear][$tblLevel->getName()][$gender])) {
+                                                            $countMigrantsArray[$birthYear][$tblLevel->getName()][$gender]++;
+                                                        } else {
+                                                            $countMigrantsArray[$birthYear][$tblLevel->getName()][$gender] = 1;
                                                         }
 
+                                                        /**
+                                                         * E03. Schüler mit Migrationshintergrund im Schuljahr 2016/17 nach dem Land der Staatsangehörigkeit und Klassenstufen
+                                                         */
                                                         if ($nationality) {
-                                                            if (isset($countMigrantsNationalityArray[$nationality]['Migration'][$gender])) {
-                                                                $countMigrantsNationalityArray[$nationality]['Migration'][$gender]++;
+                                                            if (isset($countMigrantsNationalityArray[$nationality][$tblLevel->getName()][$gender])) {
+                                                                $countMigrantsNationalityArray[$nationality][$tblLevel->getName()][$gender]++;
                                                             } else {
-                                                                $countMigrantsNationalityArray[$nationality]['Migration'][$gender] = 1;
+                                                                $countMigrantsNationalityArray[$nationality][$tblLevel->getName()][$gender] = 1;
+                                                            }
+                                                        }
+
+                                                        if ($isInPreparationDivisionForMigrants) {
+                                                            if (isset($countMigrantsArray[$birthYear]['Migration'][$gender])) {
+                                                                $countMigrantsArray[$birthYear]['Migration'][$gender]++;
+                                                            } else {
+                                                                $countMigrantsArray[$birthYear]['Migration'][$gender] = 1;
+                                                            }
+
+                                                            if ($nationality) {
+                                                                if (isset($countMigrantsNationalityArray[$nationality]['Migration'][$gender])) {
+                                                                    $countMigrantsNationalityArray[$nationality]['Migration'][$gender]++;
+                                                                } else {
+                                                                    $countMigrantsNationalityArray[$nationality]['Migration'][$gender] = 1;
+                                                                }
                                                             }
                                                         }
                                                     }
@@ -241,7 +243,19 @@ class KamenzReportService
                                             $Content['E04_1']['TotalCount']['L' . $tblLevel->getName()] = 1;
                                         }
 
-                                        // todo migranten
+                                        if ($isInPreparationDivisionForMigrants) {
+                                            if (isset($Content['E04_1']['F' . $countForeignSubjectsByStudent]['Migration'])) {
+                                                $Content['E04_1']['F' . $countForeignSubjectsByStudent]['Migration']++;
+                                            } else {
+                                                $Content['E04_1']['F' . $countForeignSubjectsByStudent]['Migration'] = 1;
+                                            }
+
+                                            if (isset($Content['E04_1']['TotalCount']['Migration'])) {
+                                                $Content['E04_1']['TotalCount']['Migration']++;
+                                            } else {
+                                                $Content['E04_1']['TotalCount']['Migration'] = 1;
+                                            }
+                                        }
                                     }
 
                                     /**
@@ -272,24 +286,56 @@ class KamenzReportService
                                     }
 
                                     /**
+                                     * E08. Wiederholer im Schuljahr 2016/17 nach Klassenstufen
+                                     */
+                                    if (($tblDivisionStudentAllByPerson = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
+                                        /**@var TblDivisionStudent $tblDivisionStudent * */
+                                        foreach ($tblDivisionStudentAllByPerson as $tblDivisionStudent) {
+                                            if (($tblDivisionTemp = $tblDivisionStudent->getTblDivision())
+                                                && $tblDivisionTemp->getId() != $tblDivision->getId()
+                                                && ($tblTempLevel = $tblDivisionTemp->getTblLevel())
+                                                && $tblLevel->getId() == $tblTempLevel->getId()
+                                            ) {
+                                                if ($gender) {
+                                                    if (isset($Content['E08']['WithoutCourse']['L' . $tblLevel->getName()][$gender])) {
+                                                        $Content['E08']['WithoutCourse']['L' . $tblLevel->getName()][$gender]++;
+                                                    } else {
+                                                        $Content['E08']['WithoutCourse']['L' . $tblLevel->getName()][$gender] = 1;
+                                                    }
+
+                                                    if (isset($Content['E08']['WithoutCourse']['TotalCount'][$gender])) {
+                                                        $Content['E08']['WithoutCourse']['TotalCount'][$gender]++;
+                                                    } else {
+                                                        $Content['E08']['WithoutCourse']['TotalCount'][$gender] = 1;
+                                                    }
+                                                }
+
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    /**
                                      * E12 Schüler im NEIGUNGSKURSBEREICH im Schuljahr nach Klassenstufen
                                      */
-                                    if (($tblStudent = $tblPerson->getStudent())
-                                        && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))
-                                        && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
-                                            $tblStudent, $tblStudentSubjectType
-                                        ))
-                                    ) {
-                                        /** @var TblStudentSubject $tblStudentSubject */
-                                        if (($tblStudentSubject = reset($tblStudentSubjectList))
-                                            && ($tblSubject = $tblStudentSubject->getServiceTblSubject())
+                                    if (preg_match('!(0?(7|8|9))!is', $tblLevel->getName())) {
+                                        if (($tblStudent = $tblPerson->getStudent())
+                                            && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))
+                                            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType(
+                                                $tblStudent, $tblStudentSubjectType
+                                            ))
                                         ) {
+                                            /** @var TblStudentSubject $tblStudentSubject */
+                                            if (($tblStudentSubject = reset($tblStudentSubjectList))
+                                                && ($tblSubject = $tblStudentSubject->getServiceTblSubject())
+                                            ) {
 
-                                            if ($gender) {
-                                                if (isset($countOrientationArray[$tblSubject->getAcronym()][$tblLevel->getName()][$gender])) {
-                                                    $countOrientationArray[$tblSubject->getAcronym()][$tblLevel->getName()][$gender]++;
-                                                } else {
-                                                    $countOrientationArray[$tblSubject->getAcronym()][$tblLevel->getName()][$gender] = 1;
+                                                if ($gender) {
+                                                    if (isset($countOrientationArray[$tblSubject->getAcronym()][$tblLevel->getName()][$gender])) {
+                                                        $countOrientationArray[$tblSubject->getAcronym()][$tblLevel->getName()][$gender]++;
+                                                    } else {
+                                                        $countOrientationArray[$tblSubject->getAcronym()][$tblLevel->getName()][$gender] = 1;
+                                                    }
                                                 }
                                             }
                                         }
