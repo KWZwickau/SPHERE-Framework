@@ -1295,6 +1295,9 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($tblStudentFocusAll) {
                         foreach ($tblStudentFocusAll as $tblStudentFocus) {
                             $Global->POST['Meta']['Integration']['Focus'][$tblStudentFocus->getTblStudentFocusType()->getId()] = 1;
+                            if ($tblStudentFocus->isPrimary()) {
+                                $Global->POST['Meta']['Integration']['PrimaryFocus'] = $tblStudentFocus->getTblStudentFocusType()->getId();
+                            }
                         }
                     }
                 }
@@ -1326,10 +1329,12 @@ class Frontend extends Extension implements IFrontendInterface
             });
         $PanelDisorder = new Panel('Förderbedarf: Teilleistungsstörungen', $PanelDisorder, Panel::PANEL_TYPE_INFO);
 
-        $PanelFocus = array();
         $tblStudentFocusType = Student::useService()->getStudentFocusTypeAll();
         $tblStudentFocusType = $this->getSorter($tblStudentFocusType)->sortObjectBy('Name',
             new StringNaturalOrderSorter());
+        $PanelFocus = array();
+        $PanelFocus[] = new SelectBox('Meta[Integration][PrimaryFocus]', 'Primär geförderter Schwerpunkt',
+            array('{{ Name}}' => $tblStudentFocusType));
         array_walk($tblStudentFocusType,
             function (TblStudentFocusType $tblStudentFocusType) use (&$PanelFocus) {
 

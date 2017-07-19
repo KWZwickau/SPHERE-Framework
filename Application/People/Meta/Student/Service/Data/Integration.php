@@ -363,14 +363,16 @@ abstract class Integration extends Subject
     }
 
     /**
-     * @param TblStudent          $tblStudent
+     * @param TblStudent $tblStudent
      * @param TblStudentFocusType $tblStudentFocusType
+     * @param bool $IsPrimary
      *
      * @return TblStudentFocus
      */
     public function addStudentFocus(
         TblStudent $tblStudent,
-        TblStudentFocusType $tblStudentFocusType
+        TblStudentFocusType $tblStudentFocusType,
+        $IsPrimary = false
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -385,9 +387,15 @@ abstract class Integration extends Subject
             $Entity = new TblStudentFocus();
             $Entity->setTblStudent($tblStudent);
             $Entity->setTblStudentFocusType($tblStudentFocusType);
+            $Entity->setIsPrimary($IsPrimary);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        } elseif ($IsPrimary != $Entity->isPrimary()) {
+            $Protocol = clone $Entity;
+            $Entity->setIsPrimary($IsPrimary);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
         }
 
         return $Entity;
@@ -410,5 +418,18 @@ abstract class Integration extends Subject
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     *
+     * @return false|TblStudentFocus
+     */
+    public function getStudentFocusPrimary(TblStudent $tblStudent) {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblStudentFocus', array(
+            TblStudentFocus::ATTR_TBL_STUDENT => $tblStudent->getId(),
+            TblStudentFocus::ATTR_IS_PRIMARY => true
+        ));
     }
 }

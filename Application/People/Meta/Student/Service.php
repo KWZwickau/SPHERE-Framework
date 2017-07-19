@@ -584,10 +584,19 @@ class Service extends Integration
                     }
                 }
             }
-            if (isset( $Meta['Integration']['Focus'] )) {
+            if (isset($Meta['Integration']['Focus']) || isset($Meta['Integration']['PrimaryFocus'])) {
+                if (isset($Meta['Integration']['PrimaryFocus'])
+                    && $tblStudentFocusType = $this->getStudentFocusTypeById($Meta['Integration']['PrimaryFocus'])) {
+                    $tblPrimaryFocus = (new Data($this->getBinding()))->addStudentFocus($tblStudent, $tblStudentFocusType, true);
+                } else {
+                    $tblPrimaryFocus = false;
+                }
                 foreach ($Meta['Integration']['Focus'] as $Category => $Type) {
                     $tblStudentFocusType = $this->getStudentFocusTypeById($Category);
                     if ($tblStudentFocusType) {
+                        if ($tblPrimaryFocus && $tblStudentFocusType->getId() == $tblPrimaryFocus->getTblStudentFocusType()->getId()) {
+                            continue;
+                        }
                         (new Data($this->getBinding()))->addStudentFocus($tblStudent, $tblStudentFocusType);
                     }
                 }

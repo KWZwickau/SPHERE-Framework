@@ -626,6 +626,7 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblStudentFocusType', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
+
         return $Table;
     }
 
@@ -643,8 +644,11 @@ class Setup extends AbstractSetup
     ) {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblStudentFocus');
+        $this->createColumn($Table, 'IsPrimary', self::FIELD_TYPE_BOOLEAN, false, false);
+
         $this->getConnection()->addForeignKey($Table, $tblStudent);
         $this->getConnection()->addForeignKey($Table, $tblStudentFocusType);
+
         return $Table;
     }
 
