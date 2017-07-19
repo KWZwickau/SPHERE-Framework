@@ -425,11 +425,27 @@ abstract class Integration extends Subject
      *
      * @return false|TblStudentFocus
      */
-    public function getStudentFocusPrimary(TblStudent $tblStudent) {
+    public function getStudentFocusPrimary(TblStudent $tblStudent)
+    {
 
         return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblStudentFocus', array(
             TblStudentFocus::ATTR_TBL_STUDENT => $tblStudent->getId(),
             TblStudentFocus::ATTR_IS_PRIMARY => true
+        ));
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param TblStudentDisorderType $tblStudentDisorderType
+     *
+     * @return false|TblStudentDisorder
+     */
+    public function getStudentDisorder(TblStudent $tblStudent, TblStudentDisorderType $tblStudentDisorderType)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblStudentDisorder', array(
+            TblStudentDisorder::ATTR_TBL_STUDENT => $tblStudent->getId(),
+            TblStudentDisorder::ATTR_TBL_STUDENT_DISORDER_TYPE => $tblStudentDisorderType->getId()
         ));
     }
 }
