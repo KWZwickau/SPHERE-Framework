@@ -105,14 +105,14 @@ class KamenzService
                                         }
 
                                         // todo Einschulungsart
-                //                            if (($tblStudent = $tblPerson->getStudent())
-                //                                && ($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT'))
-                //                                && ($tblStudentTransfer = Student::useService()->getStudentTransferByType(
-                //                                    $tblStudent, $tblStudentTransferType
-                //                                ))
-                //                            ) {
-                //
-                //                            }
+//                                            if (($tblStudent = $tblPerson->getStudent())
+//                                                && ($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT'))
+//                                                && ($tblStudentTransfer = Student::useService()->getStudentTransferByType(
+//                                                    $tblStudent, $tblStudentTransferType
+//                                                ))
+//                                            ) {
+//
+//                                            }
 
                                         $foreignLanguages = self::getForeignLanguages($tblPerson);
                                         if (isset($foreignLanguages[1])) {

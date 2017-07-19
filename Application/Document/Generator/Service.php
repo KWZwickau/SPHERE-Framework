@@ -494,6 +494,6 @@ class Service extends AbstractService
     )
     {
 
-       return KamenzReportService::setKamenzReportContent($Content);
+       return KamenzReportService::setKamenzReportOsContent($Content);
     }
 }
