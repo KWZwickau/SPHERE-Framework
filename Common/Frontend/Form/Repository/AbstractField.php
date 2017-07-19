@@ -22,6 +22,11 @@ abstract class AbstractField extends Extension implements IFieldInterface
     /** @var bool $isForceDefaultValue */
     protected $isForceDefaultValue = false;
 
+    protected $ErrorMessage = array();
+    protected $SuccessMessage = array();
+
+    protected $TemplateVariableList = array();
+
     /**
      * @return string
      */
@@ -38,6 +43,9 @@ abstract class AbstractField extends Extension implements IFieldInterface
     {
 
         $this->setPostValue($this->Template, $this->getName(), 'ElementValue');
+        foreach( $this->TemplateVariableList as $Key => $Value ) {
+            $this->Template->setVariable( $Key, $Value );
+        }
         return $this->Template->getContent();
     }
 
@@ -125,14 +133,21 @@ abstract class AbstractField extends Extension implements IFieldInterface
      */
     public function setError($Message, IIconInterface $Icon = null)
     {
-
-        $this->Template->setVariable('ElementGroup', 'has-error has-feedback');
-        if (null !== $Icon) {
-            $this->Template->setVariable('ElementFeedbackIcon',
-                '<span class="'.$Icon->getValue().' form-control-feedback"></span>');
+        if( $this->Template ) {
+            $this->Template->setVariable('ElementGroup', 'has-error has-feedback');
+            if (null !== $Icon) {
+                $this->Template->setVariable('ElementFeedbackIcon',
+                    '<span class="' . $Icon->getValue() . ' form-control-feedback"></span>');
+            }
+            $this->Template->setVariable('ElementFeedbackMessage',
+                '<span class="help-block text-left">' . $Message . '</span>');
+        } else {
+            $this->ErrorMessage['ElementGroup'] = 'has-error has-feedback';
+            $this->ErrorMessage['ElementFeedbackMessage'] = '<span class="help-block text-left">' . $Message . '</span>';
+            if (null !== $Icon) {
+                $this->ErrorMessage['ElementFeedbackIcon'] = '<span class="' . $Icon->getValue() . ' form-control-feedback"></span>';
+            }
         }
-        $this->Template->setVariable('ElementFeedbackMessage',
-            '<span class="help-block text-left">'.$Message.'</span>');
     }
 
     /**
@@ -142,13 +157,21 @@ abstract class AbstractField extends Extension implements IFieldInterface
     public function setSuccess($Message, IIconInterface $Icon = null)
     {
 
-        $this->Template->setVariable('ElementGroup', 'has-success has-feedback');
-        if (null !== $Icon) {
-            $this->Template->setVariable('ElementFeedbackIcon',
-                '<span class="'.$Icon->getValue().' form-control-feedback"></span>');
+        if( $this->Template ) {
+            $this->Template->setVariable('ElementGroup', 'has-success has-feedback');
+            if (null !== $Icon) {
+                $this->Template->setVariable('ElementFeedbackIcon',
+                    '<span class="' . $Icon->getValue() . ' form-control-feedback"></span>');
+            }
+            $this->Template->setVariable('ElementFeedbackMessage',
+                '<span class="help-block text-left">' . $Message . '</span>');
+        } else {
+            $this->SuccessMessage['ElementGroup'] = 'has-success has-feedback';
+            $this->SuccessMessage['ElementFeedbackMessage'] =  '<span class="help-block text-left">' . $Message . '</span>';
+            if (null !== $Icon) {
+                $this->SuccessMessage['ElementFeedbackIcon'] = '<span class="' . $Icon->getValue() . ' form-control-feedback"></span>';
+            }
         }
-        $this->Template->setVariable('ElementFeedbackMessage',
-            '<span class="help-block text-left">'.$Message.'</span>');
     }
 
     /**
@@ -361,7 +384,7 @@ abstract class AbstractField extends Extension implements IFieldInterface
             $Script = $Pipeline->parseScript( $this );
         }
 
-        $this->Template->setVariable('AjaxEventChange', $Script);
+        $this->TemplateVariableList['AjaxEventChange'] = $Script;
         return $this;
     }
 
@@ -380,7 +403,32 @@ abstract class AbstractField extends Extension implements IFieldInterface
             $Script = $Pipeline->parseScript( $this );
         }
 
-        $this->Template->setVariable('AjaxEventKeyUp', $Script);
+        $this->TemplateVariableList['AjaxEventKeyUp'] = $Script;
         return $this;
+    }
+
+    /**
+     * @param array $Configuration
+     * @return array
+     */
+    protected function convertLibraryConfiguration( $Configuration ) {
+        $Convert = array();
+        $Index = array();
+        foreach($Configuration as $Key => $Value){
+            // Look for values starting with 'function('
+            if(strpos($Value, 'function(')===0){
+                // Store function string.
+                $Convert[] = $Value;
+                // Replace function string in $foo with a unique special key.
+                $Value = '<%'.$Key.'%>';
+                $Configuration[$Key] = $Value;
+                // Later on, well look for the value, and replace it.
+                $Index[] = '"'.$Value.'"';
+            }
+        }
+        // Now encode the array to json format
+        $Configuration = json_encode( $Configuration, JSON_FORCE_OBJECT );
+        // Replace the special keys with the original string.
+        return str_replace($Index, $Convert, $Configuration);
     }
 }
