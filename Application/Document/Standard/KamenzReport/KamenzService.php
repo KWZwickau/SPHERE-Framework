@@ -48,6 +48,8 @@ class KamenzService
         $count['Student'] = 0;
         $count['Nationality'] = 0;
         $count['ForeignLanguage1'] = 0;
+        $count['SchoolEnrollmentType'] = 0;
+        $count['SchoolAttendanceStartDate'] = 0;
         $studentList = array();
         if (($tblCurrentYearList = Term::useService()->getYearByNow())) {
             foreach ($tblCurrentYearList as $tblYear) {
@@ -66,6 +68,7 @@ class KamenzService
                                         $gender = false;
                                         $birthday = false;
                                         $nationality = '';
+                                        $tblStudent = $tblPerson->getStudent();
                                         if (($tblCommon = $tblPerson->getCommon())) {
                                             if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
                                                 if (($tblGender = $tblCommonBirthDates->getTblCommonGender())) {
@@ -89,14 +92,15 @@ class KamenzService
                                             $count['Birthday']++;
                                         }
 
-                                        if (($tblStudent = $tblPerson->getStudent())) {
+                                        if ($tblStudent) {
                                             $hasMigrationBackground = $tblStudent->getHasMigrationBackground() ? 'ja' : 'nein';
                                             $isInPreparationDivisionForMigrants = $tblStudent->isInPreparationDivisionForMigrants()
                                                 ? 'ja' : 'nein';
                                             if ($tblStudent->getHasMigrationBackground()
                                                 && $nationality == ''
                                             ) {
-                                                $nationality = new Warning('Kein Staatsangehörigkeit hinterlegt.', new Exclamation());
+                                                $nationality = new Warning('Kein Staatsangehörigkeit hinterlegt.',
+                                                    new Exclamation());
                                                 $count['Nationality']++;
                                             }
                                         } else {
@@ -104,22 +108,13 @@ class KamenzService
                                             $isInPreparationDivisionForMigrants = 'nein';
                                         }
 
-                                        // todo Einschulungsart
-//                                            if (($tblStudent = $tblPerson->getStudent())
-//                                                && ($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT'))
-//                                                && ($tblStudentTransfer = Student::useService()->getStudentTransferByType(
-//                                                    $tblStudent, $tblStudentTransferType
-//                                                ))
-//                                            ) {
-//
-//                                            }
-
                                         $foreignLanguages = self::getForeignLanguages($tblPerson);
                                         if (isset($foreignLanguages[1])) {
                                             $foreignLanguage1 = $foreignLanguages[1];
                                         } else {
                                             $count['ForeignLanguage1']++;
-                                            $foreignLanguage1 = new Warning('Keine 1. Fremdsprache hinterlegt.', new Exclamation());
+                                            $foreignLanguage1 = new Warning('Keine 1. Fremdsprache hinterlegt.',
+                                                new Exclamation());
                                         }
 
                                         $studentList[$tblPerson->getId()] = array(
@@ -154,7 +149,38 @@ class KamenzService
                                             ) {
                                                 $count['Orientation']++;
                                                 $studentList[$tblPerson->getId()]['Orientation']
-                                                    = new Warning('Kein Neigungskurs/2.FS hinterlegt.', new Exclamation());
+                                                    = new Warning('Kein Neigungskurs/2.FS hinterlegt.',
+                                                    new Exclamation());
+                                            }
+                                        }
+
+                                        if ($tblSchoolType->getName() == 'Grundschule') {
+                                            if ($tblStudent
+                                                && ($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT'))
+                                                && ($tblStudentTransfer = Student::useService()->getStudentTransferByType(
+                                                    $tblStudent, $tblStudentTransferType
+                                                ))
+                                                && ($tblSchoolEnrollmentType =$tblStudentTransfer->getTblStudentSchoolEnrollmentType())
+                                            ) {
+                                                $studentList[$tblPerson->getId()]['SchoolEnrollmentType']
+                                                    = $tblSchoolEnrollmentType->getName();
+                                            } else {
+                                                $studentList[$tblPerson->getId()]['SchoolEnrollmentType']
+                                                    =  new Warning('Keine Einschulungsart hinterlegt.',
+                                                    new Exclamation());
+                                                $count['SchoolEnrollmentType']++;
+                                            }
+
+                                            if ($tblStudent
+                                                && $tblStudent->getSchoolAttendanceStartDate()
+                                            ) {
+                                                $studentList[$tblPerson->getId()]['SchoolAttendanceStartDate']
+                                                    = $tblStudent->getSchoolAttendanceStartDate();
+                                            } else {
+                                                $studentList[$tblPerson->getId()]['SchoolAttendanceStartDate']
+                                                    =  new Warning('Keine Schulpflicht beginnt am hinterlegt.',
+                                                    new Exclamation());
+                                                $count['SchoolAttendanceStartDate']++;
                                             }
                                         }
                                     }
@@ -186,6 +212,11 @@ class KamenzService
 
         if (($tblSchoolType->getName() == 'Mittelschule / Oberschule')) {
             $columns['Orientation'] = 'Neigungskurs';
+        }
+
+        if (($tblSchoolType->getName() == 'Grundschule')) {
+            $columns['SchoolAttendanceStartDate'] = 'Schulpflicht beginnt am';
+            $columns['SchoolEnrollmentType'] = 'Einschulungsart';
         }
 
         $columns['Option'] = '';
@@ -403,6 +434,14 @@ class KamenzService
         }
         if ($count['Nationality'] > 0) {
             $summary[] = new Warning($count['Nationality'] . ' Schüler/n mit Migrationshintergrund ist keine Staatsangehörigkeit zugeordnet.'
+                , new Exclamation());
+        }
+        if ($count['SchoolAttendanceStartDate'] > 0) {
+            $summary[] = new Warning($count['SchoolAttendanceStartDate'] . ' Schüler/n ist keine Schulpflicht beginnt am zugeordnet.'
+                , new Exclamation());
+        }
+        if ($count['SchoolEnrollmentType'] > 0) {
+            $summary[] = new Warning($count['SchoolEnrollmentType'] . ' Schüler/n ist keine Einschulungsart zugeordnet.'
                 , new Exclamation());
         }
 

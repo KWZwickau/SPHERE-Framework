@@ -131,8 +131,7 @@ class Service extends AbstractService
         TblPerson $tblPerson,
         AbstractDocument $documentClass,
         TblType $tblType = null
-    )
-    {
+    ) {
 
         // Profil
         if (($tblStudent = $tblPerson->getStudent())
@@ -445,8 +444,7 @@ class Service extends AbstractService
         IFormInterface $Form,
         TblDocument $tblDocument,
         $Data
-    )
-    {
+    ) {
 
         /**
          * Skip to Frontend
@@ -482,18 +480,38 @@ class Service extends AbstractService
     }
 
     /**
-     * @param array $Content
-     * @param TblPerson $tblPerson
-     * @param AbstractDocument $documentClass
-     * @param TblType $tblType
+     * @param $Content
      *
      * @return array
      */
-    public function setKamenzReportContent(
+    public function setKamenzReportOsContent(
         $Content
-    )
-    {
+    ) {
 
-       return KamenzReportService::setKamenzReportOsContent($Content);
+        return KamenzReportService::setKamenzReportOsContent($Content);
+    }
+
+    /**
+     * @param $Content
+     *
+     * @return array
+     */
+    public function setKamenzReportGsContent(
+        $Content
+    ) {
+
+        return KamenzReportService::setKamenzReportGsContent($Content);
+    }
+
+    /**
+     * @param $Content
+     *
+     * @return array
+     */
+    public function setKamenzReportGymContent(
+        $Content
+    ) {
+
+        return KamenzReportService::setKamenzReportGymContent($Content);
     }
 }

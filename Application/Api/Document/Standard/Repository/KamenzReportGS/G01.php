@@ -23,7 +23,7 @@ class G01
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('G01. Klassenfrequenz im Schuljahr {{ Content.Schoolyear.Current }} zum Stichtag 18. September 2015')
+                ->setContent('G01. Klassenfrequenz im Schuljahr {{ Content.SchoolYear.Current }} zum Stichtag 18. September 2015')
             );
 
         $sliceList[] = (new Slice())
@@ -36,14 +36,15 @@ class G01
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Klasse')
-                    ->styleBorderRight()
                     ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '40%'
+                    ->stylePaddingBottom('8.5px')
+                    ->styleBorderRight(), '40%'
                 )
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Klassenstufen')
+                            ->styleBorderRight()
                         )
                     )
                     ->addSection((new Section())
@@ -60,124 +61,76 @@ class G01
                             ->styleBorderRight(), '25%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('4'), '25%'
+                            ->setContent('4')
+                            ->styleBorderRight(), '25%'
                         )
                     ), '60%'
                 )
             );
 
-        $sliceList[] = (new Slice())
-            ->styleAlignCenter()
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
+        for ($i = 1; $i < 6; $i++) {
+            $section = new Section();
+            $section
                 ->addElementColumn((new Element())
-                    ->setContent('Erste Klasse')
+                    ->setContent($i . '. Klasse')
                     ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '15%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '15%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '15%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00'), '15%'
-                )
+                    ->styleBorderRight(),
+                    '40%'
+                );
+            for ($level = 1; $level < 5; $level++) {
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if (Content.G01.D' . $i . '.L' . $level . ' is not empty) %}
+                                {{ Content.G01.D' . $i . '.L' . $level . ' }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleBorderRight(), '15%'
+                    );
+            }
+
+            $sliceList[] = (new Slice())
+                ->styleAlignCenter()
+                ->styleBorderBottom()
+                ->styleBorderLeft()
+                ->styleBorderRight()
+                ->addSection($section);
+        }
+
+        /**
+         * TotalCount
+         */
+        $section = new Section();
+        $section
+            ->addElementColumn((new Element())
+                ->setContent('Insgesamt')
+                ->styleBorderRight(), '40%'
             );
 
-        $sliceList[] = (new Slice())
-            ->styleAlignCenter()
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
+        for ($level = 1; $level < 5; $level++) {
+            $section
                 ->addElementColumn((new Element())
-                    ->setContent('Zweite Klasse')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                            {% if (Content.G01.L' . $level . '.TotalCount is not empty) %}
+                                {{ Content.G01.L' . $level . '.TotalCount }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                     ->styleBorderRight(), '15%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '15%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '15%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00'), '15%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleAlignCenter()
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Dritte Klasse')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '15%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '15%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '15%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00'), '15%'
-                )
-            );
+                );
+        }
 
         $sliceList[] = (new Slice())
             ->styleBackgroundColor('lightgrey')
+            ->styleTextBold()
             ->styleAlignCenter()
             ->styleBorderBottom()
             ->styleBorderLeft()
             ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Insgesamt')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '15%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '15%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '15%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;'), '15%'
-                )
-            );
+            ->addSection($section);
 
         return $sliceList;
     }

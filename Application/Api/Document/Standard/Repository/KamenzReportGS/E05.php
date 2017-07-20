@@ -21,9 +21,10 @@ class E05
 
         $sliceList[] = (new Slice())
             ->styleTextBold()
+            ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E05. Schüler im Ethik- bzw. Religionsunterricht im Schuljahr {{ Content.Schoolyear.Current }} nach Klassenstufen')
+                ->setContent('E05. Schüler im Ethik- bzw. Religionsunterricht im Schuljahr {{ Content.SchoolYear.Current }} nach Klassenstufen')
             );
 
         $sliceList[] = (new Slice())
@@ -41,10 +42,11 @@ class E05
                     ->stylePaddingBottom('8.5px'), '50%'
                 )
                 ->addSliceColumn((new Slice())
-                    ->styleBorderRight()
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Klassenstufe'), '100%'
+                            ->setContent('Klassenstufe')
+                            ->styleBorderRight()
+                            , '100%'
                         )
                     )
                     ->addSection((new Section())
@@ -61,7 +63,9 @@ class E05
                             ->styleBorderRight(), '25%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('4'), '25%'
+                            ->setContent('4')
+                            ->styleBorderRight()
+                            , '25%'
                         )
                     ), '40%'
                 )
@@ -73,149 +77,94 @@ class E05
                 )
             );
 
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
+        for ($i = 0; $i < 4; $i++) {
+            $section = new Section();
+            $section
                 ->addElementColumn((new Element())
-                    ->setContent('Ethik')
+                    ->setContent('
+                            {% if (Content.E05.S' . $i . '.SubjectName is not empty) %}
+                                {{ Content.E05.S' . $i . '.SubjectName }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight(), '50%'
-                )
+                );
+            for ($level = 1; $level < 5; $level++) {
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if (Content.E05.S' . $i . '.L' . $level . ' is not empty) %}
+                                {{ Content.E05.S' . $i . '.L' . $level . ' }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleBorderRight(), '10%'
+                    );
+            }
+            $section
                 ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '10%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '10%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '10%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '10%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey'), '10%'
-                )
+                    ->setContent('
+                            {% if (Content.E05.S' . $i . '.TotalCount is not empty) %}
+                                {{ Content.E05.S' . $i . '.TotalCount }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                    ->styleBackgroundColor('lightgrey')
+                    ->styleTextBold(), '10%'
+                );
+
+            $sliceList[] = (new Slice())
+                ->styleAlignCenter()
+                ->styleBorderBottom()
+                ->styleBorderLeft()
+                ->styleBorderRight()
+                ->addSection($section);
+        }
+
+        /**
+         * Total
+         */
+        $section = new Section();
+
+        $section
+            ->addElementColumn((new Element())
+                ->setContent('Insgesamt')
+                ->styleBackgroundColor('lightgrey')
+                ->styleBorderRight(), '50%'
             );
 
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
+        for ($level = 1; $level < 5; $level++) {
+            $section
                 ->addElementColumn((new Element())
-                    ->setContent('Evangelische Religion')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '50%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
+                    ->setContent('
+                            {% if (Content.E05.TotalCount.L' . $level . ' is not empty) %}
+                                {{ Content.E05.TotalCount.L' . $level . ' }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                     ->styleBorderRight(), '10%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '10%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '10%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '10%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey'), '10%'
-                )
-            );
+                );
+        }
 
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Katholische Religion')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '50%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '10%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '10%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '10%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '10%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey'), '10%'
-                )
+        $section
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleBackgroundColor('lightgrey'), '10%'
             );
 
         $sliceList[] = (new Slice())
             ->styleBackgroundColor('lightgrey')
+            ->styleTextBold()
+            ->styleAlignCenter()
             ->styleBorderBottom()
             ->styleBorderLeft()
             ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Befreiung gem. Teil A, Nr. 3.4 VwV Religion und Ethik')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '50%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '10%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '10%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '10%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '10%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;'), '10%'
-                )
-            );
+            ->addSection($section);
 
         return $sliceList;
     }

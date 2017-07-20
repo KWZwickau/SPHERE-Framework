@@ -23,7 +23,7 @@ class E01
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E01. Schüler und Klassen im Schuljahr {{ Content.Schoolyear.Current }} nach Klassenstufen')
+                ->setContent('E01. Schüler und Klassen im Schuljahr {{ Content.SchoolYear.Current }} nach Klassenstufen')
             );
 
         $sliceList[] = (new Slice())
@@ -35,16 +35,16 @@ class E01
             ->styleBorderRight()
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('Geburtsjahr')
+                    ->setContent('Merkmal')
                     ->styleBorderRight()
                     ->stylePaddingTop('26.1px')
                     ->stylePaddingBottom('26.1px'), '40%'
                 )
                 ->addSliceColumn((new Slice())
-                    ->styleBorderRight()
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Merkmal')
+                            ->setContent('Klassenstufe')
+                            ->styleBorderRight()
                         )
                     )
                     ->addSection((new Section())
@@ -53,27 +53,28 @@ class E01
                             ->styleBorderBottom()
                             ->styleBorderRight()
                             ->stylePaddingTop('8.6px')
-                            ->stylePaddingBottom('8.5px'),'25%'
+                            ->stylePaddingBottom('8.5px'), '25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('2')
                             ->styleBorderBottom()
                             ->styleBorderRight()
                             ->stylePaddingTop('8.6px')
-                            ->stylePaddingBottom('8.5px'),'25%'
+                            ->stylePaddingBottom('8.5px'), '25%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('3')
                             ->styleBorderBottom()
                             ->styleBorderRight()
                             ->stylePaddingTop('8.6px')
-                            ->stylePaddingBottom('8.5px'),'25%'
+                            ->stylePaddingBottom('8.5px'), '25%'
                         )
                         ->addElementColumn((new Element())
                             ->styleBorderBottom()
                             ->setContent('4')
+                            ->styleBorderRight()
                             ->stylePaddingTop('8.6px')
-                            ->stylePaddingBottom('8.5px'),'25%'
+                            ->stylePaddingBottom('8.5px'), '25%'
                         )
                     )
                     ->addSection((new Section())
@@ -106,7 +107,8 @@ class E01
                             ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('w'), '12.5%'
+                            ->setContent('w')
+                            ->styleBorderRight(), '12.5%'
                         )
                     ), '40%'
                 )
@@ -136,10 +138,12 @@ class E01
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
+                            ->styleTextBold()
                             ->styleBorderRight(), '25%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('w'), '25%'
+                            ->setContent('w')
+                            ->styleTextBold(), '25%'
                         )
                     ), '20%'
                 )
@@ -157,52 +161,126 @@ class E01
                     ->styleBorderRight(), '40%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.E01.Student.L1.m is not empty) %}
+                            {{ Content.E01.Student.L1.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.E01.Student.L1.w is not empty) %}
+                            {{ Content.E01.Student.L1.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.E01.Student.L2.m is not empty) %}
+                            {{ Content.E01.Student.L2.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.E01.Student.L2.w is not empty) %}
+                            {{ Content.E01.Student.L2.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.E01.Student.L3.m is not empty) %}
+                            {{ Content.E01.Student.L3.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.E01.Student.L3.w is not empty) %}
+                            {{ Content.E01.Student.L3.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.E01.Student.L4.m is not empty) %}
+                            {{ Content.E01.Student.L4.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.E01.Student.L4.w is not empty) %}
+                            {{ Content.E01.Student.L4.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.E01.Student.Migration.m is not empty) %}
+                            {{ Content.E01.Student.Migration.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
+                    ->setContent('
+                        {% if (Content.E01.Student.Migration.w is not empty) %}
+                            {{ Content.E01.Student.Migration.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                        {% if (Content.E01.Student.TotalCount.m is not empty) %}
+                            {{ Content.E01.Student.TotalCount.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleTextBold()
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                        {% if (Content.E01.Student.TotalCount.w is not empty) %}
+                            {{ Content.E01.Student.TotalCount.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleTextBold()
                     ->styleBackgroundColor('lightgrey'), '5%'
                 )
             );
@@ -219,125 +297,138 @@ class E01
                     ->styleBorderRight(), '40%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '5%'
+                    ->setContent('
+                        {% if (Content.E01.Division.L1 is not empty) %}
+                            {{ Content.E01.Division.L1 }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleBorderRight(), '10%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '5%'
+                    ->setContent('
+                        {% if (Content.E01.Division.L2 is not empty) %}
+                            {{ Content.E01.Division.L2 }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleBorderRight(), '10%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '5%'
+                    ->setContent('
+                        {% if (Content.E01.Division.L3 is not empty) %}
+                            {{ Content.E01.Division.L3 }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleBorderRight(), '10%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '5%'
+                    ->setContent('
+                        {% if (Content.E01.Division.L4 is not empty) %}
+                            {{ Content.E01.Division.L4 }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleBorderRight(), '10%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '5%'
+                    ->setContent('
+                        {% if (Content.E01.Division.Migration is not empty) %}
+                            {{ Content.E01.Division.Migration }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleBorderRight(), '10%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                        {% if (Content.E01.Division.TotalCount is not empty) %}
+                            {{ Content.E01.Division.TotalCount }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleTextBold()
                     ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey'), '5%'
+                    , '10%'
                 )
             );
 
-        $sliceList[] = (new Slice())
-            ->styleAlignCenter()
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Gruppen')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey'), '5%'
-                )
-            );
+//        $sliceList[] = (new Slice())
+//            ->styleAlignCenter()
+//            ->styleBorderBottom()
+//            ->styleBorderLeft()
+//            ->styleBorderRight()
+//            ->addSection((new Section())
+//                ->addElementColumn((new Element())
+//                    ->setContent('Gruppen')
+//                    ->styleBackgroundColor('lightgrey')
+//                    ->styleBorderRight(), '40%'
+//                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('&nbsp;')
+//                    ->styleBackgroundColor('lightgrey')
+//                    ->styleBorderRight(), '5%'
+//                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('&nbsp;')
+//                    ->styleBackgroundColor('lightgrey')
+//                    ->styleBorderRight(), '5%'
+//                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('&nbsp;')
+//                    ->styleBackgroundColor('lightgrey')
+//                    ->styleBorderRight(), '5%'
+//                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('&nbsp;')
+//                    ->styleBackgroundColor('lightgrey')
+//                    ->styleBorderRight(), '5%'
+//                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('&nbsp;')
+//                    ->styleBackgroundColor('lightgrey')
+//                    ->styleBorderRight(), '5%'
+//                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('&nbsp;')
+//                    ->styleBackgroundColor('lightgrey')
+//                    ->styleBorderRight(), '5%'
+//                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('&nbsp;')
+//                    ->styleBackgroundColor('lightgrey')
+//                    ->styleBorderRight(), '5%'
+//                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('&nbsp;')
+//                    ->styleBackgroundColor('lightgrey')
+//                    ->styleBorderRight(), '5%'
+//                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('00')
+//                    ->styleBorderRight(), '5%'
+//                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('00')
+//                    ->styleBorderRight(), '5%'
+//                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('&nbsp;')
+//                    ->styleBackgroundColor('lightgrey')
+//                    ->styleBorderRight(), '5%'
+//                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('&nbsp;')
+//                    ->styleBackgroundColor('lightgrey'), '5%'
+//                )
+//            );
 
         return $sliceList;
     }

@@ -27,7 +27,7 @@ class D01
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('D01. Schulanfänger zu Beginn des Schuljahres {{ Content.Schoolyear.Current }}')
+                ->setContent('D01. Schulanfänger zu Beginn des Schuljahres {{ Content.SchoolYear.Current }}')
             );
 
         $sliceList[] = (new Slice())
@@ -117,13 +117,13 @@ class D01
                                         ->addSliceColumn((new Slice())
                                             ->addSection((new Section())
                                                 ->addElementColumn((new Element())
-                                                    ->setContent('schulpflichtig geworden bis zum 30.08.2015')
+                                                    ->setContent('schulpflichtig geworden bis zum 30.06.')
                                                     ->styleBorderBottom()
                                                 )
                                             )
                                             ->addSection((new Section())
                                                 ->addElementColumn((new Element())
-                                                    ->setContent('schulpflichtig geworden vom 1.07. bis zum 30.09.2015')
+                                                    ->setContent('schulpflichtig geworden vom 1.07. bis zum 30.09.')
                                                 )
                                             )
                                         )
@@ -138,86 +138,170 @@ class D01
                         )
                     ), '70%'
                 )
-                //TODO: Zellen füllen
                 ->addSliceColumn((new Slice())
                     ->styleAlignCenter()
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('
+                                {% if (Content.D01.NewSchoolStarter.m is not empty) %}
+                                    {{ Content.D01.NewSchoolStarter.m }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            ')
                             ->styleBackgroundColor('lightgrey')
                             ->styleBorderBottom()
                             ->styleBorderRight(), '50%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBackgroundColor('lightgrey')
-                            ->styleBorderBottom(), '50%'
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '50%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom(), '50%'
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '50%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom(), '50%'
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBackgroundColor('lightgrey')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '50%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent('
+                                {% if (Content.D01.NewSchoolStarter.w is not empty) %}
+                                    {{ Content.D01.NewSchoolStarter.w }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            ')
                             ->styleBackgroundColor('lightgrey')
                             ->styleBorderBottom(), '50%'
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('00')
+                            ->setContent('
+                                {% if (Content.D01.Nursery.m is not empty) %}
+                                    {{ Content.D01.Nursery.m }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            ')
                             ->styleBorderBottom()
                             ->styleBorderRight(), '50%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('00')
+                            ->setContent('
+                                {% if (Content.D01.Nursery.w is not empty) %}
+                                    {{ Content.D01.Nursery.w }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            ')
                             ->styleBorderBottom(), '50%'
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('00')
+                            ->setContent('
+                                {% if (Content.D01.Premature.m is not empty) %}
+                                    {{ Content.D01.Premature.m }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            ')
                             ->styleBorderBottom()
                             ->styleBorderRight(), '50%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('00')
+                            ->setContent('
+                                {% if (Content.D01.Premature.w is not empty) %}
+                                    {{ Content.D01.Premature.w }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            ')
                             ->styleBorderBottom(), '50%'
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('00')
+                            ->setContent('
+                                {% if (Content.D01.Regular.Total.m is not empty) %}
+                                    {{ Content.D01.Regular.Total.m }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            ')
+                            ->styleBackgroundColor('lightgrey')
+                            ->styleBorderBottom()
                             ->styleBorderRight(), '50%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('00'), '50%'
+                            ->setContent('
+                                {% if (Content.D01.Regular.Total.w is not empty) %}
+                                    {{ Content.D01.Regular.Total.w }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            ')
+                            ->styleBackgroundColor('lightgrey')
+                            ->styleBorderBottom(), '50%'
+                        )
+                    )
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('
+                                {% if (Content.D01.Regular.First.m is not empty) %}
+                                    {{ Content.D01.Regular.First.m }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            ')
+                            ->styleBorderBottom()
+                            ->styleBorderRight(), '50%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('
+                                {% if (Content.D01.Regular.First.w is not empty) %}
+                                    {{ Content.D01.Regular.First.w }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            ')
+                            ->styleBorderBottom(), '50%'
+                        )
+                    )
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('
+                                {% if (Content.D01.Regular.Second.m is not empty) %}
+                                    {{ Content.D01.Regular.Second.m }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            ')
+                            ->styleBorderBottom()
+                            ->styleBorderRight(), '50%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('
+                                {% if (Content.D01.Regular.Second.w is not empty) %}
+                                    {{ Content.D01.Regular.Second.w }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            ')
+                            ->styleBorderBottom(), '50%'
+                        )
+                    )
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('
+                                {% if (Content.D01.Postponed.m is not empty) %}
+                                    {{ Content.D01.Postponed.m }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            ')
+                            ->styleBorderRight(), '50%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('
+                                {% if (Content.D01.Postponed.w is not empty) %}
+                                    {{ Content.D01.Postponed.w }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            ')
+                            , '50%'
                         )
                     ), '30%'
                 )

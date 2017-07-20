@@ -170,9 +170,11 @@ class Creator extends Extension
 
             $Data = array();
             if (strpos($DocumentClass, 'KamenzReportGS') !== false) {
-
+                $Data = Generator::useService()->setKamenzReportGsContent($Data);
+            }  elseif (strpos($DocumentClass, 'KamenzReportGym') !== false) {
+                $Data = Generator::useService()->setKamenzReportGymContent($Data);
             } elseif (strpos($DocumentClass, 'KamenzReport') !== false) {
-                $Data = Generator::useService()->setKamenzReportContent($Data);
+                $Data = Generator::useService()->setKamenzReportOsContent($Data);
             }
 
             $File = self::buildDummyFile($Document, $Data);
