@@ -22,24 +22,7 @@ class Data extends AbstractData
 
     public function getView()
     {
-//        $Manager = $this->getEntityManager();
-//        $QueryBuilder = $Manager->getQueryBuilder();
-//
-//
-//        $SqlReturn = $QueryBuilder
-//            ->select('viewStudent')
-//            ->from( 'SettingConsumer_DEMO.viewStudent', 'viewStudent' )
-//            ->getQuery()->execute();
-
-//        Debugger::screenDump($Query);
-
-//        if($MaxYear) {
-//            return $MaxYear;
-//        }
-//        else {
-//            return null;
-//        }
-        return '';
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'viewStudent');
     }
 
 }
