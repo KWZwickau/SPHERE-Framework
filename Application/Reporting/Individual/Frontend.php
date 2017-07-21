@@ -27,16 +27,18 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Flexible Auswertung');
 
+//        Individual::useService()->getView();
+
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            ApiIndividual::receiverNavigation(ApiIndividual::pipelineNavigation())
-                            , 3),
+                            ApiIndividual::receiverNavigation(ApiIndividual::pipelineNewNavigation())
+                            , 2),
                         new LayoutColumn(
                             'Filter <br/><hr/> TableResult'
-                            , 9)
+                            , 10)
                     ))
                 )
             )

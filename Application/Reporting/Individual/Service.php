@@ -2,8 +2,8 @@
 
 namespace SPHERE\Application\Reporting\Individual;
 
-use SPHERE\Application\Reporting\Dynamic\Service\Data;
-use SPHERE\Application\Reporting\Dynamic\Service\Setup;
+use SPHERE\Application\Reporting\Individual\Service\Data;
+use SPHERE\Application\Reporting\Individual\Service\Setup;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -28,5 +28,13 @@ class Service extends AbstractService
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getView()
+    {
+        return (new Data($this->getBinding()))->getView();
     }
 }
