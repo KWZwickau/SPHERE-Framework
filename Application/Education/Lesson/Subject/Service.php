@@ -255,6 +255,12 @@ class Service extends AbstractService
         $Error = false;
 
         if (!$Error) {
+            if (($tblSubjectList = $this->getSubjectAllByCategory($tblCategory))) {
+                foreach ($tblSubjectList as $tblSubject) {
+                    (new Data($this->getBinding()))->removeCategorySubject($tblCategory, $tblSubject);
+                }
+            }
+
             if ((new Data($this->getBinding()))->destroyCategory($tblCategory)) {
                 return new Success('Die Kategorie wurde erfolgreich gelöscht')
                 . new Redirect('/Education/Lesson/Subject/Create/Category', Redirect::TIMEOUT_SUCCESS);
