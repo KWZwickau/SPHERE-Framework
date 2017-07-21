@@ -172,8 +172,8 @@ class Service extends AbstractService
         }
         // Level
         if (!isset($Level['Check']) && isset($Level['Name'])) {
-            if (is_numeric($Level)) {
-                $position = strpos($Level, '0');
+            if (is_numeric($Level['Name'])) {
+                $position = strpos($Level['Name'], '0');
                 if ($position === 0) {
                     $Form->setError('Level[Name]', 'Bitte geben Sie eine Zahl ohne führende "0" ein');
                     $Error = true;
@@ -1914,8 +1914,8 @@ class Service extends AbstractService
 
         // Level
         if (!isset($Level['Check']) && isset($Level['Name'])) {
-            if (is_numeric($Level)) {
-                $position = strpos($Level, '0');
+            if (is_numeric($Level['Name'])) {
+                $position = strpos($Level['Name'], '0');
                 if ($position === 0) {
                     $Form->setError('Level[Name]', 'Bitte geben Sie eine Zahl ohne führende "0" ein');
                     $Error = true;
