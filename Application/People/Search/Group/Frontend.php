@@ -213,7 +213,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $ColumnArray = array(
                     'FullName' => 'Name',
                     'Address' => 'Adresse',
-                    'Division' => 'Klasse ' . $YearNow,
+                    'Division' => 'Klasse (SJ ' . $YearNow . ')',
                     'Identification' => 'Schülernummer',
                     'Option' => '',
                 );
