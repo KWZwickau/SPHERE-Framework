@@ -2058,6 +2058,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tableColumns['Name'] = 'Schüler';
             $tableColumns['Course'] = 'Bildungsgang';
             $tableColumns['Grade'] = 'Zensur';
+            // Todo remove
             if ($tblScoreType
                 && ($tblScoreType->getIdentifier() == 'GRADES'
                     || $tblScoreType->getIdentifier() == 'GRADES_BEHAVIOR_TASK')
@@ -2073,6 +2074,18 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($studentList) {
             $tabIndex = 1;
+            $selectList = array();
+            if ($tblScoreType) {
+                if ($tblScoreType->getIdentifier() == 'GRADES')
+                $selectList = array();
+                $count = 1;
+                for ($i = 1; $i < 6; $i++) {
+                    $selectList[$count++] = $i . '+';
+                    $selectList[$count++] = $i;
+                    $selectList[$count++] = $i . '-';
+                }
+                $selectList[$count] = 6;
+            }
             foreach ($studentList as $personId => $value) {
                 $tblPerson = Person::useService()->getPersonById($personId);
                 if ($studentTestList && isset($studentTestList[$personId])) {
@@ -2083,7 +2096,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTestOfPerson,
                     $tblPerson);
                 $studentList = $this->contentEditTestGradeTableRow($tblPerson, $tblGrade, $IsEdit, $studentList,
-                    $tabIndex, $IsTaskAndInPeriod, $tblScoreType ? $tblScoreType : null, $tblTest
+                    $tabIndex, $selectList, $IsTaskAndInPeriod, $tblScoreType ? $tblScoreType : null, $tblTest
                 );
             }
         }
@@ -2261,10 +2274,10 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $IsEdit
      * @param $student
      * @param $tabIndex
+     * @param $selectList
      * @param bool $IsTaskAndInPeriod
      * @param TblScoreType|null $tblScoreType
      * @param TblTest $tblTest
-     *
      * @return array
      */
     private function contentEditTestGradeTableRow(
@@ -2273,6 +2286,7 @@ class Frontend extends Extension implements IFrontendInterface
         $IsEdit,
         $student,
         &$tabIndex,
+        $selectList,
         $IsTaskAndInPeriod = false,
         TblScoreType $tblScoreType = null,
         TblTest $tblTest = null
@@ -2293,7 +2307,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblScoreType->getIdentifier() == 'VERBAL') {
                     $student[$tblPerson->getId()]['Grade']
                         = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', '',
-                        new Quote()))->setTabIndex(1);
+                        new Quote()))->setTabIndex($tabIndex++);
                 } elseif ($tblScoreType->getIdentifier() == 'GRADES_V1'
                     || $tblScoreType->getIdentifier() == 'GRADES_COMMA'
                 ) {
@@ -2301,14 +2315,22 @@ class Frontend extends Extension implements IFrontendInterface
                         = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '',
                         ''))->setTabIndex($tabIndex++);
                 } elseif ($tblScoreType->getIdentifier() == 'POINTS') {
+                    // todo points
                     $student[$tblPerson->getId()]['Grade']
                         = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '',
                         ''))->setTabIndex($tabIndex++);
                 } else {
-                    $student = $this->setFieldsForGradesWithTrend($student, $tblPerson, $tabIndex);
+                    $selectBox = (new SelectBox('Grade[' . $tblPerson->getId() . '][Grade]', '', $selectList));
+                    $selectBox->setTabIndex($tabIndex++);
+                    $selectBox->configureLibrary( SelectBox::LIBRARY_SELECT2 );
+
+                    $student[$tblPerson->getId()]['Grade']
+                        = $selectBox;
                 }
             } else {
-                $student = $this->setFieldsForGradesWithTrend($student, $tblPerson, $tabIndex);
+                $student[$tblPerson->getId()]['Grade']
+                    = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', '',
+                    new Quote()))->setTabIndex($tabIndex++);
             }
 
             if ($tblTest && $tblTest->isContinues()) {
@@ -2339,10 +2361,11 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $student
      * @param TblPerson $tblPerson
      * @param $tabIndex
+     * @param TblScoreType|null $tblScoreType
      *
      * @return array
      */
-    private function setFieldsForGradesWithTrend($student, TblPerson $tblPerson, &$tabIndex)
+    private function setFieldsForGradesWithTrend($student, TblPerson $tblPerson, &$tabIndex, TblScoreType $tblScoreType = null)
     {
 
         $selectBoxContent = array(
@@ -2351,11 +2374,14 @@ class Frontend extends Extension implements IFrontendInterface
             TblGrade::VALUE_TREND_MINUS => 'Minus'
         );
 
-        $student[$tblPerson->getId()]['Grade']
-            = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''))->setTabIndex($tabIndex++);
-        $student[$tblPerson->getId()]['Trend']
-            = (new SelectBox('Grade[' . $tblPerson->getId() . '][Trend]', '', $selectBoxContent,
-            new ResizeVertical()))->setTabIndex($tabIndex++);
+
+
+
+//        $student[$tblPerson->getId()]['Grade']
+//            = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''))->setTabIndex($tabIndex++);
+//        $student[$tblPerson->getId()]['Trend']
+//            = (new SelectBox('Grade[' . $tblPerson->getId() . '][Trend]', '', $selectBoxContent,
+//            new ResizeVertical()))->setTabIndex($tabIndex++);
 
         return $student;
     }
