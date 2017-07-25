@@ -7,6 +7,7 @@ use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Cache\Handler\DataCacheHandler;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\ColumnHydrator;
@@ -416,5 +417,22 @@ class Data extends AbstractData
             TblMember::ATTR_TBL_GROUP     => $tblGroup->getId(),
             TblMember::SERVICE_TBL_PERSON => $tblPerson->getId()
         ));
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     * @return int
+     */
+    public function countMemberByGroup(TblGroup $tblGroup)
+    {
+        /** @var DataCacheHandler $Cache */
+        $Cache = new DataCacheHandler(__METHOD__.'#'.$tblGroup->getId(),array( new TblMember() ));
+        if( null === ($Result = $Cache->getData()) ) {
+            $Result = $this->getEntityManager()->getEntity((new TblMember())->getEntityShortName())->countBy(array(
+                TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
+            ));
+            $Cache->setData($Result);
+        }
+        return $Result;
     }
 }

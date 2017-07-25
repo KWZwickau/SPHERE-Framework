@@ -67,7 +67,7 @@ class People implements IClusterInterface
             /** @var TblGroup $tblGroup */
             foreach ((array)$tblGroupAll as $Index => $tblGroup) {
 
-                $countContent = new Muted(new Small(Group::useService()->countMemberAllByGroup($tblGroup) . '&nbsp;Mitglieder'));
+                $countContent = new Muted(new Small(Group::useService()->countMemberByGroup($tblGroup) . '&nbsp;Mitglieder'));
                 $content =
                     new Layout(new LayoutGroup(new LayoutRow(array(
                             new LayoutColumn(

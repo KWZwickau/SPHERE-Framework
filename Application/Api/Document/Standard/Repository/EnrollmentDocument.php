@@ -44,19 +44,24 @@ class EnrollmentDocument extends AbstractDocument
             ->addPage((new Page())
                 ->addSlice((new Slice())
                     ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Schule')
-                            ->stylePaddingTop('50px')
-                            ->styleHeight('15px')
-                            ->stylePaddingLeft('5px')
-                            ->styleTextSize('9pt')
-                        )
-                    )
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                        ->addSliceColumn((new Slice())
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('&nbsp;')
+                                    ->styleHeight('25px')
+                                )
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('Schule')
+                                    ->styleHeight('15px')
+                                    ->stylePaddingLeft('5px')
+                                    ->styleTextSize('9pt')
+                                )
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('
                                 {% if(Content.Student.Company is not empty) %}
                                     {{ Content.Student.Company }} 
                                     {% if(Content.Student.Company2 is not empty) %}
@@ -73,13 +78,14 @@ class EnrollmentDocument extends AbstractDocument
                                     &nbsp;
                                 {% endif %} 
                                 ')
-                            ->styleHeight('118px')
-                            ->stylePaddingLeft('5px')
-                            , '70%'
+                                    ->styleHeight('118px')
+                                    ->stylePaddingLeft('5px')
+                                )
+                            ), '60%'
                         )
                         ->addElementColumn($this->getPictureEnrollmentDocument()
-                            ->styleAlignCenter()
-                            , '30%')
+                            ->styleAlignCenter(),'40%'
+                        )
                     )
                 )
                 ->addSlice((new Slice())
