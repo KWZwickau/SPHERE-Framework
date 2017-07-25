@@ -27,6 +27,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -1247,6 +1248,15 @@ class Frontend extends FrontendScoreRule
                     foreach ($data[$tblYear->getId()] as $personId => $divisionList) {
                         $tblPerson = Person::useService()->getPersonById($personId);
                         if ($tblPerson && is_array($divisionList)) {
+                            $isShownAverage = false;
+                            if (($tblSetting = Consumer::useService()->getSetting(
+                                'Education', 'Graduation', 'Gradebook', 'IsShownAverageInStudentOverview'
+                            ))
+                                && $tblSetting->getValue()
+                            ) {
+                                $isShownAverage = true;
+                            }
+
                             /** @var TblDivision $tblDivision */
                             foreach ($divisionList as $tblDivision) {
                                 if ($tblDivision && $tblDivision->getServiceTblYear()) {
@@ -1299,32 +1309,31 @@ class Frontend extends FrontendScoreRule
                                                                         foreach ($tblGradeList as $tblGrade) {
                                                                             $tblTest = $tblGrade->getServiceTblTest();
                                                                             if ($tblTest) {
-                                                                                if ($tblTest->getServiceTblGradeType() && $tblTest->getReturnDate()) {
+                                                                                if ($tblTest->isContinues() && $tblGrade->getDate()) {
+                                                                                    $gradeDate = (new \DateTime($tblGrade->getDate()))->format("Y-m-d");
+                                                                                    $now = (new \DateTime('now'))->format("Y-m-d");
+                                                                                    if ($gradeDate <= $now) {
+
+                                                                                        // Test anzeigen
+                                                                                        $this->addTest($tblTest,
+                                                                                            $tblGrade,
+                                                                                            $subTableHeaderList,
+                                                                                            $subTableDataList,
+                                                                                            $isShownAverage
+                                                                                        );
+                                                                                    }
+                                                                                } elseif ($tblTest->getServiceTblGradeType() && $tblTest->getReturnDate()) {
                                                                                     $testReturnDate = (new \DateTime($tblTest->getReturnDate()))->format("Y-m-d");
                                                                                     $now = (new \DateTime('now'))->format("Y-m-d");
                                                                                     if ($testReturnDate < $now) {
 
                                                                                         // Test anzeigen
-                                                                                        $date = $tblTest->getDate();
-                                                                                        if (strlen($date) > 6) {
-                                                                                            $date = substr($date, 0, 6);
-                                                                                        }
-                                                                                        $subTableHeaderList['Test' . $tblTest->getId()] = new Small(new Muted($date)) . '<br>'
-                                                                                            . ($tblTest->getServiceTblGradeType()->isHighlighted()
-                                                                                                ? $tblTest->getServiceTblGradeType()->getCode()
-                                                                                                : new Muted($tblTest->getServiceTblGradeType()->getCode()));
-
-                                                                                        $gradeValue = $tblGrade->getGrade();
-                                                                                        if ($gradeValue) {
-                                                                                            $trend = $tblGrade->getTrend();
-                                                                                            if (TblGrade::VALUE_TREND_PLUS === $trend) {
-                                                                                                $gradeValue .= '+';
-                                                                                            } elseif (TblGrade::VALUE_TREND_MINUS === $trend) {
-                                                                                                $gradeValue .= '-';
-                                                                                            }
-                                                                                        }
-
-                                                                                        $subTableDataList[0]['Test' . $tblTest->getId()] = $gradeValue ? $gradeValue : '';
+                                                                                        $this->addTest($tblTest,
+                                                                                            $tblGrade,
+                                                                                            $subTableHeaderList,
+                                                                                            $subTableDataList,
+                                                                                            $isShownAverage
+                                                                                        );
                                                                                     }
                                                                                 }
                                                                             }
@@ -1332,6 +1341,41 @@ class Frontend extends FrontendScoreRule
                                                                     }
 
                                                                     if (!empty($subTableHeaderList)) {
+                                                                        if ($isShownAverage) {
+                                                                            $subTableHeaderList['Average'] = '&#216;';
+
+                                                                            $tblScoreRule = Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
+                                                                                $tblDivisionSubject->getTblDivision(),
+                                                                                $tblDivisionSubject->getServiceTblSubject(),
+                                                                                $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
+                                                                            );
+
+                                                                            /*
+                                                                            * Calc Average
+                                                                            */
+                                                                            $average = Gradebook::useService()->calcStudentGrade(
+                                                                                $tblPerson,
+                                                                                $tblDivisionSubject->getTblDivision(),
+                                                                                $tblDivisionSubject->getServiceTblSubject(),
+                                                                                Evaluation::useService()->getTestTypeByIdentifier('TEST'),
+                                                                                $tblScoreRule ? $tblScoreRule : null,
+                                                                                $tblPeriod,
+                                                                                $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null,
+                                                                                true
+                                                                            );
+
+                                                                            if (is_array($average)) {
+                                                                                $average = 'Fehler';
+                                                                            } elseif (is_string($average) && strpos($average,
+                                                                                    '(')
+                                                                            ) {
+                                                                                $average = substr($average, 0,
+                                                                                    strpos($average, '('));
+                                                                            }
+
+                                                                            $subTableDataList[0]['Average'] = $average;
+                                                                        }
+
                                                                         $tableDataList[$tblDivisionSubject->getServiceTblSubject()->getId()]['Period' . $tblPeriod->getId()] = new TableData(
                                                                             $subTableDataList, null,
                                                                             $subTableHeaderList,
@@ -2811,5 +2855,62 @@ class Frontend extends FrontendScoreRule
             return $Stage . new Danger('Zensuren-Typ nicht gefunden.', new Ban())
                 . new Redirect($Route, Redirect::TIMEOUT_ERROR);
         }
+    }
+
+    /**
+     * @param TblTest $tblTest
+     * @param TblGrade $tblGrade
+     * @param $subTableHeaderList
+     * @param $subTableDataList
+     * @param $isShownAverage
+     */
+    private function addTest(TblTest $tblTest,TblGrade $tblGrade, &$subTableHeaderList, &$subTableDataList, $isShownAverage)
+    {
+        $date = $tblGrade->getDate() ? $tblGrade->getDate() : $tblTest->getDate();
+        if (strlen($date) > 6) {
+            $date = substr($date, 0, 6);
+        }
+
+        $gradeMirror = array();
+        $testAverage = Gradebook::useService()->getAverageByTest($tblTest, $gradeMirror);
+        $description = $tblTest->getDescription();
+        $text = new Small(new Muted($date)) . '<br>'
+            . ($tblTest->getServiceTblGradeType()->isHighlighted()
+                ? $tblTest->getServiceTblGradeType()->getCode()
+                : new Muted($tblTest->getServiceTblGradeType()->getCode()));
+
+
+        $toolTip = $description ? 'Thema: ' . $description : '';
+        if ($isShownAverage) {
+            if (!empty($gradeMirror)) {
+                $toolTip .= ($toolTip ? '<br />' : '');
+                $line[0] = '';
+                $line[1] = '';
+                foreach ($gradeMirror as $key => $value) {
+                    $space = ($value > 9 && $key < 10) ? '&nbsp;&nbsp;&nbsp;' : '&nbsp;';
+                    $line[0] .= $space . $key;
+                    $line[1] .= '&nbsp;' . $value;
+                }
+                $toolTip .= $line[0] . '<br />' . $line[1];
+            }
+            if ($testAverage) {
+                $toolTip .= ($toolTip ? '<br />' : '') . '&#216; ' . $testAverage;
+            }
+        }
+
+        $subTableHeaderList['Test' . $tblTest->getId()] =
+           new ToolTip($text, $toolTip);
+
+        $gradeValue = $tblGrade->getGrade();
+        if ($gradeValue) {
+            $trend = $tblGrade->getTrend();
+            if (TblGrade::VALUE_TREND_PLUS === $trend) {
+                $gradeValue .= '+';
+            } elseif (TblGrade::VALUE_TREND_MINUS === $trend) {
+                $gradeValue .= '-';
+            }
+        }
+
+        $subTableDataList[0]['Test' . $tblTest->getId()] = $gradeValue ? $gradeValue : '';
     }
 }
