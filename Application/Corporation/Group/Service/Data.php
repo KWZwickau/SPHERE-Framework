@@ -360,4 +360,15 @@ class Data extends AbstractData
             TblMember::SERVICE_TBL_COMPANY => $tblCompany->getId()
         ));
     }
+
+    /**
+     * @param TblGroup $tblGroup
+     * @return int
+     */
+    public function countMemberByGroup(TblGroup $tblGroup)
+    {
+        return $this->getEntityManager()->getEntity((new TblMember())->getEntityShortName())->countBy(array(
+            TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
+        ));
+    }
 }
