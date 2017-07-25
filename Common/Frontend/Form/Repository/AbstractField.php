@@ -37,6 +37,17 @@ abstract class AbstractField extends Extension implements IFieldInterface
     }
 
     /**
+     * @param string $Key
+     * @param mixed $Value
+     * @return $this
+     */
+    protected function setTemplateVariable( $Key, $Value )
+    {
+        $this->TemplateVariableList[$Key] = $Value;
+        return $this;
+    }
+
+    /**
      * @return string
      */
     public function getContent()
@@ -134,12 +145,12 @@ abstract class AbstractField extends Extension implements IFieldInterface
     public function setError($Message, IIconInterface $Icon = null)
     {
         if( $this->Template ) {
-            $this->Template->setVariable('ElementGroup', 'has-error has-feedback');
+            $this->setTemplateVariable('ElementGroup', 'has-error has-feedback');
             if (null !== $Icon) {
-                $this->Template->setVariable('ElementFeedbackIcon',
+                $this->setTemplateVariable('ElementFeedbackIcon',
                     '<span class="' . $Icon->getValue() . ' form-control-feedback"></span>');
             }
-            $this->Template->setVariable('ElementFeedbackMessage',
+            $this->setTemplateVariable('ElementFeedbackMessage',
                 '<span class="help-block text-left">' . $Message . '</span>');
         } else {
             $this->ErrorMessage['ElementGroup'] = 'has-error has-feedback';
@@ -158,12 +169,12 @@ abstract class AbstractField extends Extension implements IFieldInterface
     {
 
         if( $this->Template ) {
-            $this->Template->setVariable('ElementGroup', 'has-success has-feedback');
+            $this->setTemplateVariable('ElementGroup', 'has-success has-feedback');
             if (null !== $Icon) {
-                $this->Template->setVariable('ElementFeedbackIcon',
+                $this->setTemplateVariable('ElementFeedbackIcon',
                     '<span class="' . $Icon->getValue() . ' form-control-feedback"></span>');
             }
-            $this->Template->setVariable('ElementFeedbackMessage',
+            $this->setTemplateVariable('ElementFeedbackMessage',
                 '<span class="help-block text-left">' . $Message . '</span>');
         } else {
             $this->SuccessMessage['ElementGroup'] = 'has-success has-feedback';
@@ -203,7 +214,7 @@ abstract class AbstractField extends Extension implements IFieldInterface
     public function setPrefixValue($Value)
     {
 
-        $this->Template->setVariable('ElementPrefix', $Value);
+        $this->setTemplateVariable('ElementPrefix', $Value);
         return $this;
     }
 
@@ -293,7 +304,7 @@ abstract class AbstractField extends Extension implements IFieldInterface
     public function setDisabled()
     {
 
-        $this->Template->setVariable('Disabled', true);
+        $this->setTemplateVariable('Disabled', true);
         return $this;
     }
 
@@ -303,7 +314,7 @@ abstract class AbstractField extends Extension implements IFieldInterface
     public function setRequired()
     {
 
-        $this->Template->setVariable('Required', true);
+        $this->setTemplateVariable('Required', true);
         return $this;
     }
 
@@ -317,7 +328,7 @@ abstract class AbstractField extends Extension implements IFieldInterface
     public function setTabIndex($Index = 1)
     {
 
-        $this->Template->setVariable('TabIndex', (int)$Index);
+        $this->setTemplateVariable('TabIndex', (int)$Index);
         return $this;
     }
 
@@ -328,7 +339,7 @@ abstract class AbstractField extends Extension implements IFieldInterface
      */
     public function setAutoFocus()
     {
-        $this->Template->setVariable('AutoFocus', 'autofocus');
+        $this->setTemplateVariable('AutoFocus', 'autofocus');
         return $this;
     }
 
@@ -337,7 +348,7 @@ abstract class AbstractField extends Extension implements IFieldInterface
      */
     public function setInputAlignLeft()
     {
-        $this->Template->setVariable( 'ElementClass', 'text-left' );
+        $this->setTemplateVariable( 'ElementClass', 'text-left' );
         return $this;
     }
 
@@ -346,7 +357,7 @@ abstract class AbstractField extends Extension implements IFieldInterface
      */
     public function setInputAlignCenter()
     {
-        $this->Template->setVariable( 'ElementClass', 'text-center' );
+        $this->setTemplateVariable( 'ElementClass', 'text-center' );
         return $this;
     }
 
@@ -355,7 +366,7 @@ abstract class AbstractField extends Extension implements IFieldInterface
      */
     public function setInputAlignRight()
     {
-        $this->Template->setVariable( 'ElementClass', 'text-right' );
+        $this->setTemplateVariable( 'ElementClass', 'text-right' );
         return $this;
     }
 
@@ -384,7 +395,7 @@ abstract class AbstractField extends Extension implements IFieldInterface
             $Script = $Pipeline->parseScript( $this );
         }
 
-        $this->TemplateVariableList['AjaxEventChange'] = $Script;
+        $this->setTemplateVariable('AjaxEventChange', $Script);
         return $this;
     }
 
@@ -403,7 +414,7 @@ abstract class AbstractField extends Extension implements IFieldInterface
             $Script = $Pipeline->parseScript( $this );
         }
 
-        $this->TemplateVariableList['AjaxEventKeyUp'] = $Script;
+        $this->setTemplateVariable('AjaxEventKeyUp', $Script);
         return $this;
     }
 
