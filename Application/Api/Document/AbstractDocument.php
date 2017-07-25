@@ -257,7 +257,7 @@ abstract class AbstractDocument
                                 if ($tblAddress->getStreetName())
                                 {
                                     $Data['Student']['CompanyAddress'] .= $tblAddress->getStreetName()
-                                        . ' ' . $tblAddress->getStreetNumber() . ',<br>';
+                                        .' '.$tblAddress->getStreetNumber().'<br>';
                                     $this->tblAdressRowCount++;
                                 }
                                 if ($tblAddress->getTblCity()->getCode())
