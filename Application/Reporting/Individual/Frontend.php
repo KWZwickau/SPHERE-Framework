@@ -46,7 +46,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     new LayoutRow(array(
                                         new LayoutColumn('Filter'),
                                         new LayoutColumn(new Title('TableResult')),
-                                        new LayoutColumn(new TableData($Content)),
+                                        new LayoutColumn(new TableData($Content, null,
+                                            $Content[0]->getNameDefinitionList())),
                                     ))
                                 )
                             )

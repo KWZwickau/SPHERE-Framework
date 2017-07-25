@@ -363,9 +363,9 @@ class ViewStudent extends AbstractView
      */
     public function loadNameDefinition()
     {
-//        $this->setNameDefinition(self::DIVISION_NAME_LEVEL_NAME_GROUP, 'Klassen (Gruppiert)');
-//        $this->setNameDefinition(self::DIVISION_NAME_LEVEL_NAME, 'Klasse');
-//        $this->setNameDefinition(self::LEVEL_NAME, 'Stufe');
+        $this->setNameDefinition(self::DIVISION_NAME_LEVEL_NAME_GROUP, 'Klassen (Gruppiert)');
+        $this->setNameDefinition(self::DIVISION_NAME_LEVEL_NAME, 'Klasse');
+        $this->setNameDefinition(self::LEVEL_NAME, 'Stufe');
     }
 
     /**
@@ -379,12 +379,10 @@ class ViewStudent extends AbstractView
     }
 
     /**
-     * @return AbstractService
+     * @return void|AbstractService
      */
     public function getViewService()
     {
         // TODO: Implement getViewService() method.
     }
-
-
 }

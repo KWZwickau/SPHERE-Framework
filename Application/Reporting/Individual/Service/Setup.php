@@ -24,7 +24,9 @@ class Setup extends AbstractSetup
 
         $Schema = $this->loadSchema();
 
-//        $this->setTable($Schema);
+        $this->setTableWorkSpace($Schema);
+        $tblPreset = $this->setTablePreset($Schema);
+        $this->setTablePresetSetting($Schema, $tblPreset);
 
         return $this->saveSchema($Schema, $Simulate);
     }
@@ -34,15 +36,49 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTable(Schema $Schema)
+    private function setTableWorkSpace(Schema $Schema)
     {
 
-//        $Table = $this->createTable($Schema, 'tblDynamicFilter');
-//        $this->createColumn($Table, 'serviceTblAccount', self::FIELD_TYPE_BIGINT, true);
-//        $this->createColumn($Table, 'FilterName');
-//        $this->createIndex($Table, array('serviceTblAccount','FilterName'));
-//        $this->createColumn($Table, 'IsPublic', self::FIELD_TYPE_BOOLEAN);
-//
-//        return $Table;
+        $Table = $this->createTable($Schema, 'tblWorkSpace');
+        $this->createColumn($Table, 'serviceTblAccount', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'Field', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'View', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Position', self::FIELD_TYPE_INTEGER);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTablePreset(Schema $Schema)
+    {
+
+        $Table = $this->createTable($Schema, 'tblPreset');
+        $this->createColumn($Table, 'serviceTblAccount', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblPreset
+     *
+     * @return Table
+     */
+    private function setTablePresetSetting(Schema $Schema, Table $tblPreset)
+    {
+
+        $Table = $this->createTable($Schema, 'tblPresetSetting');
+        $this->createColumn($Table, 'serviceTblAccount', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'Field', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'View', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Position', self::FIELD_TYPE_INTEGER);
+        $this->getConnection()->addForeignKey($Table, $tblPreset);
+
+        return $Table;
     }
 }
