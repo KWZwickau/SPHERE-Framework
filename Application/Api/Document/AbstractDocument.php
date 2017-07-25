@@ -43,6 +43,11 @@ abstract class AbstractDocument
     private $tblPerson = null;
 
     /**
+     * @var int
+     */
+    private $tblAdressRowCount = 0;
+
+    /**
      * @return false|TblPerson
      */
     public function getTblPerson()
@@ -242,10 +247,43 @@ abstract class AbstractDocument
                                 $Data['Document']['PlaceDate'] = $tblAddress->getTblCity()->getName() . ', '
                                     . date('d.m.Y');
                                 $Data['Document']['Date']['Now'] = date('d.m.Y');
-                                $Data['Student']['CompanyAddress'] = $tblAddress->getGuiTwoRowString();
+
+                                $Data['Student']['CompanyAddress'] = '';
+                                if ($tblAddress->getTblCity()->getDistrict())
+                                {
+                                    $Data['Student']['CompanyAddress'] .= 'OT ' . $tblAddress->getTblCity()->getDistrict() . '<br>';
+                                    $this->tblAdressRowCount++;
+                                }
+                                if ($tblAddress->getStreetName())
+                                {
+                                    $Data['Student']['CompanyAddress'] .= $tblAddress->getStreetName()
+                                        .' '.$tblAddress->getStreetNumber().'<br>';
+                                    $this->tblAdressRowCount++;
+                                }
+                                if ($tblAddress->getTblCity()->getCode())
+                                {
+                                    $Data['Student']['CompanyAddress'] .= $tblAddress->getTblCity()->getCode() .
+                                        ' ' . $tblAddress->getTblCity()->getName();
+                                    $this->tblAdressRowCount++;
+                                }
+
+//                                $Data['Student']['CompanyAddress'] = ($tblAddress->getTblCity()->getDistrict() ? 'OT ' . $tblAddress->getTblCity()->getDistrict() . '<br>' : '')
+//                                    . $tblAddress->getStreetName()
+//                                    . ' ' . $tblAddress->getStreetNumber()
+//                                    . ',<br>' . $tblAddress->getTblCity()->getCode()
+//                                    . ' ' . $tblAddress->getTblCity()->getName();
+//
+//                                    $tblAddress->getGuiTwoRowString();
                             }
-                            $Data['Student']['Company'] = $tblCompany->getName();
-                            $Data['Student']['Company2'] = $tblCompany->getExtendedName();
+                            if ($tblCompany->getName()) {
+                                $Data['Student']['Company'] = $tblCompany->getName();
+                                $this->tblAdressRowCount++;
+                            }
+                            if ($tblCompany->getExtendedName()) {
+                                $Data['Student']['Company2'] = $tblCompany->getExtendedName();
+                                $this->tblAdressRowCount++;
+                            }
+
                         }
                     }
                 }
@@ -766,7 +804,8 @@ abstract class AbstractDocument
         $picturePath = $this->getEnrollmentDocumentUsedPicture();
         if ($picturePath != '') {
             $height = $this->getEnrollmentDocumentPictureHeight();
-            $column = (new Element\Image($picturePath, $with, $height));
+            $column = (new Element\Image($picturePath, $with, $height))->stylePaddingTop(
+                (($this->tblAdressRowCount * 8 + 32) - (substr($height, 0, strlen($height) - 2) / 2)) . 'px');
         } else {
             $column = (new Element())
                 ->setContent('&nbsp;');
@@ -801,6 +840,6 @@ abstract class AbstractDocument
             $value = (string)$tblSetting->getValue();
         }
 
-        return $value ? $value : '50px';
+        return $value ? $value : '90px';
     }
 }
