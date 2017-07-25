@@ -45,6 +45,15 @@ class ToolTip extends Extension
     }
 
     /**
+     * @return $this
+     */
+    public function enableHtml()
+    {
+        $this->Template->setVariable('EnableHtml', true);
+        return $this;
+    }
+
+    /**
      * @return string
      */
     public function __toString()

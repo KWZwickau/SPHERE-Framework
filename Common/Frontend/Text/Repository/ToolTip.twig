@@ -1,5 +1,5 @@
 <span id="{{ ElementHash }}"
-     data-trigger="hover" data-toggle="popover" data-content="{{ ElementToolTip }}" data-html="true"
+     data-trigger="hover" data-toggle="popover" data-content="{{ ElementToolTip }}"{% if(EnableHtml is not empty) %} data-html="true"{% endif %}
 >{{ ElementName }}</span>
 <script language=javascript>
     //noinspection JSUnresolvedFunction

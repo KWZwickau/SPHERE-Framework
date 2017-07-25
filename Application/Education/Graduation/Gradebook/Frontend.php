@@ -863,7 +863,7 @@ class Frontend extends FrontendScoreRule
                                         : new Muted($tblTest->getServiceTblGradeType()->getCode()));
 
                                 $columnDefinition['Test' . $tblTest->getId()] = $tblTest->getDescription()
-                                    ? new ToolTip($text, $tblTest->getDescription())
+                                    ? (new ToolTip($text, $tblTest->getDescription()))->enableHtml()
                                     : $text;
 
                                 // für Schüler, welche nicht mehr in der Klasse sind
@@ -2076,8 +2076,8 @@ class Frontend extends FrontendScoreRule
                                                     if (($tblSubjectFromStudent = $tblDivisionSubjectStudent->getServiceTblSubject())) {
                                                         if ($tblSubjectFromStudent->getId() == $tblSubject->getId()) {
                                                             if (($tblSubjectGroup = $tblDivisionSubjectStudent->getTblSubjectGroup())) {
-                                                                $data[$tblSubject->getId().'Id'] = new ToolTip(($average != '' ? '&empty; '.$average : '')
-                                                                    , $tblSubjectGroup->getName());
+                                                                $data[$tblSubject->getId().'Id'] = (new ToolTip(($average != '' ? '&empty; '.$average : '')
+                                                                    , $tblSubjectGroup->getName()))->enableHtml();
                                                             }
                                                         }
                                                     }
@@ -2262,8 +2262,8 @@ class Frontend extends FrontendScoreRule
                                                         if (($tblSubjectFromStudent = $tblDivisionSubjectStudent->getServiceTblSubject())) {
                                                             if ($tblSubjectFromStudent->getId() == $tblSubject->getId()) {
                                                                 if (($tblSubjectGroup = $tblDivisionSubjectStudent->getTblSubjectGroup())) {
-                                                                    $data[$tblSubject->getId().'Id'] = new ToolTip(($average != '' ? '&empty; '.$average : '')
-                                                                        , $tblSubjectGroup->getName());
+                                                                    $data[$tblSubject->getId().'Id'] = (new ToolTip(($average != '' ? '&empty; '.$average : '')
+                                                                        , $tblSubjectGroup->getName()))->enableHtml();
                                                                 }
                                                             }
                                                         }
@@ -2899,7 +2899,7 @@ class Frontend extends FrontendScoreRule
         }
 
         $subTableHeaderList['Test' . $tblTest->getId()] =
-           new ToolTip($text, $toolTip);
+            (new ToolTip($text, $toolTip))->enableHtml();
 
         $gradeValue = $tblGrade->getGrade();
         if ($gradeValue) {
