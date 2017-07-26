@@ -23,7 +23,7 @@ class E12
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E12. Schüler und Profilgruppen in weiteren Profilen im Schuljahr {{ Content.Schoolyear.Current }} nach Klassenstufen')
+                ->setContent('E12. Schüler und Profilgruppen in weiteren Profilen im Schuljahr {{ Content.SchoolYear.Current }} nach Klassenstufen')
             );
 
         $sliceList[] = (new Slice())
@@ -38,10 +38,10 @@ class E12
                     ->stylePaddingBottom('17.1px'), '40%'
                 )
                 ->addSliceColumn((new Slice())
-                    ->styleBorderRight()
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Klassenstufe')
+                            ->styleBorderRight()
                         )
                     )
                     ->addSection((new Section())
@@ -54,7 +54,8 @@ class E12
                             ->styleBorderRight(), '33.33%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('10'), '33.34%'
+                            ->setContent('10')
+                            ->styleBorderRight(), '33.34%'
                         )
                     )
                     ->addSection((new Section())
@@ -79,7 +80,8 @@ class E12
                             ->styleBorderRight(), '16.67%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('w'), '16.67%'
+                            ->setContent('w')
+                            ->styleBorderRight(), '16.67%'
                         )
                     ), '45%'
                 )
@@ -104,476 +106,79 @@ class E12
                 )
             );
 
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
+        for ($i = 0; $i < 5; $i++) {
+            $section = new Section();
+            $section
                 ->addElementColumn((new Element())
-                    ->setContent('Gesellschaftswissenschaftl.<br/>Profil mit informat. Bildung')
+                    ->setContent('
+                            {% if (Content.E12.S' . $i . '.SubjectName is not empty) %}
+                                {{ Content.E12.S' . $i . '.SubjectName }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                     ->styleBorderRight()
-                    ->stylePaddingTop('1px'), '27.5%'
-                )
-                ->addSliceColumn((new Slice())
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight()
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Schüler')
-                            ->styleBorderBottom()
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Profilgruppen')
-                        )
-                    ), '12.5%'
-                )
-                ->addSliceColumn((new Slice())
-                    ->styleAlignCenter()
-                    ->styleBorderRight()
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '16.66%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '16.67%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '16.66%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '16.67%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '16.66%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom(), '16.67%'
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderRight(), '33.33%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderRight(), '33.33%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00'), '33.34%'
-                        )
-                    ), '45%'
-                )
-                ->addSliceColumn((new Slice())
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleTextBold()
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom(), '50%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom(), '50%'
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;'), '100%'
-                        )
-                    ), '15%'
-                )
-            );
+                    , '40%'
+                );
+            for ($level = 8; $level < 11; $level++) {
 
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if (Content.E12.S' . $i . '.L' . $level . '.m is not empty) %}
+                                {{ Content.E12.S' . $i . '.L' . $level . '.m }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleBorderRight()
+                        , '7.5%'
+                    );
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if (Content.E12.S' . $i . '.L' . $level . '.w is not empty) %}
+                                {{ Content.E12.S' . $i . '.L' . $level . '.w }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleBorderRight()
+                        , '7.5%'
+                    );
+            }
+            $section
                 ->addElementColumn((new Element())
-                    ->setContent('Künstlerisches Profil mit<br/>informatischer Bildung')
-                    ->styleBorderRight()
-                    ->stylePaddingTop('1px'), '27.5%'
-                )
-                ->addSliceColumn((new Slice())
+                    ->setContent('
+                            {% if (Content.E12.S' . $i . '.TotalCount.m is not empty) %}
+                                {{ Content.E12.S' . $i . '.TotalCount.m }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight()
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Schüler')
-                            ->styleBorderBottom()
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Profilgruppen')
-                        )
-                    ), '12.5%'
+                    ->styleTextBold(), '7.5%'
                 )
-                ->addSliceColumn((new Slice())
-                    ->styleAlignCenter()
-                    ->styleBorderRight()
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '16.66%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '16.67%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '16.66%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '16.67%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '16.66%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom(), '16.67%'
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderRight(), '33.33%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderRight(), '33.33%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00'), '33.34%'
-                        )
-                    ), '45%'
-                )
-                ->addSliceColumn((new Slice())
+                ->addElementColumn((new Element())
+                    ->setContent('
+                                {% if (Content.E12.S' . $i . '.TotalCount.w is not empty) %}
+                                    {{ Content.E12.S' . $i . '.TotalCount.w }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            ')
                     ->styleBackgroundColor('lightgrey')
-                    ->styleTextBold()
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom(), '50%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom(), '50%'
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;'), '100%'
-                        )
-                    ), '15%'
-                )
-            );
+                    ->styleTextBold(), '7.5%'
+                );
 
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Naturwissenschaftliches Profil<br/>mit informatischer Bildung')
-                    ->styleBorderRight()
-                    ->stylePaddingTop('1px'), '27.5%'
-                )
-                ->addSliceColumn((new Slice())
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight()
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Schüler')
-                            ->styleBorderBottom()
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Profilgruppen')
-                        )
-                    ), '12.5%'
-                )
-                ->addSliceColumn((new Slice())
-                    ->styleAlignCenter()
-                    ->styleBorderRight()
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '16.66%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '16.67%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '16.66%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '16.67%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '16.66%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom(), '16.67%'
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderRight(), '33.33%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderRight(), '33.33%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00'), '33.34%'
-                        )
-                    ), '45%'
-                )
-                ->addSliceColumn((new Slice())
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleTextBold()
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom(), '50%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom(), '50%'
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;'), '100%'
-                        )
-                    ), '15%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Sportliches Profil mit<br/>informatischer Bildung')
-                    ->styleBorderRight()
-                    ->stylePaddingTop('1px'), '27.5%'
-                )
-                ->addSliceColumn((new Slice())
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight()
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Schüler')
-                            ->styleBorderBottom()
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Profilgruppen')
-                        )
-                    ), '12.5%'
-                )
-                ->addSliceColumn((new Slice())
-                    ->styleAlignCenter()
-                    ->styleBorderRight()
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '16.66%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '16.67%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '16.66%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '16.67%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '16.66%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom(), '16.67%'
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderRight(), '33.33%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderRight(), '33.33%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00'), '33.34%'
-                        )
-                    ), '45%'
-                )
-                ->addSliceColumn((new Slice())
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleTextBold()
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom(), '50%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom(), '50%'
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;'), '100%'
-                        )
-                    ), '15%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Sonstige Profile')
-                    ->styleBorderRight()
-                    ->stylePaddingTop('9.2px')
-                    ->stylePaddingBottom('9.1px'), '27.5%'
-                )
-                ->addSliceColumn((new Slice())
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight()
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Schüler')
-                            ->styleBorderBottom()
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Profilgruppen')
-                        )
-                    ), '12.5%'
-                )
-                ->addSliceColumn((new Slice())
-                    ->styleAlignCenter()
-                    ->styleBorderRight()
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '16.66%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '16.67%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '16.66%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '16.67%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '16.66%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderBottom(), '16.67%'
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderRight(), '33.33%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00')
-                            ->styleBorderRight(), '33.33%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('00'), '33.34%'
-                        )
-                    ), '45%'
-                )
-                ->addSliceColumn((new Slice())
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleTextBold()
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom(), '50%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->styleBorderBottom(), '50%'
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;'), '100%'
-                        )
-                    ), '15%'
-                )
-            );
+            $sliceList[] = (new Slice())
+                ->styleAlignCenter()
+                ->styleBorderBottom()
+                ->styleBorderLeft()
+                ->styleBorderRight()
+                ->addSection($section);
+        }
 
         return $sliceList;
     }

@@ -45,9 +45,11 @@ class KamenzService
         $count['Birthday'] = 0;
         $count['Religion'] = 0;
         $count['Orientation'] = 0;
+        $count['Profile'] = 0;
         $count['Student'] = 0;
         $count['Nationality'] = 0;
         $count['ForeignLanguage1'] = 0;
+        $count['ForeignLanguage2'] = 0;
         $count['SchoolEnrollmentType'] = 0;
         $count['SchoolAttendanceStartDate'] = 0;
         $studentList = array();
@@ -117,13 +119,25 @@ class KamenzService
                                                 new Exclamation());
                                         }
 
+                                        if (isset($foreignLanguages[2])) {
+                                            $foreignLanguage2 = $foreignLanguages[2];
+                                        } elseif ($tblSchoolType->getName() == 'Gymnasium'
+                                            && preg_match('!(0?(6|7|8|9|10))!is', $tblLevel->getName())
+                                        ) {
+                                            $count['ForeignLanguage2']++;
+                                            $foreignLanguage2 = new Warning('Keine 2. Fremdsprache hinterlegt.',
+                                                new Exclamation());
+                                        } else {
+                                            $foreignLanguage2 = '';
+                                        }
+
                                         $studentList[$tblPerson->getId()] = array(
                                             'Division' => $tblDivision->getDisplayName(),
                                             'Name' => $tblPerson->getLastFirstName(),
                                             'Gender' => $gender,
                                             'Birthday' => $birthday,
                                             'ForeignLanguage1' => $foreignLanguage1,
-                                            'ForeignLanguage2' => isset($foreignLanguages[2]) ? $foreignLanguages[2] : '',
+                                            'ForeignLanguage2' => $foreignLanguage2,
                                             'ForeignLanguage3' => isset($foreignLanguages[3]) ? $foreignLanguages[3] : '',
                                             'ForeignLanguage4' => isset($foreignLanguages[4]) ? $foreignLanguages[4] : '',
                                             'Religion' => self::getReligion($tblPerson, $count),
@@ -150,6 +164,18 @@ class KamenzService
                                                 $count['Orientation']++;
                                                 $studentList[$tblPerson->getId()]['Orientation']
                                                     = new Warning('Kein Neigungskurs/2.FS hinterlegt.',
+                                                    new Exclamation());
+                                            }
+                                        }
+
+                                        // Todo profile
+                                        if (($tblSchoolType->getName() == 'Gymnasium')) {
+                                            if (($profile = self::getProfile($tblPerson))) {
+                                                $studentList[$tblPerson->getId()]['Profile'] = $profile;
+                                            } elseif (preg_match('!(0?(8|9|10))!is', $tblLevel->getName())) {
+                                                $count['Profile']++;
+                                                $studentList[$tblPerson->getId()]['Profile']
+                                                    = new Warning('Kein Profil hinterlegt.',
                                                     new Exclamation());
                                             }
                                         }
@@ -217,6 +243,10 @@ class KamenzService
         if (($tblSchoolType->getName() == 'Grundschule')) {
             $columns['SchoolAttendanceStartDate'] = 'Schulpflicht beginnt am';
             $columns['SchoolEnrollmentType'] = 'Einschulungsart';
+        }
+
+        if (($tblSchoolType->getName() == 'Gymnasium')) {
+            $columns['Profile'] = 'Profil';
         }
 
         $columns['Option'] = '';
@@ -293,9 +323,26 @@ class KamenzService
     {
 
         if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))
-            && (($religion = self::getSubjectByStudentSubjectType($tblPerson, $tblStudentSubjectType)))
+            && (($subject = self::getSubjectByStudentSubjectType($tblPerson, $tblStudentSubjectType)))
         ) {
-            return $religion;
+            return $subject;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return string
+     */
+    private static function getProfile(TblPerson $tblPerson)
+    {
+
+        if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE'))
+            && (($subject = self::getSubjectByStudentSubjectType($tblPerson, $tblStudentSubjectType)))
+        ) {
+            return $subject;
         }
 
         return false;
@@ -424,12 +471,20 @@ class KamenzService
             $summary[] = new Warning($count['ForeignLanguage1'] . ' Schüler/n ist keine 1. Fremdsprache zugeordnet.'
                 , new Exclamation());
         }
+        if ($count['ForeignLanguage2'] > 0) {
+            $summary[] = new Warning($count['ForeignLanguage2'] . ' Schüler/n ist keine 2. Fremdsprache zugeordnet.'
+                , new Exclamation());
+        }
         if ($count['Religion'] > 0) {
             $summary[] = new Warning($count['Religion'] . ' Schüler/n ist keine Religion zugeordnet.'
                 , new Exclamation());
         }
         if ($count['Orientation'] > 0) {
             $summary[] = new Warning($count['Orientation'] . ' Schüler/n ist kein Neigungskurs/2.FS zugeordnet.'
+                , new Exclamation());
+        }
+        if ($count['Profile'] > 0) {
+            $summary[] = new Warning($count['Profile'] . ' Schüler/n ist kein Profil zugeordnet.'
                 , new Exclamation());
         }
         if ($count['Nationality'] > 0) {
