@@ -363,9 +363,72 @@ class ViewStudent extends AbstractView
      */
     public function loadNameDefinition()
     {
-        $this->setNameDefinition(self::DIVISION_NAME_LEVEL_NAME_GROUP, 'Klassen (Gruppiert)');
-        $this->setNameDefinition(self::DIVISION_NAME_LEVEL_NAME, 'Klasse');
-        $this->setNameDefinition(self::LEVEL_NAME, 'Stufe');
+
+        $this->setNameDefinition(self::TBL_COMMON_GENDER_NAME, 'Geschlecht');
+        $this->setNameDefinition(self::TBL_PERSON_TITLE, 'Titel');
+        $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME, 'Vorname');
+        $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME, 'Zweiter Vorname');
+        $this->setNameDefinition(self::TBL_PERSON_LAST_NAME, 'Nachname');
+        $this->setNameDefinition(self::TBL_COMMON_INFORMATION_IS_ASSISTANCE, 'Mitarbeitsbereitschaft');
+        $this->setNameDefinition(self::TBL_COMMON_INFORMATION_ASSISTANCE_ACTIVITY, 'Mitarbeits Aktivitäten');
+        $this->setNameDefinition(self::TBL_COMMON_REMARK, 'Personenbemerkung');
+        $this->setNameDefinition(self::TBL_COMMON_BIRTHDATES_BIRTHDAY, 'Geburtstag');
+        $this->setNameDefinition(self::TBL_COMMON_BIRTHDATES_BIRTHPLACE, 'Geburtsort');
+        $this->setNameDefinition(self::TBL_COMMON_INFORMATION_DENOMINATION, 'Konfession');
+        $this->setNameDefinition(self::TBL_COMMON_INFORMATION_NATIONALITY, 'Staatsangehörigkeit');
+        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME, 'Straße');
+        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER, 'Str. Nr.');
+        $this->setNameDefinition(self::TBL_CITY_CODE, 'PLZ');
+        $this->setNameDefinition(self::TBL_CITY_CITY, 'Stadt');
+        $this->setNameDefinition(self::TBL_CITY_DISTRICT, 'Ortsteil');
+        $this->setNameDefinition(self::TBL_ADDRESS_COUNTRY, 'Bundesland');
+        $this->setNameDefinition(self::TBL_ADDRESS_NATION, 'Land');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER, 'Telefonnummer');
+        $this->setNameDefinition(self::TBL_MAIL_ADDRESS, 'E-Mail');
+        $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_INSURANCE, 'Versicherung');
+        $this->setNameDefinition(self::TBL_STUDENT_LOCKER_KEY_NUMBER, 'Schließfach Schlüsselnummer');
+        $this->setNameDefinition(self::TBL_STUDENT_LOCKER_LOCKER_NUMBER, 'Schließfachnummer');
+        $this->setNameDefinition(self::TBL_STUDENT_IDENTIFIER, 'Schülernummer');
+        $this->setNameDefinition(self::SIBLINGS_COUNT, 'Anzahl Geschwister');
+        // S1
+        $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_S1, 'Anrede_S1');
+        $this->setNameDefinition(self::TBL_PERSON_TITLE_S1, 'Titel_S1');
+        $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME_S1, 'Vorname_S1');
+        $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME_S1, 'Zweiter Vorname_S1');
+        $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_S1, 'Nachname_S1');
+        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_S1, 'Straße_S1');
+        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_S1, 'Straße_S1');
+        $this->setNameDefinition(self::TBL_CITY_CODE_S1, 'PLZ_S1');
+        $this->setNameDefinition(self::TBL_CITY_CITY_S1, 'Stadt_S1');
+        $this->setNameDefinition(self::TBL_CITY_DISTRICT_S1, 'Ortsteil_S1');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_S1, 'Telefon_S1');
+        $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S1, 'E-Mail_S1');
+        // S2
+        $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_S2, 'Anrede_S2');
+        $this->setNameDefinition(self::TBL_PERSON_TITLE_S2, 'Titel_S2');
+        $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME_S2, 'Vorname_S2');
+        $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME_S2, 'Zweiter Vorname_S2');
+        $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_S2, 'Nachname_S2');
+        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_S2, 'Straße_S2');
+        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_S2, 'Straße_S2');
+        $this->setNameDefinition(self::TBL_CITY_CODE_S2, 'PLZ_S2');
+        $this->setNameDefinition(self::TBL_CITY_CITY_S2, 'Stadt_S2');
+        $this->setNameDefinition(self::TBL_CITY_DISTRICT_S2, 'Ortsteil_S2');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_S2, 'Telefon_S2');
+        $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S2, 'E-Mail_S2');
+        // S3
+        $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_S3, 'Anrede_S3');
+        $this->setNameDefinition(self::TBL_PERSON_TITLE_S3, 'Titel_S3');
+        $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME_S3, 'Vorname_S3');
+        $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME_S3, 'Zweiter Vorname_S3');
+        $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_S3, 'Nachname_S3');
+        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_S3, 'Straße_S3');
+        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_S3, 'Straße_S3');
+        $this->setNameDefinition(self::TBL_CITY_CODE_S3, 'PLZ_S3');
+        $this->setNameDefinition(self::TBL_CITY_CITY_S3, 'Stadt_S3');
+        $this->setNameDefinition(self::TBL_CITY_DISTRICT_S3, 'Ortsteil_S3');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_S3, 'Telefon_S3');
+        $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S3, 'E-Mail_S3');
     }
 
     /**
