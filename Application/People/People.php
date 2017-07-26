@@ -76,13 +76,13 @@ class People implements IClusterInterface
                                 , 5),
                             new LayoutColumn(
                                 $countContent
-                                , 5, array(LayoutColumn::GRID_OPTION_HIDDEN_SM, LayoutColumn::GRID_OPTION_HIDDEN_XS)),
+                                , 6),
                             new LayoutColumn(
                                 new PullRight(
                                     new Standard('', '/People/Search/Group',
                                         new \SPHERE\Common\Frontend\Icon\Repository\Group(),
                                         array('Id' => $tblGroup->getId()))
-                                ), 2)
+                                ), 1)
                         )
                     )));
 
@@ -107,10 +107,7 @@ class People implements IClusterInterface
                                         , 5),
                                     new LayoutColumn(
                                         $countContent
-                                        , 5, array(LayoutColumn::GRID_OPTION_HIDDEN_SM, LayoutColumn::GRID_OPTION_HIDDEN_XS)),
-                                    new LayoutColumn(
-                                        '&nbsp;'
-                                        , 2)
+                                        , 7),
                                 )
                             )));
                         $tblGroupLockedList[] = $content;
