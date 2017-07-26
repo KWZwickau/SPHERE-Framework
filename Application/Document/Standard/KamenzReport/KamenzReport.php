@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Document\Standard\KamenzReport;
 
+use SPHERE\Application\Document\Generator\Service\Kamenz\KamenzReportService;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
@@ -21,6 +22,7 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class KamenzReport
@@ -161,8 +163,6 @@ class KamenzReport extends AbstractModule implements IModuleInterface
             'SPHERE\Application\Api\Document\Standard\KamenzReportGS\Create',
             new Download(), array(), 'Kamenz-Statistik der GS herunterladen'));
 
-//        Debugger::screenDump(KamenzReportService::setKamenzReportGsContent(array()));
-
         $summary = array();
 
         $countStudentsWithoutDivision = 0;
@@ -212,6 +212,8 @@ class KamenzReport extends AbstractModule implements IModuleInterface
             new Download(), array(), 'Kamenz-Statistik des Gymnasiums herunterladen'));
 
         $summary = array();
+
+        Debugger::screenDump(KamenzReportService::setKamenzReportGymContent(array()));
 
         $countStudentsWithoutDivision = 0;
         if (($studentsWithoutDivision = KamenzService::getStudentsWithoutDivision($countStudentsWithoutDivision))) {
