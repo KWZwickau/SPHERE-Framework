@@ -288,6 +288,8 @@ class StudentCourse extends Extension implements IFrontendInterface
             // Test
             $Control = new StudentCourseControl($Payload->getRealPath());
             if (!$Control->getCompare()) {
+                // TODO: Du weißt schon, anpassen aber ich verrate nich was ;)
+
                 $LayoutColumnList = array();
                 $LayoutColumnList[] = new LayoutColumn(new WarningMessage('Die Datei entspricht nicht dem vollen Export
                  aus Indiware'));
@@ -322,7 +324,7 @@ class StudentCourse extends Extension implements IFrontendInterface
 //            return $Stage->setContent(new \SPHERE\Common\Frontend\Message\Repository\Success('Datei Stimmt'));
 
             // add import
-            $Gateway = new StudentCourseGateway($Payload->getRealPath(), $tblYear, $Level);
+            $Gateway = new StudentCourseGateway($Payload->getRealPath(), $tblYear, $Level, $Control);
 
             $ImportList = $Gateway->getImportList();
             $tblAccount = Account::useService()->getAccountBySession();

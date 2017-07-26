@@ -137,17 +137,26 @@ class StudentCourseGateway extends AbstractConverter
     /**
      * LectureshipGateway constructor.
      *
-     * @param string  $File SpUnterricht.csv
+     * @param string $File SpUnterricht.csv
      * @param TblYear $tblYear
-     * @param null    $Level
+     * @param null $Level
+     * @param StudentCourseControl $Control
      */
-    public function __construct($File, TblYear $tblYear, $Level = null)
+    public function __construct($File, TblYear $tblYear, $Level = null, StudentCourseControl $Control)
     {
         $this->loadFile($File);
         $this->Year = $tblYear;
         $this->Level = $Level;
 
+        $ColumnList = $Control->getScanResult();
+
         $this->addSanitizer(array($this, 'sanitizeFullTrim'));
+
+        $SubjectList = array();
+
+        // Klasse 11 1. Halbjahr (Default)
+        $SubjectList[1] = $ColumnList['Kurs11'];
+        // TODO: Du weißt schon, ersetzen aber ich verrate nich was ;)
 
         // Klasse 11 1. Halbjahr (Default)
         $SubjectList = array(

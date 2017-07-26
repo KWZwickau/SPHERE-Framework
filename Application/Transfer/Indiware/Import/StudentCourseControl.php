@@ -231,6 +231,18 @@ class StudentCourseControl extends AbstractConverter
     private $ColumnList = array();
 
     /**
+     * @param string $LowerBound
+     * @param string $UpperBound
+     * @return \Generator
+     */
+    private function excelColumnRangeGenerator($LowerBound, $UpperBound) {
+        ++$UpperBound;
+        for ($Run = $LowerBound; $Run !== $UpperBound; ++$Run) {
+            yield $Run;
+        }
+    }
+
+    /**
      * LectureshipGateway constructor.
      *
      * @param string $File SpUnterricht.csv
@@ -241,10 +253,14 @@ class StudentCourseControl extends AbstractConverter
 
         $this->addSanitizer(array($this, 'sanitizeFullTrim'));
 
-        foreach ($this->TableHead as $Column => $Value) {
+        foreach( $this->excelColumnRangeGenerator( 'A', 'ZZ' ) as $Column ) {
             $this->setPointer(new FieldPointer($Column, 'Field'));
-//            $this->setSanitizer(new FieldSanitizer($Column, 'Field', array($this, 'sanitizeField')));
         }
+
+//        foreach ($this->TableHead as $Column => $Value) {
+//            $this->setPointer(new FieldPointer($Column, 'Field'));
+////            $this->setSanitizer(new FieldSanitizer($Column, 'Field', array($this, 'sanitizeField')));
+//        }
 
         $this->scanFile(0, 1);
     }
@@ -265,6 +281,15 @@ class StudentCourseControl extends AbstractConverter
         return $this->ColumnList;
     }
 
+    private $ScanResult = array();
+    /**
+     *
+     */
+    public function getScanResult()
+    {
+        return $this->ScanResult;
+    }
+
     /**
      * @param array $Row
      *
@@ -273,17 +298,62 @@ class StudentCourseControl extends AbstractConverter
     public function runConvert($Row)
     {
 
+        // TODO: Du weißt schon, anpassen aber ich verrate nich was ;)
+        $ColumnNeeded = array(
+            // Wird absolut benötigt für den Service
+            'Kurs11',
+            'Kurs12',
+            'Kurs21',
+            'Kurs22',
+            'Kurs31',
+            'Kurs32',
+            'Kurs41',
+            'Kurs42',
+        );
+        $ColumnScan = array(
+            // Suchen nach
+            'Kurs[1-4][0-9]+',
+            'Ersatz(Religion|Sport)[1-4]?'
+        );
 
-        $Result = array();
+
+        $ColumnMatch = array(
+            // Muster in Spalte ?? gefunden
+            // Match (Spaltenname) => Index (Spalte)
+        );
+
         foreach ($Row as $Column => $Part) {
-            if (isset($Part['Field'])) {
-                $Result = array_merge($Result, array($Column => $Part['Field']));
+            foreach ($ColumnScan as $Pattern) {
+                if (preg_match('!^(' . $Pattern . ')$!is', $Part['Field'], $Match)) {
+                    $ColumnMatch[$Match[0]] = $Column;
+                }
             }
         }
 
-        $this->ColumnList = array_diff_assoc($Result, $this->TableHead);
-        if (empty($this->ColumnList)) {
+        $Preset = array_values( $ColumnNeeded );
+        $Analysis = array_keys( $ColumnMatch );
+        $Difference = array_diff( $Preset, $Analysis );
+
+        if( empty( $Difference ) ) {
+            // Alle notwendigen Spalten gefunden
             $this->Compare = true;
+            $this->ScanResult = $ColumnMatch;
+        } else {
+            // Datei enthält nicht alle notwendigen Spalten
+            $this->Compare = false;
+            $this->ScanResult = array();
         }
+
+//        $Result = array();
+//        foreach ($Row as $Column => $Part) {
+//            if (isset($Part['Field'])) {
+//                $Result = array_merge($Result, array($Column => $Part['Field']));
+//            }
+//        }
+//
+//        $this->ColumnList = array_diff_assoc($Result, $this->TableHead);
+//        if (empty($this->ColumnList)) {
+//            $this->Compare = true;
+//        }
     }
 }
