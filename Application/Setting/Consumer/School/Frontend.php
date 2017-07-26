@@ -158,7 +158,25 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendLayoutCombine(TblCompany $tblCompany)
     {
 
-        $tblAddressAll = Address::useService()->getAddressAllByCompany($tblCompany);
+        $tblAddressAllUnsorted = Address::useService()->getAddressAllByCompany($tblCompany);
+
+        $tblAddressAllMain = array();
+        $tblAddressAllNotMain = array();
+        foreach ($tblAddressAllUnsorted as $tblAddress) {
+            if (Address::useService()->getTypeById(1) == $tblAddress->getTblType()) {
+                $tblAddressAllMain[] = $tblAddress;
+            } else {
+                $tblAddressAllNotMain[] = $tblAddress;
+            }
+        }
+        $tblAddressAll = array();
+        if (!empty($tblAddressAllMain)) {
+            $tblAddressAll = array_merge($tblAddressAll, $tblAddressAllMain);
+        }
+        if (!empty($tblAddressAllNotMain)) {
+            $tblAddressAll = array_merge($tblAddressAll, $tblAddressAllNotMain);
+        }
+
         $tblPhoneAll = Phone::useService()->getPhoneAllByCompany($tblCompany);
         $tblMailAll = Mail::useService()->getMailAllByCompany($tblCompany);
         $tblRelationshipAll = Relationship::useService()->getCompanyRelationshipAllByCompany($tblCompany);

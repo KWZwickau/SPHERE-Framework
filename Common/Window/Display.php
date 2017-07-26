@@ -366,14 +366,24 @@ class Display extends Extension implements ITemplateInterface
         );
 
         // Read RoadMap-Version
+        $VersionRelease = null;
+        $VersionPreview = null;
         try {
-            if ($this->getCache(new MemcachedHandler()) instanceof MemcachedHandler) {
-                $Map = (new Roadmap())->getRoadmap();
-            } else {
-                $Map = null;
+            if (($Cache = $this->getCache(new MemcachedHandler())) instanceof MemcachedHandler) {
+                if(
+                    (null === ($VersionRelease = $Cache->getValue( 'RoadMap-VersionRelease', __METHOD__ )))
+                    ||
+                    (null === ($VersionPreview = $Cache->getValue( 'RoadMap-VersionPreview', __METHOD__ )))
+                ) {
+                    $Map = (new Roadmap())->getRoadmap();
+                    $VersionRelease = $Map->getVersionRelease();
+                    $Cache->setValue('RoadMap-VersionRelease', $VersionRelease, 3600, __METHOD__);
+                    $VersionPreview = $Map->getVersionPreview();
+                    $Cache->setValue('RoadMap-VersionPreview', $VersionPreview, 3600, __METHOD__);
+                }
             }
         } catch (\Exception $Exception) {
-            $Map = null;
+            // Silent fail
         }
 
         // Set Depending Information
@@ -381,22 +391,22 @@ class Display extends Extension implements ITemplateInterface
             case 'www.schulsoftware.schule':
             case 'www.kreda.schule':
                 $BrandTitle = '<a class="navbar-brand" href="/">Schulsoftware <span class="text-info">Professional</span></a>';
-                $this->Template->setVariable('RoadmapVersion', $Map ? $Map->getVersionRelease() : 'Roadmap');
+                $this->Template->setVariable('RoadmapVersion', $VersionRelease ? $VersionRelease : 'Roadmap');
                 break;
             case 'trial.schulsoftware.schule':
             case 'trial.kreda.schule':
                 $BrandTitle = '<a class="navbar-brand" href="/">Schulsoftware <span class="text-info">Trial</span></a>';
-                $this->Template->setVariable('RoadmapVersion', $Map ? $Map->getVersionRelease() : 'Roadmap');
+                $this->Template->setVariable('RoadmapVersion', $VersionRelease ? $VersionRelease : 'Roadmap');
                 break;
             case 'demo.schulsoftware.schule':
             case 'demo.kreda.schule':
                 $BrandTitle = '<a class="navbar-brand" href="/">Schulsoftware <span class="text-danger">Demo</span></a>';
-                $this->Template->setVariable('RoadmapVersion', $Map ? $Map->getVersionPreview() : 'Roadmap');
+                $this->Template->setVariable('RoadmapVersion', $VersionPreview ? $VersionPreview : 'Roadmap');
                 break;
             case 'nightly.schulsoftware.schule':
             case 'nightly.kreda.schule':
                 $BrandTitle = '<a class="navbar-brand" href="/">Schulsoftware <span class="text-danger">Nightly</span></a>';
-                $this->Template->setVariable('RoadmapVersion', $Map ? $Map->getVersionPreview() : 'Roadmap');
+                $this->Template->setVariable('RoadmapVersion', $VersionPreview ? $VersionPreview : 'Roadmap');
                 break;
             default:
                 $BrandTitle = '<a class="navbar-brand" href="/">Schulsoftware <span class="text-warning">'.$this->getRequest()->getHost().'</span></a>';
