@@ -1107,6 +1107,8 @@ class Service extends Extension
                 $Item['OrientationAndFrench'] = '';
                 $Item['Education'] = '';
                 $Item['Group'] = '';
+                $Item['Group1'] = '';
+                $Item['Group2'] = '';
                 $Item['Elective'] = '';
                 $Item['ExcelElective'] = '';
                 $Item['Integration'] = '';
@@ -1120,9 +1122,12 @@ class Service extends Extension
                 if ($tblStudentGroup1
                     && Group::useService()->existsGroupPerson($tblStudentGroup1, $tblPerson)){
                     $Item['Group'] = 1;
-                } elseif ($tblStudentGroup2
+                    $Item['Group1'] = true;
+                }
+                if ($tblStudentGroup2
                     && Group::useService()->existsGroupPerson($tblStudentGroup2, $tblPerson)){
                     $Item['Group'] = 2;
+                    $Item['Group2'] = true;
                 }
 
                 $Sibling = array();
