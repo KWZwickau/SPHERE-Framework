@@ -394,7 +394,6 @@ class E08
                                     ->styleBackgroundColor('lightgrey')
                                     ->styleBorderRight(), '22.22%'
                                 )
-                                // $Content['E08']['WithoutCourse']['L' . $tblLevel->getName()][$gender]++;
                                 ->addElementColumn((new Element())
                                     ->setContent('
                                         {% if (Content.E08.WithoutCourse.L5.m is not empty) %}

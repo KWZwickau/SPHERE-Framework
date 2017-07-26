@@ -23,7 +23,7 @@ class E04_1
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E04.1 Schüler im Schuljahr {{ Content.Schoolyear.Current }} nach der Anzahl der derzeit erlernten Fremdsprachen und Klassen- bzw. Jahrgangsstufen')
+                ->setContent('E04.1 Schüler im Schuljahr {{ Content.SchoolYear.Current }} nach der Anzahl der derzeit erlernten Fremdsprachen und Klassen- bzw. Jahrgangsstufen')
             );
 
         $sliceList[] = (new Slice())
@@ -38,13 +38,14 @@ class E04_1
                     ->setContent('Anzahl der<br/>Fremdsprachen')
                     ->styleBorderRight()
                     ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '20%'
+                    ->stylePaddingBottom('8.5px'), '28%'
                 )
                 ->addSliceColumn((new Slice())
-                    ->styleBorderRight()
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Klassenstufe'), '100%'
+                            ->setContent('Klassenstufe')
+                            ->styleBorderRight()
+                            , '100%'
                         )
                     )
                     ->addSection((new Section())
@@ -93,265 +94,103 @@ class E04_1
                         ->addElementColumn((new Element())
                             ->setContent('12')
                             ->stylePaddingTop('8.6px')
-                            ->stylePaddingBottom('8.5px'), '12.5%'
+                            ->stylePaddingBottom('8.5px')
+                            ->styleBorderRight(), '12.5%'
                         )
-                    ), '70%'
+                    )
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Insgesamt')
+                    ->setContent('Insges.')
                     ->styleTextBold()
                     ->stylePaddingTop('17.1px')
-                    ->stylePaddingBottom('17.1px'), '10%'
+                    ->stylePaddingBottom('17.1px'), '8%'
                 )
             );
 
-        //ToDo: keine
-        $sliceList[] = (new Slice())
-            ->styleAlignCenter()
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
+        for ($i = 0; $i < 5; $i++) {
+            switch ($i) {
+                case 0: $text = 'keine'; break;
+                case 1: $text = 'eine'; break;
+                case 2: $text = 'zwei'; break;
+                case 3: $text = 'drei'; break;
+                case 4: $text = 'vier und mehr'; break;
+                default: $text = '&nbsp;';
+            }
+
+            $section = new Section();
+
+            $section
                 ->addElementColumn((new Element())
-                    ->setContent('keine')
+                    ->setContent($text)
                     ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '20%'
-                )
+                    ->styleBorderRight(), '28%'
+                );
+
+            for ($level = 5; $level < 13; $level++) {
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if (Content.E04_1.F' . $i . '.L' . $level . ' is not empty) %}
+                                {{ Content.E04_1.F' . $i . '.L' . $level . ' }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleBorderRight(), '8%'
+                    );
+            }
+
+            $section
                 ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey'), '10%'
-                )
+                    ->setContent('
+                            {% if (Content.E04_1.F' . $i . '.TotalCount is not empty) %}
+                                {{ Content.E04_1.F' . $i . '.TotalCount }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                    ->styleTextBold()
+                    ->styleBackgroundColor('lightgrey'), '8%'
+                );
+
+            $sliceList[] = (new Slice())
+                ->styleAlignCenter()
+                ->styleBorderBottom()
+                ->styleBorderLeft()
+                ->styleBorderRight()
+                ->addSection($section);
+        }
+
+        /**
+         * Total
+         */
+        $section = new Section();
+
+        $section
+            ->addElementColumn((new Element())
+                ->setContent('Insgesamt')
+                ->styleBackgroundColor('lightgrey')
+                ->styleBorderRight(), '28%'
             );
 
-        //ToDo: eine
-        $sliceList[] = (new Slice())
-            ->styleAlignCenter()
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
+        for ($level = 5; $level < 13; $level++) {
+            $section
                 ->addElementColumn((new Element())
-                    ->setContent('eine')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '20%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey'), '10%'
-                )
-            );
+                    ->setContent('
+                            {% if (Content.E04_1.TotalCount.L' . $level . ' is not empty) %}
+                                {{ Content.E04_1.TotalCount.L' . $level . ' }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                    ->styleBorderRight(), '8%'
+                );
+        }
 
-        //ToDo: zwei
-        $sliceList[] = (new Slice())
-            ->styleAlignCenter()
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('zwei')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '20%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey'), '10%'
-                )
-            );
-
-        //ToDo: drei
-        $sliceList[] = (new Slice())
-            ->styleAlignCenter()
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('drei')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '20%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey'), '10%'
-                )
-            );
-
-        //ToDo: vier und mehr
-        $sliceList[] = (new Slice())
-            ->styleAlignCenter()
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('vier und mehr')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '20%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey'), '10%'
-                )
+        $section
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleBackgroundColor('lightgrey'), '8%'
             );
 
         $sliceList[] = (new Slice())
@@ -361,47 +200,7 @@ class E04_1
             ->styleBorderBottom()
             ->styleBorderLeft()
             ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Insgesamt')
-                    ->styleBorderRight(), '20%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '8.75%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;'), '10%'
-                )
-            );
+            ->addSection($section);
 
         return $sliceList;
     }

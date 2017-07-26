@@ -23,7 +23,7 @@ class E08
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E08. Wiederholer im Schuljahr {{ Content.Schoolyear.Current }} nach Klassen- bzw. Jahrgangsstufen')
+                ->setContent('E08. Wiederholer im Schuljahr {{ Content.SchoolYear.Current }} nach Klassen- bzw. Jahrgangsstufen')
             );
 
         $sliceList[] = (new Slice())
@@ -41,10 +41,10 @@ class E08
                     ->stylePaddingBottom('17.6px'), '10%'
                 )
                 ->addSliceColumn((new Slice())
-                    ->styleBorderRight()
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Klassen- bzw. Jahrgangsstufe')
+                            ->styleBorderRight()
                         )
                     )
                     ->addSection((new Section())
@@ -85,7 +85,8 @@ class E08
                         )
                         ->addElementColumn((new Element())
                             ->setContent('12')
-                            ->styleBorderBottom(), '10%'
+                            ->styleBorderBottom()
+                            ->styleBorderRight(), '10%'
                         )
                     )
                     ->addSection((new Section())
@@ -150,7 +151,8 @@ class E08
                             ->styleBorderRight(), '5%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('w'), '5%'
+                            ->setContent('w')
+                            ->styleBorderRight(), '5%'
                         )
                     ), '80%'
                 )
@@ -176,106 +178,72 @@ class E08
                 )
             );
 
+        $section = new Section();
+        $section
+            ->addElementColumn((new Element())
+                ->setContent('Schüler')
+                ->styleBackgroundColor('lightgrey')
+                ->styleBorderRight(), '10%'
+            );
+        for ($level = 5; $level <13; $level++) {
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if (Content.E08.L' . $level . '.m is not empty) %}
+                            {{ Content.E08.L' . $level . '.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %} 
+                    ')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '5%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if (Content.E08.L' . $level . '.w is not empty) %}
+                            {{ Content.E08.L' . $level . '.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %} 
+                    ')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '5%'
+                );
+        }
+        $section
+            ->addElementColumn((new Element())
+                ->setContent('
+                        {% if (Content.E08.TotalCount.m is not empty) %}
+                            {{ Content.E08.TotalCount.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %} 
+                    ')
+                ->styleBackgroundColor('lightgrey')
+                ->styleBorderRight()
+                ->styleTextBold()
+                ->styleAlignCenter()
+                , '5%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('
+                        {% if (Content.E08.TotalCount.w is not empty) %}
+                            {{ Content.E08.TotalCount.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %} 
+                    ')
+                ->styleBackgroundColor('lightgrey')
+                ->styleTextBold()
+                ->styleAlignCenter()
+                , '5%'
+            );
+
         $sliceList[] = (new Slice())
             ->styleBorderBottom()
             ->styleBorderLeft()
             ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Schüler')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '10%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBackgroundColor('lightgrey'), '5%'
-                )
-            );
+            ->addSection($section);
 
         return $sliceList;
     }

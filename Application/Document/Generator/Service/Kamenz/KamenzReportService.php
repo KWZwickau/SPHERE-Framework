@@ -114,7 +114,7 @@ class KamenzReportService
                                         }
                                     }
 
-                                    self::setRepeaters($tblPerson, $tblLevel, $tblDivision, $Content, $gender);
+                                    self::setRepeatersOs($tblPerson, $tblLevel, $tblDivision, $Content, $gender);
 
                                     if ($tblStudent) {
                                         self::setStudentFocus($tblStudent, $tblLevel, $Content, $gender,
@@ -340,22 +340,24 @@ class KamenzReportService
 
                                     self::setDivisionStudents($Content, $tblPerson, $tblLevel, $tblDivision, $gender,
                                         $isInPreparationDivisionForMigrants);
-//
-//                                    if ($tblStudent) {
-//                                        self::countForeignLanguages($tblStudent, $tblLevel, $Content, $gender,
-//                                            $isInPreparationDivisionForMigrants, $countForeignSubjectArray,
-//                                            $countSecondForeignSubjectArray);
-//
-//                                        $countReligionArray = self::countReligion($tblStudent, $tblLevel,
-//                                            $countReligionArray);
-//
-//                                    } else {
-//                                        if (isset($countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()])) {
-//                                            $countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()]++;
-//                                        } else {
-//                                            $countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()] = 1;
-//                                        }
-//                                    }
+
+                                    self::setRepeatersGym($tblPerson, $tblLevel, $tblDivision, $Content, $gender);
+
+                                    if ($tblStudent) {
+                                        self::countForeignLanguages($tblStudent, $tblLevel, $Content, $gender,
+                                            $isInPreparationDivisionForMigrants, $countForeignSubjectArray,
+                                            $countSecondForeignSubjectArray);
+
+                                        $countReligionArray = self::countReligion($tblStudent, $tblLevel,
+                                            $countReligionArray);
+
+                                    } else {
+                                        if (isset($countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()])) {
+                                            $countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()]++;
+                                        } else {
+                                            $countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()] = 1;
+                                        }
+                                    }
                                 }
                             } else {
                                 $countDivisionStudentArray[$tblDivision->getId()][$tblLevel->getName()] = 0;
@@ -366,8 +368,8 @@ class KamenzReportService
             }
 
             self::setStudentLevels($Content, $countArray, $countMigrantsArray, $countMigrantsNationalityArray);
-//            self::setForeignLanguages($Content, $countForeignSubjectArray, $countSecondForeignSubjectArray);
-//            self::setReligion($Content, $countReligionArray);
+            self::setForeignLanguages($Content, $countForeignSubjectArray, $countSecondForeignSubjectArray);
+            self::setReligion($Content, $countReligionArray);
 //            self::setDivisionFrequency($Content, $countDivisionStudentArray);
         }
 
@@ -754,7 +756,7 @@ class KamenzReportService
      * @param $Content
      * @param $gender
      */
-    private static function setRepeaters(
+    private static function setRepeatersOs(
         TblPerson $tblPerson,
         TblLevel $tblLevel,
         TblDivision $tblDivision,
@@ -781,6 +783,51 @@ class KamenzReportService
                             $Content['E08']['WithoutCourse']['TotalCount'][$gender]++;
                         } else {
                             $Content['E08']['WithoutCourse']['TotalCount'][$gender] = 1;
+                        }
+                    }
+
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * E08. Wiederholer im Schuljahr 2016/17 nach Klassenstufen
+     *
+     * @param TblPerson $tblPerson
+     * @param TblLevel $tblLevel
+     * @param TblDivision $tblDivision
+     * @param $Content
+     * @param $gender
+     */
+    private static function setRepeatersGym(
+        TblPerson $tblPerson,
+        TblLevel $tblLevel,
+        TblDivision $tblDivision,
+        &$Content,
+        $gender
+    ) {
+
+        if (($tblDivisionStudentAllByPerson = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
+            /**@var TblDivisionStudent $tblDivisionStudent * */
+            foreach ($tblDivisionStudentAllByPerson as $tblDivisionStudent) {
+                if (($tblDivisionTemp = $tblDivisionStudent->getTblDivision())
+                    && $tblDivisionTemp->getId() != $tblDivision->getId()
+                    && ($tblTempLevel = $tblDivisionTemp->getTblLevel())
+                    && $tblLevel->getId() == $tblTempLevel->getId()
+                ) {
+                    if ($gender) {
+                        if (isset($Content['E08']['L' . $tblLevel->getName()][$gender])) {
+                            $Content['E08']['L' . $tblLevel->getName()][$gender]++;
+                        } else {
+                            $Content['E08']['L' . $tblLevel->getName()][$gender] = 1;
+                        }
+
+                        if (isset($Content['E08']['TotalCount'][$gender])) {
+                            $Content['E08']['TotalCount'][$gender]++;
+                        } else {
+                            $Content['E08']['TotalCount'][$gender] = 1;
                         }
                     }
 
