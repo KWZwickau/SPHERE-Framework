@@ -1,110 +1,7 @@
 <?php
 /**
- * Export Unterricht (Schüler.csv) Gekürzt Reihenfolge der Felder in der CSV-Datei Schüler.csv
- * Spalte   Feld
- * 'A' => 'Id'
- * 'B' => 'IdStat'
- * 'C' => 'Name'
- * 'D' => 'Vorname'
- * 'E' => 'Geburtsdatum'
- * 'F' => 'Geschlecht'
- * 'G' => 'Geburtsort'
- * 'H' => 'Geburtskreis'
- * 'I' => 'Wohnort'
- * 'J' => 'PLZ'
- * 'K' => 'Strasse'
- * 'L' => 'VornameZeugnis'
- * 'M' => 'Stammkurs'
- * 'N' => 'Tutor'
- * 'O' => 'Klasse'
- * 'P' => 'Fach1'
- * 'Q' => 'Fach2'
- * 'R' => 'Fach3'
- * 'S' => 'Fach4'
- * 'T' => 'Fach5'
- * 'U' => 'Fach6'
- * 'V' => 'Fach7'
- * 'W' => 'Fach8'
- * 'X' => 'Fach9'
- * 'Y' => 'Fach10'
- * 'Z' => 'Fach11'
- * 'AA' => 'Fach12'
- * 'AB' => 'Fach13'
- * 'AC' => 'Fach14'
- * 'AD' => 'Fach15'
- * 'AE' => 'Fach16'
- * 'AF' => 'Fach17'
- * 'AG' => 'Schwerpunkt'
- * 'AH' => 'ErsatzReligion'
- * 'AI' => 'Ersatzsport'
- * 'AJ' => 'Kurs11'
- * 'AK' => 'Kurs12'
- * 'AL' => 'Kurs13'
- * 'AM' => 'Kurs14'
- * 'AN' => 'Kurs15'
- * 'AO' => 'Kurs16'
- * 'AP' => 'Kurs17'
- * 'AQ' => 'Kurs18'
- * 'AR' => 'Kurs19'
- * 'AS' => 'Kurs110'
- * 'AT' => 'Kurs111'
- * 'AU' => 'Kurs112'
- * 'AV' => 'Kurs113'
- * 'AW' => 'Kurs114'
- * 'AX' => 'Kurs115'
- * 'AY' => 'Kurs116'
- * 'AZ' => 'Kurs117'
- * 'BA' => 'Kurs21'
- * 'BB' => 'Kurs22'
- * 'BC' => 'Kurs23'
- * 'BD' => 'Kurs24'
- * 'BE' => 'Kurs25'
- * 'BF' => 'Kurs26'
- * 'BG' => 'Kurs27'
- * 'BH' => 'Kurs28'
- * 'BI' => 'Kurs29'
- * 'BJ' => 'Kurs210'
- * 'BK' => 'Kurs211'
- * 'BL' => 'Kurs212'
- * 'BM' => 'Kurs213'
- * 'BN' => 'Kurs214'
- * 'BO' => 'Kurs215'
- * 'BP' => 'Kurs216'
- * 'BQ' => 'Kurs217'
- * 'BR' => 'Kurs31'
- * 'BS' => 'Kurs32'
- * 'BT' => 'Kurs33'
- * 'BU' => 'Kurs34'
- * 'BV' => 'Kurs35'
- * 'BW' => 'Kurs36'
- * 'BX' => 'Kurs37'
- * 'BY' => 'Kurs38'
- * 'BZ' => 'Kurs39'
- * 'CA' => 'Kurs310'
- * 'CB' => 'Kurs311'
- * 'CC' => 'Kurs312'
- * 'CD' => 'Kurs313'
- * 'CE' => 'Kurs314'
- * 'CF' => 'Kurs315'
- * 'CG' => 'Kurs316'
- * 'CH' => 'Kurs317'
- * 'CI' => 'Kurs41'
- * 'CJ' => 'Kurs42'
- * 'CK' => 'Kurs43'
- * 'CL' => 'Kurs44'
- * 'CM' => 'Kurs45'
- * 'CN' => 'Kurs46'
- * 'CO' => 'Kurs47'
- * 'CP' => 'Kurs48'
- * 'CQ' => 'Kurs49'
- * 'CR' => 'Kurs410'
- * 'CS' => 'Kurs411'
- * 'CT' => 'Kurs412'
- * 'CU' => 'Kurs413'
- * 'CV' => 'Kurs414'
- * 'CW' => 'Kurs415'
- * 'CX' => 'Kurs416'
- * 'CY' => 'Kurs417'
+ * Export Unterricht (Schüler.csv) Reihenfolge der Felder in der CSV-Datei Schüler.csv
+ * Dynamisch (auslesen erfolgt in Control)
  */
 
 namespace SPHERE\Application\Transfer\Indiware\Import;
@@ -152,111 +49,122 @@ class StudentCourseGateway extends AbstractConverter
 
         $this->addSanitizer(array($this, 'sanitizeFullTrim'));
 
-        $SubjectList = array();
+        $SubjectGroupList = array();
 
         // Klasse 11 1. Halbjahr (Default)
-        $SubjectList[1] = $ColumnList['Kurs11'];
-        // TODO: Du weißt schon, ersetzen aber ich verrate nich was ;)
-
-        // Klasse 11 1. Halbjahr (Default)
-        $SubjectList = array(
-            1  => 'AJ',
-            2  => 'AK',
-            3  => 'AL',
-            4  => 'AM',
-            5  => 'AN',
-            6  => 'AO',
-            7  => 'AP',
-            8  => 'AQ',
-            9  => 'AR',
-            10 => 'AS',
-            11 => 'AT',
-            12 => 'AU',
-            13 => 'AV',
-            14 => 'AW',
-            15 => 'AX',
-            16 => 'AY',
-            17 => 'AZ'
-        );
+        $SubjectGroupList[1] = $ColumnList['Kurs11'];
+        $SubjectGroupList[2] = $ColumnList['Kurs12'];
+        $SubjectGroupList[3] = $ColumnList['Kurs13'];
+        $SubjectGroupList[4] = $ColumnList['Kurs14'];
+        $SubjectGroupList[5] = $ColumnList['Kurs15'];
+        $SubjectGroupList[6] = $ColumnList['Kurs16'];
+        $SubjectGroupList[7] = $ColumnList['Kurs17'];
+        $SubjectGroupList[8] = $ColumnList['Kurs18'];
+        $SubjectGroupList[9] = $ColumnList['Kurs19'];
+        $SubjectGroupList[10] = $ColumnList['Kurs110'];
+        $SubjectGroupList[11] = $ColumnList['Kurs111'];
+        $SubjectGroupList[12] = $ColumnList['Kurs112'];
+        $SubjectGroupList[13] = $ColumnList['Kurs113'];
+        $SubjectGroupList[14] = $ColumnList['Kurs114'];
+        $SubjectGroupList[15] = $ColumnList['Kurs115'];
+        $SubjectGroupList[16] = $ColumnList['Kurs116'];
+        $SubjectGroupList[17] = $ColumnList['Kurs117'];
 
         // Klasse 11 2. Halbjahr
         if ($Level == 2) {
-            $SubjectList = array(
-                1  => 'BA',
-                2  => 'BB',
-                3  => 'BC',
-                4  => 'BD',
-                5  => 'BE',
-                6  => 'BF',
-                7  => 'BG',
-                8  => 'BH',
-                9  => 'BI',
-                10 => 'BJ',
-                11 => 'BK',
-                12 => 'BL',
-                13 => 'BM',
-                14 => 'BN',
-                15 => 'BO',
-                16 => 'BP',
-                17 => 'BQ'
-            );
+            $SubjectGroupList[1] = $ColumnList['Kurs21'];
+            $SubjectGroupList[2] = $ColumnList['Kurs22'];
+            $SubjectGroupList[3] = $ColumnList['Kurs23'];
+            $SubjectGroupList[4] = $ColumnList['Kurs24'];
+            $SubjectGroupList[5] = $ColumnList['Kurs25'];
+            $SubjectGroupList[6] = $ColumnList['Kurs26'];
+            $SubjectGroupList[7] = $ColumnList['Kurs27'];
+            $SubjectGroupList[8] = $ColumnList['Kurs28'];
+            $SubjectGroupList[9] = $ColumnList['Kurs29'];
+            $SubjectGroupList[10] = $ColumnList['Kurs210'];
+            $SubjectGroupList[11] = $ColumnList['Kurs211'];
+            $SubjectGroupList[12] = $ColumnList['Kurs212'];
+            $SubjectGroupList[13] = $ColumnList['Kurs213'];
+            $SubjectGroupList[14] = $ColumnList['Kurs214'];
+            $SubjectGroupList[15] = $ColumnList['Kurs215'];
+            $SubjectGroupList[16] = $ColumnList['Kurs216'];
+            $SubjectGroupList[17] = $ColumnList['Kurs217'];
         } elseif ($Level == 3) {   // Klasse 12 1. Halbjahr
-            $SubjectList = array(
-                1  => 'BR',
-                2  => 'BS',
-                3  => 'BT',
-                4  => 'BU',
-                5  => 'BV',
-                6  => 'BW',
-                7  => 'BX',
-                8  => 'BY',
-                9  => 'BZ',
-                10 => 'CA',
-                11 => 'CB',
-                12 => 'CC',
-                13 => 'CD',
-                14 => 'CE',
-                15 => 'CF',
-                16 => 'CG',
-                17 => 'CH'
-            );
+            $SubjectGroupList[1] = $ColumnList['Kurs31'];
+            $SubjectGroupList[2] = $ColumnList['Kurs32'];
+            $SubjectGroupList[3] = $ColumnList['Kurs33'];
+            $SubjectGroupList[4] = $ColumnList['Kurs34'];
+            $SubjectGroupList[5] = $ColumnList['Kurs35'];
+            $SubjectGroupList[6] = $ColumnList['Kurs36'];
+            $SubjectGroupList[7] = $ColumnList['Kurs37'];
+            $SubjectGroupList[8] = $ColumnList['Kurs38'];
+            $SubjectGroupList[9] = $ColumnList['Kurs39'];
+            $SubjectGroupList[10] = $ColumnList['Kurs310'];
+            $SubjectGroupList[11] = $ColumnList['Kurs311'];
+            $SubjectGroupList[12] = $ColumnList['Kurs312'];
+            $SubjectGroupList[13] = $ColumnList['Kurs313'];
+            $SubjectGroupList[14] = $ColumnList['Kurs314'];
+            $SubjectGroupList[15] = $ColumnList['Kurs315'];
+            $SubjectGroupList[16] = $ColumnList['Kurs316'];
+            $SubjectGroupList[17] = $ColumnList['Kurs317'];
         } elseif ($Level == 4) {    // Klasse 12 2. Halbjahr
-            $SubjectList = array(
-                1  => 'CI',
-                2  => 'CJ',
-                3  => 'CK',
-                4  => 'CL',
-                5  => 'CM',
-                6  => 'CN',
-                7  => 'CO',
-                8  => 'CP',
-                9  => 'CQ',
-                10 => 'CR',
-                11 => 'CS',
-                12 => 'CT',
-                13 => 'CU',
-                14 => 'CV',
-                15 => 'CW',
-                16 => 'CX',
-                17 => 'CY'
-            );
+            $SubjectGroupList[1] = $ColumnList['Kurs41'];
+            $SubjectGroupList[2] = $ColumnList['Kurs42'];
+            $SubjectGroupList[3] = $ColumnList['Kurs43'];
+            $SubjectGroupList[4] = $ColumnList['Kurs44'];
+            $SubjectGroupList[5] = $ColumnList['Kurs45'];
+            $SubjectGroupList[6] = $ColumnList['Kurs46'];
+            $SubjectGroupList[7] = $ColumnList['Kurs47'];
+            $SubjectGroupList[8] = $ColumnList['Kurs48'];
+            $SubjectGroupList[9] = $ColumnList['Kurs49'];
+            $SubjectGroupList[10] = $ColumnList['Kurs410'];
+            $SubjectGroupList[11] = $ColumnList['Kurs411'];
+            $SubjectGroupList[12] = $ColumnList['Kurs412'];
+            $SubjectGroupList[13] = $ColumnList['Kurs413'];
+            $SubjectGroupList[14] = $ColumnList['Kurs414'];
+            $SubjectGroupList[15] = $ColumnList['Kurs415'];
+            $SubjectGroupList[16] = $ColumnList['Kurs416'];
+            $SubjectGroupList[17] = $ColumnList['Kurs417'];
         }
+        foreach ($SubjectGroupList as $Key => $FieldPosition) {
+            $this->setPointer(new FieldPointer($FieldPosition, 'FileSubjectGroup'.$Key));
+            $this->setPointer(new FieldPointer($FieldPosition, 'AppSubjectGroup'.$Key));
+            $this->setPointer(new FieldPointer($FieldPosition, 'IsIntensiveCourse'.$Key));
+            $this->setSanitizer(new FieldSanitizer($FieldPosition, 'IsIntensiveCourse'.$Key,
+                array($this, 'fetchSubjectGroupIntensiveCourse')));
+        }
+        // Fächerangabe
+        $SubjectList = array();
+        $SubjectList[1] = $ColumnList['Fach1'];
+        $SubjectList[2] = $ColumnList['Fach2'];
+        $SubjectList[3] = $ColumnList['Fach3'];
+        $SubjectList[4] = $ColumnList['Fach4'];
+        $SubjectList[5] = $ColumnList['Fach5'];
+        $SubjectList[6] = $ColumnList['Fach6'];
+        $SubjectList[7] = $ColumnList['Fach7'];
+        $SubjectList[8] = $ColumnList['Fach8'];
+        $SubjectList[9] = $ColumnList['Fach9'];
+        $SubjectList[10] = $ColumnList['Fach10'];
+        $SubjectList[11] = $ColumnList['Fach11'];
+        $SubjectList[12] = $ColumnList['Fach12'];
+        $SubjectList[13] = $ColumnList['Fach13'];
+        $SubjectList[14] = $ColumnList['Fach14'];
+        $SubjectList[15] = $ColumnList['Fach15'];
+        $SubjectList[16] = $ColumnList['Fach16'];
+        $SubjectList[17] = $ColumnList['Fach17'];
         foreach ($SubjectList as $Key => $FieldPosition) {
             $this->setPointer(new FieldPointer($FieldPosition, 'FileSubject'.$Key));
             $this->setPointer(new FieldPointer($FieldPosition, 'AppSubject'.$Key));
             $this->setPointer(new FieldPointer($FieldPosition, 'SubjectId'.$Key));
-            $this->setPointer(new FieldPointer($FieldPosition, 'FileSubjectGroup'.$Key));
-            $this->setPointer(new FieldPointer($FieldPosition, 'AppSubjectGroup'.$Key));
             $this->setPointer(new FieldPointer($FieldPosition, 'IsIntensiveCourse'.$Key));
             $this->setSanitizer(new FieldSanitizer($FieldPosition, 'AppSubject'.$Key, array($this, 'sanitizeSubject')));
             $this->setSanitizer(new FieldSanitizer($FieldPosition, 'SubjectId'.$Key, array($this, 'fetchSubject')));
-            $this->setSanitizer(new FieldSanitizer($FieldPosition, 'IsIntensiveCourse'.$Key,
-                array($this, 'fetchSubjectGroupIntensiveCourse')));
         }
 
-        $this->setPointer(new FieldPointer('D', 'FirstName'));
-        $this->setPointer(new FieldPointer('C', 'LastName'));
-        $this->setPointer(new FieldPointer('E', 'Birthday'));
+
+        $this->setPointer(new FieldPointer($ColumnList['Vorname'], 'FirstName'));
+        $this->setPointer(new FieldPointer($ColumnList['Name'], 'LastName'));
+        $this->setPointer(new FieldPointer($ColumnList['Geburtsdatum'], 'Birthday'));
 
         $this->scanFile(1);
     }
@@ -427,7 +335,7 @@ class StudentCourseGateway extends AbstractConverter
         if (empty($Value)) {
             return new Muted(new WarningIcon());
         }
-        $Value = substr($Value, 0, -1);
+//        $Value = substr($Value, 0, -1);
 
         if (!($tblSubject = Subject::useService()->getSubjectByAcronym($Value))) {
             return new Warning(new WarningIcon().' Das Fach '.$Value.' ist in der Schulsoftware nicht vorhanden');
@@ -464,7 +372,7 @@ class StudentCourseGateway extends AbstractConverter
 
         $tblSubject = false;
         if (!empty($Value)) {
-            $Value = substr($Value, 0, -1);
+//            $Value = substr($Value, 0, -1);
             $tblSubject = Subject::useService()->getSubjectByAcronym($Value);
 //            if ($tblSubject) {
 //                $this->Subject = $tblSubject->getId();

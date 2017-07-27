@@ -28,6 +28,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -155,13 +156,21 @@ class Service extends AbstractService
      * @param            $ImportList
      * @param TblYear    $tblYear
      * @param TblAccount $tblAccount
+     * @param string     $LevelString
      *
      * @return bool
+     * @internal param $LevelString
      */
-    public function createIndiwareImportStudentByImportList($ImportList, TblYear $tblYear, TblAccount $tblAccount)
+    public function createIndiwareImportStudentByImportList(
+        $ImportList,
+        TblYear $tblYear,
+        TblAccount $tblAccount,
+        $LevelString
+    )
     {
 
-        (new Data($this->getBinding()))->createIndiwareImportStudentBulk($ImportList, $tblYear, $tblAccount);
+        (new Data($this->getBinding()))->createIndiwareImportStudentBulk($ImportList, $tblYear, $tblAccount,
+            $LevelString);
 
         return true;
     }
@@ -237,7 +246,6 @@ class Service extends AbstractService
      * @param TblIndiwareImportStudent $tblIndiwareImportStudent
      * @param null|array $Data
      * @param bool $Visible
-     * @param array $arraySubjectName
      *
      * @return IFormInterface|string
      */
@@ -245,8 +253,8 @@ class Service extends AbstractService
         IFormInterface $Stage = null,
         TblIndiwareImportStudent $tblIndiwareImportStudent,
         $Data = null,
-        $Visible = false,
-        $arraySubjectName = array()
+        $Visible = false
+//        $arraySubjectName = array()
         ) {
 
         /**
@@ -262,34 +270,53 @@ class Service extends AbstractService
             $tblDivision = null;
         }
         //ToDO Remove all existing Course by ImportStudent
-        $this->destroyIndiwareImportStudent($tblIndiwareImportStudent);
+//        $this->destroyIndiwareImportStudent($tblIndiwareImportStudent);
 
         for ($i = 1; $i <= 17; $i++) {
             $tblSubject = null;
             $SubjectGroup = '';
             $SubjectName = '';
 
-            if (isset($Data['SubjectId' . $i]) && !empty($Data['SubjectId' . $i])) {
-                $tblSubject = Subject::useService()->getSubjectById($Data['SubjectId' . $i]);
+            $tblIndiwareImportStudentCourse =
+                Import::useService()->getIndiwareImportStudentCourseByIndiwareImportStudentAndNumber($tblIndiwareImportStudent,
+                    $i);
+
+            if (isset($Data['SubjectId'.$i]) && !empty($Data['SubjectId'.$i])) {
+                $tblSubject = Subject::useService()->getSubjectById($Data['SubjectId'.$i]);
             }
             if (isset($Data['SubjectGroup'.$i]) && !empty($Data['SubjectGroup'.$i])) {
                 $SubjectGroup = $Data['SubjectGroup'.$i];
             }
-            if (isset($Data['IsIntensivCourse' . $i]) && !empty($Data['IsIntensivCourse' . $i])) {
+            if (isset($Data['IsIntensivCourse'.$i]) && !empty($Data['IsIntensivCourse'.$i])) {
                 $IsIntensiveCourse = true;
             } else {
                 $IsIntensiveCourse = false;
             }
-            if (isset($arraySubjectName[$i])) {
-                $SubjectName = $arraySubjectName[$i];
+            if (isset($Data['IsIgnoreCourse'.$i]) && !empty($Data['IsIgnoreCourse'.$i])) {
+                $IsIgnoreCourse = true;
+            } else {
+                $IsIgnoreCourse = false;
             }
-            if ($tblSubject || $SubjectGroup != '') {
-                (new Data($this->getBinding()))->createIndiwareImportStudentCourse($SubjectGroup,
-                    $SubjectName, $i, $IsIntensiveCourse, $tblIndiwareImportStudent, $tblSubject);
+
+            if ($tblIndiwareImportStudentCourse) {
+                Debugger::screenDump($tblIndiwareImportStudentCourse->getId());
+            }
+
+//            if (isset($arraySubjectName[$i])) {
+//                $SubjectName = $arraySubjectName[$i];
+//            }
+            if ($tblIndiwareImportStudentCourse) { // update bei vorhandenen Feldern immer ausführen
+//                if ($tblSubject || $SubjectGroup != '' || $IsIgnoreCourse) {
+                (new Data($this->getBinding()))->updateIndiwareImportStudentCourse($tblIndiwareImportStudentCourse,
+                    $tblSubject, $SubjectGroup, $IsIntensiveCourse, $IsIgnoreCourse);
+//                }
+            } else {    //create
+                if ($tblSubject || $SubjectGroup != '') {
+                    (new Data($this->getBinding()))->createIndiwareImportStudentCourse($SubjectGroup, $SubjectName, $i,
+                        $IsIntensiveCourse, $IsIgnoreCourse, $tblIndiwareImportStudent, $tblSubject);
+                }
             }
         }
-
-        (new Data($this->getBinding()))->updateIndiwareImportStudent($tblIndiwareImportStudent, $tblDivision);
 
         $Message = new Success('Änderungen gespeichert');
         return $Message.new Redirect('/Transfer/Indiware/Import/StudentCourse/Show', Redirect::TIMEOUT_SUCCESS,
@@ -579,7 +606,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @return LayoutRow[]
+     * @return bool
      */
     public function importIndiwareStudentCourse()
     {
@@ -676,6 +703,7 @@ class Service extends AbstractService
                     }
                 }
             }
+
             if (!empty($createSubjectStudentList)) {
                 Division::useService()->addSubjectStudentList($createSubjectStudentList);
                 Import::useService()->destroyIndiwareImportStudentAll();
@@ -739,7 +767,9 @@ class Service extends AbstractService
 //            $LayoutRowCount++;
 //        }
 
-        $LayoutRowList = array();
-        return $LayoutRowList;
+        if (!empty($createSubjectStudentList)) {
+            return true;
+        }
+        return false;
     }
 }
