@@ -27,7 +27,6 @@ use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -1425,7 +1424,6 @@ class Service extends AbstractService
      * @param TblGradeType $tblNextGradeType
      * @param string $Route
      * @param $Data
-     * @param $Trend
      *
      * @return IFormInterface|string
      */
@@ -1435,8 +1433,7 @@ class Service extends AbstractService
         TblGradeType $tblGradeType,
         TblGradeType $tblNextGradeType = null,
         $Route,
-        $Data,
-        $Trend
+        $Data
     ) {
 
         /**
@@ -1448,14 +1445,15 @@ class Service extends AbstractService
 
         $error = false;
 
-        foreach ($Data as $gradeTypeId => $value) {
-            if (trim($value) !== '') {
-                if (!preg_match('!^[1-5]{1}$!is', trim($value))) {
-                    $error = true;
-                    break;
-                }
-            }
-        }
+        // todo pregmatch mit +-
+//        foreach ($Data as $gradeTypeId => $value) {
+//            if (trim($value) !== '') {
+//                if (!preg_match('!^[1-5]{1}$!is', trim($value))) {
+//                    $error = true;
+//                    break;
+//                }
+//            }
+//        }
 
         $this->setSignerFromSignedInPerson($tblPrepare);
 
@@ -1471,18 +1469,9 @@ class Service extends AbstractService
             if (($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'))
                 && ($tblDivision = $tblPrepare->getServiceTblDivision())
             ) {
-
                 foreach ($Data as $personId => $value) {
                     if (($tblPerson = Person::useService()->getPersonById($personId))) {
-                        if (trim($value) && trim($value) !== ''
-                        ) {
-                            if (isset($Trend[$personId])) {
-                                if ($Trend[$personId] == TblGrade::VALUE_TREND_PLUS) {
-                                    $value = trim($value) . '+';
-                                } elseif ($Trend[$personId] == TblGrade::VALUE_TREND_MINUS) {
-                                    $value = trim($value) . '-';
-                                }
-                            }
+                        if (trim($value) && trim($value) !== '' && $value != -1) {
 
                             Prepare::useService()->updatePrepareGradeForBehavior(
                                 $tblPrepare, $tblPerson, $tblDivision, $tblTestType, $tblGradeType,
