@@ -186,6 +186,11 @@ class Frontend extends Extension implements IFrontendInterface
                 $Cache->setData($Result);
             }
 
+            $YearNow = '';
+            if (($YearList = Term::useService()->getYearByNow())) {
+                 $YearNow = current($YearList)->getYear();
+            }
+
             if ($tblGroup->getMetaTable() == 'CUSTODY') {
                 if ($Acronym == 'ESZC') {
                     $ColumnArray = array(
@@ -208,7 +213,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $ColumnArray = array(
                     'FullName' => 'Name',
                     'Address' => 'Adresse',
-                    'Division' => 'Klasse',
+                    'Division' => 'Klasse (SJ ' . $YearNow . ')',
                     'Identification' => 'Schülernummer',
                     'Option' => '',
                 );
@@ -272,7 +277,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Stage->addButton(
                     new Standard(
-                        $tblGroup->getName() . '&nbsp;&nbsp;' . new Label(Group::useService()->countMemberAllByGroup($tblGroup)),
+                        $tblGroup->getName() . '&nbsp;&nbsp;' . new Label(Group::useService()->countMemberByGroup($tblGroup)),
                         new Route(__NAMESPACE__), new PersonGroup(),
                         array(
                             'Id' => $tblGroup->getId()

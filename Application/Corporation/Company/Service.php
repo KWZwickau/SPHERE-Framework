@@ -72,7 +72,7 @@ class Service extends AbstractService
     public function countCompanyAllByGroup(TblGroup $tblGroup)
     {
 
-        return Group::useService()->countCompanyAllByGroup($tblGroup);
+        return Group::useService()->countMemberByGroup($tblGroup);
     }
 
     /**

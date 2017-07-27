@@ -53,7 +53,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Stage->addButton(
                     new Standard(
-                        $tblGroup->getName().'&nbsp;&nbsp;'.new Label(Group::useService()->countCompanyAllByGroup($tblGroup)),
+                        $tblGroup->getName().'&nbsp;&nbsp;'.new Label(Group::useService()->countMemberByGroup($tblGroup)),
                         new Route(__NAMESPACE__), new PersonGroup(),
                         array(
                             'Id' => $tblGroup->getId()
