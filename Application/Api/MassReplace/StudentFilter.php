@@ -134,7 +134,16 @@ class StudentFilter extends Extension
                 'Level'         => 'Stufe',
                 'Division'      => 'Klasse',
                 'Edit'          => $Field->getLabel(),
-            ), null);
+            ), array(
+                'columnDefs' => array(
+                    array('type' => 'natural', 'targets' => 3),
+                ),
+                'pageLength' => -1,
+                'paging'     => false,
+                'info'       => false,
+                'searching'  => false,
+                'responsive' => false
+            ));
 
         return new Layout(
             new LayoutGroup(

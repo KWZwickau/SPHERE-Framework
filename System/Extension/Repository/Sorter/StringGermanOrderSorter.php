@@ -68,10 +68,10 @@ class StringGermanOrderSorter extends AbstractSorter
         $String = strtolower($String);
 
         $String = preg_replace(array('!ä!iu', '!ö!iu', '!ü!iu', '!ß!iu'), array('ae', 'oe', 'ue', 'ss'), $String);
-        for ($i = 0; $i < count($Cut); $i++) {
-            $myRegex = '!^'.preg_quote($Cut[$i], '!').'\s+!i';
-            $String = preg_replace($myRegex, '', $String);
-        }
+        array_walk($Cut,function(&$V){
+            $V = '!^'.preg_quote($V, '!').'\s+!i';
+        });
+        $String = preg_replace( $Cut, '', $String );
         return $String;
     }
 

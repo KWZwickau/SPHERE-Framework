@@ -600,7 +600,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                                 $item = array(
                                     'DisplayName' => $tblObject->getName()
-                                        . ' (' . PersonGroup::useService()->countMemberAllByGroup($tblObject) . ')',
+                                        . ' (' . PersonGroup::useService()->countMemberByGroup($tblObject) . ')',
                                     'Groups'      => ''
                                 );
                             } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'COMPANYGROUP') {
@@ -608,7 +608,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                                 $item = array(
                                     'DisplayName' => $tblObject->getName()
-                                        . ' (' . CompanyGroup::useService()->countMemberAllByGroup($tblObject) . ')',
+                                        . ' (' . CompanyGroup::useService()->countMemberByGroup($tblObject) . ')',
                                     'Groups'      => ''
                                 );
                             } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'DIVISIONGROUP') {
@@ -789,7 +789,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                                     $selectList[] = array(
                                         'DisplayName' => $tblPersonGroup->getName()
-                                            . ' (' . PersonGroup::useService()->countMemberAllByGroup($tblPersonGroup) . ')',
+                                            . ' (' . PersonGroup::useService()->countMemberByGroup($tblPersonGroup) . ')',
                                         'Groups'      => '',
                                         'Option'      => ( new Form(
                                             new FormGroup(
@@ -834,7 +834,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                                     $selectList[] = array(
                                         'DisplayName' => $tblCompanyGroup->getName()
-                                            . ' (' . CompanyGroup::useService()->countMemberAllByGroup($tblCompanyGroup) . ')',
+                                            . ' (' . CompanyGroup::useService()->countMemberByGroup($tblCompanyGroup) . ')',
                                         'Groups'      => '',
                                         'Option'      => ( new Form(
                                             new FormGroup(

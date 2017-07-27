@@ -1,4 +1,5 @@
 <?php
+
 namespace SPHERE\Application\People;
 
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -47,7 +48,7 @@ class People implements IClusterInterface
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Personen'), new Link\Icon(new PersonIcon()))
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, __CLASS__.'::frontendDashboard'
+            __NAMESPACE__, __CLASS__ . '::frontendDashboard'
         ));
 
         Main::getDispatcher()->registerWidget('Personen', array(__CLASS__, 'widgetPersonGroupList'), 4, 6);
@@ -66,25 +67,12 @@ class People implements IClusterInterface
             /** @var TblGroup $tblGroup */
             foreach ((array)$tblGroupAll as $Index => $tblGroup) {
 
-                if ($tblGroup->getMetaTable() == 'STUDENT') {
-                    $countContent = array();
-                    if (($tblYearList = Term::useService()->getYearAllFutureYears(0))) {
-                        foreach ($tblYearList as $tblYear) {
-                            $countContent[$tblYear->getId()] = new Muted(new Small(
-                                Division::useService()->getStudentCountByYear($tblYear)
-                                . ' Mitglieder im Schuljahr ' .  $tblYear->getDisplayName() . ' '));
-                        }
-                    }
-                    $countContent = new Listing($countContent);
-                } else {
-                    $countContent = new Muted(new Small(Group::useService()->countMemberAllByGroup($tblGroup) . '&nbsp;Mitglieder'));
-                }
-
+                $countContent = new Muted(new Small(Group::useService()->countMemberByGroup($tblGroup) . '&nbsp;Mitglieder'));
                 $content =
                     new Layout(new LayoutGroup(new LayoutRow(array(
                             new LayoutColumn(
                                 $tblGroup->getName()
-                                .new Muted(new Small('<br/>'.$tblGroup->getDescription()))
+                                . new Muted(new Small('<br/>' . $tblGroup->getDescription()))
                                 , 5),
                             new LayoutColumn(
                                 $countContent
@@ -98,8 +86,35 @@ class People implements IClusterInterface
                         )
                     )));
 
-                if ($tblGroup->isLocked()){
+                if ($tblGroup->isLocked()) {
                     $tblGroupLockedList[] = $content;
+                    if ($tblGroup->getMetaTable() == 'STUDENT') {
+                        $countContent = array();
+                        if (($tblYearList = Term::useService()->getYearAllFutureYears(0))) {
+                            foreach ($tblYearList as $tblYear) {
+                                $countContent[$tblYear->getId()] = new Muted(new Small(
+                                    Division::useService()->getStudentCountByYear($tblYear)
+                                    . ' Mitglieder im Schuljahr ' . $tblYear->getDisplayName() . ' '));
+                            }
+                        }
+                        $countContent = new Listing($countContent);
+
+                        $content =
+                            new Layout(new LayoutGroup(new LayoutRow(array(
+                                    new LayoutColumn(
+                                        'Schüler / Schuljahr'
+                                        . new Muted(new Small('<br/>' . 'Schüler die in Klassen zugeordnet sind'))
+                                        , 5),
+                                    new LayoutColumn(
+                                        $countContent
+                                        , 5, array(LayoutColumn::GRID_OPTION_HIDDEN_SM, LayoutColumn::GRID_OPTION_HIDDEN_XS)),
+                                    new LayoutColumn(
+                                        '&nbsp;'
+                                        , 2)
+                                )
+                            )));
+                        $tblGroupLockedList[] = $content;
+                    }
                 } else {
                     $tblGroupCustomList[] = $content;
                 }
@@ -107,12 +122,12 @@ class People implements IClusterInterface
         }
 
         return new Layout(new LayoutGroup(new LayoutRow(array(
+            new LayoutColumn(
+                new Panel('Personen in festen Gruppen', $tblGroupLockedList), 6
+            ),
+            !empty($tblGroupCustomList) ?
                 new LayoutColumn(
-                    new Panel('Personen in festen Gruppen', $tblGroupLockedList), 6
-                ),
-                !empty($tblGroupCustomList) ?
-                    new LayoutColumn(
-                        new Panel('Personen in individuellen Gruppen', $tblGroupCustomList), 6) : null
+                    new Panel('Personen in individuellen Gruppen', $tblGroupCustomList), 6) : null
         ))));
     }
 
@@ -123,7 +138,7 @@ class People implements IClusterInterface
     {
 
         $Stage = new Stage('Dashboard', 'Personen');
-        $Stage->addButton( new Backward() );
+        $Stage->addButton(new Backward());
 
 //        $Stage->setContent(Main::getDispatcher()->fetchDashboard('Personen'));
         $Stage->setContent(self::widgetPersonGroupList());
