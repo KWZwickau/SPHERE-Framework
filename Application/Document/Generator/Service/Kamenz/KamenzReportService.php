@@ -300,6 +300,17 @@ class KamenzReportService
                             && ($tblSchoolType = $tblLevel->getServiceTblType())
                             && $tblSchoolType->getId() == $tblKamenzSchoolType->getId()
                         ) {
+                            // todo courses
+                            if (preg_match('!(11|12)!is', $tblLevel->getName())) {
+                                if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))) {
+                                    foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                                        if (($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())) {
+
+                                        }
+                                    }
+                                }
+                            }
+
                             if (($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))) {
 
                                 if (isset($Content['E01']['Division']['L' . $tblLevel->getName()])) {

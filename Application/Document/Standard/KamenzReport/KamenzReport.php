@@ -213,7 +213,7 @@ class KamenzReport extends AbstractModule implements IModuleInterface
 
         $summary = array();
 
-//        Debugger::screenDump(KamenzReportService::setKamenzReportGymContent(array()));
+        Debugger::screenDump(KamenzReportService::setKamenzReportGymContent(array()));
 
         $countStudentsWithoutDivision = 0;
         if (($studentsWithoutDivision = KamenzService::getStudentsWithoutDivision($countStudentsWithoutDivision))) {
