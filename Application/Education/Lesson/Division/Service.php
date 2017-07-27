@@ -24,6 +24,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -1981,12 +1982,23 @@ class Service extends AbstractService
 
                 $tblDivisionStudentList = $this->getDivisionStudentAllByDivision($tblDivision);
                 if ($tblDivisionStudentList) {
-                    foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                        (new Data($this->getBinding()))->addDivisionStudent(
-                            $tblDivisionCopy,
-                            $tblDivisionStudent->getServiceTblPerson(),
-                            $tblDivisionStudent->getSortOrder()
-                        );
+                    foreach ($tblDivisionStudentList as $tblDivisionStudent){
+                        $StudentGroup = Group::useService()->getGroupByMetaTable('STUDENT');
+                        $tblPerson = $tblDivisionStudent->getServiceTblPerson();
+                        $tblPersonGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
+                        if ($tblPersonGroupList && $StudentGroup) {
+                            foreach ($tblPersonGroupList as $tblPersonGroup) {
+                                if ($tblPersonGroup->getId() == $StudentGroup->getId()) {
+                                    (new Data($this->getBinding()))->addDivisionStudent(
+                                        $tblDivisionCopy,
+                                        $tblDivisionStudent->getServiceTblPerson(),
+                                        $tblDivisionStudent->getSortOrder()
+                                    );
+                                    break;
+                                }
+                            }
+                        }
+
                     }
                 }
 
