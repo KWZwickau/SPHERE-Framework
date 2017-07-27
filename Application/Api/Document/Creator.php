@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Api\Document;
 
+use MOC\V\Component\Document\Component\Parameter\Repository\PaperOrientationParameter;
 use MOC\V\Component\Document\Document as PdfDocument;
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use MOC\V\Core\FileSystem\FileSystem;
@@ -34,14 +35,16 @@ use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
  */
 class Creator extends Extension
 {
-
+    const PAPERORIENTATION_PORTRAIT = 'PORTRAIT';
+    const PAPERORIENTATION_LANDSCAPE = 'LANDSCAPE';
     /**
      * @param null $PersonId
      * @param $DocumentClass
+     * @param string $paperOrientation
      *
      * @return Stage|string
      */
-    public static function createPdf($PersonId, $DocumentClass)
+    public static function createPdf($PersonId, $DocumentClass, $paperOrientation = 'PORTRAIT')
     {
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
@@ -55,7 +58,7 @@ class Creator extends Extension
                 $Data = Generator::useService()->setStudentCardContent($Data, $tblPerson, $Document);
             }
 
-            $File = self::buildDummyFile($Document, $Data);
+            $File = self::buildDummyFile($Document, $Data, array(), $paperOrientation);
 
             $FileName = $Document->getName() . ' ' . $tblPerson->getLastFirstName() . ' ' . date("Y-m-d") . ".pdf";
 
@@ -64,7 +67,7 @@ class Creator extends Extension
             // create PDF without Data and PersonId
             /** @var AbstractDocument $Document */
             $Document = new $DocumentClass();
-            $File = self::buildDummyFile($Document);
+            $File = self::buildDummyFile($Document, array(), array(), $paperOrientation);
             $FileName = $Document->getName().' '.date("Y-m-d").".pdf";
 
             return self::buildDownloadFile($File, $FileName);
@@ -77,10 +80,11 @@ class Creator extends Extension
      * @param AbstractDocument|AbstractStudentCard $DocumentClass
      * @param array $Data
      * @param array $pageList
+     * @param string $paperOrientation
      *
      * @return FilePointer
      */
-    private static function buildDummyFile($DocumentClass, $Data = array(), $pageList = array())
+    private static function buildDummyFile($DocumentClass, $Data = array(), $pageList = array(), $paperOrientation = 'PORTRAIT')
     {
 
         ini_set('memory_limit', '1G');
@@ -93,6 +97,7 @@ class Creator extends Extension
         $Content = $DocumentClass->createDocument($Data, $pageList);
         /** @var DomPdf $Document */
         $Document = PdfDocument::getPdfDocument($File->getFileLocation());
+        $Document->setPaperOrientationParameter(new PaperOrientationParameter($paperOrientation));
         $Document->setContent($Content);
         $Document->saveFile(new FileParameter($File->getFileLocation()));
 
@@ -117,9 +122,10 @@ class Creator extends Extension
     /**
      * @param TblPerson $tblPerson
      * @param TblType[] $tblSchoolTypeList
+     * @param string $paperOrientation
      * @return Stage|string
      */
-    public static function createMultiPdf(TblPerson $tblPerson, $tblSchoolTypeList)
+    public static function createMultiPdf(TblPerson $tblPerson, $tblSchoolTypeList, $paperOrientation = 'PORTRAIT')
     {
 
         $Data['Person']['Id'] = $tblPerson->getId();
@@ -147,7 +153,7 @@ class Creator extends Extension
         if (!empty($pageList))
         {
             $Document = new MultiStudentCard();
-            $File = self::buildDummyFile($Document, $Data, $pageList);
+            $File = self::buildDummyFile($Document, $Data, $pageList, $paperOrientation);
             $FileName = $Document->getName() . ' ' . $tblPerson->getLastFirstName() . ' ' . date("Y-m-d") . ".pdf";
 
             return self::buildDownloadFile($File, $FileName);

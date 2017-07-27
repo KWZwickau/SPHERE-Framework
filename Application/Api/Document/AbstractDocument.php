@@ -114,7 +114,6 @@ abstract class AbstractDocument
         if (!empty($Data)) {
             $this->Document->setData($Data);
         }
-
         return $this->Document->getTemplate();
     }
 

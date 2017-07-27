@@ -51,6 +51,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
+use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\Layout\Repository\Header;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -60,6 +61,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -2282,6 +2284,9 @@ class Frontend extends FrontendScoreRule
                 'DivisionId' => $DivisionId
             )
         ));
+        $Stage->addButton(new External(
+            'Herunterladen','SPHERE\Application\Api\Document\Standard\GradebookOverview\Create', new Upload()
+        ));
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         if (!$tblDivision) {
@@ -2504,6 +2509,9 @@ class Frontend extends FrontendScoreRule
             'Zurück', '/Education/Graduation/Gradebook/Gradebook/Teacher/Division/Student', new ChevronLeft(), array(
                 'DivisionId' => $DivisionId
             )
+        ));
+        $Stage->addButton(new External(
+            'Herunterladen','SPHERE\Application\Api\Document\Standard\GradebookOverview\Create', new Upload()
         ));
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
