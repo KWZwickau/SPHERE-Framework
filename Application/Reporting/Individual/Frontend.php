@@ -12,6 +12,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -33,11 +34,15 @@ class Frontend extends Extension implements IFrontendInterface
 
 //        Individual::useService()->getView();
 
+        $tblWorkSpaceList = Individual::useService()->getWorkSpaceAll();
+        Debugger::screenDump($tblWorkSpaceList);
+
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
+                            ApiIndividual::receiverService().
                             ApiIndividual::receiverNavigation(ApiIndividual::pipelineNewNavigation())
                             , 2),
                         new LayoutColumn(

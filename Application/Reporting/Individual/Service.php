@@ -92,6 +92,23 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $Field
+     * @param $View
+     * @param $Position
+     *
+     * @return bool|TblWorkSpace
+     */
+    public function addWorkSpaceField($Field, $View, $Position)
+    {
+
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            return (new Data($this->getBinding()))->createWorkSpace($tblAccount, $Field, $View, $Position);
+        }
+        return false;
+    }
+
+    /**
      * @return false|Service\Entity\ViewStudent[]|\SPHERE\System\Database\Fitting\Element[]
      */
     public function getView()

@@ -47,7 +47,7 @@ class Data extends AbstractData
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblWorkSpace',
             array(
-                TblWorkSpace::ATTR_TBL_ACCOUNT => $tblAccount->getId()
+                TblWorkSpace::ATTR_SERVICE_TBL_ACCOUNT => $tblAccount->getId()
             ));
     }
 
@@ -97,7 +97,7 @@ class Data extends AbstractData
     {
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = new TblWorkSpace();
-        $Entity->setTblAccount($tblAccount);
+        $Entity->setServiceTblAccount($tblAccount);
         $Entity->setField($Field);
         $Entity->setView($View);
         $Entity->setPosition($Position);

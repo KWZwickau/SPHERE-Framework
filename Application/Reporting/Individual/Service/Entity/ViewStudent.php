@@ -17,9 +17,6 @@ use SPHERE\System\Database\Binding\AbstractView;
 class ViewStudent extends AbstractView
 {
 
-    const DIVISION_NAME_LEVEL_NAME_GROUP = 'DivisionName_LevelName_Group';
-    const DIVISION_NAME_LEVEL_NAME = 'DivisionName_LevelName';
-    const LEVEL_NAME = 'LevelName';
     const TBL_COMMON_GENDER_NAME = 'TblCommonGender_Name';
     const TBL_SALUTATION_SALUTATION = 'TblSalutation_Salutation';
     const TBL_PERSON_TITLE = 'TblPerson_Title';
@@ -90,19 +87,6 @@ class ViewStudent extends AbstractView
     const TBL_PHONE_NUMBER_S3 = 'TblPhone_Number_S3';
     const TBL_MAIL_ADDRESS_S3 = 'TblMail_Address_S3';
 
-
-    /**
-     * @Column(type="string")
-     */
-    protected $DivisionName_LevelName_Group;
-    /**
-     * @Column(type="string")
-     */
-    protected $DivisionName_LevelName;
-    /**
-     * @Column(type="string")
-     */
-    protected $LevelName;
     /**
      * @Column(type="string")
      */

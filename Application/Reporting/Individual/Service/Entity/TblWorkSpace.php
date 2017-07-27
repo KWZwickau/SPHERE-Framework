@@ -18,7 +18,7 @@ use SPHERE\System\Database\Fitting\Element;
 class TblWorkSpace extends Element
 {
 
-    const ATTR_TBL_ACCOUNT = 'tblAccount';
+    const ATTR_SERVICE_TBL_ACCOUNT = 'serviceTblAccount';
     const ATTR_FIELD = 'Field';
     const ATTR_VIEW = 'View';
     const ATTR_POSITION = 'Position';
@@ -26,7 +26,7 @@ class TblWorkSpace extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $tblAccount;
+    protected $serviceTblAccount;
     /**
      * @Column(type="string")
      */
@@ -43,23 +43,23 @@ class TblWorkSpace extends Element
     /**
      * @return bool|TblAccount
      */
-    public function getTblAccount()
+    public function getServiceTblAccount()
     {
 
-        if (null === $this->tblAccount) {
+        if (null === $this->serviceTblAccount) {
             return false;
         } else {
-            return Account::useService()->getAccountById($this->tblAccount);
+            return Account::useService()->getAccountById($this->serviceTblAccount);
         }
     }
 
     /**
-     * @param null|TblAccount $tblAccount
+     * @param null|TblAccount $serviceTblAccount
      */
-    public function setTblAccount(TblAccount $tblAccount = null)
+    public function setServiceTblAccount(TblAccount $serviceTblAccount = null)
     {
 
-        $this->tblAccount = (null === $tblAccount ? null : $tblAccount->getId());
+        $this->serviceTblAccount = (null === $serviceTblAccount ? null : $serviceTblAccount->getId());
     }
 
     /**
