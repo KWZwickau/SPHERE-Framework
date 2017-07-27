@@ -87,7 +87,7 @@ class EnrollmentDocument extends AbstractDocument
                                     ), '60%'
                                 )
                                 ->addElementColumn($this->getPictureEnrollmentDocument()
-                                    ->styleAlignCenter(),'40%'
+                                    ->styleAlignRight(),'40%'
                                 )
                             )
                             ->addSection((new Section())
