@@ -44,24 +44,28 @@ class EnrollmentDocument extends AbstractDocument
             ->addPage((new Page())
                 ->addSlice((new Slice())
                     ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('&nbsp;'),'5%'
+                        )
                         ->addSliceColumn((new Slice())
                             ->addSection((new Section())
-                                ->addElementColumn((new Element())
-                                    ->setContent('&nbsp;')
-                                    ->styleHeight('25px')
-                                )
-                            )
-                            ->addSection((new Section())
-                                ->addElementColumn((new Element())
-                                    ->setContent('Schule')
-                                    ->styleHeight('15px')
-                                    ->stylePaddingLeft('5px')
-                                    ->styleTextSize('9pt')
-                                )
-                            )
-                            ->addSection((new Section())
-                                ->addElementColumn((new Element())
-                                    ->setContent('
+                                ->addSliceColumn((new Slice())
+                                    ->addSection((new Section())
+                                        ->addElementColumn((new Element())
+                                            ->setContent('&nbsp;')
+                                            ->styleHeight('25px')
+                                        )
+                                    )
+                                    ->addSection((new Section())
+                                        ->addElementColumn((new Element())
+                                            ->setContent('Schule')
+                                            ->styleHeight('15px')
+                                            ->styleTextSize('9pt')
+                                        )
+                                    )
+                                    ->addSection((new Section())
+                                        ->addElementColumn((new Element())
+                                            ->setContent('
                                 {% if(Content.Student.Company is not empty) %}
                                     {{ Content.Student.Company }} 
                                     {% if(Content.Student.Company2 is not empty) %}
@@ -78,31 +82,25 @@ class EnrollmentDocument extends AbstractDocument
                                     &nbsp;
                                 {% endif %} 
                                 ')
-                                    ->styleHeight('118px')
-                                    ->stylePaddingLeft('5px')
+                                            ->styleHeight('140px')
+                                        )
+                                    ), '60%'
                                 )
-                            ), '60%'
-                        )
-                        ->addElementColumn($this->getPictureEnrollmentDocument()
-                            ->styleAlignCenter(),'40%'
-                        )
-                    )
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Schulbescheinigung')
-                            ->stylePaddingLeft('5px')
-                            ->styleTextSize('25px')
-                            ->styleTextBold()
-                            ->styleTextItalic()
-                        )
-                    )
-                )
-                ->addSlice((new Slice())
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                                ->addElementColumn($this->getPictureEnrollmentDocument()
+                                    ->styleAlignCenter(),'40%'
+                                )
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('Schulbescheinigung')
+                                    ->styleTextSize('25px')
+                                    ->styleTextBold()
+                                    ->styleTextItalic()
+                                )
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('
                                 {% if Content.Person.Common.BirthDates.Gender == 2 %}
                                     Die Schülerin
                                 {% else %}
@@ -113,117 +111,105 @@ class EnrollmentDocument extends AbstractDocument
                                     {% endif %}
                                 {% endif %}
                             ')
-                            ->stylePaddingTop('50px')
-                            ->stylePaddingLeft()
-                            , '35%')
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                                    ->stylePaddingTop('50px')
+                                    , '35%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('
                                 {% if( Content.Person.Data.Name.First is not empty) %}
                                     {{ Content.Person.Data.Name.First }} {{ Content.Person.Data.Name.Last }}
                                 {% else %}
                                     &nbsp;
                                 {% endif %}'
+                                    )
+                                    ->stylePaddingTop('50px')
+                                    ->styleBorderBottom()
+                                    , '65%')
                             )
-                            ->stylePaddingTop('50px')
-                            ->stylePaddingLeft()
-                            ->styleBorderBottom()
-                            , '65%')
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('geboren am')
-                            ->stylePaddingTop('30px')
-                            ->stylePaddingLeft()
-                            , '35%')
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('geboren am')
+                                    ->stylePaddingTop('30px')
+                                    , '35%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('
                                 {% if(Content.Person.Common.BirthDates.Birthday is not empty) %}
                                     {{ Content.Person.Common.BirthDates.Birthday|date("d.m.Y") }}
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
-                            ->stylePaddingTop('30px')
-                            ->stylePaddingLeft()
-                            ->styleBorderBottom()
-                            , '65%')
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('geboren in')
-                            ->stylePaddingTop('30px')
-                            ->stylePaddingLeft()
-                            , '35%')
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                                    ->stylePaddingTop('30px')
+                                    ->styleBorderBottom()
+                                    , '65%')
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('geboren in')
+                                    ->stylePaddingTop('30px')
+                                    , '35%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('
                                 {% if(Content.Person.Common.BirthDates.Birthplace is not empty) %}
                                     {{ Content.Person.Common.BirthDates.Birthplace }}
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
-                            ->stylePaddingTop('30px')
-                            ->stylePaddingLeft()
-                            ->styleBorderBottom()
-                            , '65%')
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('wohnhaft')
-                            ->stylePaddingTop('30px')
-                            ->stylePaddingLeft()
-                            , '35%')
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                                    ->stylePaddingTop('30px')
+                                    ->styleBorderBottom()
+                                    , '65%')
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('wohnhaft')
+                                    ->stylePaddingTop('30px')
+                                    , '35%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('
                                {% if(Content.Person.Address.Street.Name) %}
                                     {{ Content.Person.Address.Street.Name }}
                                     {{ Content.Person.Address.Street.Number }}
                                 {% else %}
                                       &nbsp;
                                 {% endif %}')
-                            ->stylePaddingTop('30px')
-                            ->stylePaddingLeft()
-                            ->styleBorderBottom()
-                            , '65%')
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
-                            ->stylePaddingTop('30px')
-                            ->stylePaddingLeft()
-                            , '35%')
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                                    ->stylePaddingTop('30px')
+                                    ->styleBorderBottom()
+                                    , '65%')
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('&nbsp;')
+                                    ->stylePaddingTop('30px')
+                                    , '35%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('
                                {% if(Content.Person.Address.City.Name) %}
                                     {{ Content.Person.Address.City.Code }}
                                     {{ Content.Person.Address.City.Name }}
                                 {% else %}
                                       &nbsp;
                                 {% endif %}')
-                            ->stylePaddingTop('30px')
-                            ->stylePaddingLeft()
-                            ->styleBorderBottom()
-                            , '65%')
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('besucht zur Zeit die Klasse')
-                            ->stylePaddingTop('30px')
-                            ->stylePaddingLeft()
-                            , '35%')
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                                    ->stylePaddingTop('30px')
+                                    ->styleBorderBottom()
+                                    , '65%')
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('besucht zur Zeit die Klasse')
+                                    ->stylePaddingTop('30px')
+                                    , '35%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('
                                {% if(Content.Student.Division.Name) %}
                                     {{ Content.Student.Division.Name }}
                                 {% else %}
                                       &nbsp;
                                 {% endif %}')
-                            ->stylePaddingTop('30px')
-                            ->stylePaddingLeft()
-                            ->styleBorderBottom()
-                            , '65%')
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                                    ->stylePaddingTop('30px')
+                                    ->styleBorderBottom()
+                                    , '65%')
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('
                                 {% if Content.Person.Common.BirthDates.Gender == 2 %}
                                     Sie
                                 {% else %}
@@ -235,25 +221,23 @@ class EnrollmentDocument extends AbstractDocument
                                 {% endif %}
                                 wird voraussichtlich bis zum
                             ')
-                            ->stylePaddingTop('100px')
-                            ->stylePaddingLeft()
-                            , '35%')
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                                    ->stylePaddingTop('100px')
+                                    , '35%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('
                                 {% if(Content.Student.LeaveDate) %}
                                     {{ Content.Student.LeaveDate }}
                                 {% else %}
                                       &nbsp;
                                 {% endif %}
                             ')
-                            ->stylePaddingTop('100px')
-                            ->stylePaddingLeft()
-                            ->styleBorderBottom()
-                            , '65%')
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                                    ->stylePaddingTop('100px')
+                                    ->styleBorderBottom()
+                                    , '65%')
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('
                                 {% if Content.Person.Common.BirthDates.Gender == 2 %}
                                     Schülerin
                                 {% else %}
@@ -265,93 +249,90 @@ class EnrollmentDocument extends AbstractDocument
                                 {% endif %}
                                 unserer Schule sein.
                             ')
-                            ->stylePaddingTop('30px')
-                            ->stylePaddingLeft()
-                        )
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                                    ->stylePaddingTop('30px')
+                                )
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('
                                 {% if(Content.Document.PlaceDate) %}
                                     {{ Content.Document.PlaceDate }}
                                 {% else %}
                                       &nbsp;
                                 {% endif %}
                             ')
-                            ->stylePaddingTop('100px')
-                            ->stylePaddingLeft()
-                            ->styleBorderBottom()
-                            , '45%')
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                                    ->stylePaddingTop('100px')
+                                    ->styleBorderBottom()
+                                    , '45%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('
                                       &nbsp;
                              ')
-                            ->stylePaddingTop('100px')
-                            ->stylePaddingLeft()
-                            , '20%')
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                                    ->stylePaddingTop('100px')
+                                    , '20%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('
                                       &nbsp;
                              ')
-                            ->stylePaddingTop('100px')
-                            ->stylePaddingLeft()
-                            ->styleBorderBottom()
-                            , '35%')
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                                    ->stylePaddingTop('100px')
+                                    ->styleBorderBottom()
+                                    , '35%')
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('
                                 Ort, Datum
                             ')
-                            ->styleTextSize('12px')
-                            , '45%')
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                                    ->styleTextSize('12px')
+                                    , '45%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('
                                       &nbsp;
                              ')
-                            , '20%')
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                                    , '20%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('
                                       Schulstempel
                              ')
-                            ->stylePaddingTop('0px')
-                            ->styleMarginTop('0px')
-                            ->styleTextSize('12px')
-                            ->stylePaddingLeft()
-                            , '35%')
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                                    ->stylePaddingTop('0px')
+                                    ->styleMarginTop('0px')
+                                    ->styleTextSize('12px')
+                                    , '35%')
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('
                                 &nbsp;
                             ')
-                            ->stylePaddingTop('30px')
-                            ->stylePaddingLeft()
-                            , '65%')
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                                    ->stylePaddingTop('30px')
+                                    , '65%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('
                                       &nbsp;
                              ')
-                            ->stylePaddingTop('30px')
-                            ->stylePaddingLeft()
-                            ->styleBorderBottom()
-                            , '35%')
-                    )
-                    ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                                    ->stylePaddingTop('30px')
+                                    ->styleBorderBottom()
+                                    , '35%')
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('
                                       &nbsp;
                              ')
-                            , '65%')
-                        ->addElementColumn((new Element())
-                            ->setContent('
+                                    , '65%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('
                                       Schulleiter/in
                              ')
-                            ->stylePaddingTop('0px')
-                            ->styleMarginTop('0px')
-                            ->styleTextSize('12px')
-                            ->stylePaddingLeft()
-                            , '35%')
+                                    ->stylePaddingTop('0px')
+                                    ->styleMarginTop('0px')
+                                    ->styleTextSize('12px')
+                                    , '35%')
+                            ),'90%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('&nbsp;'),'5%'
+                        )
                     )
                 )
             )
