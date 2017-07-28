@@ -249,7 +249,12 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new TableData(array(
                                 array('A' => 1, 'B' => '2'),
-                                array('A' => 2, 'B' => '34567890')
+                                array('A' => 2, 'B' => '34567890'),
+                                array('A' => 'SelectBox Width Test DT', 'B' =>
+                                    (new SelectBox('SelectBox2DT', 'SelectBox - jQuery Select2',
+                                    array('{{ Id }}{{ Name }}{{ Name }} {{ Id }}{{ Name }}{{ Name }}' => $Check)
+                                    ))->configureLibrary( SelectBox::LIBRARY_SELECT2 )
+                                )
                             ))
                             , 6),
 
