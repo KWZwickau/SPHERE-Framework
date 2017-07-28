@@ -15,6 +15,7 @@ use SPHERE\Application\Transfer\Gateway\Converter\AbstractConverter;
 use SPHERE\Application\Transfer\Gateway\Converter\FieldPointer;
 use SPHERE\Application\Transfer\Gateway\Converter\FieldSanitizer;
 use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 
@@ -212,7 +213,7 @@ class StudentCourseGateway extends AbstractConverter
                 $Result['Birthday']);
         }
         if (isset($tblPerson) && !$tblPerson) {
-            $Result['AppPerson'] = new Warning(new WarningIcon().' Person nicht gefunden');
+            $Result['AppPerson'] = new Danger(new WarningIcon().' Person nicht gefunden');
         } elseif ($tblPerson) {
             $Result['AppPerson'] = $tblPerson->getFullName();
         }

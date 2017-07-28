@@ -13,7 +13,6 @@ use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareImport
 use SPHERE\Application\Transfer\Indiware\Import\Service\Entity\TblIndiwareImportStudentCourse;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Manager;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Data
@@ -474,8 +473,6 @@ class Data extends AbstractData
             $Entity->setIsIgnoreCourse($IgnoreCourse);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
-
-            Debugger::screenDump($Entity);
             return $Entity;
         }
         return false;
@@ -499,6 +496,26 @@ class Data extends AbstractData
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setIsIgnore($isIgnore);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+
+        return false;
+    }
+
+    public function updateIndiwareImportStudentDivision(
+        TblIndiwareImportStudent $tblIndiwareImportStudent,
+        TblDivision $tblDivision
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblIndiwareImportStudent $Entity */
+        $Entity = $Manager->getEntityById('TblIndiwareImportStudent', $tblIndiwareImportStudent->getId());
+        if (null !== $Entity) {
+            $Protocol = clone $Entity;
+            $Entity->setServiceTblDivision($tblDivision);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
