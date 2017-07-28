@@ -319,7 +319,7 @@ class StudentCourse extends Extension implements IFrontendInterface
                         new LayoutRow(array(
                             new LayoutColumn(
                                 new WarningMessage('Personeneinträge in'.new Danger(new Bold(' "rot" ')).'werden nicht importiert.'
-                                    .new Container('Bitte Kontrolieren Sie ggf. die Personen-Daten Vor-,Nachname sowie das Geburtsdatum'))
+                                    .new Container('Bitte Kontrollieren Sie ggf. die Personen-Daten Vor-,Nachname sowie das Geburtsdatum'))
                                 , 4),
                             new LayoutColumn(
                                 new TableData($Gateway->getResultList(), null,
@@ -495,7 +495,7 @@ class StudentCourse extends Extension implements IFrontendInterface
 //                        }
 
                         if ($tblIndiwareImportStudentCourse->getisIgnoreCourse()) {
-                            $SubjectString = new Info(new InfoIcon().' Fach wird Ignoriert');
+                            $SubjectString = new Info(new InfoIcon().' Fach/Kurs wird Ignoriert');
                         } elseif ($SubjectName != '' && !$tblIndiwareImportStudentCourse->getServiceTblSubject()) {
                             $SubjectString = new Danger(new InfoIcon().' Fach nicht gefunden!');
                         }
