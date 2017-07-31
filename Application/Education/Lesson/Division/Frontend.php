@@ -60,6 +60,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger as DangerMessage;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -1431,7 +1432,7 @@ class Frontend extends Extension implements IFrontendInterface
                 .new Redirect('/Education/Lesson/Division/Show', Redirect::TIMEOUT_SUCCESS,
                     array('Id' => $Id)));
         } else {
-            $Stage->setContent(new \SPHERE\Common\Frontend\Message\Repository\Danger('Gruppe konnte nicht entfernt werden')
+            $Stage->setContent(new DangerMessage('Gruppe konnte nicht entfernt werden')
                 .new Redirect('/Education/Lesson/Division/Show', Redirect::TIMEOUT_ERROR,
                     array('Id' => $Id)));
         }
@@ -1453,7 +1454,7 @@ class Frontend extends Extension implements IFrontendInterface
 //        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
         $tblDivision = Division::useService()->getDivisionById($Id);
         if (!$tblDivision) {
-            return $Stage.new Danger('Klasse nicht gefunden.', new Ban())
+            return $Stage.new DangerMessage('Klasse nicht gefunden.', new Ban())
                 .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
         }
 
@@ -2091,7 +2092,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new Success('Die Klasse wurde gelöscht',
                                     new \SPHERE\Common\Frontend\Icon\Repository\Success())
                                 .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_SUCCESS)
-                                : new \SPHERE\Common\Frontend\Message\Repository\Danger('Die Klasse konnte nicht gelöscht werden',
+                                : new DangerMessage('Die Klasse konnte nicht gelöscht werden',
                                     new Ban())
                                 .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR)
                             )
@@ -2121,7 +2122,7 @@ class Frontend extends Extension implements IFrontendInterface
 //        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
         $tblDivision = $Id === null ? false : Division::useService()->getDivisionById($Id);
         if (!$tblDivision) {
-            return $Stage->setContent(new \SPHERE\Common\Frontend\Message\Repository\Danger('Klasse nicht gefunden.',
+            return $Stage->setContent(new DangerMessage('Klasse nicht gefunden.',
                     new Ban()))
                 .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
         }

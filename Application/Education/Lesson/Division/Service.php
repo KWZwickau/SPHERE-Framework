@@ -940,9 +940,7 @@ class Service extends AbstractService
             $tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
             if (is_array($tblSubjectStudentList)) {
                 array_walk($tblSubjectStudentList, function ($tblSubjectStudentList) {
-
-                    if (!$this->removeSubjectStudent($tblSubjectStudentList)) {
-                    }
+                    $this->removeSubjectStudent($tblSubjectStudentList);
                 });
             }
 
@@ -1180,11 +1178,12 @@ class Service extends AbstractService
 
         $Error = false;
 
-        if (isset($Division['Name']) && empty($Division['Name'])
-        ) {
-            $Form->setError('Division[Name]', 'Bitte geben sie einen Namen an');
-            $Error = true;
-        }
+        // auch leere Strings sollen gespeichert werden können
+//        if (isset($Division['Name']) && empty($Division['Name'])
+//        ) {
+//            $Form->setError('Division[Name]', 'Bitte geben sie einen Namen an');
+//            $Error = true;
+//        }
 //        else {
 //            $tblDivisionTest =
 //                Division::useService()->getDivisionByGroupAndLevelAndYear($Division['Name'], $Division['Level'], $Division['Year']);
