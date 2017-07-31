@@ -123,6 +123,7 @@ class StudentCourseControl extends AbstractConverter
 
     private $Compare = false;
     private $DifferenceList = array();
+    private $ScanResult = array();
     private $ColumnNeeded = array(
         'Name',
         'Vorname',
@@ -218,7 +219,7 @@ class StudentCourseControl extends AbstractConverter
     //        'Ersatz(Religion|Sport)[1-4]?'
     private $ColumnScan = array(
         'Kurs[1-4][0-9]+',
-        'fach[0-9]+',
+        'Fach[0-9]+',
         'Name',
         'Vorname',
         'Geburtsdatum',
@@ -270,9 +271,8 @@ class StudentCourseControl extends AbstractConverter
         return $this->DifferenceList;
     }
 
-    private $ScanResult = array();
     /**
-     *
+     * @return array
      */
     public function getScanResult()
     {

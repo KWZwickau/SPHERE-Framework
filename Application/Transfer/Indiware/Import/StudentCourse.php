@@ -175,7 +175,8 @@ class StudentCourse extends Extension implements IFrontendInterface
                                                             'Weche Werte sollen importiert werden'),
                                                         $LevelList
                                                     ))->setRequired(),
-                                                    (new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
+                                                    (new FileUpload('File', 'Datei auswählen', 'Datei auswählen '
+                                                        .new ToolTip(new InfoIcon(), 'Schueler.csv'), null,
                                                         array('showPreview' => false)))->setRequired()
                                                 ), Panel::PANEL_TYPE_INFO)
                                         )
@@ -267,7 +268,7 @@ class StudentCourse extends Extension implements IFrontendInterface
             if (!$Control->getCompare()) {
 
                 $LayoutColumnList = array();
-                $LayoutColumnList[] = new LayoutColumn(new WarningMessage('Die Datei beinhaltet nicht alle benötigten Spalten'));
+                $LayoutColumnList[] = new LayoutColumn(new WarningMessage('Die Datei beinhaltet nicht alle benötigten Spalten '.new Bold('"Schueler.csv"')));
                 $DifferenceList = $Control->getDifferenceList();
                 if (!empty($DifferenceList)) {
 

@@ -176,6 +176,14 @@ class Data extends AbstractData
                             $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 3,
                                 $Number);
                         }
+                        // Eintrag komplett ohne Lehrer speichern
+                        if ((isset($Result['FileTeacher1']) && $Result['FileTeacher1'] == '')
+                            && (isset($Result['FileTeacher2']) && $Result['FileTeacher2'] == '')
+                            && (isset($Result['FileTeacher3']) && $Result['FileTeacher3'] == '')
+                        ) {
+                            $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 1,
+                                $Number);
+                        }
                     }
                 }
             }

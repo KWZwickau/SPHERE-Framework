@@ -17,6 +17,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Main;
@@ -119,19 +120,19 @@ class Lectureship extends Extension implements IFrontendInterface
         }
 
         // try to POST tblYear if YearByNow exist
-        $tblYearList = Term::useService()->getYearByNow();
-        if ($tblYearList) {
-            $tblYear = false;
-            // last Entity should be the first created year
-            foreach ($tblYearList as $tblYearEntity) {
-                $tblYear = $tblYearEntity;
-            }
-            if ($tblYear) {
-                $Global = $this->getGlobal();
-                $Global->POST['tblYear'] = $tblYear->getId();
-                $Global->savePost();
-            }
-        }
+//        $tblYearList = Term::useService()->getYearByNow();
+//        if ($tblYearList) {
+//            $tblYear = false;
+//            // last Entity should be the first created year
+//            foreach ($tblYearList as $tblYearEntity) {
+//                $tblYear = $tblYearEntity;
+//            }
+//            if ($tblYear) {
+//                $Global = $this->getGlobal();
+//                $Global->POST['tblYear'] = $tblYear->getId();
+//                $Global->savePost();
+//            }
+//        }
 
         $tblIndiwareImportLectureshipList = Import::useService()->getIndiwareImportLectureshipAll(true);
 
@@ -154,8 +155,9 @@ class Lectureship extends Extension implements IFrontendInterface
                                                     (new SelectBox('tblYear', 'Schuljahr auswählen', array(
                                                         '{{ Year }} {{ Description }}' => $tblYearAll
                                                     )))->setRequired(),
-                                                    (new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
-                                                        array('showPreview' => false)))->setRequired()
+                                                    (new FileUpload('File', 'Datei auswählen', 'Datei auswählen '
+                                                        .new ToolTip(new InfoIcon(), 'SpUnterricht.csv')
+                                                        , null, array('showPreview' => false)))->setRequired()
                                                 ), Panel::PANEL_TYPE_INFO)
                                         )
                                     ),
@@ -231,29 +233,23 @@ class Lectureship extends Extension implements IFrontendInterface
             $Control = new LectureshipControl($Payload->getRealPath());
             if (!$Control->getCompare()) {
                 $LayoutColumnList = array();
-                $LayoutColumnList[] = new LayoutColumn(new WarningMessage('Die Datei entspricht nicht dem vollen Export
-                 aus Indiware'));
-                $ColumnList = $Control->getColumnList();
+                $LayoutColumnList[] = new LayoutColumn(new WarningMessage('Die Datei beinhaltet nicht alle benötigten Spalten '.new Bold('"SpUnterricht.csv"')));
+                $ColumnList = $Control->getDifferenceList();
                 if (!empty($ColumnList)) {
-                    foreach ($ColumnList as $Column => $Value) {
-                        $LayoutColumnList[] = new LayoutColumn(new Panel('Spalte '.$Column, 'Name: '.$Value,
+                    foreach ($ColumnList as $Value) {
+                        $LayoutColumnList[] = new LayoutColumn(new Panel('Fehlende Spalte', $Value,
                             Panel::PANEL_TYPE_DANGER), 3);
                     }
                 }
+
+                $Stage->addButton(new Standard('Zurück', '/Transfer/Indiware/Import/Lectureship/Prepare',
+                    new ChevronLeft()));
 
                 $Stage->setContent(
                     new Layout(
                         new LayoutGroup(array(
                             new LayoutRow(
                                 $LayoutColumnList
-                            ),
-                            new LayoutRow(
-                                new LayoutColumn(
-                                    new Redirect(new Route(__NAMESPACE__.'/Lectureship/Prepare'),
-                                        Redirect::TIMEOUT_ERROR, array(
-                                            'tblYear' => $tblYear
-                                        ))
-                                )
                             )
                         ))
                     )
@@ -262,7 +258,7 @@ class Lectureship extends Extension implements IFrontendInterface
             }
 
             // add import
-            $Gateway = new LectureshipGateway($Payload->getRealPath(), $tblYear);
+            $Gateway = new LectureshipGateway($Payload->getRealPath(), $tblYear, $Control);
 
             $ImportList = $Gateway->getImportList();
             $tblAccount = Account::useService()->getAccountBySession();
@@ -306,8 +302,8 @@ class Lectureship extends Extension implements IFrontendInterface
                                         'AppTeacher3'      => 'Software: Lehrer 3',
                                         'FileSubject'      => 'Datei: Fachkürzel',
                                         'AppSubject'       => 'Software: Fach',
-                                        'FileSubjectGroup' => 'Datei: Gruppe',
-                                        'AppSubjectGroup'  => 'Software: Gruppe'
+                                        'FileSubjectGroup' => 'Datei: Gruppe'
+//                                        'AppSubjectGroup'  => 'Software: Gruppe'
                                     ),
                                     array(
                                         'order'      => array(array(0, 'desc')),
@@ -319,6 +315,7 @@ class Lectureship extends Extension implements IFrontendInterface
                                 )
                             ),
                             new LayoutColumn(
+                                new DangerLink('Abbrechen', '/Transfer/Indiware/Import').
                                 new Standard('Weiter', '/Transfer/Indiware/Import/Lectureship/Show', new ChevronRight())
                             )
                         ))

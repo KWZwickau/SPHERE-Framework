@@ -1,7 +1,7 @@
 <?php
 /**
- * Export Unterricht (Schüler.csv) Reihenfolge der Felder in der CSV-Datei Schüler.csv
- * Dynamisch (auslesen erfolgt in Control)
+ * Import Schüler-Kurse. Reihenfolge der Felder aus der CSV-Datei Schüler.csv
+ * wird Dynamisch ausgelesen (Erfolgt in Control)
  */
 
 namespace SPHERE\Application\Transfer\Indiware\Import;
