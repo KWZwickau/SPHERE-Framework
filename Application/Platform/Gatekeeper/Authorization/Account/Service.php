@@ -305,7 +305,18 @@ class Service extends AbstractService
     public function getAccountByCredential($Username, $Password, TblIdentification $tblIdentification = null)
     {
 
-        return (new Data($this->getBinding()))->getAccountByCredential($Username, $Password, $tblIdentification);
+        $tblAccount = (new Data($this->getBinding()))->getAccountByCredential($Username, $Password, $tblIdentification);
+
+        // Credential can be also UserCredential
+        if (!$tblAccount && null !== $tblIdentification && $tblIdentification->getName() == 'Credential') {
+            $tblIdentification = Account::useService()->getIdentificationByName('UserCredential');
+            if ($tblIdentification) {
+                $tblAccount = (new Data($this->getBinding()))->getAccountByCredential($Username, $Password,
+                    $tblIdentification);
+            }
+        }
+
+        return $tblAccount;
     }
 
     /**
