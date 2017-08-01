@@ -268,7 +268,7 @@ class StudentCourse extends Extension implements IFrontendInterface
             if (!$Control->getCompare()) {
 
                 $LayoutColumnList = array();
-                $LayoutColumnList[] = new LayoutColumn(new WarningMessage('Die Datei beinhaltet nicht alle benötigten Spalten '.new Bold('"Schueler.csv"')));
+                $LayoutColumnList[] = new LayoutColumn(new WarningMessage('Die Datei beinhaltet nicht alle benötigten Spalten'));
                 $DifferenceList = $Control->getDifferenceList();
                 if (!empty($DifferenceList)) {
 

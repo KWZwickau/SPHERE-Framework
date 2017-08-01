@@ -20,7 +20,6 @@ use SPHERE\Application\Transfer\Gateway\Converter\FieldSanitizer;
 use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class LectureshipGateway
@@ -166,7 +165,6 @@ class LectureshipGateway extends AbstractConverter
                     if (!in_array($Division.'x'.$Teacher.$i.'x'.$Subject.'x'.$SubjectGroup, $this->getLectureship())) {
                         $this->LectureshipList[] = $Division.'x'.$Teacher.$i.'x'.$Subject.'x'.$SubjectGroup;
                     } else {
-                        Debugger::screenDump($Result['FileDivision'.$j].' - '.$Result['FileSubject'].' - '.$Result['FileTeacher'.$i]);
 //                        $Result['FileDivision'.$j] = null;
                         $Result['DivisionId'.$j] = null;
 //                        $Result['FileTeacher'.$i] = null;

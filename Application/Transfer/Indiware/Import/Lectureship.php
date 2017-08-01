@@ -233,7 +233,7 @@ class Lectureship extends Extension implements IFrontendInterface
             $Control = new LectureshipControl($Payload->getRealPath());
             if (!$Control->getCompare()) {
                 $LayoutColumnList = array();
-                $LayoutColumnList[] = new LayoutColumn(new WarningMessage('Die Datei beinhaltet nicht alle benötigten Spalten '.new Bold('"SpUnterricht.csv"')));
+                $LayoutColumnList[] = new LayoutColumn(new WarningMessage('Die Datei beinhaltet nicht alle benötigten Spalten'));
                 $ColumnList = $Control->getDifferenceList();
                 if (!empty($ColumnList)) {
                     foreach ($ColumnList as $Value) {
