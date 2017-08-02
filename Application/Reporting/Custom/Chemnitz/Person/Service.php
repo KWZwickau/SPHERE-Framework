@@ -1320,8 +1320,17 @@ class Service extends Extension
 //                            $isSet = true;
                         }
                     }
-                    $Item['OrientationAndFrench'] = $Item['Orientation'] .
-                        (!empty($Item['Orientation']) && !empty($Item['French']) ? ', ' : '') . $Item['French'];
+
+                    if (($tblLevel = $tblDivision->getTblLevel())
+                        && (($tblType = $tblLevel->getServiceTblType()))
+                        && $tblType->getName() == 'Mittelschule / Oberschule'
+                    ) {
+                        $Item['OrientationAndFrench'] = $Item['Orientation'] .
+                            (!empty($Item['Orientation']) && !empty($Item['French']) ? ', ' : '') . $Item['French'];
+                    } else {
+                        $Item['OrientationAndFrench'] = $Item['Orientation'];
+                    }
+
 
                     // Vertiefungskurs // Erstmal deaktiviert (04.08.2016)
 //                    if (!$isSet) {
@@ -1564,7 +1573,13 @@ class Service extends Extension
                 $export->setValue($export->getCell(1, $Row), $PersonData['Birthday']);
                 $export->setValue($export->getCell(4, $Row), $PersonData['Group']);
                 $export->setValue($export->getCell(5, $Row), $PersonData['Orientation']);
-                $export->setValue($export->getCell(5, $Row+1), $PersonData['French']);
+                if (($tblLevel = $tblDivision->getTblLevel())
+                    && (($tblType = $tblLevel->getServiceTblType()))
+                    && $tblType->getName() == 'Mittelschule / Oberschule'
+                ) {
+                    $export->setValue($export->getCell(5, $Row+1), $PersonData['French']);
+                }
+
                 $export->setValue($export->getCell(6, $Row), $PersonData['Education']);
 
 
