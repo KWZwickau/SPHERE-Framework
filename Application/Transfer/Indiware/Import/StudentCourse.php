@@ -365,11 +365,12 @@ class StudentCourse extends Extension implements IFrontendInterface
                                         'AppSubject17'  => 'Software: Fach17',
                                     ),
                                     array(
-                                        'order'      => array(array(0, 'desc')),
+                                        'order'      => array(array(3, 'asc')),
                                         'columnDefs' => array(
                                             array('type' => 'natural', 'targets' => 0),
                                         ),
-                                        'responsive' => false
+                                        'responsive' => false,
+                                        'pageLength' => -1,
                                     )
                                 )
                             ),
@@ -594,23 +595,23 @@ class StudentCourse extends Extension implements IFrontendInterface
                                     'Division'          => 'Klasse',
                                     'Option'            => '',
 //                                    'FileSubject1'      => 'Datei: Fächerkürzel',
-                                    'SubjectAndGroup1'  => new Underline('1. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup2'  => new Underline('2. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup3'  => new Underline('3. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup4'  => new Underline('4. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup5'  => new Underline('5. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup6'  => new Underline('6. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup7'  => new Underline('7. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup8'  => new Underline('8. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup9'  => new Underline('9. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup10' => new Underline('10. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup11' => new Underline('11. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup12' => new Underline('12. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup13' => new Underline('13. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup14' => new Underline('14. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup15' => new Underline('15. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup16' => new Underline('16. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup17' => new Underline('17. Fach').'<br/>'.'Gruppe',
+                                    'SubjectAndGroup1'  => new Underline('1. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup2'  => new Underline('2. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup3'  => new Underline('3. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup4'  => new Underline('4. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup5'  => new Underline('5. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup6'  => new Underline('6. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup7'  => new Underline('7. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup8'  => new Underline('8. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup9'  => new Underline('9. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup10' => new Underline('10. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup11' => new Underline('11. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup12' => new Underline('12. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup13' => new Underline('13. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup14' => new Underline('14. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup15' => new Underline('15. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup16' => new Underline('16. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup17' => new Underline('17. Fach').'<br/>'.'Kurs',
                                 ),
                                 array(
                                     'order'      => array(array(0, 'asc')),
@@ -620,7 +621,8 @@ class StudentCourse extends Extension implements IFrontendInterface
 //                                        array('type' => 'natural', 'targets' => 0),
 //                                        array('type' => 'natural', 'targets' => 1)
                                     ),
-                                    'responsive' => false
+                                    'responsive' => false,
+                                    'pageLength' => -1,
                                 ))
                         ),
                         new LayoutColumn(

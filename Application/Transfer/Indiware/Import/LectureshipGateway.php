@@ -390,7 +390,7 @@ class LectureshipGateway extends AbstractConverter
                 }
             }
             if (empty($tblDivisionList)) {
-                if ($DivisionName != '') {
+                if ($Value != '') {
                     return new Warning(new Danger(new WarningIcon()).' Klasse wurde nicht gefunden');
                 } else {
                     return null;
@@ -402,6 +402,10 @@ class LectureshipGateway extends AbstractConverter
             } else {
                 return null;
             }
+        }
+
+        if ($Value != '') {
+            return new Warning(new Danger(new WarningIcon()).' Klasse wurde nicht gefunden');
         }
 
 //        if (!$tblYear) {
@@ -490,6 +494,12 @@ class LectureshipGateway extends AbstractConverter
         } elseif (preg_match('!^([äöüÄÖÜa-zA-Z]*?)(\d+)$!is', $Value, $Match)) {
             $LevelName = $Match[2];
             $DivisionName = $Match[1];
+        } elseif (preg_match('!^(11)(/[0-9]?)$!is', $Value, $Match)) {
+            $DivisionName = null;
+            $LevelName = $Match[1];
+        } elseif (preg_match('!^(12)(/[0-9]?)$!is', $Value, $Match)) {
+            $DivisionName = null;
+            $LevelName = $Match[1];
         } elseif (preg_match('!^(.*?)$!is', $Value, $Match)) {
             $DivisionName = $Match[1];
             $LevelName = null;

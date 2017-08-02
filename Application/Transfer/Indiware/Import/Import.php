@@ -68,19 +68,6 @@ class Import extends Extension implements IModuleInterface
 
         $Stage = new Stage('Indiware', 'Datentransfer');
 
-        $PanelLectureshipImport[] = new PullClear('Lehraufträge importieren: '.
-            new Center(new Standard('', '/Transfer/Indiware/Import/Lectureship/Prepare', new Upload()
-                , array(), 'Hochladen, danach bearbeiten')));
-        $tblIndiwareImportLectureship = Import::useService()->getIndiwareImportLectureshipAll(true);
-        // load if TblIndiwareImportLectureship exist (by Account)
-        if ($tblIndiwareImportLectureship) {
-            $PanelLectureshipImport[] = 'Vorhandenen Import der Lehraufträge bearbeiten: '.
-                new Center(new Standard('', '/Transfer/Indiware/Import/Lectureship/Show', new Edit(), array(),
-                        'Bearbeiten')
-                    .new Standard('', '/Transfer/Indiware/Import/Lectureship/Destroy', new Remove(), array(),
-                        'Löschen'));
-        }
-
         $PanelStudentCourseImport[] = new PullClear('Schüler-Kurse SEK II importieren: '.
             new Center(new Standard('', '/Transfer/Indiware/Import/StudentCourse/Prepare', new Upload()
                 , array(), 'Hochladen, danach bearbeiten')));
@@ -94,6 +81,19 @@ class Import extends Extension implements IModuleInterface
                         'Löschen'));
         }
 
+        $PanelLectureshipImport[] = new PullClear('Lehraufträge importieren: '.
+            new Center(new Standard('', '/Transfer/Indiware/Import/Lectureship/Prepare', new Upload()
+                , array(), 'Hochladen, danach bearbeiten')));
+        $tblIndiwareImportLectureship = Import::useService()->getIndiwareImportLectureshipAll(true);
+        // load if TblIndiwareImportLectureship exist (by Account)
+        if ($tblIndiwareImportLectureship) {
+            $PanelLectureshipImport[] = 'Vorhandenen Import der Lehraufträge bearbeiten: '.
+                new Center(new Standard('', '/Transfer/Indiware/Import/Lectureship/Show', new Edit(), array(),
+                        'Bearbeiten')
+                    .new Standard('', '/Transfer/Indiware/Import/Lectureship/Destroy', new Remove(), array(),
+                        'Löschen'));
+        }
+
         $Stage->setMessage('Importvorbereitung / Daten importieren');
 
         $Stage->setContent(
@@ -101,13 +101,13 @@ class Import extends Extension implements IModuleInterface
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel('Indiware-Import für Lehraufträge:', $PanelLectureshipImport
+                            new Panel('Indiware-Import für Schüler-Kurse SEK II:', $PanelStudentCourseImport
                                 , Panel::PANEL_TYPE_INFO)
                             , 4),
                         new LayoutColumn(
-                            new Panel('Indiware-Import für Schüler-Kurse SEK II:', $PanelStudentCourseImport
+                            new Panel('Indiware-Import für Lehraufträge:', $PanelLectureshipImport
                                 , Panel::PANEL_TYPE_INFO)
-                            , 4)
+                            , 4),
                     ))
                 )
             )

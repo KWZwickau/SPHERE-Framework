@@ -102,6 +102,9 @@ class Lectureship extends Extension implements IFrontendInterface
             __CLASS__.'/Ignore', __CLASS__.'::frontendIgnoreImport'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __CLASS__.'/Activate', __CLASS__.'::frontendActivateImport'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __CLASS__.'/Import', __CLASS__.'::frontendImportLectureship'
         ));
     }
@@ -310,7 +313,8 @@ class Lectureship extends Extension implements IFrontendInterface
                                         'columnDefs' => array(
                                             array('type' => 'natural', 'targets' => 0),
                                         ),
-                                        'responsive' => false
+                                        'responsive' => false,
+                                        'pageLength' => -1,
                                     )
                                 )
                             ),
@@ -405,23 +409,37 @@ class Lectureship extends Extension implements IFrontendInterface
 //                    $ImportError--;
 //                }
                     $showIgnoreButton = false;
+                    $showActivateButton = false;
                     // no import by Warning
                     if ($ImportError >= 1) {
-                        $Item['Ignore'] = new Center(new Danger(new Ban()));
+                        $Item['Ignore'] = new ToolTip(new Center(new Danger(new Ban())), 'Fehlerhafter Datensatz');
                     } else {
                         // manual no Import
                         if ($tblIndiwareImportLectureship->getIsIgnore()) {
-                            $Item['Ignore'] = new Center(new Danger(new Disable()));
+                            $Item['Ignore'] = new ToolTip(new Center(new Danger(new Disable())), 'Manuell gesperrt');
+                            $showActivateButton = true;
                             $ImportError++;
                         } else {
-                            $Item['Ignore'] = new Center(new Success(new SuccessIcon()));
+                            $Item['Ignore'] = new ToolTip(new Center(new Success(new SuccessIcon())),
+                                'Wird Importiert');
                             $showIgnoreButton = true;
                         }
                     }
                     if ($showIgnoreButton) {
                         $Item['Option'] .= new Standard('', '/Transfer/Indiware/Import/Lectureship/Ignore',
                             new Remove(),
-                            array('Id' => $tblIndiwareImportLectureship->getId()), 'Manuell sperren');
+                            array(
+                                'Id'      => $tblIndiwareImportLectureship->getId(),
+                                'Visible' => $Visible
+                            ), 'Manuell sperren');
+                    }
+                    if ($showActivateButton) {
+                        $Item['Option'] .= new Standard('', '/Transfer/Indiware/Import/Lectureship/Activate',
+                            new SuccessIcon(),
+                            array(
+                                'Id'      => $tblIndiwareImportLectureship->getId(),
+                                'Visible' => $Visible
+                            ), 'Entsperren');
                     }
 
                     if (!$Visible) {
@@ -854,20 +872,46 @@ class Lectureship extends Extension implements IFrontendInterface
 
     /**
      * @param null $Id
+     * @param null $Visible
      *
      * @return Stage
      */
-    public function frontendIgnoreImport($Id = null)
+    public function frontendIgnoreImport($Id = null, $Visible = null)
     {
         $Stage = new Stage('Import', 'Verhindern');
         $tblIndiwareImportLectureship = Import::useService()->getIndiwareImportLectureshipById($Id);
         if ($tblIndiwareImportLectureship) {
             Import::useService()->updateIndiwareImportLectureshipIsIgnore($tblIndiwareImportLectureship);
-            $Stage->setContent(new SuccessMessage('Import wird nun manuell verhindert.')
-                .new Redirect('/Transfer/Indiware/Import/Lectureship/Show', Redirect::TIMEOUT_SUCCESS));
+            $Stage->setContent(new SuccessMessage('Import wird nun manuell verhindert')
+                .new Redirect('/Transfer/Indiware/Import/Lectureship/Show', Redirect::TIMEOUT_SUCCESS
+                    , array('Visible' => $Visible)));
         } else {
             $Stage->setContent(new DangerMessage('Datensatz nicht gefunden')
-                .new Redirect('/Transfer/Indiware/Import/Lectureship/Show', Redirect::TIMEOUT_ERROR));
+                .new Redirect('/Transfer/Indiware/Import/Lectureship/Show', Redirect::TIMEOUT_ERROR
+                    , array('Visible' => $Visible)));
+        }
+        return $Stage;
+    }
+
+    /**
+     * @param null $Id
+     * @param null $Visible
+     *
+     * @return Stage
+     */
+    public function frontendActivateImport($Id = null, $Visible = null)
+    {
+        $Stage = new Stage('Import', 'Verhindern');
+        $tblIndiwareImportLectureship = Import::useService()->getIndiwareImportLectureshipById($Id);
+        if ($tblIndiwareImportLectureship) {
+            Import::useService()->updateIndiwareImportLectureshipIsIgnore($tblIndiwareImportLectureship, false);
+            $Stage->setContent(new SuccessMessage('Import ist wieder Freigegeben')
+                .new Redirect('/Transfer/Indiware/Import/Lectureship/Show', Redirect::TIMEOUT_SUCCESS
+                    , array('Visible' => $Visible)));
+        } else {
+            $Stage->setContent(new DangerMessage('Datensatz nicht gefunden')
+                .new Redirect('/Transfer/Indiware/Import/Lectureship/Show', Redirect::TIMEOUT_ERROR
+                    , array('Visible' => $Visible)));
         }
         return $Stage;
     }

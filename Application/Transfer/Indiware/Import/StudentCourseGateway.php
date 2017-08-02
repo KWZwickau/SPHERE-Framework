@@ -16,7 +16,6 @@ use SPHERE\Application\Transfer\Gateway\Converter\FieldPointer;
 use SPHERE\Application\Transfer\Gateway\Converter\FieldSanitizer;
 use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
-use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 
 /**
@@ -334,7 +333,7 @@ class StudentCourseGateway extends AbstractConverter
     protected function sanitizeSubject($Value)
     {
         if (empty($Value)) {
-            return new Muted(new WarningIcon());
+            return '';
         }
 //        $Value = substr($Value, 0, -1);
 
