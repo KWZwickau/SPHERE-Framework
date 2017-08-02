@@ -22,6 +22,7 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\School\School;
 
@@ -40,6 +41,11 @@ abstract class AbstractDocument
      * @var TblPerson|null
      */
     private $tblPerson = null;
+
+    /**
+     * @var int
+     */
+    private $tblAdressRowCount = 0;
 
     /**
      * @return false|TblPerson
@@ -241,10 +247,43 @@ abstract class AbstractDocument
                                 $Data['Document']['PlaceDate'] = $tblAddress->getTblCity()->getName() . ', '
                                     . date('d.m.Y');
                                 $Data['Document']['Date']['Now'] = date('d.m.Y');
-                                $Data['Student']['CompanyAddress'] = $tblAddress->getGuiTwoRowString();
+
+                                $Data['Student']['CompanyAddress'] = '';
+                                if ($tblAddress->getTblCity()->getDistrict())
+                                {
+                                    $Data['Student']['CompanyAddress'] .= 'OT ' . $tblAddress->getTblCity()->getDistrict() . '<br>';
+                                    $this->tblAdressRowCount++;
+                                }
+                                if ($tblAddress->getStreetName())
+                                {
+                                    $Data['Student']['CompanyAddress'] .= $tblAddress->getStreetName()
+                                        .' '.$tblAddress->getStreetNumber().'<br>';
+                                    $this->tblAdressRowCount++;
+                                }
+                                if ($tblAddress->getTblCity()->getCode())
+                                {
+                                    $Data['Student']['CompanyAddress'] .= $tblAddress->getTblCity()->getCode() .
+                                        ' ' . $tblAddress->getTblCity()->getName();
+                                    $this->tblAdressRowCount++;
+                                }
+
+//                                $Data['Student']['CompanyAddress'] = ($tblAddress->getTblCity()->getDistrict() ? 'OT ' . $tblAddress->getTblCity()->getDistrict() . '<br>' : '')
+//                                    . $tblAddress->getStreetName()
+//                                    . ' ' . $tblAddress->getStreetNumber()
+//                                    . ',<br>' . $tblAddress->getTblCity()->getCode()
+//                                    . ' ' . $tblAddress->getTblCity()->getName();
+//
+//                                    $tblAddress->getGuiTwoRowString();
                             }
-                            $Data['Student']['Company'] = $tblCompany->getName();
-                            $Data['Student']['Company2'] = $tblCompany->getExtendedName();
+                            if ($tblCompany->getName()) {
+                                $Data['Student']['Company'] = $tblCompany->getName();
+                                $this->tblAdressRowCount++;
+                            }
+                            if ($tblCompany->getExtendedName()) {
+                                $Data['Student']['Company2'] = $tblCompany->getExtendedName();
+                                $this->tblAdressRowCount++;
+                            }
+
                         }
                     }
                 }
@@ -752,5 +791,55 @@ abstract class AbstractDocument
                 , '1.2%')
         )
         ->styleHeight('24px');
+    }
+
+    /**
+     * @param string $with
+     *
+     * @return Element|Element\Image
+     */
+    protected function getPictureEnrollmentDocument($with = 'auto')
+    {
+
+        $picturePath = $this->getEnrollmentDocumentUsedPicture();
+        if ($picturePath != '') {
+            $height = $this->getEnrollmentDocumentPictureHeight();
+            $column = (new Element\Image($picturePath, $with, $height))->stylePaddingTop(
+                (($this->tblAdressRowCount * 8 + 32) - (substr($height, 0, strlen($height) - 2) / 2)) . 'px');
+        } else {
+            $column = (new Element())
+                ->setContent('&nbsp;');
+        }
+        return $column;
+    }
+
+    /**
+     * @return string
+     */
+    private function getEnrollmentDocumentUsedPicture()
+    {
+        if (($tblSetting = Consumer::useService()->getSetting(
+            'Api', 'Document', 'Standard', 'EnrollmentDocument_PictureAddress'))
+        ) {
+            return (string)$tblSetting->getValue();
+        }
+        return '';
+    }
+
+    /**
+     * @return string
+     */
+    private function getEnrollmentDocumentPictureHeight()
+    {
+
+        $value = '';
+
+        if (($tblSetting = Consumer::useService()->getSetting(
+            'Api', 'Document', 'Standard', 'EnrollmentDocument_PictureHeight'))
+        ) {
+            $value = (string)$tblSetting->getValue();
+        }
+
+        return $value ? $value : '90px';
     }
 }

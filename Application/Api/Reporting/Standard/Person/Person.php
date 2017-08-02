@@ -131,7 +131,7 @@ class Person
             if ($PersonList) {
                 $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
                 if ($tblPersonList) {
-                    $fileLocation = ReportingPerson::useService()->createGroupListExcel($PersonList, $tblPersonList);
+                    $fileLocation = ReportingPerson::useService()->createGroupListExcel($PersonList, $tblPersonList, $GroupId);
 
                     return FileSystem::getDownload($fileLocation->getRealPath(),
                         "Gruppenliste ".$tblGroup->getName()

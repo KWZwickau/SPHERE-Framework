@@ -170,6 +170,19 @@ class Service extends AbstractService
             $Form->setError('Division[Name]', 'Bitte geben Sie eine Klassengruppe an');
             $Error = true;
         }
+        // Level
+        if (!isset($Level['Check']) && isset($Level['Name'])) {
+            if (is_numeric($Level['Name'])) {
+                $position = strpos($Level['Name'], '0');
+                if ($position === 0) {
+                    $Form->setError('Level[Name]', 'Bitte geben Sie eine Zahl ohne führende "0" ein');
+                    $Error = true;
+                }
+            } else {
+                $Form->setError('Level[Name]', 'Bitte geben Sie eine Zahl ein');
+                $Error = true;
+            }
+        }
 
         // Level
         if (!$Error) {
@@ -1897,6 +1910,20 @@ class Service extends AbstractService
         if (isset($Division['Name']) && empty($Division['Name']) && isset($Level['Check'])) {
             $Form->setError('Division[Name]', 'Bitte geben Sie eine Klassengruppe an');
             $Error = true;
+        }
+
+        // Level
+        if (!isset($Level['Check']) && isset($Level['Name'])) {
+            if (is_numeric($Level['Name'])) {
+                $position = strpos($Level['Name'], '0');
+                if ($position === 0) {
+                    $Form->setError('Level[Name]', 'Bitte geben Sie eine Zahl ohne führende "0" ein');
+                    $Error = true;
+                }
+            } else {
+                $Form->setError('Level[Name]', 'Bitte geben Sie eine Zahl ein');
+                $Error = true;
+            }
         }
 
         // Level

@@ -615,7 +615,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($GroupId === null) {
             if ($tblGroupAll) {
                 foreach ($tblGroupAll as &$tblGroup) {
-                    $tblGroup->Count = Group::useService()->countMemberAllByGroup($tblGroup);
+                    $tblGroup->Count = Group::useService()->countMemberByGroup($tblGroup);
                     $tblGroup->Option = new Standard(new Select(), '/Reporting/Standard/Person/GroupList', null, array(
                         'GroupId' => $tblGroup->getId()
                     ));
@@ -661,7 +661,10 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(
-                                new Panel('Gruppe:', $tblGroup->getName(),
+                                new Panel('Gruppe:',
+                                    $tblGroup->getName().
+                                    (!empty($tblGroup->getDescription()) ? '<br/>' . $tblGroup->getDescription() : '').
+                                    (!empty($tblGroup->getRemark()) ? '<br/>' . $tblGroup->getRemark() : ''),
                                     Panel::PANEL_TYPE_SUCCESS), 12
                             )
                         )

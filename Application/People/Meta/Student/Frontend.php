@@ -86,6 +86,7 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 /**
@@ -378,7 +379,23 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblCompanyAllOwn[] = $tblSchool->getServiceTblCompany();
                 }
             }
+            // add selected Company if missing in list
+            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+            if ($tblStudent) {
+                $TransferTypeProcess = Student::useService()->getStudentTransferTypeByIdentifier('Process');
+                /** @var TblStudentTransfer $tblStudentTransferProcess */
+                $tblStudentTransferProcess = Student::useService()->getStudentTransferByType(
+                    $tblStudent, $TransferTypeProcess
+                );
+                if ($tblStudentTransferProcess && $tblStudentTransferProcess->getServiceTblCompany()) {
+                    $tblCompanySelected[] = $tblStudentTransferProcess->getServiceTblCompany();
+                    $tblCompanyAllOwn = array_merge($tblCompanyAllOwn, $tblCompanySelected);
+                    Debugger::screenDump($tblCompanyAllOwn);
+
+                }
+            }
         }
+
         if (empty($tblCompanyAllOwn)) {
             $tblCompanyAllOwn = $tblCompanyAllSchool;
         }

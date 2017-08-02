@@ -3015,6 +3015,6 @@ abstract class Certificate extends Extension
             $value = $tblSetting->getValue();
         }
 
-        return $value ? $value : '55px';
+        return $value ? $value : '50px';
     }
 }

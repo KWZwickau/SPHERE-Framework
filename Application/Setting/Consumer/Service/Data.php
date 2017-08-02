@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Setting\Consumer\Service;
 
+use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblSetting;
@@ -17,9 +18,19 @@ class Data extends AbstractData
     {
 
         $tblAccount = Account::useService()->getAccountBySession();
-        // Logo für das Zeugnis darf skalliert nicht breiter sein als 182px (bei einer höhe von 50px [Bsp.: 546 * 150 ist noch ok])
         if ($tblAccount && ($tblConsumer = $tblAccount->getServiceTblConsumer())) {
 
+            $this->createSetting('Contact', 'Address', 'Address', 'Format_GuiString',
+                TblSetting::TYPE_STRING, TblAddress::VALUE_PLZ_ORT_OT_STR_NR);
+
+            $this->createSetting('Api', 'Document', 'Standard', 'EnrollmentDocument_PictureAddress',
+                TblSetting::TYPE_STRING, '');
+            // Höhe sollte kleiner als 120px sein
+            $this->createSetting('Api', 'Document', 'Standard', 'EnrollmentDocument_PictureHeight',
+                TblSetting::TYPE_STRING,
+                '');
+
+            // Logo für das Zeugnis darf skalliert nicht breiter sein als 182px (bei einer höhe von 50px [Bsp.: 546 * 150 ist noch ok])
             if ($tblConsumer->getAcronym() == 'ESS') {
                 $this->createSetting('Education', 'Certificate', 'Generate', 'PictureAddress', TblSetting::TYPE_STRING,
                     '/Common/Style/Resource/Logo/ESS-Zeugnis-Logo.png');
