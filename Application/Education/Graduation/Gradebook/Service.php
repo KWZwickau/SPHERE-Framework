@@ -347,15 +347,12 @@ class Service extends ServiceScoreRule
         // check if grade has pattern
         if (!empty($Grade)
             && $tblScoreType
-            && $tblScoreType->getIdentifier() != 'GRADES'
-            && $tblScoreType->getIdentifier() != 'POINTS'
-            && $tblScoreType->getIdentifier() != 'GRADES_BEHAVIOR_TASK'
             && $tblScoreType->getPattern() !== ''
         ) {
             foreach ($Grade as $personId => $value) {
                 $tblPerson = Person::useService()->getPersonById($personId);
                 $gradeValue = str_replace(',', '.', trim($value['Grade']));
-                if (!isset($value['Attendance']) && $gradeValue !== '') {
+                if (!isset($value['Attendance']) && $gradeValue !== '' && $gradeValue !== '-1') {
                     if (!preg_match('!' . $tblScoreType->getPattern() . '!is', $gradeValue)) {
                         if ($tblPerson) {
                             $errorRange[] = new Container(new Bold($tblPerson->getLastFirstName()));

@@ -578,7 +578,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
                 if ($tblStudentList) {
-                    $selectListWithTrend[-1] = '-[ Nicht ausgewählt ]-';
+                    $selectListWithTrend[-1] = '&nbsp;';
                     for ($i = 1; $i < 5; $i++) {
                         $selectListWithTrend[$i . '+'] = $i . '+';
                         $selectListWithTrend[$i] = $i;
@@ -586,7 +586,7 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                     $selectListWithTrend[5] = 5;
 
-                    $selectListWithOutTrend[-1] = '-[ Nicht ausgewählt ]-';
+                    $selectListWithOutTrend[-1] = '&nbsp;';
                     for ($i = 1; $i < 5; $i++) {
                         $selectListWithOutTrend[$i] = $i;
                     }

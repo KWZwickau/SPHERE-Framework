@@ -2062,7 +2062,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tabIndex = 1;
             $selectList = array();
             if ($tblScoreType) {
-                $selectList[-1] = '-[ Nicht ausgewählt ]-';
+                $selectList[-1] = '&nbsp;';
                 if ($tblScoreType->getIdentifier() == 'GRADES') {
                     for ($i = 1; $i < 6; $i++) {
                         $selectList[$i . '+'] = $i . '+';
