@@ -24,6 +24,7 @@ class TblIndiwareImportStudentCourse extends Element
     const ATTR_SUBJECT_GROUP = 'SubjectGroup';
     const ATTR_COURSE_NUMBER = 'CourseNumber';
     const ATTR_IS_INTENSIVE_COURSE = 'IsIntensiveCourse';
+    const ATTR_IS_IGNORE_COURSE = 'IsIgnoreCourse';
     const ATTR_TBL_INDIWARE_IMPORT_STUDENT = 'tblIndiwareImportStudent';
 
     /**
@@ -46,6 +47,10 @@ class TblIndiwareImportStudentCourse extends Element
      * @Column(type="boolean")
      */
     protected $IsIntensiveCourse;
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsIgnoreCourse;
     /**
      * @Column(type="bigint")
      */
@@ -143,6 +148,22 @@ class TblIndiwareImportStudentCourse extends Element
     {
 
         $this->IsIntensiveCourse = $IsIntensiveCourse;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getisIgnoreCourse()
+    {
+        return $this->IsIgnoreCourse;
+    }
+
+    /**
+     * @param bool $IsIgnoreCourse
+     */
+    public function setIsIgnoreCourse($IsIgnoreCourse)
+    {
+        $this->IsIgnoreCourse = $IsIgnoreCourse;
     }
 
     /**

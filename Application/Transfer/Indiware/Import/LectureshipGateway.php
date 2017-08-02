@@ -1,40 +1,7 @@
 <?php
 /**
- * Export Unterricht (SpUnterricht.csv) Ungekürzt Reihenfolge der Felder in der CSV-Datei SpUnterricht.csv
- * SpUnterricht.csv CSV-Datei Unterricht:
- * Nummer        Feld       Art
- * 1        Nummer          Int
- * 2        Id              Int
- * 3        Stunden         Int
- * 4        Fach            Str
- * 5        Lehrer          Str
- * 6        Lehrer2         Str
- * 7        Lehrer3         Str
- * 8        AbwStunden      Str
- * 9        LStunden1       Str
- * 10       LStunden2       Str
- * 11       LStunden3       Str
- * 12       Klasse1         Str
- * 13       Klasse2         Str
- * 14       Klasse3         Str
- * 15       Klasse4         Str
- * 16       Klasse5         Str
- * 17       Klasse6         Str
- * 18       Klasse7         Str
- * 19       Klasse8         Str
- * 20       Klasse9         Str
- * 21       Klasse10        Str
- * 22       Klasse11        Str
- * 23       Klasse12        Str
- * 24       Klasse13        Str
- * 25       Klasse14        Str
- * 26       Klasse15        Str
- * 27       Klasse16        Str
- * 28       Klasse17        Str
- * 29       Klasse18        Str
- * 30       Klasse19        Str
- * 31       Klasse20        Str
- * 32       Gruppe          Str
+ * Import Unterricht. Reihenfolge der Felder aus der CSV-Datei SpUnterricht.csv
+ * wird Dynamisch ausgelesen (Erfolgt in Control)
  */
 
 namespace SPHERE\Application\Transfer\Indiware\Import;
@@ -72,70 +39,79 @@ class LectureshipGateway extends AbstractConverter
     /**
      * LectureshipGateway constructor.
      *
-     * @param string  $File SpUnterricht.csv
-     * @param TblYear $tblYear
+     * @param string             $File SpUnterricht.csv
+     * @param TblYear            $tblYear
+     * @param LectureshipControl $Control
      */
-    public function __construct($File, TblYear $tblYear)
+    public function __construct($File, TblYear $tblYear, LectureshipControl $Control)
     {
         $this->loadFile($File);
         $this->Year = $tblYear;
 
+        $ColumnList = $Control->getScanResult();
+
         $this->addSanitizer(array($this, 'sanitizeFullTrim'));
 
-        $this->setPointer(new FieldPointer('D', 'FileSubject'));
-        $this->setPointer(new FieldPointer('D', 'AppSubject'));
-        $this->setPointer(new FieldPointer('D', 'SubjectId'));
-        $this->setSanitizer(new FieldSanitizer('D', 'AppSubject', array($this, 'sanitizeSubject')));
-        $this->setSanitizer(new FieldSanitizer('D', 'SubjectId', array($this, 'fetchSubject')));
+        $this->setPointer(new FieldPointer($ColumnList['Fach'], 'FileSubject'));
+        $this->setPointer(new FieldPointer($ColumnList['Fach'], 'AppSubject'));
+        $this->setPointer(new FieldPointer($ColumnList['Fach'], 'SubjectId'));
+        $this->setSanitizer(new FieldSanitizer($ColumnList['Fach'], 'AppSubject', array($this, 'sanitizeSubject')));
+        $this->setSanitizer(new FieldSanitizer($ColumnList['Fach'], 'SubjectId', array($this, 'fetchSubject')));
 
-        $TeacherList = array(1 => 'E', 2 => 'F', 3 => 'G');
+        $TeacherList = array(1 => 'Lehrer', 2 => 'Lehrer2', 3 => 'Lehrer3');
         foreach ($TeacherList as $Key => $FieldPosition) {
-            $this->setPointer(new FieldPointer($FieldPosition, 'FileTeacher'.$Key));
-            $this->setPointer(new FieldPointer($FieldPosition, 'AppTeacher'.$Key));
-            $this->setPointer(new FieldPointer($FieldPosition, 'TeacherId'.$Key));
-            $this->setSanitizer(new FieldSanitizer($FieldPosition, 'AppTeacher'.$Key, array($this, 'sanitizeTeacher')));
-            $this->setSanitizer(new FieldSanitizer($FieldPosition, 'TeacherId'.$Key, array($this, 'fetchTeacher')));
+            $this->setPointer(new FieldPointer($ColumnList[$FieldPosition], 'FileTeacher'.$Key));
+            $this->setPointer(new FieldPointer($ColumnList[$FieldPosition], 'AppTeacher'.$Key));
+            $this->setPointer(new FieldPointer($ColumnList[$FieldPosition], 'TeacherId'.$Key));
+            $this->setSanitizer(new FieldSanitizer($ColumnList[$FieldPosition], 'AppTeacher'.$Key,
+                array($this, 'sanitizeTeacher')));
+            $this->setSanitizer(new FieldSanitizer($ColumnList[$FieldPosition], 'TeacherId'.$Key,
+                array($this, 'fetchTeacher')));
         }
 
-        $this->setPointer(new FieldPointer('L', 'FileDivision1'));
-        $this->setPointer(new FieldPointer('L', 'AppDivision1'));
-        $this->setPointer(new FieldPointer('L', 'DivisionId1'));
-        $this->setSanitizer(new FieldSanitizer('L', 'AppDivision1', array($this, 'sanitizeDivision2')));
-        $this->setSanitizer(new FieldSanitizer('L', 'DivisionId1', array($this, 'fetchDivision')));
+//        $this->setPointer(new FieldPointer('L', 'FileDivision1'));
+//        $this->setPointer(new FieldPointer('L', 'AppDivision1'));
+//        $this->setPointer(new FieldPointer('L', 'DivisionId1'));
+//        $this->setSanitizer(new FieldSanitizer('L', 'AppDivision1', array($this, 'sanitizeDivision2')));
+//        $this->setSanitizer(new FieldSanitizer('L', 'DivisionId1', array($this, 'fetchDivision')));
 
         $DivisionList = array(
-            2  => 'M',
-            3  => 'N',
-            4  => 'O',
-            5  => 'P',
-            6  => 'Q',
-            7  => 'R',
-            8  => 'S',
-            9  => 'T',
-            10 => 'U',
-            11 => 'V',
-            12 => 'W',
-            13 => 'X',
-            14 => 'Y',
-            15 => 'Z',
-            16 => 'AA',
-            17 => 'AB',
-            18 => 'AC',
-            19 => 'AD',
-            20 => 'AE'
+            1  => 'Klasse1',
+            2  => 'Klasse2',
+            3  => 'Klasse3',
+            4  => 'Klasse4',
+            5  => 'Klasse5',
+            6  => 'Klasse6',
+            7  => 'Klasse7',
+            8  => 'Klasse8',
+            9  => 'Klasse9',
+            10 => 'Klasse10',
+            11 => 'Klasse11',
+            12 => 'Klasse12',
+            13 => 'Klasse13',
+            14 => 'Klasse14',
+            15 => 'Klasse15',
+            16 => 'Klasse16',
+            17 => 'Klasse17',
+            18 => 'Klasse18',
+            19 => 'Klasse19',
+            20 => 'Klasse20'
         );
         foreach ($DivisionList as $Key => $FieldPosition) {
-            $this->setPointer(new FieldPointer($FieldPosition, 'FileDivision'.$Key));
-            $this->setPointer(new FieldPointer($FieldPosition, 'AppDivision'.$Key));
-            $this->setPointer(new FieldPointer($FieldPosition, 'DivisionId'.$Key));
-            $this->setSanitizer(new FieldSanitizer($FieldPosition, 'AppDivision'.$Key,
+            $this->setPointer(new FieldPointer($ColumnList[$FieldPosition], 'FileDivision'.$Key));
+            $this->setPointer(new FieldPointer($ColumnList[$FieldPosition],
+                'AppDivision'.$Key));   // nur eine Anzeige für das Frontend
+            $this->setPointer(new FieldPointer($ColumnList[$FieldPosition], 'DivisionId'.$Key));
+            $this->setSanitizer(new FieldSanitizer($ColumnList[$FieldPosition], 'AppDivision'.$Key,
                 array($this, 'sanitizeDivision2')));
-            $this->setSanitizer(new FieldSanitizer($FieldPosition, 'DivisionId'.$Key, array($this, 'fetchDivision')));
+            $this->setSanitizer(new FieldSanitizer($ColumnList[$FieldPosition], 'DivisionId'.$Key,
+                array($this, 'fetchDivision')));
         }
 
-        $this->setPointer(new FieldPointer('AF', 'FileSubjectGroup'));
-        $this->setPointer(new FieldPointer('AF', 'AppSubjectGroup'));
-        $this->setSanitizer(new FieldSanitizer('AF', 'AppSubjectGroup', array($this, 'sanitizeSubjectGroup')));
+        $this->setPointer(new FieldPointer($ColumnList['Gruppe'], 'FileSubjectGroup'));
+        $this->setPointer(new FieldPointer($ColumnList['Gruppe'], 'AppSubjectGroup'));
+        $this->setSanitizer(new FieldSanitizer($ColumnList['Gruppe'], 'AppSubjectGroup',
+            array($this, 'sanitizeSubjectGroup')));
 
         $this->scanFile(1);
     }
@@ -185,9 +161,9 @@ class LectureshipGateway extends AbstractConverter
                 $Subject = $Result['FileSubject'];
                 $SubjectGroup = $Result['FileSubjectGroup'];
                 if ($Division != '') {
-
-                    if (!in_array($Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup, $this->LectureshipList)) {
-                        $this->LectureshipList[] = $Division.'x'.$Teacher.'x'.$Subject.'x'.$SubjectGroup;
+                    // Unikat-Suche Schlüssel: Klasse-Lehrer[Spalte]-Fach-Fachgruppe
+                    if (!in_array($Division.'x'.$Teacher.$i.'x'.$Subject.'x'.$SubjectGroup, $this->getLectureship())) {
+                        $this->LectureshipList[] = $Division.'x'.$Teacher.$i.'x'.$Subject.'x'.$SubjectGroup;
                     } else {
 //                        $Result['FileDivision'.$j] = null;
                         $Result['DivisionId'.$j] = null;
@@ -200,6 +176,7 @@ class LectureshipGateway extends AbstractConverter
                 }
             }
         }
+
 
 //        if (!$this->IsError) {
         $tblDivision1 = (isset($Result['DivisionId1']) && $Result['DivisionId1'] !== null ? Division::useService()
@@ -250,32 +227,6 @@ class LectureshipGateway extends AbstractConverter
             ->getTeacherById($Result['TeacherId3']) : null);
         $tblSubject = (isset($Result['SubjectId']) && $Result['SubjectId'] !== null ? Subject::useService()
             ->getSubjectById($Result['SubjectId']) : null);
-        $FileDivision1 = $Result['FileDivision1'];
-        $FileDivision2 = $Result['FileDivision2'];
-        $FileDivision3 = $Result['FileDivision3'];
-        $FileDivision4 = $Result['FileDivision4'];
-        $FileDivision5 = $Result['FileDivision5'];
-        $FileDivision6 = $Result['FileDivision6'];
-        $FileDivision7 = $Result['FileDivision7'];
-        $FileDivision8 = $Result['FileDivision8'];
-        $FileDivision9 = $Result['FileDivision9'];
-        $FileDivision10 = $Result['FileDivision10'];
-        $FileDivision11 = $Result['FileDivision11'];
-        $FileDivision12 = $Result['FileDivision12'];
-        $FileDivision13 = $Result['FileDivision13'];
-        $FileDivision14 = $Result['FileDivision14'];
-        $FileDivision15 = $Result['FileDivision15'];
-        $FileDivision16 = $Result['FileDivision16'];
-        $FileDivision17 = $Result['FileDivision17'];
-        $FileDivision18 = $Result['FileDivision18'];
-        $FileDivision19 = $Result['FileDivision19'];
-        $FileDivision20 = $Result['FileDivision20'];
-        $FileTeacher1 = $Result['FileTeacher1'];
-        $FileTeacher2 = $Result['FileTeacher2'];
-        $FileTeacher3 = $Result['FileTeacher3'];
-        $FileSubject = $Result['FileSubject'];
-        $FileSubjectGroup = $Result['FileSubjectGroup'];
-        $AppSubjectGroup = $Result['AppSubjectGroup'];
 
         $ImportRow = array(
             'tblDivision1'     => $tblDivision1,
@@ -302,37 +253,34 @@ class LectureshipGateway extends AbstractConverter
             'tblTeacher2'      => $tblTeacher2,
             'tblTeacher3'      => $tblTeacher3,
             'tblSubject'       => $tblSubject,
-            'FileDivision1'    => $FileDivision1,
-            'FileDivision2'    => $FileDivision2,
-            'FileDivision3'    => $FileDivision3,
-            'FileDivision4'    => $FileDivision4,
-            'FileDivision5'    => $FileDivision5,
-            'FileDivision6'    => $FileDivision6,
-            'FileDivision7'    => $FileDivision7,
-            'FileDivision8'    => $FileDivision8,
-            'FileDivision9'    => $FileDivision9,
-            'FileDivision10'   => $FileDivision10,
-            'FileDivision11'   => $FileDivision11,
-            'FileDivision12'   => $FileDivision12,
-            'FileDivision13'   => $FileDivision13,
-            'FileDivision14'   => $FileDivision14,
-            'FileDivision15'   => $FileDivision15,
-            'FileDivision16'   => $FileDivision16,
-            'FileDivision17'   => $FileDivision17,
-            'FileDivision18'   => $FileDivision18,
-            'FileDivision19'   => $FileDivision19,
-            'FileDivision20'   => $FileDivision20,
-            'FileTeacher1'     => $FileTeacher1,
-            'FileTeacher2'     => $FileTeacher2,
-            'FileTeacher3'     => $FileTeacher3,
-            'FileSubject'      => $FileSubject,
-            'FileSubjectGroup' => $FileSubjectGroup,
-            'AppSubjectGroup'  => $AppSubjectGroup
+            'FileDivision1'    => $Result['FileDivision1'],
+            'FileDivision2'    => $Result['FileDivision2'],
+            'FileDivision3'    => $Result['FileDivision3'],
+            'FileDivision4'    => $Result['FileDivision4'],
+            'FileDivision5'    => $Result['FileDivision5'],
+            'FileDivision6'    => $Result['FileDivision6'],
+            'FileDivision7'    => $Result['FileDivision7'],
+            'FileDivision8'    => $Result['FileDivision8'],
+            'FileDivision9'    => $Result['FileDivision9'],
+            'FileDivision10'   => $Result['FileDivision10'],
+            'FileDivision11'   => $Result['FileDivision11'],
+            'FileDivision12'   => $Result['FileDivision12'],
+            'FileDivision13'   => $Result['FileDivision13'],
+            'FileDivision14'   => $Result['FileDivision14'],
+            'FileDivision15'   => $Result['FileDivision15'],
+            'FileDivision16'   => $Result['FileDivision16'],
+            'FileDivision17'   => $Result['FileDivision17'],
+            'FileDivision18'   => $Result['FileDivision18'],
+            'FileDivision19'   => $Result['FileDivision19'],
+            'FileDivision20'   => $Result['FileDivision20'],
+            'FileTeacher1'     => $Result['FileTeacher1'],
+            'FileTeacher2'     => $Result['FileTeacher2'],
+            'FileTeacher3'     => $Result['FileTeacher3'],
+            'FileSubject'      => $Result['FileSubject'],
+            'FileSubjectGroup' => $Result['FileSubjectGroup'],
+            'AppSubjectGroup'  => $Result['AppSubjectGroup']
         );
         $this->ImportList[] = $ImportRow;
-//        } else {
-//            $this->IsError = false;
-//        }
 
         $this->ResultList[] = $Result;
     }
@@ -442,7 +390,7 @@ class LectureshipGateway extends AbstractConverter
                 }
             }
             if (empty($tblDivisionList)) {
-                if ($DivisionName != '') {
+                if ($Value != '') {
                     return new Warning(new Danger(new WarningIcon()).' Klasse wurde nicht gefunden');
                 } else {
                     return null;
@@ -454,6 +402,10 @@ class LectureshipGateway extends AbstractConverter
             } else {
                 return null;
             }
+        }
+
+        if ($Value != '') {
+            return new Warning(new Danger(new WarningIcon()).' Klasse wurde nicht gefunden');
         }
 
 //        if (!$tblYear) {
@@ -542,6 +494,12 @@ class LectureshipGateway extends AbstractConverter
         } elseif (preg_match('!^([äöüÄÖÜa-zA-Z]*?)(\d+)$!is', $Value, $Match)) {
             $LevelName = $Match[2];
             $DivisionName = $Match[1];
+        } elseif (preg_match('!^(11)(/[0-9]?)$!is', $Value, $Match)) {
+            $DivisionName = null;
+            $LevelName = $Match[1];
+        } elseif (preg_match('!^(12)(/[0-9]?)$!is', $Value, $Match)) {
+            $DivisionName = null;
+            $LevelName = $Match[1];
         } elseif (preg_match('!^(.*?)$!is', $Value, $Match)) {
             $DivisionName = $Match[1];
             $LevelName = null;

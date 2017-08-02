@@ -155,13 +155,21 @@ class Service extends AbstractService
      * @param            $ImportList
      * @param TblYear    $tblYear
      * @param TblAccount $tblAccount
+     * @param string     $LevelString
      *
      * @return bool
+     * @internal param $LevelString
      */
-    public function createIndiwareImportStudentByImportList($ImportList, TblYear $tblYear, TblAccount $tblAccount)
+    public function createIndiwareImportStudentByImportList(
+        $ImportList,
+        TblYear $tblYear,
+        TblAccount $tblAccount,
+        $LevelString
+    )
     {
 
-        (new Data($this->getBinding()))->createIndiwareImportStudentBulk($ImportList, $tblYear, $tblAccount);
+        (new Data($this->getBinding()))->createIndiwareImportStudentBulk($ImportList, $tblYear, $tblAccount,
+            $LevelString);
 
         return true;
     }
@@ -237,7 +245,6 @@ class Service extends AbstractService
      * @param TblIndiwareImportStudent $tblIndiwareImportStudent
      * @param null|array $Data
      * @param bool $Visible
-     * @param array $arraySubjectName
      *
      * @return IFormInterface|string
      */
@@ -245,8 +252,8 @@ class Service extends AbstractService
         IFormInterface $Stage = null,
         TblIndiwareImportStudent $tblIndiwareImportStudent,
         $Data = null,
-        $Visible = false,
-        $arraySubjectName = array()
+        $Visible = false
+//        $arraySubjectName = array()
         ) {
 
         /**
@@ -255,41 +262,50 @@ class Service extends AbstractService
         if (null === $Data) {
             return $Stage;
         }
-
-        if (isset($Data['DivisionId']) && $Data['DivisionId'] != 0) {
-            $tblDivision = Division::useService()->getDivisionById($Data['DivisionId']);
-        } else {
-            $tblDivision = null;
-        }
-        //ToDO Remove all existing Course by ImportStudent
-        $this->destroyIndiwareImportStudent($tblIndiwareImportStudent);
+        // Entfernen der Kurse ist vorerst nicht mehr nötig
+//        $this->destroyIndiwareImportStudent($tblIndiwareImportStudent);
 
         for ($i = 1; $i <= 17; $i++) {
             $tblSubject = null;
             $SubjectGroup = '';
             $SubjectName = '';
 
-            if (isset($Data['SubjectId' . $i]) && !empty($Data['SubjectId' . $i])) {
-                $tblSubject = Subject::useService()->getSubjectById($Data['SubjectId' . $i]);
+            $tblIndiwareImportStudentCourse =
+                Import::useService()->getIndiwareImportStudentCourseByIndiwareImportStudentAndNumber($tblIndiwareImportStudent,
+                    $i);
+
+            if (isset($Data['SubjectId'.$i]) && !empty($Data['SubjectId'.$i])) {
+                $tblSubject = Subject::useService()->getSubjectById($Data['SubjectId'.$i]);
             }
             if (isset($Data['SubjectGroup'.$i]) && !empty($Data['SubjectGroup'.$i])) {
                 $SubjectGroup = $Data['SubjectGroup'.$i];
             }
-            if (isset($Data['IsIntensivCourse' . $i]) && !empty($Data['IsIntensivCourse' . $i])) {
+            if (isset($Data['IsIntensivCourse'.$i]) && !empty($Data['IsIntensivCourse'.$i])) {
                 $IsIntensiveCourse = true;
             } else {
                 $IsIntensiveCourse = false;
             }
-            if (isset($arraySubjectName[$i])) {
-                $SubjectName = $arraySubjectName[$i];
+            if (isset($Data['IsIgnoreCourse'.$i]) && !empty($Data['IsIgnoreCourse'.$i])) {
+                $IsIgnoreCourse = true;
+            } else {
+                $IsIgnoreCourse = false;
             }
-            if ($tblSubject || $SubjectGroup != '') {
-                (new Data($this->getBinding()))->createIndiwareImportStudentCourse($SubjectGroup,
-                    $SubjectName, $i, $IsIntensiveCourse, $tblIndiwareImportStudent, $tblSubject);
+
+//            if (isset($arraySubjectName[$i])) {
+//                $SubjectName = $arraySubjectName[$i];
+//            }
+            if ($tblIndiwareImportStudentCourse) { // update bei vorhandenen Feldern immer ausführen
+//                if ($tblSubject || $SubjectGroup != '' || $IsIgnoreCourse) {
+                (new Data($this->getBinding()))->updateIndiwareImportStudentCourse($tblIndiwareImportStudentCourse,
+                    $tblSubject, $SubjectGroup, $IsIntensiveCourse, $IsIgnoreCourse);
+//                }
+            } else {    //create
+                if ($tblSubject || $SubjectGroup != '') {
+                    (new Data($this->getBinding()))->createIndiwareImportStudentCourse($SubjectGroup, $SubjectName, $i,
+                        $IsIntensiveCourse, $IsIgnoreCourse, $tblIndiwareImportStudent, $tblSubject);
+                }
             }
         }
-
-        (new Data($this->getBinding()))->updateIndiwareImportStudent($tblIndiwareImportStudent, $tblDivision);
 
         $Message = new Success('Änderungen gespeichert');
         return $Message.new Redirect('/Transfer/Indiware/Import/StudentCourse/Show', Redirect::TIMEOUT_SUCCESS,
@@ -308,6 +324,28 @@ class Service extends AbstractService
     ) {
         return (new Data($this->getBinding()))->updateIndiwareImportLectureshipIsIgnore($tblIndiwareImportLectureship,
             $isIgnore);
+    }
+
+    /**
+     * @param TblIndiwareImportStudent $tblIndiwareImportStudent
+     *
+     * @return bool|TblDivision
+     */
+    public function updateIndiwareImportStudentDivision(TblIndiwareImportStudent $tblIndiwareImportStudent)
+    {
+
+        $tblYear = $tblIndiwareImportStudent->getServiceTblYear();
+        $tblPerson = $tblIndiwareImportStudent->getServiceTblPerson();
+        // search Division
+        $tblDivision = false;
+        if ($tblPerson && $tblYear) {
+            $tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear);
+            if ($tblDivision) {
+                $tblDivision = (new Data($this->getBinding()))->updateIndiwareImportStudentDivision($tblIndiwareImportStudent,
+                    $tblDivision);
+            }
+        }
+        return ($tblDivision ? $tblDivision : false);
     }
 
     /**
@@ -579,7 +617,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @return LayoutRow[]
+     * @return bool
      */
     public function importIndiwareStudentCourse()
     {
@@ -590,12 +628,16 @@ class Service extends AbstractService
             $tblDivisionList = array();
             array_walk($tblIndiwareImportStudentList,
                 function (TblIndiwareImportStudent $tblIndiwareImportStudent) use (&$tblDivisionList) {
-                    if (($tblDivision = $tblIndiwareImportStudent->getServiceTblDivision())
-                        && !array_key_exists($tblDivision->getId(), $tblDivisionList)
-                    ) {
-                        $tblDivisionList[$tblDivision->getId()] = $tblDivision;
+                    // keine ignorierten Klassen
+                    if (!$tblIndiwareImportStudent->getIsIgnore()) {
+                        if (($tblDivision = $tblIndiwareImportStudent->getServiceTblDivision())
+                            && !array_key_exists($tblDivision->getId(), $tblDivisionList)
+                        ) {
+                            $tblDivisionList[$tblDivision->getId()] = $tblDivision;
+                        }
                     }
                 });
+
 
             //remove SubjectStudent (by used Division [clear all Course-Data])
             if (!empty($tblDivisionList)) {
@@ -620,13 +662,7 @@ class Service extends AbstractService
             $createSubjectStudentList = array();
 //            $IsTeacherList = array();
             foreach ($tblIndiwareImportStudentList as $Key => $tblIndiwareImportStudent) {
-//                $ImportError = 0;
-                if (!($tblDivision = $tblIndiwareImportStudent->getServiceTblDivision())) {
-//                    $ImportError++;
-                }
-                if ($tblIndiwareImportStudent->getIsIgnore()) {
-//                    $ImportError++;
-                }
+                $tblDivision = $tblIndiwareImportStudent->getServiceTblDivision();
 
                 $tblIndiwareImportStudentCourseList = Import::useService()
                     ->getIndiwareImportStudentCourseByIndiwareImportStudent($tblIndiwareImportStudent);
@@ -645,37 +681,43 @@ class Service extends AbstractService
                                 Division::useService()->addSubjectToDivision($tblDivision, $tblSubject);
                             }
 
-                            // get Group
-                            $tblSubjectGroup = Division::useService()->getSubjectGroupByNameAndDivisionAndSubject($SubjectGroup,
-                                $tblDivision, $tblSubject);
-                            if ($tblSubjectGroup) {
-                                // get DivisionSubject with Group
-                                $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivision,
-                                    $tblSubject, $tblSubjectGroup);
-                            } else {
+                            // Anlegen von Gruppen / Schülern nur wenn diese nicht Ignoriert werden soll
+                            if (!$tblIndiwareImportStudentCourse->getisIgnoreCourse()) {
+                                // get Group
+                                $tblSubjectGroup = Division::useService()->getSubjectGroupByNameAndDivisionAndSubject($SubjectGroup,
+                                    $tblDivision, $tblSubject);
+                                if ($tblSubjectGroup) {
+                                    // get DivisionSubject with Group
+                                    $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivision,
+                                        $tblSubject, $tblSubjectGroup);
+                                } else {
 
-                                // create Group + add/get DivisionSubject
-                                $tblDivisionSubject = Division::useService()->addSubjectToDivisionWithGroupImport($tblDivision,
-                                    $tblSubject, $SubjectGroup,
-                                    $tblIndiwareImportStudentCourse->getIsIntensiveCourse());
-                            }
+                                    // create Group + add/get DivisionSubject
+                                    $tblDivisionSubject = Division::useService()->addSubjectToDivisionWithGroupImport($tblDivision,
+                                        $tblSubject, $SubjectGroup,
+                                        $tblIndiwareImportStudentCourse->getIsIntensiveCourse());
+                                }
 
-                            if ($tblPerson && $tblDivision &&
-                                Division::useService()->getDivisionStudentByDivisionAndPerson($tblDivision, $tblPerson)
-                            ) {
-                                if ($tblDivisionSubject) {
+                                // nur aktuelle Schüler der Klasse werden zugeordnet
+                                if ($tblPerson && $tblDivision &&
+                                    Division::useService()->getDivisionStudentByDivisionAndPerson($tblDivision,
+                                        $tblPerson)
+                                ) {
+                                    if ($tblDivisionSubject) {
 
-                                    // add Subject Teacher
-                                    $createSubjectStudentList[] = array(
-                                        'tblDivisionSubject' => $tblDivisionSubject,
-                                        'tblPerson'          => $tblPerson
-                                    );
+                                        // add Subject Teacher
+                                        $createSubjectStudentList[] = array(
+                                            'tblDivisionSubject' => $tblDivisionSubject,
+                                            'tblPerson'          => $tblPerson
+                                        );
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
+
             if (!empty($createSubjectStudentList)) {
                 Division::useService()->addSubjectStudentList($createSubjectStudentList);
                 Import::useService()->destroyIndiwareImportStudentAll();
@@ -739,7 +781,9 @@ class Service extends AbstractService
 //            $LayoutRowCount++;
 //        }
 
-        $LayoutRowList = array();
-        return $LayoutRowList;
+        if (!empty($createSubjectStudentList)) {
+            return true;
+        }
+        return false;
     }
 }

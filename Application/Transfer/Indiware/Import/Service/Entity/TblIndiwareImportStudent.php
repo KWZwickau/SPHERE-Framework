@@ -28,6 +28,7 @@ class TblIndiwareImportStudent extends Element
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
     const ATTR_SERVICE_TBL_ACCOUNT = 'serviceTblAccount';
+    const ATTR_LEVEL_STRING = 'Level';
     const ATTR_IS_IGNORE = 'IsIgnore';
 
     /**
@@ -46,6 +47,10 @@ class TblIndiwareImportStudent extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblAccount;
+    /**
+     * @Column(type="string")
+     */
+    protected $Level;
     /**
      * @Column(type="boolean")
      */
@@ -133,6 +138,22 @@ class TblIndiwareImportStudent extends Element
     {
 
         $this->serviceTblAccount = (null === $tblAccount ? null : $tblAccount->getId());
+    }
+
+    /**
+     * @return string
+     */
+    public function getLevel()
+    {
+        return $this->Level;
+    }
+
+    /**
+     * @param string $Level
+     */
+    public function setLevel($Level)
+    {
+        $this->Level = $Level;
     }
 
     /**
