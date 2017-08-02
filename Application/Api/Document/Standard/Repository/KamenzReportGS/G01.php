@@ -23,7 +23,7 @@ class G01
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('G01. Klassenfrequenz im Schuljahr {{ Content.SchoolYear.Current }} zum Stichtag 18. September 2015')
+                ->setContent('G01. Klassenfrequenz im Schuljahr {{ Content.SchoolYear.Current }} zum Stichtag 18. September {{ Content.Year.Current }}')
             );
 
         $sliceList[] = (new Slice())

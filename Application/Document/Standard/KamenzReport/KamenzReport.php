@@ -2,7 +2,6 @@
 
 namespace SPHERE\Application\Document\Standard\KamenzReport;
 
-use SPHERE\Application\Document\Generator\Service\Kamenz\KamenzReportService;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
@@ -22,7 +21,6 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class KamenzReport
@@ -113,7 +111,12 @@ class KamenzReport extends AbstractModule implements IModuleInterface
 
         $Stage->addbutton(new External('Herunterladen: Oberschulstatistik',
             'SPHERE\Application\Api\Document\Standard\KamenzReport\Create',
-            new Download(), array(), 'Kamenz-Statistik Herungerladen'));
+            new Download(),
+            array(
+                'Type' => 'Oberschule'
+            ),
+            'Kamenz-Statistik Herungerladen'
+        ));
 
         $summary = array();
 
@@ -160,8 +163,13 @@ class KamenzReport extends AbstractModule implements IModuleInterface
         $Stage = new Stage('Kamenz-Statistik', 'Grundschule validieren');
 
         $Stage->addButton(new External('Herunterladen: Grundschulstatistik',
-            'SPHERE\Application\Api\Document\Standard\KamenzReportGS\Create',
-            new Download(), array(), 'Kamenz-Statistik der GS herunterladen'));
+            'SPHERE\Application\Api\Document\Standard\KamenzReport\Create',
+            new Download(),
+            array(
+                'Type' => 'Grundschule'
+            ),
+            'Kamenz-Statistik der GS herunterladen'
+        ));
 
         $summary = array();
 
@@ -208,12 +216,15 @@ class KamenzReport extends AbstractModule implements IModuleInterface
         $Stage = new Stage('Kamenz-Statistik', 'Gymnasium validieren');
 
         $Stage->addButton(new External('Herunterladen: Gymnasialstatistik',
-            'SPHERE\Application\Api\Document\Standard\KamenzReportGym\Create',
-            new Download(), array(), 'Kamenz-Statistik des Gymnasiums herunterladen'));
+            'SPHERE\Application\Api\Document\Standard\KamenzReport\Create',
+            new Download(),
+            array(
+                'Type' => 'Gymnasium'
+            ),
+            'Kamenz-Statistik des Gymnasiums herunterladen'
+        ));
 
         $summary = array();
-
-        Debugger::screenDump(KamenzReportService::setKamenzReportGymContent(array()));
 
         $countStudentsWithoutDivision = 0;
         if (($studentsWithoutDivision = KamenzService::getStudentsWithoutDivision($countStudentsWithoutDivision))) {

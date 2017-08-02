@@ -18,9 +18,7 @@ use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E03;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E04;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E04_1;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E05;
-use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E06;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E08;
-use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E10;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E11;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E12;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E15;
@@ -52,27 +50,27 @@ class KamenzReportGym extends AbstractDocument
                 // todo C01
 //                ->addSliceArray(C01::getContent())
 //            )
-//            ->addPage((new Page())
-//                ->addSliceArray(E01::getContent())
-//                ->addSliceArray(E02::getContent())
-//                ->addSliceArray(E02_1::getContent())
-//                ->addSliceArray(E03::getContent())
-//            )
-//            ->addPage((new Page())
-//                ->addSliceArray(E04::getContent())
-//                ->addSliceArray(E04_1::getContent())
-//                ->addSliceArray(E05::getContent())
-//                ->addSliceArray(E08::getContent())
-//            )
-//            ->addPage((new Page())
-//                ->addSliceArray(E11::getContent())
-//                ->addSliceArray(E12::getContent())
-//            )
             ->addPage((new Page())
-                // todo E15
-//                ->addSliceArray(E15::getContent())
-                ->addSliceArray(E16::getContent())
+                ->addSliceArray(E01::getContent())
+                ->addSliceArray(E02::getContent())
+                ->addSliceArray(E02_1::getContent())
+                ->addSliceArray(E03::getContent())
             )
+            ->addPage((new Page())
+                ->addSliceArray(E04::getContent())
+                ->addSliceArray(E04_1::getContent())
+                ->addSliceArray(E05::getContent())
+                ->addSliceArray(E08::getContent())
+            )
+            ->addPage((new Page())
+                ->addSliceArray(E11::getContent())
+                ->addSliceArray(E12::getContent())
+            )
+//            ->addPage((new Page())
+//                // todo E15
+////                ->addSliceArray(E15::getContent())
+//                ->addSliceArray(E16::getContent())
+//            )
 //            ->addPage((new Page())
 //                ->addSliceArray(E16_01::getContent())
 //                ->addSliceArray(E17::getContent())

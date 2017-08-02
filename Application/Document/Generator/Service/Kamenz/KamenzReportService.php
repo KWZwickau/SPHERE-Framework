@@ -421,6 +421,7 @@ class KamenzReportService
                 $tblPastYearList = Term::useService()->getYearByName($pastYearName);
                 $Content['SchoolYear']['Current'] = $currentYearName;
                 $Content['SchoolYear']['Past'] = $pastYearName;
+                $Content['Year']['Current'] = $currentYear;
             }
         }
     }

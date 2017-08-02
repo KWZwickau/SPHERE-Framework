@@ -157,37 +157,42 @@ class Creator extends Extension
     }
 
     /**
-     * @param $DocumentClass
+     * @param $Type
+     * @param bool $Redirect
      *
      * @return Stage|string
      */
-    public static function createKamenzPdf($DocumentClass)
+    public static function createKamenzPdf($Type, $Redirect = true)
     {
 
-        if (class_exists($DocumentClass)) {
-            /** @var AbstractDocument $Document */
-            $Document = new $DocumentClass();
+        // todo pdf download bitte warten --> funktioniert so nicht
+//        if ($Redirect) {
+//                return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+//                    'Api/Document/Standard/KamenzReport/Create',
+//                    array(
+//                        'Type' => $Type,
+//                        'Redirect' => false
+//                    )
+//                );
+//        }
 
-            $Data = array();
-            if (strpos($DocumentClass, 'KamenzReportGS') !== false) {
-                $Data = Generator::useService()->setKamenzReportGsContent($Data);
-            }  elseif (strpos($DocumentClass, 'KamenzReportGym') !== false) {
-                $Data = Generator::useService()->setKamenzReportGymContent($Data);
-            } elseif (strpos($DocumentClass, 'KamenzReport') !== false) {
-                $Data = Generator::useService()->setKamenzReportOsContent($Data);
-            }
+        $Data = array();
+        $Document = false;
+        if ($Type == 'Grundschule') {
+            $Document = new Standard\Repository\KamenzReportGS();
+            $Data = Generator::useService()->setKamenzReportGsContent($Data);
+        } elseif ($Type == 'Oberschule') {
+            $Document = new Standard\Repository\KamenzReport();
+            $Data = Generator::useService()->setKamenzReportOsContent($Data);
+        } elseif ($Type == 'Gymnasium') {
+            $Document = new Standard\Repository\KamenzReportGym();
+            $Data = Generator::useService()->setKamenzReportGymContent($Data);
+        }
 
+        if ($Document) {
             $File = self::buildDummyFile($Document, $Data);
 
             $FileName = $Document->getName() . ' ' . date("Y-m-d") . ".pdf";
-
-            return self::buildDownloadFile($File, $FileName);
-        } elseif (class_exists($DocumentClass)) {
-            // create PDF without Data and PersonId
-            /** @var AbstractDocument $Document */
-            $Document = new $DocumentClass();
-            $File = self::buildDummyFile($Document);
-            $FileName = $Document->getName().' '.date("Y-m-d").".pdf";
 
             return self::buildDownloadFile($File, $FileName);
         }

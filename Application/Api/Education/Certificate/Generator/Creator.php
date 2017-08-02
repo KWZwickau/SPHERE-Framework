@@ -623,7 +623,7 @@ class Creator extends Extension
      *
      * @return Display
      */
-    private static function displayWaitingPage($Route, $parameters)
+    public static function displayWaitingPage($Route, $parameters)
     {
 
         $Display = new Display();

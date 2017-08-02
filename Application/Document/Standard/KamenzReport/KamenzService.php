@@ -168,7 +168,6 @@ class KamenzService
                                             }
                                         }
 
-                                        // Todo profile
                                         if (($tblSchoolType->getName() == 'Gymnasium')) {
                                             if (($profile = self::getProfile($tblPerson))) {
                                                 $studentList[$tblPerson->getId()]['Profile'] = $profile;
@@ -218,7 +217,7 @@ class KamenzService
             }
         }
 
-        $summary[] = new Info($count['Student'] . ' Schüler besuchen die/das ' . $tblSchoolType->getName() . '.');
+        array_unshift($summary, new Info($count['Student'] . ' Schüler besuchen die/das ' . $tblSchoolType->getName() . '.'));
         $summary = self::setSummary($summary, $count);
 
         $columns = array(
@@ -434,7 +433,7 @@ class KamenzService
         } else {
             return new TableData(
                 $personList,
-                new Title('Schüler ohne einer aktuellen Klasse'),
+                new Title('Schüler ohne Klasse im aktuellen Schuljahr'),
                 array(
                     'Name' => 'Name',
                     'Gender' => 'Geschlecht',
@@ -442,8 +441,8 @@ class KamenzService
                     'Address' => 'Adresse'
                 ),
                 array(
-                    'paging' => false,
-                    'iDisplayLength' => -1,
+//                    'paging' => false,
+//                    'iDisplayLength' => -1,
                     'responsive' => false
                 )
             );

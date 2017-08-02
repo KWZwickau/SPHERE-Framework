@@ -20,7 +20,7 @@ class G01
 
         $sliceList[] = (new Slice())
             ->addElement((new Element())
-                ->setContent('G01. Klassenfrequenz im Schuljahr {{ Content.SchoolYear.Current }} zum Stichtag 02. September {{ Content.Year.Last }}')
+                ->setContent('G01. Klassenfrequenz im Schuljahr {{ Content.SchoolYear.Current }} zum Stichtag 02. September {{ Content.Year.Current }}')
                 ->styleTextBold()
                 ->styleMarginTop('20px')
             );
