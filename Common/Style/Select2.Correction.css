@@ -630,6 +630,10 @@
 .select2.select2-container {
   width: auto !important;
 }
+/* Sphere Correction DT */
+td .select2.select2-container {
+  width: 100% !important;
+}
 .select2-dropdown {
   color: #333;
 }
