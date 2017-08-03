@@ -378,6 +378,15 @@ class StudentFilter extends Extension
                                 $DataPerson['Edit'] = new Muted('('.$tblSubject->getAcronym().') ').$tblSubject->getName();
                             }
                         }
+                        if ($Label == 'Neigungskurs') {
+                            $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION');
+                            $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier('1');
+                            $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
+                                $tblStudentSubjectType, $tblStudentSubjectRanking);
+                            if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                                $DataPerson['Edit'] = new Muted('('.$tblSubject->getAcronym().') ').$tblSubject->getName();
+                            }
+                        }
                     }
                 }
                 $DataPerson['Division'] = '';

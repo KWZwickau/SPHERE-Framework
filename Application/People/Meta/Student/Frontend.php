@@ -86,7 +86,6 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 /**
@@ -372,8 +371,6 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblStudentTransferProcess && $tblStudentTransferProcess->getServiceTblCompany()) {
                     $tblCompanySelected[] = $tblStudentTransferProcess->getServiceTblCompany();
                     $tblCompanyAllOwn = array_merge($tblCompanyAllOwn, $tblCompanySelected);
-                    Debugger::screenDump($tblCompanyAllOwn);
-
                 }
             }
         }
@@ -1159,6 +1156,7 @@ class Frontend extends Extension implements IFrontendInterface
             // activate MassReplace
             if ($Identifier == 'PROFILE'
                 || $Identifier == 'RELIGION'
+                || $Identifier == 'ORIENTATION'
             ) {
                 array_push($Panel,
                     ApiMassReplace::receiverField((
