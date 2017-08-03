@@ -14,6 +14,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Teacher\Service\Entity\TblTeacher;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Transfer\Gateway\Converter\AbstractConverter;
 use SPHERE\Application\Transfer\Gateway\Converter\FieldPointer;
 use SPHERE\Application\Transfer\Gateway\Converter\FieldSanitizer;
@@ -35,6 +36,7 @@ class LectureshipGateway extends AbstractConverter
     private $Division = false;
     private $Subject = false;
     private $LectureshipList = array();
+    private $IsLatinToGreek = false;
 
     /**
      * LectureshipGateway constructor.
@@ -47,6 +49,12 @@ class LectureshipGateway extends AbstractConverter
     {
         $this->loadFile($File);
         $this->Year = $tblYear;
+
+        $tblSetting = Consumer::useService()->getSetting('Transfer', 'Indiware', 'Import',
+            'Lectureship_ConvertDivisionLatinToGreek');
+        if ($tblSetting) {
+            $this->IsLatinToGreek = $tblSetting->getValue();
+        }
 
         $ColumnList = $Control->getScanResult();
 
@@ -504,6 +512,25 @@ class LectureshipGateway extends AbstractConverter
             $DivisionName = $Match[1];
             $LevelName = null;
         }
+
+        if ($this->IsLatinToGreek) {
+            if ($DivisionName == 'a') {
+                $DivisionName = 'alpha';
+            }
+            if ($DivisionName == 'b') {
+                $DivisionName = 'beta';
+            }
+            if ($DivisionName == 'c') {
+                $DivisionName = 'gamma';
+            }
+            if ($DivisionName == 'd') {
+                $DivisionName = 'delta';
+            }
+            if ($DivisionName == 'e') {
+                $DivisionName = 'epsilon';
+            }
+        }
+
         $DivisionName = trim($DivisionName);
         $LevelName = trim($LevelName);
     }
