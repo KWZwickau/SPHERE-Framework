@@ -20,6 +20,9 @@ class Data extends AbstractData
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount && ($tblConsumer = $tblAccount->getServiceTblConsumer())) {
 
+            $this->createSetting('Transfer', 'Indiware', 'Import', 'Lectureship_ConvertDivisionLatinToGreek',
+                TblSetting::TYPE_BOOLEAN, '0');
+
             $this->createSetting('Contact', 'Address', 'Address', 'Format_GuiString',
                 TblSetting::TYPE_STRING, TblAddress::VALUE_PLZ_ORT_OT_STR_NR);
 
