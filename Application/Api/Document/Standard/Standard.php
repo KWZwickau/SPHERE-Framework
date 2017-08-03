@@ -89,10 +89,10 @@ class Standard extends Extension implements IModuleInterface
      *
      * @return \SPHERE\Common\Window\Stage|string
      */
-    public static function createGradebookOverviewPdf($PersonId = null)
+    public static function createGradebookOverviewPdf($PersonId = null, $DivisionId = null)
     {
 
-        return Creator::createPdf($PersonId, __NAMESPACE__.'\Repository\GradebookOverview',  Creator::PAPERORIENTATION_LANDSCAPE);
+        return Creator::createGradebookOverviewPdf($PersonId, $DivisionId,Creator::PAPERORIENTATION_LANDSCAPE);
     }
 
     /**

@@ -12,6 +12,7 @@ use MOC\V\Component\Document\Component\Parameter\Repository\PaperOrientationPara
 use MOC\V\Component\Document\Document as PdfDocument;
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Api\Document\Standard\Repository\GradebookOverview;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\AbstractStudentCard;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\GrammarSchool;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\MultiStudentCard;
@@ -20,6 +21,7 @@ use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\SecondarySch
 use SPHERE\Application\Document\Generator\Generator;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -44,7 +46,7 @@ class Creator extends Extension
      *
      * @return Stage|string
      */
-    public static function createPdf($PersonId, $DocumentClass, $paperOrientation = 'PORTRAIT')
+    public static function createPdf($PersonId, $DocumentClass, $paperOrientation = Creator::PAPERORIENTATION_PORTRAIT)
     {
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
@@ -72,6 +74,29 @@ class Creator extends Extension
 
             return self::buildDownloadFile($File, $FileName);
         }
+        return new Stage('Dokument', 'Konnte nicht erstellt werden.');
+    }
+
+    /**
+     * @param null $PersonId
+     * @param null $DivisionId
+     * @param $DocumentClass
+     * @param string $paperOrientation
+     *
+     * @return Stage|string
+     */
+    public static function createGradebookOverviewPdf($PersonId, $DivisionId, $paperOrientation = Creator::PAPERORIENTATION_LANDSCAPE) {
+        if (($tblPerson = Person::useService()->getPersonById($PersonId))
+            && ($tblDivision = Division::useService()->getDivisionById($DivisionId))
+        ) {
+            $Document = new GradebookOverview\GradebookOverview($tblPerson, $tblDivision);
+
+            $File = self::buildDummyFile($Document, array(), array(), $paperOrientation);
+
+            $FileName = $Document->getName() . ' ' . $tblPerson->getLastFirstName() . ' ' . date("Y-m-d") . ".pdf";
+
+            return self::buildDownloadFile($File, $FileName);
+        }
 
         return new Stage('Dokument', 'Konnte nicht erstellt werden.');
     }
@@ -84,7 +109,7 @@ class Creator extends Extension
      *
      * @return FilePointer
      */
-    private static function buildDummyFile($DocumentClass, $Data = array(), $pageList = array(), $paperOrientation = 'PORTRAIT')
+    private static function buildDummyFile($DocumentClass, $Data = array(), $pageList = array(), $paperOrientation = Creator::PAPERORIENTATION_PORTRAIT)
     {
 
         ini_set('memory_limit', '1G');

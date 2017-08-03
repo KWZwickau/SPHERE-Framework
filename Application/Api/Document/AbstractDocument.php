@@ -678,6 +678,22 @@ abstract class AbstractDocument
     }
 
     /**
+     * @return null|Frame
+     */
+    public function getDocument()
+    {
+        return $this->Document;
+    }
+
+    /**
+     * @param null|Frame $Document
+     */
+    public function setDocument($Document)
+    {
+        $this->Document = $Document;
+    }
+
+    /**
      * Lebenswelt (Zwenkau) Notfall Nummern des Schülers
      *
      * @return Slice

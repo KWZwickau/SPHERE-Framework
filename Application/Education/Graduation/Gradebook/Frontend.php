@@ -39,6 +39,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
@@ -51,7 +52,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
-use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\Layout\Repository\Header;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -2285,7 +2285,8 @@ class Frontend extends FrontendScoreRule
             )
         ));
         $Stage->addButton(new External(
-            'Herunterladen','SPHERE\Application\Api\Document\Standard\GradebookOverview\Create', new Upload()
+            'Herunterladen','SPHERE\Application\Api\Document\Standard\GradebookOverview\Create',
+            new Download(), array('PersonId' => $PersonId,'DivisionId' => $DivisionId), 'Notenübersicht herunterladen'
         ));
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
@@ -2511,7 +2512,8 @@ class Frontend extends FrontendScoreRule
             )
         ));
         $Stage->addButton(new External(
-            'Herunterladen','SPHERE\Application\Api\Document\Standard\GradebookOverview\Create', new Upload()
+            'Herunterladen','SPHERE\Application\Api\Document\Standard\GradebookOverview\Create',
+            new Download(), array('PersonId' => $PersonId,'DivisionId' => $DivisionId), 'Notenübersicht herunterladen'
         ));
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
