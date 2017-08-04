@@ -46,7 +46,7 @@ if (false) {
 }
 
 // Clear Cache
-if (true) {
+if (false) {
     (new CacheFactory())->createHandler(new CookieHandler())->clearCache();
     (new CacheFactory())->createHandler(new MemcachedHandler())->clearCache();
     (new CacheFactory())->createHandler(new APCuHandler())->clearCache();
