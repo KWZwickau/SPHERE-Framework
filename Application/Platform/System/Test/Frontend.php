@@ -15,6 +15,7 @@ use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Form\Repository\Button\Danger;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Button\Reset;
+use SPHERE\Common\Frontend\Form\Repository\Button\Standard as BtnStandard;
 use SPHERE\Common\Frontend\Form\Repository\Button\Success;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -86,13 +87,18 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Test', 'Frontend');
 
-        $Stage->setMessage('Message: Red alert.Processor of a distant x-ray vision, lower the death!Make it so, chemical wind!Fantastic nanomachines, to the alpha quadrant.Boldly sonic showers lead to the understanding.The death is a ship-wide cosmonaut.Wobble nosily like a post-apocalyptic space suit.Cosmonauts are the emitters of the fantastic ionic cannon.Where is the strange teleporter?');
+        $Stage->setMessage(
+            'Message: Red alert. Processor of a distant x-ray vision, lower the death! Make it so, chemical
+             wind! Fantastic nanomachines, to the alpha quadrant.Boldly sonic showers lead to the understanding. The 
+             death is a ship-wide cosmonaut. Wobble nosily like a post-apocalyptic space suit.Cosmonauts are the 
+             emitters of the fantastic ionic cannon. Where is the strange teleporter?'
+        );
 
         $Stage->addButton(
             new Standard('Link', new Route(__NAMESPACE__), null, array(), true)
         );
         $Stage->addButton(
-            new External('Link', 'www.google.de')
+            new External('Link', 'http://www.google.de')
         );
 
         $D1 = new TblDivision();
@@ -178,12 +184,12 @@ class Frontend extends Extension implements IFrontendInterface
                     )),
                     new FormRow(array(
                         new FormColumn(array(
-                            new SelectBox('SelectBox1', 'SelectBox',
+                            new SelectBox('SelectBox1', 'SelectBox - Bootstrap Default',
                                 array('0' => 'A', '2' => '1', '3' => '2', '4' => '3')
                             ),
-                            new SelectBox('SelectBox2', 'SelectBox',
-                                array('{{ Name }}{{ Name }}{{ Name }} {{ Name }}{{ Name }}{{ Name }}' => $Check)
-                            ),
+                            (new SelectBox('SelectBox2', 'SelectBox - jQuery Select2',
+                                array('{{ Id }}{{ Name }}{{ Name }} {{ Id }}{{ Name }}{{ Name }}' => $Check)
+                            ))->configureLibrary( SelectBox::LIBRARY_SELECT2 ),
                         ), 3),
                         new FormColumn(
                             new TextArea('TextArea', 'TextArea', 'TextArea')
@@ -208,7 +214,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new Primary('Primary'),
                     new Danger('Danger'),
                     new Success('Success'),
-                    new Reset('Reset')
+                    new Reset('Reset'),
+                    new BtnStandard('Standard')
                 )
             ))->setConfirm('Wirklich?')
             .new Layout(array(
@@ -256,7 +263,12 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new TableData(array(
                                 array('A' => 1, 'B' => '2'),
-                                array('A' => 2, 'B' => '34567890')
+                                array('A' => 2, 'B' => '34567890'),
+                                array('A' => 'SelectBox Width Test DT', 'B' =>
+                                    (new SelectBox('SelectBox2DT', 'SelectBox - jQuery Select2',
+                                    array('{{ Id }}{{ Name }}{{ Name }} {{ Id }}{{ Name }}{{ Name }}' => $Check)
+                                    ))->configureLibrary( SelectBox::LIBRARY_SELECT2 )
+                                )
                             ))
                             , 6),
 
@@ -495,17 +507,18 @@ class Frontend extends Extension implements IFrontendInterface
         $P->setLoadingMessage('Bitte warten', 'Interface wird geladen..');
         $P->setSuccessMessage('Erfolgreich', 'Daten wurden geladen');
 
-        $P->addEmitter( $E2 = new ClientEmitter($R2, 0 ) );
-        $P->addEmitter( $E4 = new ClientEmitter(array($R1,$R4), new Info( ':)' ) ) );
+        $P->appendEmitter($E2 = new ClientEmitter($R2, 0));
+        $P->appendEmitter($E4 = new ClientEmitter(array($R1, $R4), new Info(':)')));
 
-        $P->addEmitter( $E3 = new ServerEmitter(array($R4,$R3), new Route('SPHERE\Application\Api\Corporation/Similar')) );
+        $P->appendEmitter($E3 = new ServerEmitter(array($R4, $R3),
+            new Route('SPHERE\Application\Api\Corporation/Similar')));
         $E3->setGetPayload(array(
             'MethodName' => 'ajaxContent'
         ));
         $E3->setLoadingMessage('Bitte warten', 'Interface wird geladen..');
         $E3->setSuccessMessage('Erfolgreich', 'Daten wurden geladen');
 
-        $P->addEmitter( $E1 = new ServerEmitter($R1, new Route('SPHERE\Application\Api\Corporation/Similar')) );
+        $P->appendEmitter($E1 = new ServerEmitter($R1, new Route('SPHERE\Application\Api\Corporation/Similar')));
         $E1->setGetPayload(array(
             'MethodName' => 'ajaxLayoutSimilarPerson'
 //            'MethodName' => 'ajaxFormDingens'
@@ -521,7 +534,7 @@ class Frontend extends Extension implements IFrontendInterface
         $P2->setLoadingMessage('Bitte warten', 'Interface wird geladen..');
         $P2->setSuccessMessage('Erfolgreich', 'Daten wurden geladen');
 
-        $P2->addEmitter( $E1 = new ServerEmitter($R1, new Route('SPHERE\Application\Api\Corporation/Similar')) );
+        $P2->appendEmitter($E1 = new ServerEmitter($R1, new Route('SPHERE\Application\Api\Corporation/Similar')));
         $E1->setGetPayload(array(
             'MethodName' => 'ajaxFormDingens'
         ));

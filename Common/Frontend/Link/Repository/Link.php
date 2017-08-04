@@ -13,7 +13,9 @@ class Link extends AbstractLink implements ILinkInterface
 {
 
     /**
-     * AbstractLink constructor.
+     * Link constructor.
+     *
+     * Without authorization the link will not be displayed
      *
      * @param string              $Name
      * @param string              $Path

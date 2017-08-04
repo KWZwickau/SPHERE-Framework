@@ -14,10 +14,20 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class SelectBox extends AbstractField implements IFieldInterface
 {
+    const LIBRARY_SELECTER = 0;
+    const LIBRARY_SELECT2 = 1;
+
+    /** @var int $Library */
+    private $Library = 0;
     /** @var string $Label */
     private $Label = '';
     /** @var array $Data */
     private $Data = array();
+    /** @var null|IIconInterface $Icon */
+    private $Icon = null;
+    /** @var array $Configuration */
+    private $Configuration = array();
+
     /**
      * @param string         $Name
      * @param null|string    $Label
@@ -33,6 +43,9 @@ class SelectBox extends AbstractField implements IFieldInterface
 
         $this->Name = $Name;
         $this->Label = $Label;
+        $this->Icon = $Icon;
+        $this->Configuration = json_encode( array(), JSON_FORCE_OBJECT );
+
         // Sanitize (wrong) entity list parameter (e.g. bool instead of entities or empty
         if (count($Data) == 1 && is_numeric(key($Data)) === false && current($Data) === false) {
             $Data = array();
@@ -56,9 +69,6 @@ class SelectBox extends AbstractField implements IFieldInterface
             }
         }
 
-        $this->Template = $this->getTemplate(__DIR__.'/SelectBox.twig');
-        $this->Template->setVariable('ElementName', $Name);
-        $this->Template->setVariable('ElementLabel', $Label);
         // Data is Entity-List ?
         if (count($Data) == 1 && !is_numeric(key($Data))) {
             $Attribute = key($Data);
@@ -121,7 +131,6 @@ class SelectBox extends AbstractField implements IFieldInterface
             } else {
                 asort($Convert, SORT_NATURAL);
             }
-            $this->Template->setVariable('ElementData', $Convert);
             $this->Data = $Convert;
         } else {
             if (array_key_exists(0, $Data) && $Data[0] != '-[ Nicht verfügbar ]-') {
@@ -136,12 +145,60 @@ class SelectBox extends AbstractField implements IFieldInterface
             } else {
                 asort($Data, SORT_NATURAL);
             }
-            $this->Template->setVariable('ElementData', $Data);
             $this->Data = $Data;
         }
-        if (null !== $Icon) {
-            $this->Template->setVariable('ElementIcon', $Icon);
+    }
+
+    /**
+     * @return int
+     */
+    public function getLibrary()
+    {
+        return $this->Library;
+    }
+
+    /**
+     * @param int $Library LIBRARY_DEFAULT|LIBRARY_SELECT2
+     * @param array $Configuration
+     * @return SelectBox
+     */
+    public function configureLibrary($Library = self::LIBRARY_SELECTER, $Configuration = array())
+    {
+        $this->Library = $Library;
+        $this->Configuration = json_encode( $Configuration, JSON_FORCE_OBJECT );
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getContent()
+    {
+
+        switch ($this->getLibrary()) {
+            case 1:
+                $this->Template = $this->getTemplate(__DIR__ . '/SelectBox.Select2.twig');
+                break;
+            default:
+                $this->Template = $this->getTemplate(__DIR__ . '/SelectBox.twig');
+                break;
         }
+
+        foreach ($this->ErrorMessage as $Key => $Value) {
+            $this->Template->setVariable($Key, $Value);
+        }
+        foreach ($this->SuccessMessage as $Key => $Value) {
+            $this->Template->setVariable($Key, $Value);
+        }
+
+        $this->Template->setVariable('ElementName', $this->Name);
+        $this->Template->setVariable('ElementLabel', $this->Label);
+        $this->Template->setVariable('ElementData', $this->Data);
+        $this->Template->setVariable('ElementConfiguration', $this->Configuration);
+        if (null !== $this->Icon) {
+            $this->Template->setVariable('ElementIcon', $this->Icon);
+        }
+        return parent::getContent();
     }
 
     /**

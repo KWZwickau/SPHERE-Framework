@@ -52,7 +52,7 @@ class Form extends Extension implements IFormInterface
 
         if (!is_array($FormButtonList) && null !== $FormButtonList) {
             $FormButtonList = array($FormButtonList);
-        } elseif (empty($FormButtonList)) {
+        } elseif (empty( $FormButtonList )) {
             $FormButtonList = array();
         }
         $this->GridButtonList = $FormButtonList;
@@ -63,12 +63,12 @@ class Form extends Extension implements IFormInterface
             $this->Data = array();
         }
 
-        $this->Template = $this->getTemplate(__DIR__ . '/Form.twig');
+        $this->Template = $this->getTemplate(__DIR__.'/Form.twig');
         if (!empty($Data)) {
             $this->Template->setVariable('FormAction', $this->getRequest()->getUrlBase() . $Action);
-            $this->Template->setVariable('FormData', '?' . http_build_query(
+            $this->Template->setVariable('FormData', '?'.http_build_query(
                     (new Authenticator(new Get()))->getAuthenticator()->createSignature($Data, $Action)
-                )
+                    )
             );
         } else {
             if (empty($Action)) {

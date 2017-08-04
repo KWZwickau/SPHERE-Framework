@@ -40,8 +40,17 @@
             }
             guiSelect.next().find('span.select2-selection__arrow b').css('border-top-color','silver');
 
-            guiSelect.data().select2.on("focus", function () {
-                guiSelect.select2("open");
+// TODO: on demand option Tab-Open
+//            guiSelect.data().select2.on("focus", function () {
+//                guiSelect.select2("open");
+//            });
+
+            // Fix: (Hack) respect Tab-Index
+            guiSelect.on('select2:close', function(e) {
+                $LiveElement = $(this).closest($('select[name ="'+e.currentTarget.name+'"'));
+                var setfocus = setTimeout(function() {
+                    $LiveElement.select2('focus');
+                }, 10);
             });
         });
     });

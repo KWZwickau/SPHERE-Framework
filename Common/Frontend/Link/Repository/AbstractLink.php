@@ -171,6 +171,8 @@ abstract class AbstractLink extends Extension implements ILinkInterface
     }
 
     /**
+     * If the user has no permission for the path/route the content will be empty
+     *
      * @return string
      */
     public function getContent()

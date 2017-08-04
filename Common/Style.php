@@ -103,6 +103,8 @@ class Style extends Extension
 
         $this->setSource('/Library/jQuery.jCarousel/0.3.3/examples/responsive/jcarousel.responsive.css', false, true);
         $this->setSource('/Library/jQuery.FlowPlayer/6.0.3/skin/functional.css', false, true);
+        $this->setSource('/Library/jQuery.Select2/4.0.3/dist/css/select2.min.css', false, true);
+        $this->setSource('/Library/jQuery.Select2.Theme/0.1.0.9/dist/select2-bootstrap.min.css', false, true);
         $this->setSource('/Library/Highlight.js/8.8.0/styles/docco.css', false, true);
 
         switch ($SettingSurface) {
@@ -118,6 +120,8 @@ class Style extends Extension
                 $this->setSource('/Common/Style/Correction.css', false, true);
                 $this->setSource('/Common/Style/DataTable.Correction.css', false, true);
         }
+
+        $this->setSource('/Common/Style/Select2.Correction.css', false, true);
 
         $this->setSource('/Common/Style/CleanSlate/0.10.1/cleanslate.css',false,true);
         $this->setSource('/Common/Style/PhpInfo.css', false, true);
