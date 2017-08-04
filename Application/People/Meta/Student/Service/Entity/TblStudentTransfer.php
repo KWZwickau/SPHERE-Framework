@@ -24,15 +24,22 @@ class TblStudentTransfer extends Element
 
     const ATTR_TBL_STUDENT = 'tblStudent';
     const ATTR_TBL_TRANSFER_TYPE = 'tblStudentTransferType';
+    const ATTR_TBL_SCHOOL_ENROLLMENT_TYPE = 'tblStudentSchoolEnrollmentType';
 
     /**
      * @Column(type="bigint")
      */
     protected $tblStudent;
+
     /**
      * @Column(type="bigint")
      */
     protected $tblStudentTransferType;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblStudentSchoolEnrollmentType;
 
     /**
      * @Column(type="bigint")
@@ -208,5 +215,27 @@ class TblStudentTransfer extends Element
     {
 
         $this->serviceTblCourse = ( null === $tblCourse ? null : $tblCourse->getId() );
+    }
+
+    /**
+     * @return bool|TblStudentSchoolEnrollmentType
+     */
+    public function getTblStudentSchoolEnrollmentType()
+    {
+
+        if (null === $this->tblStudentSchoolEnrollmentType) {
+            return false;
+        } else {
+            return Student::useService()->getStudentSchoolEnrollmentTypeById($this->tblStudentSchoolEnrollmentType);
+        }
+    }
+
+    /**
+     * @param null|TblStudentSchoolEnrollmentType $tblStudentSchoolEnrollmentType
+     */
+    public function setTblStudentSchoolEnrollmentType(TblStudentSchoolEnrollmentType $tblStudentSchoolEnrollmentType = null)
+    {
+
+        $this->tblStudentSchoolEnrollmentType = ( null === $tblStudentSchoolEnrollmentType ? null : $tblStudentSchoolEnrollmentType->getId() );
     }
 }

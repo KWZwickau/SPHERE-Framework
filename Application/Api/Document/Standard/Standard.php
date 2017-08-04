@@ -30,15 +30,14 @@ class Standard extends Extension implements IModuleInterface
             __NAMESPACE__ . '/EnrollmentDocument/Create', __CLASS__ . '::createEnrollmentDocumentPdf'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/StudentCard/Create', __CLASS__.'::createStudentCardPdf'
+            __NAMESPACE__ . '/StudentCard/Create', __CLASS__ . '::createStudentCardPdf'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/AccidentReport/Create', __CLASS__.'::createAccidentReportPdf'
+            __NAMESPACE__ . '/AccidentReport/Create', __CLASS__ . '::createAccidentReportPdf'
         ));
-
-//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-//            __NAMESPACE__.'/StudentCard/Download', __NAMESPACE__.'\Repository\StudentCardTwig::downloadStudentCard')
-//        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/KamenzReport/Create', 'SPHERE\Application\Api\Document\Creator::createKamenzPdf'
+        ));
     }
 
     /**
@@ -78,7 +77,7 @@ class Standard extends Extension implements IModuleInterface
     public static function createAccidentReportPdf($PersonId = null)
     {
 
-        return Creator::createPdf($PersonId, __NAMESPACE__.'\Repository\AccidentReport');
+        return Creator::createPdf($PersonId, __NAMESPACE__ . '\Repository\AccidentReport');
     }
 
     /**

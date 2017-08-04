@@ -18,6 +18,7 @@ class TblStudentFocus extends Element
 
     const ATTR_TBL_STUDENT = 'tblStudent';
     const ATTR_TBL_STUDENT_FOCUS_TYPE = 'tblStudentFocusType';
+    const ATTR_IS_PRIMARY = 'IsPrimary';
 
     /**
      * @Column(type="bigint")
@@ -27,6 +28,11 @@ class TblStudentFocus extends Element
      * @Column(type="bigint")
      */
     protected $tblStudentFocusType;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsPrimary;
 
     /**
      * @return bool|TblStudent
@@ -70,5 +76,21 @@ class TblStudentFocus extends Element
     {
 
         $this->tblStudentFocusType = ( null === $tblStudentFocusType ? null : $tblStudentFocusType->getId() );
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isPrimary()
+    {
+        return (boolean) $this->IsPrimary;
+    }
+
+    /**
+     * @param boolean $IsPrimary
+     */
+    public function setIsPrimary($IsPrimary)
+    {
+        $this->IsPrimary = (boolean) $IsPrimary;
     }
 }

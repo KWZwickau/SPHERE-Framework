@@ -30,6 +30,8 @@ class ViewStudent extends AbstractView
     const TBL_STUDENT_TBL_STUDENT_LOCKER = 'TblStudent_tblStudentLocker';
     const TBL_STUDENT_TBL_STUDENT_BAPTISM = 'TblStudent_tblStudentBaptism';
     const TBL_STUDENT_TBL_STUDENT_INTEGRATION = 'TblStudent_tblStudentIntegration';
+    const TBL_STUDENT_HAS_MIGRATION_BACKGROUND = 'TblStudent_HasMigrationBackground';
+    const TBL_STUDENT_IS_IN_PREPARATION_DIVISION_FOR_MIGRANTS = 'IsInPreparationDivisionForMigrants';
 
     /**
      * @Column(type="string")
@@ -73,6 +75,16 @@ class ViewStudent extends AbstractView
     protected $TblStudent_tblStudentIntegration;
 
     /**
+     * @Column(type="boolean")
+     */
+    protected $TblStudent_HasMigrationBackground;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected $TblStudent_IsInPreparationDivisionForMigrants;
+
+    /**
      * Overwrite this method to return View-ObjectName as View-DisplayName
      *
      * @return string Gui-Name of Class
@@ -93,6 +105,8 @@ class ViewStudent extends AbstractView
 
         $this->setNameDefinition(self::TBL_STUDENT_IDENTIFIER, 'Schüler: Schülernummer');
         $this->setNameDefinition(self::TBL_STUDENT_SCHOOL_ATTENDANCE_START_DATE, 'Schüler: Schulpflicht beginn');
+        $this->setNameDefinition(self::TBL_STUDENT_HAS_MIGRATION_BACKGROUND, 'Schüler: Migrationshintergrund');
+        $this->setNameDefinition(self::TBL_STUDENT_IS_IN_PREPARATION_DIVISION_FOR_MIGRANTS, 'Schüler: Besucht Vorbereitungsklasse für Migranten');
     }
 
     /**

@@ -150,6 +150,20 @@ class Frontend extends Extension implements IFrontendInterface
                                                         'Beginnt am', new Calendar())
                                                 ), Panel::PANEL_TYPE_INFO)
                                                 , 4),
+                                            new FormColumn(
+                                                new Panel('Mitgration', array(
+                                                    new CheckBox(
+                                                        'Meta[Student][HasMigrationBackground]',
+                                                        'Migrationshintergrund',
+                                                        1
+                                                    ),
+                                                    new CheckBox(
+                                                        'Meta[Student][IsInPreparationDivisionForMigrants]',
+                                                        'Besucht Vorbereitungsklasse für Migranten',
+                                                        1
+                                                    )
+                                                ), Panel::PANEL_TYPE_INFO)
+                                                , 4),
                                         )), new Title(new TileSmall().' Grunddaten ',
                                             new Bold(new Success($tblPerson->getFullName())))
                                     ),
@@ -207,6 +221,10 @@ class Frontend extends Extension implements IFrontendInterface
                         );
                         $Global->POST['Meta']['Transfer'][$TransferTypeEnrollment->getId()]['Date'] = $tblStudentTransferEnrollment->getTransferDate();
                         $Global->POST['Meta']['Transfer'][$TransferTypeEnrollment->getId()]['Remark'] = $tblStudentTransferEnrollment->getRemark();
+                        $Global->POST['Meta']['Transfer'][$TransferTypeEnrollment->getId()]['StudentSchoolEnrollmentType']
+                            = $tblStudentTransferEnrollment->getTblStudentSchoolEnrollmentType()
+                            ? $tblStudentTransferEnrollment->getTblStudentSchoolEnrollmentType()->getId()
+                            : 0;
                     }
 
                     $TransferTypeArrive = Student::useService()->getStudentTransferTypeByIdentifier('Arrive');
@@ -435,6 +453,8 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $tblStudentSchoolEnrollmentTypeAll = Student::useService()->getStudentSchoolEnrollmentTypeAll();
+
         $tblStudentTransferTypeEnrollment = Student::useService()->getStudentTransferTypeByIdentifier('Enrollment');
         $tblStudentTransferTypeArrive = Student::useService()->getStudentTransferTypeByIdentifier('Arrive');
         $tblStudentTransferTypeLeave = Student::useService()->getStudentTransferTypeByIdentifier('Leave');
@@ -486,6 +506,11 @@ class Frontend extends Extension implements IFrontendInterface
                             )))->ajaxPipelineOnClick(
                             ApiMassReplace::pipelineOpen($Field)
                         )),
+
+                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeEnrollment->getId().'][StudentSchoolEnrollmentType]',
+                            'Einschulungsart', array(
+                                '{{ Name }}' => $tblStudentSchoolEnrollmentTypeAll
+                            ), new Education()),
 
                         ApiMassReplace::receiverField((
                         $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeEnrollment->getId().'][Course]',
@@ -796,6 +821,10 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $Global->POST['Meta']['Student']['Identifier'] = $tblStudent->getIdentifier();
                     $Global->POST['Meta']['Student']['SchoolAttendanceStartDate'] = $tblStudent->getSchoolAttendanceStartDate();
+
+                    $Global->POST['Meta']['Student']['HasMigrationBackground'] = $tblStudent->getHasMigrationBackground();
+                    $Global->POST['Meta']['Student']['IsInPreparationDivisionForMigrants'] = $tblStudent->isInPreparationDivisionForMigrants();
+
 
                     /** @var TblStudentMedicalRecord $tblStudentMedicalRecord */
                     $tblStudentMedicalRecord = $tblStudent->getTblStudentMedicalRecord();
@@ -1110,15 +1139,17 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormColumn(array(
                     $this->panelSubjectList('ELECTIVE', 'Wahlfächer', 'Wahlfach', $tblSubjectElective, 3, null, $Year,
                         $Division, $tblPerson),
+                ), 3),
+                new FormColumn(array(
                     $this->panelSubjectList('TEAM', 'Arbeitsgemeinschaften', 'Arbeitsgemeinschaft', $tblSubjectAll, 3,
                         null, $Year, $Division, $tblPerson),
                 ), 3),
-                new FormColumn(array(
-                    $this->panelSubjectList('TRACK_INTENSIVE', 'Leistungskurse', 'Leistungskurs', $tblSubjectAll, 2,
-                        null, $Year, $Division, $tblPerson),
-                    $this->panelSubjectList('TRACK_BASIC', 'Grundkurse', 'Grundkurs', $tblSubjectAll, 8, null, $Year,
-                        $Division, $tblPerson),
-                ), 3),
+//                new FormColumn(array(
+//                    $this->panelSubjectList('TRACK_INTENSIVE', 'Leistungskurse', 'Leistungskurs', $tblSubjectAll, 2,
+//                        null, $Year, $Division, $tblPerson),
+//                    $this->panelSubjectList('TRACK_BASIC', 'Grundkurse', 'Grundkurs', $tblSubjectAll, 8, null, $Year,
+//                        $Division, $tblPerson),
+//                ), 3),
             )),
         ), new Title(new TileSmall().' Unterrichtsfächer', new Bold(new Success($tblPerson->getFullName()))));
     }
@@ -1281,6 +1312,9 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($tblStudentFocusAll) {
                         foreach ($tblStudentFocusAll as $tblStudentFocus) {
                             $Global->POST['Meta']['Integration']['Focus'][$tblStudentFocus->getTblStudentFocusType()->getId()] = 1;
+                            if ($tblStudentFocus->isPrimary()) {
+                                $Global->POST['Meta']['Integration']['PrimaryFocus'] = $tblStudentFocus->getTblStudentFocusType()->getId();
+                            }
                         }
                     }
                 }
@@ -1312,10 +1346,12 @@ class Frontend extends Extension implements IFrontendInterface
             });
         $PanelDisorder = new Panel('Förderbedarf: Teilleistungsstörungen', $PanelDisorder, Panel::PANEL_TYPE_INFO);
 
-        $PanelFocus = array();
         $tblStudentFocusType = Student::useService()->getStudentFocusTypeAll();
         $tblStudentFocusType = $this->getSorter($tblStudentFocusType)->sortObjectBy('Name',
             new StringNaturalOrderSorter());
+        $PanelFocus = array();
+        $PanelFocus[] = new SelectBox('Meta[Integration][PrimaryFocus]', 'Primär geförderter Schwerpunkt',
+            array('{{ Name}}' => $tblStudentFocusType));
         array_walk($tblStudentFocusType,
             function (TblStudentFocusType $tblStudentFocusType) use (&$PanelFocus) {
 
