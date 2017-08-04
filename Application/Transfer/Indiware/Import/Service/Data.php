@@ -164,15 +164,15 @@ class Data extends AbstractData
                 foreach ($DivisionList as $Number) {
                     if (isset($Result['tblDivision'.$Number]) && $Result['tblDivision'.$Number]) {
 
-                        if (isset($Result['FileTeacher1']) && $Result['FileTeacher1'] != '') {
+                        if (isset($Result['FileTeacher1']) && $Result['FileTeacher1'] != '' && !isset($Result['DivisionColumn'.$Number.'TeacherColumn1'])) {
                             $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 1,
                                 $Number);
                         }
-                        if (isset($Result['FileTeacher2']) && $Result['FileTeacher2'] != '') {
+                        if (isset($Result['FileTeacher2']) && $Result['FileTeacher2'] != '' && !isset($Result['DivisionColumn'.$Number.'TeacherColumn2'])) {
                             $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 2,
                                 $Number);
                         }
-                        if (isset($Result['FileTeacher3']) && $Result['FileTeacher3'] != '') {
+                        if (isset($Result['FileTeacher3']) && $Result['FileTeacher3'] != '' && !isset($Result['DivisionColumn'.$Number.'TeacherColumn3'])) {
                             $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 3,
                                 $Number);
                         }
