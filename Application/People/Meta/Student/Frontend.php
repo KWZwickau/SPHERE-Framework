@@ -437,6 +437,11 @@ class Frontend extends Extension implements IFrontendInterface
         $tblStudentTransferTypeLeave = Student::useService()->getStudentTransferTypeByIdentifier('Leave');
         $tblStudentTransferTypeProcess = Student::useService()->getStudentTransferTypeByIdentifier('Process');
 
+        $NodeEnrollment = 'Schülertransfer - Ersteinschulung';
+        $NodeArrive = 'Schülertransfer - Schüler Aufnahme';
+        $NodeLeave = 'Schülertransfer - Schüler Abgabe';
+        $NodeProcess = 'Schülertransfer - Aktueller Schulverlauf';
+
         return new FormGroup(array(
             new FormRow(array(
                 new FormColumn(array(
@@ -448,7 +453,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 '{{ Name }} {{ Description }}' => $tblCompanyAllSchool
                             ), new Education())
                         ))
-                        .ApiMassReplace::receiverModal($Field)
+                        .ApiMassReplace::receiverModal($Field, $NodeEnrollment)
                         .new PullRight((new Link('Massen-Änderung',
                             ApiMassReplace::getEndpoint(), null, array(
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
@@ -459,8 +464,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                                 'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeEnrollment,
                             )))->ajaxPipelineOnClick(
-                            ApiMassReplace::pipelineOpen($Field)
+                            ApiMassReplace::pipelineOpen($Field, $NodeEnrollment)
                         )),
 
                         ApiMassReplace::receiverField((
@@ -469,7 +475,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
                             ), new Education())
                         ))
-                        .ApiMassReplace::receiverModal($Field)
+                        .ApiMassReplace::receiverModal($Field, $NodeEnrollment)
                         .new PullRight((new Link('Massen-Änderung',
                             ApiMassReplace::getEndpoint(), null, array(
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
@@ -480,8 +486,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                                 'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeEnrollment,
                             )))->ajaxPipelineOnClick(
-                            ApiMassReplace::pipelineOpen($Field)
+                            ApiMassReplace::pipelineOpen($Field, $NodeEnrollment)
                         )),
 
                         ApiMassReplace::receiverField((
@@ -490,7 +497,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
                             ), new Education())
                         ))
-                        .ApiMassReplace::receiverModal($Field)
+                        .ApiMassReplace::receiverModal($Field, $NodeEnrollment)
                         .new PullRight((new Link('Massen-Änderung',
                             ApiMassReplace::getEndpoint(), null, array(
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
@@ -501,8 +508,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                                 'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeEnrollment,
                             )))->ajaxPipelineOnClick(
-                            ApiMassReplace::pipelineOpen($Field)
+                            ApiMassReplace::pipelineOpen($Field, $NodeEnrollment)
                         )),
 
 //                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeEnrollment->getId().'][School]',
@@ -531,7 +539,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 '{{ Name }} {{ Description }}' => $tblCompanyAllSchoolNursery
                             ), new Education())
                         ))
-                        .ApiMassReplace::receiverModal($Field)
+                        .ApiMassReplace::receiverModal($Field, $NodeArrive)
                         .new PullRight((new Link('Massen-Änderung',
                             ApiMassReplace::getEndpoint(), null, array(
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
@@ -542,8 +550,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                                 'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeArrive,
                             )))->ajaxPipelineOnClick(
-                            ApiMassReplace::pipelineOpen($Field)
+                            ApiMassReplace::pipelineOpen($Field, $NodeArrive)
                         )),
 
                         ApiMassReplace::receiverField((
@@ -552,7 +561,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
                             ), new Education())
                         ))
-                        .ApiMassReplace::receiverModal($Field)
+                        .ApiMassReplace::receiverModal($Field, $NodeArrive)
                         .new PullRight((new Link('Massen-Änderung',
                             ApiMassReplace::getEndpoint(), null, array(
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
@@ -563,8 +572,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                                 'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeArrive,
                             )))->ajaxPipelineOnClick(
-                            ApiMassReplace::pipelineOpen($Field)
+                            ApiMassReplace::pipelineOpen($Field, $NodeArrive)
                         )),
 
                         ApiMassReplace::receiverField((
@@ -573,7 +583,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
                             ), new Education())
                         ))
-                        .ApiMassReplace::receiverModal($Field)
+                        .ApiMassReplace::receiverModal($Field, $NodeArrive)
                         .new PullRight((new Link('Massen-Änderung',
                             ApiMassReplace::getEndpoint(), null, array(
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
@@ -584,8 +594,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                                 'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeArrive,
                             )))->ajaxPipelineOnClick(
-                            ApiMassReplace::pipelineOpen($Field)
+                            ApiMassReplace::pipelineOpen($Field, $NodeArrive)
                         )),
 //                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][School]',
 //                            'Abgebende Schule / Kita', array(
@@ -614,7 +625,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 '{{ Name }} {{ Description }}' => $tblCompanyAllSchool
                             ), new Education())
                         ))
-                        .ApiMassReplace::receiverModal($Field)
+                        .ApiMassReplace::receiverModal($Field, $NodeLeave)
                         .new PullRight((new Link('Massen-Änderung',
                             ApiMassReplace::getEndpoint(), null, array(
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
@@ -625,8 +636,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                                 'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeLeave,
                             )))->ajaxPipelineOnClick(
-                            ApiMassReplace::pipelineOpen($Field)
+                            ApiMassReplace::pipelineOpen($Field, $NodeLeave)
                         )),
 
                         ApiMassReplace::receiverField((
@@ -635,7 +647,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
                             ), new Education())
                         ))
-                        .ApiMassReplace::receiverModal($Field)
+                        .ApiMassReplace::receiverModal($Field, $NodeLeave)
                         .new PullRight((new Link('Massen-Änderung',
                             ApiMassReplace::getEndpoint(), null, array(
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
@@ -646,8 +658,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                                 'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeLeave,
                             )))->ajaxPipelineOnClick(
-                            ApiMassReplace::pipelineOpen($Field)
+                            ApiMassReplace::pipelineOpen($Field, $NodeLeave)
                         )),
 
                         ApiMassReplace::receiverField((
@@ -656,7 +669,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
                             ), new Education())
                         ))
-                        .ApiMassReplace::receiverModal($Field)
+                        .ApiMassReplace::receiverModal($Field, $NodeLeave)
                         .new PullRight((new Link('Massen-Änderung',
                             ApiMassReplace::getEndpoint(), null, array(
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
@@ -667,8 +680,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                                 'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeLeave,
                             )))->ajaxPipelineOnClick(
-                            ApiMassReplace::pipelineOpen($Field)
+                            ApiMassReplace::pipelineOpen($Field, $NodeLeave)
                         )),
 //                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][School]',
 //                            'Aufnehmende Schule', array(
@@ -700,7 +714,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 '{{ Name }} {{ Description }}' => $tblCompanyAllOwn
                             ), new Education())
                         ))
-                        .ApiMassReplace::receiverModal($Field)
+                        .ApiMassReplace::receiverModal($Field, $NodeProcess)
                         .new PullRight((new Link('Massen-Änderung',
                             ApiMassReplace::getEndpoint(), null, array(
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
@@ -711,8 +725,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                                 'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeProcess,
                             )))->ajaxPipelineOnClick(
-                            ApiMassReplace::pipelineOpen($Field)
+                            ApiMassReplace::pipelineOpen($Field, $NodeProcess)
                         )),
 
                         ApiMassReplace::receiverField((
@@ -721,7 +736,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
                             ), new Education())
                         ))
-                        .ApiMassReplace::receiverModal($Field)
+                        .ApiMassReplace::receiverModal($Field, $NodeProcess)
                         .new PullRight((new Link('Massen-Änderung',
                             ApiMassReplace::getEndpoint(), null, array(
                                 ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
@@ -732,8 +747,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                                 'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
                                 'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeProcess,
                             )))->ajaxPipelineOnClick(
-                            ApiMassReplace::pipelineOpen($Field)
+                            ApiMassReplace::pipelineOpen($Field, $NodeProcess)
                         )),
 //                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]',
 //                            'Aktuelle Schule', array(
@@ -1158,12 +1174,13 @@ class Frontend extends Extension implements IFrontendInterface
                 || $Identifier == 'RELIGION'
                 || $Identifier == 'ORIENTATION'
             ) {
+                $Node = 'Unterrichtsfächer';
                 array_push($Panel,
                     ApiMassReplace::receiverField((
                     $Field = new SelectBox('Meta[Subject]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
                         $Label, array('{{ Acronym }} - {{ Name }} {{ Description }}' => $SubjectList), new Education())
                     ))
-                    .ApiMassReplace::receiverModal($Field)
+                    .ApiMassReplace::receiverModal($Field, $Node)
                     .new PullRight((new Link('Massen-Änderung',
                         ApiMassReplace::getEndpoint(), null, array(
                             ApiMassReplace::SERVICE_CLASS                                   => MassReplaceSubject::CLASS_MASS_REPLACE_SUBJECT,
@@ -1176,8 +1193,9 @@ class Frontend extends Extension implements IFrontendInterface
                             'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
                             'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
                             'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                            'Node'                                                          => $Node,
                         )))->ajaxPipelineOnClick(
-                        ApiMassReplace::pipelineOpen($Field)
+                        ApiMassReplace::pipelineOpen($Field, $Node)
                     ))
                 );
             } else {
