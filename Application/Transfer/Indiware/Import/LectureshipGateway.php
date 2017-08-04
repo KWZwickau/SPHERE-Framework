@@ -162,29 +162,26 @@ class LectureshipGateway extends AbstractConverter
 
         // remove doubled Lectureship
         // Lectureship definition: Division & Teacher & Subject & SubjectGroup
+        $Remove = array();
         for ($i = 1; $i <= 3; $i++) {
             for ($j = 1; $j <= 20; $j++) {
-                $Division = $Result['FileDivision'.$j];
+                $Division = $Result['DivisionId'.$j];
                 $Teacher = $Result['FileTeacher'.$i];
                 $Subject = $Result['FileSubject'];
                 $SubjectGroup = $Result['FileSubjectGroup'];
-                if ($Division != '') {
+                if ($Division != '' /*&& $Teacher != ''*/) {
                     // Unikat-Suche Schlüssel: Klasse-Lehrer[Spalte]-Fach-Fachgruppe
                     if (!in_array($Division.'x'.$Teacher.$i.'x'.$Subject.'x'.$SubjectGroup, $this->getLectureship())) {
                         $this->LectureshipList[] = $Division.'x'.$Teacher.$i.'x'.$Subject.'x'.$SubjectGroup;
                     } else {
-//                        $Result['FileDivision'.$j] = null;
-                        $Result['DivisionId'.$j] = null;
-//                        $Result['FileTeacher'.$i] = null;
-//                        $Result['TeacherId'.$i] = null;
-//                        $Result['FileSubject'] = '';
-//                        $Result['SubjectId'] = null;
-//                        $Result['FileSubjectGroup'] = '';
+                        $Remove['DivisionColumn'.$j.'TeacherColumn'.$i] = true;
+                        //$Result['DivisionId'.$j].' - '.$Result['FileDivision'.$j].' = '.$Result['FileTeacher'.$i].' = '.$Result['FileSubject'];
+
+//                        $Result['DivisionId'.$j] = null;
                     }
                 }
             }
         }
-
 
 //        if (!$this->IsError) {
         $tblDivision1 = (isset($Result['DivisionId1']) && $Result['DivisionId1'] !== null ? Division::useService()
@@ -288,6 +285,9 @@ class LectureshipGateway extends AbstractConverter
             'FileSubjectGroup' => $Result['FileSubjectGroup'],
             'AppSubjectGroup'  => $Result['AppSubjectGroup']
         );
+
+        $ImportRow = array_merge($ImportRow, $Remove);
+
         $this->ImportList[] = $ImportRow;
 
         $this->ResultList[] = $Result;
