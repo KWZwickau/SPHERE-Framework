@@ -402,10 +402,9 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Institutionen', 'Datenblatt '.( $Id ? 'bearbeiten' : 'anlegen' ));
-        if ($Group) {
-            $Stage->addButton(new Standard('Zurück', '/Corporation/Search/Group', new ChevronLeft(),
-                array('Id' => $Group)));
-        }
+
+        $Stage->addButton(new Standard('Zurück', '/Corporation/Search/Group', new ChevronLeft(),
+            array('Group' => $Group)));
 
         if (!$Id) {
 
