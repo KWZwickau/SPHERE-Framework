@@ -168,7 +168,7 @@ class LectureshipGateway extends AbstractConverter
                 $Teacher = $Result['FileTeacher'.$i];
                 $Subject = $Result['FileSubject'];
                 $SubjectGroup = $Result['FileSubjectGroup'];
-                if ($Division != '') {
+                if ($Division != '' && $Teacher != '') {
                     // Unikat-Suche Schlüssel: Klasse-Lehrer[Spalte]-Fach-Fachgruppe
                     if (!in_array($Division.'x'.$Teacher.$i.'x'.$Subject.'x'.$SubjectGroup, $this->getLectureship())) {
                         $this->LectureshipList[] = $Division.'x'.$Teacher.$i.'x'.$Subject.'x'.$SubjectGroup;
