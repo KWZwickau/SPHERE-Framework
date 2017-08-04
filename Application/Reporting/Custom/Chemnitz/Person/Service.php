@@ -1107,6 +1107,8 @@ class Service extends Extension
                 $Item['OrientationAndFrench'] = '';
                 $Item['Education'] = '';
                 $Item['Group'] = '';
+                $Item['Group1'] = false;
+                $Item['Group2'] = false;
                 $Item['Elective'] = '';
                 $Item['ExcelElective'] = '';
                 $Item['Integration'] = '';
@@ -1119,10 +1121,13 @@ class Service extends Extension
 
                 if ($tblStudentGroup1
                     && Group::useService()->existsGroupPerson($tblStudentGroup1, $tblPerson)){
-                    $Item['Group'] = 1;
-                } elseif ($tblStudentGroup2
+                    $Item['Group'] .= 1;
+                    $Item['Group1'] = true;
+                }
+                if ($tblStudentGroup2
                     && Group::useService()->existsGroupPerson($tblStudentGroup2, $tblPerson)){
-                    $Item['Group'] = 2;
+                    (!empty($Item['Group']) ? $Item['Group'] .= ', 2' : $Item['Group'] = 2);
+                    $Item['Group2'] = true;
                 }
 
                 $Sibling = array();
@@ -1534,9 +1539,10 @@ class Service extends Extension
             foreach ($PersonList as $PersonData) {
                 $NameRow = $AddressRow = $PhoneRow = $ElectiveRow = $Row;
 
-                if (isset($PersonData['Group']) && $PersonData['Group'] == 1) {
+                if (!empty($PersonData['Group1'])) {
                     $counterStudentGroup1++;
-                } elseif (isset($PersonData['Group']) && $PersonData['Group'] == 2) {
+                }
+                if (!empty($PersonData['Group2'])) {
                     $counterStudentGroup2++;
                 }
                 if (!empty($PersonData['Orientation'])) {
