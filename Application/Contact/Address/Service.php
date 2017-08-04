@@ -134,12 +134,75 @@ class Service extends AbstractService
     /**
      * @param IFormInterface $Form
      * @param TblPerson      $tblPerson
+     * @param                $Street
+     * @param                $City
+     * @param                $Type
+     *
+     * @return bool
+     */
+    public function checkFormAddressToPerson(
+        IFormInterface &$Form,
+        TblPerson $tblPerson,
+        $Street,
+        $City,
+        $Type
+    ) {
+
+        $Error = false;
+        if (isset($Street['Name']) && empty($Street['Name'])) {
+            $Form->setError('Street[Name]', 'Bitte geben Sie eine Strasse an');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Street[Name]');
+        }
+        if (isset($Street['Number']) && empty($Street['Number'])) {
+            $Form->setError('Street[Number]', 'Bitte geben Sie eine Hausnummer an');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Street[Number]');
+        }
+
+        if (isset($City['Code']) && empty($City['Code'])) {
+            $Form->setError('City[Code]', 'Bitte geben Sie eine Postleitzahl ein');
+            $Error = true;
+        } else {
+            $Form->setSuccess('City[Code]');
+        }
+        if (isset($City['Name']) && empty($City['Name'])) {
+            $Form->setError('City[Name]', 'Bitte geben Sie einen Namen ein');
+            $Error = true;
+        } else {
+            $Form->setSuccess('City[Name]');
+        }
+        if (!($tblType = $this->getTypeById($Type['Type']))) {
+            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ ein');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Type[Type]');
+            // control there is no other MainAddress
+            if ($tblType->getName() == 'Hauptadresse') {
+                $tblAddressMain = Address::useService()->getAddressByPerson($tblPerson);
+                if ($tblAddressMain) {
+                    $Form->setError('Type[Type]', '"'.$tblPerson->getFullName()
+                        .'" besitzt bereits eine Hauptadresse');
+                    $Error = true;
+                }
+            }
+        }
+        return $Error;
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param TblPerson      $tblPerson
      * @param array          $Street
      * @param array          $City
      * @param integer        $State
      * @param array          $Type
+     * @param string         $County
+     * @param string         $Nation
      *
-     * @return IFormInterface|string
+     * @return IFormInterface|string|TblToPerson
      */
     public function createAddressToPerson(
         IFormInterface $Form,
@@ -162,41 +225,61 @@ class Service extends AbstractService
             return $Form;
         }
 
-        $Error = false;
+        $Error = $this->checkFormAddressToPerson($Form, $tblPerson, $Street, $City, $Type);
+        $tblType = $this->getTypeById($Type['Type']);
 
-        if (isset( $Street['Name'] ) && empty( $Street['Name'] )) {
-            $Form->setError('Street[Name]', 'Bitte geben Sie eine Strasse an');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Street[Name]');
-        }
-        if (isset( $Street['Number'] ) && empty( $Street['Number'] )) {
-            $Form->setError('Street[Number]', 'Bitte geben Sie eine Hausnummer an');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Street[Number]');
-        }
+        if (!$Error && $tblType) {
+            if ($State) {
+                $tblState = $this->getStateById($State);
+            } else {
+                $tblState = null;
+            }
 
-        if (isset( $City['Code'] ) && empty($City['Code'])) {
-            $Form->setError('City[Code]', 'Bitte geben Sie eine Postleitzahl ein');
-            $Error = true;
-        } else {
-            $Form->setSuccess('City[Code]');
-        }
-        if (isset( $City['Name'] ) && empty( $City['Name'] )) {
-            $Form->setError('City[Name]', 'Bitte geben Sie einen Namen ein');
-            $Error = true;
-        } else {
-            $Form->setSuccess('City[Name]');
-        }
-        if (!($tblType = $this->getTypeById($Type['Type']))){
-            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ ein');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Type[Type]');
-        }
+            $tblCity = (new Data($this->getBinding()))->createCity(
+                $City['Code'], $City['Name'], $City['District']
+            );
+            $tblAddress = (new Data($this->getBinding()))->createAddress(
+                $tblState, $tblCity, $Street['Name'], $Street['Number'], '', $County, $Nation
+            );
 
-        if (!$Error) {
+            if ((new Data($this->getBinding()))->addAddressToPerson($tblPerson, $tblAddress, $tblType,
+                $Type['Remark'])
+            ) {
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Adresse wurde erfolgreich hinzugefügt')
+                    .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
+                        array('Id' => $tblPerson->getId()));
+            } else {
+                return new Danger(new Ban().' Die Adresse konnte nicht hinzugefügt werden')
+                    .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
+                        array('Id' => $tblPerson->getId()));
+            }
+        }
+        return $Form;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param array     $Street
+     * @param array     $City
+     * @param integer   $State
+     * @param array     $Type
+     * @param string    $County
+     * @param string    $Nation
+     *
+     * @return IFormInterface|string|TblToPerson
+     */
+    public function createAddressToPersonByApi(
+        TblPerson $tblPerson,
+        $Street = array(),
+        $City = array(),
+        $State,
+        $Type,
+        $County,
+        $Nation
+    ) {
+
+        $tblType = $this->getTypeById($Type['Type']);
+        if ($tblType) {
             if ($State) {
                 $tblState = $this->getStateById($State);
             } else {
@@ -209,19 +292,30 @@ class Service extends AbstractService
                 $tblState, $tblCity, $Street['Name'], $Street['Number'], '', $County, $Nation
             );
 
+            if ($tblType->getName() == 'Hauptadresse'
+                && $tblToPersonList = Address::useService()->getAddressAllByPersonAndType($tblPerson, $tblType)
+            ) {
+                $tblToPerson = current($tblToPersonList);
+                if ($tblToPerson->getServiceTblPerson()) {
+                    // Update current if exist
+                    if ((new Data($this->getBinding()))->updateAddressToPerson(
+                        $tblToPerson,
+                        $tblAddress,
+                        $tblType,
+                        $Type['Remark'])
+                    ) {
+                        return true;
+                    }
+                }
+            }
+            // Create if not exist
             if ((new Data($this->getBinding()))->addAddressToPerson($tblPerson, $tblAddress, $tblType,
                 $Type['Remark'])
             ) {
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Adresse wurde erfolgreich hinzugefügt')
-                .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
-                    array('Id' => $tblPerson->getId()));
-            } else {
-                return new Danger(new Ban() . ' Die Adresse konnte nicht hinzugefügt werden')
-                .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
-                    array('Id' => $tblPerson->getId()));
+                return true;
             }
         }
-        return $Form;
+        return false;
     }
 
     /**
@@ -233,6 +327,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getTypeById($Id);
+    }
+
+    /**
+     * @param string $Name
+     *
+     * @return bool|TblType
+     */
+    public function getTypeByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getTypeByName($Name);
     }
 
     /**
@@ -660,7 +765,8 @@ class Service extends AbstractService
     }
 
 
-    /**
+    /** get Main Address (Type ID 1)
+     *
      * @param TblPerson $tblPerson
      *
      * @return bool|TblAddress
@@ -669,6 +775,18 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getAddressByPerson($tblPerson);
+    }
+
+    /** get Main Address (Type ID 1)
+     *
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblToPerson
+     */
+    public function getAddressToPersonByPerson(TblPerson $tblPerson)
+    {
+
+        return ( new Data($this->getBinding()) )->getAddressToPersonByPerson($tblPerson);
     }
 
     /**

@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Setting\MyAccount;
 
+use SPHERE\Application\Api\Setting\ApiMyAccount\ApiMyAccount;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Mail\Service\Entity\TblToCompany as TblToCompanyMail;
 use SPHERE\Application\Contact\Phone\Phone;
@@ -46,7 +47,6 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
-use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -71,29 +71,37 @@ class Frontend extends Extension implements IFrontendInterface
         $tblAccount = Account::useService()->getAccountBySession();
         $Stage = new Stage('Mein Benutzerkonto', 'Passwort ändern');
         $Stage->addButton(new Standard('Zurück', '/Setting/MyAccount', new ChevronLeft()));
+        $Receiver = ApiMyAccount::receiverComparePassword();
         $Stage->setContent(
-            new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
-                new Well(
-                    MyAccount::useService()->updatePassword(
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(
+                    new Well(MyAccount::useService()->updatePassword(
                         new Form(
                             new FormGroup(
                                 new FormRow(array(
                                     new FormColumn(
                                         new Panel('Passwort', array(
-                                            new PasswordField('CredentialLock', 'Neues Passwort',
-                                                'Neues Passwort &nbsp;&nbsp;'
-                                                . new Small(new Warning('(Das Passwort muss mindestens 8 Zeichen lang sein.)')),
-                                                new Lock()),
-                                            new PasswordField('CredentialLockSafety', 'Passwort wiederholen',
+                                            (new PasswordField('CredentialLock', 'Neues Passwort',
+                                                'Neues Passwort'
+//                                                    . new Small(new Warning('(Das Passwort muss mindestens 8 Zeichen lang sein.)'))
+                                                ,
+                                                new Lock()))->setRequired()
+                                                ->setAutoFocus()
+                                                ->ajaxPipelineOnKeyUp(ApiMyAccount::pipelineComparePassword($Receiver)),
+                                            (new PasswordField('CredentialLockSafety', 'Passwort wiederholen',
                                                 'Passwort wiederholen',
-                                                new Repeat())
+                                                new Repeat()))->setRequired()
+                                                ->ajaxPipelineOnKeyUp(ApiMyAccount::pipelineComparePassword($Receiver))
                                         ), Panel::PANEL_TYPE_INFO)
                                     ),
                                 ))
                             ), new Primary('Speichern', new Save())
                         ), $tblAccount, $CredentialLock, $CredentialLockSafety
                     ))
-            )), new Title('Neues Passwort'))));
+                    , 8),
+                new LayoutColumn(($Receiver).ApiMyAccount::pipelineComparePassword($Receiver), 4)
+            )), new Title('Neues Passwort')))
+        );
         return $Stage;
     }
 

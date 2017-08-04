@@ -118,7 +118,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Form
      */
-    private function formAddress()
+    public function formAddress()
     {
 
 //        $tblMailAll = Mail::useService()->getMailAll();

@@ -16,17 +16,22 @@ class ModalReceiver extends AbstractReceiver
     private $Header = null;
     /** @var null|string $Footer */
     private $Footer = null;
+    /** @var bool $isCloseable */
+    private $isCloseable = null;
 
     /**
      * ModalReceiver constructor.
+     *
      * @param string|null $Header
      * @param string|null $Footer
+     * @param bool        $isCloseable true
      */
-    public function __construct($Header = null, $Footer = null)
+    public function __construct($Header = null, $Footer = null, $isCloseable = true)
     {
         $this->Template = $this->getTemplate(__DIR__ . '/ModalReceiver.twig');
         $this->Header = $Header;
         $this->Footer = $Footer;
+        $this->isCloseable = $isCloseable;
         parent::__construct();
     }
 
@@ -35,7 +40,11 @@ class ModalReceiver extends AbstractReceiver
      */
     public function getHandler()
     {
-        return 'jQuery("#' . $this->getSelector() . '").find("div.modal-body").html(' . self::RESPONSE_CONTAINER . ');  jQuery("#' . $this->getSelector() . '").modal();';
+        return 'jQuery("#'.$this->getSelector().'").find("div.modal-body").html('.self::RESPONSE_CONTAINER.'); '
+            .($this->isCloseable
+                ? 'jQuery("#'.$this->getSelector().'").modal();'
+                : 'jQuery("#'.$this->getSelector().'").modal({ "backdrop": "static", "keyboard": false });'
+            );
     }
 
     /**

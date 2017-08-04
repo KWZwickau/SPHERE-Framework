@@ -412,6 +412,26 @@ class Data extends AbstractData
         }
     }
 
+    /** get Main Address (Type ID 1)
+     *
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblToPerson
+     */
+    public function getAddressToPersonByPerson(TblPerson $tblPerson)
+    {
+
+        // TODO: Persistent Types
+        $Type = $this->getTypeById(1);
+
+        /** @var TblToPerson $Entity */
+        return $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
+            array(
+                TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
+                TblToPerson::ATT_TBL_TYPE       => $Type->getId()
+            ));
+    }
+
     /**
      * @param integer $Id
      *
@@ -421,6 +441,20 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblType', $Id);
+    }
+
+    /**
+     * @param string $Name
+     *
+     * @return bool|TblType
+     */
+    public function getTypeByName($Name)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblType',
+            array(
+                TblType::ATTR_NAME => $Name
+            ));
     }
 
     /**
@@ -511,7 +545,7 @@ class Data extends AbstractData
 
     /**
      * @param TblToPerson $tblToPerson
-     * @param bool $IsSoftRemove
+     * @param bool        $IsSoftRemove
      *
      * @return bool
      */
