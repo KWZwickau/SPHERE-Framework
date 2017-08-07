@@ -164,16 +164,24 @@ class Data extends AbstractData
                 foreach ($DivisionList as $Number) {
                     if (isset($Result['tblDivision'.$Number]) && $Result['tblDivision'.$Number]) {
 
-                        if (isset($Result['FileTeacher1']) && $Result['FileTeacher1'] != '') {
+                        if (isset($Result['FileTeacher1']) && $Result['FileTeacher1'] != '' && !isset($Result['DivisionColumn'.$Number.'TeacherColumn1'])) {
                             $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 1,
                                 $Number);
                         }
-                        if (isset($Result['FileTeacher2']) && $Result['FileTeacher2'] != '') {
+                        if (isset($Result['FileTeacher2']) && $Result['FileTeacher2'] != '' && !isset($Result['DivisionColumn'.$Number.'TeacherColumn2'])) {
                             $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 2,
                                 $Number);
                         }
-                        if (isset($Result['FileTeacher3']) && $Result['FileTeacher3'] != '') {
+                        if (isset($Result['FileTeacher3']) && $Result['FileTeacher3'] != '' && !isset($Result['DivisionColumn'.$Number.'TeacherColumn3'])) {
                             $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 3,
+                                $Number);
+                        }
+                        // Eintrag komplett ohne Lehrer speichern
+                        if ((isset($Result['FileTeacher1']) && $Result['FileTeacher1'] == '')
+                            && (isset($Result['FileTeacher2']) && $Result['FileTeacher2'] == '')
+                            && (isset($Result['FileTeacher3']) && $Result['FileTeacher3'] == '')
+                        ) {
+                            $this->createIndiwareImportLectureship($Manager, $tblYear, $tblAccount, $Result, 1,
                                 $Number);
                         }
                     }
@@ -278,13 +286,15 @@ class Data extends AbstractData
      * @param            $ImportList
      * @param TblYear    $tblYear
      * @param TblAccount $tblAccount
+     * @param string     $LevelString
      *
      * @return bool
      */
     public function createIndiwareImportStudentBulk(
         $ImportList,
         TblYear $tblYear,
-        TblAccount $tblAccount
+        TblAccount $tblAccount,
+        $LevelString = ''
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -292,7 +302,8 @@ class Data extends AbstractData
 
             $SubjectList = $this->getSubjectCount(17);
             foreach ($ImportList as $Result) {
-                $tblIndiwareImportStudent = $this->createIndiwareImportStudent($tblYear, $tblAccount, $Result);
+                $tblIndiwareImportStudent = $this->createIndiwareImportStudent($tblYear, $tblAccount, $Result,
+                    $LevelString);
                 foreach ($SubjectList as $Number) {
                     if (isset($Result['FileSubject'.$Number]) && $Result['FileSubject'.$Number]) {
 
@@ -330,13 +341,15 @@ class Data extends AbstractData
      * @param TblYear    $tblYear
      * @param TblAccount $tblAccount
      * @param array      $Result
+     * @param string     $LevelString
      *
      * @return TblIndiwareImportStudent
      */
     private function createIndiwareImportStudent(
         TblYear $tblYear,
         TblAccount $tblAccount,
-        $Result = array()
+        $Result = array(),
+        $LevelString = ''
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -346,6 +359,7 @@ class Data extends AbstractData
         $Entity->setServiceTblPerson(($Result['tblPerson'] ? $Result['tblPerson'] : null));
         $Entity->setServiceTblDivision(($Result['tblDivision'] ? $Result['tblDivision'] : null));
         $Entity->setServiceTblAccount($tblAccount);
+        $Entity->setLevel($LevelString);
         $Entity->setIsIgnore(false);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -398,6 +412,7 @@ class Data extends AbstractData
         $Entity->setSubjectGroup($Result['AppSubjectGroup'.$SubjectNumber]);
         $Entity->setCourseNumber($SubjectNumber);
         $Entity->setIsIntensiveCourse($Result['IsIntensiveCourse'.$SubjectNumber]);
+        $Entity->setIsIgnoreCourse(false);
         $Entity->setServiceTblSubject(($Result['tblSubject'.$SubjectNumber] ? $Result['tblSubject'.$SubjectNumber] : null));
         $Entity->settblIndiwareImportStudent($tblIndiwareImportStudent);
         $Manager->bulkSaveEntity($Entity);
@@ -405,20 +420,22 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblSubject               $tblSubject
      * @param string                   $SubjectGroup
      * @param string                   $SubjectName
      * @param int                      $Number
      * @param bool                     $IsIntensiveCourse
+     * @param bool                     $IsIgnoreCourse
      * @param TblIndiwareImportStudent $tblIndiwareImportStudent
+     * @param TblSubject               $tblSubject
      */
     public function createIndiwareImportStudentCourse(
         $SubjectGroup = '',
         $SubjectName = '',
         $Number,
         $IsIntensiveCourse = false,
+        $IsIgnoreCourse = false,
         TblIndiwareImportStudent $tblIndiwareImportStudent,
-        $tblSubject = null
+        TblSubject $tblSubject = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -428,11 +445,45 @@ class Data extends AbstractData
         $Entity->setSubjectName($SubjectName);
         $Entity->setCourseNumber($Number);
         $Entity->setIsIntensiveCourse($IsIntensiveCourse);
+        $Entity->setIsIgnoreCourse($IsIgnoreCourse);
         $Entity->settblIndiwareImportStudent($tblIndiwareImportStudent);
         $Entity->setServiceTblSubject($tblSubject);
 
         $Manager->SaveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+    }
+
+    /**
+     * @param TblIndiwareImportStudentCourse $tblIndiwareImportStudentCourse
+     * @param TblSubject                     $tblSubject
+     * @param string                         $SubjectGroup
+     * @param bool                           $IsIntensive
+     * @param bool                           $IgnoreCourse
+     *
+     * @return bool|TblIndiwareImportStudentCourse
+     */
+    public function updateIndiwareImportStudentCourse(
+        TblIndiwareImportStudentCourse $tblIndiwareImportStudentCourse,
+        $tblSubject = null,
+        $SubjectGroup = '',
+        $IsIntensive = false,
+        $IgnoreCourse = false
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntityById('TblIndiwareImportStudentCourse', $tblIndiwareImportStudentCourse->getId());
+        /** @var TblIndiwareImportStudentCourse $Entity */
+        if ($Entity !== null) {
+            $Protocol = clone $Entity;
+            $Entity->setServiceTblSubject($tblSubject);
+            $Entity->setSubjectGroup($SubjectGroup);
+            $Entity->setIsIntensiveCourse($IsIntensive);
+            $Entity->setIsIgnoreCourse($IgnoreCourse);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return $Entity;
+        }
+        return false;
     }
 
     /**
@@ -453,6 +504,26 @@ class Data extends AbstractData
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setIsIgnore($isIgnore);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+
+        return false;
+    }
+
+    public function updateIndiwareImportStudentDivision(
+        TblIndiwareImportStudent $tblIndiwareImportStudent,
+        TblDivision $tblDivision
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblIndiwareImportStudent $Entity */
+        $Entity = $Manager->getEntityById('TblIndiwareImportStudent', $tblIndiwareImportStudent->getId());
+        if (null !== $Entity) {
+            $Protocol = clone $Entity;
+            $Entity->setServiceTblDivision($tblDivision);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;

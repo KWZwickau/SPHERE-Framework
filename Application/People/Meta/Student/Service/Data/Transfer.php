@@ -5,6 +5,7 @@ use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSchoolEnrollmentType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -96,13 +97,14 @@ abstract class Transfer extends Agreement
     }
 
     /**
-     * @param TblStudent             $tblStudent
+     * @param TblStudent $tblStudent
      * @param TblStudentTransferType $tblStudentTransferType
-     * @param TblCompany|null        $tblCompany
-     * @param TblType|null           $tblType
-     * @param TblCourse|null         $tblCourse
-     * @param                        $TransferDate
-     * @param                        $Remark
+     * @param TblCompany|null $tblCompany
+     * @param TblType|null $tblType
+     * @param TblCourse|null $tblCourse
+     * @param $TransferDate
+     * @param $Remark
+     * @param TblStudentSchoolEnrollmentType|null $tblStudentSchoolEnrollmentType
      *
      * @return TblStudentTransfer
      */
@@ -113,7 +115,8 @@ abstract class Transfer extends Agreement
         TblType $tblType = null,
         TblCourse $tblCourse = null,
         $TransferDate,
-        $Remark
+        $Remark,
+        TblStudentSchoolEnrollmentType $tblStudentSchoolEnrollmentType = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -131,6 +134,7 @@ abstract class Transfer extends Agreement
             $Entity->setServiceTblCourse($tblCourse);
             $Entity->setTransferDate(( $TransferDate ? new \DateTime($TransferDate) : null ));
             $Entity->setRemark($Remark);
+            $Entity->setTblStudentSchoolEnrollmentType($tblStudentSchoolEnrollmentType);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -140,14 +144,15 @@ abstract class Transfer extends Agreement
     }
 
     /**
-     * @param TblStudentTransfer     $tblStudentTransfer
-     * @param TblStudent             $tblStudent
+     * @param TblStudentTransfer $tblStudentTransfer
+     * @param TblStudent $tblStudent
      * @param TblStudentTransferType $tblStudentTransferType
-     * @param TblCompany|null        $tblCompany
-     * @param TblType|null           $tblType
-     * @param TblCourse|null         $tblCourse
-     * @param                        $TransferDate
-     * @param                        $Remark
+     * @param TblCompany|null $tblCompany
+     * @param TblType|null $tblType
+     * @param TblCourse|null $tblCourse
+     * @param $TransferDate
+     * @param $Remark
+     * @param TblStudentSchoolEnrollmentType|null $tblStudentSchoolEnrollmentType
      *
      * @return bool
      */
@@ -159,7 +164,8 @@ abstract class Transfer extends Agreement
         TblType $tblType = null,
         TblCourse $tblCourse = null,
         $TransferDate,
-        $Remark
+        $Remark,
+        TblStudentSchoolEnrollmentType $tblStudentSchoolEnrollmentType = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -175,6 +181,7 @@ abstract class Transfer extends Agreement
             $Entity->setServiceTblCourse($tblCourse);
             $Entity->setTransferDate(( $TransferDate ? new \DateTime($TransferDate) : null ));
             $Entity->setRemark($Remark);
+            $Entity->setTblStudentSchoolEnrollmentType($tblStudentSchoolEnrollmentType);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

@@ -14,6 +14,8 @@ class TextField extends AbstractTextField implements IFieldInterface
 {
     /** @var string $Label */
     private $Label = '';
+    /** @var string $Label */
+    private $Placeholder = '';
     /**
      * @param string         $Name
      * @param null|string    $Placeholder
@@ -31,6 +33,7 @@ class TextField extends AbstractTextField implements IFieldInterface
 
         $this->Name = $Name;
         $this->Label = $Label;
+        $this->Placeholder = $Placeholder;
         $this->Template = $this->getTemplate(__DIR__.'/TextField.twig');
         $this->Template->setVariable('ElementName', $Name);
         $this->Template->setVariable('ElementLabel', $Label);
@@ -50,4 +53,13 @@ class TextField extends AbstractTextField implements IFieldInterface
     {
         return $this->Label;
     }
+
+    /**
+     * @return string
+     */
+    public function getPlaceholder()
+    {
+        return $this->Placeholder;
+    }
+
 }

@@ -9,9 +9,11 @@
         var settings = $.extend({
             locale: moment.locale()
             // These are the defaults.
-        }, options);
+        }, options), _self = this;
 
-        this.datetimepicker(settings);
+        this.datetimepicker(settings).on('dp.change',function(){
+            _self.trigger('change')
+        });
         return this;
 
     };

@@ -28,7 +28,6 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
-use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -51,7 +50,6 @@ use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Quote;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
-use SPHERE\Common\Frontend\Icon\Repository\ResizeVertical;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -1726,13 +1724,17 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($tblGrade->getGrade() === null) {
                         $Global->POST['Grade'][$tblGrade->getServiceTblPerson()->getId()]['Attendance'] = 1;
                     } else {
-                        $Global->POST['Grade'][$tblGrade->getServiceTblPerson()->getId()]['Grade'] =
-                            str_replace('.', ',', $tblGrade->getGrade());
 
+                        $gradeValue = str_replace('.', ',', $tblGrade->getGrade());
                         $trend = $tblGrade->getTrend();
                         if ($trend !== null) {
-                            $Global->POST['Grade'][$tblGrade->getServiceTblPerson()->getId()]['Trend'] = $trend;
+                            if ($trend == TblGrade::VALUE_TREND_PLUS) {
+                                $gradeValue .= '+';
+                            } elseif ($trend == TblGrade::VALUE_TREND_MINUS) {
+                                $gradeValue .= '-';
+                            }
                         }
+                        $Global->POST['Grade'][$tblGrade->getServiceTblPerson()->getId()]['Grade'] = $gradeValue;
                     }
                     $Global->POST['Grade'][$tblGrade->getServiceTblPerson()->getId()]['Comment'] = $tblGrade->getComment();
                     if ($tblTest->isContinues()) {
@@ -2024,14 +2026,6 @@ class Frontend extends Extension implements IFrontendInterface
                 $studentList = $dataList;
 
                 $columnDefinition['Grade'] = 'Zensur';
-                if ($tblScoreType
-                    && ($tblScoreType->getIdentifier() == 'GRADES'
-                        || ($tblScoreType->getIdentifier() == 'GRADES_BEHAVIOR_TASK'))
-                ) {
-                    if (!(!$IsEdit && $tblTask->isAfterEditPeriod())) {
-                        $columnDefinition['Trend'] = 'Tendenz';
-                    }
-                }
                 $columnDefinition['Text'] = 'oder Zeugnistext';
                 $columnDefinition['Comment'] = 'Vermerk Notenänderung';
             } else {
@@ -2041,7 +2035,6 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblTask ? $tblTask : null,
                     $tblDivision,
                     $tblSubject,
-                    $tblScoreType ? $tblScoreType : null,
                     $tblNextTest,
                     $BasicRoute,
                     $studentList,
@@ -2058,12 +2051,6 @@ class Frontend extends Extension implements IFrontendInterface
             $tableColumns['Name'] = 'Schüler';
             $tableColumns['Course'] = 'Bildungsgang';
             $tableColumns['Grade'] = 'Zensur';
-            if ($tblScoreType
-                && ($tblScoreType->getIdentifier() == 'GRADES'
-                    || $tblScoreType->getIdentifier() == 'GRADES_BEHAVIOR_TASK')
-            ) {
-                $tableColumns['Trend'] = 'Tendenz';
-            }
             if ($tblTest->isContinues()) {
                 $tableColumns['Date'] = 'Datum' . ($tblTest->getFinishDate() ? ' (' . $tblTest->getFinishDate() . ')' : '');
             }
@@ -2073,6 +2060,29 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($studentList) {
             $tabIndex = 1;
+            $selectList = array();
+            if ($tblScoreType) {
+                $selectList[-1] = '&nbsp;';
+                if ($tblScoreType->getIdentifier() == 'GRADES') {
+                    for ($i = 1; $i < 6; $i++) {
+                        $selectList[$i . '+'] = $i . '+';
+                        $selectList[$i] = $i;
+                        $selectList[$i . '-'] = $i . '-';
+                    }
+                    $selectList[6] = 6;
+                } elseif ($tblScoreType->getIdentifier() == 'GRADES_BEHAVIOR_TASK') {
+                    for ($i = 1; $i < 5; $i++) {
+                        $selectList[$i . '+'] = $i . '+';
+                        $selectList[$i] = $i;
+                        $selectList[$i . '-'] = $i . '-';
+                    }
+                    $selectList[5] = 5;
+                } elseif ($tblScoreType->getIdentifier() == 'POINTS') {
+                    for ($i = 0; $i < 16; $i++) {
+                        $selectList[$i] = $i;
+                    }
+                }
+            }
             foreach ($studentList as $personId => $value) {
                 $tblPerson = Person::useService()->getPersonById($personId);
                 if ($studentTestList && isset($studentTestList[$personId])) {
@@ -2083,7 +2093,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTestOfPerson,
                     $tblPerson);
                 $studentList = $this->contentEditTestGradeTableRow($tblPerson, $tblGrade, $IsEdit, $studentList,
-                    $tabIndex, $IsTaskAndInPeriod, $tblScoreType ? $tblScoreType : null, $tblTest
+                    $tabIndex, $selectList, $IsTaskAndInPeriod, $tblScoreType ? $tblScoreType : null, $tblTest
                 );
             }
         }
@@ -2123,11 +2133,6 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             );
         } else {
-            if ($tblTask && !$IsEdit && $tblTask->isAfterEditPeriod()) {
-                if (isset($tableColumns['Trend'])) {
-                    unset($tableColumns['Trend']);
-                }
-            }
             $tableData = new TableData($studentList, null, $tableColumns, null);
         }
 
@@ -2261,10 +2266,10 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $IsEdit
      * @param $student
      * @param $tabIndex
+     * @param $selectList
      * @param bool $IsTaskAndInPeriod
      * @param TblScoreType|null $tblScoreType
      * @param TblTest $tblTest
-     *
      * @return array
      */
     private function contentEditTestGradeTableRow(
@@ -2273,6 +2278,7 @@ class Frontend extends Extension implements IFrontendInterface
         $IsEdit,
         $student,
         &$tabIndex,
+        $selectList,
         $IsTaskAndInPeriod = false,
         TblScoreType $tblScoreType = null,
         TblTest $tblTest = null
@@ -2293,22 +2299,25 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblScoreType->getIdentifier() == 'VERBAL') {
                     $student[$tblPerson->getId()]['Grade']
                         = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', '',
-                        new Quote()))->setTabIndex(1);
+                        new Quote()))->setTabIndex($tabIndex++);
                 } elseif ($tblScoreType->getIdentifier() == 'GRADES_V1'
                     || $tblScoreType->getIdentifier() == 'GRADES_COMMA'
                 ) {
                     $student[$tblPerson->getId()]['Grade']
                         = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '',
                         ''))->setTabIndex($tabIndex++);
-                } elseif ($tblScoreType->getIdentifier() == 'POINTS') {
-                    $student[$tblPerson->getId()]['Grade']
-                        = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '',
-                        ''))->setTabIndex($tabIndex++);
                 } else {
-                    $student = $this->setFieldsForGradesWithTrend($student, $tblPerson, $tabIndex);
+                    $selectBox = (new SelectBox('Grade[' . $tblPerson->getId() . '][Grade]', '', $selectList));
+                    $selectBox->setTabIndex($tabIndex++);
+                    $selectBox->configureLibrary( SelectBox::LIBRARY_SELECT2 );
+
+                    $student[$tblPerson->getId()]['Grade']
+                        = $selectBox;
                 }
             } else {
-                $student = $this->setFieldsForGradesWithTrend($student, $tblPerson, $tabIndex);
+                $student[$tblPerson->getId()]['Grade']
+                    = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', '',
+                    new Quote()))->setTabIndex($tabIndex++);
             }
 
             if ($tblTest && $tblTest->isContinues()) {
@@ -2331,31 +2340,6 @@ class Frontend extends Extension implements IFrontendInterface
                     '', array(TblGradeText::ATTR_NAME => $tblGradeTextList));
             }
         }
-
-        return $student;
-    }
-
-    /**
-     * @param $student
-     * @param TblPerson $tblPerson
-     * @param $tabIndex
-     *
-     * @return array
-     */
-    private function setFieldsForGradesWithTrend($student, TblPerson $tblPerson, &$tabIndex)
-    {
-
-        $selectBoxContent = array(
-            TblGrade::VALUE_TREND_NULL => '',
-            TblGrade::VALUE_TREND_PLUS => 'Plus',
-            TblGrade::VALUE_TREND_MINUS => 'Minus'
-        );
-
-        $student[$tblPerson->getId()]['Grade']
-            = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''))->setTabIndex($tabIndex++);
-        $student[$tblPerson->getId()]['Trend']
-            = (new SelectBox('Grade[' . $tblPerson->getId() . '][Trend]', '', $selectBoxContent,
-            new ResizeVertical()))->setTabIndex($tabIndex++);
 
         return $student;
     }
@@ -3653,7 +3637,6 @@ class Frontend extends Extension implements IFrontendInterface
         TblTask $tblTask = null,
         TblDivision $tblDivision,
         TblSubject $tblSubject,
-        TblScoreType $tblScoreType = null,
         TblTest &$tblNextTest = null,
         $BasicRoute,
         &$studentList,
@@ -3742,12 +3725,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tableColumns['PreviewsGrade'] = 'Letzte Zensur';
         $tableColumns['Grade'] = 'Zensur';
-        if ($tblScoreType
-            && ($tblScoreType->getIdentifier() == 'GRADES'
-                || $tblScoreType->getIdentifier() == 'GRADES_BEHAVIOR_TASK')
-        ) {
-            $tableColumns['Trend'] = 'Tendenz';
-        }
         $tableColumns['Comment'] = 'Vermerk Notenänderung';
 
         return $gradeType;

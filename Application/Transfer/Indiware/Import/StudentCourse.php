@@ -29,6 +29,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Listing as ListingIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
@@ -43,6 +44,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger as DangerMessage;
@@ -91,6 +93,9 @@ class StudentCourse extends Extension implements IFrontendInterface
             __CLASS__.'/Edit', __CLASS__.'::frontendStudentCourseEdit'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __CLASS__.'/DivisionRefresh', __CLASS__.'::frontendActiveDivision'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __CLASS__.'/Destroy', __CLASS__.'::frontendStudentCourseDestroy'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -116,53 +121,26 @@ class StudentCourse extends Extension implements IFrontendInterface
             $tblYearAll = array();
         }
 
-        // try to POST tblYear if YearByNow exist
-        $tblYearList = Term::useService()->getYearByNow();
-        if ($tblYearList) {
-            $tblYear = false;
-            // last Entity should be the first created year
-            foreach ($tblYearList as $tblYearEntity) {
-                $tblYear = $tblYearEntity;
-            }
-            if ($tblYear) {
-                $Global = $this->getGlobal();
-                $Global->POST['tblYear'] = $tblYear->getId();
-                $Global->savePost();
-            }
-        }
-
-//        $Value = '9 gam';
-//        if (preg_match('!^(\d+)([äöüÄÖÜa-zA-Z]*?)$!is', $Value, $Match)) {
-//            $LevelName = $Match[1];
-//            $DivisionName = $Match[2];
-//            Debugger::screenDump($LevelName.' - '.$DivisionName);
-//        } elseif (preg_match('!^(.*?)\s([äöüÄÖÜa-zA-Z]*?)$!is', $Value, $Match)) {
-//            $LevelName = $Match[1];
-//            $DivisionName = $Match[2];
-//            Debugger::screenDump($LevelName.' - '.$DivisionName);
-//        } elseif (preg_match('!^([äöüÄÖÜa-zA-Z]*?)\s(.W?)$!is', $Value, $Match)) {
-//            $DivisionName = $Match[1];
-//            $LevelName = $Match[2];
-//            Debugger::screenDump($LevelName.' - '.$DivisionName);
-//        } elseif (preg_match('!^([0-9]*?)$!is', $Value, $Match)) {
-//            $DivisionName = null;
-//            $LevelName = $Match[1];
-//            Debugger::screenDump($LevelName.' - '.$DivisionName);
-//        } elseif (preg_match('!^([äöüÄÖÜa-zA-Z]*?)(\d+)$!is', $Value, $Match)) {
-//            $LevelName = $Match[2];
-//            $DivisionName = $Match[1];
-//            Debugger::screenDump($LevelName.' - '.$DivisionName);
-//        } elseif (preg_match('!^(.*?)$!is', $Value, $Match)) {
-//            $DivisionName = $Match[1];
-//            $LevelName = null;
-//            Debugger::screenDump($LevelName.' - '.$DivisionName);
-//        } else {
-//            Debugger::screenDump('Keine Treffer!');
+//        // try to POST tblYear if YearByNow exist
+//        $tblYearList = Term::useService()->getYearByNow();
+//        if ($tblYearList) {
+//            $tblYear = false;
+//            // last Entity should be the first created year
+//            foreach ($tblYearList as $tblYearEntity) {
+//                $tblYear = $tblYearEntity;
+//            }
+//            if ($tblYear) {
+//                $Global = $this->getGlobal();
+//                $Global->POST['tblYear'] = $tblYear->getId();
+//                $Global->savePost();
+//            }
 //        }
 
         $tblIndiwareImportStudentList = Import::useService()->getIndiwareImportStudentAll(true);
 
+
         $LevelList = array(
+            0 => '',
             1 => 'Stufe 11 - 1.Halbjahr',
             2 => 'Stufe 11 - 2.Halbjahr',
             3 => 'Stufe 12 - 1.Halbjahr',
@@ -197,7 +175,8 @@ class StudentCourse extends Extension implements IFrontendInterface
                                                             'Weche Werte sollen importiert werden'),
                                                         $LevelList
                                                     ))->setRequired(),
-                                                    (new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
+                                                    (new FileUpload('File', 'Datei auswählen', 'Datei auswählen '
+                                                        .new ToolTip(new InfoIcon(), 'Schueler.csv'), null,
                                                         array('showPreview' => false)))->setRequired()
                                                 ), Panel::PANEL_TYPE_INFO)
                                         )
@@ -245,7 +224,7 @@ class StudentCourse extends Extension implements IFrontendInterface
         }
         if ($Level == 0) {
             $Stage->setContent(
-                new WarningMessage('Bitte geben Sie den zu importierenden Abschnitt an')
+                new WarningMessage('Bitte geben Sie den zu importierenden Abschnitt "Importauswahl" an')
                 .new Redirect(new Route(__NAMESPACE__.'/StudentCourse/Prepare'), Redirect::TIMEOUT_ERROR, array(
                     'tblYear' => $tblYear,
                     'Level'   => $Level
@@ -284,36 +263,32 @@ class StudentCourse extends Extension implements IFrontendInterface
             $Payload->setFileContent(file_get_contents($File->getRealPath()));
             $Payload->saveFile();
 
-
             // Test
             $Control = new StudentCourseControl($Payload->getRealPath());
             if (!$Control->getCompare()) {
+
                 $LayoutColumnList = array();
-                $LayoutColumnList[] = new LayoutColumn(new WarningMessage('Die Datei entspricht nicht dem vollen Export
-                 aus Indiware'));
-                $ColumnList = $Control->getColumnList();
-                if (!empty($ColumnList)) {
-                    foreach ($ColumnList as $Column => $Value) {
-                        $LayoutColumnList[] = new LayoutColumn(new Panel('Spalte '.$Column, 'Name: '.$Value,
+                $LayoutColumnList[] = new LayoutColumn(new WarningMessage('Die Datei beinhaltet nicht alle benötigten Spalten'));
+                $DifferenceList = $Control->getDifferenceList();
+                if (!empty($DifferenceList)) {
+
+                    foreach ($DifferenceList as $Column => $Value) {
+                        $LayoutColumnList[] = new LayoutColumn(new Panel('Fehlende Spalte', $Value,
                             Panel::PANEL_TYPE_DANGER), 3);
                     }
                 }
 
+                $Stage->addButton(new Standard('Zurück', __NAMESPACE__.'/StudentCourse/Prepare', new ChevronLeft(),
+                    array(
+                        'tblYear' => $tblYear
+                    )));
                 $Stage->setContent(
                     new Layout(
-                        new LayoutGroup(array(
+                        new LayoutGroup(
                             new LayoutRow(
                                 $LayoutColumnList
-                            ),
-                            new LayoutRow(
-                                new LayoutColumn(
-                                    new Redirect(new Route(__NAMESPACE__.'/StudentCourse/Prepare'),
-                                        Redirect::TIMEOUT_ERROR, array(
-                                            'tblYear' => $tblYear
-                                        ))
-                                )
                             )
-                        ))
+                        )
                     )
                 );
                 return $Stage;
@@ -322,12 +297,21 @@ class StudentCourse extends Extension implements IFrontendInterface
 //            return $Stage->setContent(new \SPHERE\Common\Frontend\Message\Repository\Success('Datei Stimmt'));
 
             // add import
-            $Gateway = new StudentCourseGateway($Payload->getRealPath(), $tblYear, $Level);
+            $Gateway = new StudentCourseGateway($Payload->getRealPath(), $tblYear, $Level, $Control);
 
             $ImportList = $Gateway->getImportList();
             $tblAccount = Account::useService()->getAccountBySession();
-            if ($ImportList && $tblYear && $tblAccount) {
-                Import::useService()->createIndiwareImportStudentByImportList($ImportList, $tblYear, $tblAccount);
+
+            $LevelString = false;
+            if ($Level == 1 || $Level == 2) {
+                $LevelString = '11';
+            } elseif ($Level == 3 || $Level == 4) {
+                $LevelString = '12';
+            }
+
+            if ($ImportList && $tblYear && $tblAccount && $LevelString) {
+                Import::useService()->createIndiwareImportStudentByImportList($ImportList, $tblYear, $tblAccount,
+                    $LevelString);
             }
 
             $Stage->setContent(
@@ -335,59 +319,63 @@ class StudentCourse extends Extension implements IFrontendInterface
                     new LayoutGroup(
                         new LayoutRow(array(
                             new LayoutColumn(
+                                new WarningMessage('Personeneinträge in'.new Danger(new Bold(' "rot" ')).'werden nicht importiert.'
+                                    .new Container('Bitte Kontrollieren Sie ggf. die Personen-Daten Vor-,Nachname sowie das Geburtsdatum'))
+                                , 4),
+                            new LayoutColumn(
                                 new TableData($Gateway->getResultList(), null,
                                     array(
-                                        'FirstName'         => 'Datei: Vorname',
-                                        'LastName'          => 'Datei: Nachname',
-                                        'Birthday'          => 'Datei: Geburtsdatum',
-                                        'AppPerson'         => 'Person',
-                                        'FileSubject1'      => 'Datei: Fachkürzel',
-                                        'AppSubject1'       => 'Software: Fach',
-                                        'FileSubject2'      => 'Datei: Fachkürzel2',
-                                        'AppSubject2'       => 'Software: Fach2',
-                                        'FileSubject3'      => 'Datei: Fachkürzel3',
-                                        'AppSubject3'       => 'Software: Fach3',
-                                        'FileSubject4'      => 'Datei: Fachkürzel4',
-                                        'AppSubject4'       => 'Software: Fach4',
-                                        'FileSubject5'      => 'Datei: Fachkürzel5',
-                                        'AppSubject5'       => 'Software: Fach5',
-                                        'FileSubject6'      => 'Datei: Fachkürzel6',
-                                        'AppSubject6'       => 'Software: Fach6',
-                                        'FileSubject7'      => 'Datei: Fachkürzel7',
-                                        'AppSubject7'       => 'Software: Fach7',
-                                        'FileSubject8'      => 'Datei: Fachkürzel8',
-                                        'AppSubject8'       => 'Software: Fach8',
-                                        'FileSubject9'      => 'Datei: Fachkürzel9',
-                                        'AppSubject9'       => 'Software: Fach9',
-                                        'FileSubject10'     => 'Datei: Fachkürzel10',
-                                        'AppSubject10'      => 'Software: Fach10',
-                                        'FileSubject11'     => 'Datei: Fachkürzel11',
-                                        'AppSubject11'      => 'Software: Fach11',
-                                        'FileSubject12'     => 'Datei: Fachkürzel12',
-                                        'AppSubject12'      => 'Software: Fach12',
-                                        'FileSubject13'     => 'Datei: Fachkürzel13',
-                                        'AppSubject13'      => 'Software: Fach13',
-                                        'FileSubject14'     => 'Datei: Fachkürzel14',
-                                        'AppSubject14'      => 'Software: Fach14',
-                                        'FileSubject15'     => 'Datei: Fachkürzel15',
-                                        'AppSubject15'      => 'Software: Fach15',
-                                        'FileSubject16'     => 'Datei: Fachkürzel16',
-                                        'AppSubject16'      => 'Software: Fach16',
-                                        'FileSubject17'     => 'Datei: Fachkürzel17',
-                                        'AppSubject17'      => 'Software: Fach17',
-                                        'FileSubjectGroup1' => 'Datei: Gruppe',
-                                        'AppSubjectGroup1'  => 'Datei: Gruppe',
+                                        'FirstName'     => 'Datei: Vorname',
+                                        'LastName'      => 'Datei: Nachname',
+                                        'Birthday'      => 'Datei: Geburtsdatum',
+                                        'AppPerson'     => 'Person',
+                                        'FileSubject1'  => 'Datei: Kurskürzel',
+                                        'AppSubject1'   => 'Software: Fach',
+                                        'FileSubject2'  => 'Datei: Kurskürzel2',
+                                        'AppSubject2'   => 'Software: Fach2',
+                                        'FileSubject3'  => 'Datei: Kurskürzel3',
+                                        'AppSubject3'   => 'Software: Fach3',
+                                        'FileSubject4'  => 'Datei: Kurskürzel4',
+                                        'AppSubject4'   => 'Software: Fach4',
+                                        'FileSubject5'  => 'Datei: Kurskürzel5',
+                                        'AppSubject5'   => 'Software: Fach5',
+                                        'FileSubject6'  => 'Datei: Kurskürzel6',
+                                        'AppSubject6'   => 'Software: Fach6',
+                                        'FileSubject7'  => 'Datei: Kurskürzel7',
+                                        'AppSubject7'   => 'Software: Fach7',
+                                        'FileSubject8'  => 'Datei: Kurskürzel8',
+                                        'AppSubject8'   => 'Software: Fach8',
+                                        'FileSubject9'  => 'Datei: Kurskürzel9',
+                                        'AppSubject9'   => 'Software: Fach9',
+                                        'FileSubject10' => 'Datei: Kurskürzel10',
+                                        'AppSubject10'  => 'Software: Fach10',
+                                        'FileSubject11' => 'Datei: Kurskürzel11',
+                                        'AppSubject11'  => 'Software: Fach11',
+                                        'FileSubject12' => 'Datei: Kurskürzel12',
+                                        'AppSubject12'  => 'Software: Fach12',
+                                        'FileSubject13' => 'Datei: Kurskürzel13',
+                                        'AppSubject13'  => 'Software: Fach13',
+                                        'FileSubject14' => 'Datei: Kurskürzel14',
+                                        'AppSubject14'  => 'Software: Fach14',
+                                        'FileSubject15' => 'Datei: Kurskürzel15',
+                                        'AppSubject15'  => 'Software: Fach15',
+                                        'FileSubject16' => 'Datei: Kurskürzel16',
+                                        'AppSubject16'  => 'Software: Fach16',
+                                        'FileSubject17' => 'Datei: Kurskürzel17',
+                                        'AppSubject17'  => 'Software: Fach17',
                                     ),
                                     array(
-                                        'order'      => array(array(0, 'desc')),
+                                        'order'      => array(array(3, 'asc')),
                                         'columnDefs' => array(
                                             array('type' => 'natural', 'targets' => 0),
                                         ),
-                                        'responsive' => false
+                                        'responsive' => false,
+                                        'pageLength' => -1,
                                     )
                                 )
                             ),
                             new LayoutColumn(
+                                new DangerLink('Abbrechen', '/Transfer/Indiware/Import').
                                 new Standard('Weiter', '/Transfer/Indiware/Import/StudentCourse/Show',
                                     new ChevronRight())
                             )
@@ -416,15 +404,18 @@ class StudentCourse extends Extension implements IFrontendInterface
     {
         $Stage = new Stage('Schüler-Kurse SEK II ', 'Übersicht');
         $Stage->addButton(new Standard('Zurück', '/Transfer/Indiware/Import', new ChevronLeft()));
-        $tblIndiwareImportStudent = Import::useService()->getIndiwareImportStudentAll(true);
+        $tblIndiwareImportStudentList = Import::useService()->getIndiwareImportStudentAll(true);
         $TableContent = array();
 //        $TableCompare = array();
         $tblYear = false;
-        if ($tblIndiwareImportStudent) {
-            array_walk($tblIndiwareImportStudent, function (TblIndiwareImportStudent $tblIndiwareImportStudent)
-            use (&$TableContent, &$tblYear, $Visible) {
+        $Level = false;
+        $IsDisableImport = false;
+        if ($tblIndiwareImportStudentList) {
+            array_walk($tblIndiwareImportStudentList, function (TblIndiwareImportStudent $tblIndiwareImportStudent)
+            use (&$TableContent, &$tblYear, $Visible, &$Level, &$IsDisableImport) {
                 $tblPerson = $tblIndiwareImportStudent->getServiceTblPerson();
                 $tblYear = $tblIndiwareImportStudent->getServiceTblYear();
+                $Level = $tblIndiwareImportStudent->getLevel();
                 $tblDivision = $tblIndiwareImportStudent->getServiceTblDivision();
                 $Item['Person'] = '';
                 $Item['Year'] = '';
@@ -439,11 +430,31 @@ class StudentCourse extends Extension implements IFrontendInterface
                     $Item['Year'] = $tblIndiwareImportStudent->getServiceTblYear();
                 }
                 if ($tblDivision) {
-                    $Item['Division'] = new Center($tblDivision->getDisplayName());
+                    // Klassen Farblich Markieren wenn die Stufe nicht zum Import passt
+                    if ($tblDivision->getTblLevel() && $tblDivision->getTblLevel()->getName() == $Level) {
+                        $Item['Division'] = new Center($tblDivision->getDisplayName());
+                    } else {
+                        $Item['Division'] = new Danger(new Center(new ToolTip(new InfoIcon(),
+                                'Klassenstufe stimmt nicht mit dem gewählten Import überein!')
+                            .' '.$tblDivision->getDisplayName()));
+                        // Verhindern des Imports wenn Klassenstufen nicht übereinstimmen (Deaktivierte ignorieren)
+                        if (!$tblIndiwareImportStudent->getIsIgnore()) {
+                            $IsDisableImport = true;
+                        }
+                    }
+                } else {
+                    $Item['Division'] = new Danger(new Center(new ToolTip(new InfoIcon(), 'Keine Klasse vorhanden!')));
+                    // Verhindern des Imports wenn Klasse nicht mehr existiert (Deaktivierte ignorieren)
+                    if (!$tblIndiwareImportStudent->getIsIgnore()) {
+                        $IsDisableImport = true;
+                    }
                 }
                 $Item['Option'] = new Standard('', '/Transfer/Indiware/Import/StudentCourse/Edit'
                     , new Edit(), array('Id' => $tblIndiwareImportStudent->getId(), 'Visible' => $Visible),
-                    'Importvorbereitung bearbeiten');
+                        'Importvorbereitung bearbeiten').
+                    new Standard('', '/Transfer/Indiware/Import/StudentCourse/DivisionRefresh', new Repeat(),
+                        array('Id' => $tblIndiwareImportStudent->getId(), 'Visible' => $Visible),
+                        'Aktualisieren der Klasse');
                 if ($tblIndiwareImportStudent->getIsIgnore()) {
                     $Item['Option'] .= new Standard('', '/Transfer/Indiware/Import/StudentCourse/Ignore',
                         new SuccessIcon(),
@@ -479,29 +490,47 @@ class StudentCourse extends Extension implements IFrontendInterface
                         } else {
                             $GroupIsIntensiveString = new Muted(new Small(' GK'));
                         }
-                        $GroupString = $tblIndiwareImportStudentCourse->getSubjectGroup();
+                        $SubjectName = $tblIndiwareImportStudentCourse->getSubjectName();
 
-                        if ($GroupString != '' && $SubjectString == '') {
+//                        if ($SubjectName != '' && !$tblIndiwareImportStudentCourse->getServiceTblSubject()) {
+//                            $SubjectString = ' Fach nicht gefunden!';
+//                        }
+
+                        if ($tblIndiwareImportStudentCourse->getisIgnoreCourse()) {
+                            $SubjectString = new Info(new InfoIcon().' Fach/Kurs wird Ignoriert');
+                        } elseif ($SubjectName != '' && !$tblIndiwareImportStudentCourse->getServiceTblSubject()) {
                             $SubjectString = new Danger(new InfoIcon().' Fach nicht gefunden!');
                         }
                         $ListContent[] = $SubjectString;
 //                            $ListContent[] = $GroupIsIntensiveString;
+                        $GroupString = $tblIndiwareImportStudentCourse->getSubjectGroup();
                         $ListContent[] = $GroupString.' - '.$GroupIsIntensiveString;
                         $Item['SubjectAndGroup'.$CourseNumber] = new Listing($ListContent);
 
                         // Error wenn Fächerzuweisung fehlt
-                        if (!$tblSubject && $tblIndiwareImportStudentCourse->getSubjectGroup() != '') {
+                        if (!$tblSubject && $tblIndiwareImportStudentCourse->getSubjectGroup() != '' && !$tblIndiwareImportStudentCourse->getisIgnoreCourse()) {
                             if (!$tblIndiwareImportStudent->getIsIgnore()) {
                                 $Item['Ignore'] = new Center(new Warning(new ToolTip(new Disable(),
                                     'Einige Fächer werden nicht importiert! (Fach nicht gefunden)')));
                             }
                             $IsImportError = true;
                         }
-                        if (!$tblDivision) {
-                            $Item['Ignore'] = new Center(new Danger(new ToolTip(new Disable(),
-                                'Ohne Klasse kann die Person nicht importiert werden')));
-                        }
                     }
+                }
+
+                if (!$tblDivision) {
+                    $Item['Ignore'] = new Center(new Danger(new ToolTip(new Disable(),
+                        'Ohne Klasse kann die Person nicht importiert werden')));
+                    $IsImportError = true;
+                } elseif ($tblDivision->getTblLevel() && $tblDivision->getTblLevel()->getName() != $Level) {
+                    $Item['Ignore'] = new Center(new Danger(new ToolTip(new Disable(),
+                        'mit der Falschen Klassenstufe kann die Person nicht importiert werden')));
+                    $IsImportError = true;
+                }
+                // Ignore priorisierte Ausgabe
+                if ($tblIndiwareImportStudent->getIsIgnore()) {
+                    $Item['Ignore'] = new Center(new Warning(new ToolTip(new WarningIcon(), 'Manuell Deaktiviert')));
+                    $IsImportError = true;
                 }
 
                 if (!$Visible) {
@@ -534,7 +563,8 @@ class StudentCourse extends Extension implements IFrontendInterface
         $HeaderPanel = '';
         /** @var TblYear $tblYear */
         if ($tblYear) {
-            $HeaderPanel = new Panel('Importvorbereitung', 'für das Schuljahr: '.$tblYear->getDisplayName(),
+            $HeaderPanel = new Panel('Importvorbereitung Stufe '.$Level,
+                'für das Schuljahr: '.$tblYear->getDisplayName(),
                 Panel::PANEL_TYPE_SUCCESS);
         }
 
@@ -565,23 +595,23 @@ class StudentCourse extends Extension implements IFrontendInterface
                                     'Division'          => 'Klasse',
                                     'Option'            => '',
 //                                    'FileSubject1'      => 'Datei: Fächerkürzel',
-                                    'SubjectAndGroup1'  => new Underline('1. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup2'  => new Underline('2. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup3'  => new Underline('3. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup4'  => new Underline('4. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup5'  => new Underline('5. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup6'  => new Underline('6. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup7'  => new Underline('7. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup8'  => new Underline('8. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup9'  => new Underline('9. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup10' => new Underline('10. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup11' => new Underline('11. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup12' => new Underline('12. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup13' => new Underline('13. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup14' => new Underline('14. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup15' => new Underline('15. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup16' => new Underline('16. Fach').'<br/>'.'Gruppe',
-                                    'SubjectAndGroup17' => new Underline('17. Fach').'<br/>'.'Gruppe',
+                                    'SubjectAndGroup1'  => new Underline('1. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup2'  => new Underline('2. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup3'  => new Underline('3. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup4'  => new Underline('4. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup5'  => new Underline('5. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup6'  => new Underline('6. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup7'  => new Underline('7. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup8'  => new Underline('8. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup9'  => new Underline('9. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup10' => new Underline('10. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup11' => new Underline('11. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup12' => new Underline('12. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup13' => new Underline('13. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup14' => new Underline('14. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup15' => new Underline('15. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup16' => new Underline('16. Fach').'<br/>'.'Kurs',
+                                    'SubjectAndGroup17' => new Underline('17. Fach').'<br/>'.'Kurs',
                                 ),
                                 array(
                                     'order'      => array(array(0, 'asc')),
@@ -591,19 +621,57 @@ class StudentCourse extends Extension implements IFrontendInterface
 //                                        array('type' => 'natural', 'targets' => 0),
 //                                        array('type' => 'natural', 'targets' => 1)
                                     ),
-                                    'responsive' => false
+                                    'responsive' => false,
+                                    'pageLength' => -1,
                                 ))
                         ),
                         new LayoutColumn(
-                            new Container(new PrimaryLink('Import der Änderungen',
+                            ($IsDisableImport
+                                ? new Container((new PrimaryLink('Import der Änderungen',
                                 '/Transfer/Indiware/Import/StudentCourse/Import', new Save(),
                                 array('YearId' => ($tblYear ? $tblYear->getId() : null)),
-                                'Diese Aktion ist unwiderruflich!'))
+                                    'Diese Aktion ist unwiderruflich!'))->setDisabled())
+                                : new Container((new PrimaryLink('Import der Änderungen',
+                                    '/Transfer/Indiware/Import/StudentCourse/Import', new Save(),
+                                    array('YearId' => ($tblYear ? $tblYear->getId() : null)),
+                                    'Diese Aktion ist unwiderruflich!')))
+                            )
                             , 4)
                     ))
                 )
             )
         );
+
+        return $Stage;
+    }
+
+    /**
+     * @param null $Id
+     * @param bool $Visible
+     *
+     * @return Stage
+     */
+    public function frontendActiveDivision($Id = null, $Visible = false)
+    {
+
+        $Stage = new Stage('Setzen der aktuellen Klasse');
+        $tblIndiwareImportStudent = Import::useService()->getIndiwareImportStudentById($Id);
+        $Stage->setContent(new Layout(
+            new LayoutGroup(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        (Import::useService()->updateIndiwareImportStudentDivision($tblIndiwareImportStudent)
+                            ? new SuccessMessage('Änderung erfolgt, Im gesuchtem Jahr wurde eine Klasse gefunden')
+                            .new Redirect('/Transfer/Indiware/Import/StudentCourse/Show', Redirect::TIMEOUT_SUCCESS,
+                                array('Visible' => $Visible))
+                            : new WarningMessage('Änderung nicht erfolg da keine Klasse im ausgewähltem Jahr gefunden wurde')
+                            .new Redirect('/Transfer/Indiware/Import/StudentCourse/Show', Redirect::TIMEOUT_ERROR,
+                                array('Visible' => $Visible))
+                        )
+                    )
+                ))
+            )
+        ));
 
         return $Stage;
     }
@@ -634,10 +702,10 @@ class StudentCourse extends Extension implements IFrontendInterface
         $tblDivision = $tblIndiwareImportStudent->getServiceTblDivision();
         $tblYear = $tblIndiwareImportStudent->getServiceTblYear();
 
-        $arraySubjectName = array();
+//        $arraySubjectName = array();
 
         $Global = $this->getGlobal();
-        $Global->POST['Data']['DivisionId'] = ($tblDivision ? $tblDivision->getId() : null);
+//        $Global->POST['Data']['DivisionId'] = ($tblDivision ? $tblDivision->getId() : null);
         if ($tblIndiwareImportStudentCourseList) {
             foreach ($tblIndiwareImportStudentCourseList as $tblIndiwareImportStudentCourse) {
                 if (($tblSubject = $tblIndiwareImportStudentCourse->getServiceTblSubject())) {
@@ -647,8 +715,13 @@ class StudentCourse extends Extension implements IFrontendInterface
                     if ($tblIndiwareImportStudentCourse->getIsIntensiveCourse()) {
                         $Global->POST['Data']['IsIntensivCourse'.$Number] = 1;
                     }
-                    $arraySubjectName[$Number] = $tblIndiwareImportStudentCourse->getSubjectName();
-
+//                    $arraySubjectName[$Number] = $tblIndiwareImportStudentCourse->getSubjectName();
+                } else {
+                    $Number = $tblIndiwareImportStudentCourse->getCourseNumber();
+                    $Global->POST['Data']['SubjectGroup'.$Number] = $tblIndiwareImportStudentCourse->getSubjectGroup();
+                    if ($tblIndiwareImportStudentCourse->getisIgnoreCourse()) {
+                        $Global->POST['Data']['IsIgnoreCourse'.$Number] = 1;
+                    }
                 }
                 $Global->savePost();
             }
@@ -678,8 +751,9 @@ class StudentCourse extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new Well(Import::useService()
-                                ->updateIndiwareImportStudentCourse($Form, $tblIndiwareImportStudent, $Data, $Visible,
-                                    $arraySubjectName)
+                                ->updateIndiwareImportStudentCourse($Form, $tblIndiwareImportStudent, $Data, $Visible
+//                                    , $arraySubjectName
+                                )
                             )
                         )
                     )
@@ -725,7 +799,9 @@ class StudentCourse extends Extension implements IFrontendInterface
                     new SelectBox('Data[SubjectId'.$i.']', 'Fach',
                         array('{{ Acronym }} - {{ Name }}' => $tblSubjectList)),
                     new TextField('Data[SubjectGroup'.$i.']', '', 'Kurs Name'),
-                    new CheckBox('Data[IsIntensivCourse'.$i.']', 'Leistungskurs', '1')
+                    new CheckBox('Data[IsIntensivCourse'.$i.']', 'Leistungskurs', '1'),
+                    ($Status == Panel::PANEL_TYPE_DANGER ? new CheckBox('Data[IsIgnoreCourse'.$i.']', 'Fach Ignorieren',
+                        '1') : '')
                 ), ($Status ? $Status : Panel::PANEL_TYPE_DEFAULT)
                 )
                 , 2);
@@ -761,20 +837,21 @@ class StudentCourse extends Extension implements IFrontendInterface
 
         return new Form(array(
                 new FormGroup(
-                    new FormRow(
-                    new FormColumn(
-                        new Panel('Klasse', new SelectBox('Data[DivisionId]', 'Klasse des Schülers',
-                            array('{{ DisplayName }} - {{ tblLevel.serviceTblType.Name }}' => $tblDivisionList)),
-                            Panel::PANEL_TYPE_INFO)
-                    )
-                    ), new TitleForm(new Edit().' Bearbeiten', 'der Angaben')
-                ),
-                new FormGroup(
                     $FormRowList
-//                new FormRow(
-//                    $FormSubjectAll
+//                    new FormRow(
+//                    new FormColumn(
+//                        new Panel('Klasse', new SelectBox('Data[DivisionId]', 'Klasse des Schülers',
+//                            array('{{ DisplayName }} - {{ tblLevel.serviceTblType.Name }}' => $tblDivisionList)),
+//                            Panel::PANEL_TYPE_INFO)
+//                    ))
+                    , new TitleForm(new Edit().' Bearbeiten', 'der Kurse')
+                ),
+//                new FormGroup(
+//                    $FormRowList
+////                new FormRow(
+////                    $FormSubjectAll
+////                )
 //                )
-                )
             )
         );
     }
@@ -878,11 +955,17 @@ class StudentCourse extends Extension implements IFrontendInterface
         $Stage->setMessage(
             new Container('Abgebildet werden alle Schüler-Kurse SEK II  aller importierten Klassen für das ausgewählte Jahr '.($tblYear ? $tblYear->getYear() : '').'.')
             .new Container('Kurse anderer Klassen bleiben unangetastet!'));
-        $LayoutRowList = Import::useService()->importIndiwareStudentCourse();
+        $isImport = Import::useService()->importIndiwareStudentCourse();
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
-                    $LayoutRowList
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ($isImport
+                                ? new SuccessMessage('Der Import wurde erfolgreich durchgeführt')
+                                : new DangerMessage('Der Import enthielt keine gültigen Daten'))
+                        )
+                    )
                 )
             )
         );

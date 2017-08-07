@@ -30,8 +30,8 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
     public function setupDatabaseContent()
     {
 
-        $tblScoreType = $this->createScoreType('Noten (1-6)', 'GRADES');
-        $this->updateScoreType($tblScoreType, $tblScoreType->getName(), $tblScoreType->getIdentifier(), '^[1-6]{1}$');
+        $tblScoreType = $this->createScoreType('Noten (1-6) mit Tendenz', 'GRADES');
+        $this->updateScoreType($tblScoreType, 'Noten (1-6) mit Tendenz', $tblScoreType->getIdentifier(), '^([1-6]{1}|[1-5]{1}[+-]{1})$');
 
         $tblScoreType = $this->createScoreType('Punkte (0-15)', 'POINTS');
         $this->updateScoreType($tblScoreType, $tblScoreType->getName(), $tblScoreType->getIdentifier(), '^([0-9]{1}|1[0-5]{1})$');
@@ -43,7 +43,8 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
 
         $this->createScoreType('Noten (1-6) mit Komma', 'GRADES_COMMA', '^(6((\.|,)0+)?|[1-5]{1}((\.|,)[0-9]+)?)$');
 
-        $this->createScoreType('Noten (1-5) mit Tendenz', 'GRADES_BEHAVIOR_TASK', '^[1-5]{1}$');
+        $tblScoreType = $this->createScoreType('Noten (1-5) mit Tendenz', 'GRADES_BEHAVIOR_TASK');
+        $this->updateScoreType($tblScoreType, $tblScoreType->getName(), $tblScoreType->getIdentifier(),  '^([1-5]{1}|[1-4]{1}[+-]{1})$');
 
         $TestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
         if ($TestType) {

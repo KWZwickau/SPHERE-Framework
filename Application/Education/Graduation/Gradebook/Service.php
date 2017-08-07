@@ -272,10 +272,11 @@ class Service extends ServiceScoreRule
 
     /**
      * @param TblTest $tblTest
+     * @param array $gradeMirror
      *
      * @return bool|float
      */
-    public function getAverageByTest(TblTest $tblTest)
+    public function getAverageByTest(TblTest $tblTest, &$gradeMirror = array())
     {
 
         $tblDivision = $tblTest->getServiceTblDivision();
@@ -287,14 +288,33 @@ class Service extends ServiceScoreRule
             );
 
             if ($tblScoreType && $tblScoreType->getIdentifier() !== 'VERBAL') {
+                $hasMirror = false;
+                if ($tblScoreType->getIdentifier() == 'GRADES'
+                    || $tblScoreType->getIdentifier() == 'GRADES_COMMA'
+                ) {
+                    $hasMirror = true;
+                    for ($i = 1; $i < 7; $i++) {
+                        $gradeMirror[$i] = 0;
+                    }
+                } elseif ($tblScoreType->getIdentifier() == 'POINTS') {
+                    $hasMirror = true;
+                    for ($i = 0; $i < 16; $i++) {
+                        $gradeMirror[$i] = 0;
+                    }
+                }
                 $tblGradeList = $this->getGradeAllByTest($tblTest);
                 if ($tblGradeList) {
                     $sum = 0;
                     $count = 0;
                     foreach ($tblGradeList as $tblGrade) {
                         if ($tblGrade->getGrade() && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
-                            $sum += floatval($tblGrade->getGrade());
+                            $value = floatval($tblGrade->getGrade());
+                            $sum += $value;
                             $count++;
+                            if ($hasMirror) {
+                                $value = intval(round($value, 0));
+                                $gradeMirror[$value]++;
+                            }
                         }
                     }
 
@@ -306,7 +326,6 @@ class Service extends ServiceScoreRule
         }
 
         return false;
-
     }
 
     /**
@@ -345,11 +364,14 @@ class Service extends ServiceScoreRule
 
         $errorRange = array();
         // check if grade has pattern
-        if (!empty($Grade) && $tblScoreType && $tblScoreType->getPattern() !== '') {
+        if (!empty($Grade)
+            && $tblScoreType
+            && $tblScoreType->getPattern() !== ''
+        ) {
             foreach ($Grade as $personId => $value) {
                 $tblPerson = Person::useService()->getPersonById($personId);
                 $gradeValue = str_replace(',', '.', trim($value['Grade']));
-                if (!isset($value['Attendance']) && $gradeValue !== '') {
+                if (!isset($value['Attendance']) && $gradeValue !== '' && $gradeValue !== '-1') {
                     if (!preg_match('!' . $tblScoreType->getPattern() . '!is', $gradeValue)) {
                         if ($tblPerson) {
                             $errorRange[] = new Container(new Bold($tblPerson->getLastFirstName()));
@@ -366,32 +388,46 @@ class Service extends ServiceScoreRule
         $errorNoDate = array();
         if (!empty($Grade)) {
             foreach ($Grade as $personId => $value) {
-                $gradeValue = str_replace(',', '.', trim($value['Grade']));
-                $tblPerson = Person::useService()->getPersonById($personId);
-                if ($studentTestList && isset($studentTestList[$personId])) {
-                    $tblTestOfPerson = $studentTestList[$personId];
-                } else {
-                    $tblTestOfPerson = $tblTest;
-                }
-                $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTestOfPerson, $tblPerson);
-                if ($tblGrade && empty($value['Comment']) && !isset($value['Attendance'])
-                    && ($gradeValue != $tblGrade->getGrade()
-                        || (isset($value['Trend']) && $value['Trend'] != $tblGrade->getTrend()))
-                ) {
-                    $errorEdit[] = new Container(new Bold($tblPerson->getLastFirstName()));
-                }
-                // nicht bei Notenaufträgen #SSW-1085
-                if (!$tblTest->getTblTask()) {
-                    if ($tblGrade && $gradeValue === ''
-                        && !isset($value['Attendance'])
-                        && (!isset($value['Text']) || (isset($value['Text']) && !$this->getGradeTextById($value['Text'])))
-                    ) {
-                        $errorNoGrade[] = new Container(new Bold($tblPerson->getLastFirstName()));
+                if ($value['Grade'] != -1) {
+                    $gradeValue = str_replace(',', '.', trim($value['Grade']));
+                    if ((strpos($gradeValue, '+') !== false)) {
+                        $trend = TblGrade::VALUE_TREND_PLUS;
+                        $gradeValue = str_replace('+', '', $gradeValue);
+                    } elseif ((strpos($gradeValue, '-') !== false)) {
+                        $trend = TblGrade::VALUE_TREND_MINUS;
+                        $gradeValue = str_replace('-', '', $gradeValue);
+                    } else {
+                        $trend = 0;
                     }
-                }
-                if ($tblTest->isContinues() && !isset($value['Attendance']) && $gradeValue
-                    && empty($value['Date']) && !$tblTest->getFinishDate()) {
-                    $errorNoDate[] = new Container(new Bold($tblPerson->getLastFirstName()));
+
+                    $tblPerson = Person::useService()->getPersonById($personId);
+                    if ($studentTestList && isset($studentTestList[$personId])) {
+                        $tblTestOfPerson = $studentTestList[$personId];
+                    } else {
+                        $tblTestOfPerson = $tblTest;
+                    }
+                    $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTestOfPerson, $tblPerson);
+                    if ($tblGrade && empty($value['Comment']) && !isset($value['Attendance'])
+                        && (($gradeValue != $tblGrade->getGrade()
+//                            || (isset($value['Trend']) && $value['Trend'] != $tblGrade->getTrend())))
+                        || ($trend != $tblGrade->getTrend())))
+                    ) {
+                        $errorEdit[] = new Container(new Bold($tblPerson->getLastFirstName()));
+                    }
+                    // nicht bei Notenaufträgen #SSW-1085
+                    if (!$tblTest->getTblTask()) {
+                        if ($tblGrade && $gradeValue === ''
+                            && !isset($value['Attendance'])
+                            && (!isset($value['Text']) || (isset($value['Text']) && !$this->getGradeTextById($value['Text'])))
+                        ) {
+                            $errorNoGrade[] = new Container(new Bold($tblPerson->getLastFirstName()));
+                        }
+                    }
+                    if ($tblTest->isContinues() && !isset($value['Attendance']) && $gradeValue
+                        && empty($value['Date']) && !$tblTest->getFinishDate()
+                    ) {
+                        $errorNoDate[] = new Container(new Bold($tblPerson->getLastFirstName()));
+                    }
                 }
             }
         }
@@ -449,14 +485,21 @@ class Service extends ServiceScoreRule
 
                 if ($tblTestByPerson->getServiceTblDivision() && $tblTestByPerson->getServiceTblSubject()) {
 
-                    // set trend
-                    if (isset($value['Trend'])) {
-                        $trend = $value['Trend'];
-                    } else {
-                        $trend = 0;
-                    }
-
                     $grade = str_replace(',', '.', trim($value['Grade']));
+
+                    // set trend
+                    $trend = 0;
+                    if ($grade != -1) {
+                        if (isset($value['Trend'])) {
+                            $trend = $value['Trend'];
+                        } elseif ((strpos($grade, '+') !== false)) {
+                            $trend = TblGrade::VALUE_TREND_PLUS;
+                            $grade = str_replace('+', '', $grade);
+                        } elseif ((strpos($grade, '-') !== false)) {
+                            $trend = TblGrade::VALUE_TREND_MINUS;
+                            $grade = str_replace('-', '', $grade);
+                        }
+                    }
 
                     if (!($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTestByPerson,
                         $tblPerson))
@@ -481,7 +524,7 @@ class Service extends ServiceScoreRule
                                 isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
                                     ? $tblGradeText : null
                             );
-                        } elseif (trim($value['Grade']) !== '') {
+                        } elseif ($grade !== '' && $grade != -1) {
                             $hasCreatedGrade = true;
                             (new Data($this->getBinding()))->createGrade(
                                 $tblPerson,
@@ -500,7 +543,7 @@ class Service extends ServiceScoreRule
                                 isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
                                     ? $tblGradeText : null
                             );
-                        } elseif (isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))){
+                        } elseif (isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))) {
                             $hasCreatedGrade = true;
                             (new Data($this->getBinding()))->createGrade(
                                 $tblPerson,
@@ -541,7 +584,7 @@ class Service extends ServiceScoreRule
                         } else {
                             (new Data($this->getBinding()))->updateGrade(
                                 $tblGrade,
-                                $grade,
+                                $grade == -1 ? '': $grade,
                                 trim($value['Comment']),
                                 $trend,
                                 isset($value['Date']) ? $value['Date'] : null,

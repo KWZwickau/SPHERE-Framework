@@ -3,6 +3,7 @@ namespace SPHERE\Application\People\Meta\Student\Service\Service;
 
 use SPHERE\Application\People\Meta\Student\Service\Data;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSchoolEnrollmentType;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -141,5 +142,26 @@ abstract class Student extends AbstractService
     {
 
         return (new Data($this->getBinding()))->destroyStudent($tblStudent);
+    }
+
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblStudentSchoolEnrollmentType
+     */
+    public function getStudentSchoolEnrollmentTypeById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getStudentSchoolEnrollmentTypeById($Id);
+    }
+
+    /**
+     * @return false|TblStudentSchoolEnrollmentType[]
+     */
+    public function getStudentSchoolEnrollmentTypeAll()
+    {
+
+        return (new Data($this->getBinding()))->getStudentSchoolEnrollmentTypeAll();
     }
 }

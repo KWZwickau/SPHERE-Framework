@@ -31,11 +31,13 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
@@ -111,18 +113,20 @@ class StudentFilter extends Extension
     }
 
     /**
-     * @param $modalField
-     * @param $Year
-     * @param $Division
+     * @param string      $modalField
+     * @param null|string $Year
+     * @param null|string $Division
+     * @param null|string $Node
      *
      * @return Layout
      * // Content for OpenModal -> ApiMassReplace
      */
-    public function getFrontendStudentFilter($modalField, $Year = null, $Division = null)
+    public function getFrontendStudentFilter($modalField, $Year = null, $Division = null, $Node = null)
     {
         /** @var SelectBox|TextField $Field */
         $Field = unserialize(base64_decode($modalField));
-        $CloneField = (new ApiMassReplace())->cloneField($Field, 'CloneField', 'Auswahl/Eingabe');
+        $CloneField = (new ApiMassReplace())->cloneField($Field, 'CloneField', 'Auswahl/Eingabe '
+            .new SuccessText($Node).' - '.$Field->getLabel());
 
         $TableContent = $this->getStudentFilterResult($Year, $Division, $Field);
 
@@ -134,11 +138,26 @@ class StudentFilter extends Extension
                 'Level'         => 'Stufe',
                 'Division'      => 'Klasse',
                 'Edit'          => $Field->getLabel(),
-            ), null);
+            ), array(
+                'columnDefs' => array(
+                    array('type' => 'natural', 'targets' => 3),
+                ),
+                'pageLength' => -1,
+                'paging'     => false,
+                'info'       => false,
+                'searching'  => false,
+                'responsive' => false
+            ));
 
         return new Layout(
             new LayoutGroup(
                 new LayoutRow(array(
+//                    new LayoutColumn(
+//                        new Panel($Node, '', Panel::PANEL_TYPE_PRIMARY)
+//                    ),
+                    new LayoutColumn(
+                        new Danger('Achtung: Die Massenänderung kann nicht automatisch rückgängig gemacht werden!')
+                    ),
                     new LayoutColumn(new Well(
                         ApiMassReplace::receiverFilter('Filter', $this->formStudentFilter($modalField))
                     )),
@@ -362,6 +381,15 @@ class StudentFilter extends Extension
                         }
                         if ($Label == 'Profil') {
                             $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE');
+                            $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier('1');
+                            $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
+                                $tblStudentSubjectType, $tblStudentSubjectRanking);
+                            if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                                $DataPerson['Edit'] = new Muted('('.$tblSubject->getAcronym().') ').$tblSubject->getName();
+                            }
+                        }
+                        if ($Label == 'Neigungskurs') {
+                            $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION');
                             $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier('1');
                             $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
                                 $tblStudentSubjectType, $tblStudentSubjectRanking);

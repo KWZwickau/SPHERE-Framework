@@ -122,7 +122,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Zeugnisvorbereitung', 'Klasse auswählen');
         $this->setHeaderButtonList($Stage, View::DIPLOMA);
 
-        $buttonList = Evaluation::useFrontend()->setYearButtonList('/Education/Certificate/Prepare/Teacher',
+        $buttonList = Evaluation::useFrontend()->setYearButtonList('/Education/Certificate/Prepare/Diploma',
             $IsAllYears, $YearId, $tblYear, false);
 
         $tblDivisionList = Division::useService()->getDivisionAll();
@@ -483,7 +483,6 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $GradeTypeId
      * @param null $IsNotGradeType
      * @param null $Data
-     * @param null $Trend
      * @param null $CertificateList
      *
      * @return Stage|string
@@ -494,18 +493,11 @@ class Frontend extends Extension implements IFrontendInterface
         $GradeTypeId = null,
         $IsNotGradeType = null,
         $Data = null,
-        $Trend = null,
         $CertificateList = null
     ) {
 
         $tblPrepare = Prepare::useService()->getPrepareById($PrepareId);
         if ($tblPrepare) {
-            $selectBoxContent = array(
-                TblGrade::VALUE_TREND_NULL => '',
-                TblGrade::VALUE_TREND_PLUS => 'Plus',
-                TblGrade::VALUE_TREND_MINUS => 'Minus'
-            );
-
             // Kopfnoten festlegen
             if (!$IsNotGradeType
                 && $tblPrepare->getServiceTblBehaviorTask()
@@ -526,7 +518,6 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblCurrentGradeType = false;
                 $tblNextGradeType = false;
                 $tblGradeTypeList = array();
-                $hasInformation = false;
                 foreach ($tblTestList as $tblTest) {
                     if (($tblGradeTypeItem = $tblTest->getServiceTblGradeType())) {
                         if (!isset($tblGradeTypeList[$tblGradeTypeItem->getId()])) {
@@ -587,6 +578,20 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
                 if ($tblStudentList) {
+                    $selectListWithTrend[-1] = '&nbsp;';
+                    for ($i = 1; $i < 5; $i++) {
+                        $selectListWithTrend[$i . '+'] = $i . '+';
+                        $selectListWithTrend[$i] = $i;
+                        $selectListWithTrend[$i . '-'] = $i . '-';
+                    }
+                    $selectListWithTrend[5] = 5;
+
+                    $selectListWithOutTrend[-1] = '&nbsp;';
+                    for ($i = 1; $i < 5; $i++) {
+                        $selectListWithOutTrend[$i] = $i;
+                    }
+                    $selectListWithOutTrend[5] = 5;
+
                     $tabIndex = 1;
                     /** @var TblPerson $tblPerson */
                     foreach ($tblStudentList as $tblPerson) {
@@ -670,13 +675,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 );
                                 if ($tblPrepareGrade) {
                                     $gradeValue = $tblPrepareGrade->getGrade();
-                                    if (strpos($gradeValue, '+') !== false) {
-                                        $Global->POST['Trend'][$tblPerson->getId()] = TblGrade::VALUE_TREND_PLUS;
-                                        $gradeValue = str_replace('+', '', $gradeValue);
-                                    } elseif (strpos($gradeValue, '-') !== false) {
-                                        $Global->POST['Trend'][$tblPerson->getId()] = TblGrade::VALUE_TREND_MINUS;
-                                        $gradeValue = str_replace('-', '', $gradeValue);
-                                    }
                                     $Global->POST['Data'][$tblPerson->getId()] = $gradeValue;
                                 } elseif ($average) {
                                     // Noten aus dem Notendurchschnitt als Vorschlag eintragen
@@ -689,94 +687,55 @@ class Frontend extends Extension implements IFrontendInterface
                             }
 
                             if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
-                                    $tblPerson))
-                                && $tblPrepareStudent->isApproved()
+                                $tblPerson))
+                                && $tblPrepareStudent->getServiceTblCertificate()
                             ) {
-                                $studentTable[$tblPerson->getId()]['Data'] =
-                                    (new NumberField('Data[' . $tblPerson->getId() . ']'))->setDisabled();
-                                if (($tblCertificate = $tblPrepareStudent->getTblPrepareCertificate())
-                                    && $tblCertificate->isGradeInformation()
-                                ) {
-                                    $hasInformation = true;
-                                    $studentTable[$tblPerson->getId()]['Trend'] =
-                                        (new SelectBox('Trend[' . $tblPerson->getId() . ']', '', $selectBoxContent,
-                                            new ResizeVertical()))->setDisabled();
-                                }
-                            } elseif ($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate()) {
-                                $studentTable[$tblPerson->getId()]['Data'] =
-                                    (new NumberField('Data[' . $tblPerson->getId() . ']'))->setTabIndex($tabIndex++);
-
-                                if ($tblPrepareStudent
-                                    && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                                if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
                                     && $tblCertificate->isInformation()
                                 ) {
-                                    $hasInformation = true;
-                                    $studentTable[$tblPerson->getId()]['Trend'] =
-                                        (new SelectBox('Trend[' . $tblPerson->getId() . ']', '', $selectBoxContent,
-                                            new ResizeVertical()))->setTabIndex($tabIndex++);
+                                    $selectList = $selectListWithTrend;
+                                } else {
+                                    $selectList = $selectListWithOutTrend;
                                 }
+
+                                $selectBox = (new SelectBox('Data[' . $tblPerson->getId() . ']', '', $selectList));
+                                $selectBox->setTabIndex($tabIndex++);
+                                $selectBox->configureLibrary( SelectBox::LIBRARY_SELECT2 );
+                                if ($tblPrepareStudent->isApproved()) {
+                                    $selectBox->setDisabled();
+                                }
+
+                                $studentTable[$tblPerson->getId()]['Data'] = $selectBox;
                             } else {
                                 // keine Zeugnisvorlage ausgewählt
                                 $studentTable[$tblPerson->getId()]['Data'] = '';
-                                $studentTable[$tblPerson->getId()]['Trend'] = '';
                             }
                         }
                     }
                 }
 
-                if ($hasInformation) {
-                    $columnTable['Trend'] = 'Tendenz';
-
-                    $columnDef = array(
-                        array(
-                            "width" => "7px",
-                            "targets" => 0
-                        ),
-                        array(
-                            "width" => "200px",
-                            "targets" => 1
-                        ),
-                        array(
-                            "width" => "80px",
-                            "targets" => 2
-                        ),
-                        array(
-                            "width" => "50px",
-                            "targets" => array(4)
-                        ),
-                        array(
-                            "width" => "80px",
-                            "targets" => array(5)
-                        ),
-                        array(
-                            "width" => "180px",
-                            "targets" => array(6)
-                        )
-                    );
-                } else {
-                    $columnDef = array(
-                        array(
-                            "width" => "7px",
-                            "targets" => 0
-                        ),
-                        array(
-                            "width" => "200px",
-                            "targets" => 1
-                        ),
-                        array(
-                            "width" => "80px",
-                            "targets" => 2
-                        ),
-                        array(
-                            "width" => "50px",
-                            "targets" => array(4)
-                        ),
-                        array(
-                            "width" => "80px",
-                            "targets" => array(5)
-                        ),
-                    );
-                }
+                $columnDef = array(
+                    array(
+                        "width" => "7px",
+                        "targets" => 0
+                    ),
+                    array(
+                        "width" => "200px",
+                        "targets" => 1
+                    ),
+                    array(
+                        "width" => "80px",
+                        "targets" => 2
+                    ),
+                    array(
+                        "width" => "50px",
+                        "targets" => array(4)
+                    ),
+                    array(
+                        "width" => "80px",
+                        "targets" => array(5)
+                    ),
+                );
 
                 $tableData = new TableData($studentTable, null, $columnTable,
                     array(
@@ -841,8 +800,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         $tblCurrentGradeType,
                                         $tblNextGradeType ? $tblNextGradeType : null,
                                         $Route,
-                                        $Data,
-                                        $Trend
+                                        $Data
                                     )
                                 ))
                             ))

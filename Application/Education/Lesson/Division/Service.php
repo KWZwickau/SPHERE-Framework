@@ -24,6 +24,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -169,6 +170,19 @@ class Service extends AbstractService
         if (isset($Division['Name']) && empty($Division['Name']) && isset($Level['Check'])) {
             $Form->setError('Division[Name]', 'Bitte geben Sie eine Klassengruppe an');
             $Error = true;
+        }
+        // Level
+        if (!isset($Level['Check']) && isset($Level['Name'])) {
+            if (is_numeric($Level['Name'])) {
+                $position = strpos($Level['Name'], '0');
+                if ($position === 0) {
+                    $Form->setError('Level[Name]', 'Bitte geben Sie eine Zahl ohne führende "0" ein');
+                    $Error = true;
+                }
+            } else {
+                $Form->setError('Level[Name]', 'Bitte geben Sie eine Zahl ein');
+                $Error = true;
+            }
         }
 
         // Level
@@ -927,9 +941,7 @@ class Service extends AbstractService
             $tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
             if (is_array($tblSubjectStudentList)) {
                 array_walk($tblSubjectStudentList, function ($tblSubjectStudentList) {
-
-                    if (!$this->removeSubjectStudent($tblSubjectStudentList)) {
-                    }
+                    $this->removeSubjectStudent($tblSubjectStudentList);
                 });
             }
 
@@ -1167,11 +1179,12 @@ class Service extends AbstractService
 
         $Error = false;
 
-        if (isset($Division['Name']) && empty($Division['Name'])
-        ) {
-            $Form->setError('Division[Name]', 'Bitte geben sie einen Namen an');
-            $Error = true;
-        }
+        // auch leere Strings sollen gespeichert werden können
+//        if (isset($Division['Name']) && empty($Division['Name'])
+//        ) {
+//            $Form->setError('Division[Name]', 'Bitte geben sie einen Namen an');
+//            $Error = true;
+//        }
 //        else {
 //            $tblDivisionTest =
 //                Division::useService()->getDivisionByGroupAndLevelAndYear($Division['Name'], $Division['Level'], $Division['Year']);
@@ -1900,6 +1913,20 @@ class Service extends AbstractService
         }
 
         // Level
+        if (!isset($Level['Check']) && isset($Level['Name'])) {
+            if (is_numeric($Level['Name'])) {
+                $position = strpos($Level['Name'], '0');
+                if ($position === 0) {
+                    $Form->setError('Level[Name]', 'Bitte geben Sie eine Zahl ohne führende "0" ein');
+                    $Error = true;
+                }
+            } else {
+                $Form->setError('Level[Name]', 'Bitte geben Sie eine Zahl ein');
+                $Error = true;
+            }
+        }
+
+        // Level
         if (!$Error) {
             $tblLevel = null;
             if (!isset($Level['Check'])) {
@@ -1954,12 +1981,23 @@ class Service extends AbstractService
 
                 $tblDivisionStudentList = $this->getDivisionStudentAllByDivision($tblDivision);
                 if ($tblDivisionStudentList) {
-                    foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                        (new Data($this->getBinding()))->addDivisionStudent(
-                            $tblDivisionCopy,
-                            $tblDivisionStudent->getServiceTblPerson(),
-                            $tblDivisionStudent->getSortOrder()
-                        );
+                    foreach ($tblDivisionStudentList as $tblDivisionStudent){
+                        $StudentGroup = Group::useService()->getGroupByMetaTable('STUDENT');
+                        $tblPerson = $tblDivisionStudent->getServiceTblPerson();
+                        $tblPersonGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
+                        if ($tblPersonGroupList && $StudentGroup) {
+                            foreach ($tblPersonGroupList as $tblPersonGroup) {
+                                if ($tblPersonGroup->getId() == $StudentGroup->getId()) {
+                                    (new Data($this->getBinding()))->addDivisionStudent(
+                                        $tblDivisionCopy,
+                                        $tblDivisionStudent->getServiceTblPerson(),
+                                        $tblDivisionStudent->getSortOrder()
+                                    );
+                                    break;
+                                }
+                            }
+                        }
+
                     }
                 }
 

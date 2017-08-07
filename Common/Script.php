@@ -230,6 +230,12 @@ class Script extends Extension
             'jQuery.FlowPlayer', '/Library/jQuery.FlowPlayer/6.0.3/flowplayer.min.js',
             "'undefined' !== typeof jQuery.fn.flowplayer"
         );
+
+        $this->setSource(
+            'jQuery.Select2', '/Library/jQuery.Select2/4.0.3/dist/js/select2.full.min.js',
+            "'undefined' !== typeof jQuery.fn.select2"
+        );
+
         $this->setSource(
             'Highlight.js', '/Library/Highlight.js/8.8.0/highlight.pack.js',
             "'undefined' !== typeof hljs"
@@ -262,6 +268,13 @@ class Script extends Extension
                 'Bootstrap.Notify',
                 'Bootstrap',
                 'jQuery.Ui',
+                'jQuery'
+            )
+        );
+
+        $this->setModule(
+            'ModSelect2', array(
+                'jQuery.Select2',
                 'jQuery'
             )
         );

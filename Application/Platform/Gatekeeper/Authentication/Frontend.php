@@ -60,15 +60,15 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblIdentificationSearch = Account::useService()->getIdentificationByName(TblIdentification::NAME_USER_CREDENTIAL);
         $tblAccount = Account::useService()->getAccountBySession();
-        if ($tblAccount) {
+        if ($tblAccount && $tblIdentificationSearch) {
             $tblAuthentication = Account::useService()->getAuthenticationByAccount($tblAccount);
             if ($tblAuthentication && ($tblIdentification = $tblAuthentication->getTblIdentification())) {
                 if ($tblIdentificationSearch->getId() == $tblIdentification->getId()) {
                     $IsEqual = false;
                     $tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount);
                     if ($tblUserAccount) {
-                        $Password = $tblUserAccount->getUserPassword();
-                        if ($tblAccount->getPassword() == hash('sha256', $Password)) {
+                        $Password = $tblUserAccount->getAccountPassword();
+                        if ($tblAccount->getPassword() == $Password) {
                             $IsEqual = true;
                         }
                     }
@@ -166,26 +166,18 @@ class Frontend extends Extension implements IFrontendInterface
         $Identifier = $this->getModHex($CredentialKey)->getIdentifier();
         if ($Identifier) {
             $tblToken = Token::useService()->getTokenByIdentifier($Identifier);
-//            if ($tblToken) {
-//                if ($tblToken->getServiceTblConsumer()) {
-//                    $Identification = Account::useService()->getIdentificationByName('Token');
-//                } else {
-//                    $Identification = Account::useService()->getIdentificationByName('System');
-//                }
-////            } else {
-////                $Identification = Account::useService()->getIdentificationByName('Credential');
-//            }
-        } else {
-            $tblToken = null;
-        }
-        if ($CredentialName != '' && ($tblAccount = Account::useService()->getAccountByUsername($CredentialName))) {
-            if ($tblAccount->getServiceTblIdentification()) {
-                $Identification = $tblAccount->getServiceTblIdentification();
+            if ($tblToken) {
+                if ($tblToken->getServiceTblConsumer()) {
+                    $Identification = Account::useService()->getIdentificationByName('Token');
+                } else {
+                    $Identification = Account::useService()->getIdentificationByName('System');
+                }
+            } else {
+                $Identification = Account::useService()->getIdentificationByName('Credential');
             }
-        }
-
-        if (!isset($Identification)) {
+        } else {
             $Identification = Account::useService()->getIdentificationByName('Credential');
+            $tblToken = null;
         }
 
         if (!$Identification) {

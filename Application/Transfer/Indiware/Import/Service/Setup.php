@@ -109,6 +109,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblIndiwareImportStudent', 'serviceTblAccount')) {
             $Table->addColumn('serviceTblAccount', 'bigint', array('notnull' => false));
         }
+        if (!$this->getConnection()->hasColumn('tblIndiwareImportStudent', 'Level')) {
+            $Table->addColumn('Level', 'string');
+        }
         if (!$this->getConnection()->hasColumn('tblIndiwareImportStudent', 'IsIgnore')) {
             $Table->addColumn('IsIgnore', 'boolean');
         }
@@ -142,6 +145,9 @@ class Setup extends AbstractSetup
         }
         if (!$this->getConnection()->hasColumn('tblIndiwareImportStudentCourse', 'IsIntensiveCourse')) {
             $Table->addColumn('IsIntensiveCourse', 'boolean');
+        }
+        if (!$this->getConnection()->hasColumn('tblIndiwareImportStudentCourse', 'IsIgnoreCourse')) {
+            $Table->addColumn('IsIgnoreCourse', 'boolean');
         }
         $this->createForeignKey($Table, $tblIndiwareImportStudent);
 

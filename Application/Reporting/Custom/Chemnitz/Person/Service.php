@@ -1107,6 +1107,8 @@ class Service extends Extension
                 $Item['OrientationAndFrench'] = '';
                 $Item['Education'] = '';
                 $Item['Group'] = '';
+                $Item['Group1'] = false;
+                $Item['Group2'] = false;
                 $Item['Elective'] = '';
                 $Item['ExcelElective'] = '';
                 $Item['Integration'] = '';
@@ -1119,10 +1121,13 @@ class Service extends Extension
 
                 if ($tblStudentGroup1
                     && Group::useService()->existsGroupPerson($tblStudentGroup1, $tblPerson)){
-                    $Item['Group'] = 1;
-                } elseif ($tblStudentGroup2
+                    $Item['Group'] .= 1;
+                    $Item['Group1'] = true;
+                }
+                if ($tblStudentGroup2
                     && Group::useService()->existsGroupPerson($tblStudentGroup2, $tblPerson)){
-                    $Item['Group'] = 2;
+                    (!empty($Item['Group']) ? $Item['Group'] .= ', 2' : $Item['Group'] = 2);
+                    $Item['Group2'] = true;
                 }
 
                 $Sibling = array();
@@ -1320,8 +1325,17 @@ class Service extends Extension
 //                            $isSet = true;
                         }
                     }
-                    $Item['OrientationAndFrench'] = $Item['Orientation'] .
-                        (!empty($Item['Orientation']) && !empty($Item['French']) ? ', ' : '') . $Item['French'];
+
+                    if (($tblLevel = $tblDivision->getTblLevel())
+                        && (($tblType = $tblLevel->getServiceTblType()))
+                        && $tblType->getName() == 'Mittelschule / Oberschule'
+                    ) {
+                        $Item['OrientationAndFrench'] = $Item['Orientation'] .
+                            (!empty($Item['Orientation']) && !empty($Item['French']) ? ', ' : '') . $Item['French'];
+                    } else {
+                        $Item['OrientationAndFrench'] = $Item['Orientation'];
+                    }
+
 
                     // Vertiefungskurs // Erstmal deaktiviert (04.08.2016)
 //                    if (!$isSet) {
@@ -1525,9 +1539,10 @@ class Service extends Extension
             foreach ($PersonList as $PersonData) {
                 $NameRow = $AddressRow = $PhoneRow = $ElectiveRow = $Row;
 
-                if (isset($PersonData['Group']) && $PersonData['Group'] == 1) {
+                if (!empty($PersonData['Group1'])) {
                     $counterStudentGroup1++;
-                } elseif (isset($PersonData['Group']) && $PersonData['Group'] == 2) {
+                }
+                if (!empty($PersonData['Group2'])) {
                     $counterStudentGroup2++;
                 }
                 if (!empty($PersonData['Orientation'])) {
@@ -1564,7 +1579,13 @@ class Service extends Extension
                 $export->setValue($export->getCell(1, $Row), $PersonData['Birthday']);
                 $export->setValue($export->getCell(4, $Row), $PersonData['Group']);
                 $export->setValue($export->getCell(5, $Row), $PersonData['Orientation']);
-                $export->setValue($export->getCell(5, $Row+1), $PersonData['French']);
+                if (($tblLevel = $tblDivision->getTblLevel())
+                    && (($tblType = $tblLevel->getServiceTblType()))
+                    && $tblType->getName() == 'Mittelschule / Oberschule'
+                ) {
+                    $export->setValue($export->getCell(5, $Row+1), $PersonData['French']);
+                }
+
                 $export->setValue($export->getCell(6, $Row), $PersonData['Education']);
 
 

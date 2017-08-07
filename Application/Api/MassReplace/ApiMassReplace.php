@@ -18,6 +18,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Error;
 use SPHERE\System\Extension\Extension;
 
@@ -63,13 +64,15 @@ class ApiMassReplace extends Extension implements IApiInterface
 
     /**
      * @param AbstractField $Field
+     * @param null|string   $Node
      *
      * @return ModalReceiver
      */
-    public static function receiverModal(AbstractField $Field)
+    public static function receiverModal(AbstractField $Field, $Node = null)
     {
         /** @var SelectBox|TextField $Field */
-        return (new ModalReceiver(new Bold('Massenänderung ').$Field->getLabel(), new Close()))
+        return (new ModalReceiver(new Bold('Massenänderung ').new Bold(new Success($Node)).' - '.$Field->getLabel(),
+            new Close()))
             ->setIdentifier('Field-Modal-'.crc32($Field->getName()));
     }
 
@@ -84,10 +87,17 @@ class ApiMassReplace extends Extension implements IApiInterface
         return (new BlockReceiver($Content))->setIdentifier($Name);
     }
 
-    public static function pipelineOpen(AbstractField $Field)
+    /**
+     * @param AbstractField $Field
+     * @param null|string   $Node
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpen(AbstractField $Field, $Node = null)
     {
+
         $Pipeline = new Pipeline();
-        $Emitter = new ServerEmitter(self::receiverModal($Field), self::getEndpoint());
+        $Emitter = new ServerEmitter(self::receiverModal($Field, $Node), self::getEndpoint());
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'openModal'
         ));
@@ -137,14 +147,14 @@ class ApiMassReplace extends Extension implements IApiInterface
      *
      * @return Layout|string
      */
-    public function openModal($modalField, $useFilter = null, $Year = null, $Division = null)
+    public function openModal($modalField, $useFilter = null, $Year = null, $Division = null, $Node = null)
     {
 
         if ($useFilter == null) {
             return new Warning('Filter einstellen!');
         }
         if ($useFilter == StudentFilter::STUDENT_FILTER) {
-            return (new StudentFilter())->getFrontendStudentFilter($modalField, $Year, $Division);
+            return (new StudentFilter())->getFrontendStudentFilter($modalField, $Year, $Division, $Node);
         }
 
         // miss Filter match
