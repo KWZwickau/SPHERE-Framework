@@ -60,15 +60,15 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblIdentificationSearch = Account::useService()->getIdentificationByName(TblIdentification::NAME_USER_CREDENTIAL);
         $tblAccount = Account::useService()->getAccountBySession();
-        if ($tblAccount) {
+        if ($tblAccount && $tblIdentificationSearch) {
             $tblAuthentication = Account::useService()->getAuthenticationByAccount($tblAccount);
             if ($tblAuthentication && ($tblIdentification = $tblAuthentication->getTblIdentification())) {
                 if ($tblIdentificationSearch->getId() == $tblIdentification->getId()) {
                     $IsEqual = false;
                     $tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount);
                     if ($tblUserAccount) {
-                        $Password = $tblUserAccount->getUserPassword();
-                        if ($tblAccount->getPassword() == hash('sha256', $Password)) {
+                        $Password = $tblUserAccount->getAccountPassword();
+                        if ($tblAccount->getPassword() == $Password) {
                             $IsEqual = true;
                         }
                     }

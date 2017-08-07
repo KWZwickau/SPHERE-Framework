@@ -24,6 +24,9 @@ class Person extends AbstractModule implements IModuleInterface
             new Link(new Link\Route(__NAMESPACE__.'/ExtendedClassList'), new Link\Name('Klassenlisten Erweitert'))
         );
         Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__.'/ElectiveClassList'), new Link\Name('Klassenlisten Wahlfächer'))
+        );
+        Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/BirthdayClassList'), new Link\Name('Klassenlisten Geburtstag'))
         );
         Main::getDisplay()->addModuleNavigation(
@@ -57,6 +60,9 @@ class Person extends AbstractModule implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/InterestedPersonList', __NAMESPACE__.'\Frontend::frontendInterestedPersonList'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/ElectiveClassList', __NAMESPACE__.'\Frontend::frontendElectiveClassList'
         ));
     }
 

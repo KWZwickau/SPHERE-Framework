@@ -169,4 +169,31 @@ class Person
 
         return false;
     }
+
+    /**
+     * @param null $DivisionId
+     *
+     * @return bool|string
+     */
+    public function downloadElectiveClassList($DivisionId = null)
+    {
+
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        if ($tblDivision) {
+            $PersonList = ReportingPerson::useService()->createElectiveClassList($tblDivision);
+            if ($PersonList) {
+                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+                if ($tblPersonList) {
+                    $fileLocation = ReportingPerson::useService()->createElectiveClassListExcel($PersonList,
+                        $tblPersonList
+                        , $tblDivision->getId());
+                    return FileSystem::getDownload($fileLocation->getRealPath(),
+                        "Wahlfächer_Klassenliste ".$tblDivision->getDisplayName()
+                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
+                }
+            }
+        }
+
+        return false;
+    }
 }
