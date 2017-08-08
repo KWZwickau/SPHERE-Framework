@@ -145,7 +145,6 @@ class GradebookOverview extends AbstractDocument
 
             $ColumnWidth['Period'] = (100 - ($ColumnWidth['FirstAndLast'] * 2 + $ColumnWidth['Average'] * 2)) / count($tblPeriodList);
 
-
             foreach ($tblGradeList as $tblGrade) {
                 if ($tblGrade->getServiceTblSubject()) {
                     $tblSubjectList[$tblGrade->getServiceTblSubject()->getId()] = $tblGrade->getServiceTblSubject()->getAcronym();
