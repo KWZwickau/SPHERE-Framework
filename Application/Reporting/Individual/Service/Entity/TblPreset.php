@@ -18,13 +18,13 @@ use SPHERE\System\Database\Fitting\Element;
 class TblPreset extends Element
 {
 
-    const ATTR_TBL_ACCOUNT = 'tblAccount';
+    const ATTR_SERVICE_TBL_ACCOUNT = 'serviceTblAccount';
     const ATTR_NAME = 'Name';
 
     /**
      * @Column(type="bigint")
      */
-    protected $tblAccount;
+    protected $serviceTblAccount;
     /**
      * @Column(type="string")
      */
@@ -33,23 +33,23 @@ class TblPreset extends Element
     /**
      * @return bool|TblAccount
      */
-    public function getTblAccount()
+    public function getServiceTblAccount()
     {
 
-        if (null === $this->tblAccount) {
+        if (null === $this->serviceTblAccount) {
             return false;
         } else {
-            return Account::useService()->getAccountById($this->tblAccount);
+            return Account::useService()->getAccountById($this->serviceTblAccount);
         }
     }
 
     /**
      * @param null|TblAccount $tblAccount
      */
-    public function setTblAccount(TblAccount $tblAccount = null)
+    public function setServiceTblAccount(TblAccount $tblAccount = null)
     {
 
-        $this->tblAccount = (null === $tblAccount ? null : $tblAccount->getId());
+        $this->serviceTblAccount = (null === $tblAccount ? null : $tblAccount->getId());
     }
 
     /**

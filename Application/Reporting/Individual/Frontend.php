@@ -12,7 +12,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -34,8 +33,8 @@ class Frontend extends Extension implements IFrontendInterface
 
 //        Individual::useService()->getView();
 
-        $tblWorkSpaceList = Individual::useService()->getWorkSpaceAll();
-        Debugger::screenDump($tblWorkSpaceList);
+//        $tblWorkSpaceList = Individual::useService()->getWorkSpaceAll();
+//        Debugger::screenDump($tblWorkSpaceList);
 
         $Stage->setContent(
             new Layout(array(
@@ -43,13 +42,14 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(
                             ApiIndividual::receiverService().
+                            ApiIndividual::receiverModal().
                             ApiIndividual::receiverNavigation(ApiIndividual::pipelineNewNavigation())
                             , 2),
                         new LayoutColumn(
                             new Layout(
                                 new LayoutGroup(
                                     new LayoutRow(array(
-                                        new LayoutColumn('Filter'),
+                                        new LayoutColumn(ApiIndividual::receiverFilter(ApiIndividual::pipelineDisplayFilter())),
                                         new LayoutColumn(new Title('TableResult')),
                                         new LayoutColumn(new TableData($Content, null,
                                             $Content[0]->getNameDefinitionList())),

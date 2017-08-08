@@ -87,6 +87,12 @@ class ViewStudent extends AbstractView
     const TBL_PHONE_NUMBER_S3 = 'TblPhone_Number_S3';
     const TBL_MAIL_ADDRESS_S3 = 'TblMail_Address_S3';
 
+    static function getConstants()
+    {
+        $oClass = new \ReflectionClass(__CLASS__);
+        return $oClass->getConstants();
+    }
+
     /**
      * @Column(type="string")
      */

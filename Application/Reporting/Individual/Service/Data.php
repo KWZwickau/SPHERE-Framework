@@ -70,7 +70,7 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPreset', array(
-            TblPreset::ATTR_TBL_ACCOUNT => $tblAccount->getId()
+            TblPreset::ATTR_SERVICE_TBL_ACCOUNT => $tblAccount->getId()
         ));
     }
 
@@ -83,6 +83,20 @@ class Data extends AbstractData
     {
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPresetSetting',
             $Id);
+    }
+
+    /**
+     * @param TblPreset $tblPreset
+     *
+     * @return false|TblPresetSetting[]
+     */
+    public function getPresetSettingAllByPreset(TblPreset $tblPreset)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPresetSetting',
+            array(
+                TblPresetSetting::ATTR_TBL_PRESET => $tblPreset->getId(),
+            ));
     }
 
     /**
@@ -116,7 +130,7 @@ class Data extends AbstractData
     {
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = new TblPreset();
-        $Entity->setTblAccount($tblAccount);
+        $Entity->setServiceTblAccount($tblAccount);
         $Entity->setName($Name);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
