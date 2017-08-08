@@ -218,6 +218,36 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
     }
 
     /**
+     * @param TblPerson|null $tblPerson
+     * @param TblDivision|null $tblDivision
+     * @param TblPeriod|null $tblPeriod
+     * @param TblTestType|null $tblTestType
+     *
+     * @return bool|TblGrade[]
+     */
+    public function getGradeAllBy(TblPerson $tblPerson = null, TblDivision $tblDivision = null, TblPeriod $tblPeriod = null, TblTestType $tblTestType = null)
+    {
+        $Parameter = array(
+            TblGrade::ENTITY_REMOVE => null
+        );
+        if( $tblPerson ) {
+            $Parameter[TblGrade::ATTR_SERVICE_TBL_PERSON] = $tblPerson->getId();
+        }
+        if( $tblDivision ) {
+            $Parameter[TblGrade::ATTR_SERVICE_TBL_DIVISION] = $tblDivision->getId();
+        }
+        if( $tblPeriod ) {
+            $Parameter[TblGrade::ATTR_SERVICE_TBL_PERIOD] = $tblPeriod->getId();
+        }
+        if( $tblTestType ) {
+            $Parameter[TblGrade::ATTR_SERVICE_TBL_TEST_TYPE] = $tblTestType->getId();
+        }
+
+        return $this->getForceEntityListBy(__METHOD__,$this->getEntityManager(),(new TblGrade())->getEntityShortName(), $Parameter);
+    }
+
+
+    /**
      * @param $Id
      *
      * @return bool|TblGradeType
