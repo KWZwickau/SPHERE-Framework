@@ -34,10 +34,12 @@ class RadioBox extends AbstractField implements IFieldInterface
         }
     }
 
-    /** @noinspection PhpMissingParentCallCommonInspection */
+    /**
+     * @return string
+     */
     public function getContent()
     {
 
-        return $this->Template->getContent();
+        return parent::getContent();
     }
 }

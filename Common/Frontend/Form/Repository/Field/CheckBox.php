@@ -47,7 +47,9 @@ class CheckBox extends AbstractField implements IFieldInterface
         return $this;
     }
 
-    /** @noinspection PhpMissingParentCallCommonInspection */
+    /**
+     * @return string
+     */
     public function getContent()
     {
 
@@ -58,6 +60,6 @@ class CheckBox extends AbstractField implements IFieldInterface
             $this->Template->setVariable('ElementChecked', 'checked="checked"');
         }
 
-        return $this->Template->getContent();
+        return parent::getContent();
     }
 }
