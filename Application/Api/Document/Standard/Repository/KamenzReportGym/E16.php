@@ -23,7 +23,7 @@ class E16
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E16. Schüler in Grundkursen an dieser Schule im Schuljahr {{ Content.Schoolyear.Current }} nach Jahrgangsstufen')
+                ->setContent('E16. Schüler in Grundkursen an dieser Schule im Schuljahr {{ Content.SchoolYear.Current }} nach Jahrgangsstufen')
             );
 
         $sliceList[] = (new Slice())
@@ -38,10 +38,10 @@ class E16
                     ->stylePaddingBottom('34.1px'), '40%'
                 )
                 ->addSliceColumn((new Slice())
-                    ->styleBorderRight()
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Jahrgangsstufe 11')
+                            ->styleBorderRight()
                         )
                     )
                     ->addSection((new Section())
@@ -53,6 +53,7 @@ class E16
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
                                     ->setContent('Schüler')
+                                    ->styleBorderRight()
                                     ->styleBorderBottom()
                                 )
                             )
@@ -65,6 +66,7 @@ class E16
                                 )
                                 ->addElementColumn((new Element())
                                     ->setContent('w')
+                                    ->styleBorderRight()
                                     ->stylePaddingTop('16.5px')
                                     ->stylePaddingBottom('16.5px'), '50%'
                                 )
@@ -108,1144 +110,148 @@ class E16
                 )
             );
 
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
+        for ($i = 0; $i < 30; $i++) {
+            $section = new Section();
+            $section
                 ->addElementColumn((new Element())
-                    ->setContent('Deutsch')
+                    ->setContent('
+                            {% if (Content.E16.S' . $i . '.SubjectName is not empty) %}
+                                {{ Content.E16.S' . $i . '.SubjectName }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                    ->stylePaddingLeft('5px')
+                    ->styleBorderRight()
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
+                );
+            for ($level = 11; $level < 13; $level++) {
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if (Content.E16.S' . $i . '.L' . $level . '.CoursesCount is not empty) %}
+                                {{ Content.E16.S' . $i . '.L' . $level . '.CoursesCount }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleBorderRight()
+                        ->styleAlignCenter()
+                        ->styleBorderRight(), '12%'
+                    );
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if (Content.E16.S' . $i . '.L' . $level . '.m is not empty) %}
+                                {{ Content.E16.S' . $i . '.L' . $level . '.m }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleBorderRight()
+                        ->styleAlignCenter()
+                        ->styleBorderRight(), '9%'
+                    );
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if (Content.E16.S' . $i . '.L' . $level . '.w is not empty) %}
+                                {{ Content.E16.S' . $i . '.L' . $level . '.w }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleBorderRight()
+                        ->styleAlignCenter()
+                        ->styleBorderRight(), '9%'
+                    );
+            }
+
+            $sliceList[] = (new Slice())
+                ->styleBorderBottom()
+                ->styleBorderLeft()
+                ->addSection($section);
+        }
 
         $sliceList[] = (new Slice())
             ->styleBorderBottom()
             ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Deutsch als Fremdsprache')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Sorbisch')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Englisch')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Französisch')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Latein')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Griechisch')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Russisch')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Spanisch')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Italienisch')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Polnisch')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Tschechisch')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Kunst')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Musik')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Geschichte')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Geschichte bikulturell-bilingual')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Geographie')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Gemeinschaftskunde/Rechtserz./Wirtschaft')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Mathematik')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Physik')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Chemie')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Biologie')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Sport')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Ethik')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Evangelische Religion')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Katholische Religion')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('00')
-                    ->styleAlignCenter(), '9%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBackgroundColor('lightgrey')
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('sonstige Fächer')
-                    ->styleBorderRight(), '40%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;'), '9%'
-                )
-            );
-
-        $sliceList[] = (new Slice())
-            ->styleBackgroundColor('lightgrey')
             ->styleAlignCenter()
             ->styleTextBold()
-            ->styleBorderBottom()
-            ->styleBorderLeft()
-            ->styleBorderRight()
-            ->addSection((new Section())
+                ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Insgesamt')
+                    ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight(), '40%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                        {% if (Content.E16.TotalCount.L11.CoursesCount is not empty) %}
+                            {{ Content.E16.TotalCount.L11.CoursesCount }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '12%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                        {% if (Content.E16.TotalCount.L11.m is not empty) %}
+                            {{ Content.E16.TotalCount.L11.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '9%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                        {% if (Content.E16.TotalCount.L11.w is not empty) %}
+                            {{ Content.E16.TotalCount.L11.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleAlignCenter()
                     ->styleBorderRight(), '9%'
                 )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '12%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '9%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;'), '9%'
-                )
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                        {% if (Content.E16.TotalCount.L12.CoursesCount is not empty) %}
+                            {{ Content.E16.TotalCount.L12.CoursesCount }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                        ->styleAlignCenter()
+                        ->styleBorderRight(), '12%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                        {% if (Content.E16.TotalCount.L12.m is not empty) %}
+                            {{ Content.E16.TotalCount.L12.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                        ->styleAlignCenter()
+                        ->styleBorderRight(), '9%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                        {% if (Content.E16.TotalCount.L12.w is not empty) %}
+                            {{ Content.E16.TotalCount.L12.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                        ->styleAlignCenter()
+                        ->styleBorderRight(), '9%'
+                    )
             );
-
 
         return $sliceList;
     }

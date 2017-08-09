@@ -22,6 +22,7 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Window\Display;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 use MOC\V\Component\Document\Component\Bridge\Repository\DomPdf;
@@ -157,18 +158,18 @@ class Creator extends Extension
     }
 
     /**
-     * @param $Type
+     * @param string $Type
      * @param bool $Redirect
      *
-     * @return Stage|string
+     * @return Display|Stage|string
      */
-    public static function createKamenzPdf($Type, $Redirect = true)
+    public static function createKamenzPdf($Type = '', $Redirect = true)
     {
 
         // todo pdf download bitte warten --> funktioniert so nicht
 //        if ($Redirect) {
 //                return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
-//                    'Api/Document/Standard/KamenzReport/Create',
+//                    '/Api/Document/Standard/KamenzReport/Create',
 //                    array(
 //                        'Type' => $Type,
 //                        'Redirect' => false
