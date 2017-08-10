@@ -15,6 +15,9 @@ abstract class AbstractView extends Element
     /** @var array $NameDefinitionList */
     private $NameDefinitionList = array();
 
+    /** @var array $GroupDefinitionList */
+    private $GroupDefinitionList = array();
+
     /** @var array $DisabledDefinitionList */
     private $DisableDefinitionList = array();
 
@@ -72,6 +75,23 @@ abstract class AbstractView extends Element
             return $this->NameDefinitionList[$PropertyName];
         }
         return $PropertyName;
+    }
+
+    /**
+     * @param string $PropertyName
+     *
+     * @return string|false
+     */
+    public function getGroupDefinition($PropertyName)
+    {
+
+        $this->loadNameDefinition();
+
+        if (isset($this->GroupDefinitionList[$PropertyName])) {
+            return $this->GroupDefinitionList[$PropertyName];
+        }
+
+        return false;
     }
 
     /**
@@ -277,7 +297,25 @@ abstract class AbstractView extends Element
     protected function setNameDefinition($PropertyName, $DisplayName)
     {
 
+
         $this->NameDefinitionList[$PropertyName] = $DisplayName;
+        return $this;
+    }
+
+    /**
+     * @param string $PropertyGroup
+     * @param array  $PropertyNameArray
+     *
+     * @return AbstractView
+     */
+    protected function setGroupDefinition($PropertyGroup, $PropertyNameArray)
+    {
+
+        if (is_array($PropertyNameArray) && !empty($PropertyNameArray)) {
+            foreach ($PropertyNameArray as $PropertyName) {
+                $this->GroupDefinitionList[$PropertyName] = $PropertyGroup;
+            }
+        }
         return $this;
     }
 }

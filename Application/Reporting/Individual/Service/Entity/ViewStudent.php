@@ -17,12 +17,13 @@ use SPHERE\System\Database\Binding\AbstractView;
 class ViewStudent extends AbstractView
 {
 
-    const TBL_COMMON_GENDER_NAME = 'TblCommonGender_Name';
+    // Sortierung beeinflusst die Gruppenreihenfolge im Frontend
     const TBL_SALUTATION_SALUTATION = 'TblSalutation_Salutation';
     const TBL_PERSON_TITLE = 'TblPerson_Title';
     const TBL_PERSON_FIRST_NAME = 'TblPerson_FirstName';
     const TBL_PERSON_SECOND_NAME = 'TblPerson_SecondName';
     const TBL_PERSON_LAST_NAME = 'TblPerson_LastName';
+    const TBL_COMMON_GENDER_NAME = 'TblCommonGender_Name';
     const TBL_COMMON_INFORMATION_IS_ASSISTANCE = 'TblCommonInformation_IsAssistance';
     const TBL_COMMON_INFORMATION_ASSISTANCE_ACTIVITY = 'TblCommonInformation_AssistanceActivity';
     const TBL_COMMON_REMARK = 'TblCommon_Remark';
@@ -354,18 +355,21 @@ class ViewStudent extends AbstractView
     public function loadNameDefinition()
     {
 
-        $this->setNameDefinition(self::TBL_COMMON_GENDER_NAME, 'Geschlecht');
+        $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION, 'Anrede');
         $this->setNameDefinition(self::TBL_PERSON_TITLE, 'Titel');
         $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME, 'Vorname');
         $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME, 'Zweiter Vorname');
         $this->setNameDefinition(self::TBL_PERSON_LAST_NAME, 'Nachname');
-        $this->setNameDefinition(self::TBL_COMMON_INFORMATION_IS_ASSISTANCE, 'Mitarbeitsbereitschaft');
-        $this->setNameDefinition(self::TBL_COMMON_INFORMATION_ASSISTANCE_ACTIVITY, 'Mitarbeits Aktivitäten');
-        $this->setNameDefinition(self::TBL_COMMON_REMARK, 'Personenbemerkung');
+        $this->setNameDefinition(self::TBL_COMMON_GENDER_NAME, 'Geschlecht');
+        $this->setNameDefinition(self::TBL_COMMON_REMARK, 'Personen Bemerkung');
         $this->setNameDefinition(self::TBL_COMMON_BIRTHDATES_BIRTHDAY, 'Geburtstag');
         $this->setNameDefinition(self::TBL_COMMON_BIRTHDATES_BIRTHPLACE, 'Geburtsort');
         $this->setNameDefinition(self::TBL_COMMON_INFORMATION_DENOMINATION, 'Konfession');
         $this->setNameDefinition(self::TBL_COMMON_INFORMATION_NATIONALITY, 'Staatsangehörigkeit');
+
+        $this->setNameDefinition(self::TBL_COMMON_INFORMATION_IS_ASSISTANCE, 'Mitarbeitsbereitschaft');
+        $this->setNameDefinition(self::TBL_COMMON_INFORMATION_ASSISTANCE_ACTIVITY, 'Mitarbeits Aktivitäten');
+
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME, 'Straße');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER, 'Str. Nr.');
         $this->setNameDefinition(self::TBL_CITY_CODE, 'PLZ');
@@ -419,6 +423,45 @@ class ViewStudent extends AbstractView
         $this->setNameDefinition(self::TBL_CITY_DISTRICT_S3, 'Ortsteil_S3');
         $this->setNameDefinition(self::TBL_PHONE_NUMBER_S3, 'Telefon_S3');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S3, 'E-Mail_S3');
+
+        $this->setGroupDefinition('Personendaten', array(
+            self::TBL_SALUTATION_SALUTATION,
+            self::TBL_PERSON_TITLE,
+            self::TBL_PERSON_FIRST_NAME,
+            self::TBL_PERSON_SECOND_NAME,
+            self::TBL_PERSON_LAST_NAME,
+            self::TBL_COMMON_GENDER_NAME,
+            self::TBL_COMMON_REMARK,
+            self::TBL_COMMON_BIRTHDATES_BIRTHDAY,
+            self::TBL_COMMON_BIRTHDATES_BIRTHPLACE,
+            self::TBL_COMMON_INFORMATION_DENOMINATION,
+            self::TBL_COMMON_INFORMATION_NATIONALITY
+        ));
+
+        $this->setGroupDefinition('Mitarbeit', array(
+            self::TBL_COMMON_INFORMATION_IS_ASSISTANCE,
+            self::TBL_COMMON_INFORMATION_ASSISTANCE_ACTIVITY
+        ));
+
+        $this->setGroupDefinition('Kontaktinformation', array(
+            self::TBL_ADDRESS_STREET_NAME,
+            self::TBL_ADDRESS_STREET_NUMBER,
+            self::TBL_CITY_CODE,
+            self::TBL_CITY_CITY,
+            self::TBL_CITY_DISTRICT,
+            self::TBL_ADDRESS_COUNTRY,
+            self::TBL_ADDRESS_NATION,
+            self::TBL_PHONE_NUMBER,
+            self::TBL_MAIL_ADDRESS
+        ));
+
+        $this->setGroupDefinition('Schülerinformation', array(
+            self::TBL_STUDENT_MEDICAL_RECORD_INSURANCE,
+            self::TBL_STUDENT_LOCKER_KEY_NUMBER,
+            self::TBL_STUDENT_LOCKER_LOCKER_NUMBER,
+            self::TBL_STUDENT_IDENTIFIER,
+            self::SIBLINGS_COUNT
+        ));
     }
 
     /**

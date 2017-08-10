@@ -7,6 +7,7 @@ use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\Reporting\Individual\Individual;
 use SPHERE\Application\Reporting\Individual\Service\Entity\TblPreset;
+use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudent;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -52,7 +53,7 @@ class ApiIndividual extends Extension implements IApiInterface
         $Dispatcher = new Dispatcher(__CLASS__);
         $Dispatcher->registerMethod('getNewNavigation');
         $Dispatcher->registerMethod('removeFieldAll');
-        $Dispatcher->registerMethod('savePreset');
+        $Dispatcher->registerMethod('getModalPreset');
         $Dispatcher->registerMethod('addField');
         $Dispatcher->registerMethod('buildFilter');
 
@@ -126,7 +127,7 @@ class ApiIndividual extends Extension implements IApiInterface
         $Pipeline->appendEmitter($Emitter);
         $Emitter = new ServerEmitter(self::receiverNavigation(), self::getEndpoint());
         $Emitter->setGetPayload(array(
-            self::API_TARGET => 'getStudentNavigation'
+            self::API_TARGET => 'getNewNavigation'
         ));
         $Pipeline->appendEmitter($Emitter);
         // Refresh Filter
@@ -139,13 +140,13 @@ class ApiIndividual extends Extension implements IApiInterface
         return $Pipeline;
     }
 
-    public static function pipelineSavePreset()
+    public static function pipelinePresetModal()
     {
 
         $Pipeline = new Pipeline();
         $Emitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
         $Emitter->setGetPayload(array(
-            self::API_TARGET => 'savePreset'
+            self::API_TARGET => 'getModalPreset'
         ));
         $Pipeline->appendEmitter($Emitter);
 
@@ -157,16 +158,29 @@ class ApiIndividual extends Extension implements IApiInterface
 
         $Pipeline = new Pipeline();
         $Emitter = new ServerEmitter(self::receiverNavigation(), self::getEndpoint());
+
+        $tblWorkspaceList = Individual::useService()->getWorkSpaceAll();
+        // Default
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'getNewNavigation'
         ));
+        // Find selected Group
+        if ($tblWorkspaceList) {
+            $tblWorkspace = current($tblWorkspaceList);
+            if ($tblWorkspace->getView() == 'ViewStudent') {
+                $Emitter->setGetPayload(array(
+                    self::API_TARGET => 'getStudentNavigation'
+                ));
+            }
+        }
+
         $Pipeline->appendEmitter($Emitter);
-        // Refresh Filter
-        $Emitter = new ServerEmitter(self::receiverFilter(), self::getEndpoint());
-        $Emitter->setGetPayload(array(
-            self::API_TARGET => 'buildFilter'
-        ));
-        $Pipeline->appendEmitter($Emitter);
+//        // Refresh Filter
+//        $Emitter = new ServerEmitter(self::receiverFilter(), self::getEndpoint());
+//        $Emitter->setGetPayload(array(
+//            self::API_TARGET => 'buildFilter'
+//        ));
+//        $Pipeline->appendEmitter($Emitter);
         return $Pipeline;
     }
 
@@ -232,7 +246,7 @@ class ApiIndividual extends Extension implements IApiInterface
         Individual::useService()->removeWorkSpaceFieldAll();
     }
 
-    public function savePreset()
+    public function getModalPreset()
     {
 
         $tblPresetList = Individual::useService()->getPresetAll();
@@ -318,7 +332,20 @@ class ApiIndividual extends Extension implements IApiInterface
             }
         }
 
-        $ViewStudentBlockList = Individual::useService()->getStudentViewList();
+        $View = new ViewStudent();
+
+        $ViewStudentBlockList = array();
+        $ConstantList = ViewStudent::getConstants();
+        if ($ConstantList) {
+            foreach ($ConstantList as $Constant) {
+                $Group = $View->getGroupDefinition($Constant);
+
+                if ($Group) {
+                    $ViewStudentBlockList[$Group][] = $View->getNameDefinition($View->getNameDefinition($Constant));
+                }
+            }
+//            ksort($ViewStudentBlockList);
+        }
 
         $PanelList = array();
         if ($ViewStudentBlockList) {
@@ -328,7 +355,7 @@ class ApiIndividual extends Extension implements IApiInterface
                 if ($FieldList) {
                     foreach ($FieldList as $FieldTblName) {
 
-                        $FieldName = Individual::useService()->getFieldLabelByFieldName($FieldTblName);
+                        $FieldName = $View->getNameDefinition($FieldTblName);
 
                         if (!in_array($FieldTblName, $WorkSpaceList)) {
                             $FieldListArray[$FieldTblName] = new PullClear($FieldName.new PullRight((new Primary('',
@@ -345,48 +372,12 @@ class ApiIndividual extends Extension implements IApiInterface
             }
         }
 
-//        $FieldList = array();
-//
-//        $FieldList[ViewStudent::TBL_SALUTATION_SALUTATION] = new PullClear('Anrede'.new PullRight((new Primary('', self::getEndpoint(), new Plus()))
-//                ->ajaxPipelineOnClick(self::pipelineAddField(ViewStudent::TBL_SALUTATION_SALUTATION, 'ViewStudent', 'getStudentNavigation'))));
-//        $FieldList[ViewStudent::TBL_PERSON_FIRST_NAME] = new PullClear('Vorname'.new PullRight((new Primary('', self::getEndpoint(), new Plus()))
-//                ->ajaxPipelineOnClick(self::pipelineAddField(ViewStudent::TBL_PERSON_FIRST_NAME, 'ViewStudent', 'getStudentNavigation'))));
-//        $FieldList[ViewStudent::TBL_PERSON_SECOND_NAME] = new PullClear('Zweiter-Vorname'.new PullRight((new Primary('', self::getEndpoint(), new Plus()))
-//                ->ajaxPipelineOnClick(self::pipelineAddField(ViewStudent::TBL_PERSON_SECOND_NAME, 'ViewStudent', 'getStudentNavigation'))));
-//        $FieldList[ViewStudent::TBL_PERSON_LAST_NAME] = new PullClear('Nachname'.new PullRight((new Primary('', self::getEndpoint(), new Plus()))
-//                ->ajaxPipelineOnClick(self::pipelineAddField(ViewStudent::TBL_PERSON_LAST_NAME, 'ViewStudent', 'getStudentNavigation'))));
-//        $FieldList[ViewStudent::TBL_COMMON_BIRTHDATES_BIRTHDAY] = new PullClear('Geburtstag'.new PullRight((new Primary('', self::getEndpoint(), new Plus()))
-//                ->ajaxPipelineOnClick(self::pipelineAddField(ViewStudent::TBL_COMMON_BIRTHDATES_BIRTHDAY, 'ViewStudent', 'getStudentNavigation'))));
-//        $FieldList[ViewStudent::TBL_COMMON_BIRTHDATES_BIRTHPLACE] = new PullClear('Geburtsort'.new PullRight((new Primary('', self::getEndpoint(), new Plus()))
-//                ->ajaxPipelineOnClick(self::pipelineAddField(ViewStudent::TBL_COMMON_BIRTHDATES_BIRTHPLACE, 'ViewStudent', 'getStudentNavigation'))));
-//        $FieldList[ViewStudent::TBL_COMMON_INFORMATION_DENOMINATION] = new PullClear('Konfession'.new PullRight((new Primary('', self::getEndpoint(), new Plus()))
-//                ->ajaxPipelineOnClick(self::pipelineAddField(ViewStudent::TBL_COMMON_INFORMATION_DENOMINATION, 'ViewStudent', 'getStudentNavigation'))));
-//
-//        $FieldList[ViewStudent::TBL_COMMON_INFORMATION_NATIONALITY] = new PullClear('Staatsangehörigkeit'.new PullRight((new Primary('', self::getEndpoint(), new Plus()))
-//                ->ajaxPipelineOnClick(self::pipelineAddField(ViewStudent::TBL_COMMON_INFORMATION_NATIONALITY, 'ViewStudent', 'getStudentNavigation'))));
-//        $FieldList[ViewStudent::TBL_COMMON_INFORMATION_IS_ASSISTANCE] = new PullClear('Mitarbeitsbereitschaft'.new PullRight((new Primary('', self::getEndpoint(), new Plus()))
-//                ->ajaxPipelineOnClick(self::pipelineAddField(ViewStudent::TBL_COMMON_INFORMATION_IS_ASSISTANCE, 'ViewStudent', 'getStudentNavigation'))));
-//        $FieldList[ViewStudent::TBL_COMMON_INFORMATION_ASSISTANCE_ACTIVITY] = new PullClear('Mitarbeitsbereitschaft - Tätigkeit'.new PullRight((new Primary('', self::getEndpoint(), new Plus()))
-//                ->ajaxPipelineOnClick(self::pipelineAddField(ViewStudent::TBL_COMMON_INFORMATION_ASSISTANCE_ACTIVITY, 'ViewStudent', 'getStudentNavigation'))));
-//        $FieldList[ViewStudent::SIBLINGS_COUNT] = new PullClear('Anzahl Geschwister'.new PullRight((new Primary('', self::getEndpoint(), new Plus()))
-//                ->ajaxPipelineOnClick(self::pipelineAddField(ViewStudent::SIBLINGS_COUNT, 'ViewStudent', 'getStudentNavigation'))));
-
-//        // remove every entry that is Choosen
-//        $tblWorkSpaceList = Individual::useService()->getWorkSpaceAll();
-//        if ($tblWorkSpaceList) {
-//            foreach ($tblWorkSpaceList as $tblWorkSpace) {
-//                if (isset($FieldList[$tblWorkSpace->getField()]) && $FieldList[$tblWorkSpace->getField()]) {
-//                    $FieldList[$tblWorkSpace->getField()] = false;
-//                }
-//            }
-//        }
-//        $FieldList = array_filter($FieldList);
-
         return new Panel('Verfügbare Felder', array(
             (new Danger('Löschen', ApiIndividual::getEndpoint(), new Disable()))->ajaxPipelineOnClick(
                 ApiIndividual::pipelineDelete()
-            ).(new Primary('Speichern', ApiIndividual::getEndpoint(), new Save()))->ajaxPipelineOnClick(
-                ApiIndividual::pipelineSavePreset()
+            ).(new Primary('Masken', ApiIndividual::getEndpoint(), new Save(), array(),
+                'Laden/Speichern von Filtereinstellungen'))->ajaxPipelineOnClick(
+                ApiIndividual::pipelinePresetModal()
             ),
 //            (new Accordion())->addItem('Schüler Grunddaten',
                 new Layout(new LayoutGroup(new LayoutRow(
@@ -398,43 +389,6 @@ class ApiIndividual extends Extension implements IApiInterface
                     )
                 )))
 //                , true)
-        ,
-//            new Panel('Schüler Kontaktdaten', array(
-//                'Straße'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//                'Straßennr.'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//                'Ort'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//                'Ortsteil'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//                'PLZ'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//                'Bundesland'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//                'Land'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//                'Telefonnummern'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//                'E-Mail Adressen'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//            ), Panel::PANEL_TYPE_PRIMARY),
-//            new Panel('Schüler Klasse', array(
-//                'Stufe'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//                'Gruppe'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//                'Jahr'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//                'Bildungsgang'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//                'Schulart'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//            ), Panel::PANEL_TYPE_PRIMARY),
-//            new Panel('Sorgeberechtigte Grunddaten', array(
-//                'Anrede'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//                'Titel'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//                'Vorname'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//                'Zweiter-Vorname'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//                'Nachname'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//            ), Panel::PANEL_TYPE_PRIMARY),
-//            new Panel('Sorgeberechtigte Kontaktdaten', array(
-//                'Straße'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//                'Straßennr.'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//                'Ort'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//                'Ortsteil'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//                'PLZ'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//                'Bundesland'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//                'Land'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//                'Telefonnummern'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//                'E-Mail Adressen'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-//            ), Panel::PANEL_TYPE_PRIMARY),
         ));
     }
 
@@ -444,10 +398,10 @@ class ApiIndividual extends Extension implements IApiInterface
         $tblWorkSpaceList = Individual::useService()->getWorkSpaceAll();
         $FormColumnAll = array();
 
+        $View = new ViewStudent();
         if ($tblWorkSpaceList) {
             foreach ($tblWorkSpaceList as $tblWorkSpace) {
-
-                $FieldName = Individual::useService()->getFieldLabelByFieldName($tblWorkSpace->getField());
+                $FieldName = $View->getNameDefinition($tblWorkSpace->getField());
                 $FormColumnAll[$tblWorkSpace->getPosition()] =
                     new FormColumn(new TextField($tblWorkSpace->getField()
                         , '', $FieldName), 2);
