@@ -179,7 +179,7 @@ class E16
             ->styleBorderLeft()
             ->styleAlignCenter()
             ->styleTextBold()
-                ->addSection((new Section())
+            ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Insgesamt')
                     ->styleBackgroundColor('lightgrey')
@@ -218,39 +218,39 @@ class E16
                     ->styleAlignCenter()
                     ->styleBorderRight(), '9%'
                 )
-                    ->addElementColumn((new Element())
-                        ->setContent('
+                ->addElementColumn((new Element())
+                    ->setContent('
                         {% if (Content.E16.TotalCount.L12.CoursesCount is not empty) %}
                             {{ Content.E16.TotalCount.L12.CoursesCount }}
                         {% else %}
                             &nbsp;
                         {% endif %}
                     ')
-                        ->styleAlignCenter()
-                        ->styleBorderRight(), '12%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '12%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
                         {% if (Content.E16.TotalCount.L12.m is not empty) %}
                             {{ Content.E16.TotalCount.L12.m }}
                         {% else %}
                             &nbsp;
                         {% endif %}
                     ')
-                        ->styleAlignCenter()
-                        ->styleBorderRight(), '9%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '9%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
                         {% if (Content.E16.TotalCount.L12.w is not empty) %}
                             {{ Content.E16.TotalCount.L12.w }}
                         {% else %}
                             &nbsp;
                         {% endif %}
                     ')
-                        ->styleAlignCenter()
-                        ->styleBorderRight(), '9%'
-                    )
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '9%'
+                )
             );
 
         return $sliceList;

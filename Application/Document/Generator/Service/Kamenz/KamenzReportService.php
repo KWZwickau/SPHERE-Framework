@@ -1829,5 +1829,38 @@ class KamenzReportService
 
             $count++;
         }
+
+        /**
+         * E17. Anzahl der Leistungskurse an dieser Schule im Schuljahr 2016/2017 nach Jahrgangsstufen
+         */
+        ksort($countAdvancedCourseArray);
+        $count = 0;
+        foreach ($countAdvancedCourseArray as $acronym => $levelArray) {
+            $Content['E17']['S' . $count]['SubjectName'] = ($tblSubject = Subject::useService()->getSubjectByAcronym($acronym))
+                ? $tblSubject->getName() : '';
+            foreach ($levelArray as $level => $value) {
+                $Content['E17']['S' . $count]['L' . $level] = $value;
+
+                if (isset($Content['E17']['S' . $count]['TotalCount'])) {
+                    $Content['E17']['S' . $count]['TotalCount'] += $value;
+                } else {
+                    $Content['E17']['S' . $count]['TotalCount'] = $value;
+                }
+
+                if (isset($Content['E17']['TotalCount']['L' . $level])) {
+                    $Content['E17']['TotalCount']['L' . $level] += $value;
+                } else {
+                    $Content['E17']['TotalCount']['L' . $level] = $value;
+                }
+
+                if (isset($Content['E17']['TotalCount']['TotalCount'])) {
+                    $Content['E17']['TotalCount']['TotalCount'] += $value;
+                } else {
+                    $Content['E17']['TotalCount']['TotalCount'] = $value;
+                }
+            }
+
+            $count++;
+        }
     }
 }
