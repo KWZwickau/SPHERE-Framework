@@ -71,15 +71,15 @@ class KamenzReportGym extends AbstractDocument
 //                ->addSliceArray(E15::getContent())
 //                ->addSliceArray(E16::getContent())
 //            )
-            ->addPage((new Page())
-                ->addSliceArray(E17::getContent())
-            )
 //            ->addPage((new Page())
-//                ->addSliceArray(E18::getContent())
-//                ->addSliceArray(E21::getContent())
-//                ->addSliceArray(F01::getContent())
-//                ->addSliceArray(G01::getContent())
+//                ->addSliceArray(E17::getContent())
 //            )
+            ->addPage((new Page())
+                // todo E18
+//                ->addSliceArray(E18::getContent())
+//                ->addSliceArray(F01::getContent())
+                ->addSliceArray(G01::getContent())
+            )
         );
     }
 }

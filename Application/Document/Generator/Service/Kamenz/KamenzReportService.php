@@ -365,6 +365,10 @@ class KamenzReportService
                                         $countProfileArray = self::countProfile($tblStudent, $tblLevel, $gender,
                                             $countProfileArray);
 
+                                        self::setStudentFocus($tblStudent, $tblLevel, $Content, $gender,
+                                            $hasMigrationBackground,
+                                            $isInPreparationDivisionForMigrants);
+
                                     } else {
                                         if (isset($countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()])) {
                                             $countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()]++;
@@ -387,7 +391,7 @@ class KamenzReportService
             self::setReligion($Content, $countReligionArray);
             self::setProfile($Content, $countProfileArray);
             self::setCourses($Content, $countAdvancedCourseArray, $countBasisCourseArray);
-//            self::setDivisionFrequency($Content, $countDivisionStudentArray);
+            self::setDivisionFrequency($Content, $countDivisionStudentArray);
         }
 
         return $Content;
