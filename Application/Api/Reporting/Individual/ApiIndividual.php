@@ -7,6 +7,7 @@ use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\Reporting\Individual\Individual;
 use SPHERE\Application\Reporting\Individual\Service\Entity\TblPreset;
+use SPHERE\Application\Reporting\Individual\Service\Entity\TblWorkSpace;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudent;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -22,6 +23,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
@@ -33,6 +35,7 @@ use SPHERE\Common\Frontend\Link\Repository\Danger;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Message\Repository\Info as InfoMessage;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\System\Database\Binding\AbstractView;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -51,14 +54,11 @@ class ApiIndividual extends Extension implements IApiInterface
     public function exportApi($Method = '')
     {
         $Dispatcher = new Dispatcher(__CLASS__);
-        $Dispatcher->registerMethod('getNewNavigation');
+        $Dispatcher->registerMethod('getNavigation');
         $Dispatcher->registerMethod('removeFieldAll');
         $Dispatcher->registerMethod('getModalPreset');
         $Dispatcher->registerMethod('addField');
-        $Dispatcher->registerMethod('buildFilter');
-
-
-        $Dispatcher->registerMethod('getStudentNavigation');
+        $Dispatcher->registerMethod('getFilter');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -127,13 +127,13 @@ class ApiIndividual extends Extension implements IApiInterface
         $Pipeline->appendEmitter($Emitter);
         $Emitter = new ServerEmitter(self::receiverNavigation(), self::getEndpoint());
         $Emitter->setGetPayload(array(
-            self::API_TARGET => 'getNewNavigation'
+            self::API_TARGET => 'getNavigation'
         ));
         $Pipeline->appendEmitter($Emitter);
         // Refresh Filter
         $Emitter = new ServerEmitter(self::receiverFilter(), self::getEndpoint());
         $Emitter->setGetPayload(array(
-            self::API_TARGET => 'buildFilter'
+            self::API_TARGET => 'getFilter'
         ));
         $Pipeline->appendEmitter($Emitter);
 
@@ -153,38 +153,25 @@ class ApiIndividual extends Extension implements IApiInterface
         return $Pipeline;
     }
 
-    public static function pipelineNewNavigation()
+    public static function pipelineNavigation()
     {
 
         $Pipeline = new Pipeline();
         $Emitter = new ServerEmitter(self::receiverNavigation(), self::getEndpoint());
-
-        $tblWorkspaceList = Individual::useService()->getWorkSpaceAll();
-        // Default
         $Emitter->setGetPayload(array(
-            self::API_TARGET => 'getNewNavigation'
+            self::API_TARGET => 'getNavigation'
         ));
-        // Find selected Group
-        if ($tblWorkspaceList) {
-            $tblWorkspace = current($tblWorkspaceList);
-            if ($tblWorkspace->getView() == 'ViewStudent') {
-                $Emitter->setGetPayload(array(
-                    self::API_TARGET => 'getStudentNavigation'
-                ));
-            }
-        }
-
         $Pipeline->appendEmitter($Emitter);
-//        // Refresh Filter
-//        $Emitter = new ServerEmitter(self::receiverFilter(), self::getEndpoint());
-//        $Emitter->setGetPayload(array(
-//            self::API_TARGET => 'buildFilter'
-//        ));
-//        $Pipeline->appendEmitter($Emitter);
+        // Refresh Filter
+        $Emitter = new ServerEmitter(self::receiverFilter(), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'getFilter'
+        ));
+        $Pipeline->appendEmitter($Emitter);
         return $Pipeline;
     }
 
-    public static function pipelineAddField($Field, $View, $NavigationTarget)
+    public static function pipelineAddField($Field, $View)
     {
 
         $Pipeline = new Pipeline();
@@ -199,31 +186,13 @@ class ApiIndividual extends Extension implements IApiInterface
         $Pipeline->appendEmitter($Emitter);
         $Emitter = new ServerEmitter(self::receiverNavigation(), self::getEndpoint());
         $Emitter->setGetPayload(array(
-            self::API_TARGET => $NavigationTarget
+            self::API_TARGET => 'getNavigation'
         ));
         $Pipeline->appendEmitter($Emitter);
         // Refresh Filter
         $Emitter = new ServerEmitter(self::receiverFilter(), self::getEndpoint());
         $Emitter->setGetPayload(array(
-            self::API_TARGET => 'buildFilter'
-        ));
-        $Pipeline->appendEmitter($Emitter);
-        return $Pipeline;
-    }
-
-    public static function pipelineStudentNavigation()
-    {
-
-        $Pipeline = new Pipeline();
-        $Emitter = new ServerEmitter(self::receiverNavigation(), self::getEndpoint());
-        $Emitter->setGetPayload(array(
-            self::API_TARGET => 'getStudentNavigation'
-        ));
-        $Pipeline->appendEmitter($Emitter);
-        // Refresh Filter
-        $Emitter = new ServerEmitter(self::receiverFilter(), self::getEndpoint());
-        $Emitter->setGetPayload(array(
-            self::API_TARGET => 'buildFilter'
+            self::API_TARGET => 'getFilter'
         ));
         $Pipeline->appendEmitter($Emitter);
         return $Pipeline;
@@ -234,7 +203,7 @@ class ApiIndividual extends Extension implements IApiInterface
         $Pipeline = new Pipeline(false);
         $Emitter = new ServerEmitter(self::receiverFilter(), self::getEndpoint());
         $Emitter->setGetPayload(array(
-            self::API_TARGET => 'buildFilter'
+            self::API_TARGET => 'getFilter'
         ));
         $Pipeline->appendEmitter($Emitter);
         return $Pipeline;
@@ -282,19 +251,6 @@ class ApiIndividual extends Extension implements IApiInterface
         return $Content;
     }
 
-    public function getNewNavigation()
-    {
-
-        return new Panel('Verfügbar', array(
-            new Panel('Auswertung über', array(
-                'Schüler'.new PullRight((new Primary('', self::getEndpoint(), new Plus()))->ajaxPipelineOnClick(
-                    self::pipelineStudentNavigation()
-                )),
-//                'Lehrer'.new PullRight(new Primary('', self::getEndpoint(), new Plus())),
-            ), Panel::PANEL_TYPE_PRIMARY),
-        ));
-    }
-
     public function addField($Field, $View)
     {
 
@@ -312,7 +268,7 @@ class ApiIndividual extends Extension implements IApiInterface
         Individual::useService()->addWorkSpaceField($Field, $View, $Position);
     }
 
-    public function getStudentNavigation()
+    public function getNavigation()
     {
 
 //        $Test = (new ViewStudent())->getArrayList();
@@ -325,31 +281,62 @@ class ApiIndividual extends Extension implements IApiInterface
 
         // remove every entry that is Choosen
         $WorkSpaceList = array();
+        $ViewList = array();
         $tblWorkSpaceList = Individual::useService()->getWorkSpaceAll();
         if ($tblWorkSpaceList) {
             foreach ($tblWorkSpaceList as $tblWorkSpace) {
                 $WorkSpaceList[] = $tblWorkSpace->getField();
+                $ViewList[$tblWorkSpace->getView()] = $tblWorkSpace->getView();
             }
         }
 
-        $View = new ViewStudent();
+        $AccordionList = array();
 
-        $ViewStudentBlockList = array();
+        $AccordionList[] = (new Accordion(''))
+            ->addItem('Schüler', $this->getPanelList(new ViewStudent(), $WorkSpaceList),
+                (isset($ViewList['ViewStudent']) ? true : false));
+
+        return new Panel('Verfügbare Felder', array(
+            (new Danger('Löschen', ApiIndividual::getEndpoint(), new Disable()))->ajaxPipelineOnClick(
+                ApiIndividual::pipelineDelete()
+            ).(new Primary('Masken', ApiIndividual::getEndpoint(), new Save(), array(),
+                'Laden/Speichern von Filtereinstellungen'))->ajaxPipelineOnClick(
+                ApiIndividual::pipelinePresetModal()
+            ),
+//            (new Accordion())->addItem('Schüler Grunddaten',
+            new Layout(new LayoutGroup(new LayoutRow(
+                new LayoutColumn(
+                    $AccordionList
+                )
+            )))
+//                , true)
+        ));
+    }
+
+    /**
+     * @param AbstractView   $View
+     * @param TblWorkSpace[] $WorkSpaceList
+     *
+     * @return string
+     */
+    private function getPanelList(AbstractView $View, $WorkSpaceList = array())
+    {
+        $PanelString = '';
+
+        $ViewBlockList = array();
         $ConstantList = ViewStudent::getConstants();
         if ($ConstantList) {
             foreach ($ConstantList as $Constant) {
                 $Group = $View->getGroupDefinition($Constant);
 
                 if ($Group) {
-                    $ViewStudentBlockList[$Group][] = $View->getNameDefinition($View->getNameDefinition($Constant));
+                    $ViewBlockList[$Group][] = $View->getNameDefinition($View->getNameDefinition($Constant));
                 }
             }
-//            ksort($ViewStudentBlockList);
+//            ksort($ViewBlockList);
         }
-
-        $PanelList = array();
-        if ($ViewStudentBlockList) {
-            foreach ($ViewStudentBlockList as $Block => $FieldList) {
+        if ($ViewBlockList) {
+            foreach ($ViewBlockList as $Block => $FieldList) {
 
                 $FieldListArray = array();
                 if ($FieldList) {
@@ -360,39 +347,21 @@ class ApiIndividual extends Extension implements IApiInterface
                         if (!in_array($FieldTblName, $WorkSpaceList)) {
                             $FieldListArray[$FieldTblName] = new PullClear($FieldName.new PullRight((new Primary('',
                                     self::getEndpoint(), new Plus()))
-                                    ->ajaxPipelineOnClick(self::pipelineAddField($FieldTblName, 'ViewStudent',
-                                        'getStudentNavigation'))));
+                                    ->ajaxPipelineOnClick(self::pipelineAddField($FieldTblName, 'ViewStudent'))));
                         }
                     }
                 }
 
                 if (!empty($FieldListArray)) {
-                    $PanelList[] = new Panel($Block, $FieldListArray, Panel::PANEL_TYPE_PRIMARY);
+                    $PanelString .= new Panel($Block, $FieldListArray, Panel::PANEL_TYPE_PRIMARY);
                 }
             }
         }
 
-        return new Panel('Verfügbare Felder', array(
-            (new Danger('Löschen', ApiIndividual::getEndpoint(), new Disable()))->ajaxPipelineOnClick(
-                ApiIndividual::pipelineDelete()
-            ).(new Primary('Masken', ApiIndividual::getEndpoint(), new Save(), array(),
-                'Laden/Speichern von Filtereinstellungen'))->ajaxPipelineOnClick(
-                ApiIndividual::pipelinePresetModal()
-            ),
-//            (new Accordion())->addItem('Schüler Grunddaten',
-                new Layout(new LayoutGroup(new LayoutRow(
-                    new LayoutColumn(
-                        $PanelList
-//                        new Listing(
-//                            $FieldList
-//                        )
-                    )
-                )))
-//                , true)
-        ));
+        return $PanelString;
     }
 
-    public function buildFilter()
+    public function getFilter()
     {
 
         $tblWorkSpaceList = Individual::useService()->getWorkSpaceAll();

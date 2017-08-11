@@ -297,7 +297,6 @@ abstract class AbstractView extends Element
     protected function setNameDefinition($PropertyName, $DisplayName)
     {
 
-
         $this->NameDefinitionList[$PropertyName] = $DisplayName;
         return $this;
     }

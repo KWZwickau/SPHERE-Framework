@@ -355,6 +355,7 @@ class ViewStudent extends AbstractView
     public function loadNameDefinition()
     {
 
+        //NameDefinition
         $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION, 'Anrede');
         $this->setNameDefinition(self::TBL_PERSON_TITLE, 'Titel');
         $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME, 'Vorname');
@@ -424,6 +425,7 @@ class ViewStudent extends AbstractView
         $this->setNameDefinition(self::TBL_PHONE_NUMBER_S3, 'Telefon_S3');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S3, 'E-Mail_S3');
 
+        //GroupDefinition
         $this->setGroupDefinition('Personendaten', array(
             self::TBL_SALUTATION_SALUTATION,
             self::TBL_PERSON_TITLE,
