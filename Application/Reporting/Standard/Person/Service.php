@@ -1478,8 +1478,37 @@ class Service extends Extension
                             echo new Code(print_r($tblStudentSubject, true));
                         }
 
-                        if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
-                            $Item['ForeignLanguage'.$i] = '('.$tblSubject->getAcronym().') '.$tblSubject->getName();
+                        if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject()) && ($tblDivisionLevel = $tblDivision->getTblLevel())) {
+
+                            $Item['ForeignLanguage'.$i] = $tblSubject->getAcronym();
+
+                            if (($tblLevelFrom = $tblStudentSubject->getServiceTblLevelFrom())
+                                && ($LevelFrom = Division::useService()->getLevelById($tblLevelFrom->getId())->getName())
+                                && (is_numeric($LevelFrom)) && (is_numeric($tblDivisionLevel->getName()))) {
+                                if ($tblDivisionLevel->getName() < $LevelFrom) {
+                                    $Item['ForeignLanguage'.$i] = '';
+                                }
+                            }
+                            if (($tblLevelTill = $tblStudentSubject->getServiceTblLevelTill()) &&
+                                ($LevelTill = Division::useService()->getLevelById($tblLevelTill->getId())->getName())
+                                && (is_numeric($LevelTill)) && (is_numeric($tblDivisionLevel->getName()))) {
+                                if ($tblDivisionLevel->getName() > $LevelTill) {
+                                    $Item['ForeignLanguage'.$i] = '';
+                                }
+                            }
+
+                            /* Use the following block to show the starting/ending division foreach foreign language */
+
+//                            if (($LevelFrom = Division::useService()->getLevelById($tblStudentSubject->getServiceTblLevelFrom()))
+//                                && ($LevelTill = Division::useService()->getLevelById($tblStudentSubject->getServiceTblLevelTill()))) {
+//                                /** @var TblLevel $LevelFrom, $LevelTill */
+//                                $Item['ForeignLanguage'.$i] .= ' (von Klasse ' . $LevelFrom->getName() . ' bis ' . $LevelTill->getName() . ')';
+//                            } elseif (($LevelFrom = Division::useService()->getLevelById($tblStudentSubject->getServiceTblLevelFrom()))) {
+//                            $Item['ForeignLanguage'.$i] .= ' (seit Klasse ' . $LevelFrom->getName() . ')';
+//                            } elseif (($LevelTill = Division::useService()->getLevelById($tblStudentSubject->getServiceTblLevelTill()))) {
+//                                $Item['ForeignLanguage'.$i] .= ' (bis Klasse ' . $LevelTill->getName() . ')';
+//                            }
+
                         }
                     }
                     if ($tblPerson->getId() == 15) {
