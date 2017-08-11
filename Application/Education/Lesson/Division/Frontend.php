@@ -30,6 +30,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Book;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronDown;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
@@ -1900,8 +1901,25 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
+            $table = new TableData($tblDivisionSubjectList, null,
+                array(
+                    'Subject'        => 'Fach',
+                    'SubjectTeacher' => 'Fachlehrer',
+                    'Group'          => 'Gruppen',
+                    'GroupTeacher'   => 'Gruppenlehrer',
+                    'Student'        => 'Gruppen Schüler',
+                ), array("bPaginate" => false));
+
             $Stage->setContent(
-                new Layout(
+                new Layout(array(
+                    new LayoutGroup(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Standard('Zu den Lehraufträgen und Fachgruppen springen', '', new ChevronDown(), array(),
+                                    false, $table->getHash()),
+                            ))
+                        ))
+                    ),
                     new LayoutGroup(
                         new LayoutRow(array(
                             new LayoutColumn(array(
@@ -1915,20 +1933,13 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn($tblCustodyList, 3)
                         )), new Title($TitleClass)
                     )
-                ).
+                )).
                 new Layout(
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(
                                 ( ( !empty( $tblDivisionSubjectList ) ) ?
-                                    new TableData($tblDivisionSubjectList, null,
-                                        array(
-                                            'Subject'        => 'Fach',
-                                            'SubjectTeacher' => 'Fachlehrer',
-                                            'Group'          => 'Gruppen',
-                                            'GroupTeacher'   => 'Gruppenlehrer',
-                                            'Student'        => 'Gruppen Schüler',
-                                        ), array("bPaginate" => false))
+                                    $table
                                     :
                                     new Warning('Keine Fächer der Klasse zugewiesen') )
                             )
