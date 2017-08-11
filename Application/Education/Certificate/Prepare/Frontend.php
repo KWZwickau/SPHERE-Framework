@@ -123,7 +123,7 @@ class Frontend extends Extension implements IFrontendInterface
         $this->setHeaderButtonList($Stage, View::DIPLOMA);
 
         $buttonList = Evaluation::useFrontend()->setYearButtonList('/Education/Certificate/Prepare/Diploma',
-            $IsAllYears, $YearId, $tblYear, false);
+            $IsAllYears, $YearId, $tblYear, true);
 
         $tblDivisionList = Division::useService()->getDivisionAll();
 
@@ -3052,7 +3052,11 @@ class Frontend extends Extension implements IFrontendInterface
                     if (!isset($tblSubjectList[$tblSubjectItem->getId()][$tblTest->getId()])) {
                         $tblSubjectList[$tblSubjectItem->getId()][$tblTest->getId()] = $tblSubjectItem;
                         if ($tblCurrentSubject && !$tblNextSubject && !$IsNotSubject) {
-                            $tblNextSubject = $tblSubjectItem;
+                            // Bei Gruppen
+                            /** @var TblSubject $tblCurrentSubject */
+                            if ($tblCurrentSubject->getId() != $tblSubjectItem->getId()) {
+                                $tblNextSubject = $tblSubjectItem;
+                            }
                         }
                         if ($SubjectId && $SubjectId == $tblSubjectItem->getId() && !$IsNotSubject) {
                             $tblCurrentSubject = $tblSubjectItem;
