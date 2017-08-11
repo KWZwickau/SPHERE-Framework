@@ -167,15 +167,15 @@ class Creator extends Extension
     {
 
         // todo pdf download bitte warten --> funktioniert so nicht
-//        if ($Redirect) {
-//                return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
-//                    '/Api/Document/Standard/KamenzReport/Create',
-//                    array(
-//                        'Type' => $Type,
-//                        'Redirect' => false
-//                    )
-//                );
-//        }
+        if ($Redirect) {
+                return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                    '/Api/Document/Standard/KamenzReport/Create',
+                    array(
+                        'Type' => $Type,
+                        'Redirect' => 0
+                    )
+                );
+        }
 
         $Data = array();
         $Document = false;
