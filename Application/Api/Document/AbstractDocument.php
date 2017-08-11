@@ -224,6 +224,14 @@ abstract class AbstractDocument
                         $YearShort = (integer)(new \DateTime($tblTransfer->getTransferDate()))->format('y');
                         $YearString = $Year.'/'.( $YearShort + 1 );
                         $Data['Student']['School']['Enrollment']['Year'] = $YearString;
+                        if (($tblStudentSchoolEnrollmentType = $tblTransfer->getTblStudentSchoolEnrollmentType())) {
+                            if ($tblStudentSchoolEnrollmentType->getIdentifier() == 'POSTPONED') {
+                                $Data['Student']['School']['Enrollment']['Setback']['Yes'] = 'X';
+                            }
+                            if ($tblStudentSchoolEnrollmentType->getIdentifier() == 'PREMATURE') {
+                                $Data['Student']['School']['Enrollment']['Early']['Yes'] = 'X';
+                            }
+                        }
                     }
                 }
                 if (( $AttendanceDate = $tblStudent->getSchoolAttendanceStartDate())) {
@@ -638,6 +646,36 @@ abstract class AbstractDocument
                             $remark = $tblPhoneToPerson->getRemark();
                             $Data['Person']['Contact']['Phone']['Emergency' . $countNumbers]
                                 = $tblPhoneToPerson->getTblPhone()->getNumber() . ($remark ? ' (' . trim($remark) . ')' : '');
+                        }
+                    }
+                }
+            }
+        }
+        if ($countNumbers < 2) {
+            if (($RelationList = Relationship::useService()->getPersonRelationshipAllByPerson($this->getTblPerson()))) {
+                foreach ($RelationList as $Relation) {
+                    if (($tblType = $Relation->getTblType()) && ($tblType->getName() == 'Sorgeberechtigt')) {
+                        $tblPersonCustody = $Relation->getServiceTblPersonFrom();
+                        if (($CustodyPhoneList = Phone::useService()->getPhoneAllByPerson($tblPersonCustody))) {
+                            foreach ($CustodyPhoneList as $CustodyPhone) {
+                                if (($CustodyPhone->getTblType()->getName() == 'Notfall')) {
+                                     if (isset($Data['Person']['Contact']['Phone']['Emergency1'])
+                                         && ($CustodyPhone->getTblPhone()->getNumber() !== $Data['Person']['Contact']['Phone']['Emergency1'])) {
+                                        if ($countNumbers >= 2) {
+                                            break;
+                                        }
+                                        $countNumbers++;
+                                        $remark = $CustodyPhone->getRemark();
+                                        $Data['Person']['Contact']['Phone']['Emergency' . $countNumbers]
+                                            = $CustodyPhone->getTblPhone()->getNumber() . ($remark ? ' (' . trim($remark) . ')' : '');
+                                     } elseif (!isset($Data['Person']['Contact']['Phone']['Emergency1'])) {
+                                         $countNumbers++;
+                                         $remark = $CustodyPhone->getRemark();
+                                         $Data['Person']['Contact']['Phone']['Emergency' . $countNumbers]
+                                             = $CustodyPhone->getTblPhone()->getNumber() . ($remark ? ' (' . trim($remark) . ')' : '');
+                                     }
+                                }
+                            }
                         }
                     }
                 }
