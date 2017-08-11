@@ -18,6 +18,7 @@ class TblYear extends Element
 {
 
     const ATTR_YEAR = 'Year';
+    const ATTR_NAME = 'Name';
     const ATTR_DESCRIPTION = 'Description';
 
     /**

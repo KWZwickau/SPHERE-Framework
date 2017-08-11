@@ -23,10 +23,8 @@ use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E11;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E12;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E15;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E16;
-use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E16_01;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E17;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E18;
-use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E21;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\F01;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\G01;
 use SPHERE\Application\Document\Generator\Repository\Document;
@@ -46,10 +44,9 @@ class KamenzReportGym extends AbstractDocument
     public function buildDocument($pageList = array())
     {
         return (new Frame())->addDocument((new Document())
-//            ->addPage((new Page())
-                // todo C01
-//                ->addSliceArray(C01::getContent())
-//            )
+            ->addPage((new Page())
+                ->addSliceArray(C01::getContent())
+            )
             ->addPage((new Page())
                 ->addSliceArray(E01::getContent())
                 ->addSliceArray(E02::getContent())
@@ -66,21 +63,24 @@ class KamenzReportGym extends AbstractDocument
                 ->addSliceArray(E11::getContent())
                 ->addSliceArray(E12::getContent())
             )
-//            ->addPage((new Page())
-//                // todo E15
-////                ->addSliceArray(E15::getContent())
-//                ->addSliceArray(E16::getContent())
-//            )
-//            ->addPage((new Page())
-//                ->addSliceArray(E16_01::getContent())
-//                ->addSliceArray(E17::getContent())
-//            )
-//            ->addPage((new Page())
-//                ->addSliceArray(E18::getContent())
-//                ->addSliceArray(E21::getContent())
-//                ->addSliceArray(F01::getContent())
-//                ->addSliceArray(G01::getContent())
-//            )
+            ->addPage((new Page())
+                ->addSliceArray(E15::getContent())
+            )
+            ->addPage((new Page())
+                ->addSliceArray(E16::getContent())
+            )
+            ->addPage((new Page())
+                ->addSliceArray(E17::getContent())
+            )
+            ->addPage((new Page())
+                ->addSliceArray(E18::getContent())
+            )
+            ->addPage((new Page())
+                ->addSliceArray(F01::getContent())
+            )
+            ->addPage((new Page())
+                ->addSliceArray(G01::getContent())
+            )
         );
     }
 }
