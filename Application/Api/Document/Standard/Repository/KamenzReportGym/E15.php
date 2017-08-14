@@ -82,52 +82,62 @@ class E15
                 )
             );
 
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 15; $i++) {
+            $section = new Section();
+
+            for ($j = 1; $j < 5; $j++) {
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if (Content.E15.S' . $i . '.N' . $j. ' is not empty) %}
+                                {{ Content.E15.S' . $i . '.N' . $j. ' }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleBorderRight(), '17.5%'
+                    );
+            }
+
+            for ($j = 5; $j < 11; $j++) {
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if (Content.E15.S' . $i . '.L' . $j. ' is not empty) %}
+                                {{ Content.E15.S' . $i . '.L' . $j. ' }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleBorderRight(), '5%'
+                    );
+            }
+
             $sliceList[] = (new Slice())
                 ->styleAlignCenter()
                 ->styleBorderBottom()
                 ->styleBorderLeft()
                 ->styleBorderRight()
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('Sprache')
-                        ->styleBorderRight(), '17.5%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Sprache')
-                        ->styleBorderRight(), '17.5%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Sprache')
-                        ->styleBorderRight(), '17.5%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Sprache')
-                        ->styleBorderRight(), '17.5%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('00')
-                        ->styleBorderRight(), '5%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('00')
-                        ->styleBorderRight(), '5%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('00')
-                        ->styleBorderRight(), '5%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('00')
-                        ->styleBorderRight(), '5%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('00')
-                        ->styleBorderRight(), '5%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('00'), '5%'
-                    )
+                ->addSection($section);
+        }
+
+        $section = new Section();
+        $section
+            ->addElementColumn((new Element())
+                ->setContent('Insgesamt')
+                ->styleBorderRight(), '70%'
+            );
+        for ($j = 5; $j < 11; $j++) {
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent('
+                            {% if (Content.E15.TotalCount.L' . $j. ' is not empty) %}
+                                {{ Content.E15.TotalCount.L' . $j. ' }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                    ->styleBorderRight(), '5%'
                 );
         }
 
@@ -138,35 +148,8 @@ class E15
             ->styleBorderBottom()
             ->styleBorderLeft()
             ->styleBorderRight()
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Insgesamt')
-                    ->styleBorderRight(), '70%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;'), '5%'
-                )
-            );
+            ->addSection($section);
+
 
         return $sliceList;
     }

@@ -2059,19 +2059,22 @@ class Service extends AbstractService
         /**
          * Skip to Frontend
          */
-        if (null === $Data) {
+        $Global = $this->getGlobal();
+        if (!isset($Global->POST['Button']['Submit'])) {
             return $form;
         }
 
         $error = false;
 
-        foreach ($Data as $personGrades) {
-            if (is_array($personGrades)) {
-                foreach ($personGrades as $identifier => $value) {
-                    if (trim($value) !== '') {
-                        if (!preg_match('!^[1-6]{1}$!is', trim($value))) {
-                            $error = true;
-                            break;
+        if ($Data != null) {
+            foreach ($Data as $personGrades) {
+                if (is_array($personGrades)) {
+                    foreach ($personGrades as $identifier => $value) {
+                        if (trim($value) !== '') {
+                            if (!preg_match('!^[1-6]{1}$!is', trim($value))) {
+                                $error = true;
+                                break;
+                            }
                         }
                     }
                 }
@@ -2090,34 +2093,34 @@ class Service extends AbstractService
             return $form;
         } else {
             if (($tblDivision = $tblPrepare->getServiceTblDivision())) {
-
-                foreach ($Data as $personId => $personGrades) {
-                    if (($tblPerson = Person::useService()->getPersonById($personId))
-                        && is_array($personGrades)
-                    ) {
-                        foreach ($personGrades as $identifier => $value) {
-                            if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier($identifier))) {
-                                if ($tblPrepareAdditionalGrade = $this->getPrepareAdditionalGradeBy(
-                                    $tblPrepare, $tblPerson, $tblCurrentSubject, $tblPrepareAdditionalGradeType
-                                )
-                                ) {
-                                    (new Data($this->getBinding()))->updatePrepareAdditionalGrade($tblPrepareAdditionalGrade,
-                                        trim($value));
-                                } elseif (trim($value) != '') {
-                                    (new Data($this->getBinding()))->createPrepareAdditionalGrade(
-                                        $tblPrepare,
-                                        $tblPerson,
-                                        $tblCurrentSubject,
-                                        $tblPrepareAdditionalGradeType,
-                                        0,
-                                        trim($value)
-                                    );
+                if ($Data != null) {
+                    foreach ($Data as $personId => $personGrades) {
+                        if (($tblPerson = Person::useService()->getPersonById($personId))
+                            && is_array($personGrades)
+                        ) {
+                            foreach ($personGrades as $identifier => $value) {
+                                if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier($identifier))) {
+                                    if ($tblPrepareAdditionalGrade = $this->getPrepareAdditionalGradeBy(
+                                        $tblPrepare, $tblPerson, $tblCurrentSubject, $tblPrepareAdditionalGradeType
+                                    )
+                                    ) {
+                                        (new Data($this->getBinding()))->updatePrepareAdditionalGrade($tblPrepareAdditionalGrade,
+                                            trim($value));
+                                    } elseif (trim($value) != '') {
+                                        (new Data($this->getBinding()))->createPrepareAdditionalGrade(
+                                            $tblPrepare,
+                                            $tblPerson,
+                                            $tblCurrentSubject,
+                                            $tblPrepareAdditionalGradeType,
+                                            0,
+                                            trim($value)
+                                        );
+                                    }
                                 }
                             }
                         }
                     }
                 }
-
                 if ($tblNextSubject) {
                     if ($IsFinalGrade) {
                         $parameters = array(

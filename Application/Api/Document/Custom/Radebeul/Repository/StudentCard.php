@@ -10,6 +10,11 @@ use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 
+/**
+ * Class StudentCard
+ *
+ * @package SPHERE\Application\Api\Document\Custom\Radebeul\Repository#
+ */
 class StudentCard extends AbstractDocument
 {
 
@@ -386,7 +391,7 @@ class StudentCard extends AbstractDocument
                 )
                 ->addSlice((new Slice())
                     ->addElement((new Element())
-                        ->setContent('In Norfall zu benachrichtigen:')
+                        ->setContent('Im Notfall zu benachrichtigen:')
                         ->styleFontFamily($fontFamily)
                         ->styleTextBold()
                         ->styleTextSize($textSize)

@@ -389,10 +389,25 @@ class Data extends AbstractData
      */
     public function getYearByName($String)
     {
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+        $list = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblYear', array(
                 TblYear::ATTR_YEAR => $String
             ));
+
+        $listByName = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblYear', array(
+                TblYear::ATTR_NAME => $String
+            ));
+
+        if ($list && $listByName) {
+            return array_unique(array_merge($list, $listByName));
+        } elseif ($list) {
+            return $list;
+        } elseif ($listByName) {
+            return $listByName;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -417,6 +432,8 @@ class Data extends AbstractData
     {
 
         $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblPeriod', $Id);
+
+        /** @var TblPeriod $Entity */
         return $Entity;
 
 //        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPeriod', $Id);
