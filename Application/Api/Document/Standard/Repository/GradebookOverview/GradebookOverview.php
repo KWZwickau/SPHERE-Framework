@@ -17,9 +17,12 @@ use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\System\Extension\Repository\Sorter;
+use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 /**
  * Class GradebookOverview
@@ -74,6 +77,17 @@ class GradebookOverview extends AbstractDocument
     {
 
         return 'Notenübersicht';
+    }
+
+
+    /**
+     * @param array $List
+     *
+     * @return Sorter
+     */
+    public function getSorter($List)
+    {
+        return new Sorter($List);
     }
 
     /**
@@ -143,15 +157,26 @@ class GradebookOverview extends AbstractDocument
             && ($tblPeriodList = $tblYear->getTblPeriodAll())
             && ($tblGradeList = Gradebook::useService()->getGradeAllBy($this->getTblPerson(),$this->getTblDivision(),null, $tblTestType))) {
 
+            $tblGradeList = $this->getSorter($tblGradeList)->sortObjectBy('EntityCreate', new DateTimeSorter());
+
             $ColumnWidth['Period'] = (100 - ($ColumnWidth['FirstAndLast'] * 2 + $ColumnWidth['Average'] * 2)) / count($tblPeriodList);
 
             foreach ($tblGradeList as $tblGrade) {
+                /** @var TblGrade $tblGrade */
                 if ($tblGrade->getServiceTblSubject()) {
                     $tblSubjectList[$tblGrade->getServiceTblSubject()->getId()] = $tblGrade->getServiceTblSubject()->getAcronym();
                 }
             }
 
+
+
             if (!empty($tblSubjectList)) {
+
+//                sort($tblSubjectList);
+//                Debugger::screenDump($tblSubjectList);
+//                exit;
+
+
 
                 foreach ($tblPeriodList as $tblPeriod) {
                     foreach ($tblSubjectList as $SubjectId => $SubjectAcronym) {
@@ -345,6 +370,7 @@ class GradebookOverview extends AbstractDocument
                             ->stylePaddingTop($SingleRowPaddingTop)
                             ->stylePaddingBottom($SingleRowPaddingBottom)
                             ->styleAlignCenter()
+                            ->styleTextBold()
                             ->styleTextSize($TextSize), $ColumnWidth['FirstAndLast'] . '%'
                         );
                 }
