@@ -119,7 +119,18 @@ class Service extends AbstractService
         return false;
     }
 
-    public function removeWorkSpaceFieldAll()
+    /**
+     * @param TblWorkSpace $tblWorkSpace
+     *
+     * @return bool
+     */
+    public function removeWorkSpace(TblWorkSpace $tblWorkSpace)
+    {
+
+        return (new Data($this->getBinding()))->removeWorkSpace($tblWorkSpace);
+    }
+
+    public function removeWorkSpaceAll()
     {
 
         $tblWorkspaceList = Individual::useService()->getWorkSpaceAll();

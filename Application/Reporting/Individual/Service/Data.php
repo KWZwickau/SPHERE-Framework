@@ -34,7 +34,7 @@ class Data extends AbstractData
     public function getWorkspaceById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblWorkspace', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblWorkSpace', $Id);
     }
 
     /**

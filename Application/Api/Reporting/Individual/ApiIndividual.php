@@ -19,9 +19,12 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -33,8 +36,10 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Info as InfoMessage;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\System\Database\Binding\AbstractView;
 use SPHERE\System\Extension\Extension;
 
@@ -55,6 +60,7 @@ class ApiIndividual extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
         $Dispatcher->registerMethod('getNavigation');
+        $Dispatcher->registerMethod('removeField');
         $Dispatcher->registerMethod('removeFieldAll');
         $Dispatcher->registerMethod('getModalPreset');
         $Dispatcher->registerMethod('addField');
@@ -123,6 +129,38 @@ class ApiIndividual extends Extension implements IApiInterface
         $Emitter = new ServerEmitter(self::receiverService(), self::getEndpoint());
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'removeFieldAll'
+        ));
+        $Pipeline->appendEmitter($Emitter);
+        $Emitter = new ServerEmitter(self::receiverNavigation(), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'getNavigation'
+        ));
+        $Pipeline->appendEmitter($Emitter);
+        // Refresh Filter
+        $Emitter = new ServerEmitter(self::receiverFilter(), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'getFilter'
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param int|null $WorkSpaceId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineDeleteFilterField($WorkSpaceId = null)
+    {
+
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter(self::receiverService(), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'removeField'
+        ));
+        $Emitter->setPostPayload(array(
+            'WorkSpaceId' => $WorkSpaceId
         ));
         $Pipeline->appendEmitter($Emitter);
         $Emitter = new ServerEmitter(self::receiverNavigation(), self::getEndpoint());
@@ -212,7 +250,17 @@ class ApiIndividual extends Extension implements IApiInterface
     public function removeFieldAll()
     {
 
-        Individual::useService()->removeWorkSpaceFieldAll();
+        Individual::useService()->removeWorkSpaceAll();
+    }
+
+    /**
+     * @param int|null $WorkSpaceId
+     */
+    public function removeField($WorkSpaceId = null)
+    {
+
+        $tblWorkSpace = Individual::useService()->getWorkSpaceById($WorkSpaceId);
+        Individual::useService()->removeWorkspace($tblWorkSpace);
     }
 
     public function getModalPreset()
@@ -372,8 +420,17 @@ class ApiIndividual extends Extension implements IApiInterface
             foreach ($tblWorkSpaceList as $tblWorkSpace) {
                 $FieldName = $View->getNameDefinition($tblWorkSpace->getField());
                 $FormColumnAll[$tblWorkSpace->getPosition()] =
-                    new FormColumn(new TextField($tblWorkSpace->getField()
-                        , '', $FieldName), 2);
+                    new FormColumn(new Panel($FieldName, array(
+                        new TextField($tblWorkSpace->getField()),
+                        new Center( //ToDO ajax für Buttons
+                            (new Standard('', ApiIndividual::getEndpoint(), new ChevronLeft(), array(),
+                                'Position eins vor'))
+                            .(new Standard('', ApiIndividual::getEndpoint(), new Remove(), array(), 'Filter entfernen'))
+                                ->ajaxPipelineOnClick(ApiIndividual::pipelineDeleteFilterField($tblWorkSpace->getId()))
+                            .(new Standard('', ApiIndividual::getEndpoint(), new ChevronRight(), array(),
+                                'Position eins hinter'))
+                        )
+                    )), 2);
             }
             ksort($FormColumnAll);
         }
