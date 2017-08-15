@@ -34,6 +34,7 @@ class Setup extends AbstractSetup
         $this->setTablePrivilegeRight($Schema, $tblPrivilege, $tblRight);
         $this->setTableLevelPrivilege($Schema, $tblLevel, $tblPrivilege);
         $this->setTableRoleLevel($Schema, $tblRole, $tblLevel);
+        $this->setTableRoleConsumer($Schema, $tblRole);
         /**
          * Migration & Protocol
          */
@@ -122,6 +123,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblRole', 'IsSecure')) {
             $Table->addColumn('IsSecure', 'boolean');
         }
+
+        $this->createColumn($Table, 'IsIndividual', self::FIELD_TYPE_BOOLEAN, false, 0);
+
         return $Table;
     }
 
@@ -179,6 +183,24 @@ class Setup extends AbstractSetup
         $Table = $this->getConnection()->createTable($Schema, 'tblRoleLevel');
         $this->getConnection()->addForeignKey($Table, $tblRole);
         $this->getConnection()->addForeignKey($Table, $tblLevel);
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblRole
+     *
+     * @return Table
+     */
+    private function setTableRoleConsumer(
+        Schema &$Schema,
+        Table $tblRole
+    ) {
+
+        $Table = $this->createTable($Schema, 'tblRoleConsumer');
+        $this->createColumn($Table, 'serviceTblConsumer', self::FIELD_TYPE_BIGINT);
+        $this->createForeignKey($Table, $tblRole);
+
         return $Table;
     }
 }

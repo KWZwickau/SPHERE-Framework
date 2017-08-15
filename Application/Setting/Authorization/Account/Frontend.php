@@ -250,17 +250,27 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Role
         $tblRoleAll = Access::useService()->getRoleAll();
-        $tblRoleAll = $this->getSorter($tblRoleAll)->sortObjectBy( TblRole::ATTR_NAME, new StringGermanOrderSorter() );
+        $tblRoleAll = $this->getSorter($tblRoleAll)->sortObjectBy(TblRole::ATTR_NAME, new StringGermanOrderSorter());
         if ($tblRoleAll) {
             array_walk($tblRoleAll, function (TblRole &$tblRole) {
 
                 if ($tblRole->isInternal()) {
                     $tblRole = false;
                 } else {
-                    $tblRole = new CheckBox('Account[Role]['.$tblRole->getId().']',
-                        ( $tblRole->isSecure() ? new YubiKey() : new Publicly() ).' '.$tblRole->getName(),
-                        $tblRole->getId()
-                    );
+                    if (!$tblRole->isIndividual()
+                        || (
+                            ($tblAccount = Account::useService()->getAccountBySession())
+                            && ($tblConsumer = $tblAccount->getServiceTblConsumer())
+                            && (Access::useService()->getRoleConsumerBy($tblRole, $tblConsumer))
+                        )
+                    ) {
+                        $tblRole = new CheckBox('Account[Role][' . $tblRole->getId() . ']',
+                            ($tblRole->isSecure() ? new YubiKey() : new Publicly()) . ' ' . $tblRole->getName(),
+                            $tblRole->getId()
+                        );
+                    } else {
+                        $tblRole = false;
+                    }
                 }
             });
             $tblRoleAll = array_filter($tblRoleAll);
