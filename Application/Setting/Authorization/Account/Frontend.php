@@ -190,6 +190,12 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Benutzerkonto', 'Hinzufügen');
         $Stage->addButton(new Standard('Zurück', '/Setting/Authorization/Account', new ChevronLeft()));
+        $tblAuthentication = Account::useService()->getIdentificationByName('Token');
+        if ($tblAuthentication) {
+            $Global = $this->getGlobal();
+            $Global->POST['Account']['Identification'] = $tblAuthentication->getId();
+            $Global->savePost();
+        }
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(
@@ -222,22 +228,14 @@ class Frontend extends Extension implements IFrontendInterface
         $tblIdentificationAll = Account::useService()->getIdentificationAll();
         if ($tblIdentificationAll) {
             array_walk($tblIdentificationAll, function (TblIdentification &$tblIdentification) {
-
                 if ($tblIdentification->getName() == 'System') {
                     $tblIdentification = false;
+                } elseif ($tblIdentification->getName() == 'Credential') {
+                    $tblIdentification = false;
+                } elseif ($tblIdentification->getName() == 'UserCredential') {
+                    $tblIdentification = false;
                 } else {
-                    switch (strtoupper($tblIdentification->getName())) {
-                        case 'CREDENTIAL':
-                            $Global = $this->getGlobal();
-                            if (!isset( $Global->POST['Account']['Identification'] )) {
-                                $Global->POST['Account']['Identification'] = $tblIdentification->getId();
-                                $Global->savePost();
-                            }
-                            $Label = $tblIdentification->getDescription();
-                            break;
-                        default:
-                            $Label = $tblIdentification->getDescription().' ('.new Key().')';
-                    }
+                    $Label = $tblIdentification->getDescription().' ('.new Key().')';
                     $tblIdentification = new RadioBox(
                         'Account[Identification]', $Label, $tblIdentification->getId()
                     );
