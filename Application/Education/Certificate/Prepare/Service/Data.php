@@ -836,11 +836,12 @@ class Data extends AbstractData
             && ($tblTask = ($tblPrepare->getServiceTblAppointedDateTask()))
             && ($tblDivision = $tblPrepare->getServiceTblDivision())
             && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
+            && ($tblYear = $tblDivision->getServiceTblYear())
         ) {
 
             // Klassen ermitteln in denen der Schüler Unterricht hat
             $divisionList = array();
-            if (($tblPersonDivisionList = Student::useService()->getCurrentDivisionListByPerson($tblPerson))) {
+            if (($tblPersonDivisionList = Student::useService()->getDivisionListByPersonAndYear($tblPerson, $tblYear))) {
                 foreach ($tblPersonDivisionList as $tblDivisionItem) {
                     if (!isset($divisionList[$tblDivisionItem->getId()])) {
                         $divisionList[$tblDivisionItem->getId()] = $tblDivisionItem;
