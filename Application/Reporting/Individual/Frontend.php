@@ -31,11 +31,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Content = Individual::useService()->getView();
 
-//        Individual::useService()->getView();
-
-//        $tblWorkSpaceList = Individual::useService()->getWorkSpaceAll();
-//        Debugger::screenDump($tblWorkSpaceList);
-
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(
@@ -52,7 +47,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         new LayoutColumn(ApiIndividual::receiverFilter(ApiIndividual::pipelineDisplayFilter())),
                                         new LayoutColumn(new Title('TableResult')),
                                         new LayoutColumn(new TableData($Content, null,
-                                            $Content[0]->getNameDefinitionList())),
+                                            $Content[0]->getNameDefinitionList()
+//                                            , array('ExtensionColVisibility' => array('Enabled' => true),
+//                                                    'ExtensionDownloadExcel' => array('Enabled' => true))
+                                        )),
                                     ))
                                 )
                             )

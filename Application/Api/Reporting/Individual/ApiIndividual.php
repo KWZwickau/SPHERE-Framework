@@ -61,6 +61,8 @@ class ApiIndividual extends Extension implements IApiInterface
         $Dispatcher = new Dispatcher(__CLASS__);
         $Dispatcher->registerMethod('getNavigation');
         $Dispatcher->registerMethod('removeField');
+        $Dispatcher->registerMethod('moveFieldLeft');
+        $Dispatcher->registerMethod('moveFieldRight');
         $Dispatcher->registerMethod('removeFieldAll');
         $Dispatcher->registerMethod('getModalPreset');
         $Dispatcher->registerMethod('addField');
@@ -122,6 +124,9 @@ class ApiIndividual extends Extension implements IApiInterface
             ->setIdentifier('ModalReceiver');
     }
 
+    /**
+     * @return Pipeline
+     */
     public static function pipelineDelete()
     {
 
@@ -178,6 +183,49 @@ class ApiIndividual extends Extension implements IApiInterface
         return $Pipeline;
     }
 
+    /**
+     * @param int|null $WorkSpaceId
+     * @param string   $direction
+     *
+     * @return Pipeline
+     */
+    public static function pipelineMoveFilterField($WorkSpaceId = null, $direction = '')
+    {
+
+        $Pipeline = new Pipeline();
+        if ($direction == 'left') {
+            $Emitter = new ServerEmitter(self::receiverService(), self::getEndpoint());
+            $Emitter->setGetPayload(array(
+                self::API_TARGET => 'moveFieldLeft'
+            ));
+            $Emitter->setPostPayload(array(
+                'WorkSpaceId' => $WorkSpaceId
+            ));
+            $Pipeline->appendEmitter($Emitter);
+        } elseif ($direction == 'right') {
+            $Emitter = new ServerEmitter(self::receiverService(), self::getEndpoint());
+            $Emitter->setGetPayload(array(
+                self::API_TARGET => 'moveFieldRight'
+            ));
+            $Emitter->setPostPayload(array(
+                'WorkSpaceId' => $WorkSpaceId
+            ));
+            $Pipeline->appendEmitter($Emitter);
+        }
+
+//        // Refresh Filter
+//        $Emitter = new ServerEmitter(self::receiverFilter(), self::getEndpoint());
+//        $Emitter->setGetPayload(array(
+//            self::API_TARGET => 'getFilter'
+//        ));
+//        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return Pipeline
+     */
     public static function pipelinePresetModal()
     {
 
@@ -191,6 +239,9 @@ class ApiIndividual extends Extension implements IApiInterface
         return $Pipeline;
     }
 
+    /**
+     * @return Pipeline
+     */
     public static function pipelineNavigation()
     {
 
@@ -209,6 +260,12 @@ class ApiIndividual extends Extension implements IApiInterface
         return $Pipeline;
     }
 
+    /**
+     * @param $Field
+     * @param $View
+     *
+     * @return Pipeline
+     */
     public static function pipelineAddField($Field, $View)
     {
 
@@ -236,6 +293,9 @@ class ApiIndividual extends Extension implements IApiInterface
         return $Pipeline;
     }
 
+    /**
+     * @return Pipeline
+     */
     public static function pipelineDisplayFilter()
     {
         $Pipeline = new Pipeline(false);
@@ -263,6 +323,82 @@ class ApiIndividual extends Extension implements IApiInterface
         Individual::useService()->removeWorkspace($tblWorkSpace);
     }
 
+    /**
+     * @param null $WorkSpaceId
+     *
+     * @return Pipeline
+     */
+    public function moveFieldLeft($WorkSpaceId = null)
+    {
+
+        $tblWorkSpace = Individual::useService()->getWorkSpaceById($WorkSpaceId);
+        if ($tblWorkSpace) {
+            $pos = $tblWorkSpace->getPosition();
+            $tblWorkSpaceList = Individual::useService()->getWorkSpaceAll();
+            /** @var TblWorkSpace|bool $closestWorkSpace */
+            $closestWorkSpace = false;
+            if ($tblWorkSpaceList) {
+                foreach ($tblWorkSpaceList as $WorkSpace) {
+                    if ($WorkSpace->getPosition() < $pos) {
+                        if ($closestWorkSpace) {
+                            if ($closestWorkSpace->getPosition() < $WorkSpace->getPosition()) {
+                                $closestWorkSpace = $WorkSpace;
+                            }
+                        } else {
+                            $closestWorkSpace = $WorkSpace;
+                        }
+                    }
+                }
+            }
+            if ($tblWorkSpace && $closestWorkSpace) {
+                $posTo = $closestWorkSpace->getPosition();
+                Individual::useService()->changeWorkSpace($tblWorkSpace, $posTo);
+                Individual::useService()->changeWorkSpace($closestWorkSpace, $pos);
+            }
+        }
+
+        return ApiIndividual::pipelineDisplayFilter();
+    }
+
+    /**
+     * @param null $WorkSpaceId
+     *
+     * @return Pipeline
+     */
+    public function moveFieldRight($WorkSpaceId = null)
+    {
+
+        $tblWorkSpace = Individual::useService()->getWorkSpaceById($WorkSpaceId);
+        if ($tblWorkSpace) {
+            $pos = $tblWorkSpace->getPosition();
+            $tblWorkSpaceList = Individual::useService()->getWorkSpaceAll();
+            /** @var TblWorkSpace|bool $closestWorkSpace */
+            $closestWorkSpace = false;
+            if ($tblWorkSpaceList) {
+                foreach ($tblWorkSpaceList as $WorkSpace) {
+                    if ($WorkSpace->getPosition() > $pos) {
+                        if ($closestWorkSpace) {
+                            if ($closestWorkSpace->getPosition() > $WorkSpace->getPosition()) {
+                                $closestWorkSpace = $WorkSpace;
+                            }
+                        } else {
+                            $closestWorkSpace = $WorkSpace;
+                        }
+                    }
+                }
+            }
+            if ($tblWorkSpace && $closestWorkSpace) {
+                $posTo = $closestWorkSpace->getPosition();
+                Individual::useService()->changeWorkSpace($tblWorkSpace, $posTo);
+                Individual::useService()->changeWorkSpace($closestWorkSpace, $pos);
+            }
+        }
+        return ApiIndividual::pipelineDisplayFilter();
+    }
+
+    /**
+     * @return Layout
+     */
     public function getModalPreset()
     {
 
@@ -299,6 +435,10 @@ class ApiIndividual extends Extension implements IApiInterface
         return $Content;
     }
 
+    /**
+     * @param $Field
+     * @param $View
+     */
     public function addField($Field, $View)
     {
 
@@ -316,6 +456,9 @@ class ApiIndividual extends Extension implements IApiInterface
         Individual::useService()->addWorkSpaceField($Field, $View, $Position);
     }
 
+    /**
+     * @return Panel
+     */
     public function getNavigation()
     {
 
@@ -409,6 +552,9 @@ class ApiIndividual extends Extension implements IApiInterface
         return $PanelString;
     }
 
+    /**
+     * @return Panel|InfoMessage
+     */
     public function getFilter()
     {
 
@@ -425,10 +571,14 @@ class ApiIndividual extends Extension implements IApiInterface
                         new Center( //ToDO ajax für Buttons
                             (new Standard('', ApiIndividual::getEndpoint(), new ChevronLeft(), array(),
                                 'Position eins vor'))
+                                ->ajaxPipelineOnClick(ApiIndividual::pipelineMoveFilterField($tblWorkSpace->getId(),
+                                    'left'))
                             .(new Standard('', ApiIndividual::getEndpoint(), new Remove(), array(), 'Filter entfernen'))
                                 ->ajaxPipelineOnClick(ApiIndividual::pipelineDeleteFilterField($tblWorkSpace->getId()))
                             .(new Standard('', ApiIndividual::getEndpoint(), new ChevronRight(), array(),
                                 'Position eins hinter'))
+                                ->ajaxPipelineOnClick(ApiIndividual::pipelineMoveFilterField($tblWorkSpace->getId(),
+                                    'right'))
                         )
                     )), 2);
             }

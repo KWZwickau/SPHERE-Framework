@@ -121,6 +121,31 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblWorkSpace $tblWorkSpace
+     * @param int|null     $Position
+     *
+     * @return mixed
+     */
+    public function changeWorkSpace(TblWorkSpace $tblWorkSpace, $Position = null)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblWorkSpace $Entity */
+        $Entity = $Manager->getEntityById('TblWorkSpace', $tblWorkSpace->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setPosition($Position);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+
+    }
+
+    /**
      * @param TblAccount $tblAccount
      * @param string     $Name
      *

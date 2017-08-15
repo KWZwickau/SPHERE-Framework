@@ -121,6 +121,18 @@ class Service extends AbstractService
 
     /**
      * @param TblWorkSpace $tblWorkSpace
+     * @param int|null     $Position
+     *
+     * @return mixed
+     */
+    public function changeWorkSpace(TblWorkSpace $tblWorkSpace, $Position = null)
+    {
+
+        return (new Data($this->getBinding()))->changeWorkSpace($tblWorkSpace, $Position);
+    }
+
+    /**
+     * @param TblWorkSpace $tblWorkSpace
      *
      * @return bool
      */
