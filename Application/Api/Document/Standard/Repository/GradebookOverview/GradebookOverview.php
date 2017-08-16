@@ -157,9 +157,22 @@ class GradebookOverview extends AbstractDocument
             && ($tblPeriodList = $tblYear->getTblPeriodAll())
             && ($tblGradeList = Gradebook::useService()->getGradeAllBy($this->getTblPerson(),$this->getTblDivision(),null, $tblTestType))) {
 
-            $tblGradeList = $this->getSorter($tblGradeList)->sortObjectBy('EntityCreate', new DateTimeSorter());
-
             $ColumnWidth['Period'] = (100 - ($ColumnWidth['FirstAndLast'] * 2 + $ColumnWidth['Average'] * 2)) / count($tblPeriodList);
+
+            $tblTestList = array();
+            foreach ($tblGradeList as $tblGrade) {
+                if (($tblTest = $tblGrade->getServiceTblTest())) {
+                    $tblTestList[] = $tblTest;
+                }
+            }
+
+            $tblTestList = $this->getSorter($tblTestList)->sortObjectBy('Date', new DateTimeSorter());
+
+            unset($tblGradeList);
+
+            foreach ($tblTestList as $tblTest) {
+                $tblGradeList[] = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $this->getTblPerson());
+            }
 
             foreach ($tblGradeList as $tblGrade) {
                 /** @var TblGrade $tblGrade */
@@ -168,15 +181,9 @@ class GradebookOverview extends AbstractDocument
                 }
             }
 
-
-
             if (!empty($tblSubjectList)) {
 
-//                sort($tblSubjectList);
-//                Debugger::screenDump($tblSubjectList);
-//                exit;
-
-
+                asort($tblSubjectList);
 
                 foreach ($tblPeriodList as $tblPeriod) {
                     foreach ($tblSubjectList as $SubjectId => $SubjectAcronym) {
@@ -219,7 +226,6 @@ class GradebookOverview extends AbstractDocument
                         ->styleBorderRight()
                         ->styleTextSize($TextSize), $ColumnWidth['FirstAndLast'] . '%'
                     );
-
 
                 foreach ($tblPeriodList as $tblPeriod) {
                     $HeaderSection
