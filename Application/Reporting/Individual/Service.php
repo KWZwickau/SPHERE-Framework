@@ -103,18 +103,20 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Field
-     * @param $View
-     * @param $Position
+     * @param string         $Field
+     * @param string         $View
+     * @param int            $Position
+     *
+     * @param TblPreset|null $tblPreset
      *
      * @return bool|TblWorkSpace
      */
-    public function addWorkSpaceField($Field, $View, $Position)
+    public function addWorkSpaceField($Field, $View, $Position, TblPreset $tblPreset = null)
     {
 
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount) {
-            return (new Data($this->getBinding()))->createWorkSpace($tblAccount, $Field, $View, $Position);
+            return (new Data($this->getBinding()))->createWorkSpace($tblAccount, $Field, $View, $Position, $tblPreset);
         }
         return false;
     }

@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Application\Reporting\Individual\Individual;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -18,11 +19,17 @@ use SPHERE\System\Database\Fitting\Element;
 class TblWorkSpace extends Element
 {
 
+    const ATTR_TBL_PRESET = 'tblPreset';
     const ATTR_SERVICE_TBL_ACCOUNT = 'serviceTblAccount';
     const ATTR_FIELD = 'Field';
     const ATTR_VIEW = 'View';
     const ATTR_POSITION = 'Position';
+    const ATTR_FIELD_COUNT = 'FieldCount';
 
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblPreset;
     /**
      * @Column(type="bigint")
      */
@@ -39,6 +46,30 @@ class TblWorkSpace extends Element
      * @Column(type="integer")
      */
     protected $Position;
+    /**
+     * @Column(type="integer")
+     */
+    protected $FieldCount;
+
+    /**
+     * @return bool|TblPreset
+     */
+    public function getTblPreset()
+    {
+        if (null === $this->tblPreset) {
+            return false;
+        } else {
+            return Individual::useService()->getPresetById($this->tblPreset);
+        }
+    }
+
+    /**
+     * @param TblPreset $tblPreset
+     */
+    public function setTblPreset(TblPreset $tblPreset = null)
+    {
+        $this->tblPreset = (null === $tblPreset ? null : $tblPreset->getId());
+    }
 
     /**
      * @return bool|TblAccount
@@ -108,5 +139,21 @@ class TblWorkSpace extends Element
     public function setPosition($Position)
     {
         $this->Position = $Position;
+    }
+
+    /**
+     * @return int
+     */
+    public function getFieldCount()
+    {
+        return $this->FieldCount;
+    }
+
+    /**
+     * @param int $FieldCount
+     */
+    public function setFieldCount($FieldCount)
+    {
+        $this->FieldCount = $FieldCount;
     }
 }

@@ -519,9 +519,8 @@ class ApiIndividual extends Extension implements IApiInterface
         if ($ConstantList) {
             foreach ($ConstantList as $Constant) {
                 $Group = $View->getGroupDefinition($Constant);
-
                 if ($Group) {
-                    $ViewBlockList[$Group][] = $View->getNameDefinition($View->getNameDefinition($Constant));
+                    $ViewBlockList[$Group][] = $Constant;
                 }
             }
 //            ksort($ViewBlockList);
@@ -533,12 +532,13 @@ class ApiIndividual extends Extension implements IApiInterface
                 if ($FieldList) {
                     foreach ($FieldList as $FieldTblName) {
 
+                        $ViewFieldName = $FieldTblName;
                         $FieldName = $View->getNameDefinition($FieldTblName);
 
                         if (!in_array($FieldTblName, $WorkSpaceList)) {
                             $FieldListArray[$FieldTblName] = new PullClear($FieldName.new PullRight((new Primary('',
                                     self::getEndpoint(), new Plus()))
-                                    ->ajaxPipelineOnClick(self::pipelineAddField($FieldTblName, 'ViewStudent'))));
+                                    ->ajaxPipelineOnClick(self::pipelineAddField($ViewFieldName, 'ViewStudent'))));
                         }
                     }
                 }

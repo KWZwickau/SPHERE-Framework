@@ -101,20 +101,31 @@ class Data extends AbstractData
 
     /**
      * @param TblAccount $tblAccount
-     * @param string     $Field
-     * @param string     $View
-     * @param int        $Position
+     * @param string $Field
+     * @param string $View
+     * @param int $Position
+     * @param TblPreset|null $tblPreset
+     * @param int $FieldCount
      *
      * @return TblWorkSpace
      */
-    public function createWorkSpace(TblAccount $tblAccount, $Field, $View, $Position)
+    public function createWorkSpace(
+        TblAccount $tblAccount,
+        $Field,
+        $View,
+        $Position,
+        TblPreset $tblPreset = null,
+        $FieldCount = 1
+    )
     {
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = new TblWorkSpace();
+        $Entity->setTblPreset($tblPreset);
         $Entity->setServiceTblAccount($tblAccount);
         $Entity->setField($Field);
         $Entity->setView($View);
         $Entity->setPosition($Position);
+        $Entity->setFieldCount($FieldCount);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         return $Entity;
@@ -123,10 +134,11 @@ class Data extends AbstractData
     /**
      * @param TblWorkSpace $tblWorkSpace
      * @param int|null     $Position
+     * @param int|null     $FieldCount
      *
      * @return mixed
      */
-    public function changeWorkSpace(TblWorkSpace $tblWorkSpace, $Position = null)
+    public function changeWorkSpace(TblWorkSpace $tblWorkSpace, $Position = null, $FieldCount = null)
     {
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -134,7 +146,13 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblWorkSpace', $tblWorkSpace->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $Entity->setPosition($Position);
+            if (null !== $Position) {
+                $Entity->setPosition($Position);
+            }
+            if (null !== $FieldCount) {
+                $Entity->setFieldCount($FieldCount);
+            }
+
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
