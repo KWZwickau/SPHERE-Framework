@@ -1101,7 +1101,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @return Stage
      */
     public function frontendMetaDataComparison($Person = null, $Year = null, $Division = null) {
-        $Stage = new Stage('Auswertung', 'Stammdatenabfrage Schüler');
+        $Stage = new Stage('Auswertung', 'Stammdatenabfrage');
 
         $FilterForm = $this->getStudentFilterForm();
 

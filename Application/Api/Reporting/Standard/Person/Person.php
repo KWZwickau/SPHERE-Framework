@@ -205,6 +205,6 @@ class Person
     public function downloadMetaDataComparison($Person = null, $Year = null, $Division = null) {
         $fileLocation = \SPHERE\Application\Reporting\Standard\Person\Person::useService()->createMetaDataComparisonExcel($Person, $Year, $Division);
 
-        return FileSystem::getDownload($fileLocation->getRealPath(),"Stammdatenabfrage".date("Y-m-d H:i:s").".xlsx")->__toString();
+        return FileSystem::getDownload($fileLocation->getRealPath(),"Stammdatenabfrage"." ".date("Y-m-d H:i:s").".xlsx")->__toString();
     }
 }

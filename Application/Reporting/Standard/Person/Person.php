@@ -40,7 +40,7 @@ class Person extends AbstractModule implements IModuleInterface
             new Link(new Link\Route(__NAMESPACE__.'/GroupList'), new Link\Name('Personengruppenlisten'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/MetaDataComparison'), new Link\Name('Stammdatenabfrage Schüler'))
+            new Link(new Link\Route(__NAMESPACE__.'/MetaDataComparison'), new Link\Name('Stammdatenabfrage'))
         );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
