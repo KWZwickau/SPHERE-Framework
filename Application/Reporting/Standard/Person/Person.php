@@ -39,6 +39,9 @@ class Person extends AbstractModule implements IModuleInterface
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/GroupList'), new Link\Name('Personengruppenlisten'))
         );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__.'/MetaDataComparison'), new Link\Name('Stammdatenabfrage Schüler'))
+        );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __NAMESPACE__.'\Frontend::frontendPerson'
@@ -63,6 +66,9 @@ class Person extends AbstractModule implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/ElectiveClassList', __NAMESPACE__.'\Frontend::frontendElectiveClassList'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/MetaDataComparison', __NAMESPACE__.'\Frontend::frontendMetaDataComparison'
         ));
     }
 

@@ -1,9 +1,20 @@
 <?php
 namespace SPHERE\Application\Reporting\Standard\Person;
 
+use SPHERE\Application\Api\Setting\UserAccount\ApiUserAccount;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
+use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Search\Group\Group;
+use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Child;
@@ -16,6 +27,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -1079,5 +1091,156 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return $Stage;
+    }
+
+    /**
+     * @param null $Person
+     * @param null $Year
+     * @param null $Division
+     *
+     * @return Stage
+     */
+    public function frontendMetaDataComparison($Person = null, $Year = null, $Division = null) {
+        $Stage = new Stage('Auswertung', 'Stammdatenabfrage Schüler');
+
+        $FilterForm = $this->getStudentFilterForm();
+
+        $Result = Person::useService()->getStudentFilterResult($Person, $Year, $Division);
+
+        $TableContent = Person::useService()->getStudentTableContent($Result);
+
+        $Table = new TableData($TableContent, null, array(
+            'Division' => 'Klasse',
+            'StudentNumber' => 'Schülernummer',
+            'FirstName' => 'Vorname',
+            'LastName' => 'Nachname',
+            'Gender'  => 'Geschlecht',
+            'Birthday'  => 'Geburtstag',
+            'BirthPlace'  => 'Geburtsort',
+            'Address' => 'Adresse',
+            'Insurance' => 'Krankenkasse',
+            'Religion'  => 'Religion',
+            'PhoneFixedPrivate'  => 'Festnetz (Privat)',
+            'PhoneFixedWork'  => 'Festnetz (Geschäftl.)',
+            'PhoneFixedEmergency'  => 'Festnetz (Notfall)',
+            'PhoneMobilePrivate'  => 'Mobil (Privat)',
+            'PhoneMobileWork'  => 'Mobil (Geschäftl.)',
+            'PhoneMobileEmergency'  => 'Mobil (Notfall)',
+            'Sibiling_1' => 'Geschwister1',
+            'Sibiling_2' => 'Geschwister2',
+            'Sibiling_3' => 'Geschwister3',
+
+            'Custody_1_Salutation' => 'Sorg1 Anrede',
+            'Custody_1_Title' => 'Sorg1 Titel',
+            'Custody_1_FirstName' => 'Sorg1 Vorname',
+            'Custody_1_LastName' => 'Sorg1 Nachname',
+            'Custody_1_Address' => 'Sorg1 Adresse',
+            'Custody_1_PhoneFixedPrivate' => 'Sorg1 Festnetz (Privat)',
+            'Custody_1_PhoneFixedWork' => 'Sorg1 Festnetz (Geschäftl.)',
+            'Custody_1_PhoneFixedEmergency' => 'Sorg1 Festnetz (Notfall)',
+            'Custody_1_PhoneMobilePrivate' => 'Sorg1 Festnetz (Privat)',
+            'Custody_1_PhoneMobileWork' => 'Sorg1 Festnetz (Geschäftl.)',
+            'Custody_1_PhoneMobileEmergency' => 'Sorg1 Festnetz (Notfall)',
+            'Custody_1_Mail_Private' => 'Sorg1 Mail (Privat)',
+            'Custody_1_Mail_Work' => 'Sorg1 Mail (Geschäftl.)',
+
+            'Custody_2_Salutation' => 'Sorg2 Anrede',
+            'Custody_2_Title' => 'Sorg2 Titel',
+            'Custody_2_FirstName' => 'Sorg2 Vorname',
+            'Custody_2_LastName' => 'Sorg2 Nachname',
+            'Custody_2_Address' => 'Sorg2 Adresse',
+            'Custody_2_PhoneFixedPrivate' => 'Sorg2 Festnetz (Privat)',
+            'Custody_2_PhoneFixedWork' => 'Sorg2 Festnetz (Geschäftl.)',
+            'Custody_2_PhoneFixedEmergency' => 'Sorg2 Festnetz (Notfall)',
+            'Custody_2_PhoneMobilePrivate' => 'Sorg2 Festnetz (Privat)',
+            'Custody_2_PhoneMobileWork' => 'Sorg2 Festnetz (Geschäftl.)',
+            'Custody_2_PhoneMobileEmergency' => 'Sorg2 Festnetz (Notfall)',
+            'Custody_2_Mail_Private' => 'Sorg2 Mail (Privat)',
+            'Custody_2_Mail_Work' => 'Sorg2 Mail (Geschäftl.)',
+        ),
+            array(
+                'order'      => array(array(1, 'asc')),
+                'columnDefs' => array(
+                    array('type' => 'german-string', 'targets' => 1),
+                ),
+//                'pageLength' => -1,
+//                'paging'     => false,
+//                'searching'  => false,
+                'responsive' => false,
+            )
+        );
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(new Well(
+                            $FilterForm
+                        ))
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ApiUserAccount::receiverAccountModal()
+                            .new Panel('Filterung',
+                                (!empty($TableContent) ? new Primary('Herunterladen', '\Api\Reporting\Standard\Person\MetaDataComparison\Download', new Download(),
+                                        array('Person' => $Person, 'Year' => $Year, 'Division' => $Division)).'<br /><br />' . $Table : new Warning('Keine Personen gefunden'))
+                            )
+                        )
+                    )
+                ))
+            )
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @return Form
+     */
+    private function getStudentFilterForm()
+    {
+        $tblLevelShowList = array();
+
+        $tblLevelList = Division::useService()->getLevelAll();
+        if ($tblLevelList) {
+            foreach ($tblLevelList as &$tblLevel) {
+                if (!$tblLevel->getName()) {
+                    $tblLevelClone = clone $tblLevel;
+                    $tblLevelClone->setName('Stufenübergreifende Klassen');
+                    $tblLevelShowList[] = $tblLevelClone;
+                } else {
+                    $tblLevelShowList[] = $tblLevel;
+                }
+            }
+        }
+
+        return new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel('Bildung', array(
+                            (new SelectBox('Year['.ViewYear::TBL_YEAR_ID.']', 'Schuljahr',
+                                array('{{ Name }} {{ Description }}' => Term::useService()->getYearAllSinceYears(1))))
+                                ->setRequired(),
+                            new SelectBox('Division['.ViewDivision::TBL_LEVEL_SERVICE_TBL_TYPE.']', 'Schulart',
+                                array('Name' => Type::useService()->getTypeAll()))
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 4),
+                    new FormColumn(
+                        new Panel('Klasse', array(
+                            new SelectBox('Division['.ViewDivision::TBL_LEVEL_ID.']', 'Stufe',
+                                array('{{ Name }} {{ serviceTblType.Name }}' => $tblLevelShowList)),
+                            new AutoCompleter('Division['.ViewDivision::TBL_DIVISION_NAME.']', 'Gruppe',
+                                'Klasse: Gruppe', array('Name' => Division::useService()->getDivisionAll()))
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 4),
+                )),
+                new FormRow(
+                    new FormColumn(
+                        new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Filtern')
+                    )
+                )
+            ))
+        );
     }
 }
