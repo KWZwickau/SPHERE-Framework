@@ -124,13 +124,14 @@ class Service extends AbstractService
     /**
      * @param TblWorkSpace $tblWorkSpace
      * @param int|null     $Position
+     * @param int|null     $FieldCount
      *
      * @return mixed
      */
-    public function changeWorkSpace(TblWorkSpace $tblWorkSpace, $Position = null)
+    public function changeWorkSpace(TblWorkSpace $tblWorkSpace, $Position = null, $FieldCount = null)
     {
 
-        return (new Data($this->getBinding()))->changeWorkSpace($tblWorkSpace, $Position);
+        return (new Data($this->getBinding()))->changeWorkSpace($tblWorkSpace, $Position, $FieldCount);
     }
 
     /**
