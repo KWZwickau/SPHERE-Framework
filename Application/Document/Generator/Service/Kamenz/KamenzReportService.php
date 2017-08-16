@@ -233,6 +233,18 @@ class KamenzReportService
                                         $countReligionArray = self::countReligion($tblStudent, $tblLevel,
                                             $countReligionArray);
 
+                                        // Schulanfänger
+                                        self::setNewSchoolStarter(
+                                            $Content,
+                                            $tblPerson,
+                                            $tblStudent,
+                                            $tblLevel,
+                                            $tblDivision,
+                                            $gender,
+                                            $birthDay,
+                                            $year
+                                        );
+
                                     } else {
                                         if (isset($countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()])) {
                                             $countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()]++;
@@ -240,18 +252,6 @@ class KamenzReportService
                                             $countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()] = 1;
                                         }
                                     }
-
-                                    // Schulanfänger
-                                    self::setNewSchoolStarter(
-                                        $Content,
-                                        $tblPerson,
-                                        $tblStudent,
-                                        $tblLevel,
-                                        $tblDivision,
-                                        $gender,
-                                        $birthDay,
-                                        $year
-                                    );
                                 }
                             } else {
                                 $countDivisionStudentArray[$tblDivision->getId()][$tblLevel->getName()] = 0;
