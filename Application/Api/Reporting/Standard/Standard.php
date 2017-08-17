@@ -43,6 +43,9 @@ class Standard implements IModuleInterface
             __NAMESPACE__.'\Person\Person::downloadElectiveClassList'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Person/MetaDataComparison/Download', __NAMESPACE__.'\Person\Person::downloadMetaDataComparison'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Company/GroupList/Download', __NAMESPACE__.'\Company\Company::downloadGroupList'
         ));
     }

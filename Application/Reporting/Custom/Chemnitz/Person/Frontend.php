@@ -1016,7 +1016,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $FrenchCounter++;
                     }
                     if (!empty($PersonData['Education'])) {
-                        if(isset($educationList[$PersonData['Education']])){
+                        if(isset($EducationList[$PersonData['Education']])){
                             $EducationList[$PersonData['Education']] += 1;
                         } else {
                             $EducationList[$PersonData['Education']] = 1;
@@ -1044,6 +1044,17 @@ class Frontend extends Extension implements IFrontendInterface
                 $FrenchCountString = 'Anzahl: ' . $FrenchCounter;
             }
 
+            $EducationCountString = '';
+            if (!empty($EducationList)) {
+                foreach ($EducationList as $Education => $Count) {
+                    if (!empty($EducationCountString)) {
+                        $EducationCountString .= '<br/>Anzahl ' . $Education . ': ' . $Count;
+                    } else {
+                        $EducationCountString .= 'Anzahl ' . $Education . ': ' . $Count;
+                    }
+                }
+            }
+
             $OrientationCountString = '';
             if (!empty($OrientationList)) {
                 foreach ($OrientationList as $Orientation => $Count) {
@@ -1055,16 +1066,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
-            $EducationCountString = '';
-            if (!empty($EducationList)) {
-                foreach ($EducationList as $Education => $Count) {
-                    if (!empty($EducationCountString)) {
-                        $EducationCountString .= '<br/>Anzahl ' . $Education . ': ' . $Count;
-                    } else {
-                        $EducationCountString .= 'Anzahl ' . $Education . ': ' . $Count;
-                    }
-                }
-            }
+
 
             $LayoutColumnCounterList = array();
             $LayoutColumnCounterList[] = new LayoutColumn(

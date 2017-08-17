@@ -145,7 +145,7 @@ class Frontend extends Extension implements IFrontendInterface
             'Option'        => '',
         ),
             array(
-                'order'      => array(array(1, 'asc')),
+                'order'      => array(array(5, 'asc')),
                 'columnDefs' => array(
                     array('type' => 'german-string', 'targets' => 1),
 //                    array('width' => '1%', 'targets' => 0), //ToDO handle changing with
@@ -369,33 +369,13 @@ class Frontend extends Extension implements IFrontendInterface
                 $DivisionStudent = $Row[2]->__toArray();
                 $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
 
-                // ignor existing Accounts (By Person)
-                if ($tblPerson && !Account::useService()->getUserAccountByPerson($tblPerson)) {
+                // ignor Person with existing Accounts (By Person)
+                if ($tblPerson && !AccountAuthorization::useService()->getAccountAllByPerson($tblPerson)) {
                     /** @noinspection PhpUndefinedFieldInspection */
                     $DataPerson['Name'] = false;
                     $DataPerson['Check'] = '';
                     $DataPerson['Course'] = '';
                     $DataPerson['Course'] = '';
-
-                    //                $Button = (new Standard('', ApiContactAddress::getEndpoint(), new Edit(), array(),
-                    //                    'Bearbeiten der Hauptadresse'))
-                    //                    ->ajaxPipelineOnClick(ApiContactAddress::pipelineOpen($tblPerson->getId()));
-                    //
-                    //                $AddressReceiver = new Layout(
-                    //                    new LayoutGroup(
-                    //                        new LayoutRow(array(
-                    //                            new LayoutColumn(
-                    //                                ApiContactAddress::receiverColumn($tblPerson->getId())
-                    //                                , 11),
-                    //                            new LayoutColumn(
-                    //                                new Center($Button).ApiContactAddress::receiverModal($tblPerson->getId())
-                    //                                , 1),
-                    //                        ))
-                    //                    )
-                    //                );
-                    //                $AddressReceiver = ApiContactAddress::receiverColumn($tblPerson->getId()); // . new PullRight($Button);
-
-
                     $DataPerson['Address'] = $this->apiChangeMainAddressField($tblPerson);
                     $DataPerson['Option'] = $this->apiChangeMainAddressButton($tblPerson);
 
@@ -423,12 +403,6 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($tblDivision) {
                         $DataPerson['Division'] = $tblDivision->getDisplayName();
                     }
-
-                    //                /** @noinspection PhpUndefinedFieldInspection */
-                    //                if (isset($tblAddress) && $tblAddress && $DataPerson['Name']) {
-                    //                    /** @noinspection PhpUndefinedFieldInspection */
-                    //                    $DataPerson['Address'] = $AddressReceiver;
-                    //                }
                     $DataPerson['StudentNumber'] = new Small(new Muted('-NA-'));
                     if (isset($tblStudent) && $tblStudent && $DataPerson['Name']) {
                         $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
@@ -528,7 +502,7 @@ class Frontend extends Extension implements IFrontendInterface
             'Option'  => '',
         ),
             array(
-                'order'      => array(array(1, 'asc')),
+                'order'      => array(array(2, 'asc')),
                 'columnDefs' => array(
                     array('type' => 'german-string', 'targets' => 1),
 //                    array('width' => '1%', 'targets' => 0), //ToDO handle changing with
@@ -685,8 +659,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 $DataPerson['Name'] = $tblPerson->getLastFirstName();
                             }
 
-                            // ignor existing Accounts (By Person)
-                            if (!Account::useService()->getUserAccountByPerson($tblPerson)) {
+                            // ignor Person with existing Accounts (By Person)
+                            if (!AccountAuthorization::useService()->getAccountAllByPerson($tblPerson)) {
                                 // ignore duplicated Person
                                 if (!array_key_exists($tblPerson->getId(), $SearchResult)) {
                                     $SearchResult[$tblPerson->getId()] = $DataPerson;
@@ -761,7 +735,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['PersonListCustody'] = implode($CustodyList);
                     }
 
-//                    //remove all Accounts (local Test)
+//                    //remove all Accounts (local Test) //ToDO Stelle finden
 //                    $tblUserAccount = Account::useService()->getUserAccountByPerson($tblPerson);
 //                    if ($tblUserAccount) {
 //                        $tblAccount = $tblUserAccount->getServiceTblAccount();
@@ -870,7 +844,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['PersonListStudent'] = implode($StudentList);
                     }
 
-//                    //remove all Accounts (local Test)
+//                    //remove all Accounts (local Test) //ToDO Stelle finden
 //                    $tblUserAccount = Account::useService()->getUserAccountByPerson($tblPerson);
 //                    if ($tblUserAccount) {
 //                        $tblAccount = $tblUserAccount->getServiceTblAccount();

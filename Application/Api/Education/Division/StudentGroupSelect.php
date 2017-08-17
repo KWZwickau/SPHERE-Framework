@@ -18,8 +18,10 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\MinusSign;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -29,6 +31,7 @@ use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -268,15 +271,39 @@ class StudentGroupSelect extends Extension implements IApiInterface
             $right = new Warning('Klasse nicht gefunden');
         }
 
+        if ($tblDivisionSubject) {
+            $layoutGroup = new LayoutGroup(
+                new LayoutRow(
+                    new LayoutColumn(
+                        new Panel('Fach - Gruppe', array(
+                            'Fach: ' . new Bold($tblDivisionSubject->getServiceTblSubject()
+                                ? $tblDivisionSubject->getServiceTblSubject()->getName() : ''),
+                            'Gruppe: ' . new Bold($tblDivisionSubject->getTblSubjectGroup()->getName())
+                        ), Panel::PANEL_TYPE_INFO)
+                    )
+                )
+            );
+        } else {
+            $layoutGroup = new LayoutGroup(
+                new LayoutRow(
+                    new LayoutColumn(
+                        new Warning('Fach - Gruppe nicht gefunden', new Ban())
+                    )
+                )
+            );
+        }
+
         return
-            new Layout(new LayoutGroup(new LayoutRow(array(
+            new Layout(array(
+                $layoutGroup,
+                new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn(
                     $left
                     , 6),
                 new LayoutColumn(
                     $right
                     , 6)
-            ))));
+            )))));
 
     }
 

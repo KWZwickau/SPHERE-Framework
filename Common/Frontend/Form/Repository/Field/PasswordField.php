@@ -36,13 +36,15 @@ class PasswordField extends AbstractTextField implements IFieldInterface
         }
     }
 
-    /** @noinspection PhpMissingParentCallCommonInspection */
+    /**
+     * @return string
+     */
     public function getContent()
     {
 
         if( $this->isForceDefaultValue ) {
             $this->setPostValue($this->Template, $this->getName(), 'ElementValue');
         }
-        return $this->Template->getContent();
+        return parent::getContent();
     }
 }

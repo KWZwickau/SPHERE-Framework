@@ -514,7 +514,7 @@ class Service extends AbstractService
                     continue;
                 }
                 $name = $this->generateUserName($tblPerson, $tblConsumer);
-                $password = $this->generatePassword(8, 1, 2, 1);
+                $password = $this->generatePassword(8, 0, 2, 1);
                 if (($tblAccountList = AccountGatekeeper::useService()->getAccountAllByPerson($tblPerson, true))) {
                     $IsUserExist = false;
                     foreach ($tblAccountList as $tblAccount) {
@@ -537,7 +537,7 @@ class Service extends AbstractService
                     $tblIdentification = AccountGatekeeper::useService()->getIdentificationByName('UserCredential');
                     AccountGatekeeper::useService()->addAccountAuthentication($tblAccount,
                         $tblIdentification);
-                    $tblRole = Access::useService()->getRoleByName('Einstellungen: Benutzer');
+                    $tblRole = Access::useService()->getRoleByName('Einstellungen: Benutzer (Schüler/Eltern)');
                     if ($tblRole && !$tblRole->isSecure()) {
                         AccountGatekeeper::useService()->addAccountAuthorization($tblAccount, $tblRole);
                     }

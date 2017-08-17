@@ -56,12 +56,7 @@ class Data extends AbstractData
                     '');
             }
 
-            if($tblConsumer->getAcronym() == 'EGE'
-                || $tblConsumer->getAcronym() == 'DEMO') {
-                $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsShownAverageInStudentOverview', TblSetting::TYPE_BOOLEAN, true);
-            } else {
-                $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsShownAverageInStudentOverview', TblSetting::TYPE_BOOLEAN, true);
-            }
+            $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsShownAverageInStudentOverview', TblSetting::TYPE_BOOLEAN, false);
 
             if ($tblConsumer->getAcronym() == 'ESZC') {
                 $this->createSetting(

@@ -7,7 +7,9 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\T
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblPrivilegeRight;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRight;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRoleConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRoleLevel;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
@@ -226,12 +228,13 @@ class Data extends AbstractData
 
     /**
      * @param string $Name
-     * @param bool   $IsSecure
-     * @param bool   $IsInternal
+     * @param bool $IsSecure
+     * @param bool $IsInternal
+     * @param bool $IsIndividual
      *
      * @return TblRole
      */
-    public function createRole($Name, $IsSecure = false, $IsInternal = false)
+    public function createRole($Name, $IsSecure = false, $IsInternal = false, $IsIndividual = false)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -240,6 +243,8 @@ class Data extends AbstractData
             $Entity = new TblRole($Name);
             $Entity->setSecure($IsSecure);
             $Entity->setInternal($IsInternal);
+            $Entity->setIndividual($IsIndividual);
+
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -595,6 +600,7 @@ class Data extends AbstractData
                 $V = $V->getTblRight();
             });
         }
+        /** @var TblRight[] $EntityList */
         return ( null === $EntityList ? false : $EntityList );
     }
 
@@ -671,5 +677,20 @@ class Data extends AbstractData
             });
         }
         return $EntityList;
+    }
+
+    /**
+     * @param TblRole $tblRole
+     * @param TblConsumer $tblConsumer
+     *
+     * @return false|TblRoleConsumer
+     */
+    public function getRoleConsumerBy(TblRole $tblRole, TblConsumer $tblConsumer)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblRoleConsumer', array(
+            TblRoleConsumer::ATTR_TBL_ROLE => $tblRole->getId(),
+            TblRoleConsumer::SERVICE_TBL_CONSUMER => $tblConsumer->getId()
+        ));
     }
 }
