@@ -43,6 +43,7 @@ use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Structure\LinkGroup;
 use SPHERE\Common\Frontend\Message\Repository\Info as InfoMessage;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -74,6 +75,7 @@ class ApiIndividual extends Extension implements IApiInterface
         $Dispatcher->registerMethod('changeFilterCount');
         $Dispatcher->registerMethod('removeFieldAll');
         $Dispatcher->registerMethod('getModalPreset');
+        $Dispatcher->registerMethod('loadPreset');
         $Dispatcher->registerMethod('getModalSavePreset');
         $Dispatcher->registerMethod('createPreset');
         $Dispatcher->registerMethod('addField');
@@ -267,9 +269,11 @@ class ApiIndividual extends Extension implements IApiInterface
     }
 
     /**
+     * @param string $Info
+     *
      * @return Pipeline
      */
-    public static function pipelinePresetShowModal()
+    public static function pipelinePresetShowModal($Info = '')
     {
 
         $Pipeline = new Pipeline();
@@ -277,12 +281,38 @@ class ApiIndividual extends Extension implements IApiInterface
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'getModalPreset'
         ));
+        $Emitter->setPostPayload(array(
+            'Info' => $Info
+        ));
         $Pipeline->appendEmitter($Emitter);
 
         return $Pipeline;
     }
 
     /**
+     * @param int|null $PresetId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadPreset($PresetId = null)
+    {
+
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter(self::receiverService(), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'loadPreset'
+        ));
+        $Emitter->setPostPayload(array(
+            'PresetId' => $PresetId
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string $Info
+     *
      * @return Pipeline
      */
     public static function pipelinePresetSaveModal($Info = '')
@@ -314,6 +344,14 @@ class ApiIndividual extends Extension implements IApiInterface
         ));
         $Pipeline->appendEmitter($Emitter);
 
+        return $Pipeline;
+    }
+
+    public static function pipelineCloseModal()
+    {
+
+        $Pipeline = new Pipeline();
+        $Pipeline->appendEmitter((new CloseModal(self::receiverModal()))->getEmitter());
         return $Pipeline;
     }
 
@@ -492,9 +530,11 @@ class ApiIndividual extends Extension implements IApiInterface
     }
 
     /**
+     * @param string $Info
+     *
      * @return Layout
      */
-    public function getModalPreset()
+    public function getModalPreset($Info = '')
     {
 
         $tblPresetList = Individual::useService()->getPresetAll();
@@ -509,8 +549,15 @@ class ApiIndividual extends Extension implements IApiInterface
                 if ($tblPresetSetting) {
                     $Item['FieldCount'] = count($tblPresetSetting);
                 }
+                $Item['Option'] = (new Standard('', self::getEndpoint(), new Download()))
+                    ->ajaxPipelineOnClick(ApiIndividual::pipelineLoadPreset($tblPreset->getId()));
+
                 array_push($TableContent, $Item);
             });
+        }
+
+        if ($Info != '') {
+            $Info = new Warning($Info);
         }
 
         $Content = new Layout(
@@ -520,14 +567,49 @@ class ApiIndividual extends Extension implements IApiInterface
                         new TableData($TableContent, null,
                             array(
                                 'Name'       => 'Gespeicherte Filterung',
-                                'FieldCount' => 'Anzahl Filter'
+                                'FieldCount' => 'Anzahl Filter',
+                                'Option'     => ''
                             ))
+                        .$Info
                     )
                 )
             )
         );
 
         return $Content;
+    }
+
+    /**
+     * @param null $PresetId
+     *
+     * @return Pipeline|string
+     */
+    public function loadPreset($PresetId = null)
+    {
+
+        $tblPreset = Individual::useService()->getPresetById($PresetId);
+        if ($tblPreset) {
+            // destroy existing Workspace
+            Individual::useService()->removeWorkSpaceAll();
+
+            $tblPresetSettingList = Individual::useService()->getPresetSettingAllByPreset($tblPreset);
+            if ($tblPresetSettingList) {
+                foreach ($tblPresetSettingList as $tblPresetSetting) {
+                    Individual::useService()->addWorkSpaceField(
+                        $tblPresetSetting->getField(),
+                        $tblPresetSetting->getView(),
+                        $tblPresetSetting->getPosition(),
+                        $tblPreset);
+                }
+            }
+
+//            $Info = 'Laden erfolgreich';
+            return ApiIndividual::pipelineCloseModal().
+                ApiIndividual::pipelineNavigation();
+        }
+
+        $Info = 'Vorlage nicht gefunden.';
+        return ApiIndividual::pipelinePresetShowModal($Info);
     }
 
     /**
@@ -540,38 +622,59 @@ class ApiIndividual extends Extension implements IApiInterface
 
         $tblPresetList = Individual::useService()->getPresetAll();
         $TableContent = array();
+        $viewStudent = new ViewStudent();
 
         if ($tblPresetList) {
-            array_walk($tblPresetList, function (TblPreset $tblPreset) use (&$TableContent) {
+            array_walk($tblPresetList, function (TblPreset $tblPreset) use (&$TableContent, $viewStudent) {
                 $Item['Name'] = $tblPreset->getName();
                 $Item['FieldCount'] = '';
 
-                $tblPresetSetting = Individual::useService()->getPresetSettingAllByPreset($tblPreset);
-                if ($tblPresetSetting) {
-                    $Item['FieldCount'] = count($tblPresetSetting);
+                $tblPresetSettingList = Individual::useService()->getPresetSettingAllByPreset($tblPreset);
+                if ($tblPresetSettingList) {
+                    $FieldCount = count($tblPresetSettingList);
+//                    //Anzeige der Felder als Accordion
+//                    $FieldList = array();
+//                    foreach($tblPresetSettingList as $tblPresetSetting){
+//                        if($tblPresetSetting->getView() == 'ViewStudent'){
+//                            $FieldList[] =  $viewStudent->getNameDefinition($tblPresetSetting->getField());
+//                        } else {
+//                            $FieldList[] =  $tblPresetSetting->getField();
+//                        }
+//                    }
+//                    $Item['FieldCount'] = (new Accordion())
+//                        ->addItem($FieldCount.' Felder ',(new Listing($FieldList)));
+
+                    $Item['FieldCount'] = $FieldCount;
                 }
                 array_push($TableContent, $Item);
             });
         }
 
-        $form = new Form(
+        $form = (new Form(
             new FormGroup(
                 new FormRow(array(
                     new FormColumn(
-                        new TextField('PresetName', 'Name', 'Name der Vorlage')
+                        new Panel('Speichern', array(
+                            new TextField('PresetName', 'Name', 'Name der Vorlage')
+                        ))
                     ),
                     new FormColumn((new Primary('Speichern', self::getEndpoint(), new Save()))
                         ->ajaxPipelineOnClick(ApiIndividual::pipelinePresetSave())
                     )
                 ))
             )
-        );
+        ))->disableSubmitAction();
+
+        if ($Info == 'Speicherung erfolgreich') {
+            $Info = new Success($Info);
+        } elseif ($Info != '') {
+            $Info = new Warning($Info);
+        }
 
         $Content = new Layout(
             new LayoutGroup(
                 new LayoutRow(array(
                     new LayoutColumn(
-//                        new Code(print_r($TableContent, true))
                         new TableData($TableContent, new Title('Vorhandene Vorlagen'),
                             array(
                                 'Name'       => 'Name der Vorlage',
@@ -579,10 +682,7 @@ class ApiIndividual extends Extension implements IApiInterface
                             ))
                     ),
                     new LayoutColumn(
-                        ($Info != ''
-                            ? $Info
-                            : ''
-                        )
+                        $Info
                         .new Well($form)
                     )
                 ))
@@ -601,10 +701,11 @@ class ApiIndividual extends Extension implements IApiInterface
             foreach ($tblWorkSpaceList as $tblWorkSpace) {
                 Individual::useService()->createPresetSetting($tblPreset, $tblWorkSpace);
             }
-            return CloseModal::CloseModalReceiver();
+            $Info = 'Speicherung erfolgreich';
+            return ApiIndividual::pipelinePresetSaveModal($Info);
         }
 
-        $Info = new Warning('Speicherung konnte nicht erfolgen bitte überprüfen Sie ihre Eingabe');
+        $Info = 'Speicherung konnte nicht erfolgen bitte überprüfen Sie ihre Eingabe';
         return ApiIndividual::pipelinePresetSaveModal($Info);
 
     }
