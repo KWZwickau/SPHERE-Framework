@@ -345,8 +345,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblGroup) {
             $tblPersonAll = Group::useService()->getPersonAllByGroup($tblGroup);
         } else {
-            // bei nichtvorhandenen Gruppe alle Personen
-            $tblPersonAll = \SPHERE\Application\People\Person\Person::useService()->getPersonAll();
+            $tblPersonAll = false;
         }
         if ($tblPersonAll) {
             array_walk($tblPersonAll, function (TblPerson &$tblPersonItem) use ($tblPerson, $Global) {
@@ -382,7 +381,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Person Panel
         if ($tblPerson) {
-            $PanelPerson = new Panel(new Person().' für folgende Person', array(
+            $PanelPerson = new Panel(new Person().' für folgende Mitarbeiter', array(
                 new Danger('AKTUELL hinterlegte Person, '),
                 new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId()),
                 new Danger('ODER eine andere Person wählen: '),
@@ -390,14 +389,14 @@ class Frontend extends Extension implements IFrontendInterface
             ), Panel::PANEL_TYPE_INFO);
         } elseif (isset( $Global->POST['Account']['User'] )) {
             $tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($Global->POST['Account']['User']);
-            $PanelPerson = new Panel(new Person().' für folgende Person', array(
+            $PanelPerson = new Panel(new Person().' für folgende Mitarbeiter', array(
                 new Warning('AKTUELL selektierte Person, '),
                 new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId()),
                 new Danger('ODER eine andere Person wählen: '),
                 new TableData($tblPersonAll, null, array('Person' => 'Person wählen', 'Address' => 'Adresse')),
             ), Panel::PANEL_TYPE_INFO);
         } else {
-            $PanelPerson = new Panel(new Person().' für folgende Person', array(
+            $PanelPerson = new Panel(new Person().' für folgende Mitarbeiter', array(
                 new TableData($tblPersonAll, null, array('Person' => 'Person wählen', 'Address' => 'Adresse')),
             ), Panel::PANEL_TYPE_INFO);
         }
