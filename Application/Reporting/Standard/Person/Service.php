@@ -1143,6 +1143,7 @@ class Service extends Extension
                 $export->setValue($export->getCell("17", $Row), $PersonData['ParticipationWillingness']);
                 $export->setValue($export->getCell("18", $Row), $PersonData['ParticipationActivities']);
                 $export->setValue($export->getCell("19", $Row), $PersonData['RemarkExcel']);
+                $export->setStyle($export->getCell("19", $Row))->setWrapText();
 
                 $Row++;
             }
