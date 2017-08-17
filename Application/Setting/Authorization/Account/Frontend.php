@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Setting\Authorization\Account;
 
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
@@ -340,7 +341,13 @@ class Frontend extends Extension implements IFrontendInterface
             $tblPerson = false;
         }
 
-        $tblPersonAll = \SPHERE\Application\People\Person\Person::useService()->getPersonAll();
+        $tblGroup = Group::useService()->getGroupByMetaTable('STAFF');
+        if ($tblGroup) {
+            $tblPersonAll = Group::useService()->getPersonAllByGroup($tblGroup);
+        } else {
+            // bei nichtvorhandenen Gruppe alle Personen
+            $tblPersonAll = \SPHERE\Application\People\Person\Person::useService()->getPersonAll();
+        }
         if ($tblPersonAll) {
             array_walk($tblPersonAll, function (TblPerson &$tblPersonItem) use ($tblPerson, $Global) {
 
