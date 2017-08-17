@@ -1,0 +1,14 @@
+CREATE 
+    ALGORITHM = UNDEFINED 
+    DEFINER = root@% 
+    SQL SECURITY DEFINER
+VIEW SettingConsumer_DEMO.viewGroupClub AS
+    SELECT 
+        viewPerson.TblPerson_Id AS TblPerson_Id,
+        viewPeopleMetaClub.TblClub_EntryDate AS TblClub_EntryDate,
+        viewPeopleMetaClub.TblClub_ExitDate AS TblClub_ExitDate,
+        viewPeopleMetaClub.TblClub_Identifier AS TblClub_Identifier,
+        viewPeopleMetaClub.TblClub_Remark AS TblClub_Remark
+    FROM
+        (PeoplePerson_DEMO.viewPerson
+        LEFT JOIN PeopleMeta_DEMO.viewPeopleMetaClub ON ((viewPerson.TblPerson_Id = viewPeopleMetaClub.TblClub_serviceTblPerson)))

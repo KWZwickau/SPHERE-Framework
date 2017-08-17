@@ -1,0 +1,34 @@
+CREATE 
+    ALGORITHM = UNDEFINED 
+    DEFINER = `root`@`%`
+    SQL SECURITY DEFINER
+VIEW SettingConsumer_DEMO.viewEducationStudent AS
+    SELECT 
+        viewPerson.TblPerson_Id AS TblPerson_Id,
+        viewDivisionStudent.TblLevel_Name AS TblLevel_Name,
+        viewDivisionStudent.TblLevel_Description AS TblLevel_Description,
+        viewDivisionStudent.TblLevel_IsChecked AS TblLevel_IsChecked,
+        viewDivisionStudent.TblDivision_Name AS TblDivision_Name,
+        viewDivisionStudent.TblDivision_Description AS TblDivision_Description,
+        viewSchoolType.TblType_Name AS TblType_Name,
+        viewSchoolType.TblType_Description AS TblType_Description,
+        viewYearPeriod.TblYear_Year AS TblYear_Year,
+        viewYearPeriod.TblYear_Description AS TblYear_Description,
+        viewYearPeriod.TblPeriod_Name AS TblPeriod_Name,
+        viewYearPeriod.TblPeriod_Description AS TblPeriod_Description,
+        viewYearPeriod.TblPeriod_FromDate AS TblPeriod_FromDate,
+        viewYearPeriod.TblPeriod_ToDate AS TblPeriod_ToDate,
+        viewDivisionSubject.TblSubjectGroup_Name AS TblSubjectGroup_Name,
+        viewDivisionSubject.TblSubjectGroup_Description AS TblSubjectGroup_Description,
+        viewDivisionSubject.TblSubjectGroup_IsAdvancedCourse AS TblSubjectGroup_IsAdvancedCourse,
+        viewSubject.TblSubject_Acronym AS TblSubject_Acronym,
+        viewSubject.TblSubject_Name AS TblSubject_Name,
+        viewSubject.TblSubject_Description AS TblSubject_Description
+    FROM
+        ((((((PeoplePerson_DEMO.viewPerson
+        LEFT JOIN EducationLessonDivision_DEMO.viewDivisionStudent ON ((viewPerson.TblPerson_Id = viewDivisionStudent.TblDivisionStudent_serviceTblPerson)))
+        LEFT JOIN EducationSchoolType_DEMO.viewSchoolType ON ((viewDivisionStudent.TblLevel_serviceTblType = viewSchoolType.TblType_Id)))
+        LEFT JOIN EducationLessonTerm_DEMO.viewYearPeriod ON ((viewDivisionStudent.TblDivision_serviceTblYear = viewYearPeriod.TblYearPeriod_tblYear)))
+        LEFT JOIN EducationLessonDivision_DEMO.viewDivisionSubject ON ((viewDivisionStudent.TblDivision_Id = viewDivisionSubject.TblDivisionSubject_tblDivision)))
+        LEFT JOIN EducationLessonSubject_DEMO.viewSubject ON ((viewDivisionSubject.TblDivisionSubject_serviceTblSubject = viewSubject.TblSubject_Id)))
+        LEFT JOIN EducationLessonDivision_DEMO.tblSubjectStudent ON ((EducationLessonDivision_DEMO.tblSubjectStudent.tblDivisionSubject = viewDivisionSubject.TblDivisionSubject_Id)))

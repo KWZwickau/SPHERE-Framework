@@ -1,0 +1,13 @@
+CREATE 
+    ALGORITHM = UNDEFINED 
+    DEFINER = `root`@`%`
+    SQL SECURITY DEFINER
+VIEW SettingConsumer_DEMO.viewGroupCustody AS
+    SELECT 
+        viewPerson.TblPerson_Id AS TblPerson_Id,
+        viewPeopleMetaCustody.TblCustody_Occupation AS TblCustody_Occupation,
+        viewPeopleMetaCustody.TblCustody_Employment AS TblCustody_Employment,
+        viewPeopleMetaCustody.TblCustody_Remark AS TblCustody_Remark
+    FROM
+        (PeoplePerson_DEMO.viewPerson
+        LEFT JOIN PeopleMeta_DEMO.viewPeopleMetaCustody ON ((viewPerson.TblPerson_Id = viewPeopleMetaCustody.TblCustody_serviceTblPerson)))
