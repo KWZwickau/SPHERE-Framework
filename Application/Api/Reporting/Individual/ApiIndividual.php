@@ -13,6 +13,7 @@ use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
+use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -32,6 +33,7 @@ use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -41,6 +43,8 @@ use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Structure\LinkGroup;
 use SPHERE\Common\Frontend\Message\Repository\Info as InfoMessage;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -70,6 +74,8 @@ class ApiIndividual extends Extension implements IApiInterface
         $Dispatcher->registerMethod('changeFilterCount');
         $Dispatcher->registerMethod('removeFieldAll');
         $Dispatcher->registerMethod('getModalPreset');
+        $Dispatcher->registerMethod('getModalSavePreset');
+        $Dispatcher->registerMethod('createPreset');
         $Dispatcher->registerMethod('addField');
         $Dispatcher->registerMethod('getFilter');
 
@@ -121,11 +127,13 @@ class ApiIndividual extends Extension implements IApiInterface
     }
 
     /**
+     * @param string $Header
+     *
      * @return ModalReceiver
      */
-    public static function receiverModal()
+    public static function receiverModal($Header = '')
     {
-        return (new ModalReceiver('', new Close()))
+        return (new ModalReceiver($Header, new Close()))
             ->setIdentifier('ModalReceiver');
     }
 
@@ -261,7 +269,7 @@ class ApiIndividual extends Extension implements IApiInterface
     /**
      * @return Pipeline
      */
-    public static function pipelinePresetModal()
+    public static function pipelinePresetShowModal()
     {
 
         $Pipeline = new Pipeline();
@@ -277,7 +285,44 @@ class ApiIndividual extends Extension implements IApiInterface
     /**
      * @return Pipeline
      */
-    public static function pipelineNavigation()
+    public static function pipelinePresetSaveModal($Info = '')
+    {
+
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter(self::receiverModal('Als Vorlage Speichern'), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'getModalSavePreset'
+        ));
+        $Emitter->setPostPayload(array(
+            'Info' => $Info
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelinePresetSave()
+    {
+
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter(self::receiverService(), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'createPreset'
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param bool $isLoadFilter
+     *
+     * @return Pipeline
+     */
+    public static function pipelineNavigation($isLoadFilter = true)
     {
 
         $Pipeline = new Pipeline();
@@ -286,12 +331,14 @@ class ApiIndividual extends Extension implements IApiInterface
             self::API_TARGET => 'getNavigation'
         ));
         $Pipeline->appendEmitter($Emitter);
-        // Refresh Filter
-        $Emitter = new ServerEmitter(self::receiverFilter(), self::getEndpoint());
-        $Emitter->setGetPayload(array(
-            self::API_TARGET => 'getFilter'
-        ));
-        $Pipeline->appendEmitter($Emitter);
+        if ($isLoadFilter) {
+            // Refresh Filter
+            $Emitter = new ServerEmitter(self::receiverFilter(), self::getEndpoint());
+            $Emitter->setGetPayload(array(
+                self::API_TARGET => 'getFilter'
+            ));
+            $Pipeline->appendEmitter($Emitter);
+        }
         return $Pipeline;
     }
 
@@ -462,7 +509,7 @@ class ApiIndividual extends Extension implements IApiInterface
                 if ($tblPresetSetting) {
                     $Item['FieldCount'] = count($tblPresetSetting);
                 }
-                $TableContent = array_merge($TableContent, $Item);
+                array_push($TableContent, $Item);
             });
         }
 
@@ -481,6 +528,85 @@ class ApiIndividual extends Extension implements IApiInterface
         );
 
         return $Content;
+    }
+
+    /**
+     * @param string $Info
+     *
+     * @return Layout
+     */
+    public function getModalSavePreset($Info = '')
+    {
+
+        $tblPresetList = Individual::useService()->getPresetAll();
+        $TableContent = array();
+
+        if ($tblPresetList) {
+            array_walk($tblPresetList, function (TblPreset $tblPreset) use (&$TableContent) {
+                $Item['Name'] = $tblPreset->getName();
+                $Item['FieldCount'] = '';
+
+                $tblPresetSetting = Individual::useService()->getPresetSettingAllByPreset($tblPreset);
+                if ($tblPresetSetting) {
+                    $Item['FieldCount'] = count($tblPresetSetting);
+                }
+                array_push($TableContent, $Item);
+            });
+        }
+
+        $form = new Form(
+            new FormGroup(
+                new FormRow(array(
+                    new FormColumn(
+                        new TextField('PresetName', 'Name', 'Name der Vorlage')
+                    ),
+                    new FormColumn((new Primary('Speichern', self::getEndpoint(), new Save()))
+                        ->ajaxPipelineOnClick(ApiIndividual::pipelinePresetSave())
+                    )
+                ))
+            )
+        );
+
+        $Content = new Layout(
+            new LayoutGroup(
+                new LayoutRow(array(
+                    new LayoutColumn(
+//                        new Code(print_r($TableContent, true))
+                        new TableData($TableContent, new Title('Vorhandene Vorlagen'),
+                            array(
+                                'Name'       => 'Name der Vorlage',
+                                'FieldCount' => 'Anzahl gewählter Felder'
+                            ))
+                    ),
+                    new LayoutColumn(
+                        ($Info != ''
+                            ? $Info
+                            : ''
+                        )
+                        .new Well($form)
+                    )
+                ))
+            )
+        );
+
+        return $Content;
+    }
+
+    public function createPreset($PresetName)
+    {
+
+        $tblWorkSpaceList = Individual::useService()->getWorkSpaceAll();
+        if ($tblWorkSpaceList && $PresetName) {
+            $tblPreset = Individual::useService()->createPreset($PresetName);
+            foreach ($tblWorkSpaceList as $tblWorkSpace) {
+                Individual::useService()->createPresetSetting($tblPreset, $tblWorkSpace);
+            }
+            return CloseModal::CloseModalReceiver();
+        }
+
+        $Info = new Warning('Speicherung konnte nicht erfolgen bitte überprüfen Sie ihre Eingabe');
+        return ApiIndividual::pipelinePresetSaveModal($Info);
+
     }
 
     /**
@@ -530,7 +656,7 @@ class ApiIndividual extends Extension implements IApiInterface
         return new Panel('Verfügbare Felder', array(
             (new Primary('Vorlage laden', ApiIndividual::getEndpoint(), new Download(), array(),
                 'Laden von Filtervorlagen'))->ajaxPipelineOnClick(
-                ApiIndividual::pipelinePresetModal()
+                ApiIndividual::pipelinePresetShowModal()
             ),
 //            (new Accordion())->addItem('Schüler Grunddaten',
             new Layout(new LayoutGroup(new LayoutRow(
@@ -682,7 +808,7 @@ class ApiIndividual extends Extension implements IApiInterface
             ,
                 (new Primary('Vorlage speichern', ApiIndividual::getEndpoint(), new Save(), array(),
                     'Speichern als Filtervorlage'))->ajaxPipelineOnClick(
-                    ApiIndividual::pipelinePresetModal()
+                    ApiIndividual::pipelinePresetSaveModal()
                 )
             )));
         }

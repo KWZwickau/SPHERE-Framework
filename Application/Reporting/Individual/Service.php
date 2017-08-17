@@ -122,6 +122,42 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string $Name
+     *
+     * @return bool|TblPreset
+     */
+    public function createPreset($Name = '')
+    {
+
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            return (new Data($this->getBinding()))->createPreset($tblAccount, $Name);
+        }
+        return false;
+    }
+
+    /**
+     * @param TblPreset    $tblPreset
+     * @param TblWorkSpace $tblWorkSpace
+     *
+     * @return bool|TblPresetSetting
+     */
+    public function createPresetSetting(TblPreset $tblPreset, TblWorkSpace $tblWorkSpace)
+    {
+
+
+        $FieldName = $tblWorkSpace->getField();
+        $View = $tblWorkSpace->getView();
+        $Position = $tblWorkSpace->getPosition();
+
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            return (new Data($this->getBinding()))->createPresetSetting($tblPreset, $FieldName, $View, $Position);
+        }
+        return false;
+    }
+
+    /**
      * @param TblWorkSpace $tblWorkSpace
      * @param int|null     $Position
      * @param int|null     $FieldCount

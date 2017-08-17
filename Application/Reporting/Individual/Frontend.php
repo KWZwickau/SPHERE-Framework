@@ -37,7 +37,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             ApiIndividual::receiverService().
                             ApiIndividual::receiverModal().
-                            ApiIndividual::receiverNavigation(ApiIndividual::pipelineNavigation())
+                            ApiIndividual::receiverNavigation(ApiIndividual::pipelineNavigation(false))
                             , 3),
                         new LayoutColumn(
                             new Layout(
