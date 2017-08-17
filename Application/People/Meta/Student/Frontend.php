@@ -962,7 +962,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new Panel(new Hospital().' Krankenakte', array(
                         new TextArea('Meta[MedicalRecord][Disease]', 'Krankheiten / Allergien',
                             'Krankheiten / Allergien', new Heart()),
-                        new TextArea('Meta[MedicalRecord][Medication]', 'Mediakamente', 'Mediakamente',
+                        new TextArea('Meta[MedicalRecord][Medication]', 'Medikamente', 'Medikamente',
                             new Medicine()),
                         new SelectBox('Meta[MedicalRecord][AttendingDoctor]', 'Behandelnder Arzt', array(),
                             new Stethoscope()),
