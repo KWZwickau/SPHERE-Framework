@@ -30,6 +30,11 @@ class TblRole extends Element
      * @Column(type="boolean")
      */
     protected $IsSecure;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsIndividual;
     
     /**
      * @param string $Name
@@ -101,5 +106,23 @@ class TblRole extends Element
     {
 
         $this->IsSecure = (bool)$IsSecure;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isIndividual()
+    {
+
+        return (bool)$this->IsIndividual;
+    }
+
+    /**
+     * @param bool $IsIndividual
+     */
+    public function setIndividual($IsIndividual)
+    {
+
+        $this->IsIndividual = (bool)$IsIndividual;
     }
 }

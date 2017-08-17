@@ -1,14 +1,17 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: Kauschke
+ * Date: 16.08.2017
+ * Time: 09:22
+ */
 
-namespace SPHERE\Application\Document\Standard\KamenzReport;
+namespace SPHERE\Application\Reporting\KamenzReport;
 
 use SPHERE\Application\Education\School\Type\Type;
-use SPHERE\Application\IModuleInterface;
-use SPHERE\Application\IServiceInterface;
-use SPHERE\Application\Reporting\AbstractModule;
-use SPHERE\Common\Frontend\Icon\Repository\Download;
-use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\System\Extension\Extension;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -18,54 +21,17 @@ use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
-use SPHERE\Common\Main;
-use SPHERE\Common\Window\Navigation\Link;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Window\Stage;
 
 /**
- * Class KamenzReport
- * @package SPHERE\Application\Document\Standard\KamenzReport
+ * Class Frontend
+ *
+ * @package SPHERE\Application\Reporting\KamenzReport
  */
-class KamenzReport extends AbstractModule implements IModuleInterface
+class Frontend extends Extension implements IFrontendInterface
 {
-
-    public static function registerModule()
-    {
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Kamenz-Statistik'))
-        );
-
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, __CLASS__ . '::frontendShowKamenz'
-        ));
-
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '/Validate/SecondarySchool', __CLASS__ . '::frontendValidateSecondarySchool'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '/Validate/PrimarySchool', __CLASS__ . '::frontendValidatePrimarySchool'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '/Validate/GrammarSchool', __CLASS__ . '::frontendValidateGrammarSchool'
-        ));
-    }
-
-    /**
-     * @return IServiceInterface
-     */
-    public static function useService()
-    {
-
-    }
-
-    /**
-     * @return IFrontendInterface
-     */
-    public static function useFrontend()
-    {
-
-
-    }
 
     /**
      * @return Stage
@@ -76,15 +42,15 @@ class KamenzReport extends AbstractModule implements IModuleInterface
         $Stage = new Stage('Kamenz-Statistik', 'Auswählen');
 
         $Stage->addButton(new Standard(
-            'Grundschule', '/Document/Standard/KamenzReport/Validate/PrimarySchool'
+            'Grundschule', __NAMESPACE__ . '/Validate/PrimarySchool'
         ));
 
         $Stage->addButton(new Standard(
-            'Oberschule / Mittelschule', '/Document/Standard/KamenzReport/Validate/SecondarySchool'
+            'Oberschule / Mittelschule',  __NAMESPACE__ . '/Validate/SecondarySchool'
         ));
 
         $Stage->addButton(new Standard(
-            'Gymnasium', '/Document/Standard/KamenzReport/Validate/GrammarSchool'
+            'Gymnasium',  __NAMESPACE__ . '/Validate/GrammarSchool'
         ));
 
         $Stage->setContent(
@@ -98,6 +64,7 @@ class KamenzReport extends AbstractModule implements IModuleInterface
                 )
             )
         );
+
         return $Stage;
     }
 
@@ -108,6 +75,7 @@ class KamenzReport extends AbstractModule implements IModuleInterface
     {
 
         $Stage = new Stage('Kamenz-Statistik', 'Oberschule / Mittelschule validieren');
+        $Stage->addButton(new Standard('Zurück', '/Reporting/KamenzReport', new ChevronLeft()));
 
         $Stage->addbutton(new External('Herunterladen: Oberschulstatistik',
             'SPHERE\Application\Api\Document\Standard\KamenzReport\Create',
@@ -115,7 +83,7 @@ class KamenzReport extends AbstractModule implements IModuleInterface
             array(
                 'Type' => 'Oberschule'
             ),
-            'Kamenz-Statistik Herungerladen'
+            'Kamenz-Statistik herunterladen'
         ));
 
         $summary = array();
@@ -161,6 +129,7 @@ class KamenzReport extends AbstractModule implements IModuleInterface
     {
 
         $Stage = new Stage('Kamenz-Statistik', 'Grundschule validieren');
+        $Stage->addButton(new Standard('Zurück', '/Reporting/KamenzReport', new ChevronLeft()));
 
         $Stage->addButton(new External('Herunterladen: Grundschulstatistik',
             'SPHERE\Application\Api\Document\Standard\KamenzReport\Create',
@@ -168,7 +137,7 @@ class KamenzReport extends AbstractModule implements IModuleInterface
             array(
                 'Type' => 'Grundschule'
             ),
-            'Kamenz-Statistik der GS herunterladen'
+            'Kamenz-Statistik der Grundschule herunterladen'
         ));
 
         $summary = array();
@@ -214,6 +183,7 @@ class KamenzReport extends AbstractModule implements IModuleInterface
     {
 
         $Stage = new Stage('Kamenz-Statistik', 'Gymnasium validieren');
+        $Stage->addButton(new Standard('Zurück', '/Reporting/KamenzReport', new ChevronLeft()));
 
         $Stage->addButton(new External('Herunterladen: Gymnasialstatistik',
             'SPHERE\Application\Api\Document\Standard\KamenzReport\Create',

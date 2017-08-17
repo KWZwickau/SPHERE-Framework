@@ -290,25 +290,26 @@ class Frontend
 
     /**
      * @param null|string $Name
-     *
-     * @param bool        $IsSecure
+     * @param bool $IsSecure
+     * @param bool $IsIndividual
      *
      * @return Stage
      */
-    public function frontendRole($Name, $IsSecure = false)
+    public function frontendRole($Name, $IsSecure = false, $IsIndividual = false)
     {
 
         $Stage = new Stage('Berechtigungen', 'Rollen');
         $this->menuButton($Stage);
         $tblRoleAll = Access::useService()->getRoleAll();
+        $roleList = array();
         if ($tblRoleAll) {
-            array_walk($tblRoleAll, function (TblRole &$tblRole) {
+            array_walk($tblRoleAll, function (TblRole &$tblRole) use (&$roleList) {
 
                 $tblLevel = Access::useService()->getLevelAllByRole($tblRole);
 
                 if (empty( $tblLevel )) {
                     /** @noinspection PhpUndefinedFieldInspection */
-                    $tblRole->Option = new Warning('Keine Zugriffslevel vergeben')
+                    $option = new Warning('Keine Zugriffslevel vergeben')
                         .new PullRight(new Danger('Zugriffslevel hinzufügen',
                             '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel',
                             null, array('Id' => $tblRole->getId())
@@ -320,18 +321,29 @@ class Frontend
                     });
                     array_unshift($tblLevel, '');
                     /** @noinspection PhpUndefinedFieldInspection */
-                    $tblRole->Option = new Panel('Zugriffslevel', $tblLevel)
+                    $option = new Panel('Zugriffslevel', $tblLevel)
                         .new PullRight(new Danger('Zugriffslevel bearbeiten',
                             '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel',
                             null, array('Id' => $tblRole->getId())
                         ));
                 }
+
+                $roleList[] = array(
+                    'Name' => $tblRole->getName(),
+                    'IsInternal' => $tblRole->isInternal() ? 'ja' : 'nein',
+                    'IsSecure' => $tblRole->isSecure()  ? 'ja' : 'nein',
+                    'IsIndividual' => $tblRole->isIndividual()  ? 'ja' : 'nein',
+                    'Option' => $option
+                );
             });
         }
         $Stage->setContent(
-            ( $tblRoleAll
-                ? new TableData($tblRoleAll, new Title('Bestehende Rollen'), array(
+            ( !empty($roleList)
+                ? new TableData($roleList, new Title('Bestehende Rollen'), array(
                     'Name'   => 'Name',
+                    'IsInternal' => 'Intern',
+                    'IsSecure' => 'Erfordert Yubikey',
+                    'IsIndividual' => 'Individuell',
                     'Option' => 'Optionen'
                 ))
                 : new Warning('Keine Rollen vorhanden')
@@ -342,12 +354,13 @@ class Frontend
                             new FormColumn(
                                 new Panel('Rolle anlegen', array(
                                     new TextField('Name', 'Name', 'Name'),
-                                    new CheckBox('IsSecure', 'Nur mit Hardware-Token', 1)
+                                    new CheckBox('IsSecure', 'Nur mit Hardware-Token', 1),
+                                    new CheckBox('IsIndividual', 'Individuelle Rolle (Rolle lässt sich pro Mandant ein- und ausblenden)', 1)
                                 ), Panel::PANEL_TYPE_INFO)
                             )
                         ), new \SPHERE\Common\Frontend\Form\Repository\Title('Neue Rolle anlegen'))
                     , new Primary('Hinzufügen')
-                ), $Name, $IsSecure
+                ), $Name, $IsSecure, $IsIndividual
             )
         );
         return $Stage;

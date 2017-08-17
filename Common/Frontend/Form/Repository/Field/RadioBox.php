@@ -35,11 +35,20 @@ class RadioBox extends AbstractField implements IFieldInterface
     }
 
     /**
+     * MUST NOT USE parent::getContent() cause Element POST Value will be overwritten!
+     *
+     * e.g: POST =1
+     *
+     * Expected: Box{1}=1(Selected) Box{2}=2 | Behaviour: Box{1}=1(Selected) Box{2}=1
+     *
      * @return string
      */
     public function getContent()
     {
-
-        return parent::getContent();
+        foreach ($this->TemplateVariableList as $Key => $Value) {
+            $this->Template->setVariable($Key, $Value);
+        }
+        return $this->Template->getContent();
+        //return parent::getContent();
     }
 }

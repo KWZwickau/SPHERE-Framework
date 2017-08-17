@@ -7,8 +7,10 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\T
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblPrivilegeRight;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRight;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRoleConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Setup;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
@@ -290,13 +292,13 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param null|string    $Name
-     *
-     * @param bool           $IsSecure
+     * @param null|string $Name
+     * @param bool $IsSecure
+     * @param bool $IsIndividual
      *
      * @return IFormInterface|Redirect
      */
-    public function createRole(IFormInterface $Form, $Name, $IsSecure = false)
+    public function createRole(IFormInterface $Form, $Name, $IsSecure = false, $IsIndividual = false)
     {
 
         if (null !== $Name && empty( $Name )) {
@@ -304,7 +306,7 @@ class Service extends AbstractService
         }
         if (!empty( $Name )) {
             $Form->setSuccess('Name', 'Die Rolle wurde hinzugefügt');
-            (new Data($this->getBinding()))->createRole($Name, $IsSecure);
+            (new Data($this->getBinding()))->createRole($Name, $IsSecure, false, $IsIndividual);
             return new Redirect('/Platform/Gatekeeper/Authorization/Access/Role', Redirect::TIMEOUT_SUCCESS);
         }
         return $Form;
@@ -397,7 +399,7 @@ class Service extends AbstractService
      * @param TblRole                                                                              $tblRole
      * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblLevel $tblLevel
      *
-     * @return \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRoleLevel
+     * @return boolean
      */
     public function removeRoleLevel(TblRole $tblRole, TblLevel $tblLevel)
     {
@@ -451,5 +453,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->addLevelPrivilege($tblLevel, $tblPrivilege);
+    }
+
+    /**
+     * @param TblRole $tblRole
+     * @param TblConsumer $tblConsumer
+     *
+     * @return false|TblRoleConsumer
+     */
+    public function getRoleConsumerBy(TblRole $tblRole, TblConsumer $tblConsumer)
+    {
+
+        return (new Data($this->getBinding()))->getRoleConsumerBy($tblRole, $tblConsumer);
     }
 }

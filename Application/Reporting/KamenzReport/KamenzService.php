@@ -6,7 +6,7 @@
  * Time: 07:33
  */
 
-namespace SPHERE\Application\Document\Standard\KamenzReport;
+namespace SPHERE\Application\Reporting\KamenzReport;
 
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -25,9 +25,9 @@ use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 
 /**
- * Class Service
+ * Class KamenzService
  *
- * @package SPHERE\Application\Document\Standard\KamenzReport
+ * @package SPHERE\Application\Reporting\KamenzReport
  */
 class KamenzService
 {

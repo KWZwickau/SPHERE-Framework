@@ -161,7 +161,14 @@ class ApiUserAccount extends Extension implements IApiInterface
             $Content .= new SuccessMessage($result['SuccessCount'].' Benutzer wurden erfolgreich angelegt.');
         }
         if ($Content == '') {
-            $Content = new DangerMessage('Es wurden keine Benutzer angelegt');
+            $Content = new DangerMessage('Es wurden keine Benutzer angelegt')
+                .new Container(new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(new Center(new Standard('Zurück', '/Setting/User/Account/Student/Add')))
+                        )
+                    )
+                ));
         } else {
             $Content .= new Container(new Layout(
                 new LayoutGroup(
