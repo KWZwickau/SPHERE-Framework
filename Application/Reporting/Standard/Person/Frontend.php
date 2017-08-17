@@ -1126,9 +1126,9 @@ class Frontend extends Extension implements IFrontendInterface
             'PhoneMobilePrivate'  => 'Mobil (Privat)',
             'PhoneMobileWork'  => 'Mobil (Geschäftl.)',
             'PhoneMobileEmergency'  => 'Mobil (Notfall)',
-            'Sibiling_1' => 'Geschwister1',
-            'Sibiling_2' => 'Geschwister2',
-            'Sibiling_3' => 'Geschwister3',
+            'Sibling_1' => 'Geschwister1',
+            'Sibling_2' => 'Geschwister2',
+            'Sibling_3' => 'Geschwister3',
 
             'Custody_1_Salutation' => 'Sorg1 Anrede',
             'Custody_1_Title' => 'Sorg1 Titel',

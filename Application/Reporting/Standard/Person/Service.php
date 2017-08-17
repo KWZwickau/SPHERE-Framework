@@ -1903,7 +1903,7 @@ class Service extends Extension
                             $DataPerson['Street'] = $tblAddress->getStreetName();
                             $DataPerson['HouseNumber'] = $tblAddress->getStreetNumber();
                             $DataPerson['CityCode'] = $tblCity->getCode();
-                            $DataPerson['City'] = $tblCity->getDisplayName();
+                            $DataPerson['City'] = $tblCity->getName();
                             $DataPerson['District'] = $tblCity->getDisplayDistrict();
                         }
                     }
@@ -2088,7 +2088,7 @@ class Service extends Extension
                                                     $DataPerson['Custody_1_Street'] = $tblAddressCustody->getStreetName();
                                                     $DataPerson['Custody_1_HouseNumber'] = $tblAddressCustody->getStreetNumber();
                                                     $DataPerson['Custody_1_CityCode'] = $tblCityCustody->getCode();
-                                                    $DataPerson['Custody_1_City'] = $tblCityCustody->getDisplayName();
+                                                    $DataPerson['Custody_1_City'] = $tblCityCustody->getName();
                                                     $DataPerson['Custody_1_District'] = $tblCityCustody->getDisplayDistrict();
                                                 }
                                             }
@@ -2195,7 +2195,7 @@ class Service extends Extension
                                                     $DataPerson['Custody_2_Street'] = $tblAddressCustody->getStreetName();
                                                     $DataPerson['Custody_2_HouseNumber'] = $tblAddressCustody->getStreetNumber();
                                                     $DataPerson['Custody_2_CityCode'] = $tblCityCustody->getCode();
-                                                    $DataPerson['Custody_2_City'] = $tblCityCustody->getDisplayName();
+                                                    $DataPerson['Custody_2_City'] = $tblCityCustody->getName();
                                                     $DataPerson['Custody_2_District'] = $tblCityCustody->getDisplayDistrict();
                                                 }
                                             }
