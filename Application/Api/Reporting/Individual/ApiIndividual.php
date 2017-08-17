@@ -43,6 +43,7 @@ use SPHERE\Common\Frontend\Link\Structure\LinkGroup;
 use SPHERE\Common\Frontend\Message\Repository\Info as InfoMessage;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Center;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\System\Database\Binding\AbstractView;
 use SPHERE\System\Extension\Extension;
 
@@ -624,12 +625,20 @@ class ApiIndividual extends Extension implements IApiInterface
                             ->ajaxPipelineOnClick(ApiIndividual::pipelineDeleteFilterField($tblWorkSpace->getId())));
                 }
 
-
                 $FieldName = $View->getNameDefinition($tblWorkSpace->getField());
 
                 $FilterInputList = array();
                 for ($i = 1; $i <= $FieldCount; $i++) {
-                    $FilterInputList[] = new TextField($tblWorkSpace->getField().'[]');
+                    if ($View->getDisableDefinition($tblWorkSpace->getField())) {
+                        $FilterInputList[] = new Muted(new Center('Inforamtions-Anzeige'));
+                        // LinkButton reduzieren
+                        $LinkGroup = (new LinkGroup())
+                            ->addLink((new Standard('', ApiIndividual::getEndpoint(), new Remove(), array(),
+                                'Filter entfernen'))
+                                ->ajaxPipelineOnClick(ApiIndividual::pipelineDeleteFilterField($tblWorkSpace->getId())));
+                    } else {
+                        $FilterInputList[] = new TextField($tblWorkSpace->getField().'[]', 'Alle');
+                    }
                 }
                 $FilterInputList[] = new Center(
                     (new Standard('', ApiIndividual::getEndpoint(), new ChevronLeft(), array(),

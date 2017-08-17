@@ -386,44 +386,44 @@ class ViewStudent extends AbstractView
         $this->setNameDefinition(self::TBL_STUDENT_IDENTIFIER, 'Schülernummer');
         $this->setNameDefinition(self::SIBLINGS_COUNT, 'Anzahl Geschwister');
         // S1
-        $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_S1, 'Anrede_S1');
-        $this->setNameDefinition(self::TBL_PERSON_TITLE_S1, 'Titel_S1');
-        $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME_S1, 'Vorname_S1');
-        $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME_S1, 'Zweiter Vorname_S1');
-        $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_S1, 'Nachname_S1');
-        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_S1, 'Straße_S1');
-        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_S1, 'Straße_S1');
-        $this->setNameDefinition(self::TBL_CITY_CODE_S1, 'PLZ_S1');
-        $this->setNameDefinition(self::TBL_CITY_CITY_S1, 'Stadt_S1');
-        $this->setNameDefinition(self::TBL_CITY_DISTRICT_S1, 'Ortsteil_S1');
-        $this->setNameDefinition(self::TBL_PHONE_NUMBER_S1, 'Telefon_S1');
-        $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S1, 'E-Mail_S1');
+        $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_S1, 'S1_Anrede');
+        $this->setNameDefinition(self::TBL_PERSON_TITLE_S1, 'S1_Titel');
+        $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME_S1, 'S1_Vorname');
+        $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME_S1, 'S1_Zweiter Vorname');
+        $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_S1, 'S1_Nachname');
+        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_S1, 'S1_Straße');
+        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_S1, 'S1_Straße');
+        $this->setNameDefinition(self::TBL_CITY_CODE_S1, 'S1_PLZ');
+        $this->setNameDefinition(self::TBL_CITY_CITY_S1, 'S1_Stadt');
+        $this->setNameDefinition(self::TBL_CITY_DISTRICT_S1, 'S1_Ortsteil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_S1, 'S1_Telefon');
+        $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S1, 'S1_E-Mail');
         // S2
-        $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_S2, 'Anrede_S2');
-        $this->setNameDefinition(self::TBL_PERSON_TITLE_S2, 'Titel_S2');
-        $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME_S2, 'Vorname_S2');
-        $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME_S2, 'Zweiter Vorname_S2');
-        $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_S2, 'Nachname_S2');
-        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_S2, 'Straße_S2');
-        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_S2, 'Straße_S2');
-        $this->setNameDefinition(self::TBL_CITY_CODE_S2, 'PLZ_S2');
-        $this->setNameDefinition(self::TBL_CITY_CITY_S2, 'Stadt_S2');
-        $this->setNameDefinition(self::TBL_CITY_DISTRICT_S2, 'Ortsteil_S2');
-        $this->setNameDefinition(self::TBL_PHONE_NUMBER_S2, 'Telefon_S2');
-        $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S2, 'E-Mail_S2');
+        $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_S2, 'S2_Anrede');
+        $this->setNameDefinition(self::TBL_PERSON_TITLE_S2, 'S2_Titel');
+        $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME_S2, 'S2_Vorname');
+        $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME_S2, 'S2_Zweiter Vorname');
+        $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_S2, 'S2_Nachname');
+        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_S2, 'S2_Straße');
+        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_S2, 'S2_Straße');
+        $this->setNameDefinition(self::TBL_CITY_CODE_S2, 'S2_PLZ');
+        $this->setNameDefinition(self::TBL_CITY_CITY_S2, 'S2_Stadt');
+        $this->setNameDefinition(self::TBL_CITY_DISTRICT_S2, 'S2_Ortsteil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_S2, 'S2_Telefon');
+        $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S2, 'S2_E-Mail');
         // S3
-        $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_S3, 'Anrede_S3');
-        $this->setNameDefinition(self::TBL_PERSON_TITLE_S3, 'Titel_S3');
-        $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME_S3, 'Vorname_S3');
-        $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME_S3, 'Zweiter Vorname_S3');
-        $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_S3, 'Nachname_S3');
-        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_S3, 'Straße_S3');
-        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_S3, 'Straße_S3');
-        $this->setNameDefinition(self::TBL_CITY_CODE_S3, 'PLZ_S3');
-        $this->setNameDefinition(self::TBL_CITY_CITY_S3, 'Stadt_S3');
-        $this->setNameDefinition(self::TBL_CITY_DISTRICT_S3, 'Ortsteil_S3');
-        $this->setNameDefinition(self::TBL_PHONE_NUMBER_S3, 'Telefon_S3');
-        $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S3, 'E-Mail_S3');
+        $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_S3, 'S3_Anrede');
+        $this->setNameDefinition(self::TBL_PERSON_TITLE_S3, 'S3_Titel');
+        $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME_S3, 'S3_Vorname');
+        $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME_S3, 'S3_Zweiter Vorname');
+        $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_S3, 'S3_Nachname');
+        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_S3, 'S3_Straße');
+        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_S3, 'S3_Straße');
+        $this->setNameDefinition(self::TBL_CITY_CODE_S3, 'S3_PLZ');
+        $this->setNameDefinition(self::TBL_CITY_CITY_S3, 'S3_Stadt');
+        $this->setNameDefinition(self::TBL_CITY_DISTRICT_S3, 'S3_Ortsteil');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER_S3, 'S3_Telefon');
+        $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S3, 'S3_E-Mail');
 
         //GroupDefinition
         $this->setGroupDefinition('Personendaten', array(
@@ -464,6 +464,83 @@ class ViewStudent extends AbstractView
             self::TBL_STUDENT_IDENTIFIER,
             self::SIBLINGS_COUNT
         ));
+
+        $this->setGroupDefinition('Sorgeberechtigte', array(
+            self::TBL_SALUTATION_SALUTATION_S1,
+            self::TBL_PERSON_TITLE_S1,
+            self::TBL_PERSON_FIRST_NAME_S1,
+            self::TBL_PERSON_SECOND_NAME_S1,
+            self::TBL_PERSON_LAST_NAME_S1,
+            self::TBL_ADDRESS_STREET_NAME_S1,
+            self::TBL_ADDRESS_STREET_NUMBER_S1,
+            self::TBL_CITY_CODE_S1,
+            self::TBL_CITY_CITY_S1,
+            self::TBL_CITY_DISTRICT_S1,
+            self::TBL_PHONE_NUMBER_S1,
+            self::TBL_MAIL_ADDRESS_S1,
+            self::TBL_SALUTATION_SALUTATION_S2,
+            self::TBL_PERSON_TITLE_S2,
+            self::TBL_PERSON_FIRST_NAME_S2,
+            self::TBL_PERSON_SECOND_NAME_S2,
+            self::TBL_PERSON_LAST_NAME_S2,
+            self::TBL_ADDRESS_STREET_NAME_S2,
+            self::TBL_ADDRESS_STREET_NUMBER_S2,
+            self::TBL_CITY_CODE_S2,
+            self::TBL_CITY_CITY_S2,
+            self::TBL_CITY_DISTRICT_S2,
+            self::TBL_PHONE_NUMBER_S2,
+            self::TBL_MAIL_ADDRESS_S2,
+            self::TBL_SALUTATION_SALUTATION_S3,
+            self::TBL_PERSON_TITLE_S3,
+            self::TBL_PERSON_FIRST_NAME_S3,
+            self::TBL_PERSON_SECOND_NAME_S3,
+            self::TBL_PERSON_LAST_NAME_S3,
+            self::TBL_ADDRESS_STREET_NAME_S3,
+            self::TBL_ADDRESS_STREET_NUMBER_S3,
+            self::TBL_CITY_CODE_S3,
+            self::TBL_CITY_CITY_S3,
+            self::TBL_CITY_DISTRICT_S3,
+            self::TBL_PHONE_NUMBER_S3,
+            self::TBL_MAIL_ADDRESS_S3,
+        ));
+
+        // Flag um Filter zu deaktivieren (nur Anzeige von Informationen)
+        $this->setDisableDefinition(self::TBL_SALUTATION_SALUTATION_S1);
+        $this->setDisableDefinition(self::TBL_PERSON_TITLE_S1);
+        $this->setDisableDefinition(self::TBL_PERSON_FIRST_NAME_S1);
+        $this->setDisableDefinition(self::TBL_PERSON_SECOND_NAME_S1);
+        $this->setDisableDefinition(self::TBL_PERSON_LAST_NAME_S1);
+        $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NAME_S1);
+        $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NUMBER_S1);
+        $this->setDisableDefinition(self::TBL_CITY_CODE_S1);
+        $this->setDisableDefinition(self::TBL_CITY_CITY_S1);
+        $this->setDisableDefinition(self::TBL_CITY_DISTRICT_S1);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_S1);
+        $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_S1);
+        $this->setDisableDefinition(self::TBL_SALUTATION_SALUTATION_S2);
+        $this->setDisableDefinition(self::TBL_PERSON_TITLE_S2);
+        $this->setDisableDefinition(self::TBL_PERSON_FIRST_NAME_S2);
+        $this->setDisableDefinition(self::TBL_PERSON_SECOND_NAME_S2);
+        $this->setDisableDefinition(self::TBL_PERSON_LAST_NAME_S2);
+        $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NAME_S2);
+        $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NUMBER_S2);
+        $this->setDisableDefinition(self::TBL_CITY_CODE_S2);
+        $this->setDisableDefinition(self::TBL_CITY_CITY_S2);
+        $this->setDisableDefinition(self::TBL_CITY_DISTRICT_S2);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_S2);
+        $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_S2);
+        $this->setDisableDefinition(self::TBL_SALUTATION_SALUTATION_S3);
+        $this->setDisableDefinition(self::TBL_PERSON_TITLE_S3);
+        $this->setDisableDefinition(self::TBL_PERSON_FIRST_NAME_S3);
+        $this->setDisableDefinition(self::TBL_PERSON_SECOND_NAME_S3);
+        $this->setDisableDefinition(self::TBL_PERSON_LAST_NAME_S3);
+        $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NAME_S3);
+        $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NUMBER_S3);
+        $this->setDisableDefinition(self::TBL_CITY_CODE_S3);
+        $this->setDisableDefinition(self::TBL_CITY_CITY_S3);
+        $this->setDisableDefinition(self::TBL_CITY_DISTRICT_S3);
+        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_S3);
+        $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_S3);
     }
 
     /**
