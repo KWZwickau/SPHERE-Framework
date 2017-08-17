@@ -20,6 +20,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
@@ -347,6 +348,9 @@ class ApiIndividual extends Extension implements IApiInterface
         return $Pipeline;
     }
 
+    /**
+     * @return Pipeline
+     */
     public static function pipelineCloseModal()
     {
 
@@ -549,7 +553,7 @@ class ApiIndividual extends Extension implements IApiInterface
                 if ($tblPresetSetting) {
                     $Item['FieldCount'] = count($tblPresetSetting);
                 }
-                $Item['Option'] = (new Standard('', self::getEndpoint(), new Download()))
+                $Item['Option'] = (new Standard('', self::getEndpoint(), new Check()))
                     ->ajaxPipelineOnClick(ApiIndividual::pipelineLoadPreset($tblPreset->getId()));
 
                 array_push($TableContent, $Item);
