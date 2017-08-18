@@ -1040,6 +1040,7 @@ class ApiIndividual extends Extension implements IApiInterface
                             // TODO: join condition
                             // $Builder->innerJoin($tblWorkSpace->getView(), $tblWorkSpace->getView());
                         }
+                        $ViewList[] = $tblWorkSpace->getView();
                     }
 
                     // Add Field to Select
