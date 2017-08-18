@@ -136,7 +136,7 @@ class Data extends AbstractData
      * @param int|null     $Position
      * @param int|null     $FieldCount
      *
-     * @return mixed
+     * @return bool
      */
     public function changeWorkSpace(TblWorkSpace $tblWorkSpace, $Position = null, $FieldCount = null)
     {
@@ -153,6 +153,31 @@ class Data extends AbstractData
                 $Entity->setFieldCount($FieldCount);
             }
 
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+
+    }
+
+    /**
+     * @param TblWorkSpace   $tblWorkSpace
+     * @param TblPreset|null $tblPreset
+     *
+     * @return bool
+     */
+    public function changeWorkSpacePreset(TblWorkSpace $tblWorkSpace, TblPreset $tblPreset = null)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblWorkSpace $Entity */
+        $Entity = $Manager->getEntityById('TblWorkSpace', $tblWorkSpace->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setTblPreset($tblPreset);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,

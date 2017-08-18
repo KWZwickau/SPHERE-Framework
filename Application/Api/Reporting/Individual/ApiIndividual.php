@@ -77,6 +77,7 @@ class ApiIndividual extends Extension implements IApiInterface
         $Dispatcher->registerMethod('removeFieldAll');
         $Dispatcher->registerMethod('getModalPreset');
         $Dispatcher->registerMethod('loadPreset');
+        $Dispatcher->registerMethod('deletePreset');
         $Dispatcher->registerMethod('getModalSavePreset');
         $Dispatcher->registerMethod('createPreset');
         $Dispatcher->registerMethod('addField');
@@ -312,6 +313,27 @@ class ApiIndividual extends Extension implements IApiInterface
     }
 
     /**
+     * @param int|null $PresetId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineDeletePreset($PresetId = null)
+    {
+
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter(self::receiverService(), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'deletePreset'
+        ));
+        $Emitter->setPostPayload(array(
+            'PresetId' => $PresetId
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
      * @param string $Info
      *
      * @return Pipeline
@@ -354,8 +376,9 @@ class ApiIndividual extends Extension implements IApiInterface
     public static function pipelineCloseModal()
     {
 
-        $Pipeline = new Pipeline();
+        $Pipeline = new Pipeline(false);
         $Pipeline->appendEmitter((new CloseModal(self::receiverModal()))->getEmitter());
+
         return $Pipeline;
     }
 
@@ -547,14 +570,17 @@ class ApiIndividual extends Extension implements IApiInterface
         if ($tblPresetList) {
             array_walk($tblPresetList, function (TblPreset $tblPreset) use (&$TableContent) {
                 $Item['Name'] = $tblPreset->getName();
+                $Item['EntityCreate'] = $tblPreset->getEntityCreate();
                 $Item['FieldCount'] = '';
 
                 $tblPresetSetting = Individual::useService()->getPresetSettingAllByPreset($tblPreset);
                 if ($tblPresetSetting) {
                     $Item['FieldCount'] = count($tblPresetSetting);
                 }
-                $Item['Option'] = (new Standard('', self::getEndpoint(), new Check()))
-                    ->ajaxPipelineOnClick(ApiIndividual::pipelineLoadPreset($tblPreset->getId()));
+                $Item['Option'] = (new Standard('', self::getEndpoint(), new Check(), array(), 'Laden der Vorlage'))
+                        ->ajaxPipelineOnClick(ApiIndividual::pipelineLoadPreset($tblPreset->getId()))
+                    .(new Standard('', self::getEndpoint(), new Remove(), array(), 'Löschen der Vorlage'))
+                        ->ajaxPipelineOnClick(ApiIndividual::pipelineDeletePreset($tblPreset->getId()));
 
                 array_push($TableContent, $Item);
             });
@@ -570,9 +596,10 @@ class ApiIndividual extends Extension implements IApiInterface
                     new LayoutColumn(
                         new TableData($TableContent, null,
                             array(
-                                'Name'       => 'Gespeicherte Filterung',
-                                'FieldCount' => 'Anzahl Filter',
-                                'Option'     => ''
+                                'Name'         => 'Name der Vorlage',
+                                'FieldCount'   => 'Anzahl gewählter Felder',
+                                'EntityCreate' => 'Speicherdatum',
+                                'Option'       => ''
                             ))
                         .$Info
                     )
@@ -608,8 +635,37 @@ class ApiIndividual extends Extension implements IApiInterface
             }
 
 //            $Info = 'Laden erfolgreich';
-            return ApiIndividual::pipelineCloseModal().
-                ApiIndividual::pipelineNavigation();
+            return ApiIndividual::pipelineNavigation()
+                .ApiIndividual::pipelineCloseModal();
+        }
+
+        $Info = 'Vorlage nicht gefunden.';
+        return ApiIndividual::pipelinePresetShowModal($Info);
+    }
+
+    /**
+     * @param null $PresetId
+     *
+     * @return Pipeline|string
+     */
+    public function deletePreset($PresetId = null)
+    {
+
+        $tblPreset = Individual::useService()->getPresetById($PresetId);
+        if ($tblPreset) {
+            $tblWorkSpaceList = Individual::useService()->getWorkSpaceAll();
+            if ($tblWorkSpaceList) {
+                foreach ($tblWorkSpaceList as $tblWorkSpace) {
+                    if (($tblWorkSpacePreset = $tblWorkSpace->getTblPreset()) && $tblWorkSpacePreset->getId() == $tblPreset->getId()) {
+                        // remove foreignKey if exist
+                        Individual::useService()->changeWorkSpacePreset($tblWorkSpace, null);
+                    }
+                }
+            }
+
+            Individual::useService()->removePreset($tblPreset);
+//            $Info = 'Erfolgreich entfernt';
+            return ApiIndividual::pipelinePresetShowModal();
         }
 
         $Info = 'Vorlage nicht gefunden.';
@@ -631,6 +687,7 @@ class ApiIndividual extends Extension implements IApiInterface
         if ($tblPresetList) {
             array_walk($tblPresetList, function (TblPreset $tblPreset) use (&$TableContent, $viewStudent) {
                 $Item['Name'] = $tblPreset->getName();
+                $Item['EntityCreate'] = $tblPreset->getEntityCreate();
                 $Item['FieldCount'] = '';
 
                 $tblPresetSettingList = Individual::useService()->getPresetSettingAllByPreset($tblPreset);
@@ -660,7 +717,7 @@ class ApiIndividual extends Extension implements IApiInterface
                     new FormColumn(
                         new Panel('Speichern', array(
                             new TextField('PresetName', 'Name', 'Name der Vorlage')
-                        ))
+                        ), Panel::PANEL_TYPE_INFO)
                     ),
                     new FormColumn((new Primary('Speichern', self::getEndpoint(), new Save()))
                         ->ajaxPipelineOnClick(ApiIndividual::pipelinePresetSave())
@@ -681,8 +738,9 @@ class ApiIndividual extends Extension implements IApiInterface
                     new LayoutColumn(
                         new TableData($TableContent, new Title('Vorhandene Vorlagen'),
                             array(
-                                'Name'       => 'Name der Vorlage',
-                                'FieldCount' => 'Anzahl gewählter Felder'
+                                'Name'         => 'Name der Vorlage',
+                                'FieldCount'   => 'Anzahl gewählter Felder',
+                                'EntityCreate' => 'Speicherdatum'
                             ))
                     ),
                     new LayoutColumn(
@@ -696,6 +754,11 @@ class ApiIndividual extends Extension implements IApiInterface
         return $Content;
     }
 
+    /**
+     * @param $PresetName
+     *
+     * @return Pipeline|string
+     */
     public function createPreset($PresetName)
     {
 
@@ -706,7 +769,8 @@ class ApiIndividual extends Extension implements IApiInterface
                 Individual::useService()->createPresetSetting($tblPreset, $tblWorkSpace);
             }
             $Info = 'Speicherung erfolgreich';
-            return ApiIndividual::pipelinePresetSaveModal($Info);
+            return ApiIndividual::pipelinePresetSaveModal($Info)
+                .ApiIndividual::pipelineCloseModal();
         }
 
         $Info = 'Speicherung konnte nicht erfolgen bitte überprüfen Sie ihre Eingabe';

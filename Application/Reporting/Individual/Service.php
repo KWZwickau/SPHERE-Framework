@@ -47,6 +47,7 @@ class Service extends AbstractService
 
     /**
      * @return bool|TblWorkSpace[]
+     * TblWorkSpace list by Account
      */
     public function getWorkSpaceAll()
     {
@@ -162,12 +163,24 @@ class Service extends AbstractService
      * @param int|null     $Position
      * @param int|null     $FieldCount
      *
-     * @return mixed
+     * @return bool
      */
     public function changeWorkSpace(TblWorkSpace $tblWorkSpace, $Position = null, $FieldCount = null)
     {
 
         return (new Data($this->getBinding()))->changeWorkSpace($tblWorkSpace, $Position, $FieldCount);
+    }
+
+    /**
+     * @param TblWorkSpace   $tblWorkSpace
+     * @param TblPreset|null $tblPreset
+     *
+     * @return bool
+     */
+    public function changeWorkSpacePreset(TblWorkSpace $tblWorkSpace, TblPreset $tblPreset = null)
+    {
+
+        return (new Data($this->getBinding()))->changeWorkSpacePreset($tblWorkSpace, $tblPreset);
     }
 
     /**
@@ -192,6 +205,24 @@ class Service extends AbstractService
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param TblPreset $tblPreset
+     *
+     * @return bool
+     */
+    public function removePreset(TblPreset $tblPreset)
+    {
+
+        $tblPresetSettingList = Individual::useService()->getPresetSettingAllByPreset($tblPreset);
+        if ($tblPresetSettingList) {
+            foreach ($tblPresetSettingList as $tblPresetSetting) {
+                (new Data($this->getBinding()))->removePresetSetting($tblPresetSetting);
+            }
+        }
+
+        return (new Data($this->getBinding()))->removePreset($tblPreset);
     }
 
     /**

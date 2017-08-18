@@ -18,6 +18,7 @@ class ViewStudent extends AbstractView
 {
 
     // Sortierung beeinflusst die Gruppenreihenfolge im Frontend
+    const TBL_PERSON_ID = 'TblPerson_Id';
     const TBL_SALUTATION_SALUTATION = 'TblSalutation_Salutation';
     const TBL_PERSON_TITLE = 'TblPerson_Title';
     const TBL_PERSON_FIRST_NAME = 'TblPerson_FirstName';
@@ -40,6 +41,23 @@ class ViewStudent extends AbstractView
     const TBL_ADDRESS_NATION = 'TblAddress_Nation';
     const TBL_PHONE_NUMBER = 'TblPhone_Number';
     const TBL_MAIL_ADDRESS = 'TblMail_Address';
+
+//    const BILDUNGSGANG = 'Bildungsgang';
+//    const ARBEITSGEMEINSCHAFT_1 = 'Arbeitsgemeinschaft1';
+//    const ARBEITSGEMEINSCHAFT_2 = 'Arbeitsgemeinschaft2';
+//    const ARBEITSGEMEINSCHAFT_3 = 'Arbeitsgemeinschaft3';
+//    const FREMDSPRACHE_1 = 'Fremdsprache1';
+//    const FREMDSPRACHE_2 = 'Fremdsprache2';
+//    const FREMDSPRACHE_3 = 'Fremdsprache3';
+//    const FREMDSPRACHE_4 = 'Fremdsprache4';
+//    const WAHLFACH_1 = 'Wahlfach1';
+//    const WAHLFACH_2 = 'Wahlfach2';
+//    const WAHLFACH_3 = 'Wahlfach3';
+//    const RELIGION = 'Religion';
+//    const PROFIL = 'Profil';
+//    const NEIGUNGSKURS = 'Neigungskurs';
+//    const BEFREIUNGEN = 'Befreiungen';
+
     const TBL_STUDENT_MEDICAL_RECORD_INSURANCE = 'TblStudentMedicalRecord_Insurance';
     const TBL_STUDENT_LOCKER_KEY_NUMBER = 'TblStudentLocker_KeyNumber';
     const TBL_STUDENT_LOCKER_LOCKER_NUMBER = 'TblStudentLocker_LockerNumber';
@@ -182,6 +200,68 @@ class ViewStudent extends AbstractView
      * @Column(type="string")
      */
     protected $TblMail_Address;
+
+//    /**
+//     * @Column(type="string")
+//     */
+//    protected $Bildungsgang;
+//    /**
+//     * @Column(type="string")
+//     */
+//    protected $Arbeitsgemeinschaft1;
+//    /**
+//     * @Column(type="string")
+//     */
+//    protected $Arbeitsgemeinschaft2;
+//    /**
+//     * @Column(type="string")
+//     */
+//    protected $Arbeitsgemeinschaft3;
+//    /**
+//     * @Column(type="string")
+//     */
+//    protected $Fremdsprache1;
+//    /**
+//     * @Column(type="string")
+//     */
+//    protected $Fremdsprache2;
+//    /**
+//     * @Column(type="string")
+//     */
+//    protected $Fremdsprache3;
+//    /**
+//     * @Column(type="string")
+//     */
+//    protected $Fremdsprache4;
+//    /**
+//     * @Column(type="string")
+//     */
+//    protected $Wahlfach1;
+//    /**
+//     * @Column(type="string")
+//     */
+//    protected $Wahlfach2;
+//    /**
+//     * @Column(type="string")
+//     */
+//    protected $Wahlfach3;
+//    /**
+//     * @Column(type="string")
+//     */
+//    protected $Religion;
+//    /**
+//     * @Column(type="string")
+//     */
+//    protected $Profil;
+//    /**
+//     * @Column(type="string")
+//     */
+//    protected $Neigungskurs;
+//    /**
+//     * @Column(type="string")
+//     */
+//    protected $Befreiungen;
+
     /**
      * @Column(type="string")
      */
@@ -380,6 +460,23 @@ class ViewStudent extends AbstractView
         $this->setNameDefinition(self::TBL_ADDRESS_NATION, 'Land');
         $this->setNameDefinition(self::TBL_PHONE_NUMBER, 'Telefonnummer');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS, 'E-Mail');
+
+//        $this->setNameDefinition(self::BILDUNGSGANG, 'Bildungsgang');
+//        $this->setNameDefinition(self::ARBEITSGEMEINSCHAFT_1, 'Arbeitsgemeinschaft 1');
+//        $this->setNameDefinition(self::ARBEITSGEMEINSCHAFT_2, 'Arbeitsgemeinschaft 2');
+//        $this->setNameDefinition(self::ARBEITSGEMEINSCHAFT_3, 'Arbeitsgemeinschaft 3');
+//        $this->setNameDefinition(self::FREMDSPRACHE_1, 'Fremdsprache 1');
+//        $this->setNameDefinition(self::FREMDSPRACHE_2, 'Fremdsprache 2');
+//        $this->setNameDefinition(self::FREMDSPRACHE_3, 'Fremdsprache 3');
+//        $this->setNameDefinition(self::FREMDSPRACHE_4, 'Fremdsprache 4');
+//        $this->setNameDefinition(self::WAHLFACH_1, 'Wahlfach 1');
+//        $this->setNameDefinition(self::WAHLFACH_2, 'Wahlfach 2');
+//        $this->setNameDefinition(self::WAHLFACH_3, 'Wahlfach 3');
+//        $this->setNameDefinition(self::RELIGION, 'Religion');
+//        $this->setNameDefinition(self::PROFIL, 'Profil');
+//        $this->setNameDefinition(self::NEIGUNGSKURS, 'Neigungskurs');
+//        $this->setNameDefinition(self::BEFREIUNGEN, 'Befreiungen');
+
         $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_INSURANCE, 'Versicherung');
         $this->setNameDefinition(self::TBL_STUDENT_LOCKER_KEY_NUMBER, 'Schließfach Schlüsselnummer');
         $this->setNameDefinition(self::TBL_STUDENT_LOCKER_LOCKER_NUMBER, 'Schließfachnummer');
@@ -458,6 +555,21 @@ class ViewStudent extends AbstractView
         ));
 
         $this->setGroupDefinition('Schülerinformation', array(
+//            self::BILDUNGSGANG,
+//            self::ARBEITSGEMEINSCHAFT_1,
+//            self::ARBEITSGEMEINSCHAFT_2,
+//            self::ARBEITSGEMEINSCHAFT_3,
+//            self::FREMDSPRACHE_1,
+//            self::FREMDSPRACHE_2,
+//            self::FREMDSPRACHE_3,
+//            self::FREMDSPRACHE_4,
+//            self::WAHLFACH_1,
+//            self::WAHLFACH_2,
+//            self::WAHLFACH_3,
+//            self::RELIGION,
+//            self::PROFIL,
+//            self::NEIGUNGSKURS,
+//            self::BEFREIUNGEN,
             self::TBL_STUDENT_MEDICAL_RECORD_INSURANCE,
             self::TBL_STUDENT_LOCKER_KEY_NUMBER,
             self::TBL_STUDENT_LOCKER_LOCKER_NUMBER,
@@ -465,7 +577,7 @@ class ViewStudent extends AbstractView
             self::SIBLINGS_COUNT
         ));
 
-        $this->setGroupDefinition('Sorgeberechtigte', array(
+        $this->setGroupDefinition('Sorgeberechtigt S1', array(
             self::TBL_SALUTATION_SALUTATION_S1,
             self::TBL_PERSON_TITLE_S1,
             self::TBL_PERSON_FIRST_NAME_S1,
@@ -477,7 +589,9 @@ class ViewStudent extends AbstractView
             self::TBL_CITY_CITY_S1,
             self::TBL_CITY_DISTRICT_S1,
             self::TBL_PHONE_NUMBER_S1,
-            self::TBL_MAIL_ADDRESS_S1,
+            self::TBL_MAIL_ADDRESS_S1
+        ));
+        $this->setGroupDefinition('Sorgeberechtigt S2', array(
             self::TBL_SALUTATION_SALUTATION_S2,
             self::TBL_PERSON_TITLE_S2,
             self::TBL_PERSON_FIRST_NAME_S2,
@@ -489,7 +603,9 @@ class ViewStudent extends AbstractView
             self::TBL_CITY_CITY_S2,
             self::TBL_CITY_DISTRICT_S2,
             self::TBL_PHONE_NUMBER_S2,
-            self::TBL_MAIL_ADDRESS_S2,
+            self::TBL_MAIL_ADDRESS_S2
+        ));
+        $this->setGroupDefinition('Sorgeberechtigt S3', array(
             self::TBL_SALUTATION_SALUTATION_S3,
             self::TBL_PERSON_TITLE_S3,
             self::TBL_PERSON_FIRST_NAME_S3,
