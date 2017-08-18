@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Api\Reporting\Individual;
 
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\Query\Expr\Orx;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
@@ -1037,8 +1038,9 @@ class ApiIndividual extends Extension implements IApiInterface
                         if (empty($ViewList)) {
                             $Builder->from($ViewClass, $tblWorkSpace->getView());
                         } else {
-                            // TODO: join condition
-                            // $Builder->innerJoin($tblWorkSpace->getView(), $tblWorkSpace->getView());
+                            $Builder->innerJoin($ViewClass, $tblWorkSpace->getView(), Join::WITH,
+                                current( $ViewList ).'.TblPerson_Id = '.$tblWorkSpace->getView().'.TblPerson_Id'
+                            );
                         }
                         $ViewList[] = $tblWorkSpace->getView();
                     }
