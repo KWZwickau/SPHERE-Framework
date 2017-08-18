@@ -11,6 +11,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Reporting\Individual\Individual;
 use SPHERE\Application\Reporting\Individual\Service\Entity\TblPreset;
 use SPHERE\Application\Reporting\Individual\Service\Entity\TblWorkSpace;
+use SPHERE\Application\Reporting\Individual\Service\Entity\ViewEducationStudent;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudent;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -55,7 +56,6 @@ use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\System\Database\Binding\AbstractView;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Sorter;
 
 /**
  * Class ApiIndividual
@@ -825,7 +825,9 @@ class ApiIndividual extends Extension implements IApiInterface
 
         $AccordionList[] = (new Accordion(''))
             ->addItem('Schüler', $this->getPanelList(new ViewStudent(), $WorkSpaceList),
-                (isset($ViewList['ViewStudent']) ? true : false));
+                (isset($ViewList['ViewStudent']) ? true : false))
+            ->addItem('Schüler - Klassen', $this->getPanelList(new ViewEducationStudent(), $WorkSpaceList),
+                (isset($ViewList['ViewEducationStudent']) ? true : false));
 
         return new Panel('Verfügbare Felder', array(
             (new Primary('Vorlage laden', ApiIndividual::getEndpoint(), new Download(), array(),
@@ -853,7 +855,7 @@ class ApiIndividual extends Extension implements IApiInterface
         $PanelString = '';
 
         $ViewBlockList = array();
-        $ConstantList = ViewStudent::getConstants();
+        $ConstantList = $View::getConstants();    //ToDO auslesen der Konstanten
         if ($ConstantList) {
             foreach ($ConstantList as $Constant) {
                 $Group = $View->getGroupDefinition($Constant);
@@ -861,8 +863,16 @@ class ApiIndividual extends Extension implements IApiInterface
                     $ViewBlockList[$Group][] = $Constant;
                 }
             }
-//            ksort($ViewBlockList);
         }
+//        $ConstantList = ViewEducationStudent::getConstants();
+//        if ($ConstantList) {
+//            foreach ($ConstantList as $Constant) {
+//                $Group = $View->getGroupDefinition($Constant);
+//                if ($Group) {
+//                    $ViewBlockList[$Group][] = $Constant;
+//                }
+//            }
+//        }
         if ($ViewBlockList) {
             foreach ($ViewBlockList as $Block => $FieldList) {
 
@@ -874,9 +884,10 @@ class ApiIndividual extends Extension implements IApiInterface
                         $FieldName = $View->getNameDefinition($FieldTblName);
 
                         if (!in_array($FieldTblName, $WorkSpaceList)) {
+                            $ViewName = $View->getViewClassName();
                             $FieldListArray[$FieldTblName] = new PullClear($FieldName.new PullRight((new Primary('',
                                     self::getEndpoint(), new Plus()))
-                                    ->ajaxPipelineOnClick(self::pipelineAddField($ViewFieldName, 'ViewStudent'))));
+                                    ->ajaxPipelineOnClick(self::pipelineAddField($ViewFieldName, $ViewName))));
                         }
                     }
                 }
@@ -899,7 +910,7 @@ class ApiIndividual extends Extension implements IApiInterface
         $tblWorkSpaceList = Individual::useService()->getWorkSpaceAll();
         $FormColumnAll = array();
 
-        $View = new ViewStudent();
+        $View = new ViewStudent();  //ToDO mehrere Views möglich! (Namensgebung View)
         if ($tblWorkSpaceList) {
             foreach ($tblWorkSpaceList as $tblWorkSpace) {
                 $FieldCount = $tblWorkSpace->getFieldCount();
@@ -930,14 +941,14 @@ class ApiIndividual extends Extension implements IApiInterface
                 $FilterInputList = array();
                 for ($i = 1; $i <= $FieldCount; $i++) {
                     if ($View->getDisableDefinition($tblWorkSpace->getField())) {
-                        $FilterInputList[] = new Muted(new Center('Inforamtions-Anzeige'));
+                        $FilterInputList[] = new Muted(new Center('Informations-Anzeige'));
                         // LinkButton reduzieren
                         $LinkGroup = (new LinkGroup())
                             ->addLink((new Standard('', ApiIndividual::getEndpoint(), new Remove(), array(),
                                 'Filter entfernen'))
                                 ->ajaxPipelineOnClick(ApiIndividual::pipelineDeleteFilterField($tblWorkSpace->getId())));
                     } else {
-                        $FilterInputList[] = new TextField($tblWorkSpace->getField().'[]', 'Alle');
+                        $FilterInputList[] = new TextField($tblWorkSpace->getField().'['.$i.']', 'Alle');
                     }
                 }
                 $FilterInputList[] = new Center(
@@ -975,7 +986,7 @@ class ApiIndividual extends Extension implements IApiInterface
             }
             $FormRowList[] = new FormRow(new FormColumn(array(
                 (new Primary('Filtern', self::getEndpoint(),
-                    new Filter()))->ajaxPipelineOnClick(self::pipelineResult())->setDisabled()
+                    new Filter()))->ajaxPipelineOnClick(self::pipelineResult())// ->setDisabled()
             ,
                 (new Danger('Filter entfernen', ApiIndividual::getEndpoint(), new Disable()))->ajaxPipelineOnClick(
                     ApiIndividual::pipelineDelete())
@@ -1109,6 +1120,7 @@ class ApiIndividual extends Extension implements IApiInterface
                 $Query->setMaxResults(1000);
 
                 return new TableData($Query->getResult());
+//                return $Query->getDQL();
             } else {
                 return ':(';
             }
