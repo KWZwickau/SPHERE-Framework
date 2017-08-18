@@ -48,6 +48,8 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblWorkSpace',
             array(
                 TblWorkSpace::ATTR_SERVICE_TBL_ACCOUNT => $tblAccount->getId()
+            ), array(
+                TblWorkSpace::ATTR_POSITION => self::ORDER_ASC
             ));
     }
 

@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Reporting\Individual;
 
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Reporting\Individual\Service\Data;
 use SPHERE\Application\Reporting\Individual\Service\Entity\TblPreset;
 use SPHERE\Application\Reporting\Individual\Service\Entity\TblPresetSetting;
@@ -56,6 +57,16 @@ class Service extends AbstractService
             return (new Data($this->getBinding()))->getWorkSpaceAllByAccount($tblAccount);
         }
         return false;
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     *
+     * @return bool|TblWorkSpace[]
+     */
+    public function getWorkSpaceAllByAccount(TblAccount $tblAccount)
+    {
+        return (new Data($this->getBinding()))->getWorkSpaceAllByAccount($tblAccount);
     }
 
     /**

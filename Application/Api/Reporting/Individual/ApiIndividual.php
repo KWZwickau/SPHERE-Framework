@@ -2,9 +2,11 @@
 
 namespace SPHERE\Application\Api\Reporting\Individual;
 
+use Doctrine\ORM\Query\Expr\Orx;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Reporting\Individual\Individual;
 use SPHERE\Application\Reporting\Individual\Service\Entity\TblPreset;
 use SPHERE\Application\Reporting\Individual\Service\Entity\TblWorkSpace;
@@ -52,6 +54,7 @@ use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\System\Database\Binding\AbstractView;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Sorter;
 
 /**
  * Class ApiIndividual
@@ -82,6 +85,7 @@ class ApiIndividual extends Extension implements IApiInterface
         $Dispatcher->registerMethod('createPreset');
         $Dispatcher->registerMethod('addField');
         $Dispatcher->registerMethod('getFilter');
+        $Dispatcher->registerMethod('getResult');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -970,7 +974,7 @@ class ApiIndividual extends Extension implements IApiInterface
             }
             $FormRowList[] = new FormRow(new FormColumn(array(
                 (new Primary('Filtern', self::getEndpoint(),
-                    new Filter()))->setDisabled()
+                    new Filter()))->ajaxPipelineOnClick(self::pipelineResult())->setDisabled()
             ,
                 (new Danger('Filter entfernen', ApiIndividual::getEndpoint(), new Disable()))->ajaxPipelineOnClick(
                     ApiIndividual::pipelineDelete())
@@ -992,5 +996,119 @@ class ApiIndividual extends Extension implements IApiInterface
         }
 
         return (isset($Panel) ? $Panel : new InfoMessage('Bitte wählen Sie aus welche Spalten gefilter werden sollen'));
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineResult()
+    {
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter(self::receiverResult(), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'getResult'
+        ));
+        $Pipeline->appendEmitter($Emitter);
+        return $Pipeline;
+    }
+
+    /**
+     * @return string
+     */
+    public function getResult() {
+
+        $Manager = Individual::useService()->getBinding()->getEntityManager();
+        $Builder = $Manager->getQueryBuilder();
+
+        $tblAccount = Account::useService()->getAccountBySession();
+        if(!empty($tblAccount)) {
+            $tblWorkspaceAll = Individual::useService()->getWorkSpaceAllByAccount($tblAccount);
+            if( !empty($tblWorkspaceAll) ) {
+                $ViewList = array();
+                $ParameterList = array();
+
+                /** @var TblWorkSpace $tblWorkSpace */
+                foreach ($tblWorkspaceAll as $Index => $tblWorkSpace) {
+
+                    // Add View to Query (if not exists)
+                    if (!in_array($tblWorkSpace->getView(), $ViewList)) {
+                        if (empty($ViewList)) {
+                            $Builder->from($tblWorkSpace->getView(), $tblWorkSpace->getView());
+                        } else {
+                            // TODO: join condition
+                            // $Builder->innerJoin($tblWorkSpace->getView(), $tblWorkSpace->getView());
+                        }
+                    }
+
+                    // Add Field to Select
+                    $ViewClass = 'SPHERE\Application\Reporting\Individual\Service\Entity\\'.$tblWorkSpace->getView();
+                    /** @var AbstractView $ViewClass */
+                    $ViewClass = new $ViewClass();
+
+                    $Builder->addSelect($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField()
+                        . ' AS ' . $ViewClass->getNameDefinition($tblWorkSpace->getField())
+                    );
+
+                    // Add Condition to Parameter (if exists and is not empty)
+                    $Filter = $this->getGlobal()->POST;
+                    /** @var null|Orx $OrExp */
+                    $OrExp = null;
+                    if (isset($Filter[$tblWorkSpace->getField()]) && count($Filter[$tblWorkSpace->getField()]) > 1) {
+                        // Multiple Values
+                        foreach ($Filter[$tblWorkSpace->getField()] as $Count => $Value) {
+                            // If User Input exists
+                            if (!empty($Value)) {
+                                $Parameter = ':Filter' . $Index . 'Value' . $Count;
+                                if (!$OrExp) {
+                                    $OrExp = $Builder->expr()->orX(
+                                        $Builder->expr()->like($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField(),
+                                            $Parameter)
+                                    );
+                                } else {
+                                    $OrExp->add(
+                                        $Builder->expr()->like($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField(),
+                                            $Parameter)
+                                    );
+                                }
+                                $ParameterList[$Parameter] = $Value;
+                            }
+                        }
+                        // Add AND Condition to Where (if filter is set)
+                        if ($OrExp) {
+                            $Builder->andWhere($OrExp);
+                        }
+                    } else {
+                        if (isset($Filter[$tblWorkSpace->getField()]) && count($Filter[$tblWorkSpace->getField()]) == 1) {
+                            // Single Value
+                            foreach ($Filter[$tblWorkSpace->getField()] as $Count => $Value) {
+                                // If User Input exists
+                                if (!empty($Value)) {
+                                    $Parameter = ':Filter' . $Index . 'Value' . $Count;
+                                    // Add AND Condition to Where (if filter is set)
+                                    $Builder->andWhere(
+                                        $Builder->expr()->like($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField(),
+                                            $Parameter)
+                                    );
+                                    $ParameterList[$Parameter] = $Value;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Bind Parameter to Query
+                foreach ($ParameterList as $Parameter => $Value) {
+                    $Builder->setParameter((string)$Parameter, '%' . $Value . '%');
+                }
+
+                $Query = $Builder->getQuery();
+                $Query->setMaxResults(1000);
+
+                return new TableData($Query->getResult());
+            } else {
+                return ':(';
+            }
+        }
+        return ':(';
     }
 }

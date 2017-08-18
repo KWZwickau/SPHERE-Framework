@@ -47,11 +47,15 @@ class Frontend extends Extension implements IFrontendInterface
                                         new LayoutColumn(ApiIndividual::receiverFilter(ApiIndividual::pipelineDisplayFilter())),
                                         new LayoutColumn(new Title('TableResult')),
 
-                                        new LayoutColumn(new TableData($Content, null,
-                                            $Content[0]->getNameDefinitionList()
+                                        new LayoutColumn(
+                                            ApiIndividual::receiverResult()
+
+//                                            new TableData($Content, null,
+//                                            $Content[0]->getNameDefinitionList()
 //                                            , array('ExtensionColVisibility' => array('Enabled' => true),
 //                                                    'ExtensionDownloadExcel' => array('Enabled' => true))
-                                        )),
+//                                        )
+                                        ),
                                     ))
                                 )
                             )
