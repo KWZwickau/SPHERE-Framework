@@ -1030,10 +1030,12 @@ class ApiIndividual extends Extension implements IApiInterface
                 /** @var TblWorkSpace $tblWorkSpace */
                 foreach ($tblWorkspaceAll as $Index => $tblWorkSpace) {
 
+                    $ViewClass = 'SPHERE\Application\Reporting\Individual\Service\Entity\\'.$tblWorkSpace->getView();
+
                     // Add View to Query (if not exists)
                     if (!in_array($tblWorkSpace->getView(), $ViewList)) {
                         if (empty($ViewList)) {
-                            $Builder->from($tblWorkSpace->getView(), $tblWorkSpace->getView());
+                            $Builder->from($ViewClass, $tblWorkSpace->getView());
                         } else {
                             // TODO: join condition
                             // $Builder->innerJoin($tblWorkSpace->getView(), $tblWorkSpace->getView());
@@ -1041,7 +1043,6 @@ class ApiIndividual extends Extension implements IApiInterface
                     }
 
                     // Add Field to Select
-                    $ViewClass = 'SPHERE\Application\Reporting\Individual\Service\Entity\\'.$tblWorkSpace->getView();
                     /** @var AbstractView $ViewClass */
                     $ViewClass = new $ViewClass();
 
