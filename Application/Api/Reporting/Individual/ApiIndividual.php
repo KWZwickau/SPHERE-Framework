@@ -48,6 +48,7 @@ use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Structure\LinkGroup;
 use SPHERE\Common\Frontend\Message\Repository\Info as InfoMessage;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Repository\Title;
@@ -884,7 +885,7 @@ class ApiIndividual extends Extension implements IApiInterface
                         $FieldName = $View->getNameDefinition($FieldTblName);
 
                         if (!in_array($FieldTblName, $WorkSpaceList)) {
-                            $ViewName = $View->getViewClassName();
+                            $ViewName = $View->getViewObjectName();
                             $FieldListArray[$FieldTblName] = new PullClear($FieldName.new PullRight((new Primary('',
                                     self::getEndpoint(), new Plus()))
                                     ->ajaxPipelineOnClick(self::pipelineAddField($ViewFieldName, $ViewName))));
@@ -1016,6 +1017,7 @@ class ApiIndividual extends Extension implements IApiInterface
     public static function pipelineResult()
     {
         $Pipeline = new Pipeline();
+        $Pipeline->setLoadingMessage( 'Daten werden verarbeitet...' );
         $Emitter = new ServerEmitter(self::receiverResult(), self::getEndpoint());
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'getResult'
@@ -1042,14 +1044,18 @@ class ApiIndividual extends Extension implements IApiInterface
                 /** @var TblWorkSpace $tblWorkSpace */
                 foreach ($tblWorkspaceAll as $Index => $tblWorkSpace) {
 
-                    $ViewClass = 'SPHERE\Application\Reporting\Individual\Service\Entity\\'.$tblWorkSpace->getView();
+                    if( false === strpos( '\\', $tblWorkSpace->getView() )) {
+                        $ViewClass = 'SPHERE\Application\Reporting\Individual\Service\Entity\\' . $tblWorkSpace->getView();
+                    } else {
+                        $ViewClass = $tblWorkSpace->getView();
+                    }
 
                     // Add View to Query (if not exists)
                     if (!in_array($tblWorkSpace->getView(), $ViewList)) {
                         if (empty($ViewList)) {
                             $Builder->from($ViewClass, $tblWorkSpace->getView());
                         } else {
-                            $Builder->innerJoin($ViewClass, $tblWorkSpace->getView(), Join::WITH,
+                            $Builder->join($ViewClass, $tblWorkSpace->getView(), Join::WITH,
                                 current( $ViewList ).'.TblPerson_Id = '.$tblWorkSpace->getView().'.TblPerson_Id'
                             );
                         }
@@ -1119,8 +1125,11 @@ class ApiIndividual extends Extension implements IApiInterface
                 $Query = $Builder->getQuery();
                 $Query->setMaxResults(1000);
 
-                return new TableData($Query->getResult());
-//                return $Query->getDQL();
+                return ''
+                .new Warning($Query->getDQL())
+                .new Info($Query->getSQL())
+                .new TableData($Query->getResult())
+                    ;
             } else {
                 return ':(';
             }

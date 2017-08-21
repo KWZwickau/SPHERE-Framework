@@ -29,7 +29,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Flexible Auswertung');
 
-        $Content = Individual::useService()->getView();
+        // $Content = Individual::useService()->getView();
 
         $Stage->setContent(
             new Layout(array(
