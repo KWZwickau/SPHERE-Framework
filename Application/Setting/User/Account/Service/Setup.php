@@ -4,6 +4,7 @@ namespace SPHERE\Application\Setting\User\Account\Service;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\System\Database\Binding\AbstractSetup;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Setup
@@ -48,6 +49,10 @@ class Setup extends AbstractSetup
         }
         if (!$this->getConnection()->hasColumn('tblUserAccount', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint');
+        }
+        $this->getConnection()->removeIndex($Table, array('serviceTblPerson'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
         }
         if (!$this->getConnection()->hasColumn('tblUserAccount', 'Type')) {
             $Table->addColumn('Type', 'string');

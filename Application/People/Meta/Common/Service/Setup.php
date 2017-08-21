@@ -44,9 +44,9 @@ class Setup extends AbstractSetup
 
         $this->getConnection()->createView(
             (new View($this->getConnection(), 'viewPeopleMetaCommon'))
-                ->addLink(new TblCommon(), 'tblCommonBirthDates', new TblCommonBirthDates(), 'Id')
-                ->addLink(new TblCommonBirthDates(), 'tblCommonGender', new TblCommonGender(), 'Id')
-                ->addLink(new TblCommon(), 'tblCommonInformation', new TblCommonInformation(), 'Id')
+                ->addLink(new TblCommon(), 'tblCommonBirthDates', new TblCommonBirthDates(), 'Id', View::JOIN)
+                ->addLink(new TblCommonBirthDates(), 'tblCommonGender', new TblCommonGender(), 'Id', View::JOIN)
+                ->addLink(new TblCommon(), 'tblCommonInformation', new TblCommonInformation(), 'Id', View::JOIN)
         );
 
         /**

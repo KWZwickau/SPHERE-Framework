@@ -11,6 +11,7 @@ namespace SPHERE\Application\Reporting\SerialLetter\Service;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\System\Database\Binding\AbstractSetup;
+use SPHERE\System\Database\Fitting\Element;
 
 class Setup extends AbstractSetup
 {
@@ -117,6 +118,10 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblSerialPerson', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
+        $this->getConnection()->removeIndex($Table, array('serviceTblPerson'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
+        }
         $this->getConnection()->addForeignKey($Table, $tblSerialLetter, true);
 
         return $Table;
@@ -135,13 +140,24 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblAddressPerson', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
+        $this->getConnection()->removeIndex($Table, array('serviceTblPerson'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
+        }
         if (!$this->getConnection()->hasColumn('tblAddressPerson', 'serviceTblToPerson')) {
             $Table->addColumn('serviceTblToPerson', 'bigint', array('notnull' => false));
+        }
+        $this->getConnection()->removeIndex($Table, array('serviceTblToPerson'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblToPerson', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblToPerson', Element::ENTITY_REMOVE));
         }
         if (!$this->getConnection()->hasColumn('tblAddressPerson', 'serviceTblPersonToAddress')) {
             $Table->addColumn('serviceTblPersonToAddress', 'bigint', array('notnull' => false));
         }
-
+        $this->getConnection()->removeIndex($Table, array('serviceTblPersonToAddress'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPersonToAddress', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblPersonToAddress', Element::ENTITY_REMOVE));
+        }
         $this->getConnection()->addForeignKey($Table, $tblSerialLetter, true);
 
         return $Table;

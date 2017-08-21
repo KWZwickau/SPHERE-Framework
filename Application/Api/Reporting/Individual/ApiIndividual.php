@@ -13,6 +13,7 @@ use SPHERE\Application\Reporting\Individual\Service\Entity\TblPreset;
 use SPHERE\Application\Reporting\Individual\Service\Entity\TblWorkSpace;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewEducationStudent;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudent;
+use SPHERE\Common\Frontend\Ajax\Emitter\ClientEmitter;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -36,6 +37,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -55,6 +57,7 @@ use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\System\Database\Binding\AbstractView;
 use SPHERE\System\Extension\Extension;
 
@@ -184,6 +187,7 @@ class ApiIndividual extends Extension implements IApiInterface
 
         $Pipeline = new Pipeline();
         $Emitter = new ServerEmitter(self::receiverService(), self::getEndpoint());
+        $Emitter->setLoadingMessage('Feld wird entfernt...');
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'removeField'
         ));
@@ -191,12 +195,16 @@ class ApiIndividual extends Extension implements IApiInterface
             'WorkSpaceId' => $WorkSpaceId
         ));
         $Pipeline->appendEmitter($Emitter);
+        $Emitter = new ClientEmitter(self::receiverNavigation(), new ProgressBar(0,100,0).new Small('Navigation wird aktualisiert...'));
+        $Pipeline->appendEmitter($Emitter);
         $Emitter = new ServerEmitter(self::receiverNavigation(), self::getEndpoint());
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'getNavigation'
         ));
         $Pipeline->appendEmitter($Emitter);
         // Refresh Filter
+        $Emitter = new ClientEmitter(self::receiverNavigation(), new ProgressBar(0,100,0).new Small('Filter wird aktualisiert...'));
+        $Pipeline->appendEmitter($Emitter);
         $Emitter = new ServerEmitter(self::receiverFilter(), self::getEndpoint());
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'getFilter'
@@ -424,6 +432,7 @@ class ApiIndividual extends Extension implements IApiInterface
 
         $Pipeline = new Pipeline();
         $Emitter = new ServerEmitter(self::receiverService(), self::getEndpoint());
+        $Emitter->setLoadingMessage('Feld wird hinzugefügt...');
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'addField'
         ));
@@ -432,12 +441,16 @@ class ApiIndividual extends Extension implements IApiInterface
             'View'  => $View
         ));
         $Pipeline->appendEmitter($Emitter);
+        $Emitter = new ClientEmitter(self::receiverNavigation(), new ProgressBar(0,100,0).new Small('Navigation wird aktualisiert...'));
+        $Pipeline->appendEmitter($Emitter);
         $Emitter = new ServerEmitter(self::receiverNavigation(), self::getEndpoint());
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'getNavigation'
         ));
         $Pipeline->appendEmitter($Emitter);
         // Refresh Filter
+        $Emitter = new ClientEmitter(self::receiverFilter(), new ProgressBar(0,100,0).new Small('Filter wird aktualisiert...'));
+        $Pipeline->appendEmitter($Emitter);
         $Emitter = new ServerEmitter(self::receiverFilter(), self::getEndpoint());
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'getFilter'

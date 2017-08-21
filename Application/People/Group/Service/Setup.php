@@ -39,7 +39,7 @@ class Setup extends AbstractSetup
 
         $this->getConnection()->createView(
             (new View($this->getConnection(), 'viewPeopleGroupMember'))
-                ->addLink(new TblMember(), 'tblGroup', new TblGroup(''))
+                ->addLink(new TblMember(), 'tblGroup', new TblGroup(''), 'Id', View::JOIN)
         );
 
         return $this->getConnection()->getProtocol($Simulate);
