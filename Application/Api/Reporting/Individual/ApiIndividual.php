@@ -1128,7 +1128,12 @@ class ApiIndividual extends Extension implements IApiInterface
                             }
                         }
                     }
+
+                    // Add Field to "Group By" to prevent duplicates
+                    $Builder->distinct( true );
                 }
+
+
 
                 // Bind Parameter to Query
                 foreach ($ParameterList as $Parameter => $Value) {
