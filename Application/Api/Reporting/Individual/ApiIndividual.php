@@ -58,6 +58,7 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Window\Error;
 use SPHERE\System\Database\Binding\AbstractView;
 use SPHERE\System\Extension\Extension;
 
@@ -1044,7 +1045,8 @@ class ApiIndividual extends Extension implements IApiInterface
      */
     public function getResult() {
 
-        $Manager = Individual::useService()->getBinding()->getEntityManager();
+        $Binding = Individual::useService()->getBinding();
+        $Manager = $Binding->getEntityManager();
         $Builder = $Manager->getQueryBuilder();
 
         $tblAccount = Account::useService()->getAccountBySession();
@@ -1079,10 +1081,10 @@ class ApiIndividual extends Extension implements IApiInterface
                     /** @var AbstractView $ViewClass */
                     $ViewClass = new $ViewClass();
 
+                    $Alias = preg_replace('!\s!is', '_', $ViewClass->getNameDefinition($tblWorkSpace->getField()) );
                     $Builder->addSelect($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField()
-                        . ' AS ' . $ViewClass->getNameDefinition($tblWorkSpace->getField())
+                        . ' AS ' . $Alias
                     );
-
                     // Add Condition to Parameter (if exists and is not empty)
                     $Filter = $this->getGlobal()->POST;
                     /** @var null|Orx $OrExp */
@@ -1143,15 +1145,71 @@ class ApiIndividual extends Extension implements IApiInterface
                 $Query = $Builder->getQuery();
                 $Query->setMaxResults(1000);
 
+                $Error = false;
+                try {
+                    $DQL = new Warning($Query->getDQL());
+                } catch (\Exception $E ) {
+                    $DQL = $this->parseException( $E, 'DQL');
+                    $Error = true;
+                }
+                try {
+                    $SQL = new Info($Query->getSQL());
+                } catch (\Exception $E ) {
+                    $SQL = $this->parseException( $E, 'SQL');
+                    $Error = true;
+                }
+
+                $DT = '';
+                try {
+                    $Result = array();
+                    $ColumnDTNames = array();
+                    if(!$Error) {
+                        $Result = $Query->getResult();
+                        if (!empty($Result)) {
+                            $ColumnDBNames = array_keys(current($Result));
+                            array_walk($ColumnDBNames, function ($Name) use (&$ColumnDTNames) {
+                                $ColumnDTNames[$Name] = preg_replace('!\_!is', ' ', $Name);
+                            });
+                        }
+                    }
+                } catch (\Exception $E ) {
+                    $DT = $this->parseException( $E, 'DT');
+                    $Error = true;
+                }
+
                 return ''
-                .new Warning($Query->getDQL())
-                .new Info($Query->getSQL())
-                .new TableData($Query->getResult())
+                    .$DQL
+                    .$SQL
+                    .$DT
+                    .(!$Error
+                        ? new TableData($Result, null, $ColumnDTNames, array(
+                            'responsive' => false
+                        ), false)
+                        : 'Error'
+                    )
                     ;
             } else {
                 return ':(';
             }
         }
         return ':(';
+    }
+
+    private function parseException( \Exception $Exception, $Name = '' ) {
+
+        $TraceList = '';
+        foreach ((array)$Exception->getTrace() as $Trace) {
+            $TraceList .= nl2br('<samp class="text-info small">'
+                .( isset( $Trace['type'] ) && isset( $Trace['function'] ) ? 'Method: '.$Trace['type'].$Trace['function'] : 'Method: ' )
+                .( isset( $Trace['class'] ) ? '<br/>Class: '.$Trace['class'] : '<br/>Class: ' )
+                .( isset( $Trace['file'] ) ? '<br/>File: '.$Trace['file'] : '<br/>File: ' )
+                .( isset( $Trace['line'] ) ? '<br/>Line: '.$Trace['line'] : '<br/>Line: ' )
+                .'</samp><br/>');
+        }
+        $Hit = '<hr/><samp class="text-danger"><div class="h6">'.get_class($Exception).'<br/><br/>'.nl2br($Exception->getMessage()).'</div>File: '.$Exception->getFile().'<br/>Line: '.$Exception->getLine().'</samp><hr/><div class="small">'.$TraceList.'</div>';
+        return new Error(
+            $Exception->getCode() == 0 ? $Name : $Exception->getCode(), $Hit
+        );
+
     }
 }
