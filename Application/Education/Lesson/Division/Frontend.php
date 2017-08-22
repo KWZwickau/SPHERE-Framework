@@ -1740,35 +1740,40 @@ class Frontend extends Extension implements IFrontendInterface
                                     ? new Bold($tblDivisionSubjectTest->getTblSubjectGroup()->getName())
                                     : $tblDivisionSubjectTest->getTblSubjectGroup()->getName();
 
-                                $tblSubjectStudentsList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubjectTest);
-                                if ($tblSubjectStudentsList) {
-                                    /** @var TblSubjectStudent $tblSubjectStudents */
-                                    foreach ($tblSubjectStudentsList as $tblSubjectStudents) {
-                                        if ($tblSubjectStudents->getServiceTblPerson()) {
-                                            $StudentArray[] = $tblSubjectStudents->getServiceTblPerson()->getLastFirstName();
-                                            $StudentsGroupCount = $StudentsGroupCount + 1;
-                                            if (($tblDivisionSubjectTemp = $tblSubjectStudents->getTblDivisionSubject())
-                                                && ($tblSubjectTemp = $tblDivisionSubjectTemp->getServiceTblSubject())
-                                                && ($tblPerson = $tblSubjectStudents->getServiceTblPerson())
-                                            ) {
-                                                if ($IsSekTwo
-                                                    && ($tblSubjectGroup = $tblDivisionSubjectTemp->getTblSubjectGroup())
+                                $tblSubjectPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubjectTest);
+                                if ($tblSubjectPersonList) {
+                                    foreach ($tblSubjectPersonList as $tblSubjectPerson) {
+                                        if (($tblSubjectStudent = Division::useService()->getSubjectStudentByDivisionSubjectAndPerson(
+                                            $tblDivisionSubjectTest,
+                                            $tblSubjectPerson
+                                        ))
+                                        ) {
+                                            if ($tblSubjectStudent->getServiceTblPerson()) {
+                                                $StudentArray[] = $tblSubjectStudent->getServiceTblPerson()->getLastFirstName();
+                                                $StudentsGroupCount = $StudentsGroupCount + 1;
+                                                if (($tblDivisionSubjectTemp = $tblSubjectStudent->getTblDivisionSubject())
+                                                    && ($tblSubjectTemp = $tblDivisionSubjectTemp->getServiceTblSubject())
+                                                    && ($tblPerson = $tblSubjectStudent->getServiceTblPerson())
                                                 ) {
-                                                    if ($tblSubjectGroup->isAdvancedCourse()) {
-                                                        if ($tblSubjectTemp->getName() == 'Deutsch' || $tblSubjectTemp->getName() == 'Mathematik') {
-                                                            $personAdvancedCourseList[$tblPerson->getId()][0]
-                                                                = $tblSubjectTemp->getAcronym();
+                                                    if ($IsSekTwo
+                                                        && ($tblSubjectGroup = $tblDivisionSubjectTemp->getTblSubjectGroup())
+                                                    ) {
+                                                        if ($tblSubjectGroup->isAdvancedCourse()) {
+                                                            if ($tblSubjectTemp->getName() == 'Deutsch' || $tblSubjectTemp->getName() == 'Mathematik') {
+                                                                $personAdvancedCourseList[$tblPerson->getId()][0]
+                                                                    = $tblSubjectTemp->getAcronym();
+                                                            } else {
+                                                                $personAdvancedCourseList[$tblPerson->getId()][1]
+                                                                    = $tblSubjectTemp->getAcronym();
+                                                            }
                                                         } else {
-                                                            $personAdvancedCourseList[$tblPerson->getId()][1]
+                                                            $personBasicCourseList[$tblPerson->getId()][$tblSubjectTemp->getAcronym()]
                                                                 = $tblSubjectTemp->getAcronym();
                                                         }
                                                     } else {
-                                                        $personBasicCourseList[$tblPerson->getId()][$tblSubjectTemp->getAcronym()]
+                                                        $personSubjectList[$tblPerson->getId()][$tblSubjectTemp->getAcronym()]
                                                             = $tblSubjectTemp->getAcronym();
                                                     }
-                                                } else {
-                                                    $personSubjectList[$tblPerson->getId()][$tblSubjectTemp->getAcronym()]
-                                                        = $tblSubjectTemp->getAcronym();
                                                 }
                                             }
                                         }

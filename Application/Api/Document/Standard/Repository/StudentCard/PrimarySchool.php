@@ -370,8 +370,13 @@ class PrimarySchool extends AbstractStudentCard
                                 , '50%')
                             ->addElementColumn((new Element())
                                 ->setContent('
-                                        {% if(Content.Person.Contact.Phone.Emergency1 is not empty) %}
-                                            {{ Content.Person.Contact.Phone.Emergency1 }}
+                                        {% if(Content.Person.Contact.Phone.EmergencyPdf1 is not empty) %}
+                                            {{ Content.Person.Contact.Phone.EmergencyPdf1 }}
+                                             {% if(Content.Person.Contact.Phone.EmergencyPdf2 is not empty) %}
+                                                <br/>{{ Content.Person.Contact.Phone.EmergencyPdf2 }}
+                                             {% else %}
+                                                &nbsp;
+                                             {% endif %}
                                         {% else %}
                                             &nbsp;
                                         {% endif %}
@@ -449,7 +454,12 @@ class PrimarySchool extends AbstractStudentCard
                         ->styleBorderTop($InnerLines)
                         , '25%')
                     ->addSliceColumn(
-                        $this->setCheckBox()
+                        $this->setCheckBox(
+                            '{% if(Content.Student.School.Enrollment.Postponed is not empty) %}
+                                    X
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
                             ->styleBorderLeft($InnerLines)
                             ->styleBorderTop($InnerLines)
                         , '4%')
@@ -462,7 +472,13 @@ class PrimarySchool extends AbstractStudentCard
                         ->styleBorderTop($InnerLines)
                         , '8%')
                     ->addSliceColumn(
-                        $this->setCheckBox()
+                        $this->setCheckBox(
+                            '{% if(Content.Student.School.Enrollment.Postponed is empty) %}
+                                    X
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}'
+                        )
                             ->styleBorderTop($InnerLines)
                         , '4%')
                     ->addElementColumn((new Element())
@@ -510,7 +526,13 @@ class PrimarySchool extends AbstractStudentCard
                         ->styleBorderTop($InnerLines)
                         , '25%')
                     ->addSliceColumn(
-                        $this->setCheckBox()
+                        $this->setCheckBox(
+                            '{% if(Content.Student.School.Enrollment.Premature is not empty) %}
+                                    X
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}'
+                        )
                             ->styleBorderLeft($InnerLines)
                             ->styleBorderTop($InnerLines)
                         , '4%')
@@ -523,7 +545,13 @@ class PrimarySchool extends AbstractStudentCard
                         ->styleBorderTop($InnerLines)
                         , '8%')
                     ->addSliceColumn(
-                        $this->setCheckBox()
+                        $this->setCheckBox(
+                            '{% if(Content.Student.School.Enrollment.Premature is empty) %}
+                                    X
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}'
+                        )
                             ->styleBorderTop($InnerLines)
                         , '4%')
                     ->addElementColumn((new Element())
@@ -566,7 +594,11 @@ class PrimarySchool extends AbstractStudentCard
                         ->styleBorderTop($InnerLines)
                         , '25%')
                     ->addSliceColumn(
-                        $this->setCheckBox()
+                        $this->setCheckBox('{% if(Content.Student.School.Enrollment.Regular is not empty) %}
+                                    X
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
                             ->styleBorderLeft($InnerLines)
                             ->styleBorderTop($InnerLines)
                         , '4%')
@@ -579,7 +611,11 @@ class PrimarySchool extends AbstractStudentCard
                         ->styleBorderTop($InnerLines)
                         , '8%')
                     ->addSliceColumn(
-                        $this->setCheckBox()
+                        $this->setCheckBox('{% if(Content.Student.School.Enrollment.Regular is empty) %}
+                                    X
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
                             ->styleBorderTop($InnerLines)
                         , '4%')
                     ->addElementColumn((new Element())

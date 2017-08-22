@@ -126,36 +126,43 @@ class Frontend
         $Stage = new Stage('Berechtigungen', 'Zugriffslevel');
         $this->menuButton($Stage);
         $tblLevelAll = Access::useService()->getLevelAll();
+        $levelList = array();
         if ($tblLevelAll) {
-            array_walk($tblLevelAll, function (TblLevel &$tblLevel) {
+            array_walk($tblLevelAll, function (TblLevel &$tblLevel) use (&$levelList) {
 
-                $tblPrivilege = Access::useService()->getPrivilegeAllByLevel($tblLevel);
-                if (empty( $tblPrivilege )) {
-                    /** @noinspection PhpUndefinedFieldInspection */
-                    $tblLevel->Option = new Warning('Keine Privilegien vergeben')
+                $tblPrivilegeList = Access::useService()->getPrivilegeAllByLevel($tblLevel);
+                if (empty( $tblPrivilegeList )) {
+
+                    $levelList[] = array(
+                        'Name' => $tblLevel->getName(),
+                        'Option' => new Warning('Keine Privilegien vergeben')
                         .new PullRight(new Danger('Privilegien hinzufügen',
                             '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege',
                             null, array('Id' => $tblLevel->getId())
-                        ));
+                        )));
                 } else {
-                    array_walk($tblPrivilege, function (TblPrivilege &$tblPrivilege) {
 
-                        $tblPrivilege = $tblPrivilege->getName();
+                    $privilegeList = array();
+                    array_walk($tblPrivilegeList, function (TblPrivilege &$tblPrivilege) use (&$privilegeList) {
+
+                        $privilegeList[] = $tblPrivilege->getName();
                     });
-                    array_unshift($tblPrivilege, '');
-                    /** @noinspection PhpUndefinedFieldInspection */
-                    $tblLevel->Option = new Panel('Privilegien', $tblPrivilege)
+                    array_unshift($privilegeList, '');
+
+                    $levelList[] = array(
+                        'Name' => $tblLevel->getName(),
+                        'Option' => new Panel('Privilegien', $privilegeList)
                         .new PullRight(new Danger('Privilegien bearbeiten',
                             '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege',
                             null, array('Id' => $tblLevel->getId())
-                        ));
+                        )));
                 }
             });
         }
 
         $Stage->setContent(
-            ( $tblLevelAll
-                ? new TableData($tblLevelAll, new Title('Bestehende Zugriffslevel'), array(
+            ( !empty($levelList)
+                ? new TableData($levelList, new Title('Bestehende Zugriffslevel'), array(
                     'Name'   => 'Name',
                     'Option' => 'Optionen'
                 ))
@@ -186,36 +193,42 @@ class Frontend
         $Stage = new Stage('Berechtigungen', 'Privilegien');
         $this->menuButton($Stage);
         $tblPrivilegeAll = Access::useService()->getPrivilegeAll();
+        $privilegeList = array();
         if ($tblPrivilegeAll) {
-            array_walk($tblPrivilegeAll, function (TblPrivilege &$tblPrivilege) {
+            array_walk($tblPrivilegeAll, function (TblPrivilege &$tblPrivilege) use (&$privilegeList) {
 
-                $tblRight = Access::useService()->getRightAllByPrivilege($tblPrivilege);
-                if (empty( $tblRight )) {
-                    /** @noinspection PhpUndefinedFieldInspection */
-                    $tblPrivilege->Option = new Warning('Keine Rechte vergeben')
+                $tblRightList = Access::useService()->getRightAllByPrivilege($tblPrivilege);
+                if (empty( $tblRightList )) {
+
+                    $privilegeList[] = array(
+                        'Name' => $tblPrivilege->getName(),
+                        'Option' => new Warning('Keine Rechte vergeben')
                         .new PullRight(new Danger('Rechte hinzufügen',
                             '/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight',
                             null, array('Id' => $tblPrivilege->getId())
-                        ));
+                        )));
                 } else {
-                    array_walk($tblRight, function (TblRight &$tblRight) {
+                    $rightList = array();
+                    array_walk($tblRightList, function (TblRight &$tblRight) use (&$rightList) {
 
-                        $tblRight = $tblRight->getRoute();
+                        $rightList[] = $tblRight->getRoute();
                     });
-                    array_unshift($tblRight, '');
-                    /** @noinspection PhpUndefinedFieldInspection */
-                    $tblPrivilege->Option = new Panel('Rechte (Routen)', $tblRight)
+                    array_unshift($rightList, '');
+
+                    $privilegeList[] = array(
+                        'Name' => $tblPrivilege->getName(),
+                        'Option' => new Panel('Rechte (Routen)', $rightList)
                         .new PullRight(new Danger('Rechte bearbeiten',
                             '/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight',
                             null, array('Id' => $tblPrivilege->getId())
-                        ));
+                        )));
                 }
             });
         }
 
         $Stage->setContent(
-            ( $tblPrivilegeAll
-                ? new TableData($tblPrivilegeAll, new Title('Bestehende Privilegien'), array(
+            ( $privilegeList
+                ? new TableData($privilegeList, new Title('Bestehende Privilegien'), array(
                     'Name'   => 'Name',
                     'Option' => ''
                 ))
@@ -232,6 +245,7 @@ class Frontend
                 ), $Name
             )
         );
+
         return $Stage;
     }
 
@@ -248,10 +262,11 @@ class Frontend
         $tblRightAll = Access::useService()->getRightAll();
 
         $PublicRouteAll = Main::getDispatcher()->getPublicRoutes();
+        $publicRightList = array();
         if ($PublicRouteAll) {
-            array_walk($PublicRouteAll, function (&$Route) {
+            array_walk($PublicRouteAll, function (&$Route) use (&$publicRightList) {
 
-                $Route = array(
+                $publicRightList[] = array(
                     'Route'  => $Route,
                     'Option' => new External(
                             'Öffnen', $Route, null, array(), false
@@ -262,8 +277,6 @@ class Frontend
                         )
                 );
             });
-        } else {
-            $PublicRouteAll = array();
         }
         $Stage->setContent(
             ( $tblRightAll
@@ -283,7 +296,7 @@ class Frontend
                     , new Primary('Hinzufügen')
                 ), $Name
             )
-            .new TableData($PublicRouteAll, new Title('Öffentliche Routen', 'PUBLIC ACCESS'))
+            .new TableData($publicRightList, new Title('Öffentliche Routen', 'PUBLIC ACCESS'))
         );
         return $Stage;
     }
