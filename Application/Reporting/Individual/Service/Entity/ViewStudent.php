@@ -58,10 +58,10 @@ class ViewStudent extends AbstractView
 //    const NEIGUNGSKURS = 'Neigungskurs';
 //    const BEFREIUNGEN = 'Befreiungen';
 
+    const TBL_STUDENT_IDENTIFIER = 'TblStudent_Identifier';
     const TBL_STUDENT_MEDICAL_RECORD_INSURANCE = 'TblStudentMedicalRecord_Insurance';
     const TBL_STUDENT_LOCKER_KEY_NUMBER = 'TblStudentLocker_KeyNumber';
     const TBL_STUDENT_LOCKER_LOCKER_NUMBER = 'TblStudentLocker_LockerNumber';
-    const TBL_STUDENT_IDENTIFIER = 'TblStudent_Identifier';
     const SIBLINGS_COUNT = 'Sibling_Count';
 
     // S1
@@ -446,7 +446,7 @@ class ViewStudent extends AbstractView
         $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME, 'Zweiter Vorname');
         $this->setNameDefinition(self::TBL_PERSON_LAST_NAME, 'Nachname');
         $this->setNameDefinition(self::TBL_COMMON_GENDER_NAME, 'Geschlecht');
-        $this->setNameDefinition(self::TBL_COMMON_REMARK, 'Personen Bemerkung');
+        $this->setNameDefinition(self::TBL_COMMON_REMARK, 'Bemerkung zur Person');
         $this->setNameDefinition(self::TBL_COMMON_BIRTHDATES_BIRTHDAY, 'Geburtstag');
         $this->setNameDefinition(self::TBL_COMMON_BIRTHDATES_BIRTHPLACE, 'Geburtsort');
         $this->setNameDefinition(self::TBL_COMMON_INFORMATION_DENOMINATION, 'Konfession');
@@ -458,7 +458,7 @@ class ViewStudent extends AbstractView
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME, 'Strasse');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER, 'Hausnummer');
         $this->setNameDefinition(self::TBL_CITY_CODE, 'PLZ');
-        $this->setNameDefinition(self::TBL_CITY_CITY, 'Stadt');
+        $this->setNameDefinition(self::TBL_CITY_CITY, 'Ort');
         $this->setNameDefinition(self::TBL_CITY_DISTRICT, 'Ortsteil');
         $this->setNameDefinition(self::TBL_ADDRESS_COUNTRY, 'Bundesland');
         $this->setNameDefinition(self::TBL_ADDRESS_NATION, 'Land');

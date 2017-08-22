@@ -39,7 +39,10 @@ class ViewEducationStudent extends AbstractView
     const TBL_SUBJECT_NAME = 'TblSubject_Name';
     const TBL_SUBJECT_DESCRIPTION = 'TblSubject_Description';
 
-    static function getConstants()
+    /**
+     * @return array
+     */
+    public static function getConstants()
     {
         $oClass = new \ReflectionClass(__CLASS__);
         return $oClass->getConstants();

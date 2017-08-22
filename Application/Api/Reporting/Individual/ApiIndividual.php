@@ -6,6 +6,7 @@ use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\Query\Expr\Orx;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Element\Ruler;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Reporting\Individual\Individual;
@@ -31,21 +32,33 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Filter;
+use SPHERE\Common\Frontend\Icon\Repository\FolderClosed;
+use SPHERE\Common\Frontend\Icon\Repository\FolderOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\Dropdown;
+use SPHERE\Common\Frontend\Layout\Repository\Header;
+use SPHERE\Common\Frontend\Layout\Repository\Headline;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
+use SPHERE\Common\Frontend\Layout\Repository\Scrollable;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Structure\LinkGroup;
@@ -53,11 +66,13 @@ use SPHERE\Common\Frontend\Message\Repository\Info as InfoMessage;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
-use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
+use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Window\Error;
 use SPHERE\System\Database\Binding\AbstractView;
 use SPHERE\System\Extension\Extension;
@@ -136,6 +151,9 @@ class ApiIndividual extends Extension implements IApiInterface
      */
     public static function receiverResult($Content = '')
     {
+        if( empty($Content) ) {
+            $Content = new Muted( 'Es wurde bisher keine Suche durchgeführt' );
+        }
         return (new BlockReceiver($Content))
             ->setIdentifier('ReceiverResult');
     }
@@ -175,6 +193,9 @@ class ApiIndividual extends Extension implements IApiInterface
         ));
         $Pipeline->appendEmitter($Emitter);
 
+        $Emitter =new ClientEmitter( self::receiverResult(), new Muted( 'Es wurde bisher keine Suche durchgeführt' ) );
+        $Pipeline->appendEmitter($Emitter);
+
         return $Pipeline;
     }
 
@@ -188,7 +209,7 @@ class ApiIndividual extends Extension implements IApiInterface
 
         $Pipeline = new Pipeline();
         $Emitter = new ServerEmitter(self::receiverService(), self::getEndpoint());
-        $Emitter->setLoadingMessage('Feld wird entfernt...');
+//        $Emitter->setLoadingMessage('Feld wird entfernt...');
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'removeField'
         ));
@@ -196,16 +217,16 @@ class ApiIndividual extends Extension implements IApiInterface
             'WorkSpaceId' => $WorkSpaceId
         ));
         $Pipeline->appendEmitter($Emitter);
-        $Emitter = new ClientEmitter(self::receiverNavigation(), new ProgressBar(0,100,0).new Small('Navigation wird aktualisiert...'));
-        $Pipeline->appendEmitter($Emitter);
+//        $Emitter = new ClientEmitter(self::receiverNavigation(), new ProgressBar(0,100,0).new Small('Navigation wird aktualisiert...'));
+//        $Pipeline->appendEmitter($Emitter);
         $Emitter = new ServerEmitter(self::receiverNavigation(), self::getEndpoint());
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'getNavigation'
         ));
         $Pipeline->appendEmitter($Emitter);
         // Refresh Filter
-        $Emitter = new ClientEmitter(self::receiverNavigation(), new ProgressBar(0,100,0).new Small('Filter wird aktualisiert...'));
-        $Pipeline->appendEmitter($Emitter);
+//        $Emitter = new ClientEmitter(self::receiverNavigation(), new ProgressBar(0,100,0).new Small('Filter wird aktualisiert...'));
+//        $Pipeline->appendEmitter($Emitter);
         $Emitter = new ServerEmitter(self::receiverFilter(), self::getEndpoint());
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'getFilter'
@@ -433,7 +454,7 @@ class ApiIndividual extends Extension implements IApiInterface
 
         $Pipeline = new Pipeline();
         $Emitter = new ServerEmitter(self::receiverService(), self::getEndpoint());
-        $Emitter->setLoadingMessage('Feld wird hinzugefügt...');
+//        $Emitter->setLoadingMessage('Feld wird hinzugefügt...');
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'addField'
         ));
@@ -442,16 +463,16 @@ class ApiIndividual extends Extension implements IApiInterface
             'View'  => $View
         ));
         $Pipeline->appendEmitter($Emitter);
-        $Emitter = new ClientEmitter(self::receiverNavigation(), new ProgressBar(0,100,0).new Small('Navigation wird aktualisiert...'));
-        $Pipeline->appendEmitter($Emitter);
+//        $Emitter = new ClientEmitter(self::receiverNavigation(), new ProgressBar(0,100,0).new Small('Navigation wird aktualisiert...'));
+//        $Pipeline->appendEmitter($Emitter);
         $Emitter = new ServerEmitter(self::receiverNavigation(), self::getEndpoint());
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'getNavigation'
         ));
         $Pipeline->appendEmitter($Emitter);
         // Refresh Filter
-        $Emitter = new ClientEmitter(self::receiverFilter(), new ProgressBar(0,100,0).new Small('Filter wird aktualisiert...'));
-        $Pipeline->appendEmitter($Emitter);
+//        $Emitter = new ClientEmitter(self::receiverFilter(), new ProgressBar(0,100,0).new Small('Filter wird aktualisiert...'));
+//        $Pipeline->appendEmitter($Emitter);
         $Emitter = new ServerEmitter(self::receiverFilter(), self::getEndpoint());
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'getFilter'
@@ -617,7 +638,7 @@ class ApiIndividual extends Extension implements IApiInterface
                         new TableData($TableContent, null,
                             array(
                                 'Name'         => 'Name der Vorlage',
-                                'FieldCount'   => 'Anzahl gewählter Felder',
+//                                'FieldCount'   => 'Anzahl gewählter Felder',
                                 'EntityCreate' => 'Speicherdatum',
                                 'Option'       => ''
                             ))
@@ -756,7 +777,10 @@ class ApiIndividual extends Extension implements IApiInterface
             new LayoutGroup(
                 new LayoutRow(array(
                     new LayoutColumn(
-                        new TableData($TableContent, new Title('Vorhandene Vorlagen'),
+                        new Title('Vorhandene Vorlagen')
+                    ),
+                    new LayoutColumn(
+                        new TableData($TableContent, null,
                             array(
                                 'Name'         => 'Name der Vorlage',
                                 'FieldCount'   => 'Anzahl gewählter Felder',
@@ -820,7 +844,7 @@ class ApiIndividual extends Extension implements IApiInterface
     }
 
     /**
-     * @return Panel
+     * @return Layout
      */
     public function getNavigation()
     {
@@ -838,23 +862,32 @@ class ApiIndividual extends Extension implements IApiInterface
 
         $AccordionList = array();
 
-        $AccordionList[] = (new Accordion(''))
-            ->addItem('Schüler', $this->getPanelList(new ViewStudent(), $WorkSpaceList),
-                (isset($ViewList['ViewStudent']) ? true : false))
-            ->addItem('Schüler - Klassen', $this->getPanelList(new ViewEducationStudent(), $WorkSpaceList),
-                (isset($ViewList['ViewEducationStudent']) ? true : false));
+//        $AccordionList[] = (new Accordion(''))
+//            ->addItem('Schüler', $this->getPanelList(new ViewStudent(), $WorkSpaceList),
+//                (isset($ViewList['ViewStudent']) ? true : false))
+//            ->addItem('Klassen', $this->getPanelList(new ViewEducationStudent(), $WorkSpaceList),
+//                (isset($ViewList['ViewEducationStudent']) ? true : false));
 
-        return new Panel('Verfügbare Felder', array(
-            (new Primary('Vorlage laden', ApiIndividual::getEndpoint(), new Download(), array(),
-                'Laden von Filtervorlagen'))->ajaxPipelineOnClick(
-                ApiIndividual::pipelinePresetShowModal()
-            ),
+        (isset($ViewList['ViewStudent'])
+            ? $AccordionList[] = new Panel( 'Schüler', new Scrollable( $this->getPanelList(new ViewStudent(), $WorkSpaceList) ))
+            : $AccordionList[] = new Dropdown( 'Schüler', new Scrollable( $this->getPanelList(new ViewStudent(), $WorkSpaceList) ) )
+        );
+
+        (isset($ViewList['ViewEducationStudent'])
+            ? $AccordionList[] = new Panel( 'Klassen' , new Scrollable( $this->getPanelList(new ViewEducationStudent(), $WorkSpaceList) ))
+            : $AccordionList[] = new Dropdown( 'Klassen', new Scrollable( $this->getPanelList(new ViewEducationStudent(), $WorkSpaceList) ) )
+        );
+
+        return
 //            (new Accordion())->addItem('Schüler Grunddaten',
-            new Layout(new LayoutGroup(new LayoutRow(
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(
+                    new Title( 'Verfügbare Informationen' )
+                ),
                 new LayoutColumn(
                     $AccordionList
                 )
-            )))
+            ))
 //                , true)
         ));
     }
@@ -900,7 +933,7 @@ class ApiIndividual extends Extension implements IApiInterface
 
                         if (!in_array($FieldTblName, $WorkSpaceList)) {
                             $ViewName = $View->getViewObjectName();
-                            $FieldListArray[$FieldTblName] = new PullClear($FieldName.new PullRight((new Primary('',
+                            $FieldListArray[$FieldTblName] = new PullClear($FieldName.new PullRight((new Link('',
                                     self::getEndpoint(), new Plus()))
                                     ->ajaxPipelineOnClick(self::pipelineAddField($ViewFieldName, $ViewName))));
                         }
@@ -908,7 +941,8 @@ class ApiIndividual extends Extension implements IApiInterface
                 }
 
                 if (!empty($FieldListArray)) {
-                    $PanelString .= new Panel($Block, $FieldListArray, Panel::PANEL_TYPE_PRIMARY);
+                    array_unshift( $FieldListArray, new Bold( $Block ) );
+                    $PanelString .= new Listing( $FieldListArray );
                 }
             }
         }
@@ -917,7 +951,7 @@ class ApiIndividual extends Extension implements IApiInterface
     }
 
     /**
-     * @return Panel|InfoMessage
+     * @return Panel|string
      */
     public function getFilter()
     {
@@ -931,24 +965,18 @@ class ApiIndividual extends Extension implements IApiInterface
                 $FieldCount = $tblWorkSpace->getFieldCount();
                 if ($FieldCount <= 1) {
                     $LinkGroup = (new LinkGroup())
-                        ->addLink((new Standard('', ApiIndividual::getEndpoint(), new Plus(), array(), 'mehr Angaben'))
+                        ->addLink((new Link(new SuccessText(new Plus()), ApiIndividual::getEndpoint(), null, array(), 'ODER'))
                             ->ajaxPipelineOnClick(ApiIndividual::pipelineChangeFilterCount($tblWorkSpace->getId(),
-                                'plus')))
-                        ->addLink((new Standard('', ApiIndividual::getEndpoint(), new Remove(), array(),
-                            'Filter entfernen'))
-                            ->ajaxPipelineOnClick(ApiIndividual::pipelineDeleteFilterField($tblWorkSpace->getId())));
+                                'plus')));
                 } else {
                     $LinkGroup = (new LinkGroup())
-                        ->addLink((new Standard('', ApiIndividual::getEndpoint(), new Plus(), array(), 'mehr Angaben'))
+                        ->addLink((new Link(new SuccessText(new Plus()), ApiIndividual::getEndpoint(), null, array(), 'ODER'))
                             ->ajaxPipelineOnClick(ApiIndividual::pipelineChangeFilterCount($tblWorkSpace->getId(),
                                 'plus')))
-                        ->addLink((new Standard('', ApiIndividual::getEndpoint(), new Minus(), array(),
-                            'weniger Angaben'))
+                        ->addLink((new Link(new DangerText( new Minus() ), ApiIndividual::getEndpoint(), null, array(),
+                            ''))
                             ->ajaxPipelineOnClick(ApiIndividual::pipelineChangeFilterCount($tblWorkSpace->getId(),
-                                'minus')))
-                        ->addLink((new Standard('', ApiIndividual::getEndpoint(), new Remove(), array(),
-                            'Filter entfernen'))
-                            ->ajaxPipelineOnClick(ApiIndividual::pipelineDeleteFilterField($tblWorkSpace->getId())));
+                                'minus')));
                 }
 
                 $FieldName = $View->getNameDefinition($tblWorkSpace->getField());
@@ -956,30 +984,38 @@ class ApiIndividual extends Extension implements IApiInterface
                 $FilterInputList = array();
                 for ($i = 1; $i <= $FieldCount; $i++) {
                     if ($View->getDisableDefinition($tblWorkSpace->getField())) {
-                        $FilterInputList[] = new Muted(new Center('Informations-Anzeige'));
-                        // LinkButton reduzieren
-                        $LinkGroup = (new LinkGroup())
-                            ->addLink((new Standard('', ApiIndividual::getEndpoint(), new Remove(), array(),
-                                'Filter entfernen'))
-                                ->ajaxPipelineOnClick(ApiIndividual::pipelineDeleteFilterField($tblWorkSpace->getId())));
+                        $FilterInputList[] = new Muted(new Center('Informationsfeld'));
+                        // No Actions
+                        $LinkGroup = '';
                     } else {
-                        $FilterInputList[] = new TextField($tblWorkSpace->getField().'['.$i.']', 'Alle');
+                        $FilterInputList[] = ( $i == 1
+                            ? new TextField($tblWorkSpace->getField().'['.$i.']', 'Alle' )
+                            : new TextField($tblWorkSpace->getField().'['.$i.']', '')
+                        );
                     }
                 }
-                $FilterInputList[] = new Center(
-                    (new Standard('', ApiIndividual::getEndpoint(), new ChevronLeft(), array(),
-                        'Position eins vor'))
+                $FilterInputList[] = new Center( new PullClear(
+                    new PullLeft(
+                    (new Link('', ApiIndividual::getEndpoint(), new ChevronLeft(), array(),
+                        'Feld nach links'))
                         ->ajaxPipelineOnClick(ApiIndividual::pipelineMoveFilterField($tblWorkSpace->getId(),
                             'left'))
+                    )
                     .$LinkGroup
-                    .(new Standard('', ApiIndividual::getEndpoint(), new ChevronRight(), array(),
-                        'Position eins hinter'))
+                    .new PullRight(
+                        (new Link('', ApiIndividual::getEndpoint(), new ChevronRight(), array(),
+                        'Feld nach rechts'))
                         ->ajaxPipelineOnClick(ApiIndividual::pipelineMoveFilterField($tblWorkSpace->getId(),
                             'right'))
+                    ))
                 );
 
-                $FormColumnAll[$tblWorkSpace->getPosition()] =
-                    new FormColumn(new Panel($FieldName, $FilterInputList), 3);
+                $Listing = new Listing( array_merge( array( new Bold( $FieldName ) . new PullRight( (new Link(new DangerText( new Disable() ), ApiIndividual::getEndpoint(), null, array(),
+                        'Filter entfernen'))
+                        ->ajaxPipelineOnClick(ApiIndividual::pipelineDeleteFilterField($tblWorkSpace->getId()))) ), $FilterInputList )
+                );
+
+                $FormColumnAll[$tblWorkSpace->getPosition()] = new FormColumn( $Listing, 3);
             }
             ksort($FormColumnAll);
         }
@@ -1000,15 +1036,22 @@ class ApiIndividual extends Extension implements IApiInterface
                 $FormRowCount++;
             }
             $FormRowList[] = new FormRow(new FormColumn(array(
-                (new Primary('Filtern', self::getEndpoint(),
-                    new Filter()))->ajaxPipelineOnClick(self::pipelineResult())// ->setDisabled()
+                (new Primary('Suchen', self::getEndpoint(),
+                    new Search()))->ajaxPipelineOnClick(self::pipelineResult())
             ,
                 (new Danger('Filter entfernen', ApiIndividual::getEndpoint(), new Disable()))->ajaxPipelineOnClick(
                     ApiIndividual::pipelineDelete())
-            ,
-                (new Primary('Vorlage speichern', ApiIndividual::getEndpoint(), new Save(), array(),
-                    'Speichern als Filtervorlage'))->ajaxPipelineOnClick(
-                    ApiIndividual::pipelinePresetSaveModal()
+            , new PullRight(
+                (new LinkGroup())->addLink(
+                    (new Standard('Filter speichern', ApiIndividual::getEndpoint(), new FolderClosed(), array(),
+                        'Speichern als Filtervorlage'))->ajaxPipelineOnClick(
+                        ApiIndividual::pipelinePresetSaveModal()
+                    )
+                    )->addLink(
+                    (new Standard('Filter laden', ApiIndividual::getEndpoint(), new FolderOpen(), array(),
+                        'Laden von Filtervorlagen'))->ajaxPipelineOnClick(
+                        ApiIndividual::pipelinePresetShowModal()
+                    ))
                 )
             )));
         }
@@ -1022,7 +1065,12 @@ class ApiIndividual extends Extension implements IApiInterface
             $Panel = new Panel('Filter', $Form, Panel::PANEL_TYPE_INFO);
         }
 
-        return (isset($Panel) ? $Panel : new InfoMessage('Bitte wählen Sie aus welche Spalten gefilter werden sollen'));
+        return (isset($Panel) ? $Panel : new Muted('Bitte wählen Sie Felder aus den verfügbaren Informationen oder laden Sie eine')
+            .(new Standard('&nbsp;Filtervorlage', ApiIndividual::getEndpoint(), new FolderOpen(), array(),
+                'Laden von Filtervorlagen'))->ajaxPipelineOnClick(
+                ApiIndividual::pipelinePresetShowModal()
+            )
+        );
     }
 
     /**
@@ -1031,7 +1079,8 @@ class ApiIndividual extends Extension implements IApiInterface
     public static function pipelineResult()
     {
         $Pipeline = new Pipeline();
-        $Pipeline->setLoadingMessage( 'Daten werden verarbeitet...' );
+        $Emitter = new ClientEmitter(self::receiverResult(), new ProgressBar(0,100,0, 10).new Small('Daten werden verarbeitet...'));
+        $Pipeline->appendEmitter($Emitter);
         $Emitter = new ServerEmitter(self::receiverResult(), self::getEndpoint());
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'getResult'
@@ -1085,6 +1134,7 @@ class ApiIndividual extends Extension implements IApiInterface
                     $Builder->addSelect($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField()
                         . ' AS ' . $Alias
                     );
+
                     // Add Condition to Parameter (if exists and is not empty)
                     $Filter = $this->getGlobal()->POST;
                     /** @var null|Orx $OrExp */
@@ -1143,6 +1193,8 @@ class ApiIndividual extends Extension implements IApiInterface
                 }
 
                 $Query = $Builder->getQuery();
+                $Query->useQueryCache(true);
+                $Query->useResultCache(true, 300);
                 $Query->setMaxResults(1000);
 
                 $Error = false;
@@ -1177,16 +1229,19 @@ class ApiIndividual extends Extension implements IApiInterface
                     $Error = true;
                 }
 
+                if( empty( $Result ) ) {
+                    $Result = new Info( 'Keine Daten gefunden' );
+                } else {
+                    $Result = new TableData($Result, null, $ColumnDTNames, array(
+                        'responsive' => false
+                    ), false);
+                }
+
                 return ''
-                    .$DQL
-                    .$SQL
-                    .$DT
-                    .(!$Error
-                        ? new TableData($Result, null, $ColumnDTNames, array(
-                            'responsive' => false
-                        ), false)
-                        : 'Error'
-                    )
+//                    .$DQL
+//                    .$SQL
+//                    .$DT
+                    .$Result
                     ;
             } else {
                 return ':(';
