@@ -1932,6 +1932,11 @@ class Service extends Extension
                     }
 
                     $DataPerson['Address'] = '';
+                    $DataPerson['Street'] = '';
+                    $DataPerson['HouseNumber'] = '';
+                    $DataPerson['CityCode'] = '';
+                    $DataPerson['City'] = '';
+                    $DataPerson['District'] = '';
                     if (($tblAddress = Address::useService()->getAddressByPerson($tblPerson))) {
                         $DataPerson['Address'] = $tblAddress->getGuiString();
                         if (($tblCity = $tblAddress->getTblCity())) {
