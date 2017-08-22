@@ -216,16 +216,26 @@ abstract class AbstractDocument
                 $Data['Student']['Identifier'] = $tblStudent->getIdentifier();
 
                 if (( $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT') )) {
-                    if (( $tblTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                        $tblTransferType) )
-                    ) {
+                    if (( $tblTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblTransferType) )) {
                         $Data['Student']['School']['Enrollment']['Date'] = $tblTransfer->getTransferDate();
                         $Year = ( new \DateTime($tblTransfer->getTransferDate()) )->format('Y');
                         $YearShort = (integer)(new \DateTime($tblTransfer->getTransferDate()))->format('y');
                         $YearString = $Year.'/'.( $YearShort + 1 );
                         $Data['Student']['School']['Enrollment']['Year'] = $YearString;
+                        if (($tblStudentSchoolEnrollmentType = $tblTransfer->getTblStudentSchoolEnrollmentType())) {
+                            if ($tblStudentSchoolEnrollmentType->getIdentifier() == 'POSTPONED') {
+                                $Data['Student']['School']['Enrollment']['Postponed'] = 'X';
+                            }
+                            if ($tblStudentSchoolEnrollmentType->getIdentifier() == 'PREMATURE') {
+                                $Data['Student']['School']['Enrollment']['Premature'] = 'X';
+                            }
+                            if ($tblStudentSchoolEnrollmentType->getIdentifier() == 'REGULAR') {
+                                $Data['Student']['School']['Enrollment']['Regular'] = 'X';
+                            }
+                        }
                     }
                 }
+
                 if (( $AttendanceDate = $tblStudent->getSchoolAttendanceStartDate())) {
                     $Data['Student']['School']['Attendance']['Date'] = $AttendanceDate;
                     $Year = ( new \DateTime($AttendanceDate) )->format('Y');
@@ -638,6 +648,42 @@ abstract class AbstractDocument
                             $remark = $tblPhoneToPerson->getRemark();
                             $Data['Person']['Contact']['Phone']['Emergency' . $countNumbers]
                                 = $tblPhoneToPerson->getTblPhone()->getNumber() . ($remark ? ' (' . trim($remark) . ')' : '');
+                            $Data['Person']['Contact']['Phone']['EmergencyPdf' . $countNumbers]
+                                = $tblPhoneToPerson->getTblPhone()->getNumber();
+                        }
+                    }
+                }
+            }
+        }
+        if ($countNumbers < 2) {
+            if (($RelationList = Relationship::useService()->getPersonRelationshipAllByPerson($this->getTblPerson()))) {
+                foreach ($RelationList as $Relation) {
+                    if (($tblType = $Relation->getTblType()) && ($tblType->getName() == 'Sorgeberechtigt')) {
+                        $tblPersonCustody = $Relation->getServiceTblPersonFrom();
+                        if (($CustodyPhoneList = Phone::useService()->getPhoneAllByPerson($tblPersonCustody))) {
+                            foreach ($CustodyPhoneList as $CustodyPhone) {
+                                if (($CustodyPhone->getTblType()->getName() == 'Notfall')) {
+                                     if (isset($Data['Person']['Contact']['Phone']['Emergency1'])
+                                         && ($CustodyPhone->getTblPhone()->getNumber() !== $Data['Person']['Contact']['Phone']['Emergency1'])) {
+                                        if ($countNumbers >= 2) {
+                                            break;
+                                        }
+                                        $countNumbers++;
+                                        $remark = $CustodyPhone->getRemark();
+                                        $Data['Person']['Contact']['Phone']['Emergency' . $countNumbers]
+                                            = $CustodyPhone->getTblPhone()->getNumber() . ($remark ? ' (' . trim($remark) . ')' : '');
+                                         $Data['Person']['Contact']['Phone']['EmergencyPdf' . $countNumbers]
+                                             = $CustodyPhone->getTblPhone()->getNumber();
+                                     } elseif (!isset($Data['Person']['Contact']['Phone']['Emergency1'])) {
+                                         $countNumbers++;
+                                         $remark = $CustodyPhone->getRemark();
+                                         $Data['Person']['Contact']['Phone']['Emergency' . $countNumbers]
+                                             = $CustodyPhone->getTblPhone()->getNumber() . ($remark ? ' (' . trim($remark) . ')' : '');
+                                         $Data['Person']['Contact']['Phone']['EmergencyPdf' . $countNumbers]
+                                             = $CustodyPhone->getTblPhone()->getNumber();
+                                     }
+                                }
+                            }
                         }
                     }
                 }
