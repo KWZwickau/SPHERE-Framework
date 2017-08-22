@@ -114,7 +114,6 @@ abstract class AbstractDocument
         if (!empty($Data)) {
             $this->Document->setData($Data);
         }
-
         return $this->Document->getTemplate();
     }
 
@@ -676,6 +675,22 @@ abstract class AbstractDocument
         }
 
         return $Data;
+    }
+
+    /**
+     * @return null|Frame
+     */
+    public function getDocument()
+    {
+        return $this->Document;
+    }
+
+    /**
+     * @param null|Frame $Document
+     */
+    public function setDocument($Document)
+    {
+        $this->Document = $Document;
     }
 
     /**
