@@ -50,6 +50,10 @@ class TblWorkSpace extends Element
      * @Column(type="integer")
      */
     protected $FieldCount;
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsExpanded;
 
     /**
      * @return bool|TblPreset
@@ -155,5 +159,21 @@ class TblWorkSpace extends Element
     public function setFieldCount($FieldCount)
     {
         $this->FieldCount = $FieldCount;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isExpanded()
+    {
+        return (bool)$this->IsExpanded;
+    }
+
+    /**
+     * @param bool $isExpanded
+     */
+    public function setExpanded($isExpanded)
+    {
+        $this->IsExpanded = (bool)$isExpanded;
     }
 }

@@ -23,6 +23,8 @@ class Reporting implements IApplicationInterface
         Standard::registerModule();
         CheckList::registerModule();
         SerialLetter::registerModule();
+
         ApiIndividual::registerApi();
+        ApiIndividual::registerModule();
     }
 }

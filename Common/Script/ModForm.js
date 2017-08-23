@@ -26,7 +26,7 @@
          */
         if( !thisForm.hasClass('AjaxSubmit') ) {
             thisForm.on("submit", function () {
-                thisForm.find('button[type="submit"]:not(.disabled)').html(
+                thisForm.find('button[type="submit"]:not(.disabled,.ExternalSubmit)').html(
                     '<span class="loading-indicator-animate"></span> Bitte warten'
                 );
             });

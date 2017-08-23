@@ -62,6 +62,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'View', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Position', self::FIELD_TYPE_INTEGER);
         $this->createColumn($Table, 'FieldCount', self::FIELD_TYPE_INTEGER);
+        $this->createColumn($Table, 'IsExpanded', self::FIELD_TYPE_BOOLEAN);
         $this->getConnection()->addForeignKey($Table, $tblPreset, true);
 
         return $Table;

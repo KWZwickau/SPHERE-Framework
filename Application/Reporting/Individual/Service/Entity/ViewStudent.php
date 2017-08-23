@@ -455,7 +455,7 @@ class ViewStudent extends AbstractView
         $this->setNameDefinition(self::TBL_COMMON_INFORMATION_IS_ASSISTANCE, 'Mitarbeitsbereitschaft');
         $this->setNameDefinition(self::TBL_COMMON_INFORMATION_ASSISTANCE_ACTIVITY, 'Mitarbeits Aktivitäten');
 
-        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME, 'Strasse');
+        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME, 'Straße');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER, 'Hausnummer');
         $this->setNameDefinition(self::TBL_CITY_CODE, 'PLZ');
         $this->setNameDefinition(self::TBL_CITY_CITY, 'Ort');

@@ -14,9 +14,11 @@
             /**
              * Activate: Tooltip
              */
+            {% if ElementToolTip is not empty %}
             $('a#{{ Hash }}[data-toggle="popover"]').popover({
                 placement: 'auto top'
             });
+            {% endif %}
 
             {% if RedirectTimeout is not empty %}
             jQuery("a#{{ Hash }}").on("click", function ()
