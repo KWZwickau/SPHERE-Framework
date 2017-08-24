@@ -800,6 +800,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                                'Salutation' => 'Anrede',
                                 'FirstName'    => 'Vorname',
                                 'LastName'     => 'Name',
+                                'Gender'       => 'Geschlecht',
                                 'Denomination' => 'Konfession',
                                 'Birthday'     => 'Geburtsdatum',
                                 'Birthplace'   => 'Geburtsort',
