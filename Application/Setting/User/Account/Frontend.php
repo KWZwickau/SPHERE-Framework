@@ -68,6 +68,11 @@ use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
 
+/**
+ * Class Frontend
+ *
+ * @package SPHERE\Application\Setting\User\Account
+ */
 class Frontend extends Extension implements IFrontendInterface
 {
 
@@ -97,7 +102,7 @@ class Frontend extends Extension implements IFrontendInterface
             (new ProgressBar(100, 0, 0, 10))
                 ->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_INFO, ProgressBar::BAR_COLOR_WARNING)
             .'</span>',
-            'Anzahl der Sorbeberechtigten-Accounts: '.$countUserAccountCustody.'<span style="width: 40px; float: left; padding: 3px">'.
+            'Anzahl der Sorgeberechtigten-Accounts: '.$countUserAccountCustody.'<span style="width: 40px; float: left; padding: 3px">'.
             (new ProgressBar(0, 100, 0, 10))
                 ->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_INFO, ProgressBar::BAR_COLOR_WARNING)
             .'</span>',
