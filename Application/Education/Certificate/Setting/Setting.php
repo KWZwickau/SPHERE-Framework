@@ -2,7 +2,6 @@
 namespace SPHERE\Application\Education\Certificate\Setting;
 
 use SPHERE\Application\Education\Certificate\Generator\Generator;
-use SPHERE\Application\Education\Certificate\Generator\Service;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -19,13 +18,18 @@ class Setting extends Extension implements IModuleInterface
         );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, __NAMESPACE__.'\Frontend::frontendSelectCertificate'
+            __NAMESPACE__ . '\Template', __NAMESPACE__.'\Frontend::frontendSelectCertificate'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'\Configuration', __NAMESPACE__.'\Frontend::frontendCertificateSetting'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'\Approval', __NAMESPACE__.'\Frontend::frontendApproval'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__, __NAMESPACE__.'\Frontend::frontendDashboard'
+        ));
     }
-
 
     /**
      * @return \SPHERE\Application\Education\Certificate\Generator\Service

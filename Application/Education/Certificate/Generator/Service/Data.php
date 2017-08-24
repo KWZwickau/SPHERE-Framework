@@ -35,14 +35,8 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-        $tblCertificateTypeHalfYear = $this->createCertificateType('Halbjahresinformation/Halbjahreszeugnis',
-            'HALF_YEAR');
-        if (($tblCertificateTypeYear = $this->getCertificateTypeByIdentifier('YEAR'))) {
-            $this->updateCertificateType($tblCertificateTypeYear, $tblCertificateTypeYear->getIdentifier(), 'Jahreszeugnis');
-            $tblCertificateTypeYear = $this->getCertificateTypeByIdentifier('YEAR');
-        } else {
-            $tblCertificateTypeYear = $this->createCertificateType('Jahreszeugnis', 'YEAR');
-        }
+        $tblCertificateTypeHalfYear = $this->createCertificateType('Halbjahresinformation/Halbjahreszeugnis', 'HALF_YEAR');
+        $tblCertificateTypeYear = $this->createCertificateType('Jahreszeugnis', 'YEAR');
         $tblCertificateTypeGradeInformation = $this->createCertificateType('Noteninformation', 'GRADE_INFORMATION');
         $tblCertificateTypeRecommendation = $this->createCertificateType('Bildungsempfehlung', 'RECOMMENDATION');
         $tblCertificateTypeLeave = $this->createCertificateType('Abgangszeugnis', 'LEAVE');
@@ -2565,16 +2559,19 @@ class Data extends AbstractData
     public function getCertificateTypeAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCertificateType');
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCertificateType', array(
+            TblCertificateType::ATTR_NAME => self::ORDER_ASC
+        ));
     }
 
     /**
      * @param $Name
      * @param $Identifier
+     * @param bool $IsAutomaticallyApproved
      *
      * @return null|TblCertificateType
      */
-    public function createCertificateType($Name, $Identifier)
+    public function createCertificateType($Name, $Identifier, $IsAutomaticallyApproved = false)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -2586,6 +2583,7 @@ class Data extends AbstractData
             $Entity = new TblCertificateType();
             $Entity->setName($Name);
             $Entity->setIdentifier(strtoupper($Identifier));
+            $Entity->setAutomaticallyApproved($IsAutomaticallyApproved);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -2947,13 +2945,15 @@ class Data extends AbstractData
      * @param TblCertificateType $tblCertificateType
      * @param $Identifier
      * @param $Name
+     * @param $IsAutomaticallyApproved
      *
      * @return bool
      */
     public function updateCertificateType(
         TblCertificateType $tblCertificateType,
         $Identifier,
-        $Name
+        $Name,
+        $IsAutomaticallyApproved
     ) {
 
         $Manager = $this->getEntityManager();
@@ -2964,6 +2964,7 @@ class Data extends AbstractData
 
             $Entity->setIdentifier($Identifier);
             $Entity->setName($Name);
+            $Entity->setAutomaticallyApproved($IsAutomaticallyApproved);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

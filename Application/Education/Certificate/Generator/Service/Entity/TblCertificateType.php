@@ -24,6 +24,7 @@ class TblCertificateType extends Element
 
     const ATTR_NAME = 'Name';
     const ATTR_IDENTIFIER = 'Identifier';
+    const ATTR_IS_AUTOMATICALLY_APPROVED = 'IsAutomaticallyApproved';
 
     /**
      * @Column(type="string")
@@ -34,6 +35,11 @@ class TblCertificateType extends Element
      * @Column(type="string")
      */
     protected $Identifier;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsAutomaticallyApproved;
 
     /**
      * @return string
@@ -69,5 +75,21 @@ class TblCertificateType extends Element
     {
 
         $this->Identifier = $Identifier;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function isAutomaticallyApproved()
+    {
+        return (boolean) $this->IsAutomaticallyApproved;
+    }
+
+    /**
+     * @param mixed $IsAutomaticallyApproved
+     */
+    public function setAutomaticallyApproved($IsAutomaticallyApproved)
+    {
+        $this->IsAutomaticallyApproved = (boolean) $IsAutomaticallyApproved;
     }
 }
