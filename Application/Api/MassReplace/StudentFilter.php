@@ -142,6 +142,7 @@ class StudentFilter extends Extension
                 'columnDefs' => array(
                     array('type' => 'natural', 'targets' => 3),
                 ),
+                'order'      => array(array(1, 'asc')),
                 'pageLength' => -1,
                 'paging'     => false,
                 'info'       => false,
