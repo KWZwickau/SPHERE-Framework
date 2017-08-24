@@ -5,6 +5,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -300,4 +301,51 @@ class TblStudent extends Element
         $this->IsInPreparationDivisionForMigrants = (boolean) $IsInPreparationDivisionForMigrants;
     }
 
+    /**
+     * @return false|TblDivision[]
+     */
+    public function getCurrentDivisionList()
+    {
+
+        if (($tblPerson = $this->getServiceTblPerson())) {
+            return Student::useService()->getCurrentDivisionListByPerson($tblPerson);
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param string $Prefix
+     *
+     * @return bool|string
+     */
+    public function getDisplayCurrentDivisionList($Prefix = 'Klasse')
+    {
+
+        if (($tblPerson = $this->getServiceTblPerson())) {
+            return Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, $Prefix);
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     *
+     * @return bool|TblDivision
+     */
+    public function getCurrentMainDivision()
+    {
+
+        if (($list = $this->getCurrentDivisionList())) {
+            foreach ($list as $tblDivision){
+                if (($tblLevel = $tblDivision->getTblLevel())
+                    && !$tblLevel->getIsChecked()
+                ) {
+                    return $tblDivision;
+                }
+            }
+        }
+
+        return false;
+    }
 }
