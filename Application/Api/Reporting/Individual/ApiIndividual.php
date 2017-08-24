@@ -7,7 +7,6 @@ use Doctrine\ORM\Query\Expr\Orx;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
-use MOC\V\Component\Template\Template;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
@@ -25,10 +24,7 @@ use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudent;
 use SPHERE\Common\Frontend\Ajax\Emitter\ClientEmitter;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
-use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
-use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
-use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary as Submit;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -63,7 +59,6 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Danger;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
@@ -82,13 +77,12 @@ use SPHERE\Common\Main;
 use SPHERE\Common\Window\Error;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\System\Database\Binding\AbstractView;
-use SPHERE\System\Extension\Extension;
 
 /**
  * Class ApiIndividual
  * @package SPHERE\Application\Api\Reporting\Individual
  */
-class ApiIndividual extends Extension implements IApiInterface, IModuleInterface
+class ApiIndividual extends IndividualReceiver implements IApiInterface, IModuleInterface
 {
     use ApiTrait, AppTrait;
 
@@ -115,7 +109,6 @@ class ApiIndividual extends Extension implements IApiInterface, IModuleInterface
         // TODO: Implement useFrontend() method.
     }
 
-
     /**
      * @param string $Method
      *
@@ -140,64 +133,6 @@ class ApiIndividual extends Extension implements IApiInterface, IModuleInterface
         $Dispatcher->registerMethod('getSearchResult');
 
         return $Dispatcher->callMethod($Method);
-    }
-
-    /**
-     * @param string $Content
-     *
-     * @return BlockReceiver
-     */
-    public static function receiverNavigation($Content = '')
-    {
-        return (new BlockReceiver($Content))
-            ->setIdentifier('ReceiverNavigation');
-    }
-
-    /**
-     * @param string $Content
-     *
-     * @return BlockReceiver
-     */
-    public static function receiverFilter($Content = '')
-    {
-        return (new BlockReceiver($Content))
-            ->setIdentifier('ReceiverFilter');
-    }
-
-    /**
-     * @param string $Content
-     *
-     * @return BlockReceiver
-     */
-    public static function receiverService($Content = '')
-    {
-        return (new BlockReceiver($Content))
-            ->setIdentifier('ReceiverService');
-    }
-
-    /**
-     * @param string $Content
-     *
-     * @return BlockReceiver
-     */
-    public static function receiverResult($Content = '')
-    {
-        if( empty($Content) ) {
-            $Content = new Muted( 'Es wurde bisher keine Suche durchgeführt' );
-        }
-        return (new BlockReceiver($Content))
-            ->setIdentifier('ReceiverResult');
-    }
-
-    /**
-     * @param string $Header
-     *
-     * @return ModalReceiver
-     */
-    public static function receiverModal($Header = '')
-    {
-        return (new ModalReceiver($Header, new Close()))
-            ->setIdentifier('ModalReceiver');
     }
 
     /**
@@ -1188,6 +1123,10 @@ class ApiIndividual extends Extension implements IApiInterface, IModuleInterface
         }
     }
 
+    /**
+     * @param string $Name
+     * @return string
+     */
     private function encodeField($Name) {
         $EncoderPattern = array(
             '!ä!s' => '_aE_',
@@ -1202,6 +1141,10 @@ class ApiIndividual extends Extension implements IApiInterface, IModuleInterface
         return preg_replace(array_keys( $EncoderPattern ), array_values( $EncoderPattern ), $Name );
     }
 
+    /**
+     * @param string $Name
+     * @return string
+     */
     private function decodeField($Name) {
         $DecoderPattern = array(
             '!_aE_!s' => 'ä',

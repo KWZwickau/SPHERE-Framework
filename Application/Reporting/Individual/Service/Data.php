@@ -128,6 +128,8 @@ class Data extends AbstractData
         $Entity->setView($View);
         $Entity->setPosition($Position);
         $Entity->setFieldCount($FieldCount);
+        // TODO: Expanded Parameter
+        $Entity->setExpanded(false);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         return $Entity;
