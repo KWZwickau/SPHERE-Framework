@@ -1,8 +1,8 @@
-CREATE
-    ALGORITHM = UNDEFINED
-    DEFINER = `root`@`%`
-    SQL SECURITY DEFINER
-VIEW SettingConsumer_DEMO.viewStudent AS
+ CREATE
+     ALGORITHM = UNDEFINED
+     DEFINER = `root`@`%`
+     SQL SECURITY DEFINER
+ VIEW SettingConsumer_DEMO.viewStudent AS
 select distinct
 
 -- (	select distinct
@@ -40,6 +40,7 @@ vP.TblPerson_Title,
 vP.TblPerson_FirstName,
 vP.TblPerson_SecondName,
 vP.TblPerson_LastName,
+vP.TblPerson_BirthName,
 vP.TblCommonInformation_IsAssistance,
 vP.TblCommonInformation_AssistanceActivity,
 vP.TblCommon_Remark,vP.TblCommonBirthDates_Birthday,
@@ -75,7 +76,12 @@ vP.TblCommonInformation_Nationality,
 (	select vCA.TblAddress_County from viewContactAddress vCA where
     vP.TblPerson_Id = vCA.TblPerson_Id
     and vCA.TblType_Name = 'Hauptadresse'
-) TblAddress_Country,
+) TblAddress_County,
+
+(	select vCA.TblState_Name from viewContactAddress vCA where
+    vP.TblPerson_Id = vCA.TblPerson_Id
+    and vCA.TblType_Name = 'Hauptadresse'
+) TblState_Name,
 
 (	select vCA.TblAddress_Nation from viewContactAddress vCA where
     vP.TblPerson_Id = vCA.TblPerson_Id
@@ -88,9 +94,9 @@ vP.TblCommonInformation_Nationality,
         vCP.TblType_Name,
         ': ',
 		vCP.TblPhone_Number,
-        ' - ',
+        case when vCP.TblToPerson_Remark then ' - ' else '' end,
         vCP.TblToPerson_Remark
-        ) separator '\n\r'
+        ) separator '<br/>'
     ) from viewContactPhone vCP where
     vP.TblPerson_Id = vCP.TblPerson_Id
 
@@ -102,9 +108,9 @@ vP.TblCommonInformation_Nationality,
         vCM.TblType_Name,
         ': ',
 		vCM.TblMail_Address,
-        ' - ',
+        case when vCM.TblToPerson_Remark then ' - ' else '' end,
         vCM.TblToPerson_Remark
-        ) separator '\n\r'
+        ) separator '<br/>'
     ) from viewContactMail vCM where
     vP.TblPerson_Id = vCM.TblPerson_Id
 
@@ -127,11 +133,11 @@ vGS.TblStudent_Identifier,
     limit 0,1
 ) Sibling_Count,
 
--- (	select distinct vGS_2.TblCourse_Name -- braucht 16 sec.
---     from viewGroupStudent vGS_2
---     where vP.TblPerson_Id = vGS_2.TblPerson_Id
---     and vGS_2.TblStudentTransferType_Name = 'Process'
--- ) Bildungsgang,
+(	select distinct vGS_2.TblCourse_Name -- braucht 16 sec.
+    from viewGroupStudent vGS_2
+    where vP.TblPerson_Id = vGS_2.TblPerson_Id
+    and vGS_2.TblStudentTransferType_Name = 'PROCESS'
+) Bildungsgang,
 --
 -- (	select vGS_2.TblSubject_Name from viewGroupStudent vGS_2 where
 --     vP.TblPerson_Id = vGS_2.TblPerson_Id
@@ -154,33 +160,33 @@ vGS.TblStudent_Identifier,
 --     limit 0,1
 -- )Arbeitsgemeinschaft3,
 --
--- (	select vGS_2.TblSubject_Name from viewGroupStudent vGS_2 where
---     vP.TblPerson_Id = vGS_2.TblPerson_Id
---     and vGS_2.TblStudentSubjectRanking_Identifier = '1'
---     and vGS_2.TblStudentSubjectType_Identifier = 'FOREIGN_LANGUAGE'
---     limit 0,1
--- )Fremdsprache1,
---
--- (	select vGS_2.TblSubject_Name from viewGroupStudent vGS_2 where
---     vP.TblPerson_Id = vGS_2.TblPerson_Id
---     and vGS_2.TblStudentSubjectRanking_Identifier = '2'
---     and vGS_2.TblStudentSubjectType_Identifier = 'FOREIGN_LANGUAGE'
---     limit 0,1
--- )Fremdsprache2,
---
--- (	select vGS_2.TblSubject_Name from viewGroupStudent vGS_2 where
---     vP.TblPerson_Id = vGS_2.TblPerson_Id
---     and vGS_2.TblStudentSubjectRanking_Identifier = '3'
---     and vGS_2.TblStudentSubjectType_Identifier = 'FOREIGN_LANGUAGE'
---     limit 0,1
--- )Fremdsprache3,
---
--- (	select vGS_2.TblSubject_Name from viewGroupStudent vGS_2 where
---     vP.TblPerson_Id = vGS_2.TblPerson_Id
---     and vGS_2.TblStudentSubjectRanking_Identifier = '4'
---     and vGS_2.TblStudentSubjectType_Identifier = 'FOREIGN_LANGUAGE'
---     limit 0,1
--- )Fremdsprache4,
+ (	select vGS_2.TblSubject_Name from viewGroupStudent vGS_2 where
+     vP.TblPerson_Id = vGS_2.TblPerson_Id
+     and vGS_2.TblStudentSubjectRanking_Identifier = '1'
+     and vGS_2.TblStudentSubjectType_Identifier = 'FOREIGN_LANGUAGE'
+     limit 0,1
+ )Fremdsprache1,
+
+ (	select vGS_2.TblSubject_Name from viewGroupStudent vGS_2 where
+     vP.TblPerson_Id = vGS_2.TblPerson_Id
+     and vGS_2.TblStudentSubjectRanking_Identifier = '2'
+     and vGS_2.TblStudentSubjectType_Identifier = 'FOREIGN_LANGUAGE'
+     limit 0,1
+ )Fremdsprache2,
+
+ (	select vGS_2.TblSubject_Name from viewGroupStudent vGS_2 where
+     vP.TblPerson_Id = vGS_2.TblPerson_Id
+     and vGS_2.TblStudentSubjectRanking_Identifier = '3'
+     and vGS_2.TblStudentSubjectType_Identifier = 'FOREIGN_LANGUAGE'
+     limit 0,1
+ )Fremdsprache3,
+
+ (	select vGS_2.TblSubject_Name from viewGroupStudent vGS_2 where
+     vP.TblPerson_Id = vGS_2.TblPerson_Id
+     and vGS_2.TblStudentSubjectRanking_Identifier = '4'
+     and vGS_2.TblStudentSubjectType_Identifier = 'FOREIGN_LANGUAGE'
+     limit 0,1
+ )Fremdsprache4,
 --
 -- (	select vGS_2.TblSubject_Name from viewGroupStudent vGS_2 where
 --     vP.TblPerson_Id = vGS_2.TblPerson_Id
@@ -203,26 +209,26 @@ vGS.TblStudent_Identifier,
 --     limit 0,1
 -- )Wahlfach3,
 --
--- (	select vGS_2.TblSubject_Name from viewGroupStudent vGS_2 where
---     vP.TblPerson_Id = vGS_2.TblPerson_Id
---     and vGS_2.TblStudentSubjectRanking_Identifier = '1'
---     and vGS_2.TblStudentSubjectType_Identifier = 'RELIGION'
---     limit 0,1
--- )Religion,
---
--- (	select vGS_2.TblSubject_Name from viewGroupStudent vGS_2 where
---     vP.TblPerson_Id = vGS_2.TblPerson_Id
---     and vGS_2.TblStudentSubjectRanking_Identifier = '1'
---     and vGS_2.TblStudentSubjectType_Identifier = 'PROFILE'
---     limit 0,1
--- )Profil,
---
--- (	select vGS_2.TblSubject_Name from viewGroupStudent vGS_2 where
---     vP.TblPerson_Id = vGS_2.TblPerson_Id
---     and vGS_2.TblStudentSubjectRanking_Identifier = '1'
---     and vGS_2.TblStudentSubjectType_Identifier = 'ORIENTATION'
---     limit 0,1
--- )Neigungskurs,
+ (	select vGS_2.TblSubject_Name from viewGroupStudent vGS_2 where
+     vP.TblPerson_Id = vGS_2.TblPerson_Id
+     and vGS_2.TblStudentSubjectRanking_Identifier = '1'
+     and vGS_2.TblStudentSubjectType_Identifier = 'RELIGION'
+     limit 0,1
+ )Religion,
+
+ (	select vGS_2.TblSubject_Name from viewGroupStudent vGS_2 where
+     vP.TblPerson_Id = vGS_2.TblPerson_Id
+     and vGS_2.TblStudentSubjectRanking_Identifier = '1'
+     and vGS_2.TblStudentSubjectType_Identifier = 'PROFILE'
+     limit 0,1
+ )Profil,
+
+ (	select vGS_2.TblSubject_Name from viewGroupStudent vGS_2 where
+     vP.TblPerson_Id = vGS_2.TblPerson_Id
+     and vGS_2.TblStudentSubjectRanking_Identifier = '1'
+     and vGS_2.TblStudentSubjectType_Identifier = 'ORIENTATION'
+     limit 0,1
+ )Neigungskurs,
 --
 -- (	select distinct 		--braucht 24 sec.
 --     group_concat( distinct

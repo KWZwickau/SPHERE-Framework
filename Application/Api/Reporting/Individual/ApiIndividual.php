@@ -77,6 +77,9 @@ use SPHERE\Common\Main;
 use SPHERE\Common\Window\Error;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\System\Database\Binding\AbstractView;
+use SPHERE\System\Debugger\Logger\BenchmarkLogger;
+use SPHERE\System\Debugger\Logger\ErrorLogger;
+use SPHERE\System\Debugger\Logger\QueryLogger;
 
 /**
  * Class ApiIndividual
@@ -301,7 +304,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
     public static function pipelineLoadPreset($PresetId = null)
     {
 
-        $Pipeline = new Pipeline();
+        $Pipeline = new Pipeline(false);
         $Emitter = new ServerEmitter(self::receiverService(), self::getEndpoint());
         $Emitter->setLoadingMessage('Vorlage wird geladen...');
         $Emitter->setGetPayload(array(
@@ -310,6 +313,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         $Emitter->setPostPayload(array(
             'PresetId' => $PresetId
         ));
+        $Pipeline->appendEmitter($Emitter);
+
+        $Emitter =new ClientEmitter( self::receiverResult(), new Muted( 'Es wurde bisher keine Suche durchgeführt' ) );
         $Pipeline->appendEmitter($Emitter);
 
         return $Pipeline;
@@ -835,13 +841,13 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 //                (isset($ViewList['ViewEducationStudent']) ? true : false));
 
         (isset($ViewList['ViewStudent'])
-            ? $AccordionList[] = new Panel( 'Schüler', new Scrollable( $this->getPanelList(new ViewStudent(), $WorkSpaceList), 200 ))
+            ? $AccordionList[] = new Panel( 'Schüler', new Scrollable( $this->getPanelList(new ViewStudent(), $WorkSpaceList), 300 ))
             : $AccordionList[] = new Dropdown( 'Schüler', new Scrollable( $this->getPanelList(new ViewStudent(), $WorkSpaceList) ) )
         );
 
         (isset($ViewList['ViewEducationStudent'])
-            ? $AccordionList[] = new Panel( 'Klassen' , new Scrollable( $this->getPanelList(new ViewEducationStudent(), $WorkSpaceList), 200 ))
-            : $AccordionList[] = new Dropdown( 'Klassen', new Scrollable( $this->getPanelList(new ViewEducationStudent(), $WorkSpaceList) ) )
+            ? $AccordionList[] = new Panel( 'Bildung' , new Scrollable( $this->getPanelList(new ViewEducationStudent(), $WorkSpaceList), 300 ))
+            : $AccordionList[] = new Dropdown( 'Bildung', new Scrollable( $this->getPanelList(new ViewEducationStudent(), $WorkSpaceList) ) )
         );
 
         return
@@ -960,8 +966,10 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                         $LinkGroup = '';
                     } else {
                         $FilterInputList[] = ( $i == 1
-                            ? new TextField($tblWorkSpace->getField().'['.$i.']', 'Alle' )
-                            : new TextField($tblWorkSpace->getField().'['.$i.']', 'ODER')
+                            ? new PullClear( $View->getFormField( $tblWorkSpace->getField(), 'Alle' ) )
+                            : new PullClear( $View->getFormField( $tblWorkSpace->getField(), 'ODER' ) )
+//                            ? new TextField($tblWorkSpace->getField().'['.$i.']', 'Alle' )
+//                            : new TextField($tblWorkSpace->getField().'['.$i.']', 'ODER')
                         );
                     }
                 }
@@ -1040,7 +1048,10 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     (new Link(new DangerText( new Disable().'&nbsp;Alle Felder entfernen'), ApiIndividual::getEndpoint()))->ajaxPipelineOnClick(
                         ApiIndividual::pipelineDelete())
                 ))
-                .$Form;
+                .'<div class="FilterCardStyle">'
+                .'<style type="text/css">div.FilterCardStyle div.form-group { margin-bottom: auto; }</style>'
+                .$Form
+                .'</div>';
                 //, Panel::PANEL_TYPE_INFO);
         }
 
@@ -1136,7 +1147,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             '!Ö!s' => '_OE_',
             '!Ü!s' => '_UE_',
             '!ß!s' => '_SS_',
+            '!-!s' => '_HY_',
             '! !s' => '_',
+
         );
         return preg_replace(array_keys( $EncoderPattern ), array_values( $EncoderPattern ), $Name );
     }
@@ -1154,6 +1167,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             '!_OE_!s' => 'Ö',
             '!_UE_!s' => 'Ü',
             '!_SS_!s' => 'ß',
+            '!_HY_!s' => '-',
             '!_!s' => ' ',
         );
         return preg_replace(array_keys( $DecoderPattern ), array_values( $DecoderPattern ), $Name );
@@ -1210,7 +1224,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                             // Escape User Input
                             $Value = preg_replace( '/[^\p{L}\p{N}]/u', '_', $Value );
                             // If User Input exists
-                            if (!empty($Value)) {
+                            if (!empty($Value) || $Value === 0 ) {
                                 $Parameter = ':Filter' . $Index . 'Value' . $Count;
                                 if (!$OrExp) {
                                     $OrExp = $Builder->expr()->orX(
@@ -1237,7 +1251,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                                 // Escape User Input
                                 $Value = preg_replace( '/[^\p{L}\p{N}]/u', '_', $Value );
                                 // If User Input exists
-                                if (!empty($Value)) {
+                                if (!empty($Value) || $Value === 0) {
                                     $Parameter = ':Filter' . $Index . 'Value' . $Count;
                                     // Add AND Condition to Where (if filter is set)
                                     $Builder->andWhere(
@@ -1261,8 +1275,11 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
                 $Query = $Builder->getQuery();
                 $Query->useQueryCache(true);
-                $Query->useResultCache(true, 300);
+//                $Query->useResultCache(true, 300);
                 $Query->setMaxResults(1000);
+
+                $this->getLogger( new QueryLogger() )->addLog( $Query->getSQL() );
+                $this->getLogger( new QueryLogger() )->addLog( print_r( $Query->getParameters(), true ) );
 
                 return $Query;
             }
@@ -1296,17 +1313,22 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     $ColumnDTNames[$Name] = $this->decodeField($Name);
 //                    $ColumnDTNames[$Name] = preg_replace('!\_!is', ' ', $Name);
                 });
-                $Result = new TableData($Result, null, $ColumnDTNames, array(
+                $Result = (new TableData($Result, null, $ColumnDTNames, array(
                     'responsive' => false
-                ), false);
+                )))
+                    .$this->getDownloadForm()
+                    .'DEBUG'
+                    .new Listing( $this->getLogger(new QueryLogger())->getLog() );
             } elseif( $Error ) {
                 $Result = $Error;
             } else {
-                $Result = new Info( 'Keine Daten gefunden' );
+                $Result = new Info( 'Keine Daten gefunden' )
+                .'DEBUG'
+                .new Listing( $this->getLogger(new QueryLogger())->getLog() );
             }
         }
 
-        return $Result.$this->getDownloadForm();
+        return $Result;
     }
 
     /**

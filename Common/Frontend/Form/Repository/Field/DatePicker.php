@@ -14,9 +14,9 @@ class DatePicker extends AbstractField implements IFieldInterface
 {
 
     /**
-     * @param string         $Name
-     * @param null|string    $Placeholder
-     * @param null|string    $Label
+     * @param string $Name
+     * @param null|string $Placeholder
+     * @param null|string $Label
      * @param IIconInterface $Icon
      */
     public function __construct(

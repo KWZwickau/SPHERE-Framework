@@ -6,6 +6,11 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Common\Frontend\Form\Repository\AbstractField;
+use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
+use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Binding\AbstractView;
 
@@ -138,10 +143,10 @@ class ViewEducationStudent extends AbstractView
     {
 
         //NameDefinition
-        $this->setNameDefinition(self::TBL_LEVEL_NAME, 'Stufe');
-        $this->setNameDefinition(self::TBL_LEVEL_DESCRIPTION, 'Stufen Beschreibung');
-        $this->setNameDefinition(self::TBL_LEVEL_IS_CHECKED, 'Stufenübergreifende Klasse');
-        $this->setNameDefinition(self::TBL_DIVISION_NAME, 'Klasse');
+        $this->setNameDefinition(self::TBL_LEVEL_NAME, 'Klassen: Stufe');
+        $this->setNameDefinition(self::TBL_LEVEL_DESCRIPTION, 'Klassen: Stufen Beschreibung');
+        $this->setNameDefinition(self::TBL_LEVEL_IS_CHECKED, 'Klasse ist Stufenübergreifend');
+        $this->setNameDefinition(self::TBL_DIVISION_NAME, 'Klassen: Klasse');
         $this->setNameDefinition(self::TBL_DIVISION_DESCRIPTION, 'Klassen beschreibung');
         $this->setNameDefinition(self::TBL_TYPE_NAME, 'Schulart');
         $this->setNameDefinition(self::TBL_YEAR_YEAR, 'Schuljahr');
@@ -152,9 +157,9 @@ class ViewEducationStudent extends AbstractView
         $this->setNameDefinition(self::TBL_PERIOD_TO_DATE, 'Bis Zeitraum');
         $this->setNameDefinition(self::TBL_SUBJECT_GROUP_NAME, 'Fachgruppe');
         $this->setNameDefinition(self::TBL_SUBJECT_GROUP_DESCRIPTION, 'Fachgruppe Beschreibung');
-        $this->setNameDefinition(self::TBL_SUBJECT_GROUP_IS_ADVANCED_COURSE, 'Leistungskurs');
-        $this->setNameDefinition(self::TBL_SUBJECT_ACRONYM, 'Acronym');
-        $this->setNameDefinition(self::TBL_SUBJECT_NAME, 'Fach');
+        $this->setNameDefinition(self::TBL_SUBJECT_GROUP_IS_ADVANCED_COURSE, 'Fach ist Leistungskurs');
+        $this->setNameDefinition(self::TBL_SUBJECT_ACRONYM, 'Fach Kürzel');
+        $this->setNameDefinition(self::TBL_SUBJECT_NAME, 'Fach Name');
         $this->setNameDefinition(self::TBL_SUBJECT_DESCRIPTION, 'Fach Beschreibung');
 
         //GroupDefinition
@@ -205,5 +210,35 @@ class ViewEducationStudent extends AbstractView
     public function getViewService()
     {
         // TODO: Implement getViewService() method.
+    }
+
+    /**
+     * Define Property Field-Type and additional Data
+     *
+     * @param string $PropertyName __CLASS__::{CONSTANT_}
+     * @param null|string $Placeholder
+     * @param null|string $Label
+     * @param IIconInterface|null $Icon
+     * @param bool $doResetCount Reset ALL FieldName calculations e.g. FieldName[23] -> FieldName[1]
+     * @return AbstractField
+     */
+    public function getFormField( $PropertyName, $Placeholder = null, $Label = null, IIconInterface $Icon = null, $doResetCount = false )
+    {
+
+        switch ($PropertyName) {
+            case self::TBL_YEAR_YEAR:
+                $Data = Term::useService()->getPropertyList( new TblYear(), TblYear::ATTR_NAME );
+                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
+                break;
+            case self::TBL_LEVEL_IS_CHECKED:
+                $Data = array( 0 => 'Nein', 1 => 'Ja' );
+                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount, false );
+                break;
+
+            default:
+                $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
+                break;
+        }
+        return $Field;
     }
 }

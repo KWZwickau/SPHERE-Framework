@@ -4,6 +4,7 @@ namespace SPHERE\Application\Api\Reporting\Individual;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
+use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\System\Extension\Extension;
 
@@ -11,7 +12,7 @@ use SPHERE\System\Extension\Extension;
  * Class IndividualReceiver
  * @package SPHERE\Application\Api\Reporting\Individual
  */
-class IndividualReceiver extends Extension
+abstract class IndividualReceiver extends Extension
 {
     /**
      * @param string $Content
@@ -20,6 +21,11 @@ class IndividualReceiver extends Extension
      */
     public static function receiverNavigation($Content = '')
     {
+        if( empty($Content) ) {
+            $Content =
+                new ProgressBar( 0,100, 0, 10 )
+                .new Muted( 'Verfügbare Informationen werden geladen...' );
+        }
         return (new BlockReceiver($Content))
             ->setIdentifier('ReceiverNavigation');
     }
@@ -31,6 +37,11 @@ class IndividualReceiver extends Extension
      */
     public static function receiverFilter($Content = '')
     {
+        if( empty($Content) ) {
+            $Content =
+                new ProgressBar( 0,100, 0, 10 )
+                .new Muted( 'Filteroptionen werden geladen...' );
+        }
         return (new BlockReceiver($Content))
             ->setIdentifier('ReceiverFilter');
     }
