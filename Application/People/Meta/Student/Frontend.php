@@ -12,9 +12,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
-use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Type;
@@ -116,6 +114,8 @@ class Frontend extends Extension implements IFrontendInterface
                 new Download(), array('PersonId' => $tblPerson->getId()), 'Schülerkartei herunterladen');
         }
 
+        $this->setYearAndDivisionForMassReplace($tblPerson, $Year, $Division);
+
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(
@@ -166,9 +166,9 @@ class Frontend extends Extension implements IFrontendInterface
                                         )), new Title(new TileSmall().' Grunddaten ',
                                             new Bold(new Success($tblPerson->getFullName())))
                                     ),
-                                    $this->formGroupTransfer($tblPerson),
+                                    $this->formGroupTransfer($tblPerson, $Year, $Division),
                                     $this->formGroupGeneral($tblPerson),
-                                    $this->formGroupSubject($tblPerson),
+                                    $this->formGroupSubject($tblPerson, $Year, $Division),
                                     $this->formGroupIntegration($tblPerson),
                                 ), new Primary('Speichern', new Save()))
                                 )->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.')
@@ -185,11 +185,16 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblPerson|null $tblPerson
+     * @param array $Year
+     * @param array $Division
      *
      * @return FormGroup
      */
-    private function formGroupTransfer(TblPerson $tblPerson = null)
-    {
+    private function formGroupTransfer(
+        TblPerson $tblPerson = null,
+        $Year,
+        $Division
+    ) {
 
         if (null !== $tblPerson) {
             $Global = $this->getGlobal();
@@ -413,41 +418,6 @@ class Frontend extends Extension implements IFrontendInterface
             array_push($tblSchoolCourseAll, new TblCourse());
         } else {
             $tblSchoolCourseAll = array(new TblCourse());
-        }
-
-        // set Filter (MassReplace)
-        $Year[ViewYear::TBL_YEAR_ID] = '';
-        $tblYearList = Term::useService()->getYearByNow();
-        if ($tblYearList) {
-            $tblYear = current($tblYearList);
-            /** @var TblYear $tblYear */
-            if ($tblYear) {
-                $Year[ViewYear::TBL_YEAR_ID] = $tblYear->getId();
-            }
-        }
-
-        $Division[ViewDivisionStudent::TBL_LEVEL_ID] = '';
-        $Division[ViewDivisionStudent::TBL_DIVISION_NAME] = '';
-        $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE] = '';
-        if ($tblPerson) {
-            $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
-            if ($tblDivisionStudentList && isset($tblYear) && $tblYear) {
-                foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                    if (($tblDivision = $tblDivisionStudent->getTblDivision())) {
-                        if (($tblYearCompare = $tblDivision->getServiceTblYear())) {
-                            if ($tblYearCompare->getId() == $tblYear->getId()) {
-                                if (($tblLevel = $tblDivision->getTblLevel()) && $tblLevel->getName()) {
-                                    $Division[ViewDivisionStudent::TBL_LEVEL_ID] = $tblLevel->getId();
-                                    $Division[ViewDivisionStudent::TBL_DIVISION_NAME] = $tblDivision->getName();
-                                    if (($tblType = $tblLevel->getServiceTblType())) {
-                                        $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE] = $tblType->getId();
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         $tblStudentSchoolEnrollmentTypeAll = Student::useService()->getStudentSchoolEnrollmentTypeAll();
@@ -1016,11 +986,15 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblPerson|null $tblPerson
+     * @param array $Year
+     * @param array $Division
      *
      * @return FormGroup
      */
     private function formGroupSubject(
-        TblPerson $tblPerson = null
+        TblPerson $tblPerson = null,
+        $Year,
+        $Division
     ) {
 
         $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
@@ -1098,41 +1072,6 @@ class Frontend extends Extension implements IFrontendInterface
             $tblSubjectAll = array(new TblSubject());
         }
 
-        // set Filter (MassReplace)
-        $Year[ViewYear::TBL_YEAR_ID] = '';
-        $tblYearList = Term::useService()->getYearByNow();
-        if ($tblYearList) {
-            $tblYear = current($tblYearList);
-            /** @var TblYear $tblYear */
-            if ($tblYear) {
-                $Year[ViewYear::TBL_YEAR_ID] = $tblYear->getId();
-            }
-        }
-
-        $Division[ViewDivisionStudent::TBL_LEVEL_ID] = '';
-        $Division[ViewDivisionStudent::TBL_DIVISION_NAME] = '';
-        $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE] = '';
-        if ($tblPerson) {
-            $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
-            if ($tblDivisionStudentList && isset($tblYear) && $tblYear) {
-                foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                    if (($tblDivision = $tblDivisionStudent->getTblDivision())) {
-                        if (($tblYearCompare = $tblDivision->getServiceTblYear())) {
-                            if ($tblYearCompare->getId() == $tblYear->getId()) {
-                                if (($tblLevel = $tblDivision->getTblLevel()) && $tblLevel->getName()) {
-                                    $Division[ViewDivisionStudent::TBL_LEVEL_ID] = $tblLevel->getId();
-                                    $Division[ViewDivisionStudent::TBL_DIVISION_NAME] = $tblDivision->getName();
-                                    if (($tblType = $tblLevel->getServiceTblType())) {
-                                        $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE] = $tblType->getId();
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         return new FormGroup(array(
             new FormRow(array(
                 new FormColumn(array(
@@ -1204,12 +1143,16 @@ class Frontend extends Extension implements IFrontendInterface
             if ($Identifier == 'PROFILE'
                 || $Identifier == 'RELIGION'
                 || $Identifier == 'ORIENTATION'
+                || $Identifier == 'FOREIGN_LANGUAGE'
+                || $Identifier == 'ELECTIVE'
+                || $Identifier == 'TEAM'
             ) {
                 $Node = 'Unterrichtsfächer';
                 array_push($Panel,
                     ApiMassReplace::receiverField((
                     $Field = new SelectBox('Meta[Subject]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
-                        $Label, array('{{ Acronym }} - {{ Name }} {{ Description }}' => $SubjectList), new Education())
+                        ($Count > 1 ? $tblStudentSubjectRanking->getName().' ' : '') . $Label
+                        , array('{{ Acronym }} - {{ Name }} {{ Description }}' => $SubjectList), new Education())
                     ))
                     .ApiMassReplace::receiverModal($Field, $Node)
                     .new PullRight((new Link('Massen-Änderung',
@@ -1414,5 +1357,34 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormColumn($PanelDisorder, 3),
             )),
         ), new Title(new TileSmall().' Integration', new Bold(new Success($tblPerson->getFullName()))));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $Year
+     * @param $Division
+     */
+    private function setYearAndDivisionForMassReplace(TblPerson $tblPerson, &$Year, &$Division)
+    {
+        $Year[ViewYear::TBL_YEAR_ID] = '';
+        $Division[ViewDivisionStudent::TBL_LEVEL_ID] = '';
+        $Division[ViewDivisionStudent::TBL_DIVISION_NAME] = '';
+        $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE] = '';
+        // #SSW-1598 Fehlerbehebung Massen-Änderung
+        if ($tblPerson
+            && ($tblStudent = $tblPerson->getStudent())
+            && ($tblDivision = $tblStudent->getCurrentMainDivision())
+        ) {
+            $Division[ViewDivisionStudent::TBL_DIVISION_NAME] = $tblDivision->getName();
+            if (($tblLevel = $tblDivision->getTblLevel())) {
+                $Division[ViewDivisionStudent::TBL_LEVEL_ID] = $tblLevel->getId();
+            }
+            if (($tblType = $tblLevel->getServiceTblType())) {
+                $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE] = $tblType->getId();
+            }
+            if (($tblYear = $tblDivision->getServiceTblYear())) {
+                $Year[ViewYear::TBL_YEAR_ID] = $tblYear->getId();
+            }
+        }
     }
 }
