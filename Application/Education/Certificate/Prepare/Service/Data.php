@@ -201,18 +201,28 @@ class Data extends AbstractData
     /**
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return false|TblPrepareStudent
      */
-    public function getPrepareStudentBy(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson)
+    public function getPrepareStudentBy(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson, $isForced = false)
     {
 
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareStudent',
-            array(
-                TblPrepareStudent::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
-                TblPrepareStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-            )
-        );
+        if ($isForced) {
+            return $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareStudent',
+                array(
+                    TblPrepareStudent::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
+                    TblPrepareStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                )
+            );
+        } else {
+            return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareStudent',
+                array(
+                    TblPrepareStudent::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
+                    TblPrepareStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                )
+            );
+        }
     }
 
     /**

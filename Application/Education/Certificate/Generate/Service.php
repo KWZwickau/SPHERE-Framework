@@ -76,6 +76,15 @@ class Service extends AbstractService
     }
 
     /**
+     * @return false|TblGenerateCertificate[]
+     */
+    public function getGenerateCertificateAll()
+    {
+
+        return (new Data($this->getBinding()))->getGenerateCertificateAll();
+    }
+
+    /**
      * @param IFormInterface|null $Form
      * @param null $Data
      * @param TblYear $tblYear

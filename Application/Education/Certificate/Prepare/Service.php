@@ -135,13 +135,14 @@ class Service extends AbstractService
     /**
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return false|TblPrepareStudent
      */
-    public function getPrepareStudentBy(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson)
+    public function getPrepareStudentBy(TblPrepareCertificate $tblPrepare, TblPerson $tblPerson, $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getPrepareStudentBy($tblPrepare, $tblPerson);
+        return (new Data($this->getBinding()))->getPrepareStudentBy($tblPrepare, $tblPerson, $isForced);
     }
 
     /**

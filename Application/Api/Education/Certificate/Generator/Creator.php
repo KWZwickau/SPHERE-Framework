@@ -549,12 +549,28 @@ class Creator extends Extension
             && ($tblDivision = $tblPrepare->getServiceTblDivision())
             && ($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))
         ) {
+            if (($tblCertificateType = $tblPrepare->getCertificateType())
+                && $tblCertificateType->isAutomaticallyApproved()
+            ) {
+                $isAutomaticallyApproved = true;
+            } else {
+                $isAutomaticallyApproved = false;
+            }
+
             foreach ($tblStudentList as $tblPerson) {
                 if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
-                    && $tblPrepareStudent->isApproved()
                     && !$tblPrepareStudent->isPrinted()
+                    && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
                 ) {
-                    if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())) {
+                    $isApproved = $tblPrepareStudent->isApproved();
+                    // bei automatischer Freigabe --> freigeben + kopieren der Zensuren
+                    if (!$isApproved && $isAutomaticallyApproved) {
+                        Prepare::useService()->updatePrepareStudentSetApproved($tblPrepareStudent);
+                        $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson, true);
+                        $isApproved = true;
+                    }
+
+                    if ($isApproved) {
                         $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
                         if (class_exists($CertificateClass)) {
 

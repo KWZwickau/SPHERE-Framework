@@ -1852,13 +1852,13 @@ class Frontend extends Extension implements IFrontendInterface
 
             $studentList = array();
             $tableHeaderList = array();
-            // Alle Klassen ermitteln in denen der Schüler im aktuellen Schuljahr Unterricht hat
+            // Alle Klassen ermitteln in denen der Schüler im Schuljahr Unterricht hat
             $divisionList = array();
             $tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision);
             $divisionPersonList = array();
             if ($tblDivisionStudentAll) {
                 foreach ($tblDivisionStudentAll as $tblPerson) {
-                    if (($tblYear = $tblTask->getServiceTblYear())
+                    if (($tblYear = $tblDivision->getServiceTblYear())
                         && ($tblPersonDivisionList = Student::useService()->getDivisionListByPersonAndYear($tblPerson, $tblYear))
                     ) {
                         foreach ($tblPersonDivisionList as $tblDivisionItem) {
