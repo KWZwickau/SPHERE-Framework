@@ -335,7 +335,7 @@ class Service extends AbstractService
                     if (($tblAbsenceList = $this->getAbsenceListByDate($tblPerson, $tblDivision, $date))) {
                         if (count($tblAbsenceList) == 1) {
                             $tblAbsence = current($tblAbsenceList);
-                            if ($tblAbsence->getStatus() !== $status) {
+                            if ($tblAbsence->getStatus() != $status) {
                                 if ($tblAbsence->isSingleDay()) {
                                     (new Data($this->getBinding()))->updateAbsence(
                                         $tblAbsence,
