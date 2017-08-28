@@ -143,11 +143,11 @@ class ViewEducationStudent extends AbstractView
     {
 
         //NameDefinition
-        $this->setNameDefinition(self::TBL_LEVEL_NAME, 'Klassen: Stufe');
-        $this->setNameDefinition(self::TBL_LEVEL_DESCRIPTION, 'Klassen: Stufen Beschreibung');
+        $this->setNameDefinition(self::TBL_LEVEL_NAME, 'Klassenstufe');
+        $this->setNameDefinition(self::TBL_LEVEL_DESCRIPTION, 'Stufen Beschreibung');
         $this->setNameDefinition(self::TBL_LEVEL_IS_CHECKED, 'Klasse ist Stufenübergreifend');
-        $this->setNameDefinition(self::TBL_DIVISION_NAME, 'Klassen: Klasse');
-        $this->setNameDefinition(self::TBL_DIVISION_DESCRIPTION, 'Klassen beschreibung');
+        $this->setNameDefinition(self::TBL_DIVISION_NAME, 'Klassengruppe');
+        $this->setNameDefinition(self::TBL_DIVISION_DESCRIPTION, 'Klassen Beschreibung');
         $this->setNameDefinition(self::TBL_TYPE_NAME, 'Schulart');
         $this->setNameDefinition(self::TBL_YEAR_YEAR, 'Schuljahr');
         $this->setNameDefinition(self::TBL_YEAR_DESCRIPTION, 'Schuljahr Beschreibung');
@@ -158,36 +158,36 @@ class ViewEducationStudent extends AbstractView
         $this->setNameDefinition(self::TBL_SUBJECT_GROUP_NAME, 'Fachgruppe');
         $this->setNameDefinition(self::TBL_SUBJECT_GROUP_DESCRIPTION, 'Fachgruppe Beschreibung');
         $this->setNameDefinition(self::TBL_SUBJECT_GROUP_IS_ADVANCED_COURSE, 'Fach ist Leistungskurs');
-        $this->setNameDefinition(self::TBL_SUBJECT_ACRONYM, 'Fach Kürzel');
-        $this->setNameDefinition(self::TBL_SUBJECT_NAME, 'Fach Name');
+        $this->setNameDefinition(self::TBL_SUBJECT_ACRONYM, 'Fachkürzel');
+        $this->setNameDefinition(self::TBL_SUBJECT_NAME, 'Fach');
         $this->setNameDefinition(self::TBL_SUBJECT_DESCRIPTION, 'Fach Beschreibung');
 
         //GroupDefinition
+        $this->setGroupDefinition('Klasse', array(
+            self::TBL_TYPE_NAME,
+            self::TBL_LEVEL_NAME,
+//            self::TBL_LEVEL_DESCRIPTION,
+//            self::TBL_LEVEL_IS_CHECKED,
+            self::TBL_DIVISION_NAME,
+            self::TBL_DIVISION_DESCRIPTION,
+        ));
+
         $this->setGroupDefinition('Zeitraum', array(
             self::TBL_YEAR_YEAR,
             self::TBL_YEAR_DESCRIPTION,
-            self::TBL_PERIOD_NAME,
-            self::TBL_PERIOD_DESCRIPTION,
-            self::TBL_PERIOD_FROM_DATE,
-            self::TBL_PERIOD_TO_DATE
-        ));
-
-        $this->setGroupDefinition('Klasse', array(
-            self::TBL_LEVEL_NAME,
-            self::TBL_LEVEL_DESCRIPTION,
-            self::TBL_LEVEL_IS_CHECKED,
-            self::TBL_DIVISION_NAME,
-            self::TBL_DIVISION_DESCRIPTION,
-            self::TBL_TYPE_NAME
+//            self::TBL_PERIOD_NAME,
+//            self::TBL_PERIOD_DESCRIPTION,
+//            self::TBL_PERIOD_FROM_DATE,
+//            self::TBL_PERIOD_TO_DATE
         ));
 
         $this->setGroupDefinition('Fach', array(
-            self::TBL_SUBJECT_NAME,
             self::TBL_SUBJECT_ACRONYM,
-            self::TBL_SUBJECT_DESCRIPTION,
+            self::TBL_SUBJECT_NAME,
+//            self::TBL_SUBJECT_DESCRIPTION,
             self::TBL_SUBJECT_GROUP_NAME,
-            self::TBL_SUBJECT_GROUP_DESCRIPTION,
-            self::TBL_SUBJECT_GROUP_IS_ADVANCED_COURSE
+//            self::TBL_SUBJECT_GROUP_DESCRIPTION,
+//            self::TBL_SUBJECT_GROUP_IS_ADVANCED_COURSE
         ));
 
         // Flag um Filter zu deaktivieren (nur Anzeige von Informationen)

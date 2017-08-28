@@ -597,8 +597,8 @@ class ViewStudent extends AbstractView
         ));
 
         $this->setGroupDefinition('Schülerakte', array(
-            self::BILDUNGSGANG,
             self::TBL_STUDENT_IDENTIFIER,
+            self::BILDUNGSGANG,
 //            self::ARBEITSGEMEINSCHAFT_1,
 //            self::ARBEITSGEMEINSCHAFT_2,
 //            self::ARBEITSGEMEINSCHAFT_3,
