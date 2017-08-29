@@ -1,6 +1,8 @@
 <?php
 namespace SPHERE\Application\Platform\Gatekeeper\Authentication;
 
+use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
@@ -60,6 +62,22 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblIdentificationSearch = Account::useService()->getIdentificationByName(TblIdentification::NAME_USER_CREDENTIAL);
         $tblAccount = Account::useService()->getAccountBySession();
+
+        $content = false;
+        if ($tblAccount) {
+            $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
+            if ($tblPersonAllByAccount) {
+                $tblPerson = $tblPersonAllByAccount[0];
+                if ($tblPerson
+                    && ($tblGroup = Group::useService()->getGroupByMetaTable('TEACHER'))
+                    && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
+                ) {
+
+                    $content = Evaluation::useService()->getTeacherWelcome($tblPerson);
+                }
+            }
+        }
+
         if ($tblAccount && $tblIdentificationSearch) {
             $tblAuthentication = Account::useService()->getAuthenticationByAccount($tblAccount);
             if ($tblAuthentication && ($tblIdentification = $tblAuthentication->getTblIdentification())) {
@@ -89,7 +107,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             , 8)
                                     ))
                                 )
-                            )
+                            ) . ($content ? $content : '')
                         );
                         return $Stage;
                     }
@@ -97,7 +115,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $Stage->setContent($this->getCleanLocalStorage());
+        $Stage->setContent(($content ? $content : '') . $this->getCleanLocalStorage());
 
         return $Stage;
     }
