@@ -82,6 +82,7 @@ class ReportingUpgrade
 
         // Execution Protocol
         $ProtocolList = array();
+        $ProtocolError = 0;
 
         // Repeat for every Consumer
         foreach ($ConsumerList as $Acronym) {
@@ -130,21 +131,25 @@ class ReportingUpgrade
                     // Create/Upgrade View
                     if (array_key_exists(strtolower($ViewName), $SchemaManager->listViews())) {
                         // View exists
-                        $ProtocolList[] = new Task() . ' Update existing ' . $ViewName . ' @ SettingConsumer_' . strtoupper($Acronym) . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>');
+                        $ProtocolList[] = new Task() . ' Update existing ' . $ViewName . ' @ SettingConsumer_' . strtoupper($Acronym) . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
                         try {
                             $SchemaManager->dropAndCreateView($View);
                         } catch (\Exception $Exception) {
-                            return new Danger('Schema Upgrade failed!')
+                            $ProtocolList[] = new Danger('Schema Upgrade failed!')
                                 . (isset($Exception) ? $this->parseException($Exception, 'Schema') : '');
+                            $ProtocolError++;
+                            continue;
                         }
                     } else {
                         // View is missing
-                        $ProtocolList[] = new FileExtension() . ' Create new ' . $ViewName . ' @ SettingConsumer_' . strtoupper($Acronym) . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>');
+                        $ProtocolList[] = new FileExtension() . ' Create new ' . $ViewName . ' @ SettingConsumer_' . strtoupper($Acronym) . new Scrollable('<pre><code class="sql">' . $View->getSql() . '</code></pre>', 100);
                         try {
                             $SchemaManager->createView($View);
                         } catch (\Exception $Exception) {
-                            return new Danger('Schema Upgrade failed!')
+                            $ProtocolList[] = new Danger('Schema Upgrade failed!')
                                 . (isset($Exception) ? $this->parseException($Exception, 'Schema') : '');
+                            $ProtocolError++;
+                            continue;
                         }
                     }
                 } else {
@@ -153,7 +158,12 @@ class ReportingUpgrade
                 }
             }
         }
-        return new Success('Migration finished') . new Listing($ProtocolList);
+
+        if( $ProtocolError > 0 ) {
+            return new Danger('Migration failed on '.$ProtocolError.' Views') . new Listing($ProtocolList);
+        } else {
+            return new Success('Migration finished') . new Listing($ProtocolList);
+        }
     }
 
     /**

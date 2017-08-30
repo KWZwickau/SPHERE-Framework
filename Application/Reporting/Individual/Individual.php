@@ -18,7 +18,7 @@ class Individual implements IApplicationInterface, IModuleInterface
         self::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Flexible Auswertung neu'))
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Flexible Auswertung'))
         );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(

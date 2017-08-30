@@ -1332,15 +1332,15 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 $Result = (new TableData($Result, null, $ColumnDTNames, array(
                     'responsive' => false
                 )))
-                    .$this->getDownloadForm()
-                    .'DEBUG'
-                    .new Listing( $this->getLogger(new QueryLogger())->getLog() );
+                    .$this->getDownloadForm();
+//                    .'DEBUG'
+//                    .new Listing( $this->getLogger(new QueryLogger())->getLog() );
             } elseif( $Error ) {
                 $Result = $Error;
             } else {
-                $Result = new Info( 'Keine Daten gefunden' )
-                .'DEBUG'
-                .new Listing( $this->getLogger(new QueryLogger())->getLog() );
+                $Result = new Info( 'Keine Daten gefunden' );
+//                .'DEBUG'
+//                .new Listing( $this->getLogger(new QueryLogger())->getLog() );
             }
         }
 
