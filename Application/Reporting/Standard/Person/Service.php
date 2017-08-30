@@ -97,6 +97,7 @@ class Service extends Extension
                 $Item['Salutation'] = $tblPerson->getSalutation();
                 $Item['FirstName'] = $tblPerson->getFirstSecondName();
                 $Item['LastName'] = $tblPerson->getLastName();
+                $Item['Gender'] = '';
                 $Item['Phone'] = '';
                 $Item['ExcelPhone'] = '';
                 $Item['Mail'] = '';
@@ -113,6 +114,13 @@ class Service extends Extension
                 } else {
                     $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = $Item['District'] = '';
                     $Item['Address'] = '';
+                }
+
+                //Gender
+                if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))
+                && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
+                && ($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())) {
+                    $Item['Gender'] = $tblCommonGender->getName();
                 }
 
                 //Phone
@@ -255,16 +263,17 @@ class Service extends Extension
             $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "Vorname");
             $export->setValue($export->getCell("1", "0"), "Name");
-            $export->setValue($export->getCell("2", "0"), "Konfession");
-            $export->setValue($export->getCell("3", "0"), "Geburtsdatum");
-            $export->setValue($export->getCell("4", "0"), "Geburtsort");
-            $export->setValue($export->getCell("5", "0"), "Ortsteil");
-            $export->setValue($export->getCell("6", "0"), "Straße");
-            $export->setValue($export->getCell("7", "0"), "Hausnr.");
-            $export->setValue($export->getCell("8", "0"), "PLZ");
-            $export->setValue($export->getCell("9", "0"), "Ort");
-            $export->setValue($export->getCell("10", "0"), "Telefon");
-            $export->setValue($export->getCell("11", "0"), "E-Mail");
+            $export->setValue($export->getCell("2", "0"), "Geschlecht");
+            $export->setValue($export->getCell("3", "0"), "Konfession");
+            $export->setValue($export->getCell("4", "0"), "Geburtsdatum");
+            $export->setValue($export->getCell("5", "0"), "Geburtsort");
+            $export->setValue($export->getCell("6", "0"), "Ortsteil");
+            $export->setValue($export->getCell("7", "0"), "Straße");
+            $export->setValue($export->getCell("8", "0"), "Hausnr.");
+            $export->setValue($export->getCell("9", "0"), "PLZ");
+            $export->setValue($export->getCell("10", "0"), "Ort");
+            $export->setValue($export->getCell("11", "0"), "Telefon");
+            $export->setValue($export->getCell("12", "0"), "E-Mail");
 
             $export->setStyle($export->getCell(0, 0), $export->getCell(11, 0))
                 ->setFontBold();
@@ -277,14 +286,15 @@ class Service extends Extension
 
                 $export->setValue($export->getCell("0", $Row), $PersonData['FirstName']);
                 $export->setValue($export->getCell("1", $Row), $PersonData['LastName']);
-                $export->setValue($export->getCell("2", $Row), $PersonData['Denomination']);
-                $export->setValue($export->getCell("3", $Row), $PersonData['Birthday']);
-                $export->setValue($export->getCell("4", $Row), $PersonData['Birthplace']);
-                $export->setValue($export->getCell("5", $Row), $PersonData['District']);
-                $export->setValue($export->getCell("6", $Row), $PersonData['StreetName']);
-                $export->setValue($export->getCell("7", $Row), $PersonData['StreetNumber']);
-                $export->setValue($export->getCell("8", $Row), $PersonData['Code']);
-                $export->setValue($export->getCell("9", $Row), $PersonData['City']);
+                $export->setValue($export->getCell("2", $Row), $PersonData['Gender']);
+                $export->setValue($export->getCell("3", $Row), $PersonData['Denomination']);
+                $export->setValue($export->getCell("4", $Row), $PersonData['Birthday']);
+                $export->setValue($export->getCell("5", $Row), $PersonData['Birthplace']);
+                $export->setValue($export->getCell("6", $Row), $PersonData['District']);
+                $export->setValue($export->getCell("7", $Row), $PersonData['StreetName']);
+                $export->setValue($export->getCell("8", $Row), $PersonData['StreetNumber']);
+                $export->setValue($export->getCell("9", $Row), $PersonData['Code']);
+                $export->setValue($export->getCell("10", $Row), $PersonData['City']);
                 //                $export->setValue($export->getCell("10", $Row), $PersonData['ExcelPhone']);
                 //                $export->setValue($export->getCell("11", $Row), $PersonData['ExcelMail']);
 
@@ -977,15 +987,35 @@ class Service extends Extension
                 $Item['PhoneNumber'] = '';
                 $Item['MobilPhoneNumber'] = '';
                 $Item['Mail'] = '';
+                $Item['BirthPlace'] = '';
+                $Item['Gender'] = '';
+                $Item['Nationality'] = '';
+                $Item['Religion'] = '';
+                $Item['ParticipationWillingness'] = '';
+                $Item['ParticipationActivities'] = '';
+                $Item['RemarkFrontend'] = '';
+                $Item['RemarkExcel'] = '';
 
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
                 if ($tblCommon) {
-                    $tblBirhdates = $tblCommon->getTblCommonBirthDates();
-                    if ($tblBirhdates) {
-                        if ($tblBirhdates->getGender() === 1) {
-                            $tblPerson->Gender = 'männlich';
-                        } elseif ($tblBirhdates->getGender() === 2) {
-                            $tblPerson->Gender = 'weiblich';
+                    $Item['RemarkExcel'] = $tblCommon->getRemark();
+                    $Item['RemarkFrontend'] = nl2br($tblCommon->getRemark());
+                    if (($tblBirthdates = $tblCommon->getTblCommonBirthDates())) {
+                        $Item['Birthday'] = $tblBirthdates->getBirthday();
+                        $Item['BirthPlace'] = $tblBirthdates->getBirthplace();
+                        if (($tblGender = $tblBirthdates->getTblCommonGender())) {
+                            $Item['Gender'] = $tblGender->getName();
+                        }
+                    }
+                    if (($tblCommonInformation = $tblCommon->getTblCommonInformation())) {
+                        $Item['Nationality'] = $tblCommonInformation->getNationality();
+                        $Item['Religion'] = $tblCommonInformation->getDenomination();
+                        $Item['ParticipationActivities'] = $tblCommonInformation->getAssistanceActivity();
+                        if ($tblCommonInformation->isAssistance()) {
+                            $Item['ParticipationWillingness'] = 'ja';
+                        } else {
+                            $Item['ParticipationWillingness'] = 'nein';
+
                         }
                     }
                 }
@@ -1090,15 +1120,22 @@ class Service extends Extension
             $export->setValue($export->getCell("1", $Row), "Anrede");
             $export->setValue($export->getCell("2", $Row), "Vorname");
             $export->setValue($export->getCell("3", $Row), "Nachname");
-            $export->setValue($export->getCell("4", $Row), "Geburtstag");
-            $export->setValue($export->getCell("5", $Row), "Straße");
-            $export->setValue($export->getCell("6", $Row), "Nummer");
-            $export->setValue($export->getCell("7", $Row), "PLZ");
-            $export->setValue($export->getCell("8", $Row), "Stadt");
-            $export->setValue($export->getCell("9", $Row), "Ortsteil");
-            $export->setValue($export->getCell("10", $Row), "Telefon Festnetz");
-            $export->setValue($export->getCell("11", $Row), "Telefon Mobil");
-            $export->setValue($export->getCell("12", $Row), "E-mail");
+            $export->setValue($export->getCell("4", $Row), "Straße");
+            $export->setValue($export->getCell("5", $Row), "Nummer");
+            $export->setValue($export->getCell("6", $Row), "PLZ");
+            $export->setValue($export->getCell("7", $Row), "Stadt");
+            $export->setValue($export->getCell("8", $Row), "Ortsteil");
+            $export->setValue($export->getCell("9", $Row), "Telefon Festnetz");
+            $export->setValue($export->getCell("10", $Row), "Telefon Mobil");
+            $export->setValue($export->getCell("11", $Row), "E-mail");
+            $export->setValue($export->getCell("12", $Row), "Geburtstag");
+            $export->setValue($export->getCell("13", $Row), "Geburtsort");
+            $export->setValue($export->getCell("14", $Row), "Geschlecht");
+            $export->setValue($export->getCell("15", $Row), "Staatsangehörigkeit");
+            $export->setValue($export->getCell("16", $Row), "Konfession");
+            $export->setValue($export->getCell("17", $Row), "Mitarbeitsbereitschaft");
+            $export->setValue($export->getCell("18", $Row), "Mitarbeitsbereitschaft - Tätigkeiten");
+            $export->setValue($export->getCell("19", $Row), "Bemerkungen");
 
             $Row++;
 
@@ -1108,15 +1145,23 @@ class Service extends Extension
                 $export->setValue($export->getCell("1", $Row), $PersonData['Salutation']);
                 $export->setValue($export->getCell("2", $Row), $PersonData['FirstName']);
                 $export->setValue($export->getCell("3", $Row), $PersonData['LastName']);
-                $export->setValue($export->getCell("4", $Row), $PersonData['Birthday']);
-                $export->setValue($export->getCell("5", $Row), $PersonData['StreetName']);
-                $export->setValue($export->getCell("6", $Row), $PersonData['StreetNumber']);
-                $export->setValue($export->getCell("7", $Row), $PersonData['Code']);
-                $export->setValue($export->getCell("8", $Row), $PersonData['City']);
-                $export->setValue($export->getCell("9", $Row), $PersonData['District']);
-                $export->setValue($export->getCell("10", $Row), $PersonData['PhoneNumber']);
-                $export->setValue($export->getCell("11", $Row), $PersonData['MobilPhoneNumber']);
-                $export->setValue($export->getCell("12", $Row), $PersonData['Mail']);
+                $export->setValue($export->getCell("4", $Row), $PersonData['StreetName']);
+                $export->setValue($export->getCell("5", $Row), $PersonData['StreetNumber']);
+                $export->setValue($export->getCell("6", $Row), $PersonData['Code']);
+                $export->setValue($export->getCell("7", $Row), $PersonData['City']);
+                $export->setValue($export->getCell("8", $Row), $PersonData['District']);
+                $export->setValue($export->getCell("9", $Row), $PersonData['PhoneNumber']);
+                $export->setValue($export->getCell("10", $Row), $PersonData['MobilPhoneNumber']);
+                $export->setValue($export->getCell("11", $Row), $PersonData['Mail']);
+                $export->setValue($export->getCell("12", $Row), $PersonData['Birthday']);
+                $export->setValue($export->getCell("13", $Row), $PersonData['BirthPlace']);
+                $export->setValue($export->getCell("14", $Row), $PersonData['Gender']);
+                $export->setValue($export->getCell("15", $Row), $PersonData['Nationality']);
+                $export->setValue($export->getCell("16", $Row), $PersonData['Religion']);
+                $export->setValue($export->getCell("17", $Row), $PersonData['ParticipationWillingness']);
+                $export->setValue($export->getCell("18", $Row), $PersonData['ParticipationActivities']);
+                $export->setValue($export->getCell("19", $Row), $PersonData['RemarkExcel']);
+                $export->setStyle($export->getCell("19", $Row))->setWrapText();
 
                 $Row++;
             }
@@ -1897,6 +1942,11 @@ class Service extends Extension
                     }
 
                     $DataPerson['Address'] = '';
+                    $DataPerson['Street'] = '';
+                    $DataPerson['HouseNumber'] = '';
+                    $DataPerson['CityCode'] = '';
+                    $DataPerson['City'] = '';
+                    $DataPerson['District'] = '';
                     if (($tblAddress = Address::useService()->getAddressByPerson($tblPerson))) {
                         $DataPerson['Address'] = $tblAddress->getGuiString();
                         if (($tblCity = $tblAddress->getTblCity())) {

@@ -142,6 +142,7 @@ class StudentFilter extends Extension
                 'columnDefs' => array(
                     array('type' => 'natural', 'targets' => 3),
                 ),
+                'order'      => array(array(1, 'asc')),
                 'pageLength' => -1,
                 'paging'     => false,
                 'info'       => false,
@@ -395,6 +396,35 @@ class StudentFilter extends Extension
                                 $tblStudentSubjectType, $tblStudentSubjectRanking);
                             if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
                                 $DataPerson['Edit'] = new Muted('('.$tblSubject->getAcronym().') ').$tblSubject->getName();
+                            }
+                        }
+                        for ($i = 1; $i < 5; $i++){
+                            if ($Label == $i . '. Fremdsprache'){
+                                $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE');
+                                $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i);
+                                $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
+                                    $tblStudentSubjectType, $tblStudentSubjectRanking);
+                                if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                                    $DataPerson['Edit'] = new Muted('('.$tblSubject->getAcronym().') ').$tblSubject->getName();
+                                }
+                            }
+                            if ($Label == $i . '. Wahlfach'){
+                                $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ELECTIVE');
+                                $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i);
+                                $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
+                                    $tblStudentSubjectType, $tblStudentSubjectRanking);
+                                if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                                    $DataPerson['Edit'] = new Muted('('.$tblSubject->getAcronym().') ').$tblSubject->getName();
+                                }
+                            }
+                            if ($Label == $i . '. Arbeitsgemeinschaft'){
+                                $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('TEAM');
+                                $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i);
+                                $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
+                                    $tblStudentSubjectType, $tblStudentSubjectRanking);
+                                if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                                    $DataPerson['Edit'] = new Muted('('.$tblSubject->getAcronym().') ').$tblSubject->getName();
+                                }
                             }
                         }
                     }

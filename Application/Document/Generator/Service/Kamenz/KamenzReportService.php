@@ -646,10 +646,25 @@ class KamenzReportService
                 $tblStudent, $tblStudentSubjectType
             )
             ) {
+                $countForeignSubjectsByStudent = 0;
                 foreach ($tblStudentSubjectList as $tblStudentSubject) {
                     if (($tblSubject = $tblStudentSubject->getServiceTblSubject())
                         && ($tblStudentSubjectRanking = $tblStudentSubject->getTblStudentSubjectRanking())
                     ) {
+                        // #SSW-1596 Abgeschlossene und noch nicht begonne Fremdsprachen ignorieren
+                        if (($tblLevelFrom = $tblStudentSubject->getServiceTblLevelFrom())
+                            && intval($tblLevelFrom->getName()) > intval($tblLevel->getName())
+                        ) {
+                            continue;
+                        }
+                        if (($tblLevelTill = $tblStudentSubject->getServiceTblLevelTill())
+                            && intval($tblLevelTill->getName()) < intval($tblLevel->getName())
+                        ) {
+                            continue;
+                        }
+
+                        $countForeignSubjectsByStudent++;
+
                         if ($tblType->getName() == 'Mittelschule / Oberschule') {
                             // bei Mittelschule nur 1. Fremdsprache
                             if ($tblStudentSubjectRanking->getIdentifier() == 1) {
@@ -681,8 +696,6 @@ class KamenzReportService
                         }
                     }
                 }
-
-                $countForeignSubjectsByStudent = count($tblStudentSubjectList);
             } else {
                 $countForeignSubjectsByStudent = 0;
             }
