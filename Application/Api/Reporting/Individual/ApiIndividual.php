@@ -188,12 +188,14 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         ));
         $Pipeline->appendEmitter($Emitter);
         $Emitter = new ServerEmitter(self::receiverNavigation(), self::getEndpoint());
+        $Emitter->setLoadingMessage('Verfügbare Informationen werden aktualisiert...');
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'getNavigation'
         ));
         $Pipeline->appendEmitter($Emitter);
         // Refresh Filter
         $Emitter = new ServerEmitter(self::receiverFilter(), self::getEndpoint());
+        $Emitter->setLoadingMessage('Filter wird aktualisiert...');
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'getFilter'
         ));
@@ -439,12 +441,14 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         ));
         $Pipeline->appendEmitter($Emitter);
         $Emitter = new ServerEmitter(self::receiverNavigation(), self::getEndpoint());
+        $Emitter->setLoadingMessage('Verfügbare Informationen werden aktualisiert...');
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'getNavigation'
         ));
         $Pipeline->appendEmitter($Emitter);
         // Refresh Filter
         $Emitter = new ServerEmitter(self::receiverFilter(), self::getEndpoint());
+        $Emitter->setLoadingMessage('Filter wird aktualisiert...');
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'getFilter'
         ));
@@ -840,15 +844,22 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 //            ->addItem('Klassen', $this->getPanelList(new ViewEducationStudent(), $WorkSpaceList),
 //                (isset($ViewList['ViewEducationStudent']) ? true : false));
 
-        (isset($ViewList['ViewStudent'])
-            ? $AccordionList[] = new Panel( 'Schüler', new Scrollable( $this->getPanelList(new ViewStudent(), $WorkSpaceList), 300 ))
-            : $AccordionList[] = new Dropdown( 'Schüler', new Scrollable( $this->getPanelList(new ViewStudent(), $WorkSpaceList) ) )
-        );
-
-        (isset($ViewList['ViewEducationStudent'])
-            ? $AccordionList[] = new Panel( 'Bildung' , new Scrollable( $this->getPanelList(new ViewEducationStudent(), $WorkSpaceList), 300 ))
-            : $AccordionList[] = new Dropdown( 'Bildung', new Scrollable( $this->getPanelList(new ViewEducationStudent(), $WorkSpaceList) ) )
-        );
+        $Block = $this->getPanelList(new ViewStudent(), $WorkSpaceList);
+        if( !empty( $Block ) ) {
+            if( isset($ViewList['ViewStudent']) ) {
+                $AccordionList[] = new Panel( 'Schüler:', new Scrollable( $Block, 300 ));
+            } else {
+                $AccordionList[] = new Dropdown( 'Schüler:', new Scrollable( $Block ) );
+            }
+        }
+        $Block = $this->getPanelList(new ViewEducationStudent(), $WorkSpaceList);
+        if( !empty( $Block ) ) {
+            if( isset($ViewList['ViewEducationStudent']) ) {
+                $AccordionList[] = new Panel( 'Bildung:', new Scrollable( $Block, 300 ));
+            } else {
+                $AccordionList[] = new Dropdown( 'Bildung:', new Scrollable( $Block ) );
+            }
+        }
 
         return
 //            (new Accordion())->addItem('Schüler Grunddaten',
@@ -1148,6 +1159,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             '!Ü!s' => '_UE_',
             '!ß!s' => '_SS_',
             '!-!s' => '_HY_',
+            '!/!s' => '_DASH_',
             '! !s' => '_',
 
         );
@@ -1168,6 +1180,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             '!_UE_!s' => 'Ü',
             '!_SS_!s' => 'ß',
             '!_HY_!s' => '-',
+            '!_DASH_!s' => '/',
             '!_!s' => ' ',
         );
         return preg_replace(array_keys( $DecoderPattern ), array_values( $DecoderPattern ), $Name );
@@ -1213,6 +1226,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     $Builder->addSelect($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField()
                         . ' AS ' . $Alias
                     );
+
+                    // Add Field to Sort
+                    $Builder->addOrderBy( $tblWorkSpace->getView() . '.' . $tblWorkSpace->getField() );
 
                     // Add Condition to Parameter (if exists and is not empty)
                     $Filter = $this->getGlobal()->POST;

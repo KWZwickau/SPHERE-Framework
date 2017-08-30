@@ -24,25 +24,31 @@ class ViewEducationStudent extends AbstractView
 
     // Sortierung beeinflusst die Gruppenreihenfolge im Frontend
     const TBL_PERSON_ID = 'TblPerson_Id';
+
+    const TBL_TYPE_NAME = 'TblType_Name';
+    const TBL_TYPE_DESCRIPTION = 'TblType_Description';
+
     const TBL_LEVEL_NAME = 'TblLevel_Name';
     const TBL_LEVEL_DESCRIPTION = 'TblLevel_Description';
     const TBL_LEVEL_IS_CHECKED = 'TblLevel_IsChecked';
+
     const TBL_DIVISION_NAME = 'TblDivision_Name';
     const TBL_DIVISION_DESCRIPTION = 'TblDivision_Description';
-    const TBL_TYPE_NAME = 'TblType_Name';
-    const TBL_TYPE_DESCRIPTION = 'TblType_Description';
+
     const TBL_YEAR_YEAR = 'TblYear_Year';
     const TBL_YEAR_DESCRIPTION = 'TblYear_Description';
+
     const TBL_PERIOD_NAME = 'TblPeriod_Name';
     const TBL_PERIOD_DESCRIPTION = 'TblPeriod_Description';
     const TBL_PERIOD_FROM_DATE = 'TblPeriod_FromDate';
     const TBL_PERIOD_TO_DATE = 'TblPeriod_ToDate';
-    const TBL_SUBJECT_GROUP_NAME = 'TblSubjectGroup_Name';
-    const TBL_SUBJECT_GROUP_DESCRIPTION = 'TblSubjectGroup_Description';
-    const TBL_SUBJECT_GROUP_IS_ADVANCED_COURSE = 'TblSubjectGroup_IsAdvancedCourse';
+
     const TBL_SUBJECT_ACRONYM = 'TblSubject_Acronym';
     const TBL_SUBJECT_NAME = 'TblSubject_Name';
     const TBL_SUBJECT_DESCRIPTION = 'TblSubject_Description';
+    const TBL_SUBJECT_GROUP_NAME = 'TblSubjectGroup_Name';
+    const TBL_SUBJECT_GROUP_DESCRIPTION = 'TblSubjectGroup_Description';
+    const TBL_SUBJECT_GROUP_IS_ADVANCED_COURSE = 'TblSubjectGroup_IsAdvancedCourse';
 
     /**
      * @return array
@@ -143,24 +149,24 @@ class ViewEducationStudent extends AbstractView
     {
 
         //NameDefinition
-        $this->setNameDefinition(self::TBL_LEVEL_NAME, 'Klassenstufe');
-        $this->setNameDefinition(self::TBL_LEVEL_DESCRIPTION, 'Stufen Beschreibung');
-        $this->setNameDefinition(self::TBL_LEVEL_IS_CHECKED, 'Klasse ist Stufenübergreifend');
-        $this->setNameDefinition(self::TBL_DIVISION_NAME, 'Klassengruppe');
-        $this->setNameDefinition(self::TBL_DIVISION_DESCRIPTION, 'Klassen Beschreibung');
-        $this->setNameDefinition(self::TBL_TYPE_NAME, 'Schulart');
-        $this->setNameDefinition(self::TBL_YEAR_YEAR, 'Schuljahr');
-        $this->setNameDefinition(self::TBL_YEAR_DESCRIPTION, 'Schuljahr Beschreibung');
-        $this->setNameDefinition(self::TBL_PERIOD_NAME, 'Name des Zeitraums');
-        $this->setNameDefinition(self::TBL_PERIOD_DESCRIPTION, 'Beschreibung des Zeitraums');
-        $this->setNameDefinition(self::TBL_PERIOD_FROM_DATE, 'Von Zeitraum');
-        $this->setNameDefinition(self::TBL_PERIOD_TO_DATE, 'Bis Zeitraum');
-        $this->setNameDefinition(self::TBL_SUBJECT_GROUP_NAME, 'Fachgruppe');
-        $this->setNameDefinition(self::TBL_SUBJECT_GROUP_DESCRIPTION, 'Fachgruppe Beschreibung');
-        $this->setNameDefinition(self::TBL_SUBJECT_GROUP_IS_ADVANCED_COURSE, 'Fach ist Leistungskurs');
-        $this->setNameDefinition(self::TBL_SUBJECT_ACRONYM, 'Fachkürzel');
-        $this->setNameDefinition(self::TBL_SUBJECT_NAME, 'Fach');
-        $this->setNameDefinition(self::TBL_SUBJECT_DESCRIPTION, 'Fach Beschreibung');
+        $this->setNameDefinition(self::TBL_LEVEL_NAME, 'Bildung: Klassenstufe');
+        $this->setNameDefinition(self::TBL_LEVEL_DESCRIPTION, 'Bildung: Stufen Beschreibung');
+        $this->setNameDefinition(self::TBL_LEVEL_IS_CHECKED, 'Bildung: Klasse ist Stufenübergreifend');
+        $this->setNameDefinition(self::TBL_DIVISION_NAME, 'Bildung: Klassengruppe');
+        $this->setNameDefinition(self::TBL_DIVISION_DESCRIPTION, 'Bildung: Klassen Beschreibung');
+        $this->setNameDefinition(self::TBL_TYPE_NAME, 'Bildung: Schulart');
+        $this->setNameDefinition(self::TBL_YEAR_YEAR, 'Bildung: Schuljahr');
+        $this->setNameDefinition(self::TBL_YEAR_DESCRIPTION, 'Bildung: Schuljahr Beschreibung');
+        $this->setNameDefinition(self::TBL_PERIOD_NAME, 'Bildung: Name des Zeitraums');
+        $this->setNameDefinition(self::TBL_PERIOD_DESCRIPTION, 'Bildung: Beschreibung des Zeitraums');
+        $this->setNameDefinition(self::TBL_PERIOD_FROM_DATE, 'Bildung: Von Zeitraum');
+        $this->setNameDefinition(self::TBL_PERIOD_TO_DATE, 'Bildung: Bis Zeitraum');
+        $this->setNameDefinition(self::TBL_SUBJECT_GROUP_NAME, 'Bildung: Fachgruppe');
+        $this->setNameDefinition(self::TBL_SUBJECT_GROUP_DESCRIPTION, 'Bildung: Fachgruppe Beschreibung');
+        $this->setNameDefinition(self::TBL_SUBJECT_GROUP_IS_ADVANCED_COURSE, 'Bildung: Fach ist Leistungskurs');
+        $this->setNameDefinition(self::TBL_SUBJECT_ACRONYM, 'Bildung: Fachkürzel');
+        $this->setNameDefinition(self::TBL_SUBJECT_NAME, 'Bildung: Fach');
+        $this->setNameDefinition(self::TBL_SUBJECT_DESCRIPTION, 'Bildung: Fach Beschreibung');
 
         //GroupDefinition
         $this->setGroupDefinition('Klasse', array(
