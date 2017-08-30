@@ -149,6 +149,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Identifier', self::FIELD_TYPE_STRING);
         $this->createIndex($Table, array('Identifier'));
+        $this->createColumn($Table, 'IsAutomaticallyApproved', self::FIELD_TYPE_BOOLEAN, false, false);
 
         return $Table;
     }

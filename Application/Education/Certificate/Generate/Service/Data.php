@@ -58,6 +58,15 @@ class Data extends AbstractData
     }
 
     /**
+     * @return false|TblGenerateCertificate[]
+     */
+    public function getGenerateCertificateAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblGenerateCertificate');
+    }
+
+    /**
      * @param TblYear $tblYear
      * @param $Date
      * @param $Name

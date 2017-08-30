@@ -249,7 +249,7 @@ class Service extends AbstractService
 
         if (empty($Error)) {
             return new Success(new Enable() . ' Die Einstellungen wurden gespeichert')
-            . new Redirect('/Education/Certificate/Setting', Redirect::TIMEOUT_SUCCESS);
+            . new Redirect('/Education/Certificate/Setting/Template', Redirect::TIMEOUT_SUCCESS);
         } else {
             // TODO Show $Error List
             return new Danger(new Disable() . ' Eine oder mehrere Einstellungen wurden nicht gespeichert!')
@@ -433,5 +433,40 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->isGradeTypeUsed($tblGradeType);
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function updateCertificateType(
+        IFormInterface $Form,
+        $Data
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        $Global = $this->getGlobal();
+        if (!isset($Global->POST['Button']['Submit'])) {
+            return $Form;
+        }
+
+        if (($tblCertificateTypeAll = $this->getCertificateTypeAll())) {
+            foreach ($tblCertificateTypeAll as $tblCertificateType) {
+                if (isset($Data[$tblCertificateType->getId()]) && !$tblCertificateType->isAutomaticallyApproved()) {
+                    (new Data($this->getBinding()))->updateCertificateType($tblCertificateType,
+                        $tblCertificateType->getIdentifier(), $tblCertificateType->getName(), true);
+                } elseif (!isset($Data[$tblCertificateType->getId()]) && $tblCertificateType->isAutomaticallyApproved()) {
+                    (new Data($this->getBinding()))->updateCertificateType($tblCertificateType,
+                        $tblCertificateType->getIdentifier(), $tblCertificateType->getName(), false);
+                }
+            }
+        }
+
+        return new Success('Die Daten wurden erfolgreich gespeichert', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+            . new Redirect('/Education/Certificate/Setting/Approval', Redirect::TIMEOUT_SUCCESS);
     }
 }

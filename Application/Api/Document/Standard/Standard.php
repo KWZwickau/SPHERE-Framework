@@ -38,6 +38,13 @@ class Standard extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/KamenzReport/Create', 'SPHERE\Application\Api\Document\Creator::createKamenzPdf'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/GradebookOverview/Create', __CLASS__.'::createGradebookOverviewPdf'
+        ));
+
+//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+//            __NAMESPACE__.'/StudentCard/Download', __NAMESPACE__.'\Repository\StudentCardTwig::downloadStudentCard')
+//        );
     }
 
     /**
@@ -78,6 +85,17 @@ class Standard extends Extension implements IModuleInterface
     {
 
         return Creator::createPdf($PersonId, __NAMESPACE__ . '\Repository\AccidentReport');
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return \SPHERE\Common\Window\Stage|string
+     */
+    public static function createGradebookOverviewPdf($PersonId = null, $DivisionId = null)
+    {
+
+        return Creator::createGradebookOverviewPdf($PersonId, $DivisionId,Creator::PAPERORIENTATION_LANDSCAPE);
     }
 
     /**

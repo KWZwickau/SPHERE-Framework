@@ -14,6 +14,7 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -250,5 +251,18 @@ class TblPrepareCertificate extends Element
     {
 
         return $this->isGradeInformation() ? 'Noteninformation' : 'Zeugnis';
+    }
+
+    /**
+     * @return bool|TblCertificateType
+     */
+    public function getCertificateType()
+    {
+
+        if (($tblCertificateType = $this->getServiceTblGenerateCertificate())) {
+            return $tblCertificateType->getServiceTblCertificateType();
+        }
+
+        return false;
     }
 }

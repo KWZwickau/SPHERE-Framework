@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Education\Certificate\PrintCertificate;
 
 use SPHERE\Application\Document\Storage\Storage;
+use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -61,9 +62,37 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($tblPrepareStudentList as $tblPrepareStudent) {
                 if (($tblPerson = $tblPrepareStudent->getServiceTblPerson())
                     && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
+                    && $tblPrepareStudent->getServiceTblCertificate()
                 ) {
                     if (!isset($prepareList[$tblPrepare->getId()])) {
                         $prepareList[$tblPrepare->getId()] = $tblPrepare;
+                        break;
+                    }
+                }
+            }
+        }
+        // alle automatisch freigebenen Zeugnisse
+        if ($tblGenerateCertificateList = Generate::useService()->getGenerateCertificateAll()) {
+            foreach ($tblGenerateCertificateList as $tblGenerateCertificate) {
+                if (($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+                    && $tblCertificateType->isAutomaticallyApproved()
+                    && ($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))
+                ) {
+                    foreach ($tblPrepareList as $tblPrepareCertificate) {
+                        if (($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPrepare($tblPrepareCertificate))) {
+                            foreach ($tblPrepareStudentList as $tblPrepareStudent) {
+                                if (($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                                    && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
+                                    && $tblPrepareStudent->getServiceTblCertificate()
+                                    && !$tblPrepareStudent->isPrinted()
+                                ) {
+                                    if (!isset($prepareList[$tblPrepare->getId()])) {
+                                        $prepareList[$tblPrepare->getId()] = $tblPrepare;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -75,7 +104,10 @@ class Frontend extends Extension implements IFrontendInterface
                 $tableContent[] = array(
                     'Year' => $tblDivision->getServiceTblYear()
                         ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                    'Date' => $tblPrepare->getDate(),
                     'Division' => $tblDivision->getDisplayName(),
+                    'CertificateType' =>
+                        ($tblCertificateType = $tblPrepare->getCertificateType()) ? $tblCertificateType->getName() : '',
                     'Name' => $tblPrepare->getName(),
                     'Option' => new Standard(
                         'Zeugnisse herunterladen und revisionssicher speichern',
@@ -100,18 +132,21 @@ class Frontend extends Extension implements IFrontendInterface
                                 null,
                                 array(
                                     'Year' => 'Schuljahr',
+                                    'Date' => 'Zeugnisdatum',
                                     'Division' => 'Klasse',
                                     'Name' => 'Name',
+                                    'CertificateType' => 'Zeugnistyp',
                                     'Option' => ''
                                 ),
                                 array(
                                     'order' => array(
                                         array(0, 'desc'),
-                                        array(1, 'asc'),
+                                        array(1, 'desc'),
                                         array(2, 'asc'),
+                                        array(3, 'asc'),
                                     ),
                                     'columnDefs' => array(
-                                        array('type' => 'natural', 'targets' => 1),
+                                        array('type' => 'natural', 'targets' => 2),
                                     )
                                 )
                             )
@@ -142,15 +177,26 @@ class Frontend extends Extension implements IFrontendInterface
                 'Zurück', '/Education/Certificate/PrintCertificate', new ChevronLeft()
             ));
 
+            if (($tblCertificateType = $tblPrepare->getCertificateType())
+                && $tblCertificateType->isAutomaticallyApproved()
+            ) {
+                $isAutomaticallyApproved = true;
+            } else {
+                $isAutomaticallyApproved = false;
+            }
+
             $data = array();
             if (($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))) {
                 foreach ($tblPersonList as $tblPerson) {
                     if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
                         && $tblPrepareStudent->getServiceTblCertificate()
-                        && $tblPrepareStudent->isApproved()
                         && !$tblPrepareStudent->isPrinted()
                     ) {
-                        $data[] = $tblPerson->getLastFirstName();
+                        if ($tblPrepareStudent->isApproved()
+                            || $isAutomaticallyApproved
+                        ) {
+                            $data[] = $tblPerson->getLastFirstName();
+                        }
                     }
                 }
             }
@@ -174,7 +220,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'PrepareId' => $tblPrepare->getId(),
                             ),
                             'Zeugnisse herunterladen und revisionssicher abspeichern'))
-                            ->setRedirect('/Education/Certificate/PrintCertificate', 20)
+                            ->setRedirect('/Education/Certificate/PrintCertificate', 60)
                         . new Standard(
                             'Nein', '/Education/Certificate/PrintCertificate', new Disable()
                         )
