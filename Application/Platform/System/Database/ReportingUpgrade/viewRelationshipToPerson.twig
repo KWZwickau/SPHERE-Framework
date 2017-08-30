@@ -1,0 +1,16 @@
+SELECT
+    viewRelationshipToPerson.TblToPerson_Remark AS TblToPerson_Remark,
+    viewRelationshipToPerson.TblToPerson_serviceTblPersonFrom AS TblToPerson_serviceTblPersonFrom,
+    viewRelationshipToPerson.TblToPerson_serviceTblPersonTo AS TblToPerson_serviceTblPersonTo,
+    viewRelationshipToPerson.TblType_Name AS TblType_Name,
+    viewRelationshipToPerson.TblType_Description AS TblType_Description
+FROM
+    PeopleRelationship_{{ ConsumerAcronym }}.viewRelationshipToPerson
+UNION SELECT
+    viewRelationshipToPerson.TblToPerson_Remark AS TblToPerson_Remark,
+    viewRelationshipToPerson.TblToPerson_serviceTblPersonTo AS TblToPerson_serviceTblPersonTo,
+    viewRelationshipToPerson.TblToPerson_serviceTblPersonFrom AS TblToPerson_serviceTblPersonFrom,
+    viewRelationshipToPerson.TblType_Name AS TblType_Name,
+    viewRelationshipToPerson.TblType_Description AS TblType_Description
+FROM
+    PeopleRelationship_{{ ConsumerAcronym }}.viewRelationshipToPerson
