@@ -457,4 +457,28 @@ class Service extends AbstractService
             }
         }
     }
+
+    /**
+     * @param $Name
+     * @param $Description
+     *
+     * @return false|TblType
+     */
+    public function getTypeByNameAndDescription($Name, $Description)
+    {
+
+        return (new Data($this->getBinding()))->getTypeByNameAndDescription($Name, $Description);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblType $tblType
+     *
+     * @return false|TblToPerson[]
+     */
+    public function getPhoneToPersonAllBy(TblPerson $tblPerson, TblType $tblType)
+    {
+
+        return (new Data($this->getBinding()))->getPhoneToPersonAllBy($tblPerson, $tblType);
+    }
 }

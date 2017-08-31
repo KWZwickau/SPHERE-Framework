@@ -67,7 +67,7 @@ class PrimarySchool extends AbstractStudentCard
         $OutLines = '1.2px';
         $InnerLines = '0.5px';
         $padding = '4.7px';
-        $SpaceBetween = '90px';
+        $SpaceBetween = '15px';
 
         $subjectPosition = array();
 
@@ -370,13 +370,8 @@ class PrimarySchool extends AbstractStudentCard
                                 , '50%')
                             ->addElementColumn((new Element())
                                 ->setContent('
-                                        {% if(Content.Person.Contact.Phone.EmergencyPdf1 is not empty) %}
-                                            {{ Content.Person.Contact.Phone.EmergencyPdf1 }}
-                                             {% if(Content.Person.Contact.Phone.EmergencyPdf2 is not empty) %}
-                                                <br/>{{ Content.Person.Contact.Phone.EmergencyPdf2 }}
-                                             {% else %}
-                                                &nbsp;
-                                             {% endif %}
+                                        {% if(Content.Person.Contact.Phone.EmergencyNumber is not empty) %}
+                                            {{ Content.Person.Contact.Phone.EmergencyNumber }}
                                         {% else %}
                                             &nbsp;
                                         {% endif %}
@@ -406,8 +401,8 @@ class PrimarySchool extends AbstractStudentCard
                         , '25%')
                     ->addElementColumn((new Element())
                         ->setContent('
-                                {% if(Content.Student.School.Attendance.Date is not empty) %}
-                                    {{ Content.Student.School.Attendance.Date }}
+                                {% if(Content.Student.School.Attendance.Year is not empty) %}
+                                    {{ Content.Student.School.Attendance.Year }}
                                 {% else %}
                                     &nbsp;
                                 {% endif %}
@@ -585,7 +580,7 @@ class PrimarySchool extends AbstractStudentCard
                 )
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('Aufnahme')
+                        ->setContent('fristgemäße Einschulung')
                         ->styleTextSize($InputText)
                         ->stylePaddingLeft('4px')
                         ->stylePaddingTop($padding)
@@ -771,6 +766,36 @@ class PrimarySchool extends AbstractStudentCard
                         ->styleTextSize($SmallTextSize)
                         ->styleAlignCenter()
                         , '25%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleTextSize($InputText)
+                        ->stylePaddingLeft('4px')
+                        ->stylePaddingTop($padding)
+                        ->stylePaddingBottom($padding)
+                        ->styleBorderTop($InnerLines)
+                    )
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleTextSize($InputText)
+                        ->stylePaddingLeft('4px')
+                        ->stylePaddingTop($padding)
+                        ->stylePaddingBottom($padding)
+                        ->styleBorderTop($InnerLines)
+                    )
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleTextSize($InputText)
+                        ->stylePaddingLeft('4px')
+                        ->stylePaddingTop($padding)
+                        ->stylePaddingBottom($padding)
+                        ->styleBorderTop($InnerLines)
+                    )
                 )
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
