@@ -1221,7 +1221,6 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
                     // Add Field to Select
                     $ViewClass = $this->instanceView( $tblWorkSpace );
-//                    $Alias = preg_replace('!\s!is', '_', $ViewClass->getNameDefinition($tblWorkSpace->getField()) );
                     $Alias = $this->encodeField( $ViewClass->getNameDefinition($tblWorkSpace->getField()) );
                     $Builder->addSelect($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField()
                         . ' AS ' . $Alias
@@ -1291,7 +1290,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
                 $Query = $Builder->getQuery();
                 $Query->useQueryCache(true);
-//                $Query->useResultCache(true, 300);
+                $Query->useResultCache(true, 300);
                 $Query->setMaxResults(1000);
 
                 $this->getLogger( new QueryLogger() )->addLog( $Query->getSQL() );
