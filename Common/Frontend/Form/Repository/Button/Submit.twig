@@ -1,5 +1,7 @@
-<button type="submit" class="btn btn-{{ Type }}" name="Button[Submit]" value="{{ Name }}"
-        {% if( TabIndex is not empty ) %}tabindex="{{ TabIndex }}"{% endif %}>
+<button type="submit" class="btn btn-{{ Type }}{% if( NewTab is not empty ) %} ExternalSubmit{% endif %}" name="Button[Submit]" value="{{ Name }}"
+        {% if( TabIndex is not empty ) %}tabindex="{{ TabIndex }}"{% endif %}
+        {% if( NewTab is not empty ) %}onclick="jQuery(this).closest('form').attr('target', '_blank');"{% endif %}
+>
     {% if( Icon is not empty ) %}{{ Icon }}{% endif %}
     {{ Name }}
 </button>

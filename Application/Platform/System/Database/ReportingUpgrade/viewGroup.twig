@@ -1,0 +1,9 @@
+SELECT
+    viewPerson.TblPerson_Id AS TblPerson_Id,
+    viewPeopleGroupMember.TblGroup_Name AS TblGroup_Name,
+    viewPeopleGroupMember.TblGroup_Description AS TblGroup_Description,
+    viewPeopleGroupMember.TblGroup_Remark AS TblGroup_Remark,
+    viewPeopleGroupMember.TblGroup_MetaTable AS TblGroup_MetaTable
+FROM
+    (PeoplePerson_{{ ConsumerAcronym }}.viewPerson
+    LEFT JOIN PeopleGroup_{{ ConsumerAcronym }}.viewPeopleGroupMember ON ((viewPerson.TblPerson_Id = viewPeopleGroupMember.TblMember_serviceTblPerson)))

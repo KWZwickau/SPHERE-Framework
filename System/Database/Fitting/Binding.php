@@ -103,4 +103,12 @@ class Binding
 
         return $this->EntityNamespace;
     }
+
+    /**
+     * @return \Doctrine\DBAL\Platforms\AbstractPlatform
+     */
+    public function getPlatform()
+    {
+        return $this->Database->getPlatform();
+    }
 }

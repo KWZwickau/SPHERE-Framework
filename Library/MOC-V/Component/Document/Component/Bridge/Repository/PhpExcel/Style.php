@@ -405,4 +405,13 @@ class Style
         $this->Worksheet->getStyle($this->getRangeName())->getBorders()->getLeft()->setColor(new \PHPExcel_Style_Color());
         return $this;
     }
+
+    /**
+     * @return $this
+     */
+    public function setAutoFilter()
+    {
+        $this->Worksheet->setAutoFilter($this->getRangeName());
+        return $this;
+    }
 }

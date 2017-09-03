@@ -25,6 +25,7 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
 use SPHERE\System\Database\Binding\AbstractSetup;
+use SPHERE\System\Database\Fitting\Element;
 use SPHERE\System\Database\Fitting\View;
 
 /**
@@ -70,7 +71,7 @@ class Setup extends AbstractSetup
         $tblStudentLiberationCategory = $this->setTableStudentLiberationCategory($Schema);
         $tblStudentLiberationType = $this->setTableStudentLiberationType($Schema, $tblStudentLiberationCategory);
         $this->setTableStudentLiberation($Schema, $tblStudent, $tblStudentLiberationType);
-        
+
         $tblStudentSubjectType = $this->setTableStudentSubjectType($Schema);
         $tblStudentSubjectRanking = $this->setTableStudentSubjectRanking($Schema);
         $this->setTableStudentSubject($Schema, $tblStudent, $tblStudentSubjectType, $tblStudentSubjectRanking);
@@ -93,13 +94,13 @@ class Setup extends AbstractSetup
         );
         $this->getConnection()->createView(
             ( new View($this->getConnection(), 'viewStudentAgreement') )
-                ->addLink(new TblStudentAgreement(), 'tblStudent', new TblStudent(), 'Id')
-                ->addLink(new TblStudentAgreement(), 'tblStudentAgreementType', new TblStudentAgreementType(), 'Id')
-                ->addLink(new TblStudentAgreementType(), 'tblStudentAgreementCategory', new TblStudentAgreementCategory(), 'Id')
+                ->addLink(new TblStudentAgreement(), 'tblStudent', new TblStudent(), 'Id', View::JOIN)
+                ->addLink(new TblStudentAgreement(), 'tblStudentAgreementType', new TblStudentAgreementType(), 'Id', View::JOIN)
+                ->addLink(new TblStudentAgreementType(), 'tblStudentAgreementCategory', new TblStudentAgreementCategory(), 'Id', View::JOIN)
         );
         $this->getConnection()->createView(
             ( new View($this->getConnection(), 'viewStudentBaptism') )
-                ->addLink(new TblStudent(), 'tblStudentBaptism', new TblStudentBaptism(), 'Id')
+                ->addLink(new TblStudent(), 'tblStudentBaptism', new TblStudentBaptism(), 'Id', View::JOIN)
         );
 //        $this->getConnection()->createView(
 //            (new View($this->getConnection(), 'viewStudentBilling'))
@@ -108,46 +109,46 @@ class Setup extends AbstractSetup
 //        );
         $this->getConnection()->createView(
             ( new View($this->getConnection(), 'viewStudentDisorder') )
-                ->addLink(new TblStudentDisorder(), 'tblStudent', new TblStudent(), 'Id')
-                ->addLink(new TblStudentDisorder(), 'tblStudentDisorderType', new TblStudentDisorderType(), 'Id')
+                ->addLink(new TblStudentDisorder(), 'tblStudent', new TblStudent(), 'Id', View::JOIN)
+                ->addLink(new TblStudentDisorder(), 'tblStudentDisorderType', new TblStudentDisorderType(), 'Id', View::JOIN)
         );
         $this->getConnection()->createView(
             ( new View($this->getConnection(), 'viewStudentFocus') )
-                ->addLink(new TblStudentFocus(), 'tblStudent', new TblStudent(), 'Id')
-                ->addLink(new TblStudentFocus(), 'tblStudentFocusType', new TblStudentFocusType(), 'Id')
+                ->addLink(new TblStudentFocus(), 'tblStudent', new TblStudent(), 'Id', View::JOIN)
+                ->addLink(new TblStudentFocus(), 'tblStudentFocusType', new TblStudentFocusType(), 'Id', View::JOIN)
         );
         $this->getConnection()->createView(
             ( new View($this->getConnection(), 'viewStudentIntegration') )
-                ->addLink(new TblStudent(), 'tblStudentIntegration', new TblStudentIntegration(), 'Id')
+                ->addLink(new TblStudent(), 'tblStudentIntegration', new TblStudentIntegration(), 'Id', View::JOIN)
         );
         $this->getConnection()->createView(
             ( new View($this->getConnection(), 'viewStudentLiberation') )
-                ->addLink(new TblStudentLiberation(), 'tblStudent', new TblStudent(), 'Id')
-                ->addLink(new TblStudentLiberation(), 'tblStudentLiberationType', new TblStudentLiberationType(), 'Id')
-                ->addLink(new TblStudentLiberationType(), 'tblStudentLiberationCategory', new TblStudentLiberationCategory(), 'Id')
+                ->addLink(new TblStudentLiberation(), 'tblStudent', new TblStudent(), 'Id', View::JOIN)
+                ->addLink(new TblStudentLiberation(), 'tblStudentLiberationType', new TblStudentLiberationType(), 'Id', View::JOIN)
+                ->addLink(new TblStudentLiberationType(), 'tblStudentLiberationCategory', new TblStudentLiberationCategory(), 'Id', View::JOIN)
         );
         $this->getConnection()->createView(
             ( new View($this->getConnection(), 'viewStudentLocker') )
-                ->addLink(new TblStudent(), 'tblStudentLocker', new TblStudentLocker(), 'Id')
+                ->addLink(new TblStudent(), 'tblStudentLocker', new TblStudentLocker(), 'Id', View::JOIN)
         );
         $this->getConnection()->createView(
             ( new View($this->getConnection(), 'viewStudentMedicalRecord') )
-                ->addLink(new TblStudent(), 'tblStudentMedicalRecord', new TblStudentMedicalRecord(), 'Id')
+                ->addLink(new TblStudent(), 'tblStudentMedicalRecord', new TblStudentMedicalRecord(), 'Id', View::JOIN)
         );
         $this->getConnection()->createView(
             ( new View($this->getConnection(), 'viewStudentSubject') )
-                ->addLink(new TblStudentSubject(), 'tblStudent', new TblStudent(), 'Id')
-                ->addLink(new TblStudentSubject(), 'tblStudentSubjectRanking', new TblStudentSubjectRanking(), 'Id')
-                ->addLink(new TblStudentSubject(), 'tblStudentSubjectType', new TblStudentSubjectType(), 'Id')
+                ->addLink(new TblStudentSubject(), 'tblStudent', new TblStudent(), 'Id', View::JOIN)
+                ->addLink(new TblStudentSubject(), 'tblStudentSubjectRanking', new TblStudentSubjectRanking(), 'Id', View::JOIN)
+                ->addLink(new TblStudentSubject(), 'tblStudentSubjectType', new TblStudentSubjectType(), 'Id', View::JOIN)
         );
         $this->getConnection()->createView(
             ( new View($this->getConnection(), 'viewStudentTransfer') )
-                ->addLink(new TblStudentTransfer(), 'tblStudent', new TblStudent(), 'Id')
-                ->addLink(new TblStudentTransfer(), 'tblStudentTransferType', new TblStudentTransferType(), 'Id')
+                ->addLink(new TblStudentTransfer(), 'tblStudent', new TblStudent(), 'Id', View::JOIN)
+                ->addLink(new TblStudentTransfer(), 'tblStudentTransferType', new TblStudentTransferType(), 'Id', View::JOIN)
         );
         $this->getConnection()->createView(
             ( new View($this->getConnection(), 'viewStudentTransport') )
-                ->addLink(new TblStudent(), 'tblStudentTransport', new TblStudentTransport(), 'Id')
+                ->addLink(new TblStudent(), 'tblStudentTransport', new TblStudentTransport(), 'Id', View::JOIN)
         );
 
         return $this->getConnection()->getProtocol($Simulate);
@@ -271,6 +272,10 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblStudentIntegration', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
+        $this->getConnection()->removeIndex($Table, array('serviceTblPerson'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
+        }
         if (!$this->getConnection()->hasColumn('tblStudentIntegration', 'serviceTblCompany')) {
             $Table->addColumn('serviceTblCompany', 'bigint', array('notnull' => false));
         }
@@ -319,6 +324,10 @@ class Setup extends AbstractSetup
         $Table = $this->getConnection()->createTable($Schema, 'tblStudent');
         if (!$this->getConnection()->hasColumn('tblStudent', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
+        }
+        $this->getConnection()->removeIndex($Table, array('serviceTblPerson'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
         }
         if (!$this->getConnection()->hasColumn('tblStudent', 'Identifier')) {
             $Table->addColumn('Identifier', 'string', array('notnull' => false));
@@ -467,7 +476,7 @@ class Setup extends AbstractSetup
         }
         return $Table;
     }
-    
+
     /**
      * @param Schema $Schema
      * @param Table  $tblStudentLiberationCategory
@@ -487,7 +496,7 @@ class Setup extends AbstractSetup
         $this->getConnection()->addForeignKey($Table, $tblStudentLiberationCategory);
         return $Table;
     }
-    
+
     /**
      * @param Schema $Schema
      * @param Table  $tblStudent
@@ -506,7 +515,7 @@ class Setup extends AbstractSetup
         $this->getConnection()->addForeignKey($Table, $tblStudentLiberationType);
         return $Table;
     }
-    
+
     /**
      * @param Schema $Schema
      *

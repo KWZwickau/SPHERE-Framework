@@ -7,6 +7,7 @@ use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspect;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspectAppointment;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspectReservation;
 use SPHERE\System\Database\Binding\AbstractSetup;
+use SPHERE\System\Database\Fitting\Element;
 use SPHERE\System\Database\Fitting\View;
 
 /**
@@ -104,6 +105,10 @@ class Setup extends AbstractSetup
         $Table = $this->getConnection()->createTable($Schema, 'tblProspect');
         if (!$this->getConnection()->hasColumn('tblProspect', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
+        }
+        $this->getConnection()->removeIndex($Table, array('serviceTblPerson'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
         }
         if (!$this->getConnection()->hasColumn('tblProspect', 'Remark')) {
             $Table->addColumn('Remark', 'text');

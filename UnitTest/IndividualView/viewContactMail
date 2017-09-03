@@ -1,0 +1,14 @@
+CREATE 
+    ALGORITHM = UNDEFINED 
+    DEFINER = `root`@`%`
+    SQL SECURITY DEFINER
+VIEW SettingConsumer_DEMO.viewContactMail AS
+    SELECT 
+        viewPerson.TblPerson_Id AS TblPerson_Id,
+        viewMailToPerson.TblToPerson_Remark AS TblToPerson_Remark,
+        viewMailToPerson.TblType_Name AS TblType_Name,
+        viewMailToPerson.TblType_Description AS TblType_Description,
+        viewMailToPerson.TblMail_Address AS TblMail_Address
+    FROM
+        (PeoplePerson_DEMO.viewPerson
+        LEFT JOIN ContactMail_DEMO.viewMailToPerson ON ((viewPerson.TblPerson_Id = viewMailToPerson.TblToPerson_serviceTblPerson)))

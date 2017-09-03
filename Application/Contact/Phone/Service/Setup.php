@@ -8,6 +8,7 @@ use SPHERE\Application\Contact\Phone\Service\Entity\TblToCompany;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblType;
 use SPHERE\System\Database\Binding\AbstractSetup;
+use SPHERE\System\Database\Fitting\Element;
 use SPHERE\System\Database\Fitting\View;
 
 /**
@@ -106,7 +107,11 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblToPerson', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
-        $this->getConnection()->addForeignKey($Table, $tblPhone);
+        $this->getConnection()->removeIndex($Table, array('serviceTblPerson'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
+        }
+        $this->getConnection()->addForeignKey($Table, $tblPhone, null);
         $this->getConnection()->addForeignKey($Table, $tblType);
         return $Table;
     }
@@ -128,7 +133,11 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblToCompany', 'serviceTblCompany')) {
             $Table->addColumn('serviceTblCompany', 'bigint', array('notnull' => false));
         }
-        $this->getConnection()->addForeignKey($Table, $tblPhone);
+        $this->getConnection()->removeIndex($Table, array('serviceTblCompany'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblCompany', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblCompany', Element::ENTITY_REMOVE));
+        }
+        $this->getConnection()->addForeignKey($Table, $tblPhone, null);
         $this->getConnection()->addForeignKey($Table, $tblType);
         return $Table;
     }

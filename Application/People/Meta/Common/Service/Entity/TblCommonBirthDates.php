@@ -28,6 +28,8 @@ class TblCommonBirthDates extends Element
      */
     const VALUE_GENDER_FEMALE = 2;
 
+    const ATTR_BIRTHPLACE = 'Birthplace';
+
     /**
      * @Column(type="datetime")
      */

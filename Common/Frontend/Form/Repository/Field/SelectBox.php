@@ -29,16 +29,18 @@ class SelectBox extends AbstractField implements IFieldInterface
     private $Configuration = array();
 
     /**
-     * @param string         $Name
-     * @param null|string    $Label
-     * @param array          $Data array( value => title )
+     * @param string $Name
+     * @param null|string $Label
+     * @param array $Data array( value => title )
      * @param IIconInterface $Icon
+     * @param bool $useAutoValue
      */
     public function __construct(
         $Name,
         $Label = '',
         $Data = array(),
-        IIconInterface $Icon = null
+        IIconInterface $Icon = null,
+        $useAutoValue = true
     ) {
 
         $this->Name = $Name;
@@ -119,7 +121,7 @@ class SelectBox extends AbstractField implements IFieldInterface
                     }
                 }
             }
-            if (array_key_exists(0, $Convert)) {
+            if (array_key_exists(0, $Convert) && $useAutoValue) {
                 unset( $Convert[0] );
                 asort($Convert, SORT_NATURAL);
 
@@ -133,7 +135,7 @@ class SelectBox extends AbstractField implements IFieldInterface
             }
             $this->Data = $Convert;
         } else {
-            if (array_key_exists(0, $Data) && $Data[0] != '-[ Nicht verfügbar ]-') {
+            if (array_key_exists(0, $Data) && $Data[0] != '-[ Nicht verfügbar ]-' && $useAutoValue) {
                 unset( $Data[0] );
                 asort($Data, SORT_NATURAL);
 

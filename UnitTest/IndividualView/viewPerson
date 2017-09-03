@@ -1,0 +1,27 @@
+CREATE 
+    ALGORITHM = UNDEFINED 
+    DEFINER = `root`@`%`
+    SQL SECURITY DEFINER
+VIEW SettingConsumer_DEMO.viewPerson AS
+    SELECT 
+        viewPerson.TblPerson_Id AS TblPerson_Id,
+        viewPerson.TblPerson_Title AS TblPerson_Title,
+        viewPerson.TblPerson_FirstName AS TblPerson_FirstName,
+        viewPerson.TblPerson_LastName AS TblPerson_LastName,
+        viewPerson.TblPerson_SecondName AS TblPerson_SecondName,
+        viewPerson.TblPerson_BirthName AS TblPerson_BirthName,
+        viewPerson.TblSalutation_Salutation AS TblSalutation_Salutation,
+        viewPerson.EntityCreate AS EntityCreate,
+        viewPerson.EntityUpdate AS EntityUpdate,
+        viewPerson.EntityRemove AS EntityRemove,
+        viewPeopleMetaCommon.TblCommon_Remark AS TblCommon_Remark,
+        viewPeopleMetaCommon.TblCommonBirthDates_Birthday AS TblCommonBirthDates_Birthday,
+        viewPeopleMetaCommon.TblCommonBirthDates_Birthplace AS TblCommonBirthDates_Birthplace,
+        viewPeopleMetaCommon.TblCommonGender_Name AS TblCommonGender_Name,
+        viewPeopleMetaCommon.TblCommonInformation_Nationality AS TblCommonInformation_Nationality,
+        viewPeopleMetaCommon.TblCommonInformation_Denomination AS TblCommonInformation_Denomination,
+        viewPeopleMetaCommon.TblCommonInformation_AssistanceActivity AS TblCommonInformation_AssistanceActivity,
+        viewPeopleMetaCommon.TblCommonInformation_IsAssistance AS TblCommonInformation_IsAssistance
+    FROM
+        (PeoplePerson_DEMO.viewPerson
+        LEFT JOIN PeopleMeta_DEMO.viewPeopleMetaCommon ON ((viewPerson.TblPerson_Id = viewPeopleMetaCommon.TblCommon_serviceTblPerson)))

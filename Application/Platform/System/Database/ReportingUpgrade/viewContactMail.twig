@@ -1,0 +1,9 @@
+SELECT
+    viewPerson.TblPerson_Id AS TblPerson_Id,
+    viewMailToPerson.TblToPerson_Remark AS TblToPerson_Remark,
+    viewMailToPerson.TblType_Name AS TblType_Name,
+    viewMailToPerson.TblType_Description AS TblType_Description,
+    viewMailToPerson.TblMail_Address AS TblMail_Address
+FROM
+    (PeoplePerson_{{ ConsumerAcronym }}.viewPerson
+    LEFT JOIN ContactMail_{{ ConsumerAcronym }}.viewMailToPerson ON ((PeoplePerson_{{ ConsumerAcronym }}.viewPerson.TblPerson_Id = ContactMail_{{ ConsumerAcronym }}.viewMailToPerson.TblToPerson_serviceTblPerson)))

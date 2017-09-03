@@ -8,6 +8,7 @@ use SPHERE\Application\People\Relationship\Service\Entity\TblToCompany;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\System\Database\Binding\AbstractSetup;
+use SPHERE\System\Database\Fitting\Element;
 use SPHERE\System\Database\Fitting\View;
 
 /**
@@ -43,20 +44,20 @@ class Setup extends AbstractSetup
 
         $this->getConnection()->createView(
             (new View($this->getConnection(), 'viewRelationshipToPerson'))
-                ->addLink(new TblToPerson(), 'tblType', new TblType())
-                ->addLink(new TblType(), 'tblGroup', new TblGroup())
+                ->addLink(new TblToPerson(), 'tblType', new TblType(), 'Id', View::JOIN)
+                ->addLink(new TblType(), 'tblGroup', new TblGroup(), 'Id', View::JOIN)
         );
         $this->getConnection()->createView(
             ( new View($this->getConnection(), 'viewRelationshipFromPerson') )
-                ->addLink(new TblToPerson(), 'tblType', new TblType())
-                ->addLink(new TblType(), 'tblGroup', new TblGroup())
+                ->addLink(new TblToPerson(), 'tblType', new TblType(), 'Id', View::JOIN)
+                ->addLink(new TblType(), 'tblGroup', new TblGroup(), 'Id', View::JOIN)
         );
         $this->getConnection()->createView(
             ( new View($this->getConnection(), 'viewRelationshipToCompany') )
-                ->addLink(new TblToCompany(), 'tblType', new TblType())
-                ->addLink(new TblType(), 'tblGroup', new TblGroup())
+                ->addLink(new TblToCompany(), 'tblType', new TblType(), 'Id', View::JOIN)
+                ->addLink(new TblType(), 'tblGroup', new TblGroup(), 'Id', View::JOIN)
         );
-        
+
         return $this->getConnection()->getProtocol($Simulate);
     }
 
@@ -123,8 +124,16 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblToPerson', 'serviceTblPersonFrom')) {
             $Table->addColumn('serviceTblPersonFrom', 'bigint', array('notnull' => false));
         }
+        $this->getConnection()->removeIndex($Table, array('serviceTblPersonFrom'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPersonFrom', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblPersonFrom', Element::ENTITY_REMOVE));
+        }
         if (!$this->getConnection()->hasColumn('tblToPerson', 'serviceTblPersonTo')) {
             $Table->addColumn('serviceTblPersonTo', 'bigint', array('notnull' => false));
+        }
+        $this->getConnection()->removeIndex($Table, array('serviceTblPersonTo'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPersonTo', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblPersonTo', Element::ENTITY_REMOVE));
         }
         $this->getConnection()->addForeignKey($Table, $tblType, true);
         return $Table;
@@ -146,8 +155,16 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblToCompany', 'serviceTblCompany')) {
             $Table->addColumn('serviceTblCompany', 'bigint', array('notnull' => false));
         }
+        $this->getConnection()->removeIndex($Table, array('serviceTblCompany'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblCompany', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblCompany', Element::ENTITY_REMOVE));
+        }
         if (!$this->getConnection()->hasColumn('tblToCompany', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
+        }
+        $this->getConnection()->removeIndex($Table, array('serviceTblPerson'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
         }
         $this->getConnection()->addForeignKey($Table, $tblType);
         return $Table;

@@ -1,0 +1,14 @@
+SELECT
+    viewPerson.TblPerson_Id AS TblPerson_Id,
+    viewPeopleMetaProspect.TblProspect_Remark AS TblProspect_Remark,
+    viewPeopleMetaProspect.TblProspectAppointment_ReservationDate AS TblProspectAppointment_ReservationDate,
+    viewPeopleMetaProspect.TblProspectAppointment_InterviewDate AS TblProspectAppointment_InterviewDate,
+    viewPeopleMetaProspect.TblProspectAppointment_TrialDate AS TblProspectAppointment_TrialDate,
+    viewPeopleMetaProspect.TblProspectReservation_ReservationYear AS TblProspectReservation_ReservationYear,
+    viewSchoolTypeA.TblType_Name AS TblType_Name_A,
+    viewSchoolTypeB.TblType_Name AS TblType_Name_B
+FROM
+    (((PeoplePerson_{{ ConsumerAcronym }}.viewPerson
+    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.viewPeopleMetaProspect ON ((viewPerson.TblPerson_Id = viewPeopleMetaProspect.TblProspect_serviceTblPerson)))
+    LEFT JOIN EducationSchoolType_{{ ConsumerAcronym }}.viewSchoolType viewSchoolTypeA ON ((viewPeopleMetaProspect.TblProspectReservation_serviceTblTypeOptionA = viewSchoolTypeA.TblType_Id)))
+    LEFT JOIN EducationSchoolType_{{ ConsumerAcronym }}.viewSchoolType viewSchoolTypeB ON ((viewPeopleMetaProspect.TblProspectReservation_serviceTblTypeOptionB = viewSchoolTypeB.TblType_Id)))

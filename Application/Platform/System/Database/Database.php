@@ -76,6 +76,11 @@ class Database extends Extension implements IModuleInterface
                 __CLASS__.'::frontendSetupUpgrade'
             )
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Setup/Reporting',
+                __CLASS__.'::frontendSetupReporting'
+            )
+        );
     }
 
     /**
@@ -203,9 +208,13 @@ class Database extends Extension implements IModuleInterface
         $Stage->addButton(new Standard('Durchführung', new Link\Route(__NAMESPACE__.'/Setup/Execution'), null,
             array(), 'Durchführen von Strukturänderungen und einspielen zugehöriger Daten'
         ));
-        $Stage->addButton(new Standard('Alle Mandanten aktualisieren', new Link\Route(__NAMESPACE__.'/Setup/Upgrade'),
+        $Stage->addButton(new Standard('1. Alle Mandanten aktualisieren', new Link\Route(__NAMESPACE__.'/Setup/Upgrade'),
             new Warning(),
             array(), 'Durchführen von Strukturänderungen und einspielen zugehöriger Daten'
+        ));
+        $Stage->addButton(new Standard('2. Alle Mandanten Flexible Auswertung aktualisieren', new Link\Route(__NAMESPACE__.'/Setup/Reporting'),
+            new Warning(),
+            array(), 'Durchführen von Viewänderungen'
         ));
         $Stage->addButton(new External('phpMyAdmin',
             $this->getRequest()->getPathBase().'/UnitTest/Console/phpMyAdmin-4.6.1'));
@@ -243,10 +252,25 @@ class Database extends Extension implements IModuleInterface
     /**
      * @return Stage
      */
+    public function frontendSetupReporting()
+    {
+        $Stage = new Stage('Database', 'Setup aller Mandanten (Reporting)');
+        $this->menuButton($Stage);
+
+        $ReportingUpgrade = new ReportingUpgrade('127.0.0.1', 'root', 'sphere');
+
+        $Stage->setContent( $ReportingUpgrade->migrateReporting() );
+
+        return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
     public function frontendSetupUpgrade()
     {
 
-        $Stage = new Stage('Database', 'Setup aller Mandanten');
+        $Stage = new Stage('Database', 'Setup aller Mandanten (Struktur)');
         $this->menuButton($Stage);
 
         $tblConsumerAll = Consumer::useService()->getConsumerAll();

@@ -47,7 +47,7 @@
             responsive: true,
             autoWidth: false,
             deferRender: true,
-            fixedHeader: true,
+            fixedHeader: false,
             // Setup RowReorder Extension
             ExtensionRowReorder: {
                 Enabled: false,

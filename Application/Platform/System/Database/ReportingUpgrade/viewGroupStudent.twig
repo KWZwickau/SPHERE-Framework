@@ -1,0 +1,73 @@
+SELECT
+    viewPerson.TblPerson_Id AS TblPerson_Id,
+    viewStudent.TblStudent_Identifier AS TblStudent_Identifier,
+    viewStudent.TblStudent_SchoolAttendanceStartDate AS TblStudent_SchoolAttendanceStartDate,
+    viewStudentAgreement.TblStudentAgreementType_Name AS TblStudentAgreementType_Name,
+    viewStudentAgreement.TblStudentAgreementType_Description AS TblStudentAgreementType_Description,
+    viewStudentAgreement.TblStudentAgreementCategory_Name AS TblStudentAgreementCategory_Name,
+    viewStudentAgreement.TblStudentAgreementCategory_Description AS TblStudentAgreementCategory_Description,
+    viewStudentBaptism.TblStudentBaptism_BaptismDate AS TblStudentBaptism_BaptismDate,
+    viewStudentBaptism.TblStudentBaptism_Location AS TblStudentBaptism_Location,
+    viewStudentDisorder.TblStudentDisorderType_Name AS TblStudentDisorderType_Name,
+    viewStudentDisorder.TblStudentDisorderType_Description AS TblStudentDisorderType_Description,
+    viewStudentFocus.TblStudentFocusType_Name AS TblStudentFocusType_Name,
+    viewStudentFocus.TblStudentFocusType_Description AS TblStudentFocusType_Description,
+    viewStudentIntegration.TblStudentIntegration_CoachingRequestDate AS TblStudentIntegration_CoachingRequestDate,
+    viewStudentIntegration.TblStudentIntegration_CoachingCounselDate AS TblStudentIntegration_CoachingCounselDate,
+    viewStudentIntegration.TblStudentIntegration_CoachingDecisionDate AS TblStudentIntegration_CoachingDecisionDate,
+    viewStudentIntegration.TblStudentIntegration_CoachingRequired AS TblStudentIntegration_CoachingRequired,
+    viewStudentIntegration.TblStudentIntegration_CoachingTime AS TblStudentIntegration_CoachingTime,
+    viewStudentIntegration.TblStudentIntegration_CoachingRemark AS TblStudentIntegration_CoachingRemark,
+    viewPersonCoach.TblSalutation_Salutation AS TblSalutation_Salutation_Coach,
+    viewPersonCoach.TblPerson_FirstName AS TblPerson_FirstName_Coach,
+    viewPersonCoach.TblPerson_LastName AS TblPerson_LastName_Coach,
+    viewStudentLiberation.TblStudentLiberationType_Name AS TblStudentLiberationType_Name,
+    viewStudentLiberation.TblStudentLiberationType_Description AS TblStudentLiberationType_Description,
+    viewStudentLiberation.TblStudentLiberationCategory_Name AS TblStudentLiberationCategory_Name,
+    viewStudentLiberation.TblStudentLiberationCategory_Description AS TblStudentLiberationCategory_Description,
+    viewStudentLocker.TblStudentLocker_LockerNumber AS TblStudentLocker_LockerNumber,
+    viewStudentLocker.TblStudentLocker_LockerLocation AS TblStudentLocker_LockerLocation,
+    viewStudentLocker.TblStudentLocker_KeyNumber AS TblStudentLocker_KeyNumber,
+    viewStudentMedicalRecord.TblStudentMedicalRecord_Disease AS TblStudentMedicalRecord_Disease,
+    viewStudentMedicalRecord.TblStudentMedicalRecord_Medication AS TblStudentMedicalRecord_Medication,
+    viewStudentMedicalRecord.TblStudentMedicalRecord_InsuranceState AS TblStudentMedicalRecord_InsuranceState,
+    viewStudentMedicalRecord.TblStudentMedicalRecord_Insurance AS TblStudentMedicalRecord_Insurance,
+    viewStudentSubject.TblStudentSubjectRanking_Identifier AS TblStudentSubjectRanking_Identifier,
+    viewStudentSubject.TblStudentSubjectType_Name AS TblStudentSubjectType_Name,
+    viewStudentSubject.TblStudentSubjectType_Identifier AS TblStudentSubjectType_Identifier,
+    viewSubject.TblSubject_Acronym AS TblSubject_Acronym,
+    viewSubject.TblSubject_Name AS TblSubject_Name,
+    viewSubject.TblSubject_Description AS TblSubject_Description,
+    viewStudentTransfer.TblStudentTransferType_Name AS TblStudentTransferType_Name,
+    viewStudentTransfer.TblStudentTransferType_Identifier AS TblStudentTransferType_Identifier,
+    viewStudentTransfer.TblStudentTransfer_TransferDate AS TblStudentTransfer_TransferDate,
+    viewStudentTransfer.TblStudentTransfer_Remark AS TblStudentTransfer_Remark,
+    viewCompany.TblCompany_Name AS TblCompany_Name,
+    viewCompany.TblCompany_ExtendedName AS TblCompany_ExtendedName,
+    viewCompany.TblCompany_Description AS TblCompany_Description,
+    viewSchoolTypeTransfer.TblType_Name AS TblType_Name_Transfer,
+    EducationSchoolCourse_{{ ConsumerAcronym }}.tblCourse.Name AS TblCourse_Name,
+    viewStudentTransport.TblStudentTransport_Route AS TblStudentTransport_Route,
+    viewStudentTransport.TblStudentTransport_StationEntrance AS TblStudentTransport_StationEntrance,
+    viewStudentTransport.TblStudentTransport_StationExit AS TblStudentTransport_StationExit,
+    viewStudentTransport.TblStudentTransport_Remark AS TblStudentTransport_Remark
+FROM
+    (((((((((((((((((PeoplePerson_{{ ConsumerAcronym }}.viewPerson
+    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.viewStudent ON ((viewPerson.TblPerson_Id = viewStudent.TblStudent_serviceTblPerson)))
+    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.viewStudentAgreement ON ((viewPerson.TblPerson_Id = viewStudentAgreement.TblStudent_serviceTblPerson)))
+    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.viewStudentBaptism ON ((viewPerson.TblPerson_Id = viewStudentBaptism.TblStudent_serviceTblPerson)))
+    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.viewStudentDisorder ON ((viewPerson.TblPerson_Id = viewStudentDisorder.TblStudent_serviceTblPerson)))
+    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.viewStudentFocus ON ((viewPerson.TblPerson_Id = viewStudentFocus.TblStudent_serviceTblPerson)))
+    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.viewStudentIntegration ON ((viewPerson.TblPerson_Id = viewStudentIntegration.TblStudent_serviceTblPerson)))
+    LEFT JOIN PeoplePerson_{{ ConsumerAcronym }}.viewPerson viewPersonCoach ON ((viewStudentIntegration.TblStudentIntegration_serviceTblPerson = viewPersonCoach.TblPerson_Id)))
+    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.viewStudentLiberation ON ((viewPerson.TblPerson_Id = viewStudentLiberation.TblStudent_serviceTblPerson)))
+    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.viewStudentLocker ON ((viewPerson.TblPerson_Id = viewStudentLocker.TblStudent_serviceTblPerson)))
+    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.viewStudentMedicalRecord ON ((viewPerson.TblPerson_Id = viewStudentMedicalRecord.TblStudent_serviceTblPerson)))
+    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.viewStudentSubject ON ((viewPerson.TblPerson_Id = viewStudentSubject.TblStudent_serviceTblPerson)))
+    LEFT JOIN EducationLessonSubject_{{ ConsumerAcronym }}.viewSubject ON ((viewStudentSubject.TblStudentSubject_serviceTblSubject = viewSubject.TblSubject_Id)))
+    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer ON ((viewPerson.TblPerson_Id = viewStudentTransfer.TblStudent_serviceTblPerson)))
+    LEFT JOIN CorporationCompany_{{ ConsumerAcronym }}.viewCompany ON ((viewStudentTransfer.TblStudentTransfer_serviceTblCompany = viewCompany.TblCompany_Id)))
+    LEFT JOIN EducationSchoolType_{{ ConsumerAcronym }}.viewSchoolType viewSchoolTypeTransfer ON ((viewStudentTransfer.TblStudentTransfer_serviceTblType = viewSchoolTypeTransfer.TblType_Id)))
+    LEFT JOIN EducationSchoolCourse_{{ ConsumerAcronym }}.tblCourse ON (((viewStudentTransfer.TblStudentTransfer_serviceTblCourse = EducationSchoolCourse_{{ ConsumerAcronym }}.tblCourse.Id)
+        AND ISNULL(EducationSchoolCourse_{{ ConsumerAcronym }}.tblCourse.EntityRemove))))
+    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransport ON ((viewPerson.TblPerson_Id = viewStudentTransport.TblStudent_serviceTblPerson)))

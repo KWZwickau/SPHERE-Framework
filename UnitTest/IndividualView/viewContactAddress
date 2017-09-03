@@ -1,0 +1,22 @@
+CREATE 
+    ALGORITHM = UNDEFINED 
+    DEFINER = `root`@`%`
+    SQL SECURITY DEFINER
+VIEW SettingConsumer_DEMO.viewContactAddress AS
+    SELECT 
+        viewPerson.TblPerson_Id AS TblPerson_Id,
+        viewAddressToPerson.TblToPerson_Remark AS TblToPerson_Remark,
+        viewAddressToPerson.TblType_Name AS TblType_Name,
+        viewAddressToPerson.TblType_Description AS TblType_Description,
+        viewAddressToPerson.TblAddress_StreetName AS TblAddress_StreetName,
+        viewAddressToPerson.TblAddress_StreetNumber AS TblAddress_StreetNumber,
+        viewAddressToPerson.TblAddress_PostOfficeBox AS TblAddress_PostOfficeBox,
+        viewAddressToPerson.TblAddress_County AS TblAddress_County,
+        viewAddressToPerson.TblAddress_Nation AS TblAddress_Nation,
+        viewAddressToPerson.TblCity_Code AS TblCity_Code,
+        viewAddressToPerson.TblCity_Name AS TblCity_Name,
+        viewAddressToPerson.TblCity_District AS TblCity_District,
+        viewAddressToPerson.TblState_Name AS TblState_Name
+    FROM
+        (PeoplePerson_DEMO.viewPerson
+        LEFT JOIN ContactAddress_DEMO.viewAddressToPerson ON ((viewPerson.TblPerson_Id = viewAddressToPerson.TblToPerson_serviceTblPerson)))

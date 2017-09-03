@@ -12,6 +12,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\Application\People\Meta\Club\Service\Entity\TblClub;
 use SPHERE\System\Database\Binding\AbstractSetup;
+use SPHERE\System\Database\Fitting\Element;
 use SPHERE\System\Database\Fitting\View;
 
 /**
@@ -56,6 +57,10 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblClub', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
+        $this->getConnection()->removeIndex($Table, array('serviceTblPerson'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
+        }
         if (!$this->getConnection()->hasColumn('tblClub', 'Remark')) {
             $Table->addColumn('Remark', 'text');
         }
@@ -68,7 +73,7 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblClub', 'ExitDate')) {
             $Table->addColumn('ExitDate', 'datetime', array('notnull' => false));
         }
-        
+
         return $Table;
     }
 }

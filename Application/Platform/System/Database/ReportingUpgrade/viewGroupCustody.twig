@@ -1,0 +1,8 @@
+SELECT
+    viewPerson.TblPerson_Id AS TblPerson_Id,
+    viewPeopleMetaCustody.TblCustody_Occupation AS TblCustody_Occupation,
+    viewPeopleMetaCustody.TblCustody_Employment AS TblCustody_Employment,
+    viewPeopleMetaCustody.TblCustody_Remark AS TblCustody_Remark
+FROM
+    (PeoplePerson_{{ ConsumerAcronym }}.viewPerson
+    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.viewPeopleMetaCustody ON ((viewPerson.TblPerson_Id = viewPeopleMetaCustody.TblCustody_serviceTblPerson)))
