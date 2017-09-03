@@ -23,7 +23,10 @@ class E16
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E16. Schüler in Grundkursen an dieser Schule im Schuljahr {{ Content.SchoolYear.Current }} nach Jahrgangsstufen')
+                ->setContent('E16. Schüler in Grundkursen an dieser Schule im Schuljahr {{ Content.SchoolYear.Current }} 
+                              nach Jahrgangsstufen <br> 
+                              E16.1 Schüler in Grundkursen gemäß § 41 Abs. 1 SOGYA bzw. in fächerverbindenden Grundkursen
+                              im Schuljahr {{ Content.SchoolYear.Current }} nach Jahrgangsstufen' )
             );
 
         $sliceList[] = (new Slice())
@@ -179,75 +182,80 @@ class E16
             ->styleBorderLeft()
             ->styleAlignCenter()
             ->styleTextBold()
+            ->styleBackgroundColor('lightgrey')
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Insgesamt')
-                    ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight(), '40%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if (Content.E16.TotalCount.L11.CoursesCount is not empty) %}
-                            {{ Content.E16.TotalCount.L11.CoursesCount }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
+//                    ->setContent('
+//                        {% if (Content.E16.TotalCount.L11.CoursesCount is not empty) %}
+//                            {{ Content.E16.TotalCount.L11.CoursesCount }}
+//                        {% else %}
+//                            &nbsp;
+//                        {% endif %}
+//                    ')
+                    ->setContent('&nbsp;')
                     ->styleAlignCenter()
                     ->styleBorderRight(), '12%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if (Content.E16.TotalCount.L11.m is not empty) %}
-                            {{ Content.E16.TotalCount.L11.m }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
+//                    ->setContent('
+//                        {% if (Content.E16.TotalCount.L11.m is not empty) %}
+//                            {{ Content.E16.TotalCount.L11.m }}
+//                        {% else %}
+//                            &nbsp;
+//                        {% endif %}
+//                    ')
+                    ->setContent('&nbsp;')
                     ->styleAlignCenter()
                     ->styleBorderRight(), '9%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if (Content.E16.TotalCount.L11.w is not empty) %}
-                            {{ Content.E16.TotalCount.L11.w }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
+//                    ->setContent('
+//                        {% if (Content.E16.TotalCount.L11.w is not empty) %}
+//                            {{ Content.E16.TotalCount.L11.w }}
+//                        {% else %}
+//                            &nbsp;
+//                        {% endif %}
+//                    ')
+                    ->setContent('&nbsp;')
                     ->styleAlignCenter()
                     ->styleBorderRight(), '9%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if (Content.E16.TotalCount.L12.CoursesCount is not empty) %}
-                            {{ Content.E16.TotalCount.L12.CoursesCount }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
+//                    ->setContent('
+//                        {% if (Content.E16.TotalCount.L12.CoursesCount is not empty) %}
+//                            {{ Content.E16.TotalCount.L12.CoursesCount }}
+//                        {% else %}
+//                            &nbsp;
+//                        {% endif %}
+//                    ')
+                    ->setContent('&nbsp;')
                     ->styleAlignCenter()
                     ->styleBorderRight(), '12%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if (Content.E16.TotalCount.L12.m is not empty) %}
-                            {{ Content.E16.TotalCount.L12.m }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
+//                    ->setContent('
+//                        {% if (Content.E16.TotalCount.L12.m is not empty) %}
+//                            {{ Content.E16.TotalCount.L12.m }}
+//                        {% else %}
+//                            &nbsp;
+//                        {% endif %}
+//                    ')
                     ->styleAlignCenter()
                     ->styleBorderRight(), '9%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if (Content.E16.TotalCount.L12.w is not empty) %}
-                            {{ Content.E16.TotalCount.L12.w }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
+//                    ->setContent('
+//                        {% if (Content.E16.TotalCount.L12.w is not empty) %}
+//                            {{ Content.E16.TotalCount.L12.w }}
+//                        {% else %}
+//                            &nbsp;
+//                        {% endif %}
+//                    ')
+                    ->setContent('&nbsp;')
                     ->styleAlignCenter()
                     ->styleBorderRight(), '9%'
                 )
