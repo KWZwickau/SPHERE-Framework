@@ -3409,7 +3409,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 || $isApproved
                             ) {
                                 $studentTable[$tblPerson->getId()]['JN'] =
-                                    (new NumberField('Data[' . $tblPerson->getId() . '][JN]'))->setDisabled();
+                                    (new TextField('Data[' . $tblPerson->getId() . '][JN]'))->setDisabled();
                                 $studentTable[$tblPerson->getId()]['PS'] =
                                     (new NumberField('Data[' . $tblPerson->getId() . '][PS]'))->setDisabled();
                                 $studentTable[$tblPerson->getId()]['PM'] =
@@ -3418,7 +3418,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     (new NumberField('Data[' . $tblPerson->getId() . '][PZ]'))->setDisabled();
                             } else {
                                 $studentTable[$tblPerson->getId()]['JN'] =
-                                    (new NumberField('Data[' . $tblPerson->getId() . '][JN]'))->setTabIndex($tabIndex++)->setDisabled();
+                                    (new TextField('Data[' . $tblPerson->getId() . '][JN]'))->setTabIndex($tabIndex++)->setDisabled();
                                 $studentTable[$tblPerson->getId()]['PS'] =
                                     (new NumberField('Data[' . $tblPerson->getId() . '][PS]'))->setTabIndex($tabIndex++);
                                 $studentTable[$tblPerson->getId()]['PM'] =

@@ -399,20 +399,8 @@ class StudentCard extends AbstractDocument
                     )
                     ->addElement((new Element())
                         ->setContent('
-                                {% if(Content.Person.Contact.Phone.Emergency1) %}
-                                    {{ Content.Person.Contact.Phone.Emergency1 }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}
-                                {% if(Content.Person.Contact.Phone.Emergency2) %}
-                                    ; {{ Content.Person.Contact.Phone.Emergency2 }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}
-                                {% if(Content.Person.Contact.Phone.Emergency3) %}
-                                    ; {{ Content.Person.Contact.Phone.Emergency3 }}
-                                {% else %}
-                                      &nbsp;
+                                {% if(Content.Person.Contact.Phone.Radebeul.EmergencyNumber) %}
+                                    {{ Content.Person.Contact.Phone.Radebeul.EmergencyNumber }}
                                 {% endif %}
                             ')
                         ->styleFontFamily($fontFamily)

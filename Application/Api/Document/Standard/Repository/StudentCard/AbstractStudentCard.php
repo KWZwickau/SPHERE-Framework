@@ -286,8 +286,8 @@ abstract class AbstractStudentCard extends AbstractDocument
                     }
                     $thicknessLeft = $i == 4 ? $thicknessOutLines : $thicknessInnerLines;
                     $widthColumn = $widthString;
-                    $content = '{% if(Content.Certificate.' . $typeId . '.Data' . $j . '.BehaviorGrade.' . $acronym . ' is not empty) %}
-                                {{ Content.Certificate.' . $typeId . '.Data' . $j . '.BehaviorGrade.' . $acronym . ' }}
+                    $content = '{% if(Content.Certificate.' . $typeId . '.Data' . $j . '.BehaviorGrade["' . $acronym . '"] is not empty) %}
+                                {{ Content.Certificate.' . $typeId . '.Data' . $j . '.BehaviorGrade["' . $acronym . '"] }}
                             {% else %}
                                  &nbsp;
                             {% endif %}';
@@ -298,8 +298,8 @@ abstract class AbstractStudentCard extends AbstractDocument
 //                        && ($tblDocumentSubject = Generator::useService()->getDocumentSubjectByDocumentAndRanking($tblDocument, $i - 7))
 //                        && ($tblSubject = $tblDocumentSubject->getServiceTblSubject())
 //                    ) {
-//                        $content = '{% if(Content.Certificate.' . $typeId . '.Data' . $j . '.SubjectGrade.' . $tblSubject->getAcronym() . ' is not empty) %}
-//                                {{ Content.Certificate.' . $typeId . '.Data' . $j . '.SubjectGrade.' . $tblSubject->getAcronym() . ' }}
+//                        $content = '{% if(Content.Certificate.' . $typeId . '.Data' . $j . '.SubjectGrade["' . $tblSubject->getAcronym() . '"] is not empty) %}
+//                                {{ Content.Certificate.' . $typeId . '.Data' . $j . '.SubjectGrade["' . $tblSubject->getAcronym() . '"] }}
 //                            {% else %}
 //                                 &nbsp;
 //                            {% endif %}';
@@ -308,8 +308,8 @@ abstract class AbstractStudentCard extends AbstractDocument
 //                    }
                     if (isset($subjectPosition[$i - 7])) {
                         $tblSubject = $subjectPosition[$i - 7];
-                        $content = '{% if(Content.Certificate.' . $typeId . '.Data' . $j . '.SubjectGrade.' . $tblSubject->getAcronym() . ' is not empty) %}
-                                {{ Content.Certificate.' . $typeId . '.Data' . $j . '.SubjectGrade.' . $tblSubject->getAcronym() . ' }}
+                        $content = '{% if(Content.Certificate.' . $typeId . '.Data' . $j . '.SubjectGrade["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                {{ Content.Certificate.' . $typeId . '.Data' . $j . '.SubjectGrade["' . $tblSubject->getAcronym() . '"] }}
                             {% else %}
                                  &nbsp;
                             {% endif %}';

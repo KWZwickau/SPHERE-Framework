@@ -12,7 +12,7 @@ use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
-use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson;
+use SPHERE\Application\Contact\Phone\Service\Entity\TblType;
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Section;
@@ -238,9 +238,10 @@ abstract class AbstractDocument
                 if (( $AttendanceDate = $tblStudent->getSchoolAttendanceStartDate())) {
                     $Data['Student']['School']['Attendance']['Date'] = $AttendanceDate;
                     $Year = ( new \DateTime($AttendanceDate) )->format('Y');
-                    $YearShort = (integer)(new \DateTime($AttendanceDate))->format('y');
-                    $YearString = $Year.'/'.( $YearShort + 1 );
-                    $Data['Student']['School']['Attendance']['Year'] = $YearString;
+//                    $YearShort = (integer)(new \DateTime($AttendanceDate))->format('y');
+//                    $YearString = $Year.'/'.( $YearShort + 1 );
+                    // nur Kalenderjahr anzeigen
+                    $Data['Student']['School']['Attendance']['Year'] = $Year;
                 }
 
                 if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))) {
@@ -592,41 +593,98 @@ abstract class AbstractDocument
      *
      * @return array $Data
      */
-    private function allocatePersonContactPhonePrivate(&$Data)
+    public function allocatePersonContactPhonePrivate(&$Data)
     {
 
-        $PhoneNumber = array();
+        if (($tblPerson = $this->getTblPerson())) {
 
-        if ($this->getTblPerson()) {
-            if (( $tblPhoneList = Phone::useService()->getPhoneAllByPerson($this->getTblPerson()) )) {
-                if ($tblPhoneList) {
-                    array_walk($tblPhoneList, function (TblToPerson $tblPhoneToPerson) use (&$PhoneNumber) {
-                        if ($tblPhoneToPerson->getTblType()->getName() == 'Privat') {
-                            $Description = $tblPhoneToPerson->getTblType()->getDescription();
-                            if ($Description == 'Festnetz') {
-                                $PhoneNumber[] = $tblPhoneToPerson->getTblPhone()->getNumber();
+            $phoneNumberList = $this->setPhoneNumbersByTypeName($tblPerson, 'Privat');
+            $phone = '';
+            // es passen nur 2 Telefonnummern in das Feld
+            if (!empty($phoneNumberList)) {
+                $phone = $phoneNumberList[0].( isset( $phoneNumberList[1] ) ? '<br>'. $phoneNumberList[1] : '' );
+
+            }
+            $Data['Person']['Contact']['Phone']['Number'] = $phone;
+        }
+
+        return $Data;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param string $TypeName
+     *
+     * @return array
+     */
+    private function setPhoneNumbersByTypeName(TblPerson $tblPerson, $TypeName = 'Privat') {
+        $phoneNumberList = array();
+        if (($tblPhoneType = Phone::useService()->getTypeByNameAndDescription($TypeName, 'Festnetz'))) {
+            $this->getPhoneNumbers($tblPerson, $tblPhoneType, $phoneNumberList);
+        }
+        if (($tblPhoneType = Phone::useService()->getTypeByNameAndDescription($TypeName, 'Mobil'))) {
+            $this->getPhoneNumbers($tblPerson, $tblPhoneType, $phoneNumberList);
+        }
+
+        // Telefonnummern der Sorgeberechtigten mit Anzeigen
+        if (empty($phoneNumberList) || count($phoneNumberList) < 2) {
+            if (($tblRelationshipType = Relationship::useService()->getTypeByName('Sorgeberechtigt'))
+                && ($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
+                    $tblRelationshipType))
+            ) {
+                $phoneNumberMotherList = array();
+                $phoneNumberFatherList = array();
+                foreach ($tblRelationshipList as $tblRelationship) {
+                    if (($tblPersonFrom = $tblRelationship->getServiceTblPersonFrom())
+                        && ($tblPersonTo = $tblRelationship->getServiceTblPersonTo())
+                        && $tblPerson->getId() == $tblPersonTo->getId()
+                    ) {
+
+                        if (($tblPhoneType = Phone::useService()->getTypeByNameAndDescription($TypeName,
+                            'Festnetz'))
+                        ) {
+                            if ($tblPersonFrom->getSalutation() == 'Frau') {
+                                $this->getPhoneNumbers($tblPersonFrom, $tblPhoneType, $phoneNumberMotherList);
+                            } else {
+                                $this->getPhoneNumbers($tblPersonFrom, $tblPhoneType, $phoneNumberFatherList);
                             }
                         }
-                    });
-                    array_walk($tblPhoneList, function (TblToPerson $tblPhoneToPerson) use (&$PhoneNumber) {
-                        if ($tblPhoneToPerson->getTblType()->getName() == 'Privat') {
-                            $Description = $tblPhoneToPerson->getTblType()->getDescription();
-                            if ($Description == 'Mobil') {
-                                $PhoneNumber[] = $tblPhoneToPerson->getTblPhone()->getNumber();
+                        if (($tblPhoneType = Phone::useService()->getTypeByNameAndDescription($TypeName, 'Mobil'))) {
+                            if ($tblPersonFrom->getSalutation() == 'Frau') {
+                                $this->getPhoneNumbers($tblPersonFrom, $tblPhoneType, $phoneNumberMotherList);
+                            } else {
+                                $this->getPhoneNumbers($tblPersonFrom, $tblPhoneType, $phoneNumberFatherList);
                             }
                         }
-                    });
-
-                    $PhoneString = '';
-                    if (!empty( $PhoneNumber )) {
-                        $PhoneString = $PhoneNumber[0].( isset( $PhoneNumber[1] ) ? ', '.$PhoneNumber[1] : '' );
                     }
-                    $Data['Person']['Contact']['Phone']['Number'] = $PhoneString;
+                }
+
+                // Zuerst die Telefonnummern der Mütter
+                foreach ($phoneNumberMotherList as $motherNumber) {
+                    $phoneNumberList[] = $motherNumber;
+                }
+                foreach ($phoneNumberFatherList as $fatherNumber) {
+                    $phoneNumberList[] = $fatherNumber;
                 }
             }
         }
 
-        return $Data;
+        return $phoneNumberList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblType $tblType
+     * @param $phoneNumberList
+     */
+    private function getPhoneNumbers(TblPerson $tblPerson, TblType $tblType, &$phoneNumberList) {
+        if (($tblPhoneToPersonList = Phone::useService()->getPhoneToPersonAllBy($tblPerson, $tblType))) {
+            foreach ($tblPhoneToPersonList as $tblPhoneToPerson) {
+                if (($tblPhone = $tblPhoneToPerson->getTblPhone())) {
+                    $phoneNumberList[] = $tblPhone->getNumber();
+                }
+            }
+        }
     }
 
     /**
@@ -637,56 +695,17 @@ abstract class AbstractDocument
     private function allocatePersonContactPhoneEmergency(&$Data)
     {
 
-        $countNumbers = 0;
-        if ($this->getTblPerson()) {
-            if (($tblPhoneList = Phone::useService()->getPhoneAllByPerson($this->getTblPerson()))) {
-                if ($tblPhoneList) {
-                    foreach ($tblPhoneList as $tblPhoneToPerson) {
-                        if ($tblPhoneToPerson->getTblType()->getName() == 'Notfall') {
-                            $countNumbers++;
-                            $remark = $tblPhoneToPerson->getRemark();
-                            $Data['Person']['Contact']['Phone']['Emergency' . $countNumbers]
-                                = $tblPhoneToPerson->getTblPhone()->getNumber() . ($remark ? ' (' . trim($remark) . ')' : '');
-                            $Data['Person']['Contact']['Phone']['EmergencyPdf' . $countNumbers]
-                                = $tblPhoneToPerson->getTblPhone()->getNumber();
-                        }
-                    }
-                }
+        if (($tblPerson = $this->getTblPerson())) {
+
+            $phoneNumberList = $this->setPhoneNumbersByTypeName($tblPerson, 'Notfall');
+            $phone = '';
+            // es passen nur 2 Telefonnummern in das Feld
+            if (!empty($phoneNumberList)) {
+                $phone = $phoneNumberList[0].( isset( $phoneNumberList[1] ) ? '<br>'. $phoneNumberList[1] : '' );
+
+                $Data['Person']['Contact']['Phone']['Radebeul']['EmergencyNumber'] = implode('; ', $phoneNumberList);
             }
-        }
-        if ($countNumbers < 2) {
-            if (($RelationList = Relationship::useService()->getPersonRelationshipAllByPerson($this->getTblPerson()))) {
-                foreach ($RelationList as $Relation) {
-                    if (($tblType = $Relation->getTblType()) && ($tblType->getName() == 'Sorgeberechtigt')) {
-                        $tblPersonCustody = $Relation->getServiceTblPersonFrom();
-                        if (($CustodyPhoneList = Phone::useService()->getPhoneAllByPerson($tblPersonCustody))) {
-                            foreach ($CustodyPhoneList as $CustodyPhone) {
-                                if (($CustodyPhone->getTblType()->getName() == 'Notfall')) {
-                                     if (isset($Data['Person']['Contact']['Phone']['Emergency1'])
-                                         && ($CustodyPhone->getTblPhone()->getNumber() !== $Data['Person']['Contact']['Phone']['Emergency1'])) {
-                                        if ($countNumbers >= 2) {
-                                            break;
-                                        }
-                                        $countNumbers++;
-                                        $remark = $CustodyPhone->getRemark();
-                                        $Data['Person']['Contact']['Phone']['Emergency' . $countNumbers]
-                                            = $CustodyPhone->getTblPhone()->getNumber() . ($remark ? ' (' . trim($remark) . ')' : '');
-                                         $Data['Person']['Contact']['Phone']['EmergencyPdf' . $countNumbers]
-                                             = $CustodyPhone->getTblPhone()->getNumber();
-                                     } elseif (!isset($Data['Person']['Contact']['Phone']['Emergency1'])) {
-                                         $countNumbers++;
-                                         $remark = $CustodyPhone->getRemark();
-                                         $Data['Person']['Contact']['Phone']['Emergency' . $countNumbers]
-                                             = $CustodyPhone->getTblPhone()->getNumber() . ($remark ? ' (' . trim($remark) . ')' : '');
-                                         $Data['Person']['Contact']['Phone']['EmergencyPdf' . $countNumbers]
-                                             = $CustodyPhone->getTblPhone()->getNumber();
-                                     }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            $Data['Person']['Contact']['Phone']['EmergencyNumber'] = $phone;
         }
 
         return $Data;
