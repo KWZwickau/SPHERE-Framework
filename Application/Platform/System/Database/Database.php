@@ -257,7 +257,7 @@ class Database extends Extension implements IModuleInterface
         $Stage = new Stage('Database', 'Setup aller Mandanten (Reporting)');
         $this->menuButton($Stage);
 
-        $ReportingUpgrade = new ReportingUpgrade();
+        $ReportingUpgrade = new ReportingUpgrade('127.0.0.1', 'root', 'sphere');
 
         $Stage->setContent( $ReportingUpgrade->migrateReporting() );
 
