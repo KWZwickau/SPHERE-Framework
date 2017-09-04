@@ -280,7 +280,7 @@ class AccidentReport extends AbstractDocument
                         ->addElementColumn((new Element())
                             ->setContent('
                                 {% if(Content.Person.Address.Street.Name) %}
-                                    {{ Content.Person.Address.Street.Name }},
+                                    {{ Content.Person.Address.Street.Name }}
                                     {{ Content.Person.Address.Street.Number }}
                                 {% else %}
                                       &nbsp;
