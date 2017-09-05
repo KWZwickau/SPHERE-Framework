@@ -300,12 +300,12 @@ class Service extends Extension
 
                 if (is_array($PersonData['ExcelPhone'])) {
                     foreach ($PersonData['ExcelPhone'] as $Phone) {
-                        $export->setValue($export->getCell(10, $phoneRow++), $Phone);
+                        $export->setValue($export->getCell(11, $phoneRow++), $Phone);
                     }
                 }
                 if (is_array($PersonData['ExcelMail'])) {
                     foreach ($PersonData['ExcelMail'] as $Mail) {
-                        $export->setValue($export->getCell(11, $mailRow++), $Mail);
+                        $export->setValue($export->getCell(12, $mailRow++), $Mail);
                     }
                 }
                 // get row to the same high as highest PhoneRow or MailRow
