@@ -291,6 +291,7 @@ class ClassRegister implements IApplicationInterface
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         if ($tblDivision) {
+            $IsSortable = Access::useService()->hasAuthorization('/Api/Education/ClassRegister/Reorder');
             $studentTable = array();
             $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
             if ($tblStudentList) {
@@ -335,11 +336,11 @@ class ClassRegister implements IApplicationInterface
                         . new \SPHERE\Common\Frontend\Text\Repository\Danger($unExcusedDays) . ')';
                     $studentTable[] = array(
                         'Number'   => (count($studentTable) + 1),
-                        'Name'     => $isTeacher
+                        'Name'     => (($isTeacher || !$IsSortable)
                             ? $tblPerson->getLastFirstName()
                             : new PullClear(
                                 new PullLeft(new ResizeVertical().' '.$tblPerson->getLastFirstName())
-                            ),
+                            )),
                         'Gender'   => $Gender,
                         'Address'  => $tblAddress ? $tblAddress->getGuiString() : '',
                         'Birthday' => $birthday,
@@ -422,7 +423,7 @@ class ClassRegister implements IApplicationInterface
                                     'Absence'  => 'Fehlzeiten (E, U)',
                                     'Option'   => ''
                                 ),
-                                    $isTeacher
+                                    ($isTeacher || !$IsSortable)
                                         ? array(
                                             'paging' => false
                                         )
