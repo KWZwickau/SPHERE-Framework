@@ -233,7 +233,7 @@ class ViewEducationStudent extends AbstractView
 
         switch ($PropertyName) {
             case self::TBL_YEAR_YEAR:
-                $Data = Term::useService()->getPropertyList( new TblYear(), TblYear::ATTR_NAME );
+                $Data = Term::useService()->getPropertyList( new TblYear(), TblYear::ATTR_YEAR );
                 $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
                 break;
             case self::TBL_LEVEL_IS_CHECKED:
