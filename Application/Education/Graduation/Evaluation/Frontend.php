@@ -72,6 +72,7 @@ use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\NotAvailable;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
@@ -1032,7 +1033,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblPersonList = Division::useService()->getTeacherAllByDivisionSubject($tblDivisionSubjectTeacher);
                                 if ($tblPersonList) {
                                     foreach ($tblPersonList as $tblPerson) {
-                                        $TeacherAcronym = new ToolTip(new Muted(new Small('-NA-'))
+                                        $TeacherAcronym = new ToolTip(new Small(new NotAvailable())
                                             , 'Lehrer '.$tblPerson->getLastFirstName().' besitzt kein Lehrerkürzel');
                                         $tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson);
                                         if ($tblTeacher) {
@@ -1047,7 +1048,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblPersonListMain = Division::useService()->getTeacherAllByDivisionSubject($tblDivisionSubjectMain);
                                 if ($tblPersonListMain) {
                                     foreach ($tblPersonListMain as $tblPerson) {
-                                        $TeacherAcronym = new ToolTip(new Muted(new Small('-NA-'))
+                                        $TeacherAcronym = new ToolTip(new Small(new NotAvailable())
                                             , 'Lehrer '.$tblPerson->getLastFirstName().' besitzt kein Lehrerkürzel');
                                         $tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson);
                                         if ($tblTeacher) {
@@ -1062,7 +1063,7 @@ class Frontend extends Extension implements IFrontendInterface
                             if (!empty($TeacherAcronymList)) {
                                 $TeacherAcronym = implode(', ', $TeacherAcronymList);
                             } else {
-                                $TeacherAcronym = new ToolTip(new Muted(new Small('-NA-'))
+                                $TeacherAcronym = new ToolTip(new Small(new NotAvailable())
                                     , 'Kein Lehrauftrag vorhanden');
                             }
 
