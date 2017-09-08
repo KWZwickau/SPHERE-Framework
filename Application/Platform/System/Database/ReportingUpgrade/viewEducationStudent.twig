@@ -7,7 +7,7 @@ SELECT
     viewDivisionStudent.TblDivision_Description AS TblDivision_Description,
     viewSchoolType.TblType_Name AS TblType_Name,
     viewSchoolType.TblType_Description AS TblType_Description,
-    viewYearPeriod.TblYear_Year AS TblYear_Year,
+    (CASE WHEN (ISNULL(`viewYearPeriod`.`TblYear_Year`) OR (`viewYearPeriod`.`TblYear_Year` = '')) THEN `viewYearPeriod`.`TblYear_Name` ELSE `viewYearPeriod`.`TblYear_Year` END) AS `TblYear_Year`,
     viewYearPeriod.TblYear_Description AS TblYear_Description,
     viewYearPeriod.TblPeriod_Name AS TblPeriod_Name,
     viewYearPeriod.TblPeriod_Description AS TblPeriod_Description,
