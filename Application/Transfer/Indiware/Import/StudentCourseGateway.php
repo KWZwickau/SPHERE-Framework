@@ -354,12 +354,14 @@ class StudentCourseGateway extends AbstractConverter
         if (empty($Value)) {
             return false;
         }
-        $Value = substr($Value, 0, -1);
-        if (ctype_upper($Value)) {
-            return true;
-        } else {
-            return false;
+        if (preg_match('!^([a-zA-Z]+)!', $Value, $Match)) {
+            if (ctype_upper($Match[1])) {
+                return true;
+            } else {
+                return false;
+            }
         }
+        return false;
     }
 
     /**
