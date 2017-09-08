@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: lehmann
- * Date: 27.07.2017
- * Time: 14:25
- */
 
 namespace SPHERE\Application\Api\Document\Standard\Repository\GradebookOverview;
 
@@ -17,7 +11,7 @@ use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -137,7 +131,10 @@ class GradebookOverview extends AbstractDocument
      */
     public function getGradebookOverviewSlice() {
         $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
-        $GradeCounterMax = 0;
+        // GradeCounterMax for standard empty field
+        $GradeCounterMax = 8;
+        $tblDivision = $this->getTblDivision();
+        $tblPerson = $this->getTblPerson();
 
         $ColumnWidth = array();
         $ColumnWidth['FirstAndLast'] = 6;
@@ -153,48 +150,66 @@ class GradebookOverview extends AbstractDocument
         $GradebookOverviewSlice = (new Slice());
         $HeaderSection = (new Section());
 
-        if (($tblYear = $this->getTblDivision()->getServiceTblYear())
-            && ($tblPeriodList = $tblYear->getTblPeriodAll())
-            && ($tblGradeList = Gradebook::useService()->getGradeAllBy($this->getTblPerson(),$this->getTblDivision(),null, $tblTestType))) {
+        if (($tblYear = $tblDivision->getServiceTblYear())
+            && ($tblPeriodList = $tblYear->getTblPeriodAll())) {
 
             $ColumnWidth['Period'] = (100 - ($ColumnWidth['FirstAndLast'] * 2 + $ColumnWidth['Average'] * 2)) / count($tblPeriodList);
 
-            $tblTestList = array();
-            foreach ($tblGradeList as $tblGrade) {
-                if (($tblTest = $tblGrade->getServiceTblTest())) {
-                    $tblTestList[] = $tblTest;
+            $tblGradeListSort = array();
+            if (($tblGradeList = Gradebook::useService()->getGradeAllBy($tblPerson, $tblDivision, null,
+                $tblTestType))) {
+                $tblTestList = array();
+                foreach ($tblGradeList as $tblGrade) {
+                    if (($tblTest = $tblGrade->getServiceTblTest())) {
+                        $tblTestList[] = $tblTest;
+                    }
+                }
+                if (!empty($tblTestList)) {
+                    $tblTestList = $this->getSorter($tblTestList)->sortObjectBy('Date', new DateTimeSorter());
+
+                    foreach ($tblTestList as $tblTest) {
+                        $tblGradeListSort[] = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson);
+                    }
                 }
             }
 
-            $tblTestList = $this->getSorter($tblTestList)->sortObjectBy('Date', new DateTimeSorter());
+            // Alle Fächer des Schülers
+            $tblDivisionSubjectList = Division::useService()->getDivisionSubjectAllByPersonAndYear(
+                $tblPerson, $tblYear
+            );
 
-            unset($tblGradeList);
+//            // Alle Fächer der Klasse (Auskommentiert Entscheidung folgt noch)
+//            $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision, false);
 
-            foreach ($tblTestList as $tblTest) {
-                $tblGradeList[] = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $this->getTblPerson());
-            }
-
-            foreach ($tblGradeList as $tblGrade) {
-                /** @var TblGrade $tblGrade */
-                if ($tblGrade->getServiceTblSubject()) {
-                    $tblSubjectList[$tblGrade->getServiceTblSubject()->getId()] = $tblGrade->getServiceTblSubject()->getAcronym();
+            // Finden aller Fächer aus der DivisionList
+            if ($tblDivisionSubjectList) {
+                foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                    if ($tblDivisionSubject->getServiceTblSubject()) {
+                        $tblSubjectList[$tblDivisionSubject->getServiceTblSubject()->getId()] =
+                            $tblDivisionSubject->getServiceTblSubject()->getAcronym();
+                    }
                 }
             }
 
             if (!empty($tblSubjectList)) {
 
+                // Sortieren der Fächer nach Alphabet
                 asort($tblSubjectList);
 
                 foreach ($tblPeriodList as $tblPeriod) {
                     foreach ($tblSubjectList as $SubjectId => $SubjectAcronym) {
                         $GradeCounter = 0;
-                        foreach ($tblGradeList as $tblGrade) {
-                            if (($tblGrade->getServiceTblPeriod()->getId() == $tblPeriod->getId())
-                                && ($tblGrade->getServiceTblSubject()->getId() == $SubjectId)
-                                && (!empty($tblGrade->getGrade()))) {
+                        if (!empty($tblGradeList)) {
+                            // Anzahl Noten Pro Fach zählen
+                            foreach ($tblGradeList as $tblGrade) {
+                                if (($tblGrade->getServiceTblPeriod()->getId() == $tblPeriod->getId())
+                                    && ($tblGrade->getServiceTblSubject()->getId() == $SubjectId)
+                                    && (!empty($tblGrade->getGrade()))) {
                                     $GradeCounter++;
+                                }
                             }
                         }
+                        // größte Anzahl setzen
                         if ($GradeCounterMax < $GradeCounter) {
                             $GradeCounterMax = $GradeCounter;
                         }
@@ -273,38 +288,40 @@ class GradebookOverview extends AbstractDocument
                         );
 
                     $tblScoreType = Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
-                        $this->getTblDivision(), Subject::useService()->getSubjectById($SubjectId));
+                        $tblDivision, Subject::useService()->getSubjectById($SubjectId));
 
                     foreach ($tblPeriodList as $tblPeriod) {
                         $CounterCurrentGrades = 0;
-                        foreach ($tblGradeList as $tblGrade) {
-                            if ($tblGrade->getServiceTblSubject()->getId() == $SubjectId
-                                && $tblGrade->getServiceTblPeriod()->getId() == $tblPeriod->getId()
-                                && (!empty($tblGrade->getGrade()))) {
-                                if ($tblGrade->getTblGradeType()->isHighlighted()) {
-                                    /** @var Section[] $SubjectSectionList */
-                                    $SubjectSectionList[$SubjectId]
-                                        ->addElementColumn((new Element())
-                                            ->setContent($tblGrade->getDisplayGrade() . '<br/>(' .  $tblGrade->getTblGradeType()->getCode() . ')')
-                                            ->styleBorderBottom()
-                                            ->styleBorderRight()
-                                            ->styleTextBold()
-                                            ->styleAlignCenter()
-                                            ->styleTextSize($TextSize), $ColumnWidth['Grade'] . '%'
-                                        );
-                                } else {
-                                    /** @var Section[] $SubjectSectionList */
-                                    $SubjectSectionList[$SubjectId]
-                                        ->addElementColumn((new Element())
-                                            ->setContent($tblGrade->getDisplayGrade() . '<br/>(' .  $tblGrade->getTblGradeType()->getCode() . ')')
-                                            ->styleBorderBottom()
-                                            ->styleBorderRight()
-                                            ->styleAlignCenter()
-                                            ->styleTextSize($TextSize), $ColumnWidth['Grade'] . '%'
-                                        );
+                        if (!empty($tblGradeList)) {
+                            foreach ($tblGradeList as $tblGrade) {
+                                if ($tblGrade->getServiceTblSubject()->getId() == $SubjectId
+                                    && $tblGrade->getServiceTblPeriod()->getId() == $tblPeriod->getId()
+                                    && (!empty($tblGrade->getGrade()))) {
+                                    if ($tblGrade->getTblGradeType()->isHighlighted()) {
+                                        /** @var Section[] $SubjectSectionList */
+                                        $SubjectSectionList[$SubjectId]
+                                            ->addElementColumn((new Element())
+                                                ->setContent($tblGrade->getDisplayGrade().'<br/>('.$tblGrade->getTblGradeType()->getCode().')')
+                                                ->styleBorderBottom()
+                                                ->styleBorderRight()
+                                                ->styleTextBold()
+                                                ->styleAlignCenter()
+                                                ->styleTextSize($TextSize), $ColumnWidth['Grade'].'%'
+                                            );
+                                    } else {
+                                        /** @var Section[] $SubjectSectionList */
+                                        $SubjectSectionList[$SubjectId]
+                                            ->addElementColumn((new Element())
+                                                ->setContent($tblGrade->getDisplayGrade().'<br/>('.$tblGrade->getTblGradeType()->getCode().')')
+                                                ->styleBorderBottom()
+                                                ->styleBorderRight()
+                                                ->styleAlignCenter()
+                                                ->styleTextSize($TextSize), $ColumnWidth['Grade'].'%'
+                                            );
+                                    }
+                                    unset($tblGrade);
+                                    $CounterCurrentGrades++;
                                 }
-                                unset($tblGrade);
-                                $CounterCurrentGrades++;
                             }
                         }
                         if (($CounterDifference = $GradeCounterMax - $CounterCurrentGrades) > 0) {
@@ -322,8 +339,8 @@ class GradebookOverview extends AbstractDocument
                         }
 
                         $average = Gradebook::useService()->calcStudentGrade(
-                            $this->getTblPerson(),
-                            $this->getTblDivision(),
+                            $tblPerson,
+                            $tblDivision,
                             Subject::useService()->getSubjectById($SubjectId),
                             $tblTestType,
                             $tblScoreType ? $tblScoreType : null,
@@ -352,8 +369,8 @@ class GradebookOverview extends AbstractDocument
                     }
 
                     $average = Gradebook::useService()->calcStudentGrade(
-                        $this->getTblPerson(),
-                        $this->getTblDivision(),
+                        $tblPerson,
+                        $tblDivision,
                         Subject::useService()->getSubjectById($SubjectId),
                         $tblTestType,
                         $tblScoreType ? $tblScoreType : null
@@ -381,6 +398,14 @@ class GradebookOverview extends AbstractDocument
                         );
                 }
             }
+        } else {
+
+            $HeaderSection = $HeaderSection->addElementColumn((new Element())
+                ->setContent('Eine Darstellung der Noten ist nicht möglich, wenn das Jahr keine Zeiträume besitzt.')
+                ->styleTextSize('20px')
+                ->styleAlignCenter()
+                ->stylePaddingTop('20px')
+            );
         }
 
         $GradebookOverviewSlice
