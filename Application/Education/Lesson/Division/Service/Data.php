@@ -872,7 +872,7 @@ class Data extends AbstractData
     /**
      * @param TblDivisionSubject $tblDivisionSubject
      *
-     * @return bool|TblSubjectTeacher[]
+     * @return bool|TblPerson[]
      */
     public function getTeacherAllByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
     {

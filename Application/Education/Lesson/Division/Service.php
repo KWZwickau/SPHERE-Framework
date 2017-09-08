@@ -1466,7 +1466,7 @@ class Service extends AbstractService
     /**
      * @param TblDivisionSubject $tblDivisionSubject
      *
-     * @return bool|TblSubjectTeacher[]
+     * @return bool|TblPerson[]
      */
     public
     function getTeacherAllByDivisionSubject(

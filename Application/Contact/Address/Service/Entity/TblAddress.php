@@ -112,7 +112,7 @@ class TblAddress extends Element
                     $Return =
                         $this->getTblCity()->getCode()
                         .' '.$this->getTblCity()->getName()
-                        .($this->getTblCity()->getDisplayDistrict() !== '' ? ', '.($this->getTblCity()->getDisplayDistrict()) : ',')
+                        .($this->getTblCity()->getDisplayDistrict() !== '' ? ' '.($this->getTblCity()->getDisplayDistrict()).',' : ',')
                         .' '.$this->getStreetName()
                         .' '.$this->getStreetNumber()
                         .($this->getLocation() ? ' ('.$this->getLocation().')' : '');
@@ -130,7 +130,7 @@ class TblAddress extends Element
                     $Return =
                         $this->getTblCity()->getCode()
                         .' '.$this->getTblCity()->getName()
-                        .($this->getTblCity()->getDisplayDistrict() !== '' ? ' '.($this->getTblCity()->getDisplayDistrict()) : '')
+                        .($this->getTblCity()->getDisplayDistrict() !== '' ? ' '.($this->getTblCity()->getDisplayDistrict()).',' : ',')
                         .' '.$this->getStreetName()
                         .' '.$this->getStreetNumber()
                         .($this->getLocation() ? ' ('.$this->getLocation().')' : '');

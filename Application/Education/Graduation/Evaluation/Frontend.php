@@ -21,6 +21,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
@@ -71,6 +72,7 @@ use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\NotAvailable;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
@@ -1014,13 +1016,64 @@ class Frontend extends Extension implements IFrontendInterface
                 if (!empty($testList)) {
                     foreach ($testList as $item) {
                         if ($item->getServiceTblSubject() && $item->getServiceTblGradeType()) {
+                            $tblSubject = $item->getServiceTblSubject();
+                            $tblSubjectGroup = $item->getServiceTblSubjectGroup();
+                            $TeacherAcronymList = array();
+                            $tblDivisionSubjectMain = false;
+                            if (!$tblSubjectGroup) {
+                                $tblSubjectGroup = null;
+                            } else {
+                                $tblDivisionSubjectMain = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivision,
+                                    $tblSubject, null);
+                            }
+                            $tblDivisionSubjectTeacher = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivision,
+                                $tblSubject, $tblSubjectGroup);
+                            if ($tblDivisionSubjectTeacher) {
+                                // Teacher Group (if exist) else Teacher Subject
+                                $tblPersonList = Division::useService()->getTeacherAllByDivisionSubject($tblDivisionSubjectTeacher);
+                                if ($tblPersonList) {
+                                    foreach ($tblPersonList as $tblPerson) {
+                                        $TeacherAcronym = new ToolTip(new Small(new NotAvailable())
+                                            , 'Lehrer '.$tblPerson->getLastFirstName().' besitzt kein Lehrerkürzel');
+                                        $tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson);
+                                        if ($tblTeacher) {
+                                            $TeacherAcronym = $tblTeacher->getAcronym();
+                                        }
+                                        $TeacherAcronymList[] = $TeacherAcronym;
+                                    }
+                                }
+                            }
+                            if ($tblDivisionSubjectMain) {
+                                // Teacher Subject (if Group exist)
+                                $tblPersonListMain = Division::useService()->getTeacherAllByDivisionSubject($tblDivisionSubjectMain);
+                                if ($tblPersonListMain) {
+                                    foreach ($tblPersonListMain as $tblPerson) {
+                                        $TeacherAcronym = new ToolTip(new Small(new NotAvailable())
+                                            , 'Lehrer '.$tblPerson->getLastFirstName().' besitzt kein Lehrerkürzel');
+                                        $tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson);
+                                        if ($tblTeacher) {
+                                            $TeacherAcronym = $tblTeacher->getAcronym();
+                                        }
+                                        $TeacherAcronymList[] = $TeacherAcronym;
+                                    }
+                                }
+                            }
+
+                            // create Teacher string
+                            if (!empty($TeacherAcronymList)) {
+                                $TeacherAcronym = implode(', ', $TeacherAcronymList);
+                            } else {
+                                $TeacherAcronym = new ToolTip(new Small(new NotAvailable())
+                                    , 'Kein Lehrauftrag vorhanden');
+                            }
+
                             $content = $item->getServiceTblSubject()->getAcronym() . ' '
                                 . ($item->getServiceTblSubjectGroup()
                                     ? '(' . $item->getServiceTblSubjectGroup()->getName() . ') ' : '')
                                 . $item->getServiceTblGradeType()->getCode() . ' '
                                 . $item->getDescription() . ' ('
                                 . strtr(date('D', strtotime($item->getDate())), $trans) . ' ' . date('d.m.y',
-                                    strtotime($item->getDate())) . ')';
+                                    strtotime($item->getDate())).') - '.$TeacherAcronym;
                             $panelData[] = $item->getServiceTblGradeType()->isHighlighted()
                                 ? new Bold($content) : $content;
                             $date = new \DateTime($item->getDate());

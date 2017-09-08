@@ -58,6 +58,7 @@ class AccidentReport extends AbstractDocument
                                     &nbsp;
                                 {% endif %}
                                 {% if (Content.Student.Company2 is not empty) %}
+                                    <br/>
                                     {{ Content.Student.Company2 }}
                                 {% else %}
                                     &nbsp;
@@ -202,13 +203,7 @@ class AccidentReport extends AbstractDocument
                             , '55%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('
-                                {% if(Content.Person.Common.BirthDates.Birthday is not empty) %}
-                                    {{ Content.Person.Common.BirthDates.Birthday|date("d.m.Y") }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}
-                            ')
+                            ->setContent('&nbsp;')
                             ->stylePaddingLeft('5px')
                             ->styleBorderRight()
                             ->styleBorderBottom()
@@ -263,7 +258,7 @@ class AccidentReport extends AbstractDocument
                             , '40%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('6 Postleitzahl')
+                            ->setContent('Postleitzahl')
                             ->styleTextSize('11px')
                             ->stylePaddingLeft('5px')
                             ->styleBorderRight()
@@ -280,7 +275,7 @@ class AccidentReport extends AbstractDocument
                         ->addElementColumn((new Element())
                             ->setContent('
                                 {% if(Content.Person.Address.Street.Name) %}
-                                    {{ Content.Person.Address.Street.Name }},
+                                    {{ Content.Person.Address.Street.Name }}
                                     {{ Content.Person.Address.Street.Number }}
                                 {% else %}
                                       &nbsp;
@@ -334,7 +329,7 @@ class AccidentReport extends AbstractDocument
                             , '18%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('10 Name und Anschricht der gesetzlichen Vertreter')
+                            ->setContent('10 Name und Anschrift der gesetzlichen Vertreter')
                             ->stylePaddingLeft('5px')
                             ->styleTextSize('11px')
                             , '60%'
@@ -390,22 +385,38 @@ class AccidentReport extends AbstractDocument
                             , '18%'
                         )
                         ->addElementColumn((new Element())
+                            // (Content.Person.Parent.Father.Address|length >= 38) Zählen der Länge entfällt
                             ->setContent('
-                                {% if(Content.Person.Parent.Father.Name.First) %}
-                                    {{ Content.Person.Parent.Father.Name.First }}
-                                    {{ Content.Person.Parent.Father.Name.Last }}
-                                    {% if(Content.Person.Parent.Father.Address) %}
-                                        {{ Content.Person.Parent.Father.Address }}
+                                {% if (Content.Person.Parent.Father.Address)
+                                and (Content.Person.Parent.Mother.Address)
+                                and (Content.Person.Parent.Father.Address == Content.Person.Parent.Mother.Address) %}
+                                    {% if(Content.Person.Parent.Father.Name.First) and (Content.Person.Parent.Mother.Name.First) %}
+                                        {{ Content.Person.Parent.Father.Name.First }}
+                                        {{ Content.Person.Parent.Father.Name.Last }},
+                                        {{ Content.Person.Parent.Mother.Name.First }}
+                                        {{ Content.Person.Parent.Mother.Name.Last }}
+                                        <br/>
+                                        {% if(Content.Person.Parent.Father.Address) %}
+                                            {{ Content.Person.Parent.Father.Address }}
+                                        {% endif %}
                                     {% endif %}
-                                    <br/>
-                                {% endif %}
-                                {% if(Content.Person.Parent.Mother.Name.First) %}
-                                    {{ Content.Person.Parent.Mother.Name.First }}
-                                    {{ Content.Person.Parent.Mother.Name.Last }}
-                                    {% if(Content.Person.Parent.Mother.Address) %}
-                                        {{ Content.Person.Parent.Mother.Address }}
-                                    {% else %}
-                                          &nbsp;
+                                {% else %}
+                                    {% if(Content.Person.Parent.Father.Name.First) %}
+                                        {{ Content.Person.Parent.Father.Name.First }}
+                                        {{ Content.Person.Parent.Father.Name.Last }}
+                                        {% if(Content.Person.Parent.Father.Address) %}
+                                            {{ Content.Person.Parent.Father.Address }}
+                                        {% endif %}
+                                        <br/>
+                                    {% endif %}
+                                    {% if(Content.Person.Parent.Mother.Name.First) %}
+                                        {{ Content.Person.Parent.Mother.Name.First }}
+                                        {{ Content.Person.Parent.Mother.Name.Last }}
+                                        {% if(Content.Person.Parent.Mother.Address) %}
+                                            {{ Content.Person.Parent.Mother.Address }}
+                                        {% else %}
+                                              &nbsp;
+                                        {% endif %}
                                     {% endif %}
                                 {% endif %}
                             ')
