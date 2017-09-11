@@ -110,7 +110,7 @@ class Service extends Extension
                                 ? $tblCustodyFather->getOccupation()
                                 : ' - ').
                             ($tblCustodyFather->getEmployment()
-                                ? ' - '.$tblCustodyFather->getEmployment()
+                                ? ', '.$tblCustodyFather->getEmployment()
                                 : '')
                             .')';
                     }
@@ -122,9 +122,9 @@ class Service extends Extension
                         $MotherString = '('.
                             ($tblCustodyMother->getOccupation()
                                 ? $tblCustodyMother->getOccupation()
-                                : 'leer').
+                                : ' - ').
                             ($tblCustodyMother->getEmployment()
-                                ? ' - '.$tblCustodyMother->getEmployment()
+                                ? ', '.$tblCustodyMother->getEmployment()
                                 : '')
                             .')';
                     }
