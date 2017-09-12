@@ -31,19 +31,8 @@ class Authentication implements IModuleInterface
         }
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, 'Frontend::frontendIdentification'
-        )
-            ->setParameterDefault('CredentialName', null)
-            ->setParameterDefault('CredentialLock', null)
-            ->setParameterDefault('CredentialKey', null)
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Offline', __NAMESPACE__.'\Frontend::frontendDestroySession'
-        )
-            ->setParameterDefault('CredentialName', null)
-            ->setParameterDefault('CredentialLock', null)
-            ->setParameterDefault('CredentialKey', null)
-        );
+        ));
 
         if (Account::useService()->getAccountBySession()) {
             Main::getDispatcher()->registerRoute(
@@ -51,8 +40,18 @@ class Authentication implements IModuleInterface
             );
         } else {
             Main::getDispatcher()->registerRoute(
-                Main::getDispatcher()->createRoute('', __NAMESPACE__.'\Frontend::frontendIdentification')
+                Main::getDispatcher()->createRoute('', __NAMESPACE__.'\Frontend::frontendIdentificationCredential')
             );
+
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__, __NAMESPACE__.'\Frontend::frontendIdentificationCredential'
+            ));
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Token', __NAMESPACE__.'\Frontend::frontendIdentificationToken'
+            ));
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Agb', __NAMESPACE__.'\Frontend::frontendIdentificationAgb'
+            ));
         }
     }
 
