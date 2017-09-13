@@ -249,9 +249,9 @@ class Service extends Extension
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary|false
-     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @return bool|FilePointer
+     * @throws TypeFileException
+     * @throws DocumentTypeException
      */
     public function createClassListExcel($PersonList, $tblPersonList)
     {
@@ -506,9 +506,9 @@ class Service extends Extension
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary|false
-     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @return bool|FilePointer
+     * @throws TypeFileException
+     * @throws DocumentTypeException
      */
     public function createExtendedClassListExcel($PersonList, $tblPersonList)
     {
@@ -661,9 +661,9 @@ class Service extends Extension
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary|false
-     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @return bool|FilePointer
+     * @throws TypeFileException
+     * @throws DocumentTypeException
      */
     public function createBirthdayClassListExcel($PersonList, $tblPersonList)
     {
@@ -851,9 +851,9 @@ class Service extends Extension
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary|false
-     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @return bool|FilePointer
+     * @throws TypeFileException
+     * @throws DocumentTypeException
      */
     public function createMedicalInsuranceClassListExcel($PersonList, $tblPersonList)
     {
@@ -1080,9 +1080,9 @@ class Service extends Extension
      * @param array $PersonList
      * @param array $tblPersonList
      *
-     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary|false
-     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @return bool|FilePointer
+     * @throws TypeFileException
+     * @throws DocumentTypeException
      */
     public function createGroupListExcel($PersonList, $tblPersonList, $GroupId)
     {
@@ -1231,12 +1231,17 @@ class Service extends Extension
                 $Item['Address'] = '';
                 $Item['Phone'] = '';
                 $Item['PhoneGuardian'] = '';
-                $Item['TypeOptionA'] = $Item['TypeOptionB'] = $Item['DivisionLevel'] = $Item['RegistrationDate'] = '';
+                $Item['TypeOptionA'] = $Item['TypeOptionB'] = '';
+                $Item['DivisionLevel'] = '';
+                $Item['RegistrationDate'] = '';
+                $Item['InterviewDate'] = '';
+                $Item['TrialDate'] = '';
                 $Item['SchoolYear'] = '';
                 $Item['Birthday'] = $Item['Birthplace'] = $Item['Denomination'] = $Item['Nationality'] = '';
                 $Item['Siblings'] = array();
                 $Item['FatherSalutation'] = $Item['FatherLastName'] = $Item['FatherFirstName'] = $Item['Father'] = '';
                 $Item['MotherSalutation'] = $Item['MotherLastName'] = $Item['MotherFirstName'] = $Item['Mother'] = '';
+                $Item['Remark'] = $Item['RemarkExcel'] = '';
 
                 if (($tblToPersonAddressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
                     $tblToPersonAddress = $tblToPersonAddressList[0];
@@ -1271,7 +1276,12 @@ class Service extends Extension
                     $tblProspectAppointment = $tblProspect->getTblProspectAppointment();
                     if ($tblProspectAppointment) {
                         $Item['RegistrationDate'] = $tblProspectAppointment->getReservationDate();
+                        $Item['InterviewDate'] = $tblProspectAppointment->getInterviewDate();
+                        $Item['TrialDate'] = $tblProspectAppointment->getTrialDate();
                     }
+
+                    $Item['Remark'] = nl2br($tblProspect->getRemark());
+                    $Item['RemarkExcel'] = $tblProspect->getRemark();
                 }
 
                 $common = Common::useService()->getCommonByPerson($tblPerson);
@@ -1403,6 +1413,8 @@ class Service extends Extension
      * @param $tblPersonList
      *
      * @return bool|FilePointer
+     * @throws TypeFileException
+     * @throws DocumentTypeException
      */
     public function createInterestedPersonListExcel($PersonList, $tblPersonList)
     {
@@ -1412,73 +1424,83 @@ class Service extends Extension
             $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
-            $export->setValue($export->getCell("0", "0"), "Anmeldedatum");
-            $export->setValue($export->getCell("1", "0"), "Vorname");
-            $export->setValue($export->getCell("2", "0"), "Name");
-            $export->setValue($export->getCell("3", "0"), "Schuljahr");
-            $export->setValue($export->getCell("4", "0"), "Klassenstufe");
-            $export->setValue($export->getCell("5", "0"), "Schulart 1");
-            $export->setValue($export->getCell("6", "0"), "Schulart 2");
-            $export->setValue($export->getCell("7", "0"), "Straße");
-            $export->setValue($export->getCell("8", "0"), "Hausnummer");
-            $export->setValue($export->getCell("9", "0"), "PLZ");
-            $export->setValue($export->getCell("10", "0"), "Ort");
-            $export->setValue($export->getCell("11", "0"), "Ortsteil");
-            $export->setValue($export->getCell("12", "0"), "Geburtsdatum");
-            $export->setValue($export->getCell("13", "0"), "Geburtsort");
-            $export->setValue($export->getCell("14", "0"), "Staatsangeh.");
-            $export->setValue($export->getCell("15", "0"), "Bekenntnis");
-            $export->setValue($export->getCell("16", "0"), "Geschwister");
-            $export->setValue($export->getCell("17", "0"), "Anrede Sorgeberechtigter 1");
-            $export->setValue($export->getCell("18", "0"), "Name Sorgeberechtigter 1");
-            $export->setValue($export->getCell("19", "0"), "Vorname Sorgeberechtigter 1");
-            $export->setValue($export->getCell("20", "0"), "Anrede Sorgeberechtigter 2");
-            $export->setValue($export->getCell("21", "0"), "Name Sorgeberechtigter 2");
-            $export->setValue($export->getCell("22", "0"), "Vorname Sorgeberechtigter 2");
-            $export->setValue($export->getCell("23", "0"), "Telefon Interessent");
-            $export->setValue($export->getCell("24", "0"), "Telefon Sorgeberechtigte");
+            $export->setValue($export->getCell(0, 0), "Anmeldedatum");
+            $export->setValue($export->getCell(1, 0), "Aufnahmegespräch");
+            $export->setValue($export->getCell(2, 0), "Schnuppertag");
+            $export->setValue($export->getCell(3, 0), "Vorname");
+            $export->setValue($export->getCell(4, 0), "Name");
+            $export->setValue($export->getCell(5, 0), "Schuljahr");
+            $export->setValue($export->getCell(6, 0), "Klassenstufe");
+            $export->setValue($export->getCell(7, 0), "Schulart 1");
+            $export->setValue($export->getCell(8, 0), "Schulart 2");
+            $export->setValue($export->getCell(9, 0), "Straße");
+            $export->setValue($export->getCell(10, 0), "Hausnummer");
+            $export->setValue($export->getCell(11, 0), "PLZ");
+            $export->setValue($export->getCell(12, 0), "Ort");
+            $export->setValue($export->getCell(13, 0), "Ortsteil");
+            $export->setValue($export->getCell(14, 0), "Geburtsdatum");
+            $export->setValue($export->getCell(15, 0), "Geburtsort");
+            $export->setValue($export->getCell(16, 0), "Staatsangeh.");
+            $export->setValue($export->getCell(17, 0), "Bekenntnis");
+            $export->setValue($export->getCell(18, 0), "Geschwister");
+            $export->setValue($export->getCell(19, 0), "Anrede Sorgeberechtigter 1");
+            $export->setValue($export->getCell(20, 0), "Name Sorgeberechtigter 1");
+            $export->setValue($export->getCell(21, 0), "Vorname Sorgeberechtigter 1");
+            $export->setValue($export->getCell(22, 0), "Anrede Sorgeberechtigter 2");
+            $export->setValue($export->getCell(23, 0), "Name Sorgeberechtigter 2");
+            $export->setValue($export->getCell(24, 0), "Vorname Sorgeberechtigter 2");
+            $export->setValue($export->getCell(25, 0), "Telefon Interessent");
+            $export->setValue($export->getCell(26, 0), "Telefon Sorgeberechtigte");
+            $export->setValue($export->getCell(27, 0), "Bemerkung");
 
             $Row = 1;
             foreach ($PersonList as $PersonData) {
 
-                $export->setValue($export->getCell("0", $Row), $PersonData['RegistrationDate']);
-                $export->setValue($export->getCell("1", $Row), $PersonData['FirstName']);
-                $export->setValue($export->getCell("2", $Row), $PersonData['LastName']);
-                $export->setValue($export->getCell("3", $Row), $PersonData['SchoolYear']);
-                $export->setValue($export->getCell("4", $Row), $PersonData['DivisionLevel']);
-                $export->setValue($export->getCell("5", $Row), $PersonData['TypeOptionA']);
-                $export->setValue($export->getCell("6", $Row), $PersonData['TypeOptionB']);
-                $export->setValue($export->getCell("7", $Row), $PersonData['StreetName']);
-                $export->setValue($export->getCell("8", $Row), $PersonData['StreetNumber']);
-                $export->setValue($export->getCell("9", $Row), $PersonData['Code']);
-                $export->setValue($export->getCell("10", $Row), $PersonData['City']);
-                $export->setValue($export->getCell("11", $Row), $PersonData['District']);
-                $export->setValue($export->getCell("12", $Row), $PersonData['Birthday']);
-                $export->setValue($export->getCell("13", $Row), $PersonData['Birthplace']);
-                $export->setValue($export->getCell("14", $Row), $PersonData['Nationality']);
-                $export->setValue($export->getCell("15", $Row), $PersonData['Denomination']);
-                $export->setValue($export->getCell("16", $Row), $PersonData['Siblings']);
-                $export->setValue($export->getCell("17", $Row), $PersonData['FatherSalutation']);
-                $export->setValue($export->getCell("18", $Row), $PersonData['FatherLastName']);
-                $export->setValue($export->getCell("19", $Row), $PersonData['FatherFirstName']);
-                $export->setValue($export->getCell("20", $Row), $PersonData['MotherSalutation']);
-                $export->setValue($export->getCell("21", $Row), $PersonData['MotherLastName']);
-                $export->setValue($export->getCell("22", $Row), $PersonData['MotherFirstName']);
-                $export->setValue($export->getCell("23", $Row), $PersonData['Phone']);
-                $export->setValue($export->getCell("24", $Row), $PersonData['PhoneGuardian']);
+                $export->setValue($export->getCell(0, $Row), $PersonData['RegistrationDate']);
+                $export->setValue($export->getCell(1, $Row), $PersonData['InterviewDate']);
+                $export->setValue($export->getCell(2, $Row), $PersonData['TrialDate']);
+                $export->setValue($export->getCell(3, $Row), $PersonData['FirstName']);
+                $export->setValue($export->getCell(4, $Row), $PersonData['LastName']);
+                $export->setValue($export->getCell(5, $Row), $PersonData['SchoolYear']);
+                $export->setValue($export->getCell(6, $Row), $PersonData['DivisionLevel']);
+                $export->setValue($export->getCell(7, $Row), $PersonData['TypeOptionA']);
+                $export->setValue($export->getCell(8, $Row), $PersonData['TypeOptionB']);
+                $export->setValue($export->getCell(9, $Row), $PersonData['StreetName']);
+                $export->setValue($export->getCell(10, $Row), $PersonData['StreetNumber']);
+                $export->setValue($export->getCell(11, $Row), $PersonData['Code']);
+                $export->setValue($export->getCell(12, $Row), $PersonData['City']);
+                $export->setValue($export->getCell(13, $Row), $PersonData['District']);
+                $export->setValue($export->getCell(14, $Row), $PersonData['Birthday']);
+                $export->setValue($export->getCell(15, $Row), $PersonData['Birthplace']);
+                $export->setValue($export->getCell(16, $Row), $PersonData['Nationality']);
+                $export->setValue($export->getCell(17, $Row), $PersonData['Denomination']);
+                $export->setValue($export->getCell(18, $Row), $PersonData['Siblings']);
+                $export->setValue($export->getCell(19, $Row), $PersonData['FatherSalutation']);
+                $export->setValue($export->getCell(20, $Row), $PersonData['FatherLastName']);
+                $export->setValue($export->getCell(21, $Row), $PersonData['FatherFirstName']);
+                $export->setValue($export->getCell(22, $Row), $PersonData['MotherSalutation']);
+                $export->setValue($export->getCell(23, $Row), $PersonData['MotherLastName']);
+                $export->setValue($export->getCell(24, $Row), $PersonData['MotherFirstName']);
+                $export->setValue($export->getCell(25, $Row), $PersonData['Phone']);
+                $export->setValue($export->getCell(26, $Row), $PersonData['PhoneGuardian']);
+                $export->setValue($export->getCell(27, $Row), $PersonData['RemarkExcel']);
 
+                // WrapText
+                $export->setStyle($export->getCell(27, $Row))->setWrapText();
                 $Row++;
             }
 
+            $export->setStyle($export->getCell(27, 0))->setColumnWidth(50);
+
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Weiblich:');
-            $export->setValue($export->getCell("1", $Row), Person::countFemaleGenderByPersonList($tblPersonList));
+            $export->setValue($export->getCell(0, $Row), 'Weiblich:');
+            $export->setValue($export->getCell(1, $Row), Person::countFemaleGenderByPersonList($tblPersonList));
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Männlich:');
-            $export->setValue($export->getCell("1", $Row), Person::countMaleGenderByPersonList($tblPersonList));
+            $export->setValue($export->getCell(0, $Row), 'Männlich:');
+            $export->setValue($export->getCell(1, $Row), Person::countMaleGenderByPersonList($tblPersonList));
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Gesamt:');
-            $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+            $export->setValue($export->getCell(0, $Row), 'Gesamt:');
+            $export->setValue($export->getCell(1, $Row), count($tblPersonList));
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
