@@ -163,12 +163,6 @@ class Frontend extends Extension implements IFrontendInterface
         $tblIdentification = null;
         if ($CredentialName && $CredentialLock) {
             if (!$tblAccount) {
-                // Check Credential
-                $tblIdentification = Account::useService()->getIdentificationByName(TblIdentification::NAME_CREDENTIAL);
-                $tblAccount = Account::useService()
-                    ->getAccountByCredential($CredentialName, $CredentialLock, $tblIdentification);
-            }
-            if (!$tblAccount) {
                 // Check Credential with Token
                 $tblIdentification = Account::useService()->getIdentificationByName(TblIdentification::NAME_TOKEN);
                 $tblAccount = Account::useService()
@@ -180,6 +174,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblAccount = Account::useService()
                     ->getAccountByCredential($CredentialName, $CredentialLock, $tblIdentification);
             }
+            if (!$tblAccount) {
+                // Check Credential
+                $tblIdentification = Account::useService()->getIdentificationByName(TblIdentification::NAME_CREDENTIAL);
+                $tblAccount = Account::useService()
+                    ->getAccountByCredential($CredentialName, $CredentialLock, $tblIdentification);
+            }
         }
 
         // Matching Account found?
@@ -187,9 +187,9 @@ class Frontend extends Extension implements IFrontendInterface
             switch ($tblIdentification->getName()) {
                 case TblIdentification::NAME_TOKEN:
                 case TblIdentification::NAME_SYSTEM:
-                    return $this->frontendIdentificationAgb($tblAccount->getId(), $tblIdentification->getId());
-//                    return $this->frontendIdentificationToken($tblAccount->getId(), $tblIdentification->getId());
+                    return $this->frontendIdentificationToken($tblAccount->getId(), $tblIdentification->getId());
                 case TblIdentification::NAME_CREDENTIAL:
+                case TblIdentification::NAME_USER_CREDENTIAL:
                     return $this->frontendIdentificationAgb($tblAccount->getId(), $tblIdentification->getId());
             }
         }
@@ -414,14 +414,14 @@ class Frontend extends Extension implements IFrontendInterface
 
         // IS Accepted?
         // Sanatize Agb Setting
-        $tblSetting = Account::useService()->getSettingByAccount($tblAccount, 'ABG');
+        $tblSetting = Account::useService()->getSettingByAccount($tblAccount, 'AGB');
         if (!$tblSetting) {
-            $tblSetting = Account::useService()->setSettingByAccount($tblAccount, 'ABG', TblSetting::VAR_EMPTY_AGB);
+            $tblSetting = Account::useService()->setSettingByAccount($tblAccount, 'AGB', TblSetting::VAR_EMPTY_AGB);
         }
         // Check/Set Agb Setting
         if( $tblSetting->getValue() == TblSetting::VAR_ACCEPT_AGB || $doAccept == 1 ) {
             if( $doAccept == 1 ) {
-                Account::useService()->setSettingByAccount($tblAccount, 'ABG', TblSetting::VAR_ACCEPT_AGB);
+                Account::useService()->setSettingByAccount($tblAccount, 'AGB', TblSetting::VAR_ACCEPT_AGB);
             }
             // Credential correct, Agb accepted -> LOGIN
             Account::useService()->createSession($tblAccount);
@@ -504,122 +504,6 @@ class Frontend extends Extension implements IFrontendInterface
             )
         );
 
-        return $View;
-    }
-
-    /**
-     * @param string $CredentialName
-     * @param string $CredentialLock
-     * @param string $CredentialKey
-     *
-     * @return Stage
-     */
-    public function frontendIdentification($CredentialName = null, $CredentialLock = null, $CredentialKey = null)
-    {
-
-        if ($CredentialName !== null) {
-            Protocol::useService()->createLoginAttemptEntry($CredentialName, $CredentialLock, $CredentialKey);
-        }
-
-        $View = new Stage('Anmelden');
-        $View->setMessage('Bitte geben Sie Ihre Benutzerdaten ein');
-
-        // Get Identification-Type (Credential,Token,System)
-        $Identifier = $this->getModHex($CredentialKey)->getIdentifier();
-        if ($Identifier) {
-            $tblToken = Token::useService()->getTokenByIdentifier($Identifier);
-            if ($tblToken) {
-                if ($tblToken->getServiceTblConsumer()) {
-                    $Identification = Account::useService()->getIdentificationByName('Token');
-                } else {
-                    $Identification = Account::useService()->getIdentificationByName('System');
-                }
-            } else {
-                $Identification = Account::useService()->getIdentificationByName('Credential');
-            }
-        } else {
-            $Identification = Account::useService()->getIdentificationByName('Credential');
-            $tblToken = null;
-        }
-
-        if (!$Identification) {
-            $Protocol = (new Database())->frontendSetup(false, true);
-
-            $Stage = new Stage(new Danger(new Hospital()) . ' Installation', 'Erster Aufruf der Anwendung');
-            $Stage->setMessage('Dieser Schritt wird automatisch ausgeführt wenn die Datenbank nicht die notwendigen Einträge aufweist. Üblicherweise beim ersten Aufruf.');
-            $Stage->setContent(
-                new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(array(
-                                new Panel('Was ist das?', array(
-                                    (new Info(new Shield() . ' Es wird eine automatische Installation der Datenbank und eine Überprüfung der Daten durchgeführt')),
-                                ), Panel::PANEL_TYPE_PRIMARY,
-                                    new PullRight(strip_tags((new Redirect(self::getRequest()->getPathInfo(), 110)),
-                                        '<div><a><script><span>'))
-                                ),
-                                new Panel('Protokoll', array(
-                                    $Protocol
-                                ))
-                            ))
-                        )
-                    )
-                )
-            );
-            return $Stage;
-        }
-
-        // Create Form
-        $Form = new Form(
-            new FormGroup(array(
-                    new FormRow(
-                        new FormColumn(
-                            new Panel('Benutzername & Passwort', array(
-                                (new TextField('CredentialName', 'Benutzername', 'Benutzername', new Person()))
-                                    ->setRequired(),
-                                (new PasswordField('CredentialLock', 'Passwort', 'Passwort', new Lock()))
-                                    ->setRequired()->setDefaultValue($CredentialLock, true)
-                            ), Panel::PANEL_TYPE_INFO)
-                        )
-                    ),
-                    new FormRow(array(
-                        new FormColumn(
-                            new Panel('Hardware-Schlüssel *', array(
-                                new PasswordField('CredentialKey', 'YubiKey', 'YubiKey', new YubiKey())
-                            ), Panel::PANEL_TYPE_INFO,
-                                new Small('* Wenn zu Ihrem Zugang ein YubiKey gehört geben Sie zuerst oben Ihren Benutzername und Passwort an, stecken Sie dann bitte den YubiKey an, klicken in das Feld YubiKey und drücken anschließend auf den metallischen Sensor am YubiKey. <br/>Das Formular wird daraufhin automatisch abgeschickt.'))
-                        )
-                    ))
-                )
-            ), new Primary('Anmelden')
-        );
-
-        // Switch Service
-        if ($tblToken) {
-            $FormService = Account::useService()->createSessionCredentialToken(
-                $Form, $CredentialName, $CredentialLock, $CredentialKey, $Identification
-            );
-        } else {
-            $FormService = Account::useService()->createSessionCredential(
-                $Form, $CredentialName, $CredentialLock, $Identification
-            );
-        }
-
-        $View->setContent(
-            new Layout(new LayoutGroup(array(
-                new LayoutRow(array(
-                    new LayoutColumn(
-                        ''
-                        , 3),
-                    new LayoutColumn(
-                        new Well($FormService)
-                        , 6),
-                    new LayoutColumn(
-                        ''
-                        , 3),
-                )),
-            )))
-        );
         return $View;
     }
 
