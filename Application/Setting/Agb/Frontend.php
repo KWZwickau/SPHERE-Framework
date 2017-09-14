@@ -4,29 +4,27 @@ namespace SPHERE\Application\Setting\Agb;
 
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSetting;
-use SPHERE\Common\Frontend\Icon\Repository\Tag;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\MoreItems;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
-use SPHERE\Common\Frontend\Icon\Repository\TileList;
-use SPHERE\Common\Frontend\Icon\Repository\TileSmall;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Header;
 use SPHERE\Common\Frontend\Layout\Repository\Headline;
-use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Paragraph;
-use SPHERE\Common\Frontend\Layout\Repository\Ruler;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger;
-use SPHERE\Common\Frontend\Link\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Danger as DangerMessage;
 use SPHERE\Common\Frontend\Message\Repository\Success as SuccessMessage;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
+use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -38,6 +36,53 @@ use SPHERE\System\Extension\Extension;
  */
 class Frontend extends Extension implements IFrontendInterface
 {
+
+    /**
+     * @return Stage
+     */
+    public function frontendAgbView()
+    {
+
+        $Stage = new Stage(new MoreItems() . ' Allgemeine Geschäftsbedingungen', '', '');
+
+        // Create Form
+        $Form = new Layout(
+            new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new Center(new Header('Ich möchte das elektronische Notenbuch nicht mehr nutzen oder bin mit den o.g. Regelungen nicht mehr einverstanden:')),
+                        ))
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new Center(new Danger('Allgemeine Geschäftsbedingungen ablehnen / widerrufen',
+                                new Route(__NAMESPACE__ . '/Decline'), new Disable(), array()))
+                        ))
+                    )
+                )
+            ));
+
+        $Stage->setContent(new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        ''
+                        , 2),
+                    new LayoutColumn(
+                        new Listing(array(
+                            new Header(new Bold('Elektronische Notenübersicht in der Schulsoftware')),
+                            Agb::useFrontend()->getAgbContent()
+                        ))
+                        . $Form
+                        , 8),
+                    new LayoutColumn(
+                        ''
+                        , 2),
+                )),
+            )))
+        );
+
+        return $Stage;
+    }
 
     /**
      * @return string
@@ -101,74 +146,15 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Stage
      */
-    public function frontendAgbView()
+    public function frontendAcceptAgb()
     {
-
-//        $tblSetting = false;
-//        $tblAccount = Account::useService()->getAccountBySession();
-//        $tblUserAccount = AccountUser::useService()->getUserAccountByAccount($tblAccount);
-//        // Account muss einem Eltern Account entsprechen
-//        if ($tblAccount && $tblUserAccount && $tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_CUSTODY || true) { // ToDO remove true
-//            // suchen der vorhandenen AGB Settings
-//            $tblSetting = Account::useService()->getSettingByAccount($tblAccount, 'ABG');
-//            if (!$tblSetting) {
-//                // erstellen der AGB Settings wenn sie noch nicht vorhanden sind
-//                $tblSetting = Account::useService()->setSettingByAccount($tblAccount, 'ABG', TblSetting::VAR_EMPTY_AGB);
-//            }
-//        }
-//
-//        // ToDO reagieren auf AGB Einstellung
-//        if ($tblSetting) {
-//            switch ($tblSetting->getValue()) {
-//                case TblSetting::VAR_EMPTY_AGB:
-//                    Debugger::screenDump('Emtyp');
-//
-//                    break;
-//                case TblSetting::VAR_ACCEPT_AGB:
-//                    Debugger::screenDump('Accept');
-//
-//                    break;
-//                case TblSetting::VAR_UPDATE_AGB:
-//                    Debugger::screenDump('Update');
-//
-//                    break;
-//            }
-//        }
-
-        $Stage = new Stage('Elektronische Notenübersicht in der Schulsoftware');
-
-        $PanelContent = $this->getAgbContent();
-
-        $Stage->setContent(
-            new Layout(
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(new Panel('Allgemeine Geschäftsbedingungen ', $PanelContent
-                            , Panel::PANEL_TYPE_INFO,
-                            new Paragraph(new Bold(new Center('Ich möchte das elektronische Notenbuch nutzen und bin mit den o.g. 
-                            Regelungen einverstanden:<br/>'
-                                . new Danger('Nicht Akzeptieren', __NAMESPACE__ . '\Decline')
-                                . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
-                                . new Success('Akzeptieren', __NAMESPACE__ . '\Accept')
-                            )))))
-                    )
-                )
-            )
-        );
-
-        return $Stage;
-    }
-
-    /**
-     * @return Stage
-     */
-    public function frontendAcceptAbg()
-    {
-        $Stage = new Stage('AGB', 'Akzeptieren');
+        $Stage = new Stage(new MoreItems() . ' Allgemeine Geschäftsbedingungen', '', '');
 
         //Update AGB Setting
         $tblAccount = Account::useService()->getAccountBySession();
-        Account::useService()->setSettingByAccount($tblAccount, 'ABG', TblSetting::VAR_ACCEPT_AGB);
+        if ($tblAccount) {
+            Account::useService()->setSettingByAccount($tblAccount, 'AGB', TblSetting::VAR_ACCEPT_AGB);
+        }
 
         $Stage->setContent(new Layout(
             new LayoutGroup(
@@ -186,13 +172,15 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Stage
      */
-    public function frontendDeclineAbg()
+    public function frontendDeclineAgb()
     {
-        $Stage = new Stage('AGB', 'Akzeptieren');
+        $Stage = new Stage(new MoreItems() . ' Allgemeine Geschäftsbedingungen', '', '');
 
         //Update AGB Setting
         $tblAccount = Account::useService()->getAccountBySession();
-        Account::useService()->setSettingByAccount($tblAccount, 'ABG', TblSetting::VAR_EMPTY_AGB);
+        if ($tblAccount) {
+            Account::useService()->setSettingByAccount($tblAccount, 'AGB', TblSetting::VAR_EMPTY_AGB);
+        }
 
         $Stage->setContent(new Layout(
             new LayoutGroup(
@@ -201,7 +189,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new DangerMessage('Die Allgemeinen Geschäftsbedingungen wurden abgelehnt.')
                     ),
                     new LayoutColumn(Account::useService()->destroySession(
-                            new Redirect('/Platform/Gatekeeper/Authentication', Redirect::TIMEOUT_ERROR)
+                            new Redirect('/Platform/Gatekeeper/Authentication', Redirect::TIMEOUT_WAIT)
                         ) . $this->getCleanLocalStorage())
                 ))
             )
