@@ -42,6 +42,9 @@ class Person extends AbstractModule implements IModuleInterface
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/MetaDataComparison'), new Link\Name('Stammdatenabfrage'))
         );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__.'/DivisionReport'), new Link\Name('Stichtagsmeldung'))
+        );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __NAMESPACE__.'\Frontend::frontendPerson'
@@ -69,6 +72,9 @@ class Person extends AbstractModule implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/MetaDataComparison', __NAMESPACE__.'\Frontend::frontendMetaDataComparison'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/DivisionReport', __NAMESPACE__.'\Frontend::frontendDivisionReport'
         ));
     }
 

@@ -32,14 +32,13 @@ use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Text\Repository\Code;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Filter\Link\Pile;
-use SPHERE\System\Extension\Extension;
 
 /**
  * Class Service
  *
  * @package SPHERE\Application\Reporting\Standard\Person
  */
-class Service extends Extension
+class Service extends ServiceDivisionReport
 {
 
     /**
@@ -2355,9 +2354,11 @@ class Service extends Extension
     }
 
     /**
-     * @param $Person
-     * @param $Year
-     * @param $Division
+     * @param null $Person
+     * @param null $Year
+     * @param null $Division
+     *
+     * @return FilePointer
      */
     public function createMetaDataComparisonExcel($Person = null, $Year = null, $Division = null)
     {
