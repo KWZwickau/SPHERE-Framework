@@ -21,13 +21,18 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblUser;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Application\Setting\User\Account\Account as UserAccount;
+use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -53,6 +58,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Header;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -1181,23 +1187,63 @@ class Frontend extends FrontendScoreRule
 
     /**
      * @param null $YearId
+     * @param null $ParentAccount
      *
      * @return Stage|string
      */
-    public function frontendStudentGradebook($YearId = null)
+    public function frontendStudentGradebook($YearId = null, $ParentAccount = null)
     {
 
         $Stage = new Stage('Notenübersicht', 'Schüler/Eltern');
         $Stage->setMessage(
-            'Anzeige der Zensuren für die Schüler und Eltern. <br>
-            Der angemeldete Schüler sieht nur seine eigenen Zensuren. <br>
-            Der angemeldete Sorgeberechtigte sieht nur die Zensuren seiner Schützlinge. <br>'
+            new Container('Anzeige der Zensuren für die Schüler und Eltern.')
+            .new Container('Der angemeldete Schüler sieht nur seine eigenen Zensuren.')
+            .new Container('Der angemeldete Sorgeberechtigte sieht nur die Zensuren seiner Schützlinge.')
         );
 
         $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
         $rowList = array();
         $tblDisplayYearList = array();
         $data = array();
+        $isStudent = false;
+        $isCustody = false;
+        $isEighteen = false;    // oder Älter
+        $tblPersonSession = false;
+
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            $tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount);
+            if ($tblUserAccount) {
+                $Type = $tblUserAccount->getType();
+                if ($Type == TblUserAccount::VALUE_TYPE_STUDENT) {
+                    $isStudent = true;
+                }
+                if ($Type == TblUserAccount::VALUE_TYPE_CUSTODY) {
+                    $isCustody = true;
+                }
+            }
+            $UserList = Account::useService()->getUserAllByAccount($tblAccount);
+            if ($UserList) {
+                //
+                $tblUser = current($UserList);
+                /** @var TblUser $tblUser */
+                if ($tblUser && $tblUser->getServiceTblPerson()) {
+                    $tblPersonSession = $tblUser->getServiceTblPerson();
+                    if ($isStudent) {
+                        $tblCommon = Common::useService()->getCommonByPerson($tblPersonSession);
+                        if ($tblCommon && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
+
+                            $Now = new \DateTime();
+                            $Now->modify('-18 year');
+
+                            if ($Now >= new \DateTime($tblCommonBirthDates->getBirthday())) {
+                                $isEighteen = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         $tblPersonList = $this->getPersonListForStudent();
 
@@ -1416,6 +1462,75 @@ class Frontend extends FrontendScoreRule
             }
         }
 
+        $TableContent = array();
+        if ($isStudent && $isEighteen) {
+            if ($tblPersonSession) {
+                $ParentList = array();
+                $tblRelationshipType = Relationship::useService()->getTypeByName('Sorgeberechtigt');
+                if ($tblRelationshipType) {
+                    $RelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPersonSession,
+                        $tblRelationshipType);
+                    if ($RelationshipList) {
+                        foreach ($RelationshipList as $Relationship) {
+                            if ($Relationship->getServiceTblPersonFrom() == $tblPersonSession->getId()) {
+                                $ParentList[] = $Relationship->getServiceTblPersonTo();
+                            } elseif ($Relationship->getServiceTblPersonTo() == $tblPersonSession->getId()) {
+                                $ParentList[] = $Relationship->getServiceTblPersonFrom();
+                            }
+                        }
+                    }
+                }
+                if (!empty($ParentList)) {
+                    /** @var TblPerson $tblPersonParent */
+                    foreach ($ParentList as $tblPersonParent) {
+                        $tblAccountList = Account::useService()->getAccountAllByPerson($tblPersonParent);
+                        if ($tblAccountList) {
+                            // abbilden des Sorgeberechtigten mit einem Account
+                            /** @var TblAccount $tblAccount */
+                            $tblAccountParent = current($tblAccountList);
+                            $Item['Check'] = new CheckBox('ParentAccount['.$tblAccountParent->getId().']', ' ',
+                                $tblAccountParent->getId());
+                            $Item['FirstName'] = $tblPersonParent->getFirstName();
+                            $Item['LastName'] = $tblPersonParent->getLastName();
+
+                            array_push($TableContent, $Item);
+                        }
+                    }
+                }
+            }
+        }
+
+        $form = new Form(
+            new FormGroup(
+                new FormRow(array(
+                    new FormColumn(
+                        new TableData($TableContent, null,
+                            array(
+                                'Check'     => 'Sichterlaubnis entfernt',
+                                'FirstName' => 'Vorname',
+                                'LastName'  => 'Nachname'
+                            ),
+                            array(
+                                "paging"         => false, // Deaktiviert Blättern
+                                "iDisplayLength" => -1,    // Alle Einträge zeigen
+                                "searching"      => false, // Deaktiviert Suche
+                                "info"           => false,  // Deaktiviert Such-Info)
+                                'columnDefs'     => array(
+                                    array('width' => '1%', 'targets' => array(0))
+                                ),
+                            )
+                        )
+                    ),
+                    new FormColumn(
+                        (new \SPHERE\Common\Frontend\Link\Repository\Primary('Ändern',
+                            ''))->setDisabled()  //ToDo Wieder entfernen
+                    )
+                ))
+            )
+        );
+        // ToDO später mit Service
+//        $form->appendFormButton(new Primary('Ändern', new Save()));
+
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(new LayoutRow(array(
@@ -1427,6 +1542,18 @@ class Frontend extends FrontendScoreRule
                 ))),
                 ($YearId !== null ? new LayoutGroup($rowList) : null)
             ))
+            .($isStudent && $isEighteen
+                ? new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(array(
+                            new LayoutColumn(new Well(
+                                new Title('Sichtbarkeit der Notenübersicht für Sorgeberechtigte')
+                                .$form
+                            ))
+                        ))
+                    )
+                )
+                : '')
         );
         return $Stage;
     }
@@ -1504,29 +1631,27 @@ class Frontend extends FrontendScoreRule
             if (!$Confirm) {
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
-                                new Panel(
-                                    'Zensuren-Typ',
-                                    $tblGradeType->getName()
-                                    . '&nbsp;&nbsp;' . new Muted(new Small(new Small(
-                                        $tblGradeType->getDescription()))),
-                                    Panel::PANEL_TYPE_INFO
-                                ),
-                                new Panel(new Question() . ' Diesen Zensuren-Typ wirklich löschen?',
-                                    array(
-                                        $tblGradeType->getName(),
-                                        $tblGradeType->getDescription() ? $tblGradeType->getDescription() : null
-                                    ),
-                                    Panel::PANEL_TYPE_DANGER,
-                                    new Standard(
-                                        'Ja', '/Education/Graduation/Gradebook/GradeType/Destroy', new Ok(),
-                                        array('Id' => $Id, 'Confirm' => true)
-                                    )
-                                    . new Standard(
-                                        'Nein', '/Education/Graduation/Gradebook/GradeType', new Disable())
-                                )
+                        new Panel(
+                            'Zensuren-Typ',
+                            $tblGradeType->getName()
+                            .'&nbsp;&nbsp;'.new Muted(new Small(new Small(
+                                $tblGradeType->getDescription()))),
+                            Panel::PANEL_TYPE_INFO
+                        ),
+                        new Panel(new Question().' Diesen Zensuren-Typ wirklich löschen?',
+                            array(
+                                $tblGradeType->getName(),
+                                $tblGradeType->getDescription() ? $tblGradeType->getDescription() : null
+                            ),
+                            Panel::PANEL_TYPE_DANGER,
+                            new Standard(
+                                'Ja', '/Education/Graduation/Gradebook/GradeType/Destroy', new Ok(),
+                                array('Id' => $Id, 'Confirm' => true)
                             )
+                            .new Standard(
+                                'Nein', '/Education/Graduation/Gradebook/GradeType', new Disable())
                         )
-                    )))
+                    )))))
                 );
             } else {
                 $Stage->setContent(

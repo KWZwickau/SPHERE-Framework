@@ -1389,4 +1389,63 @@ class Service extends ServiceScoreRule
             (new Data($this->getBinding()))->updateGradesGradeType($tblGradeType, $tblGradeList);
         }
     }
+
+    /**
+     * @param IFormInterface $Form
+     * @param array          $ParentAccount
+     *
+     * @return IFormInterface|string
+     */
+    public function setDiableParent(
+        IFormInterface $Form,
+        $ParentAccount
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        $Global = $this->getGlobal();
+        if (!isset($Global->POST['Button']['Submit'])) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        if (!$Error) {
+
+            // Remove old Link //ToDO
+//            $tblCategoryAll = $tblGroup->getTblCategoryAll();
+//            if ($tblCategoryAll) {
+//                array_walk($tblCategoryAll, function (TblCategory $tblCategory) use ($tblGroup, &$Error) {
+//
+//                    if (!$this->removeGroupCategory($tblGroup, $tblCategory)) {
+//                        $Error = false;
+//                    }
+//                });
+//            }
+
+            if ($ParentAccount) {
+                // Add new Link
+                array_walk($ParentAccount, function ($AccountId) use (&$Error) {
+                    $tblAccount = Account::useService()->getAccountById($AccountId);
+                    if ($tblAccount) {
+
+//                        $this->addGroupCategory($tblGroup, $this->getCategoryById($Category));
+
+                    } else {
+                        $Error = false;
+                    }
+                });
+            }
+
+            if (!$Error) {
+                return new Success('Einstellungen wurden erfolgreich gespeichert')
+                    .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_SUCCESS);
+            } else {
+                return new Danger('Einstellungen konnten nicht gespeichert werden')
+                    .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_ERROR);
+            }
+        }
+        return $Form;
+    }
 }
