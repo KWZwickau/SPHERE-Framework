@@ -248,11 +248,13 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Temp['Name'] = $tblCategory->getName();
                 $Temp['Description'] = $tblCategory->getDescription();
-                $Temp['Option'] = new Standard('', '/Education/Lesson/Subject/Change/Category', new Pencil(),
-                        array('Id' => $tblCategory->getId()))
-                    . ($tblCategory->isLocked() ? ''
-                        : new Standard('', '/Education/Lesson/Subject/Destroy/Category', new Remove(),
-                            array('Id' => $tblCategory->getId())));
+                $Temp['Option'] =
+                    (!$tblCategory->isLocked()
+                        ? new Standard('', '/Education/Lesson/Subject/Change/Category', new Pencil(),
+                            array('Id' => $tblCategory->getId()))
+                        .new Standard('', '/Education/Lesson/Subject/Destroy/Category', new Remove(),
+                            array('Id' => $tblCategory->getId()))
+                        : '');
                 array_push($TableContent, $Temp);
             });
         }
@@ -398,6 +400,10 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Subject', new ChevronLeft()));
 
         $tblGroup = Subject::useService()->getGroupById($Id);
+        $IsStandardGroup = false;
+        if ($tblGroup->getIdentifier() == 'STANDARD') {
+            $IsStandardGroup = true;
+        }
 
         $Stage->setContent(
             new Layout(array(
@@ -415,7 +421,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new Well(
                                 Subject::useService()->changeGroupCategory(
-                                    $this->formLinkCategory($tblGroup)
+                                    $this->formLinkCategory($tblGroup, $IsStandardGroup)
                                         ->appendFormButton(new Primary('Speichern', new Save()))
                                         ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
                                     , $tblGroup, $Category
@@ -859,10 +865,11 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null|TblGroup $tblGroup
+     * @param bool          $IsStandardGroup
      *
      * @return Form
      */
-    public function formLinkCategory(TblGroup $tblGroup = null)
+    public function formLinkCategory(TblGroup $tblGroup = null, $IsStandardGroup = false)
     {
 
         $tblCategoryAllSelected = $tblGroup->getTblCategoryAll();
@@ -876,31 +883,41 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tblCategoryAllAvailable = Subject::useService()->getCategoryAll();
-        array_walk($tblCategoryAllAvailable, function (TblCategory &$tblCategory) {
 
-            $tblSubjectAll = $tblCategory->getTblSubjectAll();
-            if ($tblSubjectAll) {
-                array_walk($tblSubjectAll, function (TblSubject &$tblSubject) {
-
-                    $tblSubject = $tblSubject->getAcronym();
-                });
-                $tblSubjectAll = '(' . implode(', ', $tblSubjectAll) . ')';
+        $PanelContent = array();
+        array_walk($tblCategoryAllAvailable,
+            function (TblCategory &$tblCategory) use (&$PanelContent, $IsStandardGroup) {
+                if ($tblCategory->isLocked() && !$IsStandardGroup) {
+                    $tblCategory = null;
             } else {
-                $tblSubjectAll = '';
-            }
+                    $tblSubjectAll = $tblCategory->getTblSubjectAll();
+                    if ($tblSubjectAll) {
+                        array_walk($tblSubjectAll, function (TblSubject &$tblSubject) {
 
-            $tblCategory = new CheckBox(
-                'Category[' . $tblCategory->getId() . ']',
-                $tblCategory->getName() . ' ' . new Muted($tblCategory->getDescription() . ' ' . new Small($tblSubjectAll)),
-                $tblCategory->getId()
-            );
+                            $tblSubject = $tblSubject->getAcronym();
+                        });
+                        $tblSubjectAll = '('.implode(', ', $tblSubjectAll).')';
+                    } else {
+                        $tblSubjectAll = '';
+                    }
+
+                    $PanelContent[] = new CheckBox(
+                        'Category['.$tblCategory->getId().']',
+                        ($tblCategory->isLocked()
+                            ? new Bold($tblCategory->getName())
+                            : $tblCategory->getName())
+                        .' '.new Muted($tblCategory->getDescription().' '.new Small($tblSubjectAll)),
+                        $tblCategory->getId()
+                    );
+            }
         });
+
 
         return new Form(
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new Panel('Kategorien', $tblCategoryAllAvailable, Panel::PANEL_TYPE_INFO)
+                        new Panel('Kategorien', $PanelContent, Panel::PANEL_TYPE_INFO)
                     ),
                 )),
             ))
