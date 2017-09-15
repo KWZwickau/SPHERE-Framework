@@ -376,31 +376,6 @@ class Frontend extends Extension implements IFrontendInterface
             Group::useService()->getGroupByMetaTable('SCHOOL')
         );
         $tblCompanyAllOwn = array();
-        $tblSchoolList = School::useService()->getSchoolAll();
-        if ($tblSchoolList) {
-            foreach ($tblSchoolList as $tblSchool) {
-                if ($tblSchool->getServiceTblCompany()) {
-                    $tblCompanyAllOwn[] = $tblSchool->getServiceTblCompany();
-                }
-            }
-            // add selected Company if missing in list
-            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-            if ($tblStudent) {
-                $TransferTypeProcess = Student::useService()->getStudentTransferTypeByIdentifier('Process');
-                /** @var TblStudentTransfer $tblStudentTransferProcess */
-                $tblStudentTransferProcess = Student::useService()->getStudentTransferByType(
-                    $tblStudent, $TransferTypeProcess
-                );
-                if ($tblStudentTransferProcess && $tblStudentTransferProcess->getServiceTblCompany()) {
-                    $tblCompanySelected[] = $tblStudentTransferProcess->getServiceTblCompany();
-                    $tblCompanyAllOwn = array_merge($tblCompanyAllOwn, $tblCompanySelected);
-                }
-            }
-        }
-
-        if (empty($tblCompanyAllOwn)) {
-            $tblCompanyAllOwn = $tblCompanyAllSchool;
-        }
 
         $tblCompanyAllSchoolNursery = Group::useService()->getCompanyAllByGroup(
             Group::useService()->getGroupByMetaTable('NURSERY')
@@ -427,6 +402,69 @@ class Frontend extends Extension implements IFrontendInterface
         $tblStudentTransferTypeLeave = Student::useService()->getStudentTransferTypeByIdentifier('Leave');
         $tblStudentTransferTypeProcess = Student::useService()->getStudentTransferTypeByIdentifier('Process');
 
+        // Normaler Inhalt
+        $useCompanyAllSchoolEnrollment = $tblCompanyAllSchool;
+        $useCompanyAllSchoolArrive = $tblCompanyAllSchoolNursery;
+        $useCompanyAllSchoolLeave = $tblCompanyAllSchool;
+        $tblSchoolList = School::useService()->getSchoolAll();
+        if ($tblSchoolList) {
+            foreach ($tblSchoolList as $tblSchool) {
+                if ($tblSchool->getServiceTblCompany()) {
+                    $tblCompanyAllOwn[] = $tblSchool->getServiceTblCompany();
+                }
+            }
+        }
+        if (empty($tblCompanyAllOwn)) {
+            $useCompanyAllSchoolProcess = $tblCompanyAllSchool;
+        } else {
+            $useCompanyAllSchoolProcess = $tblCompanyAllOwn;
+        }
+
+
+        // add selected Company if missing in list
+        $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+        if ($tblStudent) {
+
+            // Erweiterung der SelectBox wenn Daten vorhanden aber nicht enthalten sind
+            // Enrollment
+            $tblStudentTransferTypeEnrollmentEntity = Student::useService()->getStudentTransferByType($tblStudent,
+                $tblStudentTransferTypeEnrollment);
+            if ($tblStudentTransferTypeEnrollmentEntity && ($TransferCompanyEnrollment = $tblStudentTransferTypeEnrollmentEntity->getServiceTblCompany())) {
+                if (!array_key_exists($TransferCompanyEnrollment->getId(), $useCompanyAllSchoolEnrollment)) {
+                    $TransferCompanyEnrollmentList = array($TransferCompanyEnrollment->getId() => $TransferCompanyEnrollment);
+                    $useCompanyAllSchoolEnrollment = array_merge($useCompanyAllSchoolEnrollment,
+                        $TransferCompanyEnrollmentList);
+                }
+            }
+            // Arrive
+            $tblStudentTransferTypeArriveEntity = Student::useService()->getStudentTransferByType($tblStudent,
+                $tblStudentTransferTypeArrive);
+            if ($tblStudentTransferTypeArriveEntity && ($TransferCompanyArrive = $tblStudentTransferTypeArriveEntity->getServiceTblCompany())) {
+                if (!array_key_exists($TransferCompanyArrive->getId(), $useCompanyAllSchoolArrive)) {
+                    $TransferCompanyArriveList = array($TransferCompanyArrive->getId() => $TransferCompanyArrive);
+                    $useCompanyAllSchoolArrive = array_merge($useCompanyAllSchoolArrive, $TransferCompanyArriveList);
+                }
+            }
+            // Leave
+            $tblStudentTransferTypeLeaveEntity = Student::useService()->getStudentTransferByType($tblStudent,
+                $tblStudentTransferTypeLeave);
+            if ($tblStudentTransferTypeLeaveEntity && ($TransferCompanyLeave = $tblStudentTransferTypeLeaveEntity->getServiceTblCompany())) {
+                if (!array_key_exists($TransferCompanyLeave->getId(), $useCompanyAllSchoolLeave)) {
+                    $TransferCompanyLeaveList = array($TransferCompanyLeave->getId() => $TransferCompanyLeave);
+                    $useCompanyAllSchoolLeave = array_merge($useCompanyAllSchoolLeave, $TransferCompanyLeaveList);
+                }
+            }
+            // Process
+            $tblStudentTransferTypeProcessEntity = Student::useService()->getStudentTransferByType($tblStudent,
+                $tblStudentTransferTypeProcess);
+            if ($tblStudentTransferTypeProcessEntity && ($TransferCompanyProcess = $tblStudentTransferTypeProcessEntity->getServiceTblCompany())) {
+                if (!array_key_exists($TransferCompanyProcess->getId(), $useCompanyAllSchoolProcess)) {
+                    $TransferCompanyProcessList = array($TransferCompanyProcess->getId() => $TransferCompanyProcess);
+                    $useCompanyAllSchoolProcess = array_merge($useCompanyAllSchoolProcess, $TransferCompanyProcessList);
+                }
+            }
+        }
+
         $NodeEnrollment = 'Schülertransfer - Ersteinschulung';
         $NodeArrive = 'Schülertransfer - Schüler Aufnahme';
         $NodeLeave = 'Schülertransfer - Schüler Abgabe';
@@ -440,7 +478,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ApiMassReplace::receiverField((
                         $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeEnrollment->getId().'][School]',
                             'Schule', array(
-                                '{{ Name }} {{ Description }}' => $tblCompanyAllSchool
+                                '{{ Name }} {{ Description }}' => $useCompanyAllSchoolEnrollment
                             ), new Education())
                         ))
                         .ApiMassReplace::receiverModal($Field, $NodeEnrollment)
@@ -531,7 +569,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ApiMassReplace::receiverField((
                         $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][School]',
                             'Abgebende Schule / Kita', array(
-                                '{{ Name }} {{ Description }}' => $tblCompanyAllSchoolNursery
+                                '{{ Name }} {{ Description }}' => $useCompanyAllSchoolArrive
                             ), new Education())
                         ))
                         .ApiMassReplace::receiverModal($Field, $NodeArrive)
@@ -617,7 +655,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ApiMassReplace::receiverField((
                         $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][School]',
                             'Aufnehmende Schule', array(
-                                '{{ Name }} {{ Description }}' => $tblCompanyAllSchool
+                                '{{ Name }} {{ Description }}' => $useCompanyAllSchoolLeave
                             ), new Education())
                         ))
                         .ApiMassReplace::receiverModal($Field, $NodeLeave)
@@ -706,7 +744,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ApiMassReplace::receiverField((
                         $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]',
                             'Aktuelle Schule', array(
-                                '{{ Name }} {{ Description }}' => $tblCompanyAllOwn
+                                '{{ Name }} {{ Description }}' => $useCompanyAllSchoolProcess
                             ), new Education())
                         ))
                         .ApiMassReplace::receiverModal($Field, $NodeProcess)
@@ -1079,22 +1117,25 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblSubjectForeignLanguage, 4, ($tblStudent ? $tblStudent : null), $Year, $Division, $tblPerson),
                 ), 3),
                 new FormColumn(array(
-                    $this->panelSubjectList('RELIGION', 'Religion', 'Religion', $tblSubjectReligion, 1, null, $Year,
+                    $this->panelSubjectList('RELIGION', 'Religion', 'Religion', $tblSubjectReligion, 1,
+                        ($tblStudent ? $tblStudent : null), $Year,
                         $Division, $tblPerson),
-                    $this->panelSubjectList('PROFILE', 'Profile', 'Profil', $tblSubjectProfile, 1, null, $Year,
+                    $this->panelSubjectList('PROFILE', 'Profile', 'Profil', $tblSubjectProfile, 1,
+                        ($tblStudent ? $tblStudent : null), $Year,
                         $Division, $tblPerson),
                     $this->panelSubjectList('ORIENTATION', 'Neigungskurse', 'Neigungskurs', $tblSubjectOrientation, 1,
-                        null, $Year, $Division, $tblPerson),
+                        ($tblStudent ? $tblStudent : null), $Year, $Division, $tblPerson),
 //                    $this->panelSubjectList('ADVANCED', 'Vertiefungskurse', 'Vertiefungskurs', $tblSubjectAdvanced, 1,
 //                        null, $Year, $Division, $tblPerson),
                 ), 3),
                 new FormColumn(array(
-                    $this->panelSubjectList('ELECTIVE', 'Wahlfächer', 'Wahlfach', $tblSubjectElective, 3, null, $Year,
+                    $this->panelSubjectList('ELECTIVE', 'Wahlfächer', 'Wahlfach', $tblSubjectElective, 3,
+                        ($tblStudent ? $tblStudent : null), $Year,
                         $Division, $tblPerson),
                 ), 3),
                 new FormColumn(array(
                     $this->panelSubjectList('TEAM', 'Arbeitsgemeinschaften', 'Arbeitsgemeinschaft', $tblSubjectAll, 3,
-                        null, $Year, $Division, $tblPerson),
+                        ($tblStudent ? $tblStudent : null), $Year, $Division, $tblPerson),
                 ), 3),
 //                new FormColumn(array(
 //                    $this->panelSubjectList('TRACK_INTENSIVE', 'Leistungskurse', 'Leistungskurs', $tblSubjectAll, 2,
@@ -1139,6 +1180,21 @@ class Frontend extends Extension implements IFrontendInterface
             if($tblPerson) {
                 $PersonId = $tblPerson->getId();
             }
+
+            $useSubjectList = $SubjectList;
+            $tblStudentSubject = false;
+            // Vorhandene Werte ergänzen (wenn sie in der SelectBox nicht mehr existieren)
+            if ($tblStudent && $tblStudentSubjectType && $tblStudentSubjectRanking) {
+                $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
+                    $tblStudentSubjectType, $tblStudentSubjectRanking);
+                if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                    if (!array_key_exists($tblSubject->getId(), $SubjectList)) {
+                        $tblSubjectList = array($tblSubject->getId() => $tblSubject);
+                        $useSubjectList = array_merge($SubjectList, $tblSubjectList);
+                    }
+                }
+            }
+
             // activate MassReplace
             if ($Identifier == 'PROFILE'
                 || $Identifier == 'RELIGION'
@@ -1152,7 +1208,7 @@ class Frontend extends Extension implements IFrontendInterface
                     ApiMassReplace::receiverField((
                     $Field = new SelectBox('Meta[Subject]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
                         ($Count > 1 ? $tblStudentSubjectRanking->getName().' ' : '') . $Label
-                        , array('{{ Acronym }} - {{ Name }} {{ Description }}' => $SubjectList), new Education())
+                        , array('{{ Acronym }} - {{ Name }} {{ Description }}' => $useSubjectList), new Education())
                     ))
                     .ApiMassReplace::receiverModal($Field, $Node)
                     .new PullRight((new Link('Massen-Änderung',
@@ -1177,13 +1233,31 @@ class Frontend extends Extension implements IFrontendInterface
                     new SelectBox(
                         'Meta[Subject]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
                         ($Count > 1 ? $tblStudentSubjectRanking->getName().' ' : '').$Label,
-                        array('{{ Acronym }} - {{ Name }} {{ Description }}' => $SubjectList),
+                        array('{{ Acronym }} - {{ Name }} {{ Description }}' => $useSubjectList),
                         new Education()
                     ));
             }
             // Student FOREIGN_LANGUAGE: LevelFrom, LevelTill
             if ($tblStudentSubjectType->getIdentifier() == 'FOREIGN_LANGUAGE') {
                 $tblLevelAll = Division::useService()->getLevelAll();
+
+                // Gespeicherte Daten ergänzen wenn nicht bereits vorhanden
+                $useLevelFromList = $tblLevelAll;
+                $useLevelTillList = $tblLevelAll;
+                if ($tblStudentSubject && ($tblLevelFrom = $tblStudentSubject->getServiceTblLevelFrom())) {
+                    if (!array_key_exists($tblLevelFrom->getId(), $tblLevelAll)) {
+                        $tblLevelFromList = array($tblLevelFrom->getId() => $tblLevelFrom);
+                        $useLevelFromList = array_merge($tblLevelAll, $tblLevelFromList);
+                    }
+                }
+                if ($tblStudentSubject && ($tblLevelTill = $tblStudentSubject->getServiceTblLevelTill())) {
+                    if (!array_key_exists($tblLevelTill->getId(), $tblLevelAll)) {
+                        $tblLevelTillList = array($tblLevelTill->getId() => $tblLevelTill);
+                        $useLevelTillList = array_merge($tblLevelAll, $tblLevelTillList);
+                    }
+                }
+
+
                 // Read StudentSubject Levels from DB
                 if ($tblStudent) {
                     $tblStudentSubjectAll = Student::useService()
@@ -1210,7 +1284,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new SelectBox(
                         'Meta[SubjectLevelFrom]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
                         new Muted(new Small('von Klasse')),
-                        array('{{ Name }} {{ ServiceTblType.Name }}' => $tblLevelAll),
+                        array('{{ Name }} {{ ServiceTblType.Name }}' => $useLevelFromList),
                         new Time()
                     )
                 );
@@ -1218,7 +1292,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new SelectBox(
                         'Meta[SubjectLevelTill]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
                         new Muted(new Small('bis Klasse')),
-                        array('{{ Name }} {{ ServiceTblType.Name }}' => $tblLevelAll),
+                        array('{{ Name }} {{ ServiceTblType.Name }}' => $useLevelTillList),
                         new Time()
                     )
                 );

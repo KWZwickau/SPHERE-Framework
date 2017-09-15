@@ -304,11 +304,14 @@ class Frontend extends Extension implements IFrontendInterface
                                 'SubjectGroup' => 'Gruppe',
                                 'Option' => ''
                             ), array(
-                                'order' => array(
+                                'order'      => array(
                                     array('0', 'desc'),
                                     array('2', 'asc'),
                                     array('3', 'asc'),
                                     array('4', 'asc')
+                                ),
+                                'columnDefs' => array(
+                                    array('type' => 'natural', 'targets' => 2)
                                 )
                             ))
                         ))
@@ -457,11 +460,14 @@ class Frontend extends Extension implements IFrontendInterface
                                 'SubjectGroup' => 'Gruppe',
                                 'Option' => ''
                             ), array(
-                                'order' => array(
+                                'order'      => array(
                                     array('0', 'desc'),
                                     array('2', 'asc'),
                                     array('3', 'asc'),
                                     array('4', 'asc')
+                                ),
+                                'columnDefs' => array(
+                                    array('type' => 'natural', 'targets' => 2)
                                 )
                             ))
                         ))

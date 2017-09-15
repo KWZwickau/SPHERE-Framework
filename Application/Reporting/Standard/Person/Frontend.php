@@ -879,6 +879,8 @@ class Frontend extends Extension implements IFrontendInterface
                             new TableData($PersonList, null,
                                 array(
                                     'RegistrationDate' => 'Anmeldedatum',
+                                    'InterviewDate'    => 'Aufnahmegespräch ',
+                                    'TrialDate'        => 'Schnuppertag ',
                                     'FirstName'        => 'Vorname',
                                     'LastName'         => 'Name',
                                     'SchoolYear'       => 'Schuljahr',
@@ -894,7 +896,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Father'           => 'Sorgeberechtigter 1',
                                     'Mother'           => 'Sorgeberechtigter 2',
                                     'Phone'            => 'Telefon Interessent',
-                                    'PhoneGuardian'    => 'Telefon Sorgeb.',
+                                    'PhoneGuardian'    => 'Telefon Sorgeberechtigte',
+                                    'Remark'           => 'Bemerkung',
                                 ),
                                 array(
                                     'order' => array(

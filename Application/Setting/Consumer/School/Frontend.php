@@ -162,11 +162,13 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblAddressAllMain = array();
         $tblAddressAllNotMain = array();
-        foreach ($tblAddressAllUnsorted as $tblAddress) {
-            if (Address::useService()->getTypeById(1) == $tblAddress->getTblType()) {
-                $tblAddressAllMain[] = $tblAddress;
-            } else {
-                $tblAddressAllNotMain[] = $tblAddress;
+        if ($tblAddressAllUnsorted) {
+            foreach ($tblAddressAllUnsorted as $tblAddress) {
+                if (Address::useService()->getTypeById(1) == $tblAddress->getTblType()) {
+                    $tblAddressAllMain[] = $tblAddress;
+                } else {
+                    $tblAddressAllNotMain[] = $tblAddress;
+                }
             }
         }
         $tblAddressAll = array();
