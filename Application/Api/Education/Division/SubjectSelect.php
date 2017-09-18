@@ -146,7 +146,7 @@ class SubjectSelect extends Extension implements IApiInterface
                     'Acronym'     => 'Kürzel',
                     'Name'        => 'Name',
                     'Description' => 'Beschreibung',
-                    'Option'      => ''
+                    'Option'      => '&nbsp;'
                 ),
                     array(
                         'columnDefs' => array(
