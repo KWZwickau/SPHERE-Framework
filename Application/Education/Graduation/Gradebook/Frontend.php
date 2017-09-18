@@ -81,6 +81,7 @@ use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Italic;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\NotAvailable;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
@@ -1565,7 +1566,7 @@ class Frontend extends FrontendScoreRule
                 $tblPersonStudentList = Account::useService()->getPersonAllByAccount($StudentAccount);
                 $tblStudentCustody = Consumer::useService()->getStudentCustodyByStudentAndCustody($StudentAccount,
                     $tblAccount);
-                $BlockerPerson = 'Unbekannt';
+                $BlockerPerson = new NotAvailable();
                 // find Person who Blocked
                 if ($tblStudentCustody) {
                     $tblAccountBlocker = $tblStudentCustody->getServiceTblAccountBlocker();
