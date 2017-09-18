@@ -29,6 +29,9 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Application\Setting\Consumer\Service\Entity\TblStudentCustody;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -1379,12 +1382,14 @@ class Service extends ServiceScoreRule
     /**
      * @param IFormInterface $Form
      * @param array          $ParentAccount
+     * @param TblAccount     $tblAccountStudent
      *
      * @return IFormInterface|string
      */
-    public function setDiableParent(
+    public function setDisableParent(
         IFormInterface $Form,
-        $ParentAccount
+        $ParentAccount,
+        $tblAccountStudent
     ) {
 
         /**
@@ -1399,25 +1404,23 @@ class Service extends ServiceScoreRule
 
         if (!$Error) {
 
-            // Remove old Link //ToDO
-//            $tblCategoryAll = $tblGroup->getTblCategoryAll();
-//            if ($tblCategoryAll) {
-//                array_walk($tblCategoryAll, function (TblCategory $tblCategory) use ($tblGroup, &$Error) {
-//
-//                    if (!$this->removeGroupCategory($tblGroup, $tblCategory)) {
-//                        $Error = false;
-//                    }
-//                });
-//            }
+            // Remove old Link
+            $tblStudentCustodyList = Consumer::useService()->getStudentCustodyByStudent($tblAccountStudent);
+            if ($tblStudentCustodyList) {
+                array_walk($tblStudentCustodyList, function (TblStudentCustody $tblStudentCustody) use (&$Error) {
+                    if (!Consumer::useService()->removeStudentCustody($tblStudentCustody)) {
+                        $Error = false;
+                    }
+                });
+            }
 
             if ($ParentAccount) {
                 // Add new Link
-                array_walk($ParentAccount, function ($AccountId) use (&$Error) {
-                    $tblAccount = Account::useService()->getAccountById($AccountId);
-                    if ($tblAccount) {
-
-//                        $this->addGroupCategory($tblGroup, $this->getCategoryById($Category));
-
+                array_walk($ParentAccount, function ($AccountId) use (&$Error, $tblAccountStudent) {
+                    $tblAccountCustody = Account::useService()->getAccountById($AccountId);
+                    if ($tblAccountCustody) {
+                        Consumer::useService()->createStudentCustody($tblAccountStudent, $tblAccountCustody,
+                            $tblAccountStudent);
                     } else {
                         $Error = false;
                     }

@@ -3,9 +3,12 @@ namespace SPHERE\Application\Setting\Consumer\Service;
 
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblSetting;
+use SPHERE\Application\Setting\Consumer\Service\Entity\TblStudentCustody;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
@@ -97,6 +100,76 @@ class Data extends AbstractData
     }
 
     /**
+     * @param      $Cluster
+     * @param      $Application
+     * @param null $Module
+     * @param      $Identifier
+     *
+     * @return false|TblSetting
+     */
+    public function getSetting(
+        $Cluster,
+        $Application,
+        $Module = null,
+        $Identifier
+    ) {
+
+        return $this->getCachedEntityBy(
+            __METHOD__,
+            $this->getConnection()->getEntityManager(),
+            'TblSetting',
+            array(
+                TblSetting::ATTR_CLUSTER     => $Cluster,
+                TblSetting::ATTR_APPLICATION => $Application,
+                TblSetting::ATTR_MODULE      => $Module ? $Module : null,
+                TblSetting::ATTR_IDENTIFIER  => $Identifier,
+            )
+        );
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblStudentCustody
+     */
+    public function getStudentCustodyById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblStudentCustody',
+            $Id);
+    }
+
+    /**
+     * @param TblAccount $tblAccountStudent
+     *
+     * @return false|TblStudentCustody[]
+     */
+    public function getStudentCustodyByStudent(TblAccount $tblAccountStudent)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblStudentCustody',
+            array(
+                TblStudentCustody::ATTR_SERVICE_TBL_ACCOUNT_STUDENT => $tblAccountStudent->getId()
+            ));
+    }
+
+    /**
+     * @param TblAccount $tblAccountStudent
+     * @param TblAccount $tblAccountCustody
+     *
+     * @return false|TblStudentCustody
+     */
+    public function getStudentCustodyByStudentAndCustody(TblAccount $tblAccountStudent, TblAccount $tblAccountCustody)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblStudentCustody',
+            array(
+                TblStudentCustody::ATTR_SERVICE_TBL_ACCOUNT_STUDENT => $tblAccountStudent->getId(),
+                TblStudentCustody::ATTR_SERVICE_TBL_ACCOUNT_CUSTODY => $tblAccountCustody->getId()
+            ));
+    }
+
+    /**
      * @param $Cluster
      * @param $Application
      * @param null $Module
@@ -140,29 +213,47 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Cluster
-     * @param $Application
-     * @param null $Module
-     * @param $Identifier
-     * @return false|TblSetting
+     * @param TblAccount $tblAccountStudent
+     * @param TblAccount $tblAccountCustody
+     * @param TblAccount $tblAccountBlocker
+     *
+     * @return TblStudentCustody
      */
-    public function getSetting(
-        $Cluster,
-        $Application,
-        $Module = null,
-        $Identifier
+    public function createStudentCustody(
+        TblAccount $tblAccountStudent,
+        TblAccount $tblAccountCustody,
+        TblAccount $tblAccountBlocker
     ) {
 
-        return $this->getCachedEntityBy(
-            __METHOD__,
-            $this->getConnection()->getEntityManager(),
-            'TblSetting',
-            array(
-                TblSetting::ATTR_CLUSTER     => $Cluster,
-                TblSetting::ATTR_APPLICATION => $Application,
-                TblSetting::ATTR_MODULE      => $Module ? $Module : null,
-                TblSetting::ATTR_IDENTIFIER  => $Identifier,
-            )
-        );
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = new TblStudentCustody();
+        $Entity->setServiceTblAccountStudent($tblAccountStudent);
+        $Entity->setServiceTblAccountCustody($tblAccountCustody);
+        $Entity->setServiceTblAccountBlocker($tblAccountBlocker);
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblStudentCustody $tblStudentCustody
+     *
+     * @return bool
+     */
+    public function removeStudentCustody(TblStudentCustody $tblStudentCustody)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblStudentCustody')->findOneBy(array('Id' => $tblStudentCustody->getId()));
+        if (null !== $Entity) {
+            /** @var Element $Entity */
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
     }
 }
