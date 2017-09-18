@@ -49,6 +49,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\EyeMinus;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\MinusSign;
@@ -78,10 +79,13 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Table\Structure\TableHead;
 use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Italic;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\NotAvailable;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -128,7 +132,7 @@ class Frontend extends FrontendScoreRule
                     );
                 }
                 $Item['Status'] = $tblGradeType->isActive()
-                    ? new \SPHERE\Common\Frontend\Text\Repository\Success(new PlusSign() . ' aktiv')
+                    ? new SuccessText(new PlusSign().' aktiv')
                     : new \SPHERE\Common\Frontend\Text\Repository\Warning(new MinusSign() . ' inaktiv');
                 $Item['Description'] = $tblGradeType->getDescription();
                 $Item['Option'] =
@@ -1198,7 +1202,7 @@ class Frontend extends FrontendScoreRule
         $Stage->setMessage(
             new Container('Anzeige der Zensuren für die Schüler und Eltern.')
             .new Container('Der angemeldete Schüler sieht nur seine eigenen Zensuren.')
-            .new Container('Der angemeldete Sorgeberechtigte sieht nur die Zensuren seiner Schützlinge.')
+            .new Container('Der angemeldete Sorgeberechtigte sieht nur die Zensuren seiner Kinder.')
         );
 
         $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
@@ -1206,7 +1210,7 @@ class Frontend extends FrontendScoreRule
         $tblDisplayYearList = array();
         $data = array();
         $isStudent = false;
-        $isCustody = false;
+//        $isCustody = false;
         $isEighteen = false;    // oder Älter
         $tblPersonSession = false;
 
@@ -1218,9 +1222,9 @@ class Frontend extends FrontendScoreRule
                 if ($Type == TblUserAccount::VALUE_TYPE_STUDENT) {
                     $isStudent = true;
                 }
-                if ($Type == TblUserAccount::VALUE_TYPE_CUSTODY) {
-                    $isCustody = true;
-                }
+//                if ($Type == TblUserAccount::VALUE_TYPE_CUSTODY) {
+//                    $isCustody = true;
+//                }
             }
             $UserList = Account::useService()->getUserAllByAccount($tblAccount);
             if ($UserList) {
@@ -1243,13 +1247,38 @@ class Frontend extends FrontendScoreRule
                     }
                 }
             }
+            $tblStudentCustodyList = Consumer::useService()->getStudentCustodyByStudent($tblAccount);
+            // POST if StudentView
+            if ($isStudent) {
+                $Global = $this->getGlobal();
+                if ($tblStudentCustodyList) {
+                    foreach ($tblStudentCustodyList as $tblStudentCustody) {
+                        $tblCustodyAccount = $tblStudentCustody->getServiceTblAccountCustody();
+                        if ($tblCustodyAccount) {
+                            $Global->POST['ParentAccount'][$tblCustodyAccount->getId()] = $tblCustodyAccount->getId();
+                        }
+                    }
+                    $Global->savePost();
+                }
+            }
         }
 
         $tblPersonList = $this->getPersonListForStudent();
 
+        $BlockedList = array();
         // Jahre ermitteln, in denen Schüler in einer Klasse ist
         if ($tblPersonList) {
             foreach ($tblPersonList as $tblPerson) {
+                $tblPersonAccountList = Account::useService()->getAccountAllByPerson($tblPerson);
+                if ($tblPersonAccountList && current($tblPersonAccountList)->getId() != $tblAccount->getId()) {
+                    // Schüler überspringen wenn Sorgeberechtigter geblockt ist
+                    if (Consumer::useService()->getStudentCustodyByStudentAndCustody(current($tblPersonAccountList),
+                        $tblAccount)) {
+                        // Merken des geblockten Accounts
+                        $BlockedList[] = current($tblPersonAccountList);
+                        continue;
+                    }
+                }
                 $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
                 if ($tblDivisionStudentList) {
 
@@ -1450,7 +1479,8 @@ class Frontend extends FrontendScoreRule
                                                 ? new TableData(
                                                 $tableDataList, null, $tableHeaderList, null
                                             )
-                                                : new Warning('Keine Fächer vorhanden.', new Exclamation())
+                                                : new Warning('Aktuell sind keine Noten verfügbar (Keine Fächer vorhanden)'
+                                                , new Exclamation())
                                         ));
                                         $rowList[] = new LayoutRow(new LayoutColumn(new Header('&nbsp;'), 12));
                                     }
@@ -1492,6 +1522,14 @@ class Frontend extends FrontendScoreRule
                                 $tblAccountParent->getId());
                             $Item['FirstName'] = $tblPersonParent->getFirstName();
                             $Item['LastName'] = $tblPersonParent->getLastName();
+                            if (Consumer::useService()->getStudentCustodyByStudentAndCustody($tblAccount,
+                                $tblAccountParent)) {
+                                $Item['Status'] = new ToolTip(new DangerText(new EyeMinus()),
+                                    'Noten&nbsp;nicht&nbsp;Sichtbar');
+                            } else {
+                                $Item['Status'] = new ToolTip(new SuccessText(new EyeOpen()),
+                                    'Noten&nbsp;sind&nbsp;Sichtbar');
+                            }
 
                             array_push($TableContent, $Item);
                         }
@@ -1504,11 +1542,13 @@ class Frontend extends FrontendScoreRule
             new FormGroup(
                 new FormRow(array(
                     new FormColumn(
-                        new TableData($TableContent, null,
+                        new TableData($TableContent,
+                            new \SPHERE\Common\Frontend\Table\Repository\Title('Sichtbarkeit der Notenübersicht für Sorgeberechtigte sperren'),
                             array(
-                                'Check'     => 'Sichterlaubnis entfernt',
+                                'Check'     => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
                                 'FirstName' => 'Vorname',
-                                'LastName'  => 'Nachname'
+                                'LastName'  => 'Nachname',
+                                'Status'    => 'Status'
                             ),
                             array(
                                 "paging"         => false, // Deaktiviert Blättern
@@ -1516,20 +1556,43 @@ class Frontend extends FrontendScoreRule
                                 "searching"      => false, // Deaktiviert Suche
                                 "info"           => false,  // Deaktiviert Such-Info)
                                 'columnDefs'     => array(
-                                    array('width' => '1%', 'targets' => array(0))
+                                    array('width' => '1%', 'targets' => array(0)),
+                                    array('width' => '1%', 'targets' => array(-1))
                                 ),
                             )
                         )
                     ),
-                    new FormColumn(
-                        (new \SPHERE\Common\Frontend\Link\Repository\Primary('Ändern',
-                            ''))->setDisabled()  //ToDo Wieder entfernen
-                    )
                 ))
             )
         );
-        // ToDO später mit Service
-//        $form->appendFormButton(new Primary('Ändern', new Save()));
+        $form->appendFormButton(new Primary('Speichern', new Save()));
+
+        $BlockedContent = '';
+        if (!empty($BlockedList)) {
+            /** @var TblAccount $StudentAccount */
+            foreach ($BlockedList as $StudentAccount) {
+                $tblPersonStudentList = Account::useService()->getPersonAllByAccount($StudentAccount);
+                $tblStudentCustody = Consumer::useService()->getStudentCustodyByStudentAndCustody($StudentAccount,
+                    $tblAccount);
+                $BlockerPerson = new NotAvailable();
+                // find Person who Blocked
+                if ($tblStudentCustody) {
+                    $tblAccountBlocker = $tblStudentCustody->getServiceTblAccountBlocker();
+                    if ($tblAccountBlocker) {
+                        $tblPersonBlockerList = Account::useService()->getPersonAllByAccount($tblAccountBlocker);
+                        /** @var TblPerson $tblPersonBlocker */
+                        if ($tblPersonBlockerList && ($tblPersonBlocker = current($tblPersonBlockerList))) {
+                            $BlockerPerson = $tblPersonBlocker->getLastFirstName();
+                        }
+                    }
+                }
+                /** @var TblPerson $tblPersonStudent */
+                if ($tblPersonStudent = current($tblPersonStudentList)) {
+                    $BlockedContent .= new Title($tblPersonStudent->getLastFirstName())
+                        .new Warning('Die Notenübersicht wurde durch '.$BlockerPerson.' gesperrt.');
+                }
+            }
+        }
 
         $Stage->setContent(
             new Layout(array(
@@ -1540,15 +1603,21 @@ class Frontend extends FrontendScoreRule
                             : '')
                     )
                 ))),
-                ($YearId !== null ? new LayoutGroup($rowList) : null)
+                ($YearId !== null ? new LayoutGroup($rowList) : null),
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            $BlockedContent
+                        )
+                    )
+                )
             ))
             .($isStudent && $isEighteen
                 ? new Layout(
                     new LayoutGroup(
                         new LayoutRow(array(
                             new LayoutColumn(new Well(
-                                new Title('Sichtbarkeit der Notenübersicht für Sorgeberechtigte')
-                                .$form
+                                Gradebook::useService()->setDisableParent($form, $ParentAccount, $tblAccount)
                             ))
                         ))
                     )

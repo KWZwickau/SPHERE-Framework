@@ -8,8 +8,6 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSetting;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
-use SPHERE\Application\Platform\System\Database\Database;
-use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Setting\Agb\Agb;
 use SPHERE\Application\Setting\User\Account\Account as UserAccount;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
@@ -24,7 +22,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Enable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Globe;
-use SPHERE\Common\Frontend\Icon\Repository\Hospital;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\MoreItems;
@@ -32,10 +29,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
 use SPHERE\Common\Frontend\Icon\Repository\Off;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
-use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Picture;
-use SPHERE\Common\Frontend\Icon\Repository\Shield;
-use SPHERE\Common\Frontend\Icon\Repository\StopSign;
 use SPHERE\Common\Frontend\Icon\Repository\YubiKey;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -46,24 +40,19 @@ use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Ruler;
-use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
-use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\Success;
-use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\ITextInterface;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Info as InfoText;
-use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
@@ -124,9 +113,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     new LayoutRow(array(
                                         new LayoutColumn('', 2),
                                         new LayoutColumn(
-                                            new Center(new Panel('Warnung',
-                                                new Warning('Bitte ändern Sie ihr Passwort um eine vollständige
-                                            Sicherheit zu gewährleisten.')
+                                            new Center(new Panel('Passwortänderung',
+                                                new Warning('Bitte ändern Sie zu Ihrer Sicherheit das Passwort.')
                                                 , Panel::PANEL_TYPE_DANGER,
                                                 new Standard('Passwort ändern', '/Setting/MyAccount/Password'
                                                     , new Key(), array(), 'Schnellzugriff der Passwort Änderung')))
@@ -344,7 +332,7 @@ class Frontend extends Extension implements IFrontendInterface
         $FormInformation = array(
             'Mandant: ' . $tblAccount->getServiceTblConsumer()->getAcronym() . ' - ' . $tblAccount->getServiceTblConsumer()->getName(),
             'Benutzer: ' . $tblAccount->getUsername()
-            . new PullRight(new Small(new Link('Mit einem anderen Benutzer anmelden', new Route(__NAMESPACE__))))
+            // . new PullRight(new Small(new Link('Mit einem anderen Benutzer anmelden', new Route(__NAMESPACE__))))
         );
         $tblUserAll = Account::useService()->getUserAllByAccount($tblAccount);
         if (!empty($tblUserAll)) {
@@ -478,9 +466,9 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Switch User/Account (Restart Identification Process)
         $FormInformation = array(
-            'Mandant: ' . $tblAccount->getServiceTblConsumer()->getAcronym() . ' - ' . $tblAccount->getServiceTblConsumer()->getName(),
+            $tblAccount->getServiceTblConsumer()->getAcronym().' - '.$tblAccount->getServiceTblConsumer()->getName(),
             'Benutzer: ' . $tblAccount->getUsername()
-            . new PullRight(new Small(new Link('Mit einem anderen Benutzer anmelden', new Route(__NAMESPACE__))))
+            // . new PullRight(new Small(new Link('Mit einem anderen Benutzer anmelden', new Route(__NAMESPACE__))))
         );
         $tblUserAll = Account::useService()->getUserAllByAccount($tblAccount);
         if (!empty($tblUserAll)) {
