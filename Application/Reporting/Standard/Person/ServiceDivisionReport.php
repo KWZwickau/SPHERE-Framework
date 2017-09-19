@@ -10,6 +10,8 @@ use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentFocus;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\System\Extension\Extension;
 
 class ServiceDivisionReport extends Extension
@@ -23,6 +25,14 @@ class ServiceDivisionReport extends Extension
 
         $tblYearList = false;
         $DataContent = array();
+        $DataBlind = array();
+        $DataHear = array();
+        $DataMental = array();
+        $DataPhysical = array();
+        $DataLanguage = array();
+        $DataLearn = array();
+        $DataEducation = array();
+
         $YearString = '20.../20...';
         $YearList = Term::useService()->getYearByNow();
         if ($YearList) {
@@ -36,13 +46,76 @@ class ServiceDivisionReport extends Extension
                     foreach ($tblDivisionList as $tblDivision) {
                         $tblLevel = $tblDivision->getTblLevel();
                         if ($tblLevel && is_numeric($tblLevel->getName())) {
-                            $tblDivisionStudent = Division::useService()->getDivisionStudentAllByDivision($tblDivision);
-                            if ($tblDivisionStudent) {
+                            $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByDivision($tblDivision);
+                            if ($tblDivisionStudentList) {
                                 if (isset($DataContent[$tblDivision->getTypeName()][$tblLevel->getName()])) {
                                     $DataContent[$tblDivision->getTypeName()][$tblLevel->getName()] =
-                                        count($tblDivisionStudent) + $DataContent[$tblDivision->getTypeName()][$tblLevel->getName()];
+                                        count($tblDivisionStudentList) + $DataContent[$tblDivision->getTypeName()][$tblLevel->getName()];
                                 } else {
-                                    $DataContent[$tblDivision->getTypeName()][$tblLevel->getName()] = count($tblDivisionStudent);
+                                    $DataContent[$tblDivision->getTypeName()][$tblLevel->getName()] = count($tblDivisionStudentList);
+                                }
+                                foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                                    $tblPerson = $tblDivisionStudent->getServiceTblPerson();
+                                    if ($tblPerson) {
+                                        $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                                        if ($tblStudent) {
+                                            $tblStudentFocus = Student::useService()->getStudentFocusPrimary($tblStudent);
+                                            /** @var TblStudentFocus $tblStudentFocus */
+                                            if ($tblStudentFocus) {
+                                                $tblStudentFocusType = $tblStudentFocus->getTblStudentFocusType();
+                                                // füllen der Förderschwerpunkte
+                                                if ($tblStudentFocusType->getName() == 'Sehen') {
+                                                    if (isset($DataBlind[$tblDivision->getTypeName()][$tblLevel->getName()])) {
+                                                        $DataBlind[$tblDivision->getTypeName()][$tblLevel->getName()] += 1;
+                                                    } else {
+                                                        $DataBlind[$tblDivision->getTypeName()][$tblLevel->getName()] = 1;
+                                                    }
+                                                }
+                                                if ($tblStudentFocusType->getName() == 'Hören') {
+                                                    if (isset($DataHear[$tblDivision->getTypeName()][$tblLevel->getName()])) {
+                                                        $DataHear[$tblDivision->getTypeName()][$tblLevel->getName()] += 1;
+                                                    } else {
+                                                        $DataHear[$tblDivision->getTypeName()][$tblLevel->getName()] = 1;
+                                                    }
+                                                }
+                                                if ($tblStudentFocusType->getName() == 'Geistige Entwicklung') {
+                                                    if (isset($DataMental[$tblDivision->getTypeName()][$tblLevel->getName()])) {
+                                                        $DataMental[$tblDivision->getTypeName()][$tblLevel->getName()] += 1;
+                                                    } else {
+                                                        $DataMental[$tblDivision->getTypeName()][$tblLevel->getName()] = 1;
+                                                    }
+                                                }
+                                                if ($tblStudentFocusType->getName() == 'Körperlich-motorische Entwicklung') {
+                                                    if (isset($DataPhysical[$tblDivision->getTypeName()][$tblLevel->getName()])) {
+                                                        $DataPhysical[$tblDivision->getTypeName()][$tblLevel->getName()] += 1;
+                                                    } else {
+                                                        $DataPhysical[$tblDivision->getTypeName()][$tblLevel->getName()] = 1;
+                                                    }
+                                                }
+                                                if ($tblStudentFocusType->getName() == 'Sprache') {
+                                                    if (isset($DataLanguage[$tblDivision->getTypeName()][$tblLevel->getName()])) {
+                                                        $DataLanguage[$tblDivision->getTypeName()][$tblLevel->getName()] += 1;
+                                                    } else {
+                                                        $DataLanguage[$tblDivision->getTypeName()][$tblLevel->getName()] = 1;
+                                                    }
+                                                }
+                                                if ($tblStudentFocusType->getName() == 'Lernen') {
+                                                    if (isset($DataLearn[$tblDivision->getTypeName()][$tblLevel->getName()])) {
+                                                        $DataLearn[$tblDivision->getTypeName()][$tblLevel->getName()] += 1;
+                                                    } else {
+                                                        $DataLearn[$tblDivision->getTypeName()][$tblLevel->getName()] = 1;
+                                                    }
+                                                }
+                                                if ($tblStudentFocusType->getName() == 'Sozial-emotionale Entwicklung') {
+                                                    if (isset($DataEducation[$tblDivision->getTypeName()][$tblLevel->getName()])) {
+                                                        $DataEducation[$tblDivision->getTypeName()][$tblLevel->getName()] += 1;
+                                                    } else {
+                                                        $DataEducation[$tblDivision->getTypeName()][$tblLevel->getName()] = 1;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -51,7 +124,7 @@ class ServiceDivisionReport extends Extension
             }
         }
 
-//        Debugger::screenDump($DataContent);
+//        Debugger::screenDump($DataBlind);
 //        exit;
 
         $fileLocation = Storage::createFilePointer('xlsx');
@@ -205,7 +278,7 @@ Unterrichtstag als Stichtag. Dieser ist anzugeben.)");
                 ->setFontBold()
                 ->setAlignmentCenter()
                 ->setAlignmentMiddle();
-            $export->setValue($export->getCell(15, $Row), "davon: 
+            $export->setValue($export->getCell(15, $Row), "davon:
 Kostenerstattung durch andere öffentlichen Träger");
             $export->setStyle($export->getCell(14, $Row))
                 ->setBorderRight(2)
@@ -240,21 +313,277 @@ Kostenerstattung durch andere öffentlichen Träger");
                 ->setBorderBottom(1)
                 ->setBorderVertical(1)
                 ->setAlignmentCenter()
-                ->setRowHeight(30);
+                ->setAlignmentMiddle()
+                ->setRowHeight(25);
             $export->setStyle($export->getCell(14, $Row), $export->getCell(15, $Row))
                 ->setBorderRight(2)
                 ->setBorderBottom(1)
                 ->setBorderVertical(2)
+                ->setAlignmentCenter()
+                ->setAlignmentMiddle();
+            $Row++;
+            $export->setValue($export->getCell(0, $Row), "Angabe des Förderschultyps");
+            $export->setStyle($export->getCell(0, $Row))
+                ->setBorderLeft(2)
+                ->setBorderBottom(2)
+                ->setBorderRight(1)
+                ->setFontBold()
+                ->setAlignmentMiddle()
+                ->setRowHeight(25);
+            $export->setValue($export->getCell(1, $Row), "davon: Anzahl der Integrationsschüler");
+            $export->setStyle($export->getCell(1, $Row), $export->getCell(13, $Row))
+                ->mergeCells()
+                ->setBorderBottom(2)
+                ->setBorderRight(2)
+                ->setFontBold()
+                ->setAlignmentMiddle();
+            $export->setStyle($export->getCell(14, $Row), $export->getCell(15, $Row))
+                ->setBorderBottom(2)
+                ->setBorderVertical(2)
+                ->setBorderRight(2);
+            $Row++;
+            $export->setValue($export->getCell(0, $Row), "Schule für Blinde und Sehbehinderte");
+            // Blind Insert
+            $SumBlind = 0;
+            if (isset($DataBlind[$Type]) && !empty($DataBlind[$Type])) {
+                foreach ($DataBlind[$Type] as $Level => $StudentCount) {
+                    $export->setValue($export->getCell($Level, $Row), $StudentCount);
+                    if ($StudentCount) {
+                        $SumBlind += $StudentCount;
+                    }
+                }
+            }
+            $export->setValue($export->getCell(14, $Row), $SumBlind);
+
+            $export->setStyle($export->getCell(0, $Row))
+                ->setBorderLeft(2)
+                ->setBorderBottom(1)
+                ->setBorderRight(1);
+            $export->setStyle($export->getCell(1, $Row), $export->getCell(13, $Row))
+                ->setBorderLeft(1)
+                ->setBorderBottom(1)
+                ->setBorderVertical(1)
+                ->setBorderRight(2)
                 ->setAlignmentCenter();
+            $export->setStyle($export->getCell(14, $Row), $export->getCell(15, $Row))
+                ->setBorderBottom(1)
+                ->setBorderVertical(2)
+                ->setBorderRight(2)
+                ->setAlignmentCenter();
+            $Row++;
+            $export->setValue($export->getCell(0, $Row), "Schule für Hörgeschädigte");
+            // Hear Insert
+            $SumHear = 0;
+            if (isset($DataHear[$Type]) && !empty($DataHear[$Type])) {
+                foreach ($DataHear[$Type] as $Level => $StudentCount) {
+                    $export->setValue($export->getCell($Level, $Row), $StudentCount);
+                    if ($StudentCount) {
+                        $SumHear += $StudentCount;
+                    }
+                }
+            }
+            $export->setValue($export->getCell(14, $Row), $SumHear);
 
+            $export->setStyle($export->getCell(0, $Row))
+                ->setBorderLeft(2)
+                ->setBorderBottom(1)
+                ->setBorderRight(1);
+            $export->setStyle($export->getCell(1, $Row), $export->getCell(13, $Row))
+                ->setBorderLeft(1)
+                ->setBorderBottom(1)
+                ->setBorderVertical(1)
+                ->setBorderRight(2)
+                ->setAlignmentCenter();
+            $export->setStyle($export->getCell(14, $Row), $export->getCell(15, $Row))
+                ->setBorderBottom(1)
+                ->setBorderVertical(2)
+                ->setBorderRight(2)
+                ->setAlignmentCenter();
+            $Row++;
+            $export->setValue($export->getCell(0, $Row), "Schule für geistig Behinderte");
+            // Mental Insert
+            $SumMental = 0;
+            if (isset($DataMental[$Type]) && !empty($DataMental[$Type])) {
+                foreach ($DataMental[$Type] as $Level => $StudentCount) {
+                    $export->setValue($export->getCell($Level, $Row), $StudentCount);
+                    if ($StudentCount) {
+                        $SumMental += $StudentCount;
+                    }
+                }
+            }
+            $export->setValue($export->getCell(14, $Row), $SumMental);
 
+            $export->setStyle($export->getCell(0, $Row))
+                ->setBorderLeft(2)
+                ->setBorderBottom(1)
+                ->setBorderRight(1);
+            $export->setStyle($export->getCell(1, $Row), $export->getCell(13, $Row))
+                ->setBorderLeft(1)
+                ->setBorderBottom(1)
+                ->setBorderVertical(1)
+                ->setBorderRight(2)
+                ->setAlignmentCenter();
+            $export->setStyle($export->getCell(14, $Row), $export->getCell(15, $Row))
+                ->setBorderBottom(1)
+                ->setBorderVertical(2)
+                ->setBorderRight(2)
+                ->setAlignmentCenter();
+            $Row++;
+            $export->setValue($export->getCell(0, $Row), "Schule für Körperbehinderte");
+            // Physical Insert
+            $SumPhysical = 0;
+            if (isset($DataPhysical[$Type]) && !empty($DataPhysical[$Type])) {
+                foreach ($DataPhysical[$Type] as $Level => $StudentCount) {
+                    $export->setValue($export->getCell($Level, $Row), $StudentCount);
+                    if ($StudentCount) {
+                        $SumPhysical += $StudentCount;
+                    }
+                }
+            }
+            $export->setValue($export->getCell(14, $Row), $SumPhysical);
 
+            $export->setStyle($export->getCell(0, $Row))
+                ->setBorderLeft(2)
+                ->setBorderBottom(1)
+                ->setBorderRight(1);
+            $export->setStyle($export->getCell(1, $Row), $export->getCell(13, $Row))
+                ->setBorderLeft(1)
+                ->setBorderBottom(1)
+                ->setBorderVertical(1)
+                ->setBorderRight(2)
+                ->setAlignmentCenter();
+            $export->setStyle($export->getCell(14, $Row), $export->getCell(15, $Row))
+                ->setBorderBottom(1)
+                ->setBorderVertical(2)
+                ->setBorderRight(2)
+                ->setAlignmentCenter();
+            $Row++;
+            $export->setValue($export->getCell(0, $Row), "Sprachheilschule");
+            // Language Insert
+            $SumLanguage = 0;
+            if (isset($DataLanguage[$Type]) && !empty($DataLanguage[$Type])) {
+                foreach ($DataLanguage[$Type] as $Level => $StudentCount) {
+                    $export->setValue($export->getCell($Level, $Row), $StudentCount);
+                    if ($StudentCount) {
+                        $SumLanguage += $StudentCount;
+                    }
+                }
+            }
+            $export->setValue($export->getCell(14, $Row), $SumLanguage);
 
+            $export->setStyle($export->getCell(0, $Row))
+                ->setBorderLeft(2)
+                ->setBorderBottom(1)
+                ->setBorderRight(1);
+            $export->setStyle($export->getCell(1, $Row), $export->getCell(13, $Row))
+                ->setBorderLeft(1)
+                ->setBorderBottom(1)
+                ->setBorderVertical(1)
+                ->setBorderRight(2)
+                ->setAlignmentCenter();
+            $export->setStyle($export->getCell(14, $Row), $export->getCell(15, $Row))
+                ->setBorderBottom(1)
+                ->setBorderVertical(2)
+                ->setBorderRight(2)
+                ->setAlignmentCenter();
+            $Row++;
+            $export->setValue($export->getCell(0, $Row), "Schule für Lernförderung");
+            // Lern Insert
+            $SumLern = 0;
+            if (isset($DataLearn[$Type]) && !empty($DataLearn[$Type])) {
+                foreach ($DataLearn[$Type] as $Level => $StudentCount) {
+                    $export->setValue($export->getCell($Level, $Row), $StudentCount);
+                    if ($StudentCount) {
+                        $SumLern += $StudentCount;
+                    }
+                }
+            }
+            $export->setValue($export->getCell(14, $Row), $SumLern);
 
+            $export->setStyle($export->getCell(0, $Row))
+                ->setBorderLeft(2)
+                ->setBorderBottom(1)
+                ->setBorderRight(1);
+            $export->setStyle($export->getCell(1, $Row), $export->getCell(13, $Row))
+                ->setBorderLeft(1)
+                ->setBorderBottom(1)
+                ->setBorderVertical(1)
+                ->setBorderRight(2)
+                ->setAlignmentCenter();
+            $export->setStyle($export->getCell(14, $Row), $export->getCell(15, $Row))
+                ->setBorderBottom(1)
+                ->setBorderVertical(2)
+                ->setBorderRight(2)
+                ->setAlignmentCenter();
+            $Row++;
+            $export->setValue($export->getCell(0, $Row), "Schule für Erziehungshilfe");
+            // Education Insert
+            $SumEducation = 0;
+            if (isset($DataEducation[$Type]) && !empty($DataEducation[$Type])) {
+                foreach ($DataEducation[$Type] as $Level => $StudentCount) {
+                    $export->setValue($export->getCell($Level, $Row), $StudentCount);
+                    if ($StudentCount) {
+                        $SumEducation += $StudentCount;
+                    }
+                }
+            }
+            $export->setValue($export->getCell(14, $Row), $SumEducation);
 
-            // Spaltenhöhe Definieren
-            $export->setStyle($export->getCell(0, 6))->setRowHeight(12);
-            $export->setStyle($export->getCell(0, 10))->setRowHeight(10);
+            $export->setStyle($export->getCell(0, $Row))
+                ->setBorderLeft(2)
+                ->setBorderBottom(2)
+                ->setBorderRight(1);
+            $export->setStyle($export->getCell(1, $Row), $export->getCell(13, $Row))
+                ->setBorderLeft(1)
+                ->setBorderBottom(2)
+                ->setBorderVertical(1)
+                ->setBorderRight(2)
+                ->setAlignmentCenter();
+            $export->setStyle($export->getCell(14, $Row), $export->getCell(15, $Row))
+                ->setBorderBottom(2)
+                ->setBorderVertical(2)
+                ->setBorderRight(2)
+                ->setAlignmentCenter();
+            $Row++;
+            $export->setValue($export->getCell(0, $Row), 'Hinweis:  Schüler, die integrativ unterrichtet werden, sind
+dem Förderschultyp zuzuordnen, den sie ohne integrative Beschulung besuchen würden.');
+            $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
+                ->mergeCells()
+                ->setFontBold()
+                ->setRowHeight(25)
+                ->setAlignmentBottom();
+            $Row++;
+            $export->setValue($export->getCell(0, $Row), '                    Eine Namensliste unter Angabe des Förderschwerpunktes
+ist der Meldung zusätzlich beizufügen.');
+            $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
+                ->mergeCells()
+                ->setFontBold()
+                ->setRowHeight(25)
+                ->setAlignmentTop();
+            $Row++;
+            $export->setValue($export->getCell(0, $Row), '§ 14 Abs. 2 Nr. 1 SächsFrTrSchulG: Ein Schüler wird beschult, wenn er am maßgeblichen Stichtag aufgrund eines Vertragsverhältnisses am Unterricht teilnimmt
+oder entschuldigt nicht teilnimmt. Ist das Vertragsverhältnis am Stichtag bereits gekündigt und hat der Schüler den Schulbesuch am Stichtag bereits
+endgültig beendet oder abgebrochen, gilt er nicht als beschult.');
+            $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
+                ->mergeCells()
+                ->setRowHeight(50)
+                ->setWrapText();
+            $Row++;
+            $Row++;
+            $Row++;
+            $export->setStyle($export->getCell(0, $Row))
+                ->setBorderBottom();
+            $export->setStyle($export->getCell(8, $Row), $export->getCell(15, $Row))
+                ->setBorderBottom();
+            $Row++;
+            $export->setValue($export->getCell(0, $Row), 'Datum');
+            $export->setValue($export->getCell(8, $Row), 'Unterschrift');
+            $Row++;
+            $export->setValue($export->getCell(8, $Row), 'Vorsitzende/r / Geschäftsführer/in des Schulträgers');
+
+//            // Spaltenhöhe Definieren
+//            $export->setStyle($export->getCell(0, 6))->setRowHeight(12);
+//            $export->setStyle($export->getCell(0, 10))->setRowHeight(10);
 
             // Spaltenbreite Definieren
             $export->setStyle($export->getCell(0, 0))->setColumnWidth(30);
@@ -275,20 +604,6 @@ Kostenerstattung durch andere öffentlichen Träger");
             $export->setStyle($export->getCell(15, 0))->setColumnWidth(17);
         }
         $export->selectWorksheetByIndex(0);
-
-//        $export->setValue($export->getCell(0, $Row), "Klasse");
-//        $export->setValue($export->getCell(1, $Row), "Schülernummer");
-//        $export->setValue($export->getCell(2, $Row), "Vorname");
-//        $export->setValue($export->getCell(3, $Row), "Nachname");
-
-//        foreach ($TableContent as $PersonData) {
-//            $Row++;
-//
-//            $export->setValue($export->getCell(0, $Row), $PersonData['Division']);
-//            $export->setValue($export->getCell(1, $Row), $PersonData['StudentNumber']);
-//            $export->setValue($export->getCell(2, $Row), $PersonData['FirstName']);
-//            $export->setValue($export->getCell(3, $Row), $PersonData['LastName']);
-//        }
 
         $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
