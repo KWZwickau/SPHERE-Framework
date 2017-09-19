@@ -170,6 +170,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'ZipCode'     => 'PLZ',
                                         'City'        => 'Ort',
                                         'Parents'     => 'Eltern',
+                                        'ParentJob'   => 'Eltern (Beruf)',
                                         'Phone'       => 'Telefon privat',
                                         'PhoneMother' => 'Mutter',
                                         'PhoneFather' => 'Vater',

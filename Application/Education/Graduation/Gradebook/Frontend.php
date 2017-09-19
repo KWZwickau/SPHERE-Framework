@@ -529,11 +529,14 @@ class Frontend extends FrontendScoreRule
                                 'SubjectTeachers' => 'Fachlehrer',
                                 'Option' => ''
                             ), array(
-                                'order' => array(
+                                'order'      => array(
                                     array('0', 'desc'),
                                     array('2', 'asc'),
                                     array('3', 'asc'),
                                     array('4', 'asc')
+                                ),
+                                'columnDefs' => array(
+                                    array('type' => 'natural', 'targets' => 2)
                                 )
                             ))
                         ))
@@ -707,11 +710,14 @@ class Frontend extends FrontendScoreRule
                                 'SubjectTeachers' => 'Fachlehrer',
                                 'Option' => ''
                             ), array(
-                                'order' => array(
+                                'order'      => array(
                                     array('0', 'desc'),
                                     array('2', 'asc'),
                                     array('3', 'asc'),
                                     array('4', 'asc')
+                                ),
+                                'columnDefs' => array(
+                                    array('type' => 'natural', 'targets' => 2)
                                 )
                             ))
                         ))
@@ -962,8 +968,8 @@ class Frontend extends FrontendScoreRule
                                     $data[$column] =
                                         ($tblTest->getServiceTblGradeType()
                                             ? ($tblTest->getServiceTblGradeType()->isHighlighted()
-                                                ? new Bold($tblGrade->getDisplayGrade()) : $tblGrade->getDisplayGrade())
-                                            : $tblGrade->getDisplayGrade())
+                                                ? new Bold($tblGrade->getDisplayGrade()) : $tblGrade->getDisplayGrade().' ')
+                                            : $tblGrade->getDisplayGrade().' ')
                                         . ($displayGradeDate
                                             ? new Small(new Muted(' (' . $displayGradeDate . ')'))
                                             : '');
@@ -1861,9 +1867,12 @@ class Frontend extends FrontendScoreRule
                                 'Division' => 'Klasse',
                                 'Option' => ''
                             ), array(
-                                'order' => array(
+                                'order'      => array(
                                     array('0', 'desc'),
                                     array('2', 'asc'),
+                                ),
+                                'columnDefs' => array(
+                                    array('type' => 'natural', 'targets' => 2)
                                 )
                             ))
                         ))
@@ -1917,9 +1926,12 @@ class Frontend extends FrontendScoreRule
                                 'Division' => 'Klasse',
                                 'Option'   => ''
                             ), array(
-                                'order' => array(
+                                'order'      => array(
                                     array('0', 'desc'),
                                     array('2', 'asc'),
+                                ),
+                                'columnDefs' => array(
+                                    array('type' => 'natural', 'targets' => 2)
                                 )
                             ))
                         ))
@@ -2061,9 +2073,14 @@ class Frontend extends FrontendScoreRule
                                     );
 
                                     if (is_array($average)) {
+                                        //ToDO Soll der Fehler wirklich im Frontend stehen?
                                         $average = 'Fehler';
                                     } elseif (is_string($average) && strpos($average, '(')) {
                                         $average = substr($average, 0, strpos($average, '('));
+                                    }
+                                    // Anzeige Notendurchschnitt genau 0
+                                    if ($average === 0.0) {
+                                        $data[$tblSubject->getId().'Id'] = '&empty; '.$average;
                                     }
 
                                     $data[$tblSubject->getId().'Id'] = ($average != '' ? '&empty; '.$average : '');
@@ -2248,11 +2265,17 @@ class Frontend extends FrontendScoreRule
                                             Evaluation::useService()->getTestTypeByIdentifier('TEST'),
                                             $tblScoreRule ? $tblScoreRule : null
                                         );
+
+                                        //ToDO Fehlt die Fehlerausgabe aus Headmaster?
                                         if (is_string($average) && strpos($average, '(')) {
                                             $average = substr($average, 0, strpos($average, '('));
                                         }
 
                                         $data[$tblSubject->getId().'Id'] = ($average != '' ? '&empty; '.$average : '');
+                                        // Anzeige Notendurchschnitt genau 0
+                                        if ($average === 0.0) {
+                                            $data[$tblSubject->getId().'Id'] = '&empty; '.$average;
+                                        }
                                         // add ToolTip if Student is in Group
                                         if ($tblSubjectStudentList) {
                                             /** @var TblSubjectStudent $tblSubjectStudent */
