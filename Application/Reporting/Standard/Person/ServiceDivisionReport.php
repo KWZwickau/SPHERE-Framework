@@ -11,7 +11,6 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 class ServiceDivisionReport extends Extension
 {
@@ -24,8 +23,10 @@ class ServiceDivisionReport extends Extension
 
         $tblYearList = false;
         $DataContent = array();
+        $YearString = '20.../20...';
         $YearList = Term::useService()->getYearByNow();
         if ($YearList) {
+            $YearString = current($YearList)->getYear();
             $tblYearList = Term::useService()->getYearsByYear(current($YearList));
         }
         if ($tblYearList) {
@@ -71,6 +72,7 @@ class ServiceDivisionReport extends Extension
             $export->setValue($export->getCell(0, $Row),
                 "Meldung der Schülerzahl gem. § 14 Abs. 2 SächsFrTrSchulG i.V.m. § 8 ZuschussVO");
             $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
+                ->setFontSize(12)
                 ->mergeCells()
                 ->setFontBold()
                 ->setAlignmentCenter();
@@ -78,6 +80,7 @@ class ServiceDivisionReport extends Extension
             $export->setValue($export->getCell(0, $Row),
                 "zum Antrag vom ………………….. auf Gewährung von Zuschüssen für Schulen in freier Trägerschaft");
             $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
+                ->setFontSize(12)
                 ->mergeCells()
                 ->setFontBold()
                 ->setAlignmentCenter();
@@ -85,6 +88,7 @@ class ServiceDivisionReport extends Extension
             $export->setValue($export->getCell(0, $Row),
                 "für allgemeinbildende Schulen und allgemeinbildende Förderschulen");
             $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
+                ->setFontSize(12)
                 ->mergeCells()
                 ->setFontBold()
                 ->setAlignmentCenter();
@@ -92,9 +96,11 @@ class ServiceDivisionReport extends Extension
             $export->setValue($export->getCell(0, $Row),
                 " - Abgabe bei der Sächsischen Bildungsagentur spätestens:    24. Oktober - ");
             $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
+                ->setRowHeight(25)
                 ->mergeCells()
                 ->setFontBold()
                 ->setAlignmentCenter()
+                ->setAlignmentMiddle()
                 ->setFontColor('FFFF0000')
                 ->setFontItalic();
             $Row++;
@@ -107,6 +113,7 @@ class ServiceDivisionReport extends Extension
                 ->mergeCells();
             $export->setValue($export->getCell(7, $Row), "Stichtag, Datum: ...........");
             $export->setStyle($export->getCell(7, $Row))
+                ->setFontSize(12)
                 ->setFontBold()
                 ->setFontColor('FFFF0000');
             $Row++;
@@ -132,23 +139,51 @@ Unterrichtstag als Stichtag. Dieser ist anzugeben.)");
                 ->setBorderOutline(2);
             $Row++;
             $Row++;
-            $export->setValue($export->getCell(0, $Row), "Schulart");
+            $export->setValue($export->getCell(0, $Row), "Schulart:");
             $export->setStyle($export->getCell(0, $Row), $export->getCell(0, $Row))
                 ->setFontBold()
                 ->setAlignmentRight();
+            $export->setValue($export->getCell(1, $Row), $Type);
             $export->setStyle($export->getCell(1, $Row), $export->getCell(15, $Row))
+                ->setAlignmentCenter()
                 ->mergeCells()
                 ->setBorderBottom();
             $Row++;
-            $export->setValue($export->getCell(1, $Row), "");
+            $export->setValue($export->getCell(1, $Row), "(Bezeichnung entsprechend der Anlage zu § 1 ZuschussVO)");
             $export->setStyle($export->getCell(1, $Row), $export->getCell(15, $Row))
+                ->setAlignmentCenter()
+                ->setFontItalic()
                 ->mergeCells();
             $Row++;
+            $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
+                ->setBorderBottom(2);
             $Row++;
-
 
             // 16 Spalten in die Breite
             $export->setValue($export->getCell(0, $Row), "Schuljahr");
+            $export->setStyle($export->getCell(0, $Row), $export->getCell(0, ($Row + 1)))
+                ->mergeCells()
+                ->setBorderLeft(2)
+                ->setBorderRight(1)
+                ->setBorderBottom(1)
+                ->setAlignmentMiddle()
+                ->setAlignmentCenter();
+            $export->setValue($export->getCell(1, $Row), "Schülerzahl in Klassenstufe");
+            $export->setStyle($export->getCell(1, $Row), $export->getCell(15, $Row))
+                ->mergeCells()
+                ->setBorderLeft(1)
+                ->setBorderRight(2)
+                ->setBorderBottom(1)
+                ->setAlignmentCenter()
+                ->setFontBold();
+            $Row++;
+            // Klassenspaltenstyle
+            $export->setStyle($export->getCell(1, $Row), $export->getCell(13, $Row))
+                ->setBorderAll()
+                ->setBorderRight(2)
+                ->setRowHeight(45)
+                ->setAlignmentCenter()
+                ->setAlignmentMiddle();
             $export->setValue($export->getCell(1, $Row), "1");
             $export->setValue($export->getCell(2, $Row), "2");
             $export->setValue($export->getCell(3, $Row), "3");
@@ -163,11 +198,58 @@ Unterrichtstag als Stichtag. Dieser ist anzugeben.)");
             $export->setValue($export->getCell(12, $Row), "12");
             $export->setValue($export->getCell(13, $Row), "(13)");
             $export->setValue($export->getCell(14, $Row), "Gesamt- schülerzahl");
-            $export->setValue($export->getCell(15, $Row), "davon: Kostenerstattung durch andere öffentlichen Träger");
+            $export->setStyle($export->getCell(14, $Row))
+                ->setBorderRight(2)
+                ->setBorderBottom(2)
+                ->setWrapText()
+                ->setFontBold()
+                ->setAlignmentCenter()
+                ->setAlignmentMiddle();
+            $export->setValue($export->getCell(15, $Row), "davon: 
+Kostenerstattung durch andere öffentlichen Träger");
+            $export->setStyle($export->getCell(14, $Row))
+                ->setBorderRight(2)
+                ->setBorderBottom(2)
+                ->setWrapText()
+                ->setFontBold()
+                ->setAlignmentCenter()
+                ->setAlignmentMiddle();
+            $export->setStyle($export->getCell(15, $Row))
+                ->setBorderRight(2)
+                ->setBorderBottom(2)
+                ->setWrapText()
+                ->setFontBold()
+                ->setFontSize(7.5)
+                ->setAlignmentCenter()
+                ->setAlignmentMiddle();
             $Row++;
+            $export->setValue($export->getCell(0, $Row), $YearString);
+            $Sum = 0;
             foreach ($LevelList as $Level => $StudentCount) {
                 $export->setValue($export->getCell($Level, $Row), $StudentCount);
+                if ($StudentCount) {
+                    $Sum += $StudentCount;
+                }
             }
+            $export->setValue($export->getCell(14, $Row), $Sum);
+            $export->setStyle($export->getCell(0, $Row))
+                ->setFontBold();
+            $export->setStyle($export->getCell(0, $Row), $export->getCell(13, $Row))
+                ->setBorderLeft(2)
+                ->setBorderRight(2)
+                ->setBorderBottom(1)
+                ->setBorderVertical(1)
+                ->setAlignmentCenter()
+                ->setRowHeight(30);
+            $export->setStyle($export->getCell(14, $Row), $export->getCell(15, $Row))
+                ->setBorderRight(2)
+                ->setBorderBottom(1)
+                ->setBorderVertical(2)
+                ->setAlignmentCenter();
+
+
+
+
 
 
             // Spaltenhöhe Definieren
