@@ -312,7 +312,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Switch User/Account (Restart Identification Process)
         $FormInformation = array(
-            'Mandant: ' . $tblAccount->getServiceTblConsumer()->getAcronym() . ' - ' . $tblAccount->getServiceTblConsumer()->getName(),
+            $tblAccount->getServiceTblConsumer()->getAcronym().' - '.$tblAccount->getServiceTblConsumer()->getName(),
             'Benutzer: ' . $tblAccount->getUsername()
             // . new PullRight(new Small(new Link('Mit einem anderen Benutzer anmelden', new Route(__NAMESPACE__))))
         );
