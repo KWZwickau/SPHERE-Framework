@@ -316,15 +316,6 @@ class Frontend extends Extension implements IFrontendInterface
             'Benutzer: ' . $tblAccount->getUsername()
             // . new PullRight(new Small(new Link('Mit einem anderen Benutzer anmelden', new Route(__NAMESPACE__))))
         );
-        $tblUserAll = Account::useService()->getUserAllByAccount($tblAccount);
-        if (!empty($tblUserAll)) {
-            foreach ($tblUserAll as $tblUser) {
-                $tblPerson = $tblUser->getServiceTblPerson();
-                if ($tblPerson) {
-                    array_push($FormInformation, 'Name: ' . $tblPerson->getFullName());
-                }
-            }
-        }
 
         // Create Form
         $Form = new Form(
