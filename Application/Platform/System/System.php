@@ -8,6 +8,7 @@ use SPHERE\Application\Platform\System\Database\Database;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Platform\System\Session\Session;
 use SPHERE\Application\Platform\System\Test\Test;
+use SPHERE\Application\Platform\System\DataMaintenance\DataMaintenance;
 use SPHERE\Common\Frontend\Icon\Repository\Cog;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
@@ -35,6 +36,7 @@ class System implements IApplicationInterface
         Archive::registerModule();
         Test::registerModule();
         Session::registerModule();
+        DataMaintenance::registerModule();
         /**
          * Register Navigation
          */
