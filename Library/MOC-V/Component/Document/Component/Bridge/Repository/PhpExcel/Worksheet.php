@@ -66,4 +66,14 @@ abstract class Worksheet extends File
         $this->Source->setActiveSheetIndex($Index);
         return $this;
     }
+
+    /**
+     * @return PhpExcel
+     */
+    public function setWorksheetFitToPage()
+    {
+
+        $this->Source->getActiveSheet()->getPageSetup()->setFitToPage();
+        return $this;
+    }
 }
