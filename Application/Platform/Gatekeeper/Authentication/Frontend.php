@@ -168,6 +168,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblAccount = Account::useService()
                     ->getAccountByCredential($CredentialName, $CredentialLock, $tblIdentification);
             }
+            if (!$tblAccount) {
+                // Check Credential
+                $tblIdentification = Account::useService()->getIdentificationByName(TblIdentification::NAME_USER_CREDENTIAL);
+                $tblAccount = Account::useService()
+                    ->getAccountByCredential($CredentialName, $CredentialLock, $tblIdentification);
+            }
         }
 
         // Matching Account found?
@@ -371,6 +377,12 @@ class Frontend extends Extension implements IFrontendInterface
         )));
     }
 
+    /**
+     * @param int $tblAccount
+     * @param int $tblIdentification
+     * @param int $doAccept 0|1
+     * @return Stage
+     */
     public function frontendIdentificationAgb($tblAccount, $tblIdentification, $doAccept = 0)
     {
         $View = new Stage(new MoreItems().' Anmelden', '', $this->getIdentificationEnvironment());
@@ -416,7 +428,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         // NOT Accepted?
         // Check if Parent-Account
-        $tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount);
+        $tblUserAccount = UserAccount::useServiceByConsumer($tblAccount->getServiceTblConsumer())->getUserAccountByAccount($tblAccount);
         if( $tblUserAccount && $tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_CUSTODY ) {
             // IS Parent-Account
             if($tblSetting->getValue() == TblSetting::VAR_UPDATE_AGB) {
