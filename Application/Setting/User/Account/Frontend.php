@@ -493,7 +493,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendCustodyAdd($Person = null, $Year = null, $Division = null/*, $PersonIdArray = array()*/)
     {
-        $Stage = new Stage('Sorbeberechtigten-Accounts', 'Erstellen');
+        $Stage = new Stage('Sorgeberechtigten-Accounts', 'Erstellen');
 
         $form = $this->getCustodyFilterForm();
 
@@ -791,7 +791,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendCustodyShow()
     {
-        $Stage = new Stage('Sorbeberechtigten-Accounts', 'Übersicht');
+        $Stage = new Stage('Sorgeberechtigten-Accounts', 'Übersicht');
 
         $Stage->addButton(new Standard('Zurück', '/Setting/User', new ChevronLeft()));
 
