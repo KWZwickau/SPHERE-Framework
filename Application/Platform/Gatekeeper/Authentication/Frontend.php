@@ -396,6 +396,7 @@ class Frontend extends Extension implements IFrontendInterface
             || !$tblIdentification
             || !$tblAccount->getServiceTblIdentification()
             || !$tblAccount->getServiceTblIdentification()->getId() == $tblIdentification->getId()
+            || !$tblAccount->getServiceTblConsumer()
         ) {
             // Restart Identification Process
             return $this->frontendIdentificationCredential();
