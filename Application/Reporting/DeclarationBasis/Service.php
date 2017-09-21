@@ -1,7 +1,6 @@
 <?php
 
-namespace SPHERE\Application\Reporting\Standard\Person;
-
+namespace SPHERE\Application\Reporting\DeclarationBasis;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
@@ -14,7 +13,11 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentFocus;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\System\Extension\Extension;
 
-class ServiceDivisionReport extends Extension
+/**
+ * Class Service
+ * @package SPHERE\Application\Reporting\DeclarationBasis
+ */
+class Service extends Extension
 {
     /**
      *

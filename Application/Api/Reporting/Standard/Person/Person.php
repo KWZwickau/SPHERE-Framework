@@ -210,15 +210,4 @@ class Person
         $fileLocation = ReportingPerson::useService()->createMetaDataComparisonExcel($Person, $Year, $Division);
         return FileSystem::getDownload($fileLocation->getRealPath(),"Stammdatenabfrage"." ".date("Y-m-d H:i:s").".xlsx")->__toString();
     }
-
-    /**
-     * @return string
-     */
-    public function downloadDivisionReport()
-    {
-
-        $fileLocation = ReportingPerson::useService()->createDivisionReportExcel();
-        return FileSystem::getDownload($fileLocation->getRealPath(),
-            "Stichtagsmeldung SBA"." ".date("Y-m-d H:i:s").".xlsx")->__toString();
-    }
 }

@@ -1254,17 +1254,4 @@ class Frontend extends Extension implements IFrontendInterface
             ))
         );
     }
-
-    /**
-     * @return Stage
-     */
-    public function frontendDivisionReport()
-    {
-        $Stage = new Stage('Stichtagsmeldung', '');
-        $Stage->addButton(
-            new Primary('Herunterladen',
-                '/Api/Reporting/Standard/Person/DivisionReport/Download', new Download())
-        );
-        return $Stage;
-    }
 }
