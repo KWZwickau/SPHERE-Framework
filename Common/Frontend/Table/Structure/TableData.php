@@ -218,4 +218,13 @@ class TableData extends Table
         }
     }
 
+    /**
+     * @param string $Hash
+     * @return TableData
+     */
+    public function setHash($Hash)
+    {
+        parent::setHash('Table-'.$Hash);
+        return $this;
+    }
 }

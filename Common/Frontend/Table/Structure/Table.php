@@ -113,7 +113,7 @@ class Table extends Extension implements ITemplateInterface
     public function getHash()
     {
 
-        if (empty($this->Hash)) {
+        if (empty( $this->Hash )) {
             $HeadList = $this->TableHead;
             array_walk($HeadList, function (&$H) {
 
@@ -135,8 +135,9 @@ class Table extends Extension implements ITemplateInterface
                     $H = serialize($H);
                 }
             });
-            $this->Hash = crc32(json_encode($HeadList).json_encode($BodyList).json_encode($FootList));
+            $this->Hash = crc32(json_encode($HeadList) . json_encode($BodyList) . json_encode($FootList));
         }
+
         return $this->Hash;
     }
 
@@ -201,5 +202,15 @@ class Table extends Extension implements ITemplateInterface
     {
 
         return '';
+    }
+
+    /**
+     * @param string $Hash
+     * @return $this
+     */
+    protected function setHash($Hash)
+    {
+        $this->Hash = $Hash;
+        return $this;
     }
 }
