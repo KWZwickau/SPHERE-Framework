@@ -151,7 +151,7 @@ class Frontend
                                 new Repeat()
                             ), 4),
                     )),
-                ), new \SPHERE\Common\Frontend\Form\Repository\Title('Benutzerkonnto anlegen')),
+                ), new \SPHERE\Common\Frontend\Form\Repository\Title('Benutzerkonto anlegen')),
                 new FormGroup(array(
                     new FormRow(array(
                         new FormColumn(array(
