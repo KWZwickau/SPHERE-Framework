@@ -134,9 +134,7 @@ class Frontend extends Extension implements IFrontendInterface
             Wir stehen Ihnen jederzeit gern für weitergehende Fragen zu unserem Hinweisen zum Datenschutz und zur 
             Verarbeitung Ihrer persönlichen Daten zur Verfügung. ')
             . new Title(new TileBig() . ' Nutzungsbedingungen')
-            . new Paragraph('Die Nutzung des elektronischen Notenbuchs ist freiwillig. Wenn Sie vorstehenden Regelungen 
-            einverstanden sind und die elektronische Notenübersicht nutzen möchten, so klicken sie unten auf [JA].')
-            . new Paragraph('Andernfalls klicken Sie auf [NEIN], um keinen Zugang zum elektronischen Notenbuch zu erhalten.')
+            .new Paragraph('Die Nutzung des elektronischen Notenbuchs ist freiwillig.')
             . new Paragraph('Wenn Sie auf die Nutzung der elektronischen Notenübersicht verzichten, gehen wir davon aus, 
             dass Sie sich zukünftig als Eltern auch weiterhin wie bisher durch Ihr Kind in geeigneter Weise (z.B. 
             regelmäßige Gespräche, Vorlage benoteter Arbeiten, usw.) über dessen schulische Leistungen informieren 

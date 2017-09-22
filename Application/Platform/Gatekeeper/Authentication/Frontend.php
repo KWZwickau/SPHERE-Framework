@@ -37,6 +37,7 @@ use SPHERE\Common\Frontend\Layout\Repository\Header;
 use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Paragraph;
 use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Ruler;
@@ -474,23 +475,16 @@ class Frontend extends Extension implements IFrontendInterface
             'Benutzer: ' . $tblAccount->getUsername()
             // . new PullRight(new Small(new Link('Mit einem anderen Benutzer anmelden', new Route(__NAMESPACE__))))
         );
-        $tblUserAll = Account::useService()->getUserAllByAccount($tblAccount);
-        if (!empty($tblUserAll)) {
-            foreach ($tblUserAll as $tblUser) {
-                $tblPerson = $tblUser->getServiceTblPerson();
-                if ($tblPerson) {
-                    array_push($FormInformation, 'Name: ' . $tblPerson->getFullName());
-                }
-            }
-        }
-
         // Create Form
         $Form = new Layout(
             new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(array(
-                            new Headline('Ich möchte das elektronische Notenbuch nutzen und bin mit den o.g. Regelungen einverstanden:'),
-                            new Ruler(),
+                            new Headline('Bestätigung der Allgemeine Geschäftsbedingungen:'),
+                            new Paragraph('Wenn Sie vorstehenden Regelungen einverstanden sind und die elektronische
+                            Notenübersicht nutzen möchten, so klicken sie unten auf [Einwilligen].')
+                            .new Paragraph('Andernfalls klicken Sie auf [Ablehnen], um keinen Zugang zum elektronischen
+                            Notenbuch zu erhalten.'),
                             new Listing($FormInformation)
                         ))
                     ),
