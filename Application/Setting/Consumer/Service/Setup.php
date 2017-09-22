@@ -26,6 +26,7 @@ class Setup extends AbstractSetup
          */
         $Schema = clone $this->getConnection()->getSchema();
         $this->setTableSetting($Schema);
+        $this->setTableStudentCustody($Schema);
 
         /**
          * Migration & Protocol
@@ -54,5 +55,16 @@ class Setup extends AbstractSetup
         $this->createIndex($table, array('Cluster', 'Application', 'Module', 'Identifier'));
 
         return $table;
+    }
+
+    /**
+     * @param Schema $Schema
+     */
+    private function setTableStudentCustody(Schema &$Schema)
+    {
+        $table = $this->createTable($Schema, 'tblStudentCustody');
+        $this->createColumn($table, 'serviceTblAccountStudent', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($table, 'serviceTblAccountCustody', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($table, 'serviceTblAccountBlocker', self::FIELD_TYPE_BIGINT);
     }
 }

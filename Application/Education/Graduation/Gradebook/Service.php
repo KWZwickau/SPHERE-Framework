@@ -29,6 +29,9 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Application\Setting\Consumer\Service\Entity\TblStudentCustody;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -1388,5 +1391,64 @@ class Service extends ServiceScoreRule
         if (($tblGradeList = $this->getGradeAllByTest($tblTest))) {
             (new Data($this->getBinding()))->updateGradesGradeType($tblGradeType, $tblGradeList);
         }
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param array          $ParentAccount
+     * @param TblAccount     $tblAccountStudent
+     *
+     * @return IFormInterface|string
+     */
+    public function setDisableParent(
+        IFormInterface $Form,
+        $ParentAccount,
+        $tblAccountStudent
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        $Global = $this->getGlobal();
+        if (!isset($Global->POST['Button']['Submit'])) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        if (!$Error) {
+
+            // Remove old Link
+            $tblStudentCustodyList = Consumer::useService()->getStudentCustodyByStudent($tblAccountStudent);
+            if ($tblStudentCustodyList) {
+                array_walk($tblStudentCustodyList, function (TblStudentCustody $tblStudentCustody) use (&$Error) {
+                    if (!Consumer::useService()->removeStudentCustody($tblStudentCustody)) {
+                        $Error = false;
+                    }
+                });
+            }
+
+            if ($ParentAccount) {
+                // Add new Link
+                array_walk($ParentAccount, function ($AccountId) use (&$Error, $tblAccountStudent) {
+                    $tblAccountCustody = Account::useService()->getAccountById($AccountId);
+                    if ($tblAccountCustody) {
+                        Consumer::useService()->createStudentCustody($tblAccountStudent, $tblAccountCustody,
+                            $tblAccountStudent);
+                    } else {
+                        $Error = false;
+                    }
+                });
+            }
+
+            if (!$Error) {
+                return new Success('Einstellungen wurden erfolgreich gespeichert')
+                    .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_SUCCESS);
+            } else {
+                return new Danger('Einstellungen konnten nicht gespeichert werden')
+                    .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_ERROR);
+            }
+        }
+        return $Form;
     }
 }

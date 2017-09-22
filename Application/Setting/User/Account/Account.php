@@ -3,6 +3,7 @@ namespace SPHERE\Application\Setting\User\Account;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -88,6 +89,19 @@ class Account implements IModuleInterface
 
         return new Service(
             new Identifier('Setting', 'Consumer', null, null, Consumer::useService()->getConsumerBySession()),
+            __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
+        );
+    }
+
+    /**
+     * @param TblConsumer $tblConsumer
+     * @return Service
+     */
+    public static function useServiceByConsumer( TblConsumer $tblConsumer )
+    {
+
+        return new Service(
+            new Identifier('Setting', 'Consumer', null, null, $tblConsumer),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }
