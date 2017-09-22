@@ -15,6 +15,7 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\School\School;
+use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -24,8 +25,7 @@ use SPHERE\System\Extension\Extension;
 class Service extends Extension
 {
     /**
-     *
-     * @return FilePointer
+     * @return FilePointer|Stage
      */
     public function createDivisionReportExcel()
     {
@@ -149,12 +149,14 @@ class Service extends Extension
         $export = Document::getDocument($fileLocation->getFileLocation());
 
         $ResponsibilityString = '';
+        $ResponsibilityStringExtended = '';
         $tblResponsibilityList = Responsibility::useService()->getResponsibilityAll();
         if ($tblResponsibilityList) {
             foreach ($tblResponsibilityList as $tblResponsibility) {
                 $tblCompanyResponsibility = $tblResponsibility->getServiceTblCompany();
                 if ($tblCompanyResponsibility) {
-                    $ResponsibilityString = $tblCompanyResponsibility->getDisplayName();
+                    $ResponsibilityString = $tblCompanyResponsibility->getName();
+                    $ResponsibilityStringExtended = $tblCompanyResponsibility->getExtendedName();
                     continue;
                 }
             }
@@ -165,6 +167,7 @@ class Service extends Extension
         $IsFirstTab = true;
         foreach ($DataContent as $Type => $LevelList) {
             $SchoolString = '';
+            $SchoolStringExtended = '';
             $tblSchoolActive = false;
             if ($tblSchoolList) {
                 foreach ($tblSchoolList as $tblSchool) {
@@ -176,7 +179,8 @@ class Service extends Extension
             if ($tblSchoolActive) {
                 $tblCompany = $tblSchoolActive->getServiceTblCompany();
                 if ($tblCompany) {
-                    $SchoolString = $tblCompany->getDisplayName();
+                    $SchoolString = $tblCompany->getName();
+                    $SchoolStringExtended = $tblCompany->getExtendedName();
                 }
             }
 
@@ -237,16 +241,17 @@ class Service extends Extension
             $Row++;
 
             $export->setValue($export->getCell(0, $Row), $ResponsibilityString);
-            $export->setStyle($export->getCell(0, $Row), $export->getCell(4, ($Row + 1)))
-                ->mergeCells()
-                ->setAlignmentMiddle()
-                ->setWrapText();
+            $export->setStyle($export->getCell(0, $Row), $export->getCell(4, ($Row)))
+                ->mergeCells();
             $export->setValue($export->getCell(7, $Row), "Stichtag, Datum: ...........");
             $export->setStyle($export->getCell(7, $Row))
                 ->setFontSize(12)
                 ->setFontBold()
                 ->setFontColor('FFFF0000');
             $Row++;
+            $export->setValue($export->getCell(0, $Row), $ResponsibilityStringExtended);
+            $export->setStyle($export->getCell(0, $Row), $export->getCell(4, ($Row)))
+                ->mergeCells();
             $export->setValue($export->getCell(7, $Row), "(10. Oktober oder abweichender Stichtag  gem. § 8 Abs. 3 Satz6 ZuschussVO:
 Fällt ein Stichtag auf einen unterrichtsfreien Tag, gilt der letzte vorhergehende
 Unterrichtstag als Stichtag. Dieser ist anzugeben.)");
@@ -262,11 +267,12 @@ Unterrichtstag als Stichtag. Dieser ist anzugeben.)");
                 ->setFontItalic();
             $Row++;
             $export->setValue($export->getCell(0, $Row), $SchoolString);
-            $export->setStyle($export->getCell(0, $Row), $export->getCell(4, ($Row + 1)))
-                ->mergeCells()
-                ->setAlignmentMiddle()
-                ->setWrapText();
+            $export->setStyle($export->getCell(0, $Row), $export->getCell(4, ($Row)))
+                ->mergeCells();
             $Row++;
+            $export->setValue($export->getCell(0, $Row), $SchoolStringExtended);
+            $export->setStyle($export->getCell(0, $Row), $export->getCell(4, ($Row)))
+                ->mergeCells();
             // Rahmen erste Box
             $export->setStyle($export->getCell(0, $FirstBoxHeight), $export->getCell(4, $Row))
                 ->setBorderOutline(2);
@@ -643,7 +649,7 @@ Kostenerstattung durch andere öffentlichen Träger");
             $export->setValue($export->getCell(8, $Row), 'Vorsitzende/r / Geschäftsführer/in des Schulträgers');
 
             // Spaltenhöhe Definieren
-            $export->setStyle($export->getCell(0, 6))->setRowHeight(12);
+//            $export->setStyle($export->getCell(0, 6))->setRowHeight(12);
             $export->setStyle($export->getCell(0, 10))->setRowHeight(10);
 
             // Spaltenbreite Definieren
@@ -675,7 +681,18 @@ Kostenerstattung durch andere öffentlichen Träger");
             $PaperOrientation = new PaperOrientationParameter('PORTRAIT');
             $export->setPaperOrientationParameter($PaperOrientation);
             ksort($DataFocus);
+            //Header
+            $export->setValue($export->getCell(0, $Row), "Namensliste unter Angabe des Förderschwerpunktes");
+            $export->setStyle($export->getCell(0, $Row), $export->getCell(4, $Row))
+                ->mergeCells()
+                ->setFontBold()
+                ->setFontSize(18)
+                ->setRowHeight(30)
+                ->setAlignmentTop();
+            $Row++;
             foreach ($DataFocus as $TypeIntegrativeList => $FocusList) {
+                $RowStart = $Row;
+
                 $export->setValue($export->getCell(0, $Row), $TypeIntegrativeList);
                 $export->setStyle($export->getCell(0, $Row))
                     ->setFontBold()
@@ -697,11 +714,16 @@ Kostenerstattung durch andere öffentlichen Träger");
                         $Row++;
                     }
                 }
+                // Rahmen
+                $export->setStyle($export->getCell(0, $RowStart), $export->getCell((1), ($Row - 1)))
+                    ->setBorderAll(1)
+                    ->setBorderOutline(2);
+                $Row++;
             }
-
-            // Spaltenbreite Definieren
+            // Spaltenbreite Definieren + Nach rechts rücken
             $export->setStyle($export->getCell(0, 0))->setColumnWidth(35);
             $export->setStyle($export->getCell(1, 0))->setColumnWidth(20);
+
         }
         $export->selectWorksheetByIndex(0);
 
