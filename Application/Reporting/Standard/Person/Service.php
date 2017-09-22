@@ -2377,9 +2377,11 @@ class Service extends Extension
     }
 
     /**
-     * @param $Person
-     * @param $Year
-     * @param $Division
+     * @param null $Person
+     * @param null $Year
+     * @param null $Division
+     *
+     * @return FilePointer
      */
     public function createMetaDataComparisonExcel($Person = null, $Year = null, $Division = null)
     {

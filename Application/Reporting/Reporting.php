@@ -4,6 +4,7 @@ namespace SPHERE\Application\Reporting;
 use SPHERE\Application\IClusterInterface;
 use SPHERE\Application\Reporting\CheckList\CheckList;
 use SPHERE\Application\Reporting\Custom\Custom;
+use SPHERE\Application\Reporting\DeclarationBasis\DeclarationBasis;
 use SPHERE\Application\Reporting\Dynamic\Dynamic;
 use SPHERE\Application\Reporting\KamenzReport\KamenzReport;
 use SPHERE\Application\Reporting\Individual\Individual;
@@ -31,6 +32,7 @@ class Reporting implements IClusterInterface
         Dynamic::registerApplication();
         KamenzReport::registerApplication();
         Individual::registerApplication();
+        DeclarationBasis::registerApplication();
 
         Main::getDisplay()->addClusterNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Auswertung'))

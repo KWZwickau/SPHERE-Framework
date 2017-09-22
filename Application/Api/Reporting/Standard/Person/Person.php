@@ -198,13 +198,16 @@ class Person
     }
 
     /**
-     * @param $Person
-     * @param $Year
-     * @param $Division
+     * @param null $Person
+     * @param null $Year
+     * @param null $Division
+     *
+     * @return string
      */
-    public function downloadMetaDataComparison($Person = null, $Year = null, $Division = null) {
-        $fileLocation = \SPHERE\Application\Reporting\Standard\Person\Person::useService()->createMetaDataComparisonExcel($Person, $Year, $Division);
+    public function downloadMetaDataComparison($Person = null, $Year = null, $Division = null)
+    {
 
+        $fileLocation = ReportingPerson::useService()->createMetaDataComparisonExcel($Person, $Year, $Division);
         return FileSystem::getDownload($fileLocation->getRealPath(),"Stammdatenabfrage"." ".date("Y-m-d H:i:s").".xlsx")->__toString();
     }
 }
