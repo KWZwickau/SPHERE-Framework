@@ -135,10 +135,10 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                         GatekeeperAccount::useService()->addAccountPerson($tblAccount, $tblPerson);
                     }
                 }
-                return new Success('Das Benutzerkonnto wurde erstellt')
+                return new Success('Das Benutzerkonto wurde erstellt')
                 .new Redirect('/Setting/Authorization/Account', Redirect::TIMEOUT_SUCCESS);
             } else {
-                return new Danger('Das Benutzerkonnto konnte nicht erstellt werden')
+                return new Danger('Das Benutzerkonto konnte nicht erstellt werden')
                 .new Redirect('/Setting/Authorization/Account', Redirect::TIMEOUT_ERROR);
             }
         }
@@ -251,10 +251,10 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                     GatekeeperAccount::useService()->changePassword($Password, $tblAccount);
                 }
 
-                return new Success('Das Benutzerkonnto wurde geändert')
+                return new Success('Das Benutzerkonto wurde geändert')
                 .new Redirect('/Setting/Authorization/Account', Redirect::TIMEOUT_SUCCESS);
             } else {
-                return new Danger('Das Benutzerkonnto konnte nicht geändert werden')
+                return new Danger('Das Benutzerkonto konnte nicht geändert werden')
                 .new Redirect('/Setting/Authorization/Account', Redirect::TIMEOUT_ERROR);
             }
         }
