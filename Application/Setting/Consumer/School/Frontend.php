@@ -54,6 +54,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
@@ -395,16 +396,13 @@ class Frontend extends Extension implements IFrontendInterface
         $TableContent = array();
         if ($tblCompanyAll) {
             array_walk($tblCompanyAll, function (TblCompany $tblCompany) use (&$TableContent) {
-
-                $temp = new PullClear(new RadioBox('School',
-                    $tblCompany->getName()
+                $temp['Select'] = new RadioBox('School', '&nbsp;', $tblCompany->getId());
+                $temp['Content'] = $tblCompany->getName()
                     .new Container($tblCompany->getExtendedName())
-                    .new Container(new Muted($tblCompany->getDescription())),
-                    $tblCompany->getId()));
+                    .new Container(new Muted($tblCompany->getDescription()));
                 array_push($TableContent, $temp);
             });
         }
-
 
         return new Form(
             new FormGroup(array(
@@ -420,7 +418,16 @@ class Frontend extends Extension implements IFrontendInterface
                     ), 4),
                     new FormColumn(array(
                         !empty( $TableContent ) ?
-                            new Panel($PanelSelectCompanyTitle, $TableContent, Panel::PANEL_TYPE_INFO, null, 15)
+                            new Panel($PanelSelectCompanyTitle,
+                                new TableData($TableContent, null, array(
+                                    'Select'  => 'Auswahl',
+                                    'Content' => 'Institution',
+                                ), array(
+                                    'columnDefs' => array(
+                                        array('width' => '1%', 'targets' => array(0))
+                                    ),
+                                ))
+                                , Panel::PANEL_TYPE_INFO, null)
                             : new Panel($PanelSelectCompanyTitle,
                             new Warning('Es ist keine Institution vorhanden die als Schule ausgewählt werden kann')
                             , Panel::PANEL_TYPE_INFO)
