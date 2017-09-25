@@ -1289,7 +1289,7 @@ class Service extends AbstractService
                             . ': ' . $countGrades . ' von ' . $countPersons . ' Zensuren vergeben';
                         $taskList[$tblTask->getId()][$tblDivision->getDisplayName()
                         . $tblSubject->getAcronym()
-                        . ($tblSubjectGroup ? $tblSubjectGroup->getName() : '')] =
+                        . ($tblSubjectGroup ? $tblSubjectGroup->getName() : '')]['Message'] =
                             new PullClear(($countGrades < $countPersons
                                     ? new Warning(new Exclamation() . $text)
                                     : new \SPHERE\Common\Frontend\Text\Repository\Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
@@ -1375,7 +1375,7 @@ class Service extends AbstractService
                                 : new \SPHERE\Common\Frontend\Text\Repository\Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
                                     . $name));
 
-                            $resultList[$tblTask->getId()][$key] = $name . ($link ? $link : '');
+                            $resultList[$tblTask->getId()][$key]['Message'] = $name . ($link ? $link : '');
                         }
                     }
                 }
@@ -1414,14 +1414,20 @@ class Service extends AbstractService
                     $columns[] = new LayoutColumn($panel, 6);
                 } else {
                     ksort($list);
-                    array_unshift($list,
+                    $messageList = array();
+                    foreach ($list as $divisionSubject) {
+                        if (isset($divisionSubject['Message'])) {
+                            $messageList[] = $divisionSubject['Message'];
+                        }
+                    }
+                    array_unshift($messageList,
                         new Muted('Bearbeitungszeitraum: ' . $tblTask->getFromDate() . ' - ' . $tblTask->getToDate()));
-                    array_unshift($list, new Muted('Stichtag: ' . $tblTask->getDate()));
+                    array_unshift($messageList, new Muted('Stichtag: ' . $tblTask->getDate()));
                     $panel = new Panel(
                         ($tblTestType->getIdentifier() == 'APPOINTED_DATE_TASK'
                             ? 'Aktueller Stichtagsnotenauftrag '
                             : 'Aktueller Kopfnotenauftrag '),
-                        $list,
+                        $messageList,
                         Panel::PANEL_TYPE_INFO
                     );
                     $columns[] = new LayoutColumn($panel, 6);

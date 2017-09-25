@@ -2269,17 +2269,15 @@ class Frontend extends FrontendScoreRule
                                     );
 
                                     if (is_array($average)) {
-                                        //ToDO Soll der Fehler wirklich im Frontend stehen?
                                         $average = 'Fehler';
                                     } elseif (is_string($average) && strpos($average, '(')) {
                                         $average = substr($average, 0, strpos($average, '('));
                                     }
+                                    $data[$tblSubject->getId().'Id'] = ($average != '' ? '&empty; '.$average : '');
                                     // Anzeige Notendurchschnitt genau 0
                                     if ($average === 0.0) {
                                         $data[$tblSubject->getId().'Id'] = '&empty; '.$average;
                                     }
-
-                                    $data[$tblSubject->getId().'Id'] = ($average != '' ? '&empty; '.$average : '');
                                     // add ToolTip if Student is in Group
                                     if ($tblSubjectStudentList) {
                                         /** @var TblSubjectStudent $tblSubjectStudent */
@@ -2462,8 +2460,9 @@ class Frontend extends FrontendScoreRule
                                             $tblScoreRule ? $tblScoreRule : null
                                         );
 
-                                        //ToDO Fehlt die Fehlerausgabe aus Headmaster?
-                                        if (is_string($average) && strpos($average, '(')) {
+                                        if (is_array($average)) {
+                                            $average = 'Fehler';
+                                        } elseif (is_string($average) && strpos($average, '(')) {
                                             $average = substr($average, 0, strpos($average, '('));
                                         }
 
