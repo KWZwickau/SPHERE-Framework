@@ -12,7 +12,9 @@ use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -89,12 +91,10 @@ class Service extends Extension
     }
 
     /**
-     * @param array $PersonList
-     * @param array $tblPersonList
+     * @param $PersonList
+     * @param $tblPersonList
      *
-     * @return bool|\SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
-     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @return bool|\SPHERE\Application\Document\Storage\FilePointer
      */
     public function createProfileListExcel($PersonList, $tblPersonList)
     {
@@ -230,12 +230,10 @@ class Service extends Extension
     }
 
     /**
-     * @param array $PersonList
-     * @param array $tblPersonList
+     * @param $PersonList
+     * @param $tblPersonList
      *
-     * @return bool|\SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
-     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @return bool|\SPHERE\Application\Document\Storage\FilePointer
      */
     public function createSignListExcel($PersonList, $tblPersonList)
     {
@@ -380,30 +378,7 @@ class Service extends Extension
                     $tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent, $tblStudentSubjectType);
                     if ($tblStudentSubjectList) {
                         foreach ($tblStudentSubjectList as $tblStudentSubject) {
-                            if ($tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == 1) {
-                                $tblSubject = $tblStudentSubject->getServiceTblSubject();
-                                if ($tblSubject) {
-                                    $Item['FS1'] = $tblSubject->getAcronym();
-                                }
-                            }
-                            if ($tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == 2) {
-                                $tblSubject = $tblStudentSubject->getServiceTblSubject();
-                                if ($tblSubject) {
-                                    $Item['FS2'] = $tblSubject->getAcronym();
-                                }
-                            }
-                            if ($tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == 3) {
-                                $tblSubject = $tblStudentSubject->getServiceTblSubject();
-                                if ($tblSubject) {
-                                    $Item['FS3'] = $tblSubject->getAcronym();
-                                }
-                            }
-                            if ($tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == 4) {
-                                $tblSubject = $tblStudentSubject->getServiceTblSubject();
-                                if ($tblSubject) {
-                                    $Item['FS4'] = $tblSubject->getAcronym();
-                                }
-                            }
+                            $this->setForeignLanguage($tblStudentSubject, $tblDivision, $Item);
                         }
                     }
                 }
@@ -416,17 +391,62 @@ class Service extends Extension
     }
 
     /**
-     * @param array $PersonList
-     * @param array $tblPersonList
-     *
-     * @return bool|\SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
-     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @param TblStudentSubject $tblStudentSubject
+     * @param TblDivision $tblDivision
+     * @param $Item
+     */
+    private function setForeignLanguage(TblStudentSubject $tblStudentSubject, TblDivision $tblDivision, &$Item) {
+        $tblSubject = $tblStudentSubject->getServiceTblSubject();
+        if ($tblSubject && ($ranking = $tblStudentSubject->getTblStudentSubjectRanking())) {
+            if (($tblLevel = $tblDivision->getTblLevel())
+                && ($level = $tblLevel->getName())
+            ) {
+                $isSetValue = false;
+                if (($fromLevel = $tblStudentSubject->getServiceTblLevelFrom())
+                    && ($tillLevel = $tblStudentSubject->getServiceTblLevelTill())
+                    && $fromLevel->getName()
+                    && $tillLevel->getName()
+                    && floatval($fromLevel->getName()) <= floatval($level)
+                    && floatval($tillLevel->getName()) >= floatval($level)
+                ) {
+                    $isSetValue = true;
+                } elseif (($fromLevel = $tblStudentSubject->getServiceTblLevelFrom())
+                    && $fromLevel->getName()
+                    && floatval($fromLevel->getName()) <= floatval($level)
+                ) {
+                    $isSetValue = true;
+                } elseif (($tillLevel = $tblStudentSubject->getServiceTblLevelTill())
+                    && $tillLevel->getName()
+                    && floatval($tillLevel->getName()) >= floatval($level)
+                ) {
+                    $isSetValue = true;
+                } elseif (!$tblStudentSubject->getServiceTblLevelFrom()
+                    && !$tblStudentSubject->getServiceTblLevelTill()
+                ) {
+                    $isSetValue = true;
+                }
+
+                if ($isSetValue) {
+                    $Item['FS' . $ranking->getIdentifier()] = $tblSubject->getAcronym();
+                }
+            }
+        }
+    }
+
+    /**
+     * @param $PersonList
+     * @param $tblPersonList
+     * @return bool|\SPHERE\Application\Document\Storage\FilePointer
      */
     public function createLanguageListExcel($PersonList, $tblPersonList)
     {
 
         if (!empty( $PersonList )) {
+
+            $count['FS1']['Total'] = 0;
+            $count['FS2']['Total'] = 0;
+            $count['FS3']['Total'] = 0;
+            $count['FS4']['Total'] = 0;
 
             $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
@@ -472,6 +492,18 @@ class Service extends Extension
                 $export->setValue($export->getCell(6, $Row), $PersonData['FS2']);
                 $export->setValue($export->getCell(7, $Row), $PersonData['FS3']);
                 $export->setValue($export->getCell(8, $Row), $PersonData['FS4']);
+
+
+                for ($i = 1; $i < 5; $i++) {
+                    if (isset($PersonData['FS' . $i]) && $PersonData['FS' . $i] != '') {
+                        $count['FS' . $i]['Total']++;
+                        if (isset($count['FS' . $i]['Subjects'][$PersonData['FS' . $i]])) {
+                            $count['FS' . $i]['Subjects'][$PersonData['FS' . $i]]++;
+                        } else {
+                            $count['FS' . $i]['Subjects'][$PersonData['FS' . $i]] = 1;
+                        }
+                    }
+                }
             }
 
             // TableBorder
@@ -504,62 +536,20 @@ class Service extends Extension
             $export->setValue($export->getCell(2, $Row), count($tblPersonList));
 
             $Row -= 3;
-            // Place Counter
-            $LanguageNumberList = $this->countSubject($tblPersonList, 'FOREIGN_LANGUAGE');
-            if (!empty( $LanguageNumberList )) {
-                foreach ($LanguageNumberList as $FSCounter => $Language) {
-                    if ($FSCounter == 1) {
+
+            foreach ($count as $ranking => $list) {
+                $Row++;
+                $export->setValue($export->getCell(3, $Row), 'Fremdsprache ' . str_replace('FS', '', $ranking));
+                $export->setStyle($export->getCell(3, $Row), $export->getCell(4, $Row))
+                    ->mergeCells()
+                    ->setFontBold();
+                if (isset($list['Subjects'])) {
+                    ksort($list['Subjects']);
+                    foreach ($list['Subjects'] as $acronym => $countValue) {
                         $Row++;
-                        $export->setValue($export->getCell(3, $Row), 'Fremdsprache 1');
-                        $export->setStyle($export->getCell(3, $Row), $export->getCell(4, $Row))
-                            ->mergeCells()
-                            ->setFontBold();
-                        if ($Language) {
-                            foreach ($Language as $key => $Count) {
-                                $Row++;
-                                $export->setValue($export->getCell(3, $Row), $key.':');
-                                $export->setValue($export->getCell(4, $Row), $Count);
-                            }
-                        }
-                    } elseif ($FSCounter == 2) {
-                        $Row++;
-                        $export->setValue($export->getCell(3, $Row), 'Fremdsprache 2');
-                        $export->setStyle($export->getCell(3, $Row), $export->getCell(4, $Row))
-                            ->mergeCells()
-                            ->setFontBold();
-                        if ($Language) {
-                            foreach ($Language as $key => $Count) {
-                                $Row++;
-                                $export->setValue($export->getCell(3, $Row), $key.':');
-                                $export->setValue($export->getCell(4, $Row), $Count);
-                            }
-                        }
-                    } elseif ($FSCounter == 3) {
-                        $Row++;
-                        $export->setValue($export->getCell(3, $Row), 'Fremdsprache 3');
-                        $export->setStyle($export->getCell(3, $Row), $export->getCell(4, $Row))
-                            ->mergeCells()
-                            ->setFontBold();
-                        if ($Language) {
-                            foreach ($Language as $key => $Count) {
-                                $Row++;
-                                $export->setValue($export->getCell(3, $Row), $key.':');
-                                $export->setValue($export->getCell(4, $Row), $Count);
-                            }
-                        }
-                    } elseif ($FSCounter == 4) {
-                        $Row++;
-                        $export->setValue($export->getCell(3, $Row), 'Fremdsprache 4');
-                        $export->setStyle($export->getCell(3, $Row), $export->getCell(4, $Row))
-                            ->mergeCells()
-                            ->setFontBold();
-                        if ($Language) {
-                            foreach ($Language as $key => $Count) {
-                                $Row++;
-                                $export->setValue($export->getCell(3, $Row), $key.':');
-                                $export->setValue($export->getCell(4, $Row), $Count);
-                            }
-                        }
+                        $tblSubject = Subject::useService()->getSubjectByAcronym($acronym);
+                        $export->setValue($export->getCell(3, $Row), ($tblSubject ? $tblSubject->getName() : $acronym) . ':');
+                        $export->setValue($export->getCell(4, $Row), $countValue);
                     }
                 }
             }
@@ -571,6 +561,7 @@ class Service extends Extension
 
         return false;
     }
+
 
     /**
      * @param TblDivision $tblDivision
@@ -647,12 +638,10 @@ class Service extends Extension
     }
 
     /**
-     * @param array $PersonList
-     * @param array $tblPersonList
+     * @param $PersonList
+     * @param $tblPersonList
      *
-     * @return bool|\SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
-     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @return bool|\SPHERE\Application\Document\Storage\FilePointer
      */
     public function createClassListExcel($PersonList, $tblPersonList)
     {
@@ -911,12 +900,10 @@ class Service extends Extension
     }
 
     /**
-     * @param array $PersonList
-     * @param array $tblPersonList
+     * @param $PersonList
+     * @param $tblPersonList
      *
-     * @return bool|\SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
-     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @return bool|\SPHERE\Application\Document\Storage\FilePointer
      */
     public function createExtendedClassListExcel($PersonList, $tblPersonList)
     {
