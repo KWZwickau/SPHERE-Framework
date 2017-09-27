@@ -21,6 +21,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Enable;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Family;
 use SPHERE\Common\Frontend\Icon\Repository\Globe;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
@@ -75,11 +76,12 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Willkommen', '', '');
+        $content = false;
+        $IsEqual = false;
+        $IsNavigationAssistance = false;
 
         $tblIdentificationSearch = Account::useService()->getIdentificationByName(TblIdentification::NAME_USER_CREDENTIAL);
         $tblAccount = Account::useService()->getAccountBySession();
-
-        $content = false;
         if ($tblAccount) {
             $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
             if ($tblPersonAllByAccount) {
@@ -93,12 +95,12 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
-
         if ($tblAccount && $tblIdentificationSearch) {
             $tblAuthentication = Account::useService()->getAuthenticationByAccount($tblAccount);
             if ($tblAuthentication && ($tblIdentification = $tblAuthentication->getTblIdentification())) {
                 if ($tblIdentificationSearch->getId() == $tblIdentification->getId()) {
-                    $IsEqual = false;
+                    // Alle TblUserAccounts erhalten direktlink Button
+                    $IsNavigationAssistance = true;
                     $tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount);
                     if ($tblUserAccount) {
                         $Password = $tblUserAccount->getAccountPassword();
@@ -106,33 +108,73 @@ class Frontend extends Extension implements IFrontendInterface
                             $IsEqual = true;
                         }
                     }
-
-                    if ($IsEqual) {
-                        $Stage->setContent(
-                            new Layout(
-                                new LayoutGroup(
-                                    new LayoutRow(array(
-                                        new LayoutColumn('', 2),
-                                        new LayoutColumn(
-                                            new Center(new Panel('Passwortänderung',
-                                                new Warning('Bitte ändern Sie zu Ihrer Sicherheit das Passwort.')
-                                                , Panel::PANEL_TYPE_DANGER,
-                                                new Standard('Passwort ändern', '/Setting/MyAccount/Password'
-                                                    , new Key(), array(), 'Schnellzugriff der Passwort Änderung')))
-                                            , 8)
-                                    ))
-                                )
-                            ) . ($content ? $content : '')
-                        );
-                        return $Stage;
-                    }
                 }
             }
         }
 
-        $Stage->setContent(($content ? $content : '') . $this->getCleanLocalStorage());
+        $Stage->setContent(
+            ($IsEqual
+                ? $this->layoutPasswordChange()
+                : ''
+            )
+            .
+            ($IsNavigationAssistance
+                ? $this->layoutNavigationAssistance()
+                : ''
+            )
+            .($content ? $content : '')
+            .$this->getCleanLocalStorage()
+        );
 
         return $Stage;
+    }
+
+    /**
+     * @return string|Layout
+     */
+    private function layoutNavigationAssistance()
+    {
+
+        return new Layout(
+            new LayoutGroup(
+                new LayoutRow(array(
+                    new LayoutColumn('', 2),
+                    new LayoutColumn(
+                        new Panel(new Center('Notenübersicht'),
+                            array(
+                                new Container('&nbsp;').new Center(new Paragraph('Die Notenübersicht erreichen Sie über das Menü '
+                                        .new Bold('Bildung => Zensuren => Notenübersicht').' oder über folgenden Link')
+                                    .new Standard('Notenübersicht', '/Education/Graduation/Gradebook/Student/Gradebook',
+                                        new Family())
+                                )
+                            )
+                            , Panel::PANEL_TYPE_INFO
+                        )
+                        , 8)
+                ))
+            )
+        );
+    }
+
+    /**
+     * @return Layout
+     */
+    private function layoutPasswordChange()
+    {
+        return new Layout(
+            new LayoutGroup(
+                new LayoutRow(array(
+                    new LayoutColumn('', 2),
+                    new LayoutColumn(
+                        new Center(new Panel('Passwortänderung',
+                            new Warning('Bitte ändern Sie zu Ihrer Sicherheit das Passwort.')
+                            , Panel::PANEL_TYPE_DANGER,
+                            new Standard('Passwort ändern', '/Setting/MyAccount/Password'
+                                , new Key(), array(), 'Schnellzugriff der Passwort Änderung')))
+                        , 8)
+                ))
+            )
+        );
     }
 
     /**
