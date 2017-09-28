@@ -272,6 +272,11 @@ class Frontend extends Extension implements IFrontendInterface
                                     (new SelectBox('SelectBox2DT', 'SelectBox - jQuery Select2',
                                     array('{{ Id }}{{ Name }}{{ Name }} {{ Id }}{{ Name }}{{ Name }}' => $Check)
                                     ))->configureLibrary( SelectBox::LIBRARY_SELECT2 )
+                                ),
+                                array('A' => 'SelectCompleter', 'B' =>
+                                    new SelectCompleter('SelectCompleterDT', 'SelectCompleter', 'SelectCompleter',
+                                        array('', '1+','1','1-', '2', '2-','2+','3','3-','3+','4','4-','4+','5','5-','5+','6','6-','6+')
+                                    )
                                 )
                             ))
                             , 6),
