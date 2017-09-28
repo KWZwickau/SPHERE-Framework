@@ -4,6 +4,7 @@ namespace SPHERE\Application\Setting\MyAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
+use SPHERE\Application\Setting\User\Account\Account as UserAccount;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -97,7 +98,16 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         if ($Error) {
             return $Form;
         } else {
+            $tblAccountUpdate = $tblAccount->getEntityUpdate();
             if (Account::useService()->changePassword($CredentialLock, $tblAccount)) {
+                // erste PW Änderung von UserAccounts -> Weiterleitung Startseite
+                if ($tblAccountUpdate === null) {
+                    $tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount);
+                    if ($tblUserAccount) {
+                        return new Success('Das Passwort wurde erfolgreich geändert').new Redirect('/',
+                                Redirect::TIMEOUT_SUCCESS);
+                    }
+                }
                 return new Success('Das Passwort wurde erfolgreich geändert').new Redirect('/Setting/MyAccount', Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger('Das Passwort konnte nicht geändert werden').new Redirect('/Setting/MyAccount', Redirect::TIMEOUT_ERROR);

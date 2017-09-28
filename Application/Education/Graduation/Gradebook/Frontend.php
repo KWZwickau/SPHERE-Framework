@@ -1227,7 +1227,7 @@ class Frontend extends FrontendScoreRule
 //                }
             }
             $UserList = Account::useService()->getUserAllByAccount($tblAccount);
-            if ($UserList) {
+            if ($UserList && $isStudent) {
                 //
                 $tblUser = current($UserList);
                 /** @var TblUser $tblUser */
@@ -1247,9 +1247,9 @@ class Frontend extends FrontendScoreRule
                     }
                 }
             }
-            $tblStudentCustodyList = Consumer::useService()->getStudentCustodyByStudent($tblAccount);
             // POST if StudentView
-            if ($isStudent) {
+            if ($isStudent && $isEighteen) {
+                $tblStudentCustodyList = Consumer::useService()->getStudentCustodyByStudent($tblAccount);
                 $Global = $this->getGlobal();
                 if ($tblStudentCustodyList) {
                     foreach ($tblStudentCustodyList as $tblStudentCustody) {
@@ -1476,9 +1476,15 @@ class Frontend extends FrontendScoreRule
                                         }
                                         $rowList[] = new LayoutRow(new LayoutColumn(
                                             !empty($tableDataList)
-                                                ? new TableData(
-                                                $tableDataList, null, $tableHeaderList, null
-                                            )
+                                                ? (new TableData($tableDataList, null, $tableHeaderList, // null
+                                                array(
+                                                    "paging"         => false, // Deaktiviert Blättern
+                                                    "iDisplayLength" => -1,    // Alle Einträge zeigen
+                                                    "searching"      => false, // Deaktiviert Suche
+                                                    "info"           => false, // Deaktiviert Such-Info)
+                                                    "responsive"     => false, // Deaktiviert RWD
+                                                )))->setHash(crc32(__NAMESPACE__.'\Student\Gradebook'.'_DivisionId'
+                                                .$tblDivision->getId().'_PersonId'.$tblPerson->getId()))    //ToDO Anpassung Hashwert
                                                 : new Warning('Aktuell sind keine Noten verfügbar (Keine Fächer vorhanden)'
                                                 , new Exclamation())
                                         ));
