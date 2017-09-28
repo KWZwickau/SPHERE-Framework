@@ -1242,6 +1242,7 @@ class Service extends Extension
                 $Item['FatherSalutation'] = $Item['FatherLastName'] = $Item['FatherFirstName'] = $Item['Father'] = '';
                 $Item['MotherSalutation'] = $Item['MotherLastName'] = $Item['MotherFirstName'] = $Item['Mother'] = '';
                 $Item['Remark'] = $Item['RemarkExcel'] = '';
+                $Item['MailGuardian'] = $Item['ExcelMailGuardian'] = '';
 
                 if (($tblToPersonAddressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
                     $tblToPersonAddress = $tblToPersonAddressList[0];
@@ -1337,6 +1338,7 @@ class Service extends Extension
 
                 $father = null;
                 $mother = null;
+                $tblMailList = array();
                 $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                 if ($guardianList) {
                     foreach ($guardianList as $guardian) {
@@ -1380,6 +1382,27 @@ class Service extends Extension
                                     $mother = $guardian->getServiceTblPersonFrom();
                                 }
                             }
+
+                            //Mail Guardian
+                            $tblToPersonMailList = Mail::useService()->getMailAllByPerson($tblPersonGuardian);
+                            if ($tblToPersonMailList) {
+                                foreach ($tblToPersonMailList as $tblToPersonMail) {
+                                    $tblMail = $tblToPersonMail->getTblMail();
+                                    if ($tblMail) {
+                                        if (isset($tblMailList[$tblPersonGuardian->getId()])) {
+                                            $tblMailList[$tblPersonGuardian->getId()] = $tblMailList[$tblPersonGuardian->getId()].', '
+                                                .$tblMail->getAddress();
+                                        } else {
+                                            $tblMailList[$tblPersonGuardian->getId()] = $tblPersonGuardian->getFirstName().' '.
+                                                $tblPersonGuardian->getLastName().' ('
+                                                .$tblMail->getAddress();
+                                        }
+                                    }
+                                }
+                                if (isset($tblMailList[$tblPersonGuardian->getId()])) {
+                                    $tblMailList[$tblPersonGuardian->getId()] .= ')';
+                                }
+                            }
                         }
                     }
                 }
@@ -1399,6 +1422,12 @@ class Service extends Extension
                     $Item['MotherLastName'] = $mother->getLastName();
                     $Item['MotherFirstName'] = $mother->getFirstSecondName();
                     $Item['Mother'] = $mother->getFullName();
+                }
+
+                // Insert MailList
+                if (!empty($tblMailList)) {
+                    $Item['MailGuardian'] .= implode('<br>', $tblMailList);
+                    $Item['ExcelMailGuardian'] = implode('; ', $tblMailList);
                 }
 
                 array_push($TableContent, $Item);
@@ -1451,7 +1480,8 @@ class Service extends Extension
             $export->setValue($export->getCell(24, 0), "Vorname Sorgeberechtigter 2");
             $export->setValue($export->getCell(25, 0), "Telefon Interessent");
             $export->setValue($export->getCell(26, 0), "Telefon Sorgeberechtigte");
-            $export->setValue($export->getCell(27, 0), "Bemerkung");
+            $export->setValue($export->getCell(27, 0), "E-Mail Sorgeberechtigte");
+            $export->setValue($export->getCell(28, 0), "Bemerkung");
 
             $Row = 1;
             foreach ($PersonList as $PersonData) {
@@ -1483,14 +1513,15 @@ class Service extends Extension
                 $export->setValue($export->getCell(24, $Row), $PersonData['MotherFirstName']);
                 $export->setValue($export->getCell(25, $Row), $PersonData['Phone']);
                 $export->setValue($export->getCell(26, $Row), $PersonData['PhoneGuardian']);
-                $export->setValue($export->getCell(27, $Row), $PersonData['RemarkExcel']);
+                $export->setValue($export->getCell(27, $Row), $PersonData['ExcelMailGuardian']);
+                $export->setValue($export->getCell(28, $Row), $PersonData['RemarkExcel']);
 
                 // WrapText
-                $export->setStyle($export->getCell(27, $Row))->setWrapText();
+                $export->setStyle($export->getCell(28, $Row))->setWrapText();
                 $Row++;
             }
 
-            $export->setStyle($export->getCell(27, 0))->setColumnWidth(50);
+            $export->setStyle($export->getCell(28, 0))->setColumnWidth(50);
 
             $Row++;
             $export->setValue($export->getCell(0, $Row), 'Weiblich:');
