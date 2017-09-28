@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Common\Common;
@@ -61,6 +62,8 @@ class KamenzReportService
             $countReligionArray = array();
             $countOrientationArray = array();
             $countDivisionStudentArray = array();
+
+            $tblTransferTypeProcess = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
             /** @var TblYear[] $tblCurrentYearList */
             foreach ($tblCurrentYearList as $tblYear) {
                 if (($tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear))) {
@@ -97,6 +100,7 @@ class KamenzReportService
                                         $countMigrantsArray,
                                         $countMigrantsNationalityArray);
 
+                                    $tblCourse = false;
                                     if ($tblStudent) {
                                         self::countForeignLanguages($tblStudent, $tblLevel, $tblKamenzSchoolType, $Content, $gender,
                                             $isInPreparationDivisionForMigrants, $countForeignSubjectArray,
@@ -108,6 +112,12 @@ class KamenzReportService
                                         if (preg_match('!(0?(7|8|9))!is', $tblLevel->getName())) {
                                             $countOrientationArray = self::countOrientation($tblStudent, $tblLevel,
                                                 $gender, $countOrientationArray);
+                                        }
+
+                                        if ($tblTransferTypeProcess
+                                            && ($tblTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblTransferTypeProcess))
+                                        ) {
+                                            $tblCourse = $tblTransfer->getServiceTblCourse();
                                         }
                                     } else {
                                         if (isset($countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()])) {
@@ -124,6 +134,10 @@ class KamenzReportService
                                             $hasMigrationBackground,
                                             $isInPreparationDivisionForMigrants);
                                     }
+
+                                    // get last Level
+                                    self::setSchoolTypeLastYear($Content, $tblPastYearList, $tblPerson, $tblCourse,
+                                        $tblLevel, $gender, $isInPreparationDivisionForMigrants);
                                 }
                             } else {
                                 $countDivisionStudentArray[$tblDivision->getId()][$tblLevel->getName()] = 0;
@@ -2182,6 +2196,116 @@ class KamenzReportService
             }
 
             $count++;
+        }
+    }
+
+    /**
+     * @param $Content
+     * @param $tblPastYearList
+     * @param $tblPerson
+     * @param $tblCourse
+     * @param $tblLevel
+     * @param $gender
+     * @param $isInPreparationDivisionForMigrants
+     */
+    private static function setSchoolTypeLastYear(
+        &$Content,
+        $tblPastYearList,
+        TblPerson $tblPerson,
+        $tblCourse,
+        TblLevel $tblLevel,
+        $gender,
+        $isInPreparationDivisionForMigrants
+    ) {
+
+        $tblLevelLastYear = false;
+        if ($tblPastYearList && is_array($tblPastYearList)) {
+            foreach ($tblPastYearList as $tblPastYear) {
+                if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
+                    foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                        if (($tblDivisionTemp = $tblDivisionStudent->getTblDivision())
+                            && ($tblYearTemp = $tblDivisionTemp->getServiceTblYear())
+                            && $tblYearTemp->getId() == $tblPastYear->getId()
+                            && ($tblLevelTemp = $tblDivisionTemp->getTblLevel())
+                            && !$tblLevelTemp->getIsChecked()
+                        ) {
+                            $tblLevelLastYear = $tblLevelTemp;
+                            break;
+                        }
+                    }
+
+                    if ($tblLevelLastYear) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        if ($tblLevelLastYear
+            && ($tblSchoolTypeLastYear = $tblLevelLastYear->getServiceTblType())
+        ) {
+            $identifier = false;
+            if ($tblSchoolTypeLastYear->getName() == 'Grundschule') {
+                $identifier = 'PrimarySchool';
+            } elseif ($tblSchoolTypeLastYear->getName() == 'Gymnasium') {
+                $identifier = 'GrammarSchool';
+            } elseif ($tblSchoolTypeLastYear->getName() == 'Mittelschule / Oberschule') {
+                // führende Nullen entfernen
+                $level = ltrim($tblLevelLastYear->getName(), '0');
+
+                /** @var TblCourse $tblCourse */
+                if ($level != '5' && $level != '6' && $tblCourse) {
+                    if ($tblCourse->getName() == 'Hauptschule') {
+                        $identifier = $identifier = 'SecondarySchoolHs';
+                    } elseif ($tblCourse->getName() == 'Realschule') {
+                        $identifier = $identifier = 'SecondarySchoolRs';
+                    }
+                } else {
+                    $identifier = 'SecondarySchool';
+                }
+            }
+
+            if ($identifier) {
+                if (isset($Content['E07'][$identifier]['L' . $tblLevel->getName()][$gender])) {
+                    $Content['E07'][$identifier]['L' . $tblLevel->getName()][$gender]++;
+                } else {
+                    $Content['E07'][$identifier]['L' . $tblLevel->getName()][$gender] = 1;
+                }
+                if ($isInPreparationDivisionForMigrants) {
+                    if (isset($Content['E07'][$identifier]['Migration'][$gender])) {
+                        $Content['E07'][$identifier]['Migration'][$gender]++;
+                    } else {
+                        $Content['E07'][$identifier]['Migration'][$gender] = 1;
+                    }
+                }
+                if (isset($Content['E07'][$identifier]['TotalCount'][$gender])) {
+                    $Content['E07'][$identifier]['TotalCount'][$gender]++;
+                } else {
+                    $Content['E07'][$identifier]['TotalCount'][$gender] = 1;
+                }
+
+                /**
+                 * TotalCount
+                 */
+                $identifier = 'TotalCount';
+                if (isset($Content['E07'][$identifier]['L' . $tblLevel->getName()][$gender])) {
+                    $Content['E07'][$identifier]['L' . $tblLevel->getName()][$gender]++;
+                } else {
+                    $Content['E07'][$identifier]['L' . $tblLevel->getName()][$gender] = 1;
+                }
+                if ($isInPreparationDivisionForMigrants) {
+                    if (isset($Content['E07'][$identifier]['Migration'][$gender])) {
+                        $Content['E07'][$identifier]['Migration'][$gender]++;
+                    } else {
+                        $Content['E07'][$identifier]['Migration'][$gender] = 1;
+                    }
+                }
+                if (isset($Content['E07'][$identifier]['TotalCount'][$gender])) {
+                    $Content['E07'][$identifier]['TotalCount'][$gender]++;
+                } else {
+                    $Content['E07'][$identifier]['TotalCount'][$gender] = 1;
+                }
+            }
         }
     }
 }
