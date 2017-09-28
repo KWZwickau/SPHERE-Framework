@@ -33,6 +33,8 @@ class TblAbsence extends Element
 
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
+    const ATTR_FROM_DATE = 'FromDate';
+    const ATTR_TO_DATE = 'ToDate';
 
     /**
      * @Column(type="bigint")

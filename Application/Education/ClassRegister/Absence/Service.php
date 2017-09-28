@@ -330,18 +330,17 @@ class Service extends AbstractService
 
         foreach ($Data as $personId => $value) {
             if (($tblPerson = Person::useService()->getPersonById($personId))) {
-                if ($value !== TblAbsence::VALUE_STATUS_NULL) {
-                    $status = $Data[$personId];
+                if ($value != TblAbsence::VALUE_STATUS_NULL) {
                     if (($tblAbsenceList = $this->getAbsenceListByDate($tblPerson, $tblDivision, $date))) {
                         if (count($tblAbsenceList) == 1) {
                             $tblAbsence = current($tblAbsenceList);
-                            if ($tblAbsence->getStatus() != $status) {
+                            if ($tblAbsence->getStatus() != $value) {
                                 if ($tblAbsence->isSingleDay()) {
                                     (new Data($this->getBinding()))->updateAbsence(
                                         $tblAbsence,
                                         $tblAbsence->getFromDate(),
                                         $tblAbsence->getToDate(),
-                                        $status,
+                                        $value,
                                         $tblAbsence->getRemark());
                                 } else {
                                     (new Data($this->getBinding()))->createAbsence(
@@ -349,7 +348,7 @@ class Service extends AbstractService
                                         $tblDivision,
                                         $date->format('d.m.Y'),
                                         '',
-                                        $status,
+                                        $value,
                                         ''
                                     );
                                 }
@@ -357,7 +356,7 @@ class Service extends AbstractService
                         } else {
                             $exists = false;
                             foreach($tblAbsenceList as $tblAbsence) {
-                                if ($tblAbsence->getStatus() == $status) {
+                                if ($tblAbsence->getStatus() == $value) {
                                     $exists = true;
                                     break;
                                 } elseif ($tblAbsence->isSingleDay()) {
@@ -365,7 +364,7 @@ class Service extends AbstractService
                                         $tblAbsence,
                                         $tblAbsence->getFromDate(),
                                         $tblAbsence->getToDate(),
-                                        $status,
+                                        $value,
                                         $tblAbsence->getRemark());
                                     $exists = true;
                                     break;
@@ -377,7 +376,7 @@ class Service extends AbstractService
                                     $tblDivision,
                                     $date->format('d.m.Y'),
                                     '',
-                                    $status,
+                                    $value,
                                     ''
                                 );
                             }
@@ -388,9 +387,19 @@ class Service extends AbstractService
                             $tblDivision,
                             $date->format('d.m.Y'),
                             '',
-                            $status,
+                            $value,
                             ''
                         );
+                    }
+                } else {
+                    // delete Absence
+                    if (($tblAbsenceList = $this->getAbsenceListByDate($tblPerson, $tblDivision, $date))) {
+                        foreach ($tblAbsenceList as $tblAbsence) {
+                            if ($tblAbsence->isSingleDay()) {
+                                $this->destroyAbsence($tblAbsence);
+                                break;
+                            }
+                        }
                     }
                 }
             }
