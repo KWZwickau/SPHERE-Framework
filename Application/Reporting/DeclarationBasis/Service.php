@@ -838,11 +838,11 @@ Kostenerstattung durch andere öffentlichen Träger");
                         }
                         $tblPersonIntegrative = Person::useService()->getPersonById($PersonId);
                         if ($tblPersonIntegrative) {
-                            $export->setValue($export->getCell(0, $Row), $tblPersonIntegrative->getFirstName());
+                            $export->setValue($export->getCell(0, $Row), $tblPersonIntegrative->getLastName());
                             $export->setStyle($export->getCell(0, $Row), $export->getCell(1, $Row))
                                 ->mergeCells()
                                 ->setAlignmentMiddle();
-                            $export->setValue($export->getCell(2, $Row), $tblPersonIntegrative->getLastName());
+                            $export->setValue($export->getCell(2, $Row), $tblPersonIntegrative->getFirstName());
                             $export->setStyle($export->getCell(2, $Row), $export->getCell(3, $Row))
                                 ->mergeCells()
                                 ->setAlignmentMiddle();
