@@ -6,13 +6,14 @@ use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Component\Parameter\Repository\PaperOrientationParameter;
 use MOC\V\Component\Document\Document;
+use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentFocus;
 use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Window\Stage;
@@ -53,7 +54,7 @@ class Service extends Extension
                 if ($tblDivisionList) {
                     foreach ($tblDivisionList as $tblDivision) {
                         $DivisionTypeName = $tblDivision->getTypeName();
-                        $DivisionTypeName = str_replace('/', '-', $DivisionTypeName);
+//                        $DivisionTypeName = str_replace('/', '-', $DivisionTypeName);
                         $tblLevel = $tblDivision->getTblLevel();
                         if ($tblLevel && is_numeric($tblLevel->getName())) {
                             $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByDivision($tblDivision);
@@ -80,7 +81,7 @@ class Service extends Extension
                                                     } else {
                                                         $DataBlind[$DivisionTypeName][$tblLevel->getName()] = 1;
                                                     }
-                                                    $DataFocus[$DivisionTypeName][$tblStudentFocusType->getId()][] = $tblPerson;
+                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblStudentFocusType->getId()] = $tblPerson->getId();
                                                 }
                                                 if ($tblStudentFocusType->getName() == 'Hören') {
                                                     if (isset($DataHear[$DivisionTypeName][$tblLevel->getName()])) {
@@ -88,7 +89,7 @@ class Service extends Extension
                                                     } else {
                                                         $DataHear[$DivisionTypeName][$tblLevel->getName()] = 1;
                                                     }
-                                                    $DataFocus[$DivisionTypeName][$tblStudentFocusType->getId()][] = $tblPerson;
+                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblStudentFocusType->getId()] = $tblPerson->getId();
                                                 }
                                                 if ($tblStudentFocusType->getName() == 'Geistige Entwicklung') {
                                                     if (isset($DataMental[$DivisionTypeName][$tblLevel->getName()])) {
@@ -96,7 +97,7 @@ class Service extends Extension
                                                     } else {
                                                         $DataMental[$DivisionTypeName][$tblLevel->getName()] = 1;
                                                     }
-                                                    $DataFocus[$DivisionTypeName][$tblStudentFocusType->getId()][] = $tblPerson;
+                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblStudentFocusType->getId()] = $tblPerson->getId();
                                                 }
                                                 if ($tblStudentFocusType->getName() == 'Körperlich-motorische Entwicklung') {
                                                     if (isset($DataPhysical[$DivisionTypeName][$tblLevel->getName()])) {
@@ -104,7 +105,7 @@ class Service extends Extension
                                                     } else {
                                                         $DataPhysical[$DivisionTypeName][$tblLevel->getName()] = 1;
                                                     }
-                                                    $DataFocus[$DivisionTypeName][$tblStudentFocusType->getId()][] = $tblPerson;
+                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblStudentFocusType->getId()] = $tblPerson->getId();
                                                 }
                                                 if ($tblStudentFocusType->getName() == 'Sprache') {
                                                     if (isset($DataLanguage[$DivisionTypeName][$tblLevel->getName()])) {
@@ -112,7 +113,7 @@ class Service extends Extension
                                                     } else {
                                                         $DataLanguage[$DivisionTypeName][$tblLevel->getName()] = 1;
                                                     }
-                                                    $DataFocus[$DivisionTypeName][$tblStudentFocusType->getId()][] = $tblPerson;
+                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblStudentFocusType->getId()] = $tblPerson->getId();
                                                 }
                                                 if ($tblStudentFocusType->getName() == 'Lernen') {
                                                     if (isset($DataLearn[$DivisionTypeName][$tblLevel->getName()])) {
@@ -120,7 +121,7 @@ class Service extends Extension
                                                     } else {
                                                         $DataLearn[$DivisionTypeName][$tblLevel->getName()] = 1;
                                                     }
-                                                    $DataFocus[$DivisionTypeName][$tblStudentFocusType->getId()][] = $tblPerson;
+                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblStudentFocusType->getId()] = $tblPerson->getId();
                                                 }
                                                 if ($tblStudentFocusType->getName() == 'Sozial-emotionale Entwicklung') {
                                                     if (isset($DataEducation[$DivisionTypeName][$tblLevel->getName()])) {
@@ -128,7 +129,7 @@ class Service extends Extension
                                                     } else {
                                                         $DataEducation[$DivisionTypeName][$tblLevel->getName()] = 1;
                                                     }
-                                                    $DataFocus[$DivisionTypeName][$tblStudentFocusType->getId()][] = $tblPerson;
+                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblStudentFocusType->getId()] = $tblPerson->getId();
                                                 }
                                             }
                                         }
@@ -165,6 +166,7 @@ class Service extends Extension
         // get SchoolList
         $tblSchoolList = School::useService()->getSchoolAll();
         $IsFirstTab = true;
+        ksort($DataContent);
         foreach ($DataContent as $Type => $LevelList) {
             $SchoolString = '';
             $SchoolStringExtended = '';
@@ -185,13 +187,13 @@ class Service extends Extension
             }
 
             $Row = 0;
-            $Type = str_replace('/', '-', $Type);
+            $TypeWorksheet = str_replace('/', '-', $Type);
             // choose/create Page
             if ($IsFirstTab === true) {
-                $export->renameWorksheet($Type);
+                $export->renameWorksheet($TypeWorksheet);
                 $IsFirstTab = false;
             } else {
-                $export->createWorksheet($Type);
+                $export->createWorksheet($TypeWorksheet);
             }
             // set Page Options
             $PaperOrientation = new PaperOrientationParameter('LANDSCAPE');
@@ -646,7 +648,7 @@ Kostenerstattung durch andere öffentlichen Träger");
             $export->setValue($export->getCell(0, $Row), 'Datum');
             $export->setValue($export->getCell(8, $Row), 'Unterschrift');
             $Row++;
-            $export->setValue($export->getCell(8, $Row), 'Vorsitzende/r / Geschäftsführer/in des Schulträgers');
+            $export->setValue($export->getCell(8, $Row), 'Vorsitzende(r) / Geschäftsführer(in) des Schulträgers');
 
             // Spaltenhöhe Definieren
 //            $export->setStyle($export->getCell(0, 6))->setRowHeight(12);
@@ -673,58 +675,243 @@ Kostenerstattung durch andere öffentlichen Träger");
         }
 
         // new last Page if Integrativ exist
+        ksort($DataFocus);
         if ($DataFocus) {
-            $Row = 0;
-            // create Page
-            $export->createWorksheet('Integrativ Unterricht');
-            // set Page Options
-            $PaperOrientation = new PaperOrientationParameter('PORTRAIT');
-            $export->setPaperOrientationParameter($PaperOrientation);
-            ksort($DataFocus);
-            //Header
-            $export->setValue($export->getCell(0, $Row), "Namensliste unter Angabe des Förderschwerpunktes");
-            $export->setStyle($export->getCell(0, $Row), $export->getCell(4, $Row))
-                ->mergeCells()
-                ->setFontBold()
-                ->setFontSize(18)
-                ->setRowHeight(30)
-                ->setAlignmentTop();
-            $Row++;
-            foreach ($DataFocus as $TypeIntegrativeList => $FocusList) {
-                $RowStart = $Row;
+            foreach ($DataFocus as $TypeIntegrativeList => $LevelList) {
 
-                $export->setValue($export->getCell(0, $Row), $TypeIntegrativeList);
-                $export->setStyle($export->getCell(0, $Row))
+                $Row = 0;
+                // create Page
+                $DivisionTypeName = str_replace('/', '-', $TypeIntegrativeList);
+                $PageTitle = substr('Namensliste '.$DivisionTypeName, 0, 30);
+                $export->createWorksheet($PageTitle);
+                // set Page Options
+                $PaperOrientation = new PaperOrientationParameter('LANDSCAPE');
+                $export->setPaperOrientationParameter($PaperOrientation);
+                //Header
+                $export->setValue($export->getCell(0, $Row), "Namensliste unter Angabe des Förderschwerpunktes");
+                $export->setStyle($export->getCell(0, $Row), $export->getCell(9, $Row))
+                    ->mergeCells()
                     ->setFontBold()
-                    ->setFontSize(16);
+                    ->setAlignmentCenter()
+                    ->setFontSize(14)
+                    ->setRowHeight(20);
                 $Row++;
-                foreach ($FocusList as $FocusId => $PersonList) {
-                    $tblFocus = Student::useService()->getStudentFocusTypeById($FocusId);
-                    if ($tblFocus) {
-                        $FocusString = $tblFocus->getName();
-                    } else {
-                        $FocusString = 'Unbekannt';
-                    }
-                    /** @var TblPerson $PersonIntegrative */
-                    foreach ($PersonList as $PersonIntegrative) {
-                        $export->setValue($export->getCell(0, $Row), $FocusString);
-                        $export->setValue($export->getCell(1, $Row), $PersonIntegrative->getLastFirstName());
-                        $export->setStyle($export->getCell(0, $Row))
-                            ->setFontBold();
-                        $Row++;
+                $Row++;
+
+                // Adresse suchen
+                $SchoolString = '';
+                $SchoolStringExtended = '';
+                $AddressCompanyStreet = '';
+                $AddressCompanyCodeCity = '';
+                $tblSchoolActive = false;
+                if ($tblSchoolList) {
+                    foreach ($tblSchoolList as $tblSchool) {
+                        if ($tblSchool->getServiceTblType() && $tblSchool->getServiceTblType()->getName() == $TypeIntegrativeList) {
+                            $tblSchoolActive = $tblSchool;
+                        }
                     }
                 }
+                if ($tblSchoolActive) {
+                    $tblCompany = $tblSchoolActive->getServiceTblCompany();
+                    if ($tblCompany) {
+                        $SchoolString = $tblCompany->getName();
+                        $SchoolStringExtended = $tblCompany->getExtendedName();
+                        $tblAddressCompany = Address::useService()->getAddressByCompany($tblCompany);
+                        if ($tblAddressCompany) {
+                            $AddressCompanyStreet = $tblAddressCompany->getStreetName().' '.$tblAddressCompany->getStreetNumber();
+                            $tblCity = $tblAddressCompany->getTblCity();
+                            if ($tblCity) {
+                                $AddressCompanyCodeCity = $tblCity->getCode().' '.$tblCity->getDisplayName();
+                            }
+                        }
+                    }
+                }
+
+                // Adresse abbilden
+                $export->setValue($export->getCell(0, $Row), 'Name der Schule');
+                $export->setStyle($export->getCell(0, $Row))
+                    ->setFontBold();
+                $Row++;
+                $RowStartAddress = $Row;
+                $export->setValue($export->getCell(0, $Row), 'Anschrift (Straße. Hausnummer, PLZ, Ort)');
+                $export->setStyle($export->getCell(0, $Row))
+                    ->setFontSize(10);
+                $Row++;
+                $export->setValue($export->getCell(0, $Row), $SchoolString);
+                $export->setStyle($export->getCell(0, $Row), $export->getCell(4, $Row))
+                    ->mergeCells();
+                $Row++;
+                if ($SchoolStringExtended != '') {
+                    $export->setValue($export->getCell(0, $Row), $SchoolStringExtended);
+                    $export->setStyle($export->getCell(0, $Row), $export->getCell(4, $Row))
+                        ->mergeCells();
+                    $Row++;
+                }
+                $export->setValue($export->getCell(0, $Row), $AddressCompanyStreet);
+                $export->setStyle($export->getCell(0, $Row), $export->getCell(4, $Row))
+                    ->mergeCells();
+                $Row++;
+                $export->setValue($export->getCell(0, $Row), $AddressCompanyCodeCity);
+                $export->setStyle($export->getCell(0, $Row), $export->getCell(4, $Row))
+                    ->mergeCells();
+                if ($SchoolStringExtended == '') {
+                    $Row++;
+                    $export->setValue($export->getCell(0, $Row), '');
+                    $export->setStyle($export->getCell(0, $Row), $export->getCell(4, $Row))
+                        ->mergeCells();
+                }
                 // Rahmen
-                $export->setStyle($export->getCell(0, $RowStart), $export->getCell((1), ($Row - 1)))
+                $export->setStyle($export->getCell(0, $RowStartAddress), $export->getCell(4, $Row))
+                    ->setBorderOutline(2);
+
+                $Row++;
+                $Row++;
+                $export->setValue($export->getCell(0, $Row), 'Bildungsgang (Schulart):');
+                $export->setStyle($export->getCell(0, $Row))
+                    ->setFontBold();
+
+                $export->setValue($export->getCell(3, $Row), $TypeIntegrativeList);
+                $export->setStyle($export->getCell(3, $Row), $export->getCell(7, $Row))
+                    ->mergeCells()
+                    ->setFontBold()
+                    ->setFontSize(16)
+                    ->setRowHeight(25);
+                $Row++;
+                $export->setValue($export->getCell(3, $Row), '(Bezeichnung entsprechend der Anlage zu § 1 ZuschussVO)');
+                $export->setStyle($export->getCell(3, $Row), $export->getCell(7, $Row))
+                    ->mergeCells()
+                    ->setAlignmentCenter()
+                    ->setFontItalic();
+                $Row++;
+                $Row++;
+                $RowStart = $Row;
+                // Header
+                $export->setValue($export->getCell(0, $Row), 'Name');
+                $export->setStyle($export->getCell(0, $Row), $export->getCell(1, $Row))
+                    ->mergeCells()
+                    ->setWrapText()
+                    ->setAlignmentCenter()
+                    ->setAlignmentMiddle()
+                    ->setFontBold();
+                $export->setValue($export->getCell(2, $Row), 'Vorname');
+                $export->setStyle($export->getCell(2, $Row), $export->getCell(3, $Row))
+                    ->mergeCells()
+                    ->setWrapText()
+                    ->setAlignmentCenter()
+                    ->setAlignmentMiddle()
+                    ->setFontBold();
+                $export->setValue($export->getCell(4, $Row), 'Datum des Integrations- bescheids');
+                $export->setStyle($export->getCell(4, $Row))
+                    ->setWrapText()
+                    ->setAlignmentCenter()
+                    ->setAlignmentMiddle()
+                    ->setFontBold();
+                $export->setValue($export->getCell(5, $Row), 'Klassen- stufe');
+                $export->setStyle($export->getCell(5, $Row))
+                    ->setWrapText()
+                    ->setAlignmentCenter()
+                    ->setAlignmentMiddle()
+                    ->setFontBold();
+                $export->setValue($export->getCell(6, $Row), 'Förderschwerpunkt');
+                $export->setStyle($export->getCell(6, $Row), $export->getCell(8, $Row))
+                    ->mergeCells()
+                    ->setWrapText()
+                    ->setAlignmentCenter()
+                    ->setAlignmentMiddle()
+                    ->setFontBold();
+                $export->setValue($export->getCell(9, $Row), 'Bemerkung');
+                $export->setStyle($export->getCell(9, $Row))
+                    ->setWrapText()
+                    ->setAlignmentCenter()
+                    ->setAlignmentMiddle()
+                    ->setFontBold();
+                $Row++;
+                ksort($LevelList);
+                foreach ($LevelList as $LevelName => $PersonList) {
+
+                    foreach ($PersonList as $FocusId => $PersonId) {
+                        $tblFocus = Student::useService()->getStudentFocusTypeById($FocusId);
+                        if ($tblFocus) {
+                            $FocusString = $tblFocus->getName();
+                        } else {
+                            $FocusString = 'Unbekannt';
+                        }
+                        $tblPersonIntegrative = Person::useService()->getPersonById($PersonId);
+                        if ($tblPersonIntegrative) {
+                            $export->setValue($export->getCell(0, $Row), $tblPersonIntegrative->getFirstName());
+                            $export->setStyle($export->getCell(0, $Row), $export->getCell(1, $Row))
+                                ->mergeCells()
+                                ->setAlignmentMiddle();
+                            $export->setValue($export->getCell(2, $Row), $tblPersonIntegrative->getLastName());
+                            $export->setStyle($export->getCell(2, $Row), $export->getCell(3, $Row))
+                                ->mergeCells()
+                                ->setAlignmentMiddle();
+
+                            $DecisionDate = '';
+                            $IntegrationDescription = '';
+                            $tblStudent = Student::useService()->getStudentByPerson($tblPersonIntegrative);
+                            if ($tblStudent) {
+                                $tblStudentIntegration = $tblStudent->getTblStudentIntegration();
+                                if ($tblStudentIntegration) {
+                                    $DecisionDate = $tblStudentIntegration->getCoachingDecisionDate();
+                                    $IntegrationDescription = $tblStudentIntegration->getCoachingRemark();
+                                }
+                            }
+                            $export->setValue($export->getCell(4, $Row), $DecisionDate);
+                            $export->setStyle($export->getCell(4, $Row))
+                                ->setAlignmentCenter()
+                                ->setAlignmentMiddle();
+                            $export->setValue($export->getCell(5, $Row), $LevelName);
+                            $export->setStyle($export->getCell(5, $Row))
+                                ->setAlignmentCenter()
+                                ->setAlignmentMiddle();
+                            $export->setValue($export->getCell(6, $Row), $FocusString);
+                            $export->setStyle($export->getCell(6, $Row), $export->getCell(8, $Row))
+                                ->setAlignmentMiddle()
+                                ->mergeCells();
+                            $export->setValue($export->getCell(9, $Row), $IntegrationDescription);
+                            $export->setStyle($export->getCell(9, $Row))
+                                ->setAlignmentMiddle()
+                                ->setWrapText();
+                            $Row++;
+                        }
+                    }
+                }
+//                Debugger::screenDump($RowStart.' -> '.$Row);
+                // Rahmen
+                $export->setStyle($export->getCell(0, $RowStart), $export->getCell((9), ($Row - 1)))
                     ->setBorderAll(1)
                     ->setBorderOutline(2);
+                $export->setWorksheetFitToPage();
                 $Row++;
-            }
-            // Spaltenbreite Definieren + Nach rechts rücken
-            $export->setStyle($export->getCell(0, 0))->setColumnWidth(35);
-            $export->setStyle($export->getCell(1, 0))->setColumnWidth(20);
+                $Row++;
+                $export->setStyle($export->getCell(0, $Row), $export->getCell(2, $Row))
+                    ->setBorderBottom();
+                $export->setStyle($export->getCell(6, $Row), $export->getCell(9, $Row))
+                    ->setBorderBottom();
+                $Row++;
+                $export->setValue($export->getCell(0, $Row), 'Datum');
+                $export->setValue($export->getCell(6, $Row), 'Unterschrift');
+                $Row++;
+                $export->setValue($export->getCell(6, $Row), 'Vorsitzende(r) / Geschäftsführer(in) des Schulträgers');
 
+
+                // Spaltenbreite Definieren + Nach rechts rücken
+                $export->setStyle($export->getCell(0, 0))->setColumnWidth(8.5);
+                $export->setStyle($export->getCell(1, 0))->setColumnWidth(8.5);
+                $export->setStyle($export->getCell(2, 0))->setColumnWidth(8.5);
+                $export->setStyle($export->getCell(3, 0))->setColumnWidth(8.5);
+                $export->setStyle($export->getCell(4, 0))->setColumnWidth(12.0);
+                $export->setStyle($export->getCell(5, 0))->setColumnWidth(10.5);
+                $export->setStyle($export->getCell(6, 0))->setColumnWidth(10.5);
+                $export->setStyle($export->getCell(7, 0))->setColumnWidth(10.5);
+                $export->setStyle($export->getCell(8, 0))->setColumnWidth(10.5);
+                $export->setStyle($export->getCell(9, 0))->setColumnWidth(34.5);
+            }
         }
+
+//        exit;
+
         $export->selectWorksheetByIndex(0);
 
         $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
