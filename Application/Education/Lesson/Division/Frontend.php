@@ -1561,7 +1561,11 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
         $tblDivision = Division::useService()->getDivisionById($Id);
         if ($tblDivision) {
-            $Stage->setDescription('Übersicht '.new Bold($tblDivision->getDisplayName()));
+            if (($tblYear = $tblDivision->getServiceTblYear())) {
+                $Stage->setDescription('Übersicht '.new Bold($tblDivision->getDisplayName()).' Schuljahr '.new Bold($tblYear->getDisplayName()));
+            } else {
+                $Stage->setDescription('Übersicht '.new Bold($tblDivision->getDisplayName()));
+            }
 
             $Stage->setMessage($tblDivision->getDescription());
             $Stage->addButton(new Standard('Fächer', '/Education/Lesson/Division/Subject/Add',
