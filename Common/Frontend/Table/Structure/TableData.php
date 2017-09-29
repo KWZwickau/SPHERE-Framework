@@ -219,11 +219,13 @@ class TableData extends Table
     }
 
     /**
-     * @param string $Hash
+     * @param string $Hash Bsp.:"__NAMESPACE__.Route.Identifier"
+     *
      * @return TableData
      */
     public function setHash($Hash)
     {
+        $Hash = crc32($Hash);
         parent::setHash('Table-'.$Hash);
         return $this;
     }

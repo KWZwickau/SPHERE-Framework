@@ -1483,8 +1483,7 @@ class Frontend extends FrontendScoreRule
                                                     "searching"      => false, // Deaktiviert Suche
                                                     "info"           => false, // Deaktiviert Such-Info)
                                                     "responsive"     => false, // Deaktiviert RWD
-                                                )))->setHash(crc32(__NAMESPACE__.'\Student\Gradebook'.'_DivisionId'
-                                                .$tblDivision->getId().'_PersonId'.$tblPerson->getId()))    //ToDO Anpassung Hashwert
+                                                )))->setHash(__NAMESPACE__.'\Student\Gradebook'.$tblDivision->getId().$tblPerson->getId())
                                                 : new Warning('Aktuell sind keine Noten verfügbar (Keine Fächer vorhanden)'
                                                 , new Exclamation())
                                         ));
