@@ -1,0 +1,57 @@
+<div class="form-group {{ ElementGroup }}">
+    {% if( ElementLabel is not empty ) %}
+        <label>{{ ElementLabel }}{% if( Required is not empty ) %}<span class="text-danger"> *</span>{% endif %}</label>
+    {% endif %}
+    {% if( ElementIcon is not empty ) %}
+    <div class="input-group">
+        <span class="input-group-addon">
+            {{ ElementIcon }}
+        </span>
+        {% endif %}
+        <input type="text" class="form-control{% if( ElementClass is not empty ) %} {{ ElementClass }}{% endif %}" name="{{ ElementName }}" placeholder="{{ ElementPlaceholder }}"
+               value="{{ ElementValue }}" {% if( Disabled is not empty ) %}disabled{% endif %} {% if( Required is not empty ) %}required{% endif %} {% if( TabIndex is not empty ) %}tabindex="{{ TabIndex }}"{% endif %}/>
+        {{ ElementFeedbackIcon }}
+        {% if( ElementIcon is not empty ) %}
+    </div>
+    {% endif %}
+    {{ ElementFeedbackMessage }}
+</div>
+<script type="text/javascript">
+    var Test;
+    //noinspection JSUnresolvedFunction
+    executeScript(function()
+    {
+        Client.Use('ModCompleter', function()
+        {
+            var originValue = '';
+            var allowedList = {{ ElementData }};
+
+            Test = jQuery('input[name="{{ ElementName }}"]').ModCompleter({
+                options: { minLength: 0 },
+                data: {{ ElementData }},
+                limit: Infinity
+            }).on('typeahead:change keyup', function() {
+                // https://stackoverflow.com/a/36748963/626731
+                var textToFind = Test.typeahead('val');
+                //if you only want to match id- as prefix
+                var matches = allowedList.filter(function(windowValue){
+                    if(windowValue) {
+                        return (windowValue.substring(0, textToFind.length) === textToFind);
+                    }
+                });
+                //if you want to match id- string exists at any position
+//                var matches = windowArray.filter(function(windowValue){
+//                    if(windowValue) {
+//                        return windowValue.indexOf(textToFind) >= 0;
+//                    }
+//                });
+                // reset if not allowed
+                if( matches.length === 0 ) {
+                    Test.typeahead('val', originValue);
+                } else {
+                    originValue = Test.typeahead('val');
+                }
+            });
+        });
+    });
+</script>

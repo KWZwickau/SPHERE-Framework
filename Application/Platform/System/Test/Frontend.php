@@ -26,6 +26,7 @@ use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\PasswordField;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextCaptcha;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -148,10 +149,13 @@ class Frontend extends Extension implements IFrontendInterface
             (new Form(
                 new FormGroup(array(
                     new FormRow(array(
-                        new FormColumn(
+                        new FormColumn(array(
                             new AutoCompleter('AutoCompleter', 'AutoCompleter', 'AutoCompleter',
-                                array('123', '234', '345'))
-                            , 3),
+                                array('123', '234', '345')),
+                            new SelectCompleter('SelectCompleter', 'SelectCompleter', 'SelectCompleter',
+                                array('', '1+','1','1-', '2', '2-','2+','3','3-','3+','4','4-','4+','5','5-','5+','6','6-','6+')
+                            )
+                        ), 3),
                         new FormColumn(array(
                             new CheckBox('CheckBox', 'CheckBox', 'c1'),
                             new RadioBox('RadioBox1', 'RadioBox1a', '1a'),
@@ -268,6 +272,11 @@ class Frontend extends Extension implements IFrontendInterface
                                     (new SelectBox('SelectBox2DT', 'SelectBox - jQuery Select2',
                                     array('{{ Id }}{{ Name }}{{ Name }} {{ Id }}{{ Name }}{{ Name }}' => $Check)
                                     ))->configureLibrary( SelectBox::LIBRARY_SELECT2 )
+                                ),
+                                array('A' => 'SelectCompleter', 'B' =>
+                                    new SelectCompleter('SelectCompleterDT', 'SelectCompleter', 'SelectCompleter',
+                                        array('', '1+','1','1-', '2', '2-','2+','3','3-','3+','4','4-','4+','5','5-','5+','6','6-','6+')
+                                    )
                                 )
                             ))
                             , 6),
