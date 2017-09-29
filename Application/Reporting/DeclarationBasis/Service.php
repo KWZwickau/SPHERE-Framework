@@ -640,6 +640,7 @@ Kostenerstattung durch andere öffentlichen Träger");
             $Row++;
             $Row++;
             $Row++;
+            $export->setValue($export->getCell(0, $Row), (new \DateTime())->format('d.m.Y'));
             $export->setStyle($export->getCell(0, $Row))
                 ->setBorderBottom();
             $export->setStyle($export->getCell(8, $Row), $export->getCell(15, $Row))
@@ -767,18 +768,19 @@ Kostenerstattung durch andere öffentlichen Träger");
                 $Row++;
                 $Row++;
                 $export->setValue($export->getCell(0, $Row), 'Bildungsgang (Schulart):');
-                $export->setStyle($export->getCell(0, $Row))
+                $export->setStyle($export->getCell(0, $Row), $export->getCell(2, $Row))
+                    ->mergeCells()
+                    ->setAlignmentRight()
                     ->setFontBold();
 
                 $export->setValue($export->getCell(3, $Row), $TypeIntegrativeList);
-                $export->setStyle($export->getCell(3, $Row), $export->getCell(7, $Row))
+                $export->setStyle($export->getCell(3, $Row), $export->getCell(9, $Row))
                     ->mergeCells()
-                    ->setFontBold()
-                    ->setFontSize(16)
-                    ->setRowHeight(25);
+                    ->setAlignmentCenter()
+                    ->setBorderBottom();
                 $Row++;
                 $export->setValue($export->getCell(3, $Row), '(Bezeichnung entsprechend der Anlage zu § 1 ZuschussVO)');
-                $export->setStyle($export->getCell(3, $Row), $export->getCell(7, $Row))
+                $export->setStyle($export->getCell(3, $Row), $export->getCell(9, $Row))
                     ->mergeCells()
                     ->setAlignmentCenter()
                     ->setFontItalic();
@@ -885,7 +887,9 @@ Kostenerstattung durch andere öffentlichen Träger");
                 $export->setWorksheetFitToPage();
                 $Row++;
                 $Row++;
+                $export->setValue($export->getCell(0, $Row), (new \DateTime())->format('d.m.Y'));
                 $export->setStyle($export->getCell(0, $Row), $export->getCell(2, $Row))
+                    ->mergeCells()
                     ->setBorderBottom();
                 $export->setStyle($export->getCell(6, $Row), $export->getCell(9, $Row))
                     ->setBorderBottom();
