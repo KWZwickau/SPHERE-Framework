@@ -263,19 +263,33 @@ class Frontend
 
         $PublicRouteAll = Main::getDispatcher()->getPublicRoutes();
         $publicRightList = array();
+        $publicRouteList = array(
+            '/',
+            '/Document/LegalNotice',
+            '/Document/License',
+            '/Platform/Assistance',
+            '/Platform/Assistance/Error',
+            '/Platform/Assistance/Error/Authenticator',
+            '/Platform/Assistance/Error/Authorization',
+            '/Platform/Assistance/Error/Shutdown',
+            '/Platform/Assistance/Support',
+            '/Platform/Gatekeeper/Authentication/Offline',
+        );
         if ($PublicRouteAll) {
-            array_walk($PublicRouteAll, function (&$Route) use (&$publicRightList) {
-
-                $publicRightList[] = array(
-                    'Route'  => $Route,
-                    'Option' => new External(
-                            'Öffnen', $Route, null, array(), false
-                        ).
-                        new Danger(
-                            'Hinzufügen', '/Platform/Gatekeeper/Authorization/Access/Right', null,
-                            array('Name' => $Route)
-                        )
-                );
+            array_walk($PublicRouteAll, function (&$Route) use (&$publicRightList, $publicRouteList) {
+                // only routes that haven't to be public
+                if (!in_array($Route, $publicRouteList)) {
+                    $publicRightList[] = array(
+                        'Route'  => $Route,
+                        'Option' => new External(
+                                'Öffnen', $Route, null, array(), false
+                            ).
+                            new Danger(
+                                'Hinzufügen', '/Platform/Gatekeeper/Authorization/Access/Right', null,
+                                array('Name' => $Route)
+                            )
+                    );
+                }
             });
         }
         $Stage->setContent(
