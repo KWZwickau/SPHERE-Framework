@@ -18,6 +18,7 @@ use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\GrammarSchoo
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\MultiStudentCard;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\PrimarySchool;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\SecondarySchool;
+use SPHERE\Application\Api\Document\Standard\Repository\StudentTransfer;
 use SPHERE\Application\Document\Generator\Generator;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
@@ -225,6 +226,28 @@ class Creator extends Extension
             $File = self::buildDummyFile($Document, $Data);
 
             $FileName = $Document->getName() . ' ' . date("Y-m-d") . ".pdf";
+
+            return self::buildDownloadFile($File, $FileName);
+        }
+
+        return new Stage('Dokument', 'Konnte nicht erstellt werden.');
+    }
+
+    /**
+     * @param array  $Data
+     * @param string $paperOrientation
+     *
+     * @return Stage|string
+     */
+    public static function createStudentTransferPdf($Data, $paperOrientation = Creator::PAPERORIENTATION_PORTRAIT)
+    {
+        if (!empty($Data)
+        ) {
+
+            $Document = new StudentTransfer\StudentTransfer($Data);
+            $File = self::buildDummyFile($Document, array(), array(), $paperOrientation);
+
+            $FileName = $Document->getName().' '.date("Y-m-d").".pdf";
 
             return self::buildDownloadFile($File, $FileName);
         }

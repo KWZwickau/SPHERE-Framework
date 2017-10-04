@@ -41,6 +41,9 @@ class Standard extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/GradebookOverview/Create', __CLASS__.'::createGradebookOverviewPdf'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/StudentTransfer/Create', __CLASS__.'::createStudentTransferPdf'
+        ));
 
 //        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
 //            __NAMESPACE__.'/StudentCard/Download', __NAMESPACE__.'\Repository\StudentCardTwig::downloadStudentCard')
@@ -96,6 +99,16 @@ class Standard extends Extension implements IModuleInterface
     {
 
         return Creator::createGradebookOverviewPdf($PersonId, $DivisionId,Creator::PAPERORIENTATION_LANDSCAPE);
+    }
+
+    /**
+     * @param array $Data
+     *
+     * @return \SPHERE\Common\Window\Stage|string
+     */
+    public static function createStudentTransferPdf($Data = array())
+    {
+        return Creator::createStudentTransferPdf($Data, Creator::PAPERORIENTATION_PORTRAIT);
     }
 
     /**
