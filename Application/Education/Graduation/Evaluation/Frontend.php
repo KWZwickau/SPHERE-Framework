@@ -3174,7 +3174,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblSubject = $tblTest->getServiceTblSubject();
             if ($tblGrade) {
                 $gradeText = $tblSubject->getAcronym() . ': ' . ($tblGrade->getGrade() !== null ?
-                        $tblGrade->getGrade() : '');
+                        $tblGrade->getDisplayGrade() : '');
                 if (is_numeric($tblGrade->getGrade())) {
                     if (isset($grades[$tblPerson->getId()][$gradeTypeId]['Count'])) {
                         $grades[$tblPerson->getId()][$gradeTypeId]['Count']++;
