@@ -31,6 +31,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -578,19 +579,19 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
                 if ($tblStudentList) {
-                    $selectListWithTrend[-1] = '&nbsp;';
+//                    $selectListWithTrend[-1] = '&nbsp;';
                     for ($i = 1; $i < 5; $i++) {
-                        $selectListWithTrend[$i . '+'] = $i . '+';
-                        $selectListWithTrend[$i] = $i;
-                        $selectListWithTrend[$i . '-'] = $i . '-';
+                        $selectListWithTrend[$i . '+'] = (string)($i . '+');
+                        $selectListWithTrend[$i] = (string)$i;
+                        $selectListWithTrend[$i . '-'] = (string)($i . '-');
                     }
-                    $selectListWithTrend[5] = 5;
+                    $selectListWithTrend[5] = "5";
 
-                    $selectListWithOutTrend[-1] = '&nbsp;';
+//                    $selectListWithOutTrend[-1] = '&nbsp;';
                     for ($i = 1; $i < 5; $i++) {
-                        $selectListWithOutTrend[$i] = $i;
+                        $selectListWithOutTrend[$i] = (string)$i;
                     }
-                    $selectListWithOutTrend[5] = 5;
+                    $selectListWithOutTrend[5] = "5";
 
                     $tabIndex = 1;
                     /** @var TblPerson $tblPerson */
@@ -698,14 +699,16 @@ class Frontend extends Extension implements IFrontendInterface
                                     $selectList = $selectListWithOutTrend;
                                 }
 
-                                $selectBox = (new SelectBox('Data[' . $tblPerson->getId() . ']', '', $selectList));
-                                $selectBox->setTabIndex($tabIndex++);
-                                $selectBox->configureLibrary( SelectBox::LIBRARY_SELECT2 );
+//                                $selectBox = (new SelectBox('Data[' . $tblPerson->getId() . ']', '', $selectList));
+//                                $selectBox->setTabIndex($tabIndex++);
+//                                $selectBox->configureLibrary( SelectBox::LIBRARY_SELECT2 );
+                                $selectComplete = (new SelectCompleter('Data[' . $tblPerson->getId() . ']', '', '', $selectList))
+                                    ->setTabIndex($tabIndex++);
                                 if ($tblPrepareStudent->isApproved()) {
-                                    $selectBox->setDisabled();
+                                    $selectComplete->setDisabled();
                                 }
 
-                                $studentTable[$tblPerson->getId()]['Data'] = $selectBox;
+                                $studentTable[$tblPerson->getId()]['Data'] = $selectComplete;
                             } else {
                                 // keine Zeugnisvorlage ausgewählt
                                 $studentTable[$tblPerson->getId()]['Data'] = '';
