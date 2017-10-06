@@ -30,6 +30,7 @@ use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -2121,24 +2122,24 @@ class Frontend extends Extension implements IFrontendInterface
             $tabIndex = 1;
             $selectList = array();
             if ($tblScoreType) {
-                $selectList[-1] = '&nbsp;';
+//                $selectList[-1] = '';
                 if ($tblScoreType->getIdentifier() == 'GRADES') {
                     for ($i = 1; $i < 6; $i++) {
-                        $selectList[$i . '+'] = $i . '+';
-                        $selectList[$i] = $i;
-                        $selectList[$i . '-'] = $i . '-';
+                        $selectList[$i . '+'] = (string)($i . '+');
+                        $selectList[$i] = (string)($i);
+                        $selectList[$i . '-'] = (string)($i . '-');
                     }
                     $selectList[6] = 6;
                 } elseif ($tblScoreType->getIdentifier() == 'GRADES_BEHAVIOR_TASK') {
                     for ($i = 1; $i < 5; $i++) {
-                        $selectList[$i . '+'] = $i . '+';
-                        $selectList[$i] = $i;
-                        $selectList[$i . '-'] = $i . '-';
+                        $selectList[$i . '+'] = (string)($i . '+');
+                        $selectList[$i] = (string)($i);
+                        $selectList[$i . '-'] = (string)($i . '-');
                     }
                     $selectList[5] = 5;
                 } elseif ($tblScoreType->getIdentifier() == 'POINTS') {
                     for ($i = 0; $i < 16; $i++) {
-                        $selectList[$i] = $i;
+                        $selectList[$i] = (string)$i;
                     }
                 }
             }
@@ -2366,12 +2367,14 @@ class Frontend extends Extension implements IFrontendInterface
                         = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '',
                         ''))->setTabIndex($tabIndex++);
                 } else {
-                    $selectBox = (new SelectBox('Grade[' . $tblPerson->getId() . '][Grade]', '', $selectList));
-                    $selectBox->setTabIndex($tabIndex++);
-                    $selectBox->configureLibrary( SelectBox::LIBRARY_SELECT2 );
+//                    $selectBox = (new SelectBox('Grade[' . $tblPerson->getId() . '][Grade]', '', $selectList));
+//                    $selectBox->setTabIndex($tabIndex++);
+//                    $selectBox->configureLibrary( SelectBox::LIBRARY_SELECT2 );
+                    $selectComplete = (new SelectCompleter('Grade[' . $tblPerson->getId() . '][Grade]', '', '', $selectList))
+                        ->setTabIndex($tabIndex++);
 
                     $student[$tblPerson->getId()]['Grade']
-                        = $selectBox;
+                        = $selectComplete;
                 }
             } else {
                 $student[$tblPerson->getId()]['Grade']
