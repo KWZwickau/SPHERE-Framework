@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Api\Document\Standard;
 
 use SPHERE\Application\Api\Document\Creator;
+use SPHERE\Application\Api\Document\Standard\Repository\StudentTransfer\ApiStudentTransfer;
 use SPHERE\Application\Document\Generator\Generator;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\People\Person\Person;
@@ -25,6 +26,8 @@ class Standard extends Extension implements IModuleInterface
 
     public static function registerModule()
     {
+
+        ApiStudentTransfer::registerApi();
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/EnrollmentDocument/Create', __CLASS__ . '::createEnrollmentDocumentPdf'
