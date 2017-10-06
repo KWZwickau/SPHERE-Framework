@@ -110,18 +110,25 @@ class ApiStudentTransfer extends Extension implements IApiInterface
     public function serviceButton($Data = array(), $IsReady = false, $PersonId)
     {
 
-        if ($IsReady == 'true') {
-            return new External('Herunterladen',
-                    'SPHERE\Application\Api\Document\Standard\StudentTransfer\Create',
-                    new Download(), array('Data' => $Data),
-                    'Schulbescheinigung herunterladen')
-                .new Container('&nbsp;');
-        } else {
-            return (new Standard('Eingaben bestätigen',
-                    ApiStudentTransfer::getEndpoint()))->ajaxPipelineOnClick(ApiStudentTransfer::pipelineButtonRefresh($PersonId,
-                    true))
-                .new Container('&nbsp;');
-        }
+        return new External('Herunterladen',
+                'SPHERE\Application\Api\Document\Standard\StudentTransfer\Create',
+                new Download(), array('Data' => $Data),
+                'Schulbescheinigung herunterladen')
+            .new Container('&nbsp;');
+
+//        if ($IsReady == 'true') {
+//            return new External('Herunterladen',
+//                    'SPHERE\Application\Api\Document\Standard\StudentTransfer\Create',
+//                    new Download(), array('Data' => $Data),
+//                    'Schulbescheinigung herunterladen')
+//                .new Container('&nbsp;');
+//        } else {
+//            return (new Standard('Eingaben bestätigen',
+//                    ApiStudentTransfer::getEndpoint()))->ajaxPipelineOnClick(ApiStudentTransfer::pipelineButtonRefresh($PersonId,
+//                    true))
+//                .new Container('&nbsp;');
+//        }
+
 //        return new Code(print_r($Data, true));
 //        return new RedirectScript('/Api\/Document\/Standard\/StudentTransfer\/Create', false, array('Data' => $Data));
     }
