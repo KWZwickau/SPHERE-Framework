@@ -446,7 +446,7 @@ class StudentFilter extends Extension
 //                    /** @noinspection PhpUndefinedFieldInspection */
 //                    $DataPerson['Address'] = $tblAddress->getGuiString();
 //                }
-                $DataPerson['StudentNumber'] = new Small(new Muted('-NA-'));
+                $DataPerson['StudentNumber'] = '';
                 if (isset($tblStudent) && $tblStudent && $DataPerson['Name']) {
                     $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
                 }
