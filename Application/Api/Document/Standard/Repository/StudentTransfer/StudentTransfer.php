@@ -50,7 +50,7 @@ class StudentTransfer extends AbstractDocument
 
         // PersonGender
         $this->FieldValue['Gender'] = '';
-        $this->FieldValue['PersonId'] = (isset($DataPost['PersonId']) && $DataPost['PersonId'] != '' ? $DataPost['PersonId'] : '');
+        $this->FieldValue['PersonId'] = (isset($DataPost['PersonId']) && $DataPost['PersonId'] != '' ? $DataPost['PersonId'] : false);
         if ($this->FieldValue['PersonId'] && ($tblPerson = Person::useService()->getPersonById($this->FieldValue['PersonId']))) {
             if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
                 if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
@@ -79,25 +79,13 @@ class StudentTransfer extends AbstractDocument
         $this->FieldValue['NewAddress'] = (isset($DataPost['NewAddress']) && $DataPost['NewAddress'] != '' ? $DataPost['NewAddress'] : '&nbsp;');
         $this->FieldValue['Custody'] = (isset($DataPost['Custody']) && $DataPost['Custody'] != '' ? $DataPost['Custody'] : '&nbsp;');
         $this->FieldValue['Division'] = (isset($DataPost['Division']) && $DataPost['Division'] != '' ? $DataPost['Division'] : '___');
-        $this->FieldValue['DateUntil'] = (isset($DataPost['DateUntil']) && $DataPost['DateUntil'] != '' ? $DataPost['DateUntil'] : '&nbsp;');
+        $this->FieldValue['DateUntil'] = (isset($DataPost['DateUntil']) && $DataPost['DateUntil'] != '' ? $DataPost['DateUntil'] : '__________');
         $this->FieldValue['SchoolEntry'] = (isset($DataPost['SchoolEntry']) && $DataPost['SchoolEntry'] != '' ? $DataPost['SchoolEntry'] : '&nbsp;');
         $this->FieldValue['SchoolEntryDivision'] = (isset($DataPost['SchoolEntryDivision']) && $DataPost['SchoolEntryDivision'] != '' ? $DataPost['SchoolEntryDivision'] : '&nbsp;');
         $this->FieldValue['DivisionRepeat'] = (isset($DataPost['DivisionRepeat']) && $DataPost['DivisionRepeat'] != '' ? $DataPost['DivisionRepeat'] : '&nbsp;');
 
         return $this;
     }
-
-//    /**
-//     * @return false|TblDivision
-//     */
-//    public function getTblDivision()
-//    {
-//        if (null === $this->tblDivision) {
-//            return false;
-//        } else {
-//            return $this->tblDivision;
-//        }
-//    }
 
     /**
      * @return string
@@ -636,7 +624,7 @@ class StudentTransfer extends AbstractDocument
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('&nbsp;')
-                    ->styleHeight('200px')
+                    ->styleHeight('180px')
                 )
             )
             ->addSlice((new Slice())

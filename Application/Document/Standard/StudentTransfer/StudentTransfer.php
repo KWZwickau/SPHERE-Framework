@@ -22,8 +22,8 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
-use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -31,10 +31,10 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
-use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -54,7 +54,7 @@ class StudentTransfer extends Extension
         ));
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Form', __CLASS__.'::frontendForm'
+            __NAMESPACE__.'/Fill', __CLASS__.'::frontendFillStudentTransfer'
         ));
     }
 
@@ -93,16 +93,26 @@ class StudentTransfer extends Extension
                         'Name'     => $tblPerson->getLastFirstName(),
                         'Address'  => $tblAddress ? $tblAddress->getGuiString() : '',
                         'Division' => Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson),
-                        'Option'   => new Standard('Ausfüllen', __NAMESPACE__.'/Form', null,
+                        'Option'   => new Standard('Erstellen', __NAMESPACE__.'/Fill', null,
                                 array('Id' => $tblPerson->getId()))
-                            .new External('Herunterladen',
-                                'SPHERE\Application\Api\Document\Standard\StudentTransfer\Create',
-                                new Download(), array('Data' => $Data),
-                                'Schulbescheinigung herunterladen')
+//                            .new External('Herunterladen',
+//                                'SPHERE\Application\Api\Document\Standard\StudentTransfer\Create',
+//                                new Download(), array('Data' => $Data),
+//                                'Schulbescheinigung herunterladen')
                     );
                 });
             }
         }
+
+        $YearString = '(SJ ';
+        $tblYearList = Term::useService()->getYearByNow();
+        if ($tblYearList) {
+            $YearString .= current($tblYearList)->getYear();
+        } else {
+            $YearString .= new ToolTip(new Danger((new \DateTime())->format('Y')),
+                'Kein Schuljahr mit aktuellem Zeitraum');
+        }
+        $YearString .= ')';
 
         $Stage->setContent(
             new Layout(array(
@@ -115,8 +125,14 @@ class StudentTransfer extends Extension
                                 array(
                                     'Name'     => 'Name',
                                     'Address'  => 'Adresse',
-                                    'Division' => 'Klasse',
+                                    'Division' => 'Klasse '.$YearString,
                                     'Option'   => ''
+                                ),
+                                array(
+                                    'columnDefs' => array(
+                                        array('type' => 'german-string', 'targets' => 0),
+                                        array('width' => '1%', 'targets' => -1),
+                                    ),
                                 )
                             )
                         )),
@@ -133,10 +149,10 @@ class StudentTransfer extends Extension
      *
      * @return Stage
      */
-    public function frontendForm($Id = null)
+    public function frontendFillStudentTransfer($Id = null)
     {
 
-        $Stage = new Stage('Form');
+        $Stage = new Stage('Schülerüberweisung', 'Erstellen');
         $tblPerson = Person::useService()->getPersonById($Id);
         $Global = $this->getGlobal();
         if ($tblPerson) {
@@ -209,7 +225,7 @@ class StudentTransfer extends Extension
                             foreach ($tblYearList as $tblYear) {
                                 $tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear);
                                 if ($tblDivision && $tblDivision->getTblLevel()) {
-                                    $Global->POST['Data']['SchoolEntryDivision'] = $tblDivision->getTblLevel();
+                                    $Global->POST['Data']['SchoolEntryDivision'] = $tblDivision->getTblLevel()->getName();
                                 }
                             }
                         }
@@ -238,6 +254,7 @@ class StudentTransfer extends Extension
                                 : '')
                             .$tblPersonParent->getLastFirstName();
                     } else {
+                        // Linebrake without tabs is important! don't remove
                         $Global->POST['Data']['Custody'] .= '
 '.$tblPersonParent->getSalutation().' '.
                             ($tblPersonParent->getTitle()
@@ -283,29 +300,30 @@ class StudentTransfer extends Extension
         $Global->savePost();
 
         $form = $this->formStudentTransfer($Id);
-//        $form->appendFormButton(new \SPHERE\Common\Frontend\Form\Repository\Button\Standard('PDF Download'));
+
+        $HeadPanel = new Panel('Schüler', $tblPerson->getLastFirstName());
 
         $Stage->setContent(
             new Layout(
-                new LayoutGroup(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            $HeadPanel
+                            , 7)
+                    ),
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Success($tblPerson->getLastFirstName())
-                            .$form
-//                            .$this->downloadStudentTransfer($form, $Data, $Id)
-//                            .ApiStudentTransfer::receiverService()
+                            $form
                             , 7),
                         new LayoutColumn(
-//                            new Info('</br></br></br></br></br></br></br></br></br></br></br></br></br></br></br></br>
-//                                    </br></br></br></br></br></br></br></br>'.new Center('Bild').'</br></br></br></br></br></br></br></br>
-//                                    </br></br></br></br></br></br></br></br></br></br></br></br></br></br></br></br>')
-                            new Thumbnail(
+                            new Title('Vorlage des Standard-Dokuments "Schülerüberweisung"')
+                            .new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/Document/StudentTransfer.png')
                                 , ''
                             )
                             , 5),
                     ))
-                )
+                ))
             )
         );
 
@@ -475,24 +493,11 @@ class StudentTransfer extends Extension
 
                 new FormRow(array(
                     new FormColumn(
-                        ApiStudentTransfer::receiverService(ApiStudentTransfer::pipelineButtonRefresh($PersonId, false))
+                        ApiStudentTransfer::receiverService(ApiStudentTransfer::pipelineButtonRefresh($PersonId))
 //                        (new Standard('PDF erzeugen', ApiStudentTransfer::getEndpoint()))->ajaxPipelineOnClick(ApiStudentTransfer::pipelineDownload($PersonId))
                     )
                 ))
             ))
         );
     }
-
-//    public function downloadStudentTransfer(IFrontendInterface $form, $Data, $Id)
-//    {
-//        if ($Data != null) {
-////            $Redirect = new Redirect('SPHERE\Application\Api\Document\Standard\StudentTransfer\Create', 0, array(
-////                'Data' => $Data,
-////                'Id' => $Id,
-////            ));
-//            Debugger::screenDump($Data);
-//            return new Success('PDF wird generiert');
-//        }
-//        return $form;
-//    }
 }
