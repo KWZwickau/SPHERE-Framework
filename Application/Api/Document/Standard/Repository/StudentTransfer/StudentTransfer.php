@@ -83,6 +83,7 @@ class StudentTransfer extends AbstractDocument
         $this->FieldValue['SchoolEntry'] = (isset($DataPost['SchoolEntry']) && $DataPost['SchoolEntry'] != '' ? $DataPost['SchoolEntry'] : '&nbsp;');
         $this->FieldValue['SchoolEntryDivision'] = (isset($DataPost['SchoolEntryDivision']) && $DataPost['SchoolEntryDivision'] != '' ? $DataPost['SchoolEntryDivision'] : '&nbsp;');
         $this->FieldValue['DivisionRepeat'] = (isset($DataPost['DivisionRepeat']) && $DataPost['DivisionRepeat'] != '' ? $DataPost['DivisionRepeat'] : '&nbsp;');
+        $this->FieldValue['Additional'] = (isset($DataPost['Additional']) && $DataPost['Additional'] != '' ? $DataPost['Additional'] : '&nbsp;');
 
         return $this;
     }
@@ -530,9 +531,18 @@ class StudentTransfer extends AbstractDocument
         );
         $Slice->addElement((new Element())
             ->setContent('Anlagen')
-            ->styleBorderAll()
+            ->styleBorderTop()
+            ->styleBorderLeft()
+            ->styleBorderRight()
             ->styleTextSize('8pt')
-            ->styleHeight('40px')
+        );
+        $Slice->addElement((new Element())
+            ->setContent($this->FieldValue['Additional'])
+            ->stylePaddingLeft($this->TextPaddingLeft)
+            ->styleBorderLeft()
+            ->styleBorderRight()
+            ->styleBorderBottom()
+            ->styleTextSize('12pt')
         );
         return $Slice;
     }

@@ -484,6 +484,19 @@ class StudentTransfer extends Extension
                                                 ))
                                             )
                                         )
+                                    )),
+                                    new LayoutColumn(new Well(
+                                        new Layout(
+                                            new LayoutGroup(
+                                                new LayoutRow(
+                                                    new LayoutColumn(
+                                                        (new TextField('Data[Additional]', 'Anlagen',
+                                                            'Anlagen')
+                                                        )->ajaxPipelineOnKeyUp(ApiStudentTransfer::pipelineButtonRefresh($PersonId))
+                                                    )
+                                                )
+                                            )
+                                        )
                                     ))
                                 ))
                             )
