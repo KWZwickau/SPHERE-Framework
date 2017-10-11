@@ -2026,12 +2026,12 @@ class KamenzReportService
                                 $countBasicCourseArray = self::countGenderCourses($tblSubject, $tblLevel, $count,
                                     $countBasicCourseArray);
                             }
-                        }
 
-                        if (isset($countBasicCourseArray[$tblSubject->getAcronym()][$tblLevel->getName()]['CoursesCount'])) {
-                            $countBasicCourseArray[$tblSubject->getAcronym()][$tblLevel->getName()]['CoursesCount']++;
-                        } else {
-                            $countBasicCourseArray[$tblSubject->getAcronym()][$tblLevel->getName()]['CoursesCount'] = 1;
+                            if (isset($countBasicCourseArray[$tblSubject->getAcronym()][$tblLevel->getName()]['CoursesCount'])) {
+                                $countBasicCourseArray[$tblSubject->getAcronym()][$tblLevel->getName()]['CoursesCount']++;
+                            } else {
+                                $countBasicCourseArray[$tblSubject->getAcronym()][$tblLevel->getName()]['CoursesCount'] = 1;
+                            }
                         }
                     }
                 }
