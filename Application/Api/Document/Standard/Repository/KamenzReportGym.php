@@ -18,6 +18,7 @@ use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E03;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E04;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E04_1;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E05;
+use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E07;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E08;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E11;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym\E12;
@@ -57,6 +58,7 @@ class KamenzReportGym extends AbstractDocument
                 ->addSliceArray(E04::getContent())
                 ->addSliceArray(E04_1::getContent())
                 ->addSliceArray(E05::getContent())
+                ->addSliceArray(E07::getContent())
                 ->addSliceArray(E08::getContent())
             )
             ->addPage((new Page())

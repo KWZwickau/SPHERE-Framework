@@ -1051,6 +1051,192 @@ class E07
         $section = new Section();
         $section
             ->addElementColumn((new Element())
+                ->setContent('Unbekannt')
+                ->stylePaddingLeft('5px')
+                ->styleBackgroundColor('lightgrey')
+                ->styleBorderRight(), '30%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('
+                    {% if (Content.E07.Unknown.L5.m is not empty) %}
+                        {{ Content.E07.Unknown.L5.m }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}
+                ')
+                ->styleAlignCenter()
+                ->styleBorderRight()
+                , '5%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('
+                    {% if (Content.E07.Unknown.L5.w is not empty) %}
+                        {{ Content.E07.Unknown.L5.w }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}
+                ')
+                ->styleAlignCenter()
+                ->styleBorderRight()
+                , '5%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('
+                    {% if (Content.E07.Unknown.L6.m is not empty) %}
+                        {{ Content.E07.Unknown.L6.m }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}                                    
+                ')
+                ->styleAlignCenter()
+                ->styleBorderRight()
+                , '5%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('
+                    {% if (Content.E07.Unknown.L6.w is not empty) %}
+                        {{ Content.E07.Unknown.L6.w }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}                                    
+                ')
+                ->styleAlignCenter()
+                ->styleBorderRight()
+                , '5%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('
+                    {% if (Content.E07.Unknown.L7.m is not empty) %}
+                        {{ Content.E07.Unknown.L7.m }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}                                    
+                ')
+                ->styleAlignCenter()
+                ->styleBorderRight()
+                , '5%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('
+                    {% if (Content.E07.Unknown.L7.w is not empty) %}
+                        {{ Content.E07.Unknown.L7.w }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}                                    
+                ')
+                ->styleAlignCenter()
+                ->styleBorderRight()
+                , '5%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('
+                    {% if (Content.E07.Unknown.L8.m is not empty) %}
+                        {{ Content.E07.Unknown.L8.m }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}                                    
+                ')
+                ->styleAlignCenter()
+                ->styleBorderRight()
+                , '5%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('
+                    {% if (Content.E07.Unknown.L8.w is not empty) %}
+                        {{ Content.E07.Unknown.L8.w }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}                                    
+                ')
+                ->styleAlignCenter()
+                ->styleBorderRight()
+                , '5%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('
+                    {% if (Content.E07.Unknown.L9.m is not empty) %}
+                        {{ Content.E07.Unknown.L9.m }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}                                    
+                ')
+                ->styleAlignCenter()
+                ->styleBorderRight()
+                , '5%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('
+                    {% if (Content.E07.Unknown.L9.w is not empty) %}
+                        {{ Content.E07.Unknown.L9.w }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}                                    
+                ')
+                ->styleAlignCenter()
+                ->styleBorderRight()
+                , '5%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('
+                    {% if (Content.E07.Unknown.L10.m is not empty) %}
+                        {{ Content.E07.Unknown.L10.m }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}                                    
+                ')
+                ->styleAlignCenter()
+                ->styleBorderRight()
+                , '5%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('
+                    {% if (Content.E07.Unknown.L10.w is not empty) %}
+                        {{ Content.E07.Unknown.L10.w }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}                                    
+                ')
+                ->styleAlignCenter()
+                ->styleBorderRight()
+                , '5%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('
+                    {% if (Content.E07.Unknown.TotalCount.m is not empty) %}
+                        {{ Content.E07.Unknown.TotalCount.m }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}                                    
+                ')
+                ->styleBackgroundColor('lightgrey')
+                ->styleTextBold()
+                ->styleBorderRight()
+                ->styleAlignCenter()
+                , '5%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('
+                    {% if (Content.E07.Unknown.TotalCount.w is not empty) %}
+                        {{ Content.E07.Unknown.TotalCount.w }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}                                    
+                ')
+                ->styleBackgroundColor('lightgrey')
+                ->styleTextBold()
+                ->styleAlignCenter()
+                , '5%'
+            );
+
+        $sliceList[] = (new Slice())
+            ->styleBorderBottom()
+            ->styleBorderLeft()
+            ->styleBorderRight()
+            ->addSection($section);
+
+        $section = new Section();
+        $section
+            ->addElementColumn((new Element())
                 ->setContent('Insgesamt')
                 ->stylePaddingLeft('5px')
                 ->styleBorderRight(), '30%'
