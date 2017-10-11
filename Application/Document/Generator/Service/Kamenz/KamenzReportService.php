@@ -460,6 +460,7 @@ class KamenzReportService
     }
 
     /**
+     * Nur für Gymnasium!
      * @param $Content
      * @param $tblPastYearList
      */
@@ -477,6 +478,8 @@ class KamenzReportService
                             foreach ($tblPrepareList as $tblPrepare) {
                                 if (($tblDivision = $tblPrepare->getServiceTblDivision())
                                     && ($tblLevel = $tblDivision->getTblLevel())
+                                    && ($tblSchoolType = $tblLevel->getServiceTblType())
+                                    && $tblSchoolType->getName() == 'Gymnasium'
                                     && ($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPrepare($tblPrepare))
                                 ) {
                                     foreach ($tblPrepareStudentList as $tblPrepareStudent) {
