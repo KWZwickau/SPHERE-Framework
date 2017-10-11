@@ -1152,10 +1152,19 @@ class KamenzReportService
             ) {
 
                 if ($gender) {
-                    if (isset($countOrientationArray[$tblSubject->getAcronym()][$tblLevel->getName()][$gender])) {
-                        $countOrientationArray[$tblSubject->getAcronym()][$tblLevel->getName()][$gender]++;
-                    } else {
-                        $countOrientationArray[$tblSubject->getAcronym()][$tblLevel->getName()][$gender] = 1;
+                    $name = '';
+                    if (($startPos = strpos($tblSubject->getName(), '(')) !== false
+                        && ($endPos = strpos($tblSubject->getName(), ')')) !== false
+                    ) {
+                        $name = substr($tblSubject->getName(), $startPos + 1, $endPos - ($startPos + 1));
+                    }
+
+                    if ($name != '') {
+                        if (isset($countOrientationArray[$name][$tblLevel->getName()][$gender])) {
+                            $countOrientationArray[$name][$tblLevel->getName()][$gender]++;
+                        } else {
+                            $countOrientationArray[$name][$tblLevel->getName()][$gender] = 1;
+                        }
                     }
                 }
             }
@@ -1215,15 +1224,7 @@ class KamenzReportService
          */
         ksort($countOrientationArray);
         $count = 0;
-        foreach ($countOrientationArray as $acronym => $levelArray) {
-            $name = '';
-            if (($tblSubject = Subject::useService()->getSubjectByAcronym($acronym))) {
-                if (($startPos = strpos($tblSubject->getName(), '(')) !== false
-                    && ($endPos = strpos($tblSubject->getName(), ')')) !== false
-                ) {
-                    $name = substr($tblSubject->getName(), $startPos + 1, $endPos - ($startPos + 1));
-                }
-            }
+        foreach ($countOrientationArray as $name => $levelArray) {
             $Content['E12']['S' . $count]['SubjectName'] = $name;
             foreach ($levelArray as $level => $genderArray) {
                 foreach ($genderArray as $gender => $value) {
