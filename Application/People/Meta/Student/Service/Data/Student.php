@@ -45,12 +45,23 @@ abstract class Student extends AbstractData
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
+
+        $IsIdentifier = true;
+        $IdentifierResult = $Manager->getEntity('TblStudent')
+            ->findOneBy(array(
+                TblStudent::ATTR_TBL_IDENTIFIER => $Identifier,
+            ));
+        if ($IdentifierResult) {
+            $IsIdentifier = false;
+        }
+
         $Entity = $this->getStudentByPerson($tblPerson);
         if (!$Entity) {
-
             $Entity = new TblStudent();
             $Entity->setServiceTblPerson($tblPerson);
-            $Entity->setIdentifier($Identifier);
+            if ($IsIdentifier) {
+                $Entity->setIdentifier($Identifier);
+            }
             $Entity->setTblStudentMedicalRecord($tblStudentMedicalRecord);
             $Entity->setTblStudentTransport($tblStudentTransport);
             $Entity->setTblStudentBilling($tblStudentBilling);
@@ -97,12 +108,24 @@ abstract class Student extends AbstractData
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
+
+        $IsIdentifier = true;
+        $IdentifierResult = $Manager->getEntity('TblStudent')
+            ->findOneBy(array(
+                TblStudent::ATTR_TBL_IDENTIFIER => $Identifier,
+            ));
+        if ($IdentifierResult) {
+            $IsIdentifier = false;
+        }
+
         /** @var null|TblStudent $Entity */
         $Entity = $Manager->getEntityById('TblStudent', $tblStudent->getId());
         if (null !== $Entity) {
             $Protocol = clone $Entity;
 
-            $Entity->setIdentifier($Identifier);
+            if ($IsIdentifier) {
+                $Entity->setIdentifier($Identifier);
+            }
             $Entity->setTblStudentMedicalRecord($tblStudentMedicalRecord);
             $Entity->setTblStudentTransport($tblStudentTransport);
             $Entity->setTblStudentBilling($tblStudentBilling);
@@ -142,6 +165,19 @@ abstract class Student extends AbstractData
     {
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblStudent', $Id);
+    }
+
+    /**
+     * @param string $Identifier
+     *
+     * @return bool|TblStudent
+     */
+    public function getStudentByIdentifier($Identifier)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblStudent', array(
+            TblStudent::ATTR_TBL_IDENTIFIER => $Identifier
+        ));
     }
 
     /**

@@ -27,6 +27,17 @@ abstract class Student extends AbstractService
     }
 
     /**
+     * @param string $Identifier
+     *
+     * @return bool|TblStudent
+     */
+    public function getStudentByIdentifier($Identifier)
+    {
+
+        return (new Data($this->getBinding()))->getStudentByIdentifier($Identifier);
+    }
+
+    /**
      *
      * @param TblPerson $tblPerson
      *

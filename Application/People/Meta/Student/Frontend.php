@@ -4,6 +4,7 @@ namespace SPHERE\Application\People\Meta\Student;
 
 use SPHERE\Application\Api\MassReplace\ApiMassReplace;
 use SPHERE\Application\Api\MassReplace\StudentFilter;
+use SPHERE\Application\Api\People\Meta\Student\ApiStudent;
 use SPHERE\Application\Api\People\Meta\Subject\MassReplaceSubject;
 use SPHERE\Application\Api\People\Meta\Transfer\MassReplaceTransfer;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
@@ -139,8 +140,11 @@ class Frontend extends Extension implements IFrontendInterface
                                         new FormRow(array(
                                             new FormColumn(
                                                 new Panel('Identifikation', array(
-                                                    new TextField('Meta[Student][Identifier]', 'Schülernummer',
-                                                        'Schülernummer')
+                                                    (new TextField('Meta[Student][Identifier]', 'Schülernummer',
+                                                        'Schülernummer'))
+                                                        ->ajaxPipelineOnKeyUp(ApiStudent::pipelineCompareIdentifier($tblPerson->getId()))
+                                                ,
+                                                    ApiStudent::receiverControlIdentifier()
                                                 ), Panel::PANEL_TYPE_INFO)
                                                 , 4),
                                             new FormColumn(
