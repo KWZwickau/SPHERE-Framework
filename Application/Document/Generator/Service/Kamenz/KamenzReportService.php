@@ -22,7 +22,6 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Created by PhpStorm.
@@ -1835,11 +1834,6 @@ class KamenzReportService
                 }
             }
         }
-
-
-
-        Debugger::screenDump($Content['E01K']);
-
     }
 
     /**
