@@ -21,6 +21,7 @@ class E02
 
         $sliceList[] = (new Slice())
             ->styleTextBold()
+            ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
                 ->setContent('E02. Schüler im Schuljahr {{Content.SchoolYear.Current}} nach Geburtsjahren und Klassenstufen')

@@ -22,6 +22,7 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Created by PhpStorm.
@@ -62,6 +63,7 @@ class KamenzReportService
             $countReligionArray = array();
             $countOrientationArray = array();
             $countDivisionStudentArray = array();
+            $countDivisionStudentArrayForSecondarySchool = array();
 
             $tblTransferTypeProcess = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
             /** @var TblYear[] $tblCurrentYearList */
@@ -119,6 +121,10 @@ class KamenzReportService
                                         ) {
                                             $tblCourse = $tblTransfer->getServiceTblCourse();
                                         }
+
+                                        self::countDivisionStudentsForSecondarySchool($countDivisionStudentArrayForSecondarySchool,
+                                            $tblDivision, $tblCourse ? $tblCourse : null, $gender, $isInPreparationDivisionForMigrants);
+
                                     } else {
                                         if (isset($countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()])) {
                                             $countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()]++;
@@ -153,6 +159,7 @@ class KamenzReportService
             self::setReligion($Content, $countReligionArray);
             self::setOrientation($Content, $countOrientationArray);
             self::setDivisionFrequency($Content, $countDivisionStudentArray);
+            self::setDivisionStudentsForSecondarySchool($Content, $countDivisionStudentArrayForSecondarySchool);
         }
 
         return $Content;
@@ -1730,6 +1737,109 @@ class KamenzReportService
                 }
             }
         }
+    }
+
+    /**
+     * @param $countDivisionStudents
+     * @param TblDivision $tblDivision
+     * @param TblCourse|null $tblCourse
+     * @param $gender
+     * @param $isInPreparationDivisionForMigrants
+     */
+    private static function countDivisionStudentsForSecondarySchool(
+        &$countDivisionStudents,
+        TblDivision $tblDivision,
+        TblCourse $tblCourse = null,
+        $gender,
+        $isInPreparationDivisionForMigrants
+    ) {
+        if ($gender) {
+            if ($tblCourse == null) {
+                $course = 'NoCourse';
+            } elseif ($tblCourse->getName() == 'Hauptschule') {
+                $course = 'HS';
+            } elseif ($tblCourse->getName() == 'Realschule') {
+                $course = 'RS';
+            } else {
+                $course = 'NoCourse';
+            }
+
+            if (isset($countDivisionStudents['Division'][$tblDivision->getId()][$course][$gender])) {
+                $countDivisionStudents['Division'][$tblDivision->getId()][$course][$gender]++;
+            } else {
+                $countDivisionStudents['Division'][$tblDivision->getId()][$course][$gender] = 1;
+            }
+
+            if ($isInPreparationDivisionForMigrants) {
+                if (isset($countDivisionStudents['Migrants'][$tblDivision->getId()][$course][$gender])) {
+                    $countDivisionStudents['Migrants'][$tblDivision->getId()][$course][$gender]++;
+                } else {
+                    $countDivisionStudents['Migrants'][$tblDivision->getId()][$course][$gender] = 1;
+                }
+            }
+        }
+    }
+
+    /**
+     * @param $Content
+     * @param $countDivisionStudents
+     */
+    private static function setDivisionStudentsForSecondarySchool(
+        &$Content,
+        $countDivisionStudents
+    ) {
+
+        if (isset($countDivisionStudents['Division'])) {
+            foreach ($countDivisionStudents['Division'] as $divisionId => $courseArray) {
+                if (($tblDivision = Division::useService()->getDivisionById($divisionId))
+                    && ($tblLevel = $tblDivision->getTblLevel())
+                    && ($level = $tblLevel->getName())
+                ) {
+                    $courseString = 'Error';
+                    if (isset($courseArray['RS']) && isset($courseArray['HS'])) {
+                        $isMixed = true;
+                    } else {
+                        if (isset($courseArray['RS'])) {
+                            $courseString = 'RS';
+                        } elseif (isset($courseArray['HS'])) {
+                            $courseString = 'HS';
+                        } elseif (isset($courseArray['NoCourse'])) {
+                            $courseString = 'NoCourse';
+                        }
+                        $isMixed = false;
+                    }
+
+                    foreach ($courseArray as $course => $genderArray) {
+                        foreach ($genderArray as $gender => $count) {
+                            $Content['E01'][$course][$isMixed ? 'Mixed' : 'Pure']['L' . $level][$gender] = $count;
+
+                            if (isset($Content['E01'][$course][$isMixed ? 'Mixed' : 'Pure']['TotalCount'][$gender])) {
+                                $Content['E01'][$course][$isMixed ? 'Mixed' : 'Pure']['TotalCount'][$gender] += $count;
+                            } else {
+                                $Content['E01'][$course][$isMixed ? 'Mixed' : 'Pure']['TotalCount'][$gender] = $count;
+                            }
+                        }
+                    }
+
+                    if (isset($Content['E01K'][$isMixed ? 'Mixed' : $courseString]['L' . $level])) {
+                        $Content['E01K'][$isMixed ? 'Mixed' : $courseString]['L' . $level]++;
+                    } else {
+                        $Content['E01K'][$isMixed ? 'Mixed' : $courseString]['L' . $level] = 1;
+                    }
+
+                    if (isset($Content['E01K'][$isMixed ? 'Mixed' : $courseString]['TotalCount'])) {
+                        $Content['E01K'][$isMixed ? 'Mixed' : $courseString]['TotalCount']++;
+                    } else {
+                        $Content['E01K'][$isMixed ? 'Mixed' : $courseString]['TotalCount'] = 1;
+                    }
+                }
+            }
+        }
+
+
+
+        Debugger::screenDump($Content['E01K']);
+
     }
 
     /**
