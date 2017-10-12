@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Api\Document\Standard;
 
 use SPHERE\Application\Api\Document\Creator;
+use SPHERE\Application\Api\Document\Standard\Repository\SignOutCertificate\ApiSignOutCertificate;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentTransfer\ApiStudentTransfer;
 use SPHERE\Application\Document\Generator\Generator;
 use SPHERE\Application\IModuleInterface;
@@ -28,6 +29,7 @@ class Standard extends Extension implements IModuleInterface
     {
 
         ApiStudentTransfer::registerApi();
+        ApiSignOutCertificate::registerApi();
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/EnrollmentDocument/Create', __CLASS__ . '::createEnrollmentDocumentPdf'
@@ -46,6 +48,9 @@ class Standard extends Extension implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/StudentTransfer/Create', __CLASS__.'::createStudentTransferPdf'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/SignOutCertificate/Create', __CLASS__.'::createSignOutCertificatePdf'
         ));
 
 //        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -111,7 +116,17 @@ class Standard extends Extension implements IModuleInterface
      */
     public static function createStudentTransferPdf($Data = array())
     {
-        return Creator::createStudentTransferPdf($Data, Creator::PAPERORIENTATION_PORTRAIT);
+        return Creator::createDataPdf($Data, 'StudentTransfer', Creator::PAPERORIENTATION_PORTRAIT);
+    }
+
+    /**
+     * @param array $Data
+     *
+     * @return \SPHERE\Common\Window\Stage|string
+     */
+    public static function createSignOutCertificatePdf($Data = array())
+    {
+        return Creator::createDataPdf($Data, 'SignOutCertificate', Creator::PAPERORIENTATION_PORTRAIT);
     }
 
     /**

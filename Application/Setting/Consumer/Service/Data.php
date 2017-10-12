@@ -29,12 +29,16 @@ class Data extends AbstractData
             $this->createSetting('Contact', 'Address', 'Address', 'Format_GuiString',
                 TblSetting::TYPE_STRING, TblAddress::VALUE_PLZ_ORT_OT_STR_NR);
 
+            $this->createSetting('Api', 'Document', 'Standard', 'SignOutCertificate_PictureAddress',
+                TblSetting::TYPE_STRING, '');
+            $this->createSetting('Api', 'Document', 'Standard', 'SignOutCertificate_PictureHeight',
+                TblSetting::TYPE_STRING, '');
+
             $this->createSetting('Api', 'Document', 'Standard', 'EnrollmentDocument_PictureAddress',
                 TblSetting::TYPE_STRING, '');
             // Höhe sollte kleiner als 120px sein
             $this->createSetting('Api', 'Document', 'Standard', 'EnrollmentDocument_PictureHeight',
-                TblSetting::TYPE_STRING,
-                '');
+                TblSetting::TYPE_STRING, '');
 
             // Logo für das Zeugnis darf skalliert nicht breiter sein als 182px (bei einer höhe von 50px [Bsp.: 546 * 150 ist noch ok])
             if ($tblConsumer->getAcronym() == 'ESS') {

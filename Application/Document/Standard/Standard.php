@@ -10,6 +10,7 @@ namespace SPHERE\Application\Document\Standard;
 
 use SPHERE\Application\Document\Standard\AccidentReport\AccidentReport;
 use SPHERE\Application\Document\Standard\EnrollmentDocument\EnrollmentDocument;
+use SPHERE\Application\Document\Standard\SignOutCertificate\SignOutCertificate;
 use SPHERE\Application\Document\Standard\StudentCard\StudentCard;
 use SPHERE\Application\Document\Standard\StudentTransfer\StudentTransfer;
 use SPHERE\Application\IApplicationInterface;
@@ -32,6 +33,7 @@ class Standard implements IApplicationInterface
         StudentCard::registerModule();
         AccidentReport::registerModule();
         StudentTransfer::registerModule();
+        SignOutCertificate::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Standard'))

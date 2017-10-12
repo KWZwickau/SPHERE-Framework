@@ -13,6 +13,7 @@ use MOC\V\Component\Document\Document as PdfDocument;
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Document\Standard\Repository\GradebookOverview;
+use SPHERE\Application\Api\Document\Standard\Repository\SignOutCertificate\SignOutCertificate;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\AbstractStudentCard;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\GrammarSchool;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\MultiStudentCard;
@@ -235,21 +236,31 @@ class Creator extends Extension
 
     /**
      * @param array  $Data
+     * @param string $DocumentName
      * @param string $paperOrientation
      *
      * @return Stage|string
      */
-    public static function createStudentTransferPdf($Data, $paperOrientation = Creator::PAPERORIENTATION_PORTRAIT)
+    public static function createDataPdf($Data, $DocumentName, $paperOrientation = Creator::PAPERORIENTATION_PORTRAIT)
     {
         if (!empty($Data)
         ) {
 
-            $Document = new StudentTransfer\StudentTransfer($Data);
-            $File = self::buildDummyFile($Document, array(), array(), $paperOrientation);
+            $Document = false;
+            if ($DocumentName == 'StudentTransfer') {
+                $Document = new StudentTransfer\StudentTransfer($Data);
+            }
+            if ($DocumentName == 'SignOutCertificate') {
+                $Document = new SignOutCertificate($Data);
+            }
 
-            $FileName = $Document->getName().' '.date("Y-m-d").".pdf";
+            if ($Document) {
+                $File = self::buildDummyFile($Document, array(), array(), $paperOrientation);
 
-            return self::buildDownloadFile($File, $FileName);
+                $FileName = $Document->getName().' '.date("Y-m-d").".pdf";
+
+                return self::buildDownloadFile($File, $FileName);
+            }
         }
 
         return new Stage('Dokument', 'Konnte nicht erstellt werden.');
