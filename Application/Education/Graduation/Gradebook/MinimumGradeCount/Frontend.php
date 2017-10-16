@@ -154,8 +154,8 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $periodList[] = new SelectBoxItem(SelectBoxItem::PERIOD_FULL_YEAR, '-Gesamtes Schuljahr-');
-        $periodList[] = new SelectBoxItem(SelectBoxItem::PERIOD_FIRST_PERIOD, '1. Zeitraum');
-        $periodList[] = new SelectBoxItem(SelectBoxItem::PERIOD_SECOND_PERIOD, '2. Zeitraum');
+        $periodList[] = new SelectBoxItem(SelectBoxItem::PERIOD_FIRST_PERIOD, '1. Halbjahr');
+        $periodList[] = new SelectBoxItem(SelectBoxItem::PERIOD_SECOND_PERIOD, '2. Halbjahr');
 
         $highLightedList[] = new SelectBoxItem(SelectBoxItem::HIGHLIGHTED_ALL, 'Alle Zensuren-Typen');
         $highLightedList[] = new SelectBoxItem(SelectBoxItem::HIGHLIGHTED_IS_HIGHLIGHTED, 'Nur große Zensuren-Typen (Fett marktiert)');
@@ -165,7 +165,7 @@ class Frontend extends Extension implements IFrontendInterface
             new FormRow(array(
                 new FormColumn(
                     new Panel(
-                        'Klassen',
+                        'Klassenstufe und Fach',
                         array(
                             new SelectBox('MinimumGradeCount[Level]', 'Schulart - Klassenstufe '
                                 . new DangerText('*'),
@@ -174,7 +174,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 array('{{ Acronym }} - {{ Name }}' => $tblSubjectAll))
                         ),
                         Panel::PANEL_TYPE_INFO
-                    ), 3
+                    ), 4
                 ),
                 new FormColumn(
                     new Panel(
@@ -186,16 +186,20 @@ class Frontend extends Extension implements IFrontendInterface
                                 array('{{ Name }}' => $highLightedList))
                         ),
                         Panel::PANEL_TYPE_INFO
-                    ), 3
+                    ), 4
                 ),
                 new FormColumn(
-                    new SelectBox('MinimumGradeCount[Period]', 'Zeitraum',
-                        array('{{ Name }}' => $periodList)), 3
+                    new Panel(
+                        'Zeitraum und Anzahl',
+                        array(
+                            new SelectBox('MinimumGradeCount[Period]', 'Zeitraum',
+                                array('{{ Name }}' => $periodList)),
+                            new NumberField('MinimumGradeCount[Count]', '',
+                                'Anzahl ' . new DangerText('*'), new Quantity())
+                        ),
+                        Panel::PANEL_TYPE_INFO
+                    ), 4
                 ),
-                new FormColumn(
-                    new NumberField('MinimumGradeCount[Count]', '',
-                        'Anzahl ' . new DangerText('*'), new Quantity()), 3
-                )
             )),
             new FormRow(array(
                 new FormColumn(array(
