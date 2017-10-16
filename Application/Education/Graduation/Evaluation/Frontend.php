@@ -616,12 +616,12 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Task
-     * @param null $Select
+     * @param bool $IsAllYears
      * @param null $YearId
      *
      * @return Stage
      */
-    public function frontendHeadmasterTask($Task = null, $Select = null, $YearId = null)
+    public function frontendHeadmasterTask($Task = null, $IsAllYears = false, $YearId = null)
     {
 
         $Stage = new Stage('Notenaufträge', 'Übersicht');
@@ -636,66 +636,48 @@ class Frontend extends Extension implements IFrontendInterface
                 '/Education/Graduation/Evaluation/Task/Headmaster', new Edit()));
         }
 
+        $buttonList = $this->setYearButtonList('/Education/Graduation/Evaluation/Task/Headmaster', $IsAllYears, $YearId, $tblYear, true);
+
         $tblTaskAll = Evaluation::useService()->getTaskAll();
 
         $contentTable = array();
         if ($tblTaskAll) {
             foreach ($tblTaskAll as $tblTask) {
-                // Ticket #SSW-1225 Bearbeitungszeitraum Notenaufträge
-//                $hasEdit = false;
-//                $nowDate = (new \DateTime('now'))->format("Y-m-d");
-//                $toDate = $tblTask->getToDate();
-//                if ($toDate) {
-//                    $toDate = new \DateTime($toDate);
-//                    $toDate = $toDate->format('Y-m-d');
-//                }
-//                if ($nowDate && $toDate) {
-//                    if ($nowDate < $toDate) {
-//                        $hasEdit = true;
-//                    }
-//                }
-                $hasEdit = true;
+                /** @var TblYear $tblYear */
+                if ($IsAllYears || ($tblYear && $tblTask->getServiceTblYear()->getId() == $tblYear->getId())) {
+                    $hasEdit = true;
 
-                $contentTable[] = array(
-                    'Date' => $tblTask->getDate(),
-                    'Type' => $tblTask->getTblTestType()->getName(),
-                    'Name' => $tblTask->getName(),
-                    'Period' => $tblTask->getServiceTblPeriod()
-                        ? $tblTask->getServiceTblPeriod()->getDisplayName() : 'Gesamtes Schuljahr',
-                    'EditPeriod' => $tblTask->getFromDate() . ' - ' . $tblTask->getToDate(),
-                    'Option' => ($hasEdit ? (new Standard('',
-                            '/Education/Graduation/Evaluation/Task/Headmaster/Edit',
-                            new Edit(),
-                            array('Id' => $tblTask->getId()),
-                            'Bearbeiten')) : '')
-                        . ($tblTask->isLocked() ? null : new Standard('',
-                            '/Education/Graduation/Evaluation/Task/Headmaster/Destroy', new Remove(),
-                            array('Id' => $tblTask->getId()),
-                            'Löschen'))
-                        . (new Standard('',
-                            '/Education/Graduation/Evaluation/Task/Headmaster/Division',
-                            new Listing(),
-                            array('Id' => $tblTask->getId()),
-                            'Klassen zuordnen')
-                        )
-                        . (new Standard('',
-                            '/Education/Graduation/Evaluation/Task/Headmaster/Grades',
-                            new Equalizer(),
-                            array('Id' => $tblTask->getId()),
-                            'Zensurenübersicht')
-                        ),
-                );
+                    $contentTable[] = array(
+                        'Date' => $tblTask->getDate(),
+                        'Type' => $tblTask->getTblTestType()->getName(),
+                        'Name' => $tblTask->getName(),
+                        'Period' => $tblTask->getServiceTblPeriod()
+                            ? $tblTask->getServiceTblPeriod()->getDisplayName() : 'Gesamtes Schuljahr',
+                        'EditPeriod' => $tblTask->getFromDate() . ' - ' . $tblTask->getToDate(),
+                        'Option' => ($hasEdit ? (new Standard('',
+                                '/Education/Graduation/Evaluation/Task/Headmaster/Edit',
+                                new Edit(),
+                                array('Id' => $tblTask->getId()),
+                                'Bearbeiten')) : '')
+                            . ($tblTask->isLocked() ? null : new Standard('',
+                                '/Education/Graduation/Evaluation/Task/Headmaster/Destroy', new Remove(),
+                                array('Id' => $tblTask->getId()),
+                                'Löschen'))
+                            . (new Standard('',
+                                '/Education/Graduation/Evaluation/Task/Headmaster/Division',
+                                new Listing(),
+                                array('Id' => $tblTask->getId()),
+                                'Klassen zuordnen')
+                            )
+                            . (new Standard('',
+                                '/Education/Graduation/Evaluation/Task/Headmaster/Grades',
+                                new Equalizer(),
+                                array('Id' => $tblTask->getId()),
+                                'Zensurenübersicht')
+                            ),
+                    );
+                }
             }
-        }
-
-        $tblYear = false;
-        if ($YearId === null) {
-            $tblYearList = Term::useService()->getYearByNow();
-            if ($tblYearList) {
-                $tblYear = reset($tblYearList);
-            }
-        } else {
-            $tblYear = Term::useService()->getYearById($YearId);
         }
 
         if ($tblYear) {
@@ -703,7 +685,6 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->POST['Select']['Year'] = $tblYear->getId();
             $Global->savePost();
         }
-
         $Form = ($this->formTask($tblYear ? $tblYear : null));
         $Form
             ->appendFormButton(new Primary('Speichern', new Save()))
@@ -712,6 +693,11 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
+                    new LayoutRow(array(
+                        empty($buttonList)
+                            ? null
+                            : new LayoutColumn($buttonList)
+                    )),
                     new LayoutRow(array(
                             new LayoutColumn(
                                 new TableData(
@@ -735,43 +721,11 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     )
                 ), new Title(new ListingTable() . ' Übersicht')),
-//                new LayoutGroup(array(
-//                    new LayoutRow(array(
-//                        new LayoutColumn(
-//                            new Well(Evaluation::useService()->getYear(
-//                                new Form(
-//                                    new FormGroup(
-//                                        new FormRow(
-//                                            new FormColumn(
-//                                                new SelectBox(
-//                                                    'Select[Year]', 'Schuljahr', array('Name' => Term::useService()->getYearAll()), new Calendar()
-//                                                )
-//                                            )
-//                                        )
-//                                    )
-//                                , new Primary('Auswählen', new Select()))
-//                                , $Select))
-//                        )
-//                    ))
-//                ), new Title(new Select() . ' Schuljahr auswählen')),
-                new LayoutGroup(array(
+                $IsAllYears
+                    ? null
+                    : new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            new Well(Evaluation::useService()->getYear(
-                                new Form(
-                                    new FormGroup(
-                                        new FormRow(
-                                            new FormColumn(
-                                                new SelectBox(
-                                                    'Select[Year]', 'Schuljahr',
-                                                    array('{{Name}} {{Description}}' => Term::useService()->getYearAll()),
-                                                    new Calendar()
-                                                )
-                                            )
-                                        )
-                                    )
-                                    , new Primary('Auswählen', new Select()))
-                                , $Select)),
                             $tblYear ? new Well(Evaluation::useService()->createTask($Form, $Task, $tblYear)) : null
                         ))
                     ))
