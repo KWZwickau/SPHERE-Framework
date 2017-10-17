@@ -151,10 +151,10 @@ abstract class AbstractData extends Cacheable
      * @return false|Element[]
      * @throws \Exception
      */
-    final protected function getForceEntityListBy($__METHOD__, Manager $EntityManager, $EntityName, $Parameter)
+    final protected function getForceEntityListBy($__METHOD__, Manager $EntityManager, $EntityName, $Parameter, $OrderBy = array( 'EntityCreate' => self::ORDER_DESC ))
     {
 
-        $EntityList = $EntityManager->getEntity($EntityName)->findBy($Parameter);
+        $EntityList = $EntityManager->getEntity($EntityName)->findBy($Parameter, $OrderBy);
         $this->debugFactory($__METHOD__, $EntityList, $Parameter);
         return ( empty( $EntityList ) ? false : $EntityList );
     }
