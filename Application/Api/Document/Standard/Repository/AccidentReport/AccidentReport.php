@@ -1,6 +1,6 @@
 <?php
 
-namespace SPHERE\Application\Api\Document\Standard\Repository;
+namespace SPHERE\Application\Api\Document\Standard\Repository\AccidentReport;
 
 use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Document\Generator\Repository\Document;
@@ -9,6 +9,8 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Person\Person;
 
 /**
  * Class AccidentReport
@@ -17,6 +19,48 @@ use SPHERE\Application\Document\Generator\Repository\Slice;
  */
 class AccidentReport extends AbstractDocument
 {
+
+    /**
+     * AccidentReport constructor.
+     *
+     * @param array $Data
+     */
+    function __construct($Data)
+    {
+
+        $this->setFieldValue($Data);
+    }
+
+    /**
+     * @var array
+     */
+    private $FieldValue = array();
+
+    /**
+     * @param $DataPost
+     *
+     * @return $this
+     */
+    private function setFieldValue($DataPost)
+    {
+        //Bsp.:
+        // PersonGender
+        $this->FieldValue['Gender'] = '';
+        $this->FieldValue['PersonId'] = (isset($DataPost['PersonId']) && $DataPost['PersonId'] != '' ? $DataPost['PersonId'] : false);
+        if ($this->FieldValue['PersonId'] && ($tblPerson = Person::useService()->getPersonById($this->FieldValue['PersonId']))) {
+            if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
+                if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
+                    if (($tblGender = $tblCommonBirthDates->getTblCommonGender())) {
+                        $this->FieldValue['Gender'] = $tblGender->getName();
+                    }
+                }
+            }
+        }
+        // Header
+        $this->FieldValue['LeaveSchool'] = (isset($DataPost['LeaveSchool']) && $DataPost['LeaveSchool'] != '' ? $DataPost['LeaveSchool'] : '&nbsp;');
+
+        return $this;
+    }
 
     /**
      * @return string

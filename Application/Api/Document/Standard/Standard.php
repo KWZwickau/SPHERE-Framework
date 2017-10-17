@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Api\Document\Standard;
 
 use SPHERE\Application\Api\Document\Creator;
+use SPHERE\Application\Api\Document\Standard\Repository\AccidentReport\ApiAccidentReport;
 use SPHERE\Application\Api\Document\Standard\Repository\SignOutCertificate\ApiSignOutCertificate;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentTransfer\ApiStudentTransfer;
 use SPHERE\Application\Document\Generator\Generator;
@@ -30,15 +31,13 @@ class Standard extends Extension implements IModuleInterface
 
         ApiStudentTransfer::registerApi();
         ApiSignOutCertificate::registerApi();
+        ApiAccidentReport::registerApi();
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/EnrollmentDocument/Create', __CLASS__ . '::createEnrollmentDocumentPdf'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/StudentCard/Create', __CLASS__ . '::createStudentCardPdf'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '/AccidentReport/Create', __CLASS__ . '::createAccidentReportPdf'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/KamenzReport/Create', 'SPHERE\Application\Api\Document\Creator::createKamenzPdf'
@@ -51,6 +50,9 @@ class Standard extends Extension implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/SignOutCertificate/Create', __CLASS__.'::createSignOutCertificatePdf'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/AccidentReport/Create', __CLASS__.'::createAccidentReportPdf'
         ));
 
 //        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -92,17 +94,6 @@ class Standard extends Extension implements IModuleInterface
      *
      * @return \SPHERE\Common\Window\Stage|string
      */
-    public static function createAccidentReportPdf($PersonId = null)
-    {
-
-        return Creator::createPdf($PersonId, __NAMESPACE__ . '\Repository\AccidentReport');
-    }
-
-    /**
-     * @param null $PersonId
-     *
-     * @return \SPHERE\Common\Window\Stage|string
-     */
     public static function createGradebookOverviewPdf($PersonId = null, $DivisionId = null)
     {
 
@@ -127,6 +118,17 @@ class Standard extends Extension implements IModuleInterface
     public static function createSignOutCertificatePdf($Data = array())
     {
         return Creator::createDataPdf($Data, 'SignOutCertificate', Creator::PAPERORIENTATION_PORTRAIT);
+    }
+
+    /**
+     * @param array $Data
+     *
+     * @return \SPHERE\Common\Window\Stage|string
+     */
+    public static function createAccidentReportPdf($Data = array())
+    {
+
+        return Creator::createDataPdf($Data, 'AccidentReport', Creator::PAPERORIENTATION_PORTRAIT);
     }
 
     /**
