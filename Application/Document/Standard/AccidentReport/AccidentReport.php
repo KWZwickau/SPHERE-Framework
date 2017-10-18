@@ -291,57 +291,47 @@ class AccidentReport extends Extension
             $tblRelationshipType = Relationship::useService()->getTypeByName('Sorgeberechtigt');
             $tblToPersonCustodyList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
                 $tblRelationshipType);
-            $Global->POST['Data']['Custody'] = '';
             if ($tblToPersonCustodyList) {
+                // female preferred (first run)
                 foreach ($tblToPersonCustodyList as $tblToPersonCustody) {
-                    $tblPersonParent = $tblToPersonCustody->getServiceTblPersonFrom();
-                    if (!isset($Global->POST['Data']['Custody']))
-                        if ($Global->POST['Data']['Custody'] == '') {
-                            $Global->POST['Data']['Custody'] .= $tblPersonParent->getSalutation().' '.
-                                ($tblPersonParent->getTitle()
-                                    ? $tblPersonParent->getTitle().' '
-                                    : '')
-                                .$tblPersonParent->getLastFirstName();
-                        } else {
-                            // Linebrake without tabs is important! don't remove
-                            $Global->POST['Data']['Custody'] .= '
-'.$tblPersonParent->getSalutation().' '.
-                                ($tblPersonParent->getTitle()
-                                    ? $tblPersonParent->getTitle().' '
-                                    : '')
-                                .$tblPersonParent->getLastFirstName();
-                        }
-                }
-            }
+                    $tblPersonCustody = $tblToPersonCustody->getServiceTblPersonFrom();
+                    if (($tblCommonCustody = $tblPersonCustody->getCommon())) {
+                        if (($tblBirthdates = $tblCommonCustody->getTblCommonBirthDates())) {
+                            if (($tblGenderCustody = $tblBirthdates->getTblCommonGender())) {
+                                if ($tblGenderCustody->getName() == 'Weiblich') {
+                                    if (!isset($Global->POST['Data']['Custody'])) {
+                                        $tblAddressCustody = Address::useService()->getAddressByPerson($tblPersonCustody);
+                                        if ($tblAddressCustody) {
+                                            $Global->POST['Data']['CustodyAddress'] = $tblAddressCustody->getGuiString();
+                                        }
 
-            // Klassen Wiederholungen
-            $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
-            $DivisionArray = array();
-            $DivisionRepeatArray = array();
-            if ($tblDivisionStudentList) {
-                foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                    $tblDivision = $tblDivisionStudent->getTblDivision();
-                    if ($tblDivision) {
-                        $tblLevel = $tblDivision->getTblLevel();
-                        if (!array_key_exists($tblLevel->getName(), $DivisionArray)) {
-                            $DivisionArray[$tblLevel->getName()] = $tblDivision->getDisplayName();
-                        } elseif ($tblLevel->getName() != '') {
-                            $DivisionRepeatArray[] = $tblDivision->getTblLevel()->getName();
+                                        $Global->POST['Data']['Custody'] = $tblPersonCustody->getSalutation().' '.
+                                            ($tblPersonCustody->getTitle()
+                                                ? $tblPersonCustody->getTitle().' '
+                                                : '')
+                                            .$tblPersonCustody->getLastFirstName();
+                                    }
+                                }
+                            }
                         }
                     }
                 }
-            }
-            if (!empty($DivisionRepeatArray)) {
-                $Global->POST['Data']['DivisionRepeat'] = implode(', ', $DivisionRepeatArray);
-            }
+                // second run if no Female found
+                if (!isset($Global->POST['Data']['Custody'])) {
+                    foreach ($tblToPersonCustodyList as $tblToPersonCustody) {
+                        $tblPersonCustody = $tblToPersonCustody->getServiceTblPersonFrom();
+                        if (!isset($Global->POST['Data']['Custody'])) {
+                            $tblAddressCustody = Address::useService()->getAddressByPerson($tblPersonCustody);
+                            if ($tblAddressCustody) {
+                                $Global->POST['Data']['CustodyAddress'] = $tblAddressCustody->getGuiString();
+                            }
 
-            // Aktuelle Klasse
-            $tblYearList = Term::useService()->getYearByNow();
-            if ($tblYearList) {
-                foreach ($tblYearList as $tblYear) {
-                    $tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear);
-                    if ($tblDivision && $tblDivision->getTblLevel() && $tblDivision->getTblLevel()->getName() != '') {
-                        $Global->POST['Data']['Division'] = $tblDivision->getTblLevel()->getName();
+                            $Global->POST['Data']['Custody'] = $tblPersonCustody->getSalutation().' '.
+                                ($tblPersonCustody->getTitle()
+                                    ? $tblPersonCustody->getTitle().' '
+                                    : '')
+                                .$tblPersonCustody->getLastFirstName();
+                        }
                     }
                 }
             }
@@ -600,9 +590,14 @@ class AccidentReport extends Extension
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 6),
                                                 )),
+                                                new LayoutRow(
+                                                    new LayoutColumn(
+                                                        new Title('')
+                                                    )
+                                                ),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        new Header('Hat der Versicherte den Besuch der Einrichtung unterbrochen?')
+                                                        new Header(new Bold('Hat der Versicherte den Besuch der Einrichtung unterbrochen?'))
                                                         .new PullClear(
                                                             new PullLeft((new RadioBox('Data[Brake]',
                                                                 'nein &nbsp;&nbsp;&nbsp;&nbsp;', 'No')
@@ -627,9 +622,14 @@ class AccidentReport extends Extension
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 3)
                                                 )),
+                                                new LayoutRow(
+                                                    new LayoutColumn(
+                                                        new Title('')
+                                                    )
+                                                ),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        new Header('hat der Versicherte den Besuch der Einrichtung wieder aufgenommen?')
+                                                        new Header(new Bold('Hat der Versicherte den Besuch der Einrichtung wieder aufgenommen?'))
                                                         .new PullClear(
                                                             new PullLeft((new RadioBox('Data[Return]',
                                                                 'nein &nbsp;&nbsp;&nbsp;&nbsp;', 'No')
@@ -646,6 +646,11 @@ class AccidentReport extends Extension
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 3),
                                                 )),
+                                                new LayoutRow(
+                                                    new LayoutColumn(
+                                                        new Title('')
+                                                    )
+                                                ),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
                                                         (new TextField('Data[Doctor]', 'Name',
@@ -670,6 +675,11 @@ class AccidentReport extends Extension
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 3),
                                                 )),
+                                                new LayoutRow(
+                                                    new LayoutColumn(
+                                                        new Title('')
+                                                    )
+                                                ),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
                                                         (new TextField('Data[Date]', (new \DateTime())->format('d.m.Y'),
