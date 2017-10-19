@@ -108,7 +108,7 @@ class SubjectSelect extends Extension implements IApiInterface
                     );
                 }
                 // Anzeige
-                $left = new TableData($Table, new Title('Ausgewählte', 'Fächer'), array(
+                $left = (new TableData($Table, new Title('Ausgewählte', 'Fächer'), array(
                     'Acronym'     => 'Kürzel',
                     'Name'        => 'Name',
                     'Description' => 'Beschreibung',
@@ -119,7 +119,7 @@ class SubjectSelect extends Extension implements IApiInterface
                             array('orderable' => false, 'width' => '1%', 'targets' => -1)
                         ),
                     )
-                );
+                ))->setHash(__NAMESPACE__ . 'SubjectSelect' . 'Selected');
             } else {
                 $left = new Info('Keine Fächer ausgewählt');
             }
@@ -142,7 +142,7 @@ class SubjectSelect extends Extension implements IApiInterface
                     );
                 }
                 // Anzeige
-                $right = new TableData($TableAvailable, new Title('Verfügbare', 'Fächer'), array(
+                $right = (new TableData($TableAvailable, new Title('Verfügbare', 'Fächer'), array(
                     'Acronym'     => 'Kürzel',
                     'Name'        => 'Name',
                     'Description' => 'Beschreibung',
@@ -153,7 +153,7 @@ class SubjectSelect extends Extension implements IApiInterface
                             array('orderable' => false, 'width' => '1%', 'targets' => -1)
                         ),
                     )
-                );
+                ))->setHash(__NAMESPACE__ . 'SubjectSelect' . 'Available');
             } else {
                 $right = new Info('Keine weiteren Fächer verfügbar');
             }
