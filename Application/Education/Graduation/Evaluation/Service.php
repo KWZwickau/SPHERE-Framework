@@ -435,7 +435,7 @@ class Service extends AbstractService
             );
             $Stage .= new Success('Notenauftrag erfolgreich angelegt',
                     new \SPHERE\Common\Frontend\Icon\Repository\Success())
-                . new Redirect('/Education/Graduation/Evaluation/Task/Headmaster', Redirect::TIMEOUT_SUCCESS);
+                . new Redirect('/Education/Graduation/Evaluation/Task/Headmaster', Redirect::TIMEOUT_SUCCESS, array('YearId' => $tblYear->getId()));
         }
 
         return $Stage;
@@ -910,33 +910,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->destroyTask($tblTask);
-    }
-
-    /**
-     * @param IFormInterface|null $Stage
-     * @param null $Select
-     *
-     * @return IFormInterface|Redirect
-     */
-    public function getYear(IFormInterface $Stage = null, $Select = null)
-    {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Select) {
-            return $Stage;
-        }
-
-        $tblYear = Term::useService()->getYearById($Select['Year']);
-        if (!$tblYear) {
-            $Stage->setError('Select[Year]', new Exclamation() . ' Bitte wählen Sie ein Schuljahr aus');
-            return $Stage;
-        }
-
-        return new Redirect('/Education/Graduation/Evaluation/Task/Headmaster', Redirect::TIMEOUT_SUCCESS, array(
-            'YearId' => $tblYear->getId(),
-        ));
     }
 
     /**
