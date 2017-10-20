@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommon;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -26,9 +27,10 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Header;
-use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
@@ -40,10 +42,12 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\Sup;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -277,6 +281,7 @@ class AccidentReport extends Extension
             }
 
             // Hauptadresse Schüler
+            $ChildAddressId = false;
             $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
             if ($tblAddress) {
                 $Global->POST['Data']['AddressStreet'] = $tblAddress->getStreetName().', '.$tblAddress->getStreetNumber();
@@ -285,6 +290,7 @@ class AccidentReport extends Extension
                     $Global->POST['Data']['AddressPLZ'] = $tblCity->getCode();
                     $Global->POST['Data']['AddressCity'] = $tblCity->getDisplayName();
                 }
+                $ChildAddressId = $tblAddress->getId();
             }
 
             // Sorgeberechtigte
@@ -293,44 +299,71 @@ class AccidentReport extends Extension
                 $tblRelationshipType);
             if ($tblToPersonCustodyList) {
                 // female preferred (first run)
+                $PersonCustodySameAddress = array();
+                $PersonCustodyDifferentAddress = array();
+                $AddressString = '';
                 foreach ($tblToPersonCustodyList as $tblToPersonCustody) {
                     $tblPersonCustody = $tblToPersonCustody->getServiceTblPersonFrom();
-                    if (($tblCommonCustody = $tblPersonCustody->getCommon())) {
-                        if (($tblBirthdates = $tblCommonCustody->getTblCommonBirthDates())) {
-                            if (($tblGenderCustody = $tblBirthdates->getTblCommonGender())) {
-                                if ($tblGenderCustody->getName() == 'Weiblich') {
-                                    if (!isset($Global->POST['Data']['Custody'])) {
-                                        $tblAddressCustody = Address::useService()->getAddressByPerson($tblPersonCustody);
-                                        if ($tblAddressCustody) {
-                                            $Global->POST['Data']['CustodyAddress'] = $tblAddressCustody->getGuiString();
-                                        }
 
-                                        $Global->POST['Data']['Custody'] = $tblPersonCustody->getSalutation().' '.
-                                            ($tblPersonCustody->getTitle()
-                                                ? $tblPersonCustody->getTitle().' '
-                                                : '')
-                                            .$tblPersonCustody->getLastFirstName();
+                    $tblAddressCustody = Address::useService()->getAddressByPerson($tblPersonCustody);
+                    if ($ChildAddressId
+                        && $tblAddressCustody
+                        && $ChildAddressId == $tblAddressCustody->getId()) {
+                        $AddressString = $tblAddressCustody->getGuiString();
+                        $PersonCustodySameAddress[] = $tblPersonCustody;
+                        continue;
+                    } else {
+                        $PersonCustodyDifferentAddress[] = $tblPersonCustody;
+                    }
+                }
+                if (!empty($PersonCustodySameAddress)) {
+                    /** @var TblPerson $PersonCustody */
+                    $ParentList = array();
+                    foreach ($PersonCustodySameAddress as $PersonCustody) {
+                        $ParentList[] = $PersonCustody->getSalutation().' '.
+                            ($PersonCustody->getTitle()
+                                ? $PersonCustody->getTitle().' '
+                                : '')
+                            .$PersonCustody->getFirstName().' '.$PersonCustody->getLastName();
+                    }
+                    if (!empty($ParentList)) {
+                        $Global->POST['Data']['Custody'] = implode(', ', $ParentList);
+                        $Global->POST['Data']['CustodyAddress'] = $AddressString;
+                    }
+                } elseif (!empty($PersonCustodyDifferentAddress)) {
+                    foreach ($PersonCustodyDifferentAddress as $PersonCustody) {
+                        /** @var TblCommon $tblCommonCustody */
+                        if (($tblCommonCustody = $PersonCustody->getCommon())) {
+                            if (($tblBirthdates = $tblCommonCustody->getTblCommonBirthDates())) {
+                                if (($tblGenderCustody = $tblBirthdates->getTblCommonGender())) {
+                                    if ($tblGenderCustody->getName() == 'Weiblich') {
+                                        if (!isset($Global->POST['Data']['Custody'])) {
+                                            $tblAddressCustody = Address::useService()->getAddressByPerson($PersonCustody);
+                                            if ($tblAddressCustody) {
+                                                $Global->POST['Data']['CustodyAddress'] = $tblAddressCustody->getGuiString();
+                                            }
+                                            $Global->POST['Data']['Custody'] = $PersonCustody->getSalutation().' '.
+                                                ($PersonCustody->getTitle()
+                                                    ? $PersonCustody->getTitle().' '
+                                                    : '')
+                                                .$PersonCustody->getFirstName().' '.$PersonCustody->getLastName();
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                }
-                // second run if no Female found
-                if (!isset($Global->POST['Data']['Custody'])) {
-                    foreach ($tblToPersonCustodyList as $tblToPersonCustody) {
-                        $tblPersonCustody = $tblToPersonCustody->getServiceTblPersonFrom();
+
                         if (!isset($Global->POST['Data']['Custody'])) {
-                            $tblAddressCustody = Address::useService()->getAddressByPerson($tblPersonCustody);
+                            $tblAddressCustody = Address::useService()->getAddressByPerson($PersonCustody);
                             if ($tblAddressCustody) {
                                 $Global->POST['Data']['CustodyAddress'] = $tblAddressCustody->getGuiString();
                             }
 
-                            $Global->POST['Data']['Custody'] = $tblPersonCustody->getSalutation().' '.
-                                ($tblPersonCustody->getTitle()
-                                    ? $tblPersonCustody->getTitle().' '
+                            $Global->POST['Data']['Custody'] = $PersonCustody->getSalutation().' '.
+                                ($PersonCustody->getTitle()
+                                    ? $PersonCustody->getTitle().' '
                                     : '')
-                                .$tblPersonCustody->getLastFirstName();
+                                .$PersonCustody->getFirstName().' '.$PersonCustody->getLastName();
                         }
                     }
                 }
@@ -341,6 +374,11 @@ class AccidentReport extends Extension
         $form = $this->formStudentTransfer($Id);
 
         $HeadPanel = new Panel('Schüler', $tblPerson->getLastFirstName());
+
+        $Stage->addButton(new External('Blanko Unfallanzeige herunterladen',
+            'SPHERE\Application\Api\Document\Standard\AccidentReport\Create',
+            new Download(), array('Data' => array('empty')),
+            'Unfallbericht herunterladen'));
 
         $Stage->setContent(
             new Layout(
@@ -393,23 +431,24 @@ class AccidentReport extends Extension
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
                                                         (new TextField('Data[School]', 'Schule',
-                                                            'Schule'))
+                                                            new Sup(1).' Schule'))
                                                             ->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 6),
                                                     new LayoutColumn(
                                                         (new TextField('Data[SchoolExtended]', 'Zusatz',
-                                                            'Zusatz'))
+                                                            new Sup(1).' Zusatz'))
                                                             ->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 6)
                                                 )),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
                                                         (new TextField('Data[SchoolAddressStreet]', 'Straße Nr.',
-                                                            'Straße Hausnummer'))
+                                                            new Sup(1).' Straße Hausnummer'))
                                                             ->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 6),
                                                     new LayoutColumn(
-                                                        (new TextField('Data[SchoolAddressCity]', 'PLZ Ort', 'PLZ Ort'))
+                                                        (new TextField('Data[SchoolAddressCity]', 'PLZ Ort',
+                                                            new Sup(1).' PLZ Ort'))
                                                             ->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 6)
                                                 ))
@@ -426,12 +465,12 @@ class AccidentReport extends Extension
                                                     new LayoutColumn(
                                                         (new TextField('Data[SchoolResponsibility]',
                                                             'Träger der Einrichtung',
-                                                            'Träger der Einrichtung')
+                                                            new Sup(2).' Träger der Einrichtung')
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 6),
                                                     new LayoutColumn(
                                                         (new TextField('Data[CompanyNumber]', 'Unternehmensnr.',
-                                                            'Unternehmensnr.')
+                                                            new Sup(3).' Unternehmensnr.')
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 6)
                                                 ))
@@ -447,16 +486,17 @@ class AccidentReport extends Extension
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
                                                         (new TextField('Data[AddressTarget]', 'Empfänger',
-                                                            'Empfänger')
+                                                            new Sup(4).' Empfänger')
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 4),
                                                     new LayoutColumn(
                                                         (new TextField('Data[TargetAddressStreet]', 'Straße Hausnummer',
-                                                            'Straße Hausnummer')
+                                                            new Sup(4).' Straße Hausnummer')
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 4),
                                                     new LayoutColumn(
-                                                        (new TextField('Data[TargetAddressCity]', 'PLZ Ort', 'PLZ Ort')
+                                                        (new TextField('Data[TargetAddressCity]', 'PLZ Ort',
+                                                            new Sup(4).' PLZ Ort')
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 4)
                                                 ))
@@ -472,19 +512,19 @@ class AccidentReport extends Extension
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
                                                         (new TextField('Data[LastFirstName]', 'Name, Vorname',
-                                                            'Name, Vorname des Schülers/der Schülerin')
+                                                            new Sup(5).' Name, Vorname des Schülers/der Schülerin')
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 8),
                                                     new LayoutColumn(
                                                         (new TextField('Data[Birthday]', 'Geburtstag',
-                                                            'Geburtstag')
+                                                            new Sup(6).' Geburtstag')
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 4),
                                                 )),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
                                                         (new TextField('Data[AddressStreet]', 'Straße, Hausnummer',
-                                                            'Straße, Hausnummer')
+                                                            new Sup(7).' Straße, Hausnummer')
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 6),
                                                     new LayoutColumn(
@@ -500,7 +540,7 @@ class AccidentReport extends Extension
                                                 )),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        new Label('Geschlecht').
+                                                        new Bold(new Sup(8).' Geschlecht').
                                                         new Listing(array(
                                                             (new RadioBox('Data[Gender]', 'Männlich',
                                                                 'Männlich')
@@ -512,12 +552,12 @@ class AccidentReport extends Extension
                                                         , 3),
                                                     new LayoutColumn(
                                                         (new TextField('Data[Nationality]', 'Staatsangehörigkeit',
-                                                            'Staatsangehörigkeit')
+                                                            new Sup(9).' Staatsangehörigkeit')
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 3),
                                                     new LayoutColumn(
                                                         (new TextField('Data[Custody]', 'Vertreter',
-                                                            'Vertreter')
+                                                            new Sup(10).' Vertreter')
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 6),
                                                 )),
@@ -527,7 +567,7 @@ class AccidentReport extends Extension
                                                         , 6),
                                                     new LayoutColumn(
                                                         (new TextField('Data[CustodyAddress]', 'Str Nr. PLZ Ort',
-                                                            'Anschrift Vertreter')
+                                                            new Sup(10).' Anschrift Vertreter')
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 6),
                                                 )),
@@ -542,51 +582,78 @@ class AccidentReport extends Extension
                                             new LayoutGroup(array(
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        new Label('Tödlicher Unfall?').
-                                                        new Listing(array(
-                                                            (new CheckBox('Data[DeathAccident]', 'Tödlich', '1')
-                                                            )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId)),
-                                                        ))
+                                                        new PullClear(new Sup(11).new Bold(' Tödlicher Unfall?')).
+                                                        new PullLeft((new CheckBox('Data[DeathAccidentYes]',
+                                                            'Ja &nbsp;&nbsp;&nbsp;&nbsp;', true)
+                                                        )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
+                                                        ).
+                                                        new PullLeft((new CheckBox('Data[DeathAccidentNo]',
+                                                            'Nein &nbsp;&nbsp;&nbsp;&nbsp;', true)
+                                                        )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
+                                                        )
                                                         , 3),
                                                     new LayoutColumn(
                                                         (new TextField('Data[AccidentDate]',
                                                             (new \DateTime())->format('d.m.Y'),
-                                                            'Datum des Unfalls')
+                                                            new Sup(12).' Datum des Unfalls')
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 3),
                                                     new LayoutColumn(
                                                         (new TextField('Data[AccidentHour]', 'Stunde',
-                                                            'Stunde Unfallzeitpunkt')
+                                                            new Sup(12).' Stunde Unfallzeitpunkt')
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 3),
                                                     new LayoutColumn(
                                                         (new TextField('Data[AccidentMinute]', 'Minute',
-                                                            'Minute Unfallzeitpunkt')
+                                                            new Sup(12).' Minute Unfallzeitpunkt')
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 3),
                                                 )),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        (new TextField('Data[AccidentPlace]', 'Ort', 'Unfallort')
+                                                        (new TextField('Data[AccidentPlace]', 'Ort',
+                                                            new Sup(13).' Unfallort')
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 6),
                                                 )),
                                                 new LayoutRow(
                                                     new LayoutColumn(
                                                         (new TextArea('Data[AccidentDescription]', 'Beschreibung'
-                                                            , 'Ausführliche Beschreibung des Unfallhergangs')
+                                                            ,
+                                                            new Sup(14).' Ausführliche Beschreibung des Unfallhergangs')
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
+                                                    )
+                                                ),
+                                                new LayoutRow(
+                                                    new LayoutColumn(
+                                                        new PullLeft(new Header(new Sup(14).new Bold(' Die Angaben beruhen auf der Schilderung &nbsp;&nbsp;&nbsp;&nbsp;')))
+                                                        .new Container(
+                                                            new PullLeft((new CheckBox('Data[DescriptionActive]',
+                                                                'des Versicherten &nbsp;&nbsp;&nbsp;&nbsp;'
+                                                                , true)
+                                                            )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId)))
+                                                            .new PullLeft((new CheckBox('Data[DescriptionPassive]',
+                                                                'andere Personen'
+                                                                , true)
+                                                            )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId)))
+                                                        )
+                                                    )
+                                                ),
+                                                new LayoutRow(
+                                                    new LayoutColumn(
+                                                        new Title('')
                                                     )
                                                 ),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
                                                         (new TextField('Data[AccidentBodyParts]',
-                                                            'Kopf, Bein, Arm, etc.', 'Verletzte Körperteile')
+                                                            'Kopf, Bein, Arm, etc.',
+                                                            new Sup(15).' Verletzte Körperteile')
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 6),
                                                     new LayoutColumn(
                                                         (new TextField('Data[AccidentType]', 'Art',
-                                                            'Art der Verletzung')
+                                                            new Sup(16).' Art der Verletzung')
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 6),
                                                 )),
@@ -597,16 +664,16 @@ class AccidentReport extends Extension
                                                 ),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        new Header(new Bold('Hat der Versicherte den Besuch der Einrichtung unterbrochen?'))
+                                                        new Sup(17).new Bold(' Hat der Versicherte den Besuch der Einrichtung unterbrochen?')
                                                         .new PullClear(
-                                                            new PullLeft((new RadioBox('Data[Brake]',
-                                                                'nein &nbsp;&nbsp;&nbsp;&nbsp;', 'No')
+                                                            new PullLeft((new CheckBox('Data[BreakNo]',
+                                                                'nein &nbsp;&nbsp;&nbsp;&nbsp;', true)
                                                             )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId)))
-                                                            .new PullLeft((new RadioBox('Data[Brake]',
-                                                                'sofort &nbsp;&nbsp;&nbsp;&nbsp;', 'Yes')
+                                                            .new PullLeft((new CheckBox('Data[BreakYes]',
+                                                                'sofort &nbsp;&nbsp;&nbsp;&nbsp;', true)
                                                             )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId)))
-                                                            .new PullLeft((new RadioBox('Data[Brake]',
-                                                                'später am &nbsp;&nbsp;&nbsp;&nbsp;', 'At')
+                                                            .new PullLeft((new CheckBox('Data[BreakAt]',
+                                                                'später am &nbsp;&nbsp;&nbsp;&nbsp;', true)
                                                             )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId)))
                                                         )
                                                         , 6),
@@ -629,20 +696,20 @@ class AccidentReport extends Extension
                                                 ),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        new Header(new Bold('Hat der Versicherte den Besuch der Einrichtung wieder aufgenommen?'))
+                                                        new Sup(18).new Bold('Hat der Versicherte den Besuch der Einrichtung wieder aufgenommen?')
                                                         .new PullClear(
-                                                            new PullLeft((new RadioBox('Data[Return]',
-                                                                'nein &nbsp;&nbsp;&nbsp;&nbsp;', 'No')
+                                                            new PullLeft((new CheckBox('Data[ReturnNo]',
+                                                                'nein &nbsp;&nbsp;&nbsp;&nbsp;', true)
                                                             )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId)))
-                                                            .new PullLeft((new RadioBox('Data[Return]',
-                                                                'ja, am &nbsp;&nbsp;&nbsp;&nbsp;', 'At')
+                                                            .new PullLeft((new CheckBox('Data[ReturnYes]',
+                                                                'ja, am &nbsp;&nbsp;&nbsp;&nbsp;', true)
                                                             )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId)))
                                                         )
-                                                        , 6),
+                                                        , 9),
                                                     new LayoutColumn(
                                                         (new TextField('Data[ReturnDate]',
                                                             (new \DateTime())->format('d.m.Y'),
-                                                            'Datum der Wiederaufnahme')
+                                                            new Sup(18).' Datum der Wiederaufnahme')
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 3),
                                                 )),
@@ -653,11 +720,35 @@ class AccidentReport extends Extension
                                                 ),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
+                                                        (new TextField('Data[WitnessInfo]',
+                                                            'Name, Vorname Adresse',
+                                                            new Sup(19).' Wer hat von dem Unfall zuerst Kenntnis genommen? (Name, Anschrift von Zeugen)')
+                                                        )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
+                                                        , 9),
+                                                    new LayoutColumn(
+                                                        new Bold('War diese Person Augenzeuge?')
+                                                        .new PullClear(
+                                                            new PullLeft((new CheckBox('Data[EyeWitnessYes]',
+                                                                'nein &nbsp;&nbsp;&nbsp;&nbsp;', true)
+                                                            )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId)))
+                                                            .new PullLeft((new CheckBox('Data[EyeWitnessNo]',
+                                                                'ja &nbsp;&nbsp;&nbsp;&nbsp;', true)
+                                                            )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId)))
+                                                        )
+                                                        , 3),
+                                                )),
+                                                new LayoutRow(
+                                                    new LayoutColumn(
+                                                        new Title('')
+                                                    )
+                                                ),
+                                                new LayoutRow(array(
+                                                    new LayoutColumn(
                                                         (new TextField('Data[Doctor]', 'Name',
-                                                            'Name des erstbehandelnden Arztes / Krankenhaus')
+                                                            new Sup(20).' Name des erstbehandelnden Arztes / Krankenhaus')
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         .(new TextField('Data[DoctorAddress]', 'Adresse',
-                                                            'Adresse des erstbehandelnden Arztes / Krankenhaus')
+                                                            new Sup(20).' Adresse des erstbehandelnden Arztes / Krankenhaus')
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 6),
                                                     new LayoutColumn(

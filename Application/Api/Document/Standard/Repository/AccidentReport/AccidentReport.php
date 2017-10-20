@@ -9,8 +9,7 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
-use SPHERE\Application\People\Meta\Common\Common;
-use SPHERE\Application\People\Person\Person;
+use SPHERE\Common\Frontend\Text\Repository\Code;
 
 /**
  * Class AccidentReport
@@ -43,21 +42,74 @@ class AccidentReport extends AbstractDocument
      */
     private function setFieldValue($DataPost)
     {
-        //Bsp.:
-        // PersonGender
-        $this->FieldValue['Gender'] = '';
-        $this->FieldValue['PersonId'] = (isset($DataPost['PersonId']) && $DataPost['PersonId'] != '' ? $DataPost['PersonId'] : false);
-        if ($this->FieldValue['PersonId'] && ($tblPerson = Person::useService()->getPersonById($this->FieldValue['PersonId']))) {
-            if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
-                if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
-                    if (($tblGender = $tblCommonBirthDates->getTblCommonGender())) {
-                        $this->FieldValue['Gender'] = $tblGender->getName();
-                    }
-                }
-            }
+//        echo new Code(print_r($DataPost, true));
+//        exit;
+
+        // school
+        $this->FieldValue['School'] = (isset($DataPost['School']) && $DataPost['School'] != '' ? $DataPost['School'] : '&nbsp;');
+        $this->FieldValue['SchoolExtended'] = (isset($DataPost['SchoolExtended']) && $DataPost['SchoolExtended'] != '' ? $DataPost['SchoolExtended'] : '&nbsp;');
+        $this->FieldValue['SchoolAddressStreet'] = (isset($DataPost['SchoolAddressStreet']) && $DataPost['SchoolAddressStreet'] != '' ? $DataPost['SchoolAddressStreet'] : '&nbsp;');
+        $this->FieldValue['SchoolAddressCity'] = (isset($DataPost['SchoolAddressCity']) && $DataPost['SchoolAddressCity'] != '' ? $DataPost['SchoolAddressCity'] : '&nbsp;');
+        // responibility
+        $this->FieldValue['SchoolResponsibility'] = (isset($DataPost['SchoolResponsibility']) && $DataPost['SchoolResponsibility'] != '' ? $DataPost['SchoolResponsibility'] : '&nbsp;');
+        $this->FieldValue['CompanyNumber'] = (isset($DataPost['CompanyNumber']) && $DataPost['CompanyNumber'] != '' ? $DataPost['CompanyNumber'] : '&nbsp;');
+        // letter target
+        $this->FieldValue['AddressTarget'] = (isset($DataPost['AddressTarget']) && $DataPost['AddressTarget'] != '' ? $DataPost['AddressTarget'] : '&nbsp;');
+        $this->FieldValue['TargetAddressStreet'] = (isset($DataPost['TargetAddressStreet']) && $DataPost['TargetAddressStreet'] != '' ? $DataPost['TargetAddressStreet'] : '&nbsp;');
+        $this->FieldValue['TargetAddressCity'] = (isset($DataPost['TargetAddressCity']) && $DataPost['TargetAddressCity'] != '' ? $DataPost['TargetAddressCity'] : '&nbsp;');
+        // student
+        $this->FieldValue['LastFirstName'] = (isset($DataPost['LastFirstName']) && $DataPost['LastFirstName'] != '' ? $DataPost['LastFirstName'] : '&nbsp;');
+        $this->FieldValue['Birthday'] = (isset($DataPost['Birthday']) && $DataPost['Birthday'] != '' ? $DataPost['Birthday'] : '&nbsp;');
+        $this->FieldValue['AddressStreet'] = (isset($DataPost['AddressStreet']) && $DataPost['AddressStreet'] != '' ? $DataPost['AddressStreet'] : '&nbsp;');
+        $this->FieldValue['AddressPLZ'] = (isset($DataPost['AddressPLZ']) && $DataPost['AddressPLZ'] != '' ? $DataPost['AddressPLZ'] : '&nbsp;');
+        $this->FieldValue['AddressCity'] = (isset($DataPost['AddressCity']) && $DataPost['AddressCity'] != '' ? $DataPost['AddressCity'] : '&nbsp;');
+        // common
+        if (isset($DataPost['Gender']) && $DataPost['Gender'] == 'Männlich') {
+            $this->FieldValue['Male'] = true;
+        } elseif (isset($DataPost['Gender']) && $DataPost['Gender'] == 'Weiblich') {
+            $this->FieldValue['Female'] = true;
         }
-        // Header
-        $this->FieldValue['LeaveSchool'] = (isset($DataPost['LeaveSchool']) && $DataPost['LeaveSchool'] != '' ? $DataPost['LeaveSchool'] : '&nbsp;');
+        $this->FieldValue['Nationality'] = (isset($DataPost['Nationality']) && $DataPost['Nationality'] != '' ? $DataPost['Nationality'] : '&nbsp;');
+        // custody
+        $this->FieldValue['Custody'] = (isset($DataPost['Custody']) && $DataPost['Custody'] != '' ? $DataPost['Custody'] : '&nbsp;');
+        $this->FieldValue['CustodyAddress'] = (isset($DataPost['CustodyAddress']) && $DataPost['CustodyAddress'] != '' ? $DataPost['CustodyAddress'] : '&nbsp;');
+        // accident
+        $this->FieldValue['DeathAccidentYes'] = (isset($DataPost['DeathAccidentYes']) && $DataPost['DeathAccidentYes'] != '' ? 'X' : '');
+        $this->FieldValue['DeathAccidentNo'] = (isset($DataPost['DeathAccidentNo']) && $DataPost['DeathAccidentNo'] != '' ? 'X' : '');
+        $this->FieldValue['AccidentDate'] = (isset($DataPost['AccidentDate']) && $DataPost['AccidentDate'] != '' ? $DataPost['AccidentDate'] : '&nbsp;');
+        $this->FieldValue['AccidentHour'] = (isset($DataPost['AccidentHour']) && $DataPost['AccidentHour'] != '' ? $DataPost['AccidentHour'] : '&nbsp;');
+        $this->FieldValue['AccidentMinute'] = (isset($DataPost['AccidentMinute']) && $DataPost['AccidentMinute'] != '' ? $DataPost['AccidentMinute'] : '&nbsp;');
+        $this->FieldValue['AccidentPlace'] = (isset($DataPost['AccidentPlace']) && $DataPost['AccidentPlace'] != '' ? $DataPost['AccidentPlace'] : '&nbsp;');
+        $this->FieldValue['AccidentDescription'] = (isset($DataPost['AccidentDescription']) && $DataPost['AccidentDescription'] != '' ? $DataPost['AccidentDescription'] : '&nbsp;');
+        $this->FieldValue['DescriptionActive'] = (isset($DataPost['DescriptionActive']) && $DataPost['DescriptionActive'] != '' ? 'X' : '&nbsp;');
+        $this->FieldValue['DescriptionPassive'] = (isset($DataPost['DescriptionPassive']) && $DataPost['DescriptionPassive'] != '' ? 'X' : '&nbsp;');
+        $this->FieldValue['AccidentBodyParts'] = (isset($DataPost['AccidentBodyParts']) && $DataPost['AccidentBodyParts'] != '' ? $DataPost['AccidentBodyParts'] : '&nbsp;');
+        $this->FieldValue['AccidentType'] = (isset($DataPost['AccidentType']) && $DataPost['AccidentType'] != '' ? $DataPost['AccidentType'] : '&nbsp;');
+        // breake time
+        $this->FieldValue['BreakNo'] = (isset($DataPost['BreakNo']) && $DataPost['BreakNo'] != '' ? 'X' : '&nbsp;');
+        $this->FieldValue['BreakYes'] = (isset($DataPost['BreakYes']) && $DataPost['BreakYes'] != '' ? 'X' : '&nbsp;');
+        $this->FieldValue['BreakAt'] = (isset($DataPost['BreakAt']) && $DataPost['BreakAt'] != '' ? 'X' : '&nbsp;');
+        $this->FieldValue['BreakDate'] = (isset($DataPost['BreakDate']) && $DataPost['BreakDate'] != '' ? $DataPost['BreakDate'] : '&nbsp;');
+        $this->FieldValue['BreakHour'] = (isset($DataPost['BreakHour']) && $DataPost['BreakHour'] != '' ? $DataPost['BreakHour'] : '&nbsp;');
+        $this->FieldValue['ReturnYes'] = (isset($DataPost['ReturnYes']) && $DataPost['ReturnYes'] != '' ? 'X' : '&nbsp;');
+        $this->FieldValue['ReturnNo'] = (isset($DataPost['ReturnNo']) && $DataPost['ReturnNo'] != '' ? 'X' : '&nbsp;');
+        $this->FieldValue['ReturnDate'] = (isset($DataPost['ReturnDate']) && $DataPost['ReturnDate'] != '' ? $DataPost['ReturnDate'] : '&nbsp;');
+        // withness
+        $this->FieldValue['WitnessInfo'] = (isset($DataPost['WitnessInfo']) && $DataPost['WitnessInfo'] != '' ? $DataPost['WitnessInfo'] : '&nbsp;');
+        $this->FieldValue['EyeWitnessYes'] = (isset($DataPost['EyeWitnessYes']) && $DataPost['EyeWitnessYes'] != '' ? 'X' : '&nbsp;');
+        $this->FieldValue['EyeWitnessNo'] = (isset($DataPost['EyeWitnessNo']) && $DataPost['EyeWitnessNo'] != '' ? 'X' : '&nbsp;');
+        // doctor
+        $this->FieldValue['Doctor'] = (isset($DataPost['Doctor']) && $DataPost['Doctor'] != '' ? $DataPost['Doctor'] : '&nbsp;');
+        $this->FieldValue['DoctorAddress'] = (isset($DataPost['DoctorAddress']) && $DataPost['DoctorAddress'] != '' ? $DataPost['DoctorAddress'] : '&nbsp;');
+        // time in school
+        $this->FieldValue['LocalStartHour'] = (isset($DataPost['LocalStartHour']) && $DataPost['LocalStartHour'] != '' ? $DataPost['LocalStartHour'] : '&nbsp;');
+        $this->FieldValue['LocalStartMinute'] = (isset($DataPost['LocalStartMinute']) && $DataPost['LocalStartMinute'] != '' ? $DataPost['LocalStartMinute'] : '&nbsp;');
+        $this->FieldValue['LocalEndHour'] = (isset($DataPost['LocalEndHour']) && $DataPost['LocalEndHour'] != '' ? $DataPost['LocalEndHour'] : '&nbsp;');
+        $this->FieldValue['LocalEndMinute'] = (isset($DataPost['LocalEndMinute']) && $DataPost['LocalEndMinute'] != '' ? $DataPost['LocalEndMinute'] : '&nbsp;');
+        // last line
+        $this->FieldValue['Date'] = (isset($DataPost['Date']) && $DataPost['Date'] != '' ? $DataPost['Date'] : '&nbsp;');
+        $this->FieldValue['LocalLeader'] = (isset($DataPost['LocalLeader']) && $DataPost['LocalLeader'] != '' ? $DataPost['LocalLeader'] : '&nbsp;');
+        $this->FieldValue['Recall'] = (isset($DataPost['Recall']) && $DataPost['Recall'] != '' ? $DataPost['Recall'] : '&nbsp;');
 
         return $this;
     }
@@ -72,6 +124,38 @@ class AccidentReport extends AbstractDocument
     }
 
     /**
+     * @return string
+     */
+    private function getSchoolAddress()
+    {
+
+        $Address = $this->FieldValue['School']
+            .($this->FieldValue['SchoolExtended'] ? '<br/>'.$this->FieldValue['SchoolExtended'] : '')
+            .'<br/>'.$this->FieldValue['SchoolAddressStreet']
+            .'<br/>'.$this->FieldValue['SchoolAddressCity']
+            .(!$this->FieldValue['SchoolExtended'] ? '<br/>' : '');
+
+        return $Address;
+    }
+
+    /**
+     * @param string $DateString
+     * @param int    $Part 1 => day, 2 => Month, 3 => Year
+     *
+     * @return Code|string
+     */
+    private function getDatePartString($DateString = '', $Part = 3)
+    {
+        $DatePart = '&nbsp;';
+        if (preg_match('!^([0-9]{1,2})[.,;/\- ]([0-9]{1,2})[.,;/\- ]([0-9]{2,4})!', $DateString, $Match)) {
+            if (isset($Match[$Part])) {
+                $DatePart = $Match[$Part];
+            }
+        }
+        return $DatePart;
+    }
+
+    /**
      *
      * @param array $pageList
      *
@@ -79,6 +163,7 @@ class AccidentReport extends AbstractDocument
      */
     public function buildDocument($pageList = array())
     {
+
         return (new Frame())->addDocument((new Document())
             ->addPage((new Page())
                 ->addSlice((new Slice())
@@ -95,26 +180,7 @@ class AccidentReport extends AbstractDocument
                                 ->stylePaddingLeft('5px')
                             )
                             ->addElement((new Element())
-                                ->setContent('
-                                {% if (Content.Student.Company is not empty) %}
-                                    {{ Content.Student.Company }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}
-                                {% if (Content.Student.Company2 is not empty) %}
-                                    <br/>
-                                    {{ Content.Student.Company2 }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}
-                                <br/>
-                                {% if (Content.Student.CompanyAddress is not empty) %}
-                                    {{ Content.Student.CompanyAddress }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}
-
-                                ')
+                                ->setContent($this->getSchoolAddress())
                                 ->styleHeight('100px')
                                 ->stylePaddingLeft('20px')
                             )
@@ -125,19 +191,19 @@ class AccidentReport extends AbstractDocument
                                 ->stylePaddingBottom('5px')
                             )
                             ->addElement((new Element())
-                                ->setContent('Unfallkasse Sachsen')
+                                ->setContent($this->FieldValue['AddressTarget'])
                                 ->stylePaddingBottom('10px')
                                 ->styleTextBold()
                                 ->stylePaddingLeft('20px')
                             )
                             ->addElement((new Element())
-                                ->setContent('Postfach 42')
+                                ->setContent($this->FieldValue['TargetAddressStreet'])
                                 ->stylePaddingBottom('10px')
                                 ->styleTextBold()
                                 ->stylePaddingLeft('20px')
                             )
                             ->addElement((new Element())
-                                ->setContent('01651 Meißen')
+                                ->setContent($this->FieldValue['TargetAddressCity'])
                                 ->stylePaddingBottom()
                                 ->styleTextBold()
                                 ->stylePaddingLeft('20px')
@@ -161,13 +227,7 @@ class AccidentReport extends AbstractDocument
                                 ->styleTextSize('11px')
                             )
                             ->addElement((new Element())
-                                ->setContent('
-                                    {% if( Content.Responsibility.Company.Display is not empty) %}
-                                        {{ Content.Responsibility.Company.Display }}
-                                    {% else %}
-                                        &nbsp;
-                                    {% endif %}
-                                ')
+                                ->setContent($this->FieldValue['SchoolResponsibility'])
                                 ->styleTextSize('12px')
                                 ->styleHeight('29px')
                             )
@@ -176,13 +236,7 @@ class AccidentReport extends AbstractDocument
                                 ->styleTextSize('11px')
                             )
                             ->addElement((new Element())
-                                ->setContent('
-                                {% if( Content.Responsibility.Company.Number is not empty) %}
-                                    {{ Content.Responsibility.Company.Number }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}
-                                ')
+                                ->setContent($this->FieldValue['CompanyNumber'])
                                 ->styleTextSize('12px')
                             )
                             , '40%'
@@ -234,59 +288,35 @@ class AccidentReport extends AbstractDocument
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('
-                                {% if( Content.Person.Data.Name.Last is not empty) %}
-                                    {{ Content.Person.Data.Name.Last }} {{ Content.Person.Data.Name.First }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}
-                            ')
+                            ->setContent($this->FieldValue['LastFirstName'])
                             ->stylePaddingLeft('5px')
                             ->styleBorderRight()
                             ->styleBorderBottom()
                             , '55%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent($this->FieldValue['Birthday'])
                             ->stylePaddingLeft('5px')
                             ->styleBorderRight()
                             ->styleBorderBottom()
                             , '25%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('
-                            {% if(Content.Person.Common.BirthDates.Birthday is not empty) %}
-                                    {{ Content.Person.Common.BirthDates.Birthday|date("d") }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}
-                            ')
+                            ->setContent($this->getDatePartString($this->FieldValue['Birthday'], 1))
                             ->styleAlignCenter()
                             ->styleBorderRight()
                             ->styleBorderBottom()
                             , '5%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('
-                            {% if(Content.Person.Common.BirthDates.Birthday is not empty) %}
-                                    {{ Content.Person.Common.BirthDates.Birthday|date("m") }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}
-                            ')
+                            ->setContent($this->getDatePartString($this->FieldValue['Birthday'], 2))
                             ->styleAlignCenter()
                             ->styleBorderRight()
                             ->styleBorderBottom()
                             , '5%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('
-                            {% if(Content.Person.Common.BirthDates.Birthday is not empty) %}
-                                    {{ Content.Person.Common.BirthDates.Birthday|date("Y") }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}
-                            ')
+                            ->setContent($this->getDatePartString($this->FieldValue['Birthday'], 3))
                             ->styleAlignCenter()
                             ->styleBorderBottom()
                             , '10%'
@@ -317,40 +347,21 @@ class AccidentReport extends AbstractDocument
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('
-                                {% if(Content.Person.Address.Street.Name) %}
-                                    {{ Content.Person.Address.Street.Name }}
-                                    {{ Content.Person.Address.Street.Number }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}
-                            ')
+                            ->setContent($this->FieldValue['AddressStreet'])
                             ->stylePaddingLeft('5px')
                             ->styleBorderRight()
                             ->styleBorderBottom()
                             , '40%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('
-                                {% if(Content.Person.Address.City.Code) %}
-                                    {{ Content.Person.Address.City.Code }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}
-                            ')
+                            ->setContent($this->FieldValue['AddressPLZ'])
                             ->stylePaddingLeft('5px')
                             ->styleBorderRight()
                             ->styleBorderBottom()
                             , '15%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('
-                                {% if(Content.Person.Address.City.Name) %}
-                                    {{ Content.Person.Address.City.Name }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}
-                            ')
+                            ->setContent($this->FieldValue['AddressCity'])
                             ->stylePaddingLeft('5px')
                             ->styleBorderBottom()
                             , '45%'
@@ -381,11 +392,7 @@ class AccidentReport extends AbstractDocument
                     )
                     ->addSection((new Section())
                         ->addSliceColumn(
-                            $this->setCheckBox(
-                                '{% if Content.Person.Common.BirthDates.Gender == 1 %}
-                                    X
-                                {% endif %}'
-                            )
+                            $this->setCheckBox((isset($this->FieldValue['Male']) && $this->FieldValue['Male'] ? 'X' : ''))
                                 ->styleBorderBottom()
                                 ->styleHeight('29px')
                             , '4%'
@@ -399,11 +406,7 @@ class AccidentReport extends AbstractDocument
                             , '7%'
                         )
                         ->addSliceColumn(
-                            $this->setCheckBox(
-                                '{% if Content.Person.Common.BirthDates.Gender == 2 %}
-                                    X
-                                {% endif %}'
-                            )
+                            $this->setCheckBox((isset($this->FieldValue['Female']) && $this->FieldValue['Female'] ? 'X' : ''))
                                 ->styleBorderBottom()
                                 ->styleHeight('29px')
                             , '4%'
@@ -418,9 +421,7 @@ class AccidentReport extends AbstractDocument
                             , '7%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('
-                                Deutschland
-                            ')
+                            ->setContent($this->FieldValue['Nationality'])
                             ->stylePaddingLeft('5px')
                             ->styleHeight('27px')
                             ->stylePaddingTop()
@@ -430,40 +431,8 @@ class AccidentReport extends AbstractDocument
                         )
                         ->addElementColumn((new Element())
                             // (Content.Person.Parent.Father.Address|length >= 38) Zählen der Länge entfällt
-                            ->setContent('
-                                {% if (Content.Person.Parent.Father.Address)
-                                and (Content.Person.Parent.Mother.Address)
-                                and (Content.Person.Parent.Father.Address == Content.Person.Parent.Mother.Address) %}
-                                    {% if(Content.Person.Parent.Father.Name.First) and (Content.Person.Parent.Mother.Name.First) %}
-                                        {{ Content.Person.Parent.Father.Name.First }}
-                                        {{ Content.Person.Parent.Father.Name.Last }},
-                                        {{ Content.Person.Parent.Mother.Name.First }}
-                                        {{ Content.Person.Parent.Mother.Name.Last }}
-                                        <br/>
-                                        {% if(Content.Person.Parent.Father.Address) %}
-                                            {{ Content.Person.Parent.Father.Address }}
-                                        {% endif %}
-                                    {% endif %}
-                                {% else %}
-                                    {% if(Content.Person.Parent.Father.Name.First) %}
-                                        {{ Content.Person.Parent.Father.Name.First }}
-                                        {{ Content.Person.Parent.Father.Name.Last }}
-                                        {% if(Content.Person.Parent.Father.Address) %}
-                                            {{ Content.Person.Parent.Father.Address }}
-                                        {% endif %}
-                                        <br/>
-                                    {% endif %}
-                                    {% if(Content.Person.Parent.Mother.Name.First) %}
-                                        {{ Content.Person.Parent.Mother.Name.First }}
-                                        {{ Content.Person.Parent.Mother.Name.Last }}
-                                        {% if(Content.Person.Parent.Mother.Address) %}
-                                            {{ Content.Person.Parent.Mother.Address }}
-                                        {% else %}
-                                              &nbsp;
-                                        {% endif %}
-                                    {% endif %}
-                                {% endif %}
-                            ')
+                            ->setContent($this->FieldValue['Custody']
+                                .'<br/>'.$this->FieldValue['CustodyAddress'])
                             ->stylePaddingLeft('5px')
                             ->styleTextSize('11px')
                             ->stylePaddingTop()
@@ -502,7 +471,7 @@ class AccidentReport extends AbstractDocument
                             , '2%'
                         )
                         ->addSliceColumn(
-                            $this->setCheckBox()
+                            $this->setCheckBox(($this->FieldValue['DeathAccidentYes'] ? 'X' : ''))
                                 ->styleBorderBottom()
                                 ->stylePaddingTop('3px')
                                 ->styleHeight('29px')
@@ -517,7 +486,7 @@ class AccidentReport extends AbstractDocument
                             , '4%'
                         )
                         ->addSliceColumn(
-                            $this->setCheckBox()
+                            $this->setCheckBox((!$this->FieldValue['DeathAccidentNo'] ? 'X' : ''))
                                 ->styleBorderBottom()
                                 ->stylePaddingTop('3px')
                                 ->styleHeight('29px')
@@ -538,7 +507,7 @@ class AccidentReport extends AbstractDocument
                             , '2%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Tag <br/> ')
+                            ->setContent('Tag <br/>'.$this->getDatePartString($this->FieldValue['AccidentDate'], 1))
                             ->stylePaddingLeft('5px')
                             ->styleTextSize('11px')
                             ->styleHeight('30px')
@@ -549,7 +518,7 @@ class AccidentReport extends AbstractDocument
                             , '7%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Monat <br/> ')
+                            ->setContent('Monat <br/>'.$this->getDatePartString($this->FieldValue['AccidentDate'], 2))
                             ->stylePaddingLeft('5px')
                             ->styleTextSize('11px')
                             ->styleHeight('30px')
@@ -560,7 +529,7 @@ class AccidentReport extends AbstractDocument
                             , '7%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Jahr <br/> ')
+                            ->setContent('Jahr <br/>'.$this->getDatePartString($this->FieldValue['AccidentDate'], 3))
                             ->stylePaddingLeft('5px')
                             ->styleTextSize('11px')
                             ->styleHeight('30px')
@@ -571,7 +540,7 @@ class AccidentReport extends AbstractDocument
                             , '7%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Stunde <br/> ')
+                            ->setContent('Stunde <br/>'.$this->FieldValue['AccidentHour'])
                             ->stylePaddingLeft('5px')
                             ->styleTextSize('11px')
                             ->styleHeight('30px')
@@ -582,7 +551,7 @@ class AccidentReport extends AbstractDocument
                             , '7%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Minute <br/> ')
+                            ->setContent('Minute <br/>'.$this->FieldValue['AccidentMinute'])
                             ->stylePaddingLeft('5px')
                             ->styleTextSize('11px')
                             ->styleHeight('30px')
@@ -593,9 +562,7 @@ class AccidentReport extends AbstractDocument
                             , '7%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('
-                                &nbsp;
-                            ')
+                            ->setContent($this->FieldValue['AccidentPlace'])
                             ->stylePaddingLeft('5px')
                             ->styleTextSize('12px')
                             ->stylePaddingTop()
@@ -615,16 +582,14 @@ class AccidentReport extends AbstractDocument
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('
-                                &nbsp;
-                            ')
+                            ->setContent(nl2br($this->FieldValue['AccidentDescription']))
                             ->styleHeight('200px')
                             ->stylePaddingLeft('20px')
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Die angaben beruhen auf der Schilderung')
+                            ->setContent('Die Angaben beruhen auf der Schilderung')
                             ->styleTextSize('11px')
                             ->stylePaddingTop('5px')
                             ->styleHeight('15px')
@@ -632,7 +597,7 @@ class AccidentReport extends AbstractDocument
                             ->styleBorderBottom()
                             , '35%'
                         )
-                        ->addSliceColumn($this->setCheckBox()
+                        ->addSliceColumn($this->setCheckBox($this->FieldValue['DescriptionActive'])
                             ->styleHeight('20px')
                             ->styleBorderBottom()
                             , '4%'
@@ -645,7 +610,7 @@ class AccidentReport extends AbstractDocument
                             ->styleBorderBottom()
                             , '15%'
                         )
-                        ->addSliceColumn($this->setCheckBox()
+                        ->addSliceColumn($this->setCheckBox($this->FieldValue['DescriptionPassive'])
                             ->styleHeight('20px')
                             ->styleBorderBottom()
                             , '4%'
@@ -683,14 +648,14 @@ class AccidentReport extends AbstractDocument
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent($this->FieldValue['AccidentBodyParts'])
                             ->stylePaddingLeft('5px')
                             ->styleBorderRight()
                             ->styleBorderBottom()
                             , '50%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent($this->FieldValue['AccidentType'])
                             ->stylePaddingLeft('5px')
                             ->styleBorderBottom()
                             , '50%'
@@ -706,7 +671,7 @@ class AccidentReport extends AbstractDocument
                             ->styleBorderBottom()
                             , '35%'
                         )
-                        ->addSliceColumn($this->setCheckBox()
+                        ->addSliceColumn($this->setCheckBox($this->FieldValue['BreakNo'])
                             ->styleHeight('27px')
                             ->styleBorderBottom()
                             , '4%'
@@ -718,7 +683,7 @@ class AccidentReport extends AbstractDocument
                             ->styleBorderBottom()
                             , '11%'
                         )
-                        ->addSliceColumn($this->setCheckBox()
+                        ->addSliceColumn($this->setCheckBox($this->FieldValue['BreakYes'])
                             ->styleHeight('27px')
                             ->styleBorderBottom()
                             , '4%'
@@ -730,7 +695,7 @@ class AccidentReport extends AbstractDocument
                             ->styleBorderBottom()
                             , '11%'
                         )
-                        ->addSliceColumn($this->setCheckBox()
+                        ->addSliceColumn($this->setCheckBox($this->FieldValue['BreakAt'])
                             ->styleHeight('27px')
                             ->styleBorderBottom()
                             , '4%'
@@ -744,7 +709,7 @@ class AccidentReport extends AbstractDocument
                             , '11%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Tag <br/> ')
+                            ->setContent('Tag <br/>'.$this->getDatePartString($this->FieldValue['BreakDate'], 1))
                             ->styleTextSize('11px')
                             ->styleAlignCenter()
                             ->styleHeight('27px')
@@ -753,7 +718,7 @@ class AccidentReport extends AbstractDocument
                             , '6%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Monat <br/> ')
+                            ->setContent('Monat <br/>'.$this->getDatePartString($this->FieldValue['BreakDate'], 2))
                             ->styleTextSize('11px')
                             ->styleAlignCenter()
                             ->styleHeight('27px')
@@ -762,7 +727,7 @@ class AccidentReport extends AbstractDocument
                             , '7%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Stunde <br/> ')
+                            ->setContent('Stunde <br/>'.$this->FieldValue['BreakHour'])
                             ->styleTextSize('11px')
                             ->styleAlignCenter()
                             ->styleHeight('27px')
@@ -780,7 +745,7 @@ class AccidentReport extends AbstractDocument
                             ->styleBorderBottom()
                             , '50%'
                         )
-                        ->addSliceColumn($this->setCheckBox()
+                        ->addSliceColumn($this->setCheckBox($this->FieldValue['ReturnNo'])
                             ->styleHeight('27px')
                             ->styleBorderBottom()
                             , '4%'
@@ -792,7 +757,7 @@ class AccidentReport extends AbstractDocument
                             ->styleBorderBottom()
                             , '11%'
                         )
-                        ->addSliceColumn($this->setCheckBox()
+                        ->addSliceColumn($this->setCheckBox($this->FieldValue['ReturnYes'])
                             ->styleHeight('27px')
                             ->styleBorderBottom()
                             , '4%'
@@ -806,7 +771,7 @@ class AccidentReport extends AbstractDocument
                             , '11%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Tag <br/> ')
+                            ->setContent('Tag <br/>'.$this->getDatePartString($this->FieldValue['ReturnDate'], 1))
                             ->styleTextSize('11px')
                             ->styleAlignCenter()
                             ->styleHeight('27px')
@@ -815,7 +780,7 @@ class AccidentReport extends AbstractDocument
                             , '6%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Monat <br/> ')
+                            ->setContent('Monat <br/>'.$this->getDatePartString($this->FieldValue['ReturnDate'], 2))
                             ->styleTextSize('11px')
                             ->styleAlignCenter()
                             ->styleHeight('27px')
@@ -824,7 +789,7 @@ class AccidentReport extends AbstractDocument
                             , '7%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Jahr <br/> ')
+                            ->setContent('Jahr <br/>'.$this->getDatePartString($this->FieldValue['ReturnDate'], 3))
                             ->styleTextSize('11px')
                             ->styleAlignCenter()
                             ->styleHeight('27px')
@@ -849,14 +814,14 @@ class AccidentReport extends AbstractDocument
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent($this->FieldValue['WitnessInfo'])
                             ->stylePaddingLeft('5px')
                             ->stylePaddingTop('3px')
                             ->styleHeight('22px')
                             ->styleBorderBottom()
                             , '70%'
                         )
-                        ->addSliceColumn($this->setCheckBox()
+                        ->addSliceColumn($this->setCheckBox($this->FieldValue['EyeWitnessYes'])
                             ->styleHeight('25px')
                             ->styleBorderBottom()
                             , '4%'
@@ -869,7 +834,7 @@ class AccidentReport extends AbstractDocument
                             ->styleBorderBottom()
                             , '11%'
                         )
-                        ->addSliceColumn($this->setCheckBox()
+                        ->addSliceColumn($this->setCheckBox($this->FieldValue['EyeWitnessNo'])
                             ->styleHeight('25px')
                             ->styleBorderBottom()
                             , '4%'
@@ -901,7 +866,8 @@ class AccidentReport extends AbstractDocument
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent($this->FieldValue['Doctor']
+                                .'<br/>'.$this->FieldValue['DoctorAddress'])
                             ->stylePaddingLeft('5px')
                             ->styleHeight('42.3px')
                             ->styleBorderRight()
@@ -930,7 +896,7 @@ class AccidentReport extends AbstractDocument
                             )
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
-                                    ->setContent('Stunde <br/> &nbsp;')
+                                    ->setContent('Stunde <br/>'.$this->FieldValue['LocalStartHour'])
                                     ->styleTextSize('11px')
                                     ->styleAlignCenter()
                                     ->stylePaddingLeft('5px')
@@ -939,7 +905,7 @@ class AccidentReport extends AbstractDocument
                                     , '25%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('Minute <br/> &nbsp;')
+                                    ->setContent('Minute <br/>'.$this->FieldValue['LocalStartMinute'])
                                     ->styleTextSize('11px')
                                     ->styleAlignCenter()
                                     ->stylePaddingLeft('5px')
@@ -948,7 +914,7 @@ class AccidentReport extends AbstractDocument
                                     , '25%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('Stunde <br/> &nbsp;')
+                                    ->setContent('Stunde <br/>'.$this->FieldValue['LocalEndHour'])
                                     ->styleTextSize('11px')
                                     ->styleAlignCenter()
                                     ->stylePaddingLeft('5px')
@@ -957,7 +923,7 @@ class AccidentReport extends AbstractDocument
                                     , '25%'
                                 )
                                 ->addElementColumn((new Element())
-                                    ->setContent('Minute <br/> &nbsp;')
+                                    ->setContent('Minute <br/>'.$this->FieldValue['LocalEndMinute'])
                                     ->styleTextSize('11px')
                                     ->styleAlignCenter()
                                     ->stylePaddingLeft('5px')
@@ -969,13 +935,7 @@ class AccidentReport extends AbstractDocument
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('
-                                {% if( Content.Document.Date.Now) %}
-                                    {{ Content.Document.Date.Now }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}
-                            ')
+                            ->setContent($this->FieldValue['Date'])
                             ->stylePaddingLeft('5px')
                             ->stylePaddingTop('22px')
                             ->styleHeight('18px')
@@ -983,7 +943,7 @@ class AccidentReport extends AbstractDocument
                             , '20%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent($this->FieldValue['LocalLeader'])
                             ->stylePaddingLeft('5px')
                             ->stylePaddingTop('22px')
                             ->styleHeight('18px')
@@ -991,7 +951,7 @@ class AccidentReport extends AbstractDocument
                             , '40%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('&nbsp;')
+                            ->setContent($this->FieldValue['Recall'])
                             ->stylePaddingLeft('5px')
                             ->stylePaddingTop('22px')
                             ->styleHeight('18px')
