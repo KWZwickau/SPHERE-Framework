@@ -241,8 +241,8 @@ class TblMinimumGradeCount extends Element
 
         switch ($this->getPeriod())  {
             case SelectBoxItem::PERIOD_FULL_YEAR: $period = 'Gesamtes Schuljahr'; break;
-            case SelectBoxItem::PERIOD_FIRST_PERIOD: $period = '1. Zeitraum'; break;
-            case SelectBoxItem::PERIOD_SECOND_PERIOD: $period = '2. Zeitraum'; break;
+            case SelectBoxItem::PERIOD_FIRST_PERIOD: $period = '1. Halbjahr'; break;
+            case SelectBoxItem::PERIOD_SECOND_PERIOD: $period = '2. Halbjahr'; break;
             default: $period = '';
         }
 
