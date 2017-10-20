@@ -2173,7 +2173,15 @@ class Frontend extends FrontendScoreRule
      */
     private function addTest(TblTest $tblTest,TblGrade $tblGrade, &$subTableHeaderList, &$subTableDataList, $isShownAverage)
     {
-        $date = $tblGrade->getDate() ? $tblGrade->getDate() : $tblTest->getDate();
+        if ($tblTest->isContinues()) {
+            if ($tblGrade->getDate()) {
+                $date = $tblGrade->getDate();
+            } else {
+                $date = $tblTest->getFinishDate();
+            }
+        } else {
+            $date = $tblTest->getDate();
+        }
         if (strlen($date) > 6) {
             $date = substr($date, 0, 6);
         }
@@ -2294,7 +2302,11 @@ class Frontend extends FrontendScoreRule
                                                 $subTableDataList = array();
 
                                                 if ($tblGradeList) {
-                                                    foreach ($tblGradeList as $tblGrade) {
+                                                    // Sortieren der Zensuren
+                                                    $gradeListSorted = Gradebook::useService()->getSortedGradeList($tblGradeList);
+
+                                                    /**@var TblGrade $tblGrade **/
+                                                    foreach ($gradeListSorted as $tblGrade) {
                                                         $tblTest = $tblGrade->getServiceTblTest();
                                                         if ($tblTest) {
                                                             $isAddTest = false;
@@ -2320,7 +2332,7 @@ class Frontend extends FrontendScoreRule
                                                                 $isAddTest = true;
                                                             }
 
-                                                            if ($isAddTest) {
+                                                            if ($isAddTest && ($tblGrade->getGrade() !== null && $tblGrade->getGrade() !== '')) {
                                                                 $this->addTest($tblTest,
                                                                     $tblGrade,
                                                                     $subTableHeaderList,
@@ -2353,7 +2365,7 @@ class Frontend extends FrontendScoreRule
                                                             $tblScoreRule ? $tblScoreRule : null,
                                                             $tblPeriod,
                                                             $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null,
-                                                            true
+                                                            $isParentView
                                                         );
 
                                                         if (is_array($average)) {
@@ -2378,6 +2390,9 @@ class Frontend extends FrontendScoreRule
                                                 }
                                             }
                                         }
+
+                                        // todo Total average
+
                                     }
                                 }
                             }
@@ -2623,6 +2638,10 @@ class Frontend extends FrontendScoreRule
                 . new Danger('Schüler nicht gefunden.', new Ban());
         }
 
+        // Todo remove
+//        $view = new GradebookOverview($tblPerson, $tblDivision);
+//        $view->buildPage();
+
         $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
 
         $rowList[] = new LayoutRow(array(
@@ -2651,6 +2670,7 @@ class Frontend extends FrontendScoreRule
                 foreach ($tblPeriodList as $tblPeriod) {
                     $tableHeaderList['Period' . $tblPeriod->getId()] = new Bold($tblPeriod->getDisplayName());
                 }
+                $tableHeaderList['Average'] = '&#216;';
             }
 
             if ($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson)) {
