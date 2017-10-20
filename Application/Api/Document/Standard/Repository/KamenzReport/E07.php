@@ -1051,8 +1051,9 @@ class E07
         $section = new Section();
         $section
             ->addElementColumn((new Element())
-                ->setContent('Unbekannt')
+                ->setContent('Unbekannt*')
                 ->stylePaddingLeft('5px')
+                ->styleTextColor('red')
                 ->styleBackgroundColor('lightgrey')
                 ->styleBorderRight(), '30%'
             )
@@ -1418,6 +1419,16 @@ class E07
             ->styleBackgroundColor('lightgrey')
             ->styleTextBold()
             ->addSection($section);
+
+        $sliceList[] = (new Slice())
+            ->addSection((new Section)
+                ->addElementColumn((new Element())
+                    ->setContent('* Für diese Schüler konnte das letzte Schuljahr in der Schulsoftware nicht bestimmt werden. Diese Schülerzahlen müssen manuell eingeordnet werden.')
+                    ->styleMarginTop('10px')
+                    ->styleTextColor('red')
+                    ->styleTextSize('10px')
+                )
+            );
 
         return $sliceList;
     }
