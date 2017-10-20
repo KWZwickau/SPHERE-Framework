@@ -262,7 +262,7 @@ class E01
         for ($level = 5; $level < 11; $level++) {
 
             $isGrey = false;
-            if ($identifier == 'HS' || ($identifier == 'RS' && $part = 'Mixed')) {
+            if ($identifier == 'HS' || ($identifier == 'RS' && $part == 'Mixed')) {
                 if ($level == '5' || $level == '6' || $level == '10') {
                     $isGrey = true;
                 }

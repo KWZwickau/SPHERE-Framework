@@ -198,7 +198,7 @@ class StudentSelect extends Extension implements IApiInterface
                     );
                 }
                 // Anzeige
-                $left = new TableData($Table, new Title('Ausgewählte', 'Schüler'), array(
+                $left = (new TableData($Table, new Title('Ausgewählte', 'Schüler'), array(
                     'Number'  => '#',
                     'Name' => 'Name',
                     'Address' => 'Adresse',
@@ -210,7 +210,7 @@ class StudentSelect extends Extension implements IApiInterface
                             array('orderable' => false, 'width' => '1%', 'targets' => array(0,-1))
                         ),
                     )
-                );
+                ))->setHash(__NAMESPACE__ . 'StudentSelect' . 'Selected');
             } else {
                 $left = new Info('Keine Schüler ausgewählt');
             }
@@ -233,7 +233,7 @@ class StudentSelect extends Extension implements IApiInterface
                     );
                 }
                 // Anzeige
-                $right = new TableData($TableAvailable, new Title('Verfügbare', 'Schüler'), array(
+                $right = (new TableData($TableAvailable, new Title('Verfügbare', 'Schüler'), array(
                     'Name' => 'Name',
                     'Address' => 'Adresse',
                     'Course' => 'Bildungsgang',
@@ -244,7 +244,7 @@ class StudentSelect extends Extension implements IApiInterface
                             array('orderable' => false, 'width' => '1%', 'targets' => -1)
                         ),
                     )
-                );
+                ))->setHash(__NAMESPACE__ . 'StudentSelect' . 'Available');
             } else {
                 $right = new Info('Keine weiteren Schüler verfügbar');
             }

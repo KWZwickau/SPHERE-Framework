@@ -188,8 +188,18 @@ class E07
         self::setRowContent($sliceList, 'Grundschule', 'PrimarySchool');
         self::setRowContent($sliceList, 'Mittelschule', 'SecondarySchool');
         self::setRowContent($sliceList, 'Gymnasium', 'GrammarSchool');
-        self::setRowContent($sliceList, 'Unbekannt', 'Unknown');
+        self::setRowContent($sliceList, 'Unbekannt*', 'Unknown');
         self::setRowContent($sliceList, 'Insgesamt', 'TotalCount');
+
+        $sliceList[] = (new Slice())
+            ->addSection((new Section)
+                ->addElementColumn((new Element())
+                    ->setContent('* Für diese Schüler konnte das letzte Schuljahr in der Schulsoftware nicht bestimmt werden. Diese Schülerzahlen müssen manuell eingeordnet werden.')
+                    ->styleMarginTop('10px')
+                    ->styleTextColor('red')
+                    ->styleTextSize('10px')
+                )
+            );
 
         return $sliceList;
     }
@@ -209,6 +219,7 @@ class E07
                 ->stylePaddingLeft('5px')
                 ->styleTextBold($identifier == 'TotalCount' ? 'bold' : 'normal')
                 ->styleBackgroundColor('lightgrey')
+                ->styleTextColor($identifier == 'Unknown' ? 'red' : 'black')
                 ->styleBorderRight(), '20%'
             );
 
