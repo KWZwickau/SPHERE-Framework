@@ -489,10 +489,11 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         // NOT Accepted?
-        // Check if Parent-Account
+        // Check if Parent-Account || Student-Account
         $tblUserAccount = UserAccount::useServiceByConsumer($tblAccount->getServiceTblConsumer())->getUserAccountByAccount($tblAccount);
-        if( $tblUserAccount && $tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_CUSTODY ) {
-            // IS Parent-Account
+        if ($tblUserAccount &&
+            ($tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_CUSTODY || $tblUserAccount->getType() == TblUserAccount::VALUE_TYPE_STUDENT)) {
+            // IS Parent-Account || Student-Account
             if($tblSetting->getValue() == TblSetting::VAR_UPDATE_AGB) {
                 $Headline = 'Allgemeine Geschäftsbedingungen - Aktualisierung';
             }
@@ -545,7 +546,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         $View->setContent(
             $this->getIdentificationLayout(
-                new Listing(array(new Header( new Bold($Headline)),Agb::useFrontend()->getAgbContent()))
+                new Listing(array(
+                    new Header(new Bold($Headline)),
+                    Agb::useFrontend()->getAgbContent($tblAccount)
+                ))
                 . $Form
             )
         );
