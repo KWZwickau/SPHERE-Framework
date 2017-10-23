@@ -582,7 +582,7 @@ class AccidentReport extends Extension
                                             new LayoutGroup(array(
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        new PullClear(new Sup(11).new Bold(' Tödlicher Unfall?')).
+                                                        new PullClear(new Bold(new Sup(11).' Tödlicher Unfall?')).
                                                         new PullLeft((new CheckBox('Data[DeathAccidentYes]',
                                                             'Ja &nbsp;&nbsp;&nbsp;&nbsp;', true)
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
@@ -626,7 +626,7 @@ class AccidentReport extends Extension
                                                 ),
                                                 new LayoutRow(
                                                     new LayoutColumn(
-                                                        new PullLeft(new Header(new Sup(14).new Bold(' Die Angaben beruhen auf der Schilderung &nbsp;&nbsp;&nbsp;&nbsp;')))
+                                                        new PullLeft(new Header(new Bold(new Sup(14).' Die Angaben beruhen auf der Schilderung &nbsp;&nbsp;&nbsp;&nbsp;')))
                                                         .new Container(
                                                             new PullLeft((new CheckBox('Data[DescriptionActive]',
                                                                 'des Versicherten &nbsp;&nbsp;&nbsp;&nbsp;'
@@ -664,7 +664,7 @@ class AccidentReport extends Extension
                                                 ),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        new Sup(17).new Bold(' Hat der Versicherte den Besuch der Einrichtung unterbrochen?')
+                                                        new Bold(new Sup(17).' Hat der Versicherte den Besuch der Einrichtung unterbrochen?')
                                                         .new PullClear(
                                                             new PullLeft((new CheckBox('Data[BreakNo]',
                                                                 'nein &nbsp;&nbsp;&nbsp;&nbsp;', true)
@@ -696,7 +696,7 @@ class AccidentReport extends Extension
                                                 ),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        new Sup(18).new Bold('Hat der Versicherte den Besuch der Einrichtung wieder aufgenommen?')
+                                                        new Bold(new Sup(18).' Hat der Versicherte den Besuch der Einrichtung wieder aufgenommen?')
                                                         .new PullClear(
                                                             new PullLeft((new CheckBox('Data[ReturnNo]',
                                                                 'nein &nbsp;&nbsp;&nbsp;&nbsp;', true)
@@ -752,14 +752,14 @@ class AccidentReport extends Extension
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 6),
                                                     new LayoutColumn(
-                                                        new Header(new Bold('Beginn des Besuchs der Einrichtung'))
+                                                        new Header(new Bold(new Sup(21).' Beginn des Besuchs der Einrichtung'))
                                                         .(new TextField('Data[LocalStartHour]', 'Stunde', 'Stunde')
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         .(new TextField('Data[LocalStartMinute]', 'Minute', 'Minute')
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         , 3),
                                                     new LayoutColumn(
-                                                        new Header(new Bold('Ende des Besuchs der Einrichtung'))
+                                                        new Header(new Bold(new Sup(21).' Ende des Besuchs der Einrichtung'))
                                                         .(new TextField('Data[LocalEndHour]', 'Stunde', 'Stunde')
                                                         )->ajaxPipelineOnKeyUp(ApiAccidentReport::pipelineButtonRefresh($PersonId))
                                                         .(new TextField('Data[LocalEndMinute]', 'Minute', 'Minute')
@@ -803,7 +803,7 @@ class AccidentReport extends Extension
 //                        (new Standard('PDF erzeugen', ApiAccidentReport::getEndpoint()))->ajaxPipelineOnClick(ApiAccidentReport::pipelineDownload($PersonId))
                     )
                 ))
-            ))
+            )) // , new Primary('Download', new Download(), true), '\Api\Document\Standard\AccidentReport\Create', $Data
         );
     }
 }
