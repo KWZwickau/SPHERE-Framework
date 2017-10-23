@@ -911,7 +911,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 array('Id' => $tblTest->getId()), 'Löschen'))
                             : '')
                         . (new Standard('', $BasicRoute . '/Grade/Edit', new Listing(),
-                            array('Id' => $tblTest->getId()), 'Zensuren bearbeiten'))
+                            array('Id' => $tblTest->getId()), 'Zensuren eintragen'))
                 );
             });
         }
@@ -1617,7 +1617,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Grade = null
     ) {
 
-        $Stage = new Stage('Leistungsüberprüfung', 'Zensuren bearbeiten');
+        $Stage = new Stage('Leistungsüberprüfung', 'Zensuren eintragen');
 
         $tblTest = false;
 
@@ -2371,7 +2371,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Grade = null
     ) {
 
-        $Stage = new Stage('Leistungsüberprüfung', 'Zensuren bearbeiten');
+        $Stage = new Stage('Leistungsüberprüfung', 'Zensuren eintragen');
 
         $tblTest = false;
 
