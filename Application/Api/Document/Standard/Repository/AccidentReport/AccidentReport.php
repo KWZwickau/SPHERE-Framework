@@ -486,7 +486,7 @@ class AccidentReport extends AbstractDocument
                             , '4%'
                         )
                         ->addSliceColumn(
-                            $this->setCheckBox((!$this->FieldValue['DeathAccidentNo'] ? 'X' : ''))
+                            $this->setCheckBox(($this->FieldValue['DeathAccidentNo'] ? 'X' : ''))
                                 ->styleBorderBottom()
                                 ->stylePaddingTop('3px')
                                 ->styleHeight('29px')

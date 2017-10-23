@@ -1,17 +1,7 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 09.09.2016
- * Time: 10:31
- */
-
 namespace SPHERE\Application\Api\Document\Standard;
 
 use SPHERE\Application\Api\Document\Creator;
-use SPHERE\Application\Api\Document\Standard\Repository\AccidentReport\ApiAccidentReport;
-use SPHERE\Application\Api\Document\Standard\Repository\SignOutCertificate\ApiSignOutCertificate;
-use SPHERE\Application\Api\Document\Standard\Repository\StudentTransfer\ApiStudentTransfer;
 use SPHERE\Application\Document\Generator\Generator;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\People\Person\Person;
@@ -28,10 +18,6 @@ class Standard extends Extension implements IModuleInterface
 
     public static function registerModule()
     {
-
-        ApiStudentTransfer::registerApi();
-        ApiSignOutCertificate::registerApi();
-        ApiAccidentReport::registerApi();
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/EnrollmentDocument/Create', __CLASS__ . '::createEnrollmentDocumentPdf'

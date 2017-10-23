@@ -3,7 +3,6 @@
 namespace SPHERE\Application\Document\Standard\SignOutCertificate;
 
 use MOC\V\Core\FileSystem\FileSystem;
-use SPHERE\Application\Api\Document\Standard\Repository\SignOutCertificate\ApiSignOutCertificate;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -13,11 +12,14 @@ use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
@@ -27,6 +29,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
@@ -151,6 +154,7 @@ class SignOutCertificate extends Extension
         $tblPerson = Person::useService()->getPersonById($Id);
         $Global = $this->getGlobal();
         if ($tblPerson) {
+            $Global->POST['Data']['PersonId'] = $Id;
             $Global->POST['Data']['FirstLastName'] = $tblPerson->getFirstSecondName().' '.$tblPerson->getLastName();
             $Global->POST['Data']['Date'] = (new \DateTime())->format('d.m.Y');
             $Global->POST['Data']['BirthDate'] = '';
@@ -245,9 +249,14 @@ class SignOutCertificate extends Extension
         }
         $Global->savePost();
 
-        $form = $this->formSignOut($Id);
+        $form = $this->formSignOut();
 
         $HeadPanel = new Panel('Schüler', $tblPerson->getLastFirstName());
+
+        $Stage->addButton(new External('Blanko Abmeldebescheinigung herunterladen',
+            'SPHERE\Application\Api\Document\Standard\SignOutCertificate\Create',
+            new Download(), array('Data' => array('empty')),
+            'Abmeldebescheinigung herunterladen'));
 
         $Stage->setContent(
             new Layout(
@@ -263,9 +272,6 @@ class SignOutCertificate extends Extension
                             , 7),
                         new LayoutColumn(
                             new Title('Vorlage des Standard-Dokuments "Abmeldebescheinigung"')
-//                            .new Success('<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>'
-//                                .new Center('Bild')
-//                                .'<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>'
                             .new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/Document/SignOutCertificate.png')
                                 , ''
@@ -280,16 +286,17 @@ class SignOutCertificate extends Extension
     }
 
     /**
-     * @param int $PersonId
-     *
      * @return Form
      */
-    private function formSignOut($PersonId)
+    private function formSignOut()
     {
 
         return new Form(
             new FormGroup(array(
-                new FormRow(
+                new FormRow(array(
+                    new FormColumn(
+                        new HiddenField('Data[PersonId]')   //ToDO Hidden ersetzen
+                    ),
                     new FormColumn(
                         new Layout(
                             new LayoutGroup(
@@ -302,24 +309,20 @@ class SignOutCertificate extends Extension
                                             new LayoutGroup(
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        (new TextField('Data[School1]', 'Name',
+                                                        new TextField('Data[School1]', 'Name',
                                                             'Name')
-                                                        )->ajaxPipelineOnKeyUp(ApiSignOutCertificate::pipelineButtonRefresh($PersonId))
                                                         , 6),
                                                     new LayoutColumn(
-                                                        (new TextField('Data[School2]', 'Zusatz',
+                                                        new TextField('Data[School2]', 'Zusatz',
                                                             'Zusatz')
-                                                        )->ajaxPipelineOnKeyUp(ApiSignOutCertificate::pipelineButtonRefresh($PersonId))
                                                         , 6),
                                                     new LayoutColumn(
-                                                        (new TextField('Data[SchoolAddressStreet]', 'Straße Nr.',
+                                                        new TextField('Data[SchoolAddressStreet]', 'Straße Nr.',
                                                             'Straße Nr.')
-                                                        )->ajaxPipelineOnKeyUp(ApiSignOutCertificate::pipelineButtonRefresh($PersonId))
                                                         , 6),
                                                     new LayoutColumn(
-                                                        (new TextField('Data[SchoolAddressCity]', 'PLZ Ort',
+                                                        new TextField('Data[SchoolAddressCity]', 'PLZ Ort',
                                                             'PLZ Ort')
-                                                        )->ajaxPipelineOnKeyUp(ApiSignOutCertificate::pipelineButtonRefresh($PersonId))
                                                         , 6),
                                                 ))
                                             )
@@ -333,48 +336,40 @@ class SignOutCertificate extends Extension
                                             new LayoutGroup(array(
                                                 new LayoutRow(
                                                     new LayoutColumn(
-                                                        (new TextField('Data[FirstLastName]', 'Name',
+                                                        new TextField('Data[FirstLastName]', 'Name',
                                                             'Vor- und Zuname')
-                                                        )->ajaxPipelineOnKeyUp(ApiSignOutCertificate::pipelineButtonRefresh($PersonId))
                                                     )
                                                 ),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        (new TextField('Data[BirthDate]', 'Geboren am', 'Geboren am')
-                                                        )->ajaxPipelineOnKeyUp(ApiSignOutCertificate::pipelineButtonRefresh($PersonId))
+                                                        new TextField('Data[BirthDate]', 'Geboren am', 'Geboren am')
                                                         , 6),
                                                     new LayoutColumn(
-                                                        (new TextField('Data[BirthPlace]', 'Geboren in', 'Geboren in')
-                                                        )->ajaxPipelineOnKeyUp(ApiSignOutCertificate::pipelineButtonRefresh($PersonId))
+                                                        new TextField('Data[BirthPlace]', 'Geboren in', 'Geboren in')
                                                         , 6),
                                                 )),
                                                 new LayoutRow(
                                                     new LayoutColumn(
-                                                        (new TextField('Data[AddressStreet]', 'Straße Nr.',
+                                                        new TextField('Data[AddressStreet]', 'Straße Nr.',
                                                             'Straße Nr.')
-                                                        )->ajaxPipelineOnKeyUp(ApiSignOutCertificate::pipelineButtonRefresh($PersonId))
                                                     )
                                                 ),
                                                 new LayoutRow(
                                                     new LayoutColumn(
-                                                        (new TextField('Data[AddressCity]', 'PLZ Ort', 'PLZ Ort')
-                                                        )->ajaxPipelineOnKeyUp(ApiSignOutCertificate::pipelineButtonRefresh($PersonId))
+                                                        new TextField('Data[AddressCity]', 'PLZ Ort', 'PLZ Ort')
                                                     )
                                                 ),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        (new TextField('Data[SchoolEntry]', 'Datum', 'Schulbesuch von')
-                                                        )->ajaxPipelineOnKeyUp(ApiSignOutCertificate::pipelineButtonRefresh($PersonId))
+                                                        new TextField('Data[SchoolEntry]', 'Datum', 'Schulbesuch von')
                                                         , 6),
                                                     new LayoutColumn(
-                                                        (new TextField('Data[SchoolUntil]', 'Datum', 'Schulbesucht bis')
-                                                        )->ajaxPipelineOnKeyUp(ApiSignOutCertificate::pipelineButtonRefresh($PersonId))
+                                                        new TextField('Data[SchoolUntil]', 'Datum', 'Schulbesucht bis')
                                                         , 6)
                                                 )),
                                                 new LayoutRow(
                                                     new LayoutColumn(
-                                                        (new TextField('Data[PlaceDate]', 'Ort, Datum', 'Ort, Datum')
-                                                        )->ajaxPipelineOnKeyUp(ApiSignOutCertificate::pipelineButtonRefresh($PersonId))
+                                                        new TextField('Data[PlaceDate]', 'Ort, Datum', 'Ort, Datum')
                                                     )
                                                 ),
                                             ))
@@ -388,24 +383,20 @@ class SignOutCertificate extends Extension
                                             new LayoutGroup(
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        (new TextField('Data[NewSchool1]', 'Name',
+                                                        new TextField('Data[NewSchool1]', 'Name',
                                                             'Name')
-                                                        )->ajaxPipelineOnKeyUp(ApiSignOutCertificate::pipelineButtonRefresh($PersonId))
                                                     ),
                                                     new LayoutColumn(
-                                                        (new TextField('Data[NewSchool2]', 'Zusatz',
+                                                        new TextField('Data[NewSchool2]', 'Zusatz',
                                                             'Zusatz')
-                                                        )->ajaxPipelineOnKeyUp(ApiSignOutCertificate::pipelineButtonRefresh($PersonId))
                                                     ),
                                                     new LayoutColumn(
-                                                        (new TextField('Data[NewSchoolAddressStreet]', 'Straße Nr.',
+                                                        new TextField('Data[NewSchoolAddressStreet]', 'Straße Nr.',
                                                             'Straße Nr.')
-                                                        )->ajaxPipelineOnKeyUp(ApiSignOutCertificate::pipelineButtonRefresh($PersonId))
                                                     ),
                                                     new LayoutColumn(
-                                                        (new TextField('Data[NewSchoolAddressCity]', 'PLZ Ort',
+                                                        new TextField('Data[NewSchoolAddressCity]', 'PLZ Ort',
                                                             'PLZ Ort')
-                                                        )->ajaxPipelineOnKeyUp(ApiSignOutCertificate::pipelineButtonRefresh($PersonId))
                                                     ),
                                                 ))
                                             )
@@ -415,14 +406,15 @@ class SignOutCertificate extends Extension
                             )
                         )
                     )
-                ),
+                )),
 
-                new FormRow(array(
-                    new FormColumn(
-                        ApiSignOutCertificate::receiverService(ApiSignOutCertificate::pipelineButtonRefresh($PersonId))
-                    )
-                ))
-            ))
+//                new FormRow(array(
+//                    new FormColumn(
+//                        ApiSignOutCertificate::receiverService(ApiSignOutCertificate::pipelineButtonRefresh($PersonId))
+//                    )
+//                ))
+            )), new Primary('Download', new Download(), true),
+            '\Api\Document\Standard\SignOutCertificate\Create' //, array('PersonId' => 15) // ToDo zusätzliche Daten mitgeben
         );
     }
 }

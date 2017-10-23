@@ -146,10 +146,10 @@ class SignOutCertificate extends AbstractDocument
                 ->addElement((new Element())
                     ->setContent($this->FieldValue['SchoolAddressCity'])
                 )
-                , '50%')
+                , '60%')
             ->addSliceColumn((new Slice())
                 ->addElement($this->getPictureSignOut())
-                , '50%')
+                , '40%')
 
         );
         $Slice->addElement((new Element())
@@ -570,7 +570,7 @@ class SignOutCertificate extends AbstractDocument
         if ($picturePath != '') {
             $height = $this->getSignOutCertificateDocumentPictureHeight();
             $column = (new Element\Image($picturePath, $with, $height))
-                ->styleAlignCenter();
+                ->styleAlignRight();
         } else {
             $column = (new Element())
                 ->setContent('&nbsp;');

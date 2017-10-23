@@ -4,7 +4,6 @@ namespace SPHERE\Application\Document\Standard\StudentTransfer;
 
 
 use MOC\V\Core\FileSystem\FileSystem;
-use SPHERE\Application\Api\Document\Standard\Repository\StudentTransfer\ApiStudentTransfer;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson as TblToPersonPhone;
@@ -16,12 +15,15 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
@@ -31,6 +33,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
@@ -156,6 +159,7 @@ class StudentTransfer extends Extension
         $tblPerson = Person::useService()->getPersonById($Id);
         $Global = $this->getGlobal();
         if ($tblPerson) {
+            $Global->POST['Data']['PersonId'] = $Id;
             $Global->POST['Data']['LastFirstName'] = $tblPerson->getLastFirstName();
             $Global->POST['Data']['Date'] = (new \DateTime())->format('d.m.Y');
             $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
@@ -299,9 +303,14 @@ class StudentTransfer extends Extension
         }
         $Global->savePost();
 
-        $form = $this->formStudentTransfer($Id);
+        $form = $this->formStudentTransfer();
 
         $HeadPanel = new Panel('Schüler', $tblPerson->getLastFirstName());
+
+        $Stage->addButton(new External('Blanko Schülerüberweisung herunterladen',
+            'SPHERE\Application\Api\Document\Standard\SignOutCertificate\Create',
+            new Download(), array('Data' => array('empty')),
+            'Schülerüberweisung herunterladen'));
 
         $Stage->setContent(
             new Layout(
@@ -331,16 +340,17 @@ class StudentTransfer extends Extension
     }
 
     /**
-     * @param int $PersonId
-     *
      * @return Form
      */
-    private function formStudentTransfer($PersonId)
+    private function formStudentTransfer()
     {
 
         return new Form(
             new FormGroup(array(
-                new FormRow(
+                new FormRow(array(
+                    new FormColumn(
+                        new HiddenField('Data[PersonId]')   //ToDO Hidden ersetzen
+                    ),
                     new FormColumn(
                         new Layout(
                             new LayoutGroup(
@@ -353,40 +363,32 @@ class StudentTransfer extends Extension
                                             new LayoutGroup(
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        (new TextField('Data[LeaveSchool]', 'Abgebende Schule',
+                                                        new TextField('Data[LeaveSchool]', 'Abgebende Schule',
                                                             'Abgebende Schule')
-                                                        )->ajaxPipelineOnKeyUp(ApiStudentTransfer::pipelineButtonRefresh($PersonId))
                                                     ),
                                                     new LayoutColumn(
-                                                        (new TextField('Data[ContactPerson]', 'Ansprechpartner',
+                                                        new TextField('Data[ContactPerson]', 'Ansprechpartner',
                                                             'Ansprechpartner')
-                                                        )->ajaxPipelineOnKeyUp(ApiStudentTransfer::pipelineButtonRefresh($PersonId))
                                                         , 3),
                                                     new LayoutColumn(
-                                                        (new TextField('Data[DocumentNumber]', 'Aktenzeichen',
+                                                        new TextField('Data[DocumentNumber]', 'Aktenzeichen',
                                                             'Aktenzeichen')
-                                                        )->ajaxPipelineOnKeyUp(ApiStudentTransfer::pipelineButtonRefresh($PersonId))
                                                         , 3),
                                                     new LayoutColumn(
-                                                        (new TextField('Data[Phone]', 'Telefon', 'Telefon')
-                                                        )->ajaxPipelineOnKeyUp(ApiStudentTransfer::pipelineButtonRefresh($PersonId))
+                                                        new TextField('Data[Phone]', 'Telefon', 'Telefon')
                                                         , 3),
                                                     new LayoutColumn(
-                                                        (new TextField('Data[Fax]', 'Telefax', 'Telefax')
-                                                        )->ajaxPipelineOnKeyUp(ApiStudentTransfer::pipelineButtonRefresh($PersonId))
+                                                        new TextField('Data[Fax]', 'Telefax', 'Telefax')
                                                         , 3),
                                                     new LayoutColumn(
-                                                        (new TextField('Data[AddressStreet]', 'Straße, Nr.',
+                                                        new TextField('Data[AddressStreet]', 'Straße, Nr.',
                                                             'Straße, Nr.')
-                                                        )->ajaxPipelineOnKeyUp(ApiStudentTransfer::pipelineButtonRefresh($PersonId))
                                                         , 12),
                                                     new LayoutColumn(
-                                                        (new TextField('Data[AddressCity]', 'PLZ, Ort', 'PLZ, Ort')
-                                                        )->ajaxPipelineOnKeyUp(ApiStudentTransfer::pipelineButtonRefresh($PersonId))
+                                                        new TextField('Data[AddressCity]', 'PLZ, Ort', 'PLZ, Ort')
                                                         , 9),
                                                     new LayoutColumn(
-                                                        (new TextField('Data[Date]', 'Datum', 'Datum')
-                                                        )->ajaxPipelineOnKeyUp(ApiStudentTransfer::pipelineButtonRefresh($PersonId))
+                                                        new TextField('Data[Date]', 'Datum', 'Datum')
                                                         , 3)
                                                 ))
                                             )
@@ -400,21 +402,18 @@ class StudentTransfer extends Extension
                                             new LayoutGroup(array(
                                                 new LayoutRow(
                                                     new LayoutColumn(
-                                                        (new TextField('Data[NewSchool1]', 'Aufnehmende Schule',
+                                                        new TextField('Data[NewSchool1]', 'Aufnehmende Schule',
                                                             'Aufnehmende Schule')
-                                                        )->ajaxPipelineOnKeyUp(ApiStudentTransfer::pipelineButtonRefresh($PersonId))
                                                         , 6)
                                                 ),
                                                 new LayoutRow(
                                                     new LayoutColumn(
-                                                        (new TextField('Data[NewSchool2]', '', '')
-                                                        )->ajaxPipelineOnKeyUp(ApiStudentTransfer::pipelineButtonRefresh($PersonId))
+                                                        new TextField('Data[NewSchool2]', '', '')
                                                         , 6)
                                                 ),
                                                 new LayoutRow(
                                                     new LayoutColumn(
-                                                        (new TextField('Data[NewSchool3]', '', '')
-                                                        )->ajaxPipelineOnKeyUp(ApiStudentTransfer::pipelineButtonRefresh($PersonId))
+                                                        new TextField('Data[NewSchool3]', '', '')
                                                         , 6)
                                                 ),
                                             ))
@@ -429,34 +428,28 @@ class StudentTransfer extends Extension
                                             new LayoutGroup(
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        (new TextField('Data[LastFirstName]', 'Name, Vorname',
+                                                        new TextField('Data[LastFirstName]', 'Name, Vorname',
                                                             'Name, Vorname des Schülers/der Schülerin')
-                                                        )->ajaxPipelineOnKeyUp(ApiStudentTransfer::pipelineButtonRefresh($PersonId))
                                                         , 12),
                                                     new LayoutColumn(
-                                                        (new TextField('Data[MainAddress]', 'Bisherige Anschrift',
+                                                        new TextField('Data[MainAddress]', 'Bisherige Anschrift',
                                                             'Bisherige Anschrift')
-                                                        )->ajaxPipelineOnKeyUp(ApiStudentTransfer::pipelineButtonRefresh($PersonId))
                                                         , 12),
                                                     new LayoutColumn(
-                                                        (new TextField('Data[NewAddress]', 'Neue Anschrift',
+                                                        new TextField('Data[NewAddress]', 'Neue Anschrift',
                                                             'Neue Anschrift')
-                                                        )->ajaxPipelineOnKeyUp(ApiStudentTransfer::pipelineButtonRefresh($PersonId))
                                                         , 12),
                                                     new LayoutColumn(
-                                                        (new TextArea('Data[Custody]', 'Sorgeberechtigte',
+                                                        new TextArea('Data[Custody]', 'Sorgeberechtigte',
                                                             'Sorgeberechtigte')
-                                                        )->ajaxPipelineOnKeyUp(ApiStudentTransfer::pipelineButtonRefresh($PersonId))
                                                         , 12),
                                                     new LayoutColumn(
-                                                        (new TextField('Data[Division]', 'Aktuell besuchte Klasse',
+                                                        new TextField('Data[Division]', 'Aktuell besuchte Klasse',
                                                             'Aktuell besuchte Klasse')
-                                                        )->ajaxPipelineOnKeyUp(ApiStudentTransfer::pipelineButtonRefresh($PersonId))
                                                         , 6),
                                                     new LayoutColumn(
-                                                        (new TextField('Data[DateUntil]', 'Besucht die Einrichtung bis',
+                                                        new TextField('Data[DateUntil]', 'Besucht die Einrichtung bis',
                                                             'Besucht die Einrichtung bis')
-                                                        )->ajaxPipelineOnKeyUp(ApiStudentTransfer::pipelineButtonRefresh($PersonId))
                                                         , 6)
                                                 ))
                                             )
@@ -467,19 +460,16 @@ class StudentTransfer extends Extension
                                             new LayoutGroup(
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        (new TextField('Data[SchoolEntry]', 'Eintritt in unsere Schule',
+                                                        new TextField('Data[SchoolEntry]', 'Eintritt in unsere Schule',
                                                             'Eintritt in unsere Schule')
-                                                        )->ajaxPipelineOnKeyUp(ApiStudentTransfer::pipelineButtonRefresh($PersonId))
                                                         , 4),
                                                     new LayoutColumn(
-                                                        (new TextField('Data[SchoolEntryDivision]', 'In Klasse',
+                                                        new TextField('Data[SchoolEntryDivision]', 'In Klasse',
                                                             'In Klasse')
-                                                        )->ajaxPipelineOnKeyUp(ApiStudentTransfer::pipelineButtonRefresh($PersonId))
                                                         , 4),
                                                     new LayoutColumn(
-                                                        (new TextField('Data[DivisionRepeat]', 'Wiederholte Klassen',
+                                                        new TextField('Data[DivisionRepeat]', 'Wiederholte Klassen',
                                                             'Wiederholte Klassen')
-                                                        )->ajaxPipelineOnKeyUp(ApiStudentTransfer::pipelineButtonRefresh($PersonId))
                                                         , 4)
                                                 ))
                                             )
@@ -490,9 +480,8 @@ class StudentTransfer extends Extension
                                             new LayoutGroup(
                                                 new LayoutRow(
                                                     new LayoutColumn(
-                                                        (new TextField('Data[Additional]', 'Anlagen',
+                                                        new TextField('Data[Additional]', 'Anlagen',
                                                             'Anlagen')
-                                                        )->ajaxPipelineOnKeyUp(ApiStudentTransfer::pipelineButtonRefresh($PersonId))
                                                     )
                                                 )
                                             )
@@ -502,15 +491,17 @@ class StudentTransfer extends Extension
                             )
                         )
                     )
-                ),
+                )),
 
-                new FormRow(array(
-                    new FormColumn(
-                        ApiStudentTransfer::receiverService(ApiStudentTransfer::pipelineButtonRefresh($PersonId))
-//                        (new Standard('PDF erzeugen', ApiStudentTransfer::getEndpoint()))->ajaxPipelineOnClick(ApiStudentTransfer::pipelineDownload($PersonId))
-                    )
-                ))
+//                new FormRow(array(
+//                    new FormColumn(
+//                        ApiStudentTransfer::receiverService(ApiStudentTransfer::pipelineButtonRefresh($PersonId))
+////                        (new Standard('PDF erzeugen', ApiStudentTransfer::getEndpoint()))->ajaxPipelineOnClick(ApiStudentTransfer::pipelineDownload($PersonId))
+//                    )
+//                ))
             ))
+            , new Primary('Download', new Download(), true),
+            '\Api\Document\Standard\StudentTransfer\Create' //, array('PersonId' => 15) // ToDo zusätzliche Daten mitgeben
         );
     }
 }
