@@ -10,6 +10,7 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\System\Extension\Extension;
@@ -85,8 +86,9 @@ class ApiStudent extends Extension implements IApiInterface
                 if ($tblPerson) {
                     $PersonString = $tblPerson->getLastFirstName();
                 }
-                return new Danger(new Bold('Die von Ihnen angegebene Schülernummer ist bereits vergeben ('.$PersonString
-                    .'). Es erfolgt keine Speicherung der Schülernummer.'));
+                return new Danger(new Bold('Die Schülernummer ist bereits vergeben: '.$PersonString
+//                    .new Container()
+                    .new Container('Es erfolgt keine Speicherung der Schülernummer.')));
             }
         }
         return '';
