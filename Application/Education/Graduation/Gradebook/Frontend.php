@@ -2231,6 +2231,12 @@ class Frontend extends FrontendScoreRule
             }
         }
 
+        if (($tblGradeType = $tblGrade->getTblGradeType())
+            && $tblGradeType->isHighlighted()
+        ) {
+            $gradeValue = new Bold($gradeValue);
+        }
+
         $subTableDataList[0]['Test' . $tblTest->getId()] = $gradeValue ? $gradeValue : '';
     }
 
@@ -2355,6 +2361,15 @@ class Frontend extends FrontendScoreRule
                                                 }
 
                                                 if (!empty($subTableHeaderList)) {
+                                                    $interActive =  array(
+                                                        "paging" => false, // Deaktiviert Blättern
+                                                        "iDisplayLength" => -1,    // Alle Einträge zeigen
+                                                        "searching" => false, // Deaktiviert Suche
+                                                        "info" => false, // Deaktiviert Such-Info)
+                                                        "responsive" => false, // Deaktiviert RWD
+                                                        "sort" => false
+                                                    );
+
                                                     if ($isShownAverage) {
                                                         $subTableHeaderList['Average'] = '&#216;';
                                                         /*
@@ -2380,13 +2395,18 @@ class Frontend extends FrontendScoreRule
                                                                 strpos($average, '('));
                                                         }
 
-                                                        $subTableDataList[0]['Average'] = $average;
+                                                        $subTableDataList[0]['Average'] = new Bold($average);
+
+                                                        $countSubHeader = count($subTableHeaderList);
+                                                        $interActive["columnDefs"] = array(array('width' => '1%', 'targets' => $countSubHeader - 1));
                                                     }
+
+//                                                    $interActive = false;
 
                                                     $tableDataList[$tblDivisionSubject->getServiceTblSubject()->getId()]['Period' . $tblPeriod->getId()] = new TableData(
                                                         $subTableDataList, null,
                                                         $subTableHeaderList,
-                                                        false
+                                                        $interActive
                                                     );
                                                 } else {
                                                     $tableDataList[$tblDivisionSubject->getServiceTblSubject()->getId()]['Period' . $tblPeriod->getId()] = '';
@@ -2413,22 +2433,30 @@ class Frontend extends FrontendScoreRule
                                             $average = substr($average, 0,
                                                 strpos($average, '('));
                                         }
-                                        $tableDataList[$tblDivisionSubject->getServiceTblSubject()->getId()]['Average'] = $average;
+                                        $tableDataList[$tblDivisionSubject->getServiceTblSubject()->getId()]['Average'] = new Bold($average);
                                     }
                                 }
                             }
                         }
                     }
+
+                    $interActive =  array(
+                        "paging" => false, // Deaktiviert Blättern
+                        "iDisplayLength" => -1,    // Alle Einträge zeigen
+                        "searching" => false, // Deaktiviert Suche
+                        "info" => false, // Deaktiviert Such-Info)
+                        "responsive" => false, // Deaktiviert RWD
+                    );
+                    if (isset($tableHeaderList['Average'])) {
+                        $countHeader = count( $tableHeaderList);
+                        $interActive["columnDefs"] = array(array('width' => '1%', 'targets' => $countHeader - 1));
+                    }
+
                     $rowList[] = new LayoutRow(new LayoutColumn(
                         !empty($tableDataList)
                             ? (new TableData($tableDataList, null, $tableHeaderList, // null
-                            array(
-                                "paging" => false, // Deaktiviert Blättern
-                                "iDisplayLength" => -1,    // Alle Einträge zeigen
-                                "searching" => false, // Deaktiviert Suche
-                                "info" => false, // Deaktiviert Such-Info)
-                                "responsive" => false, // Deaktiviert RWD
-                            )))->setHash(__NAMESPACE__ . '\Student\Gradebook' . $tblDivision->getId() . $tblPerson->getId())
+                                $interActive
+                            ))->setHash(__NAMESPACE__ . '\Student\Gradebook' . $tblDivision->getId() . $tblPerson->getId())
                             : new Warning('Aktuell sind keine Noten verfügbar (Keine Fächer vorhanden)'
                             , new Exclamation())
                     ));

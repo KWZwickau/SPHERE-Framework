@@ -282,7 +282,7 @@ class GradebookOverview extends AbstractDocument
                 }
             }
 
-            $widthSubject = 10;
+            $widthSubject = 5;
             $widthSubjectString = $widthSubject . '%';
 
             // grade width
@@ -361,43 +361,33 @@ class GradebookOverview extends AbstractDocument
                     foreach ($tblPeriodList as $tblPeriod) {
                         if (isset($periodArray[$tblPeriod->getId()])) {
                             foreach ($periodArray[$tblPeriod->getId()] as $key => $tblGrade) {
-                                if ($key == 'Average') {
-                                    $section
-                                        ->addElementColumn((new Element())
-                                            ->setContent(
-                                                '&#216;<br>' . $tblGrade . '<br> &nbsp;'
-                                            )
-                                            ->styleTextSize('10px')
-                                            ->styleBorderTop()
-                                            ->styleBorderRight()
-                                            ->styleTextBold()
-                                            ->styleBackgroundColor('lightgrey')
-                                            , $widthGradeString);
-                                } elseif (($tblTest = $tblGrade->getServiceTblTest())) {
-                                    if ($tblTest->isContinues()) {
-                                        if ($tblGrade->getDate()) {
-                                            $date = $tblGrade->getDate();
+                                if ($key != 'Average') {
+                                    if (($tblTest = $tblGrade->getServiceTblTest())) {
+                                        if ($tblTest->isContinues()) {
+                                            if ($tblGrade->getDate()) {
+                                                $date = $tblGrade->getDate();
+                                            } else {
+                                                $date = $tblTest->getFinishDate();
+                                            }
                                         } else {
-                                            $date = $tblTest->getFinishDate();
+                                            $date = $tblTest->getDate();
                                         }
-                                    } else {
-                                        $date = $tblTest->getDate();
+                                        if (strlen($date) > 6) {
+                                            $date = substr($date, 0, 6);
+                                        }
+                                        $text = $date . '<br>'
+                                            . $tblTest->getServiceTblGradeType()->getCode() . '<br>'
+                                            . ($tblGrade->getDisplayGrade() ? $tblGrade->getDisplayGrade() : '&nbsp;');
+                                        $section
+                                            ->addElementColumn((new Element())
+                                                ->setContent($text)
+                                                ->styleTextSize('10px')
+                                                ->styleBorderTop()
+                                                ->styleBorderRight()
+                                                ->styleBorderLeft($count++ < 1 ? '1px' : '0px')
+                                                ->styleTextBold($tblTest->getServiceTblGradeType()->isHighlighted() ? 'bold' : 'normal')
+                                                , $widthGradeString);
                                     }
-                                    if (strlen($date) > 6) {
-                                        $date = substr($date, 0, 6);
-                                    }
-                                    $text = $date . '<br>'
-                                        . $tblTest->getServiceTblGradeType()->getCode() . '<br>'
-                                        . ($tblGrade->getDisplayGrade() ? $tblGrade->getDisplayGrade() : '&nbsp;');
-                                    $section
-                                        ->addElementColumn((new Element())
-                                            ->setContent($text)
-                                            ->styleTextSize('10px')
-                                            ->styleBorderTop()
-                                            ->styleBorderRight()
-                                            ->styleBorderLeft($count++ < 1 ? '1px' : '0px')
-                                            ->styleTextBold($tblTest->getServiceTblGradeType()->isHighlighted() ? 'bold' : 'normal')
-                                            , $widthGradeString);
                                 }
                             }
 
@@ -414,6 +404,20 @@ class GradebookOverview extends AbstractDocument
                                             ->styleBorderRight()
                                             , $widthGradeString);
                                 }
+                            }
+
+                            if (isset($periodArray[$tblPeriod->getId()]['Average'])) {
+                                $section
+                                    ->addElementColumn((new Element())
+                                        ->setContent(
+                                            '&#216;<br>' . $periodArray[$tblPeriod->getId()]['Average'] . '<br> &nbsp;'
+                                        )
+                                        ->styleTextSize('10px')
+                                        ->styleBorderTop()
+                                        ->styleBorderRight()
+                                        ->styleTextBold()
+                                        ->styleBackgroundColor('lightgrey')
+                                        , $widthGradeString);
                             }
                         } else {
                             for ($i = 0; $i < $maxGradesPerPeriodCount[$tblPeriod->getId()]; $i++) {
