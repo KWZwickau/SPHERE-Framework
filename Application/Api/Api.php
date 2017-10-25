@@ -12,6 +12,7 @@ use SPHERE\Application\Api\Platform\Platform;
 use SPHERE\Application\Api\Reporting\Reporting;
 use SPHERE\Application\Api\Setting\Setting;
 use SPHERE\Application\Api\Test\Test;
+use SPHERE\Application\Api\Transfer\Transfer;
 use SPHERE\Application\IClusterInterface;
 
 /**
@@ -36,5 +37,6 @@ class Api implements IClusterInterface
         Reporting::registerApplication();
         Setting::registerApplication();
         Test::registerApplication();
+        Transfer::registerApplication();
     }
 }
