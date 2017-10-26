@@ -41,6 +41,7 @@ class Data extends AbstractData
         $tblCertificateTypeRecommendation = $this->createCertificateType('Bildungsempfehlung', 'RECOMMENDATION');
         $tblCertificateTypeLeave = $this->createCertificateType('Abgangszeugnis', 'LEAVE');
         $tblCertificateTypeDiploma = $this->createCertificateType('Abschlusszeugnis', 'DIPLOMA');
+        $tblCertificateTypeMidTermCourse = $this->createCertificateType('Kurshalbjahreszeugnis', 'MID_TERM_COURSE');
 
         $tblSchoolTypePrimary = Type::useService()->getTypeByName('Grundschule');
         $tblSchoolTypeSecondary = Type::useService()->getTypeByName('Mittelschule / Oberschule');
@@ -875,6 +876,41 @@ class Data extends AbstractData
                 $this->setCertificateSubject($tblCertificate, 'REV', 1, 10);
                 $this->setCertificateSubject($tblCertificate, 'SPO', 1, 11);
             }
+        }
+
+        // Kurshalbjahreszeugnis
+        $tblCertificate = $this->createCertificate('Gymnasium Kurshalbjahreszeugnis', '', 'GymKurshalbjahreszeugnis');
+        if ($tblCertificate) {
+            if ($tblSchoolTypeGym && $tblCertificateTypeMidTermCourse) {
+                $this->updateCertificate($tblCertificate, $tblCertificateTypeMidTermCourse, $tblSchoolTypeGym,
+                   null);
+            }
+            // Begrenzung des Bemerkungsfeld
+            $FieldName = 'Remark';
+            if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+                // Todo test number
+                $this->createCertificateField($tblCertificate, $FieldName, 300);
+            }
+        }
+        if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+            // todo nutzen oder festlegen?
+//            $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+//            $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+//            $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+//            $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+//            $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+//            $this->setCertificateSubject($tblCertificate, 'GK', 1, 6);
+//            $this->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
+//            $this->setCertificateSubject($tblCertificate, 'WTH', 1, 8);
+//
+//            $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+//            $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
+//            $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+//            $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+//            $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
+//            $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6);
+//            $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
+//            $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
         }
 
         // Alt-Last löschen

@@ -1,0 +1,462 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: Kauschke
+ * Date: 25.10.2017
+ * Time: 09:51
+ */
+
+namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
+
+use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+
+class GymKurshalbjahreszeugnis extends Certificate
+{
+
+    /**
+     * @var array|false
+     */
+    private $AdvancedCourses = false;
+
+    /**
+     * @var array|false
+     */
+    private $BasicCourses = false;
+
+    /**
+     * @param TblPerson|null $tblPerson
+     * @return Page
+     * @internal param bool $IsSample
+     *
+     */
+    public function buildPages(TblPerson $tblPerson = null)
+    {
+
+        $personId = $tblPerson ? $tblPerson->getId() : 0;
+
+        $Header = $this->getHead($this->isSample(), true, 'auto', '50px');
+
+        $this->setCourses($tblPerson);
+
+        return (new Page())
+            ->addSlice(
+                $Header
+            )
+            ->addSlice($this->getSchoolName($personId))
+            ->addSlice($this->getCertificateHead('Kurshalbjahreszeugnis'))
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Kurshalbjahr')
+                        , '7%')
+                    ->addElementColumn((new Element())
+                        ->setContent(
+                            '  {% if(Content.P' . $personId . '.Division.Data.Course.Name is not empty) %}
+                                {{ Content.P' . $personId . '.Division.Data.Course.Name }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}'
+                        )
+                        ->styleBorderBottom()
+                        ->styleAlignCenter()
+                        , '15%')
+                    ->addElementColumn((new Element())
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('Schuljahr')
+                        ->styleAlignRight()
+                        , '18%')
+                    ->addElementColumn((new Element())
+                        ->setContent('{{ Content.P' . $personId . '.Division.Data.Year }}')
+                        ->styleBorderBottom()
+                        ->styleAlignCenter()
+                        , '15%')
+                )->styleMarginTop('20px')
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Vor- und Zuname')
+                        , '18%')
+                    ->addElementColumn((new Element())
+                        ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
+                              {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
+                        ->styleBorderBottom()
+                    )
+                )->styleMarginTop('10px')
+            )
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('Leistungen in den einzelnen Fächern:')
+                    ->styleMarginTop('15px')
+                    ->styleTextBold()
+                )
+            )
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('Leistungskurse')
+                    ->styleMarginTop('10px')
+                )
+            )
+            ->addSlice($this->getAdvancedCourses($tblPerson))
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('Grundkurse')
+                    ->styleMarginTop('10px')
+                )
+            )
+            // Todo Grundkurse
+            ->addSlice($this->getBasicCourses($tblPerson))
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent(
+                            '{% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
+                                Die Schülerin
+                            {% else %}
+                                {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
+                                    Der Schüler
+                                {% else %}
+                                    Die Schülerin/Der Schüler¹ kann ihre/seine¹ Ausbildung am Gymnasium fortsetzen.
+                                {% endif %}
+                            {% endif %}
+                            erbringt eine Besondere Lernleistung mit dem Thema:'
+                        )
+                        ->styleMarginTop('10px')
+                    )
+                )
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent(
+                            '{% if(Content.P' . $personId . '.Input.BellSubject is not empty) %}
+                                {{ Content.P' . $personId . '.Input.BellSubject }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}'
+                        )
+                        ->styleBorderBottom()
+                        ->styleMarginTop('5px')
+                    )
+                )
+            )
+            // Todo Bemerkung height
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Bemerkungen: &nbsp;&nbsp;&nbsp; {% if(Content.P' . $personId . '.Input.Remark is not empty) %}
+                                    {{ Content.P' . $personId . '.Input.Remark|nl2br }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
+                        ->styleTextSize('11pt')
+                        ->styleHeight('45px')
+                    )
+                )
+                ->styleMarginTop('10px')
+            )
+            ->addSlice($this->getDateLine($personId))
+            ->addSlice($this->getSignPart($personId, true))
+            ->addSlice($this->getParentSign())
+            ->addSlice($this->setPointsOverview())
+            ->addSlice($this->getInfo('10px',
+                '¹ &nbsp;&nbsp;&nbsp;&nbsp; Bei Fächern, die nicht belegt wurden, ist das betreffende Feld zu sperren.',
+                '² &nbsp;&nbsp;&nbsp;&nbsp; für Schüler der vertieften Ausbildung nach § 4 SOGYA '
+            //,'³ &nbsp;&nbsp;&nbsp;&nbsp; Nichtzutreffendes ist zu streichen.  '
+            )
+            );
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     */
+    private function setCourses(TblPerson $tblPerson = null)
+    {
+
+        $advancedCourses = array();
+        $basicCourses = array();
+        if ($tblPerson && ($tblDivision = $this->getTblDivision())
+            && ($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))
+        ) {
+            foreach ($tblDivisionSubjectList as $tblDivisionSubjectItem) {
+                if (($tblSubjectGroup = $tblDivisionSubjectItem->getTblSubjectGroup())) {
+
+                    if (($tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject(
+                        $tblDivisionSubjectItem))
+                    ) {
+                        foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                            if (($tblSubject = $tblDivisionSubjectItem->getServiceTblSubject())
+                                && ($tblPersonStudent = $tblSubjectStudent->getServiceTblPerson())
+                                && $tblPerson->getId() == $tblPersonStudent->getId()
+                            ) {
+                                if ($tblSubjectGroup->isAdvancedCourse()) {
+                                    if ($tblSubject->getName() == 'Deutsch' || $tblSubject->getName() == 'Mathematik') {
+                                        $advancedCourses[0] = $tblSubject->getAcronym();
+                                    } else {
+                                        $advancedCourses[1] = $tblSubject->getAcronym();
+                                    }
+                                } else {
+                                    $basicCourses[] = $tblSubject->getAcronym();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!empty($advancedCourses)) {
+            $this->AdvancedCourses = $advancedCourses;
+        }
+        if (!empty($basicCourses)) {
+            $this->BasicCourses = $basicCourses;
+        }
+    }
+
+    private function getAdvancedCourses(TblPerson $tblPerson = null, $IsGradeUnderlined = true)
+    {
+
+        $slice = new Slice();
+        $personId = $tblPerson ? $tblPerson->getId() : 0;
+
+        $section = new Section();
+        if ($this->AdvancedCourses && isset($this->AdvancedCourses[0])
+            && ($tblSubject = Subject::useService()->getSubjectByAcronym($this->AdvancedCourses[0]))
+        ) {
+            $this->setCourseSubject($tblSubject, $section, true, $IsGradeUnderlined, $personId);
+        } else {
+            $this->setCourseSubject(null, $section, $IsGradeUnderlined, $personId);
+        }
+        $section
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                , '8%');
+        $this->setCourseSubject(null, $section, $IsGradeUnderlined, $personId, '10px', true);
+        $slice->addSection($section);
+
+        $section = new Section();
+        if ($this->AdvancedCourses && isset($this->AdvancedCourses[1])
+            && ($tblSubject = Subject::useService()->getSubjectByAcronym($this->AdvancedCourses[1]))
+        ) {
+            $this->setCourseSubject($tblSubject, $section, true, $IsGradeUnderlined, $personId);
+        } else {
+            $this->setCourseSubject(null, $section, $IsGradeUnderlined, $personId);
+        }
+        $section
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+            );
+        $slice->addSection($section);
+
+        return $slice;
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     * @param bool $IsGradeUnderlined
+     *
+     * @return Slice
+     */
+    private function getBasicCourses(TblPerson $tblPerson = null, $IsGradeUnderlined = true)
+    {
+
+        $slice = new Slice();
+        $personId = $tblPerson ? $tblPerson->getId() : 0;
+
+        // todo sortierung / platzierung
+        if ($this->BasicCourses) {
+            $isSecondLane = false;
+            $section = new Section();
+            foreach ($this->BasicCourses as $acronym) {
+                if (($tblSubject = Subject::useService()->getSubjectByAcronym($acronym))) {
+                    $this->setCourseSubject($tblSubject, $section, false, $IsGradeUnderlined, $personId);
+
+                    if ($isSecondLane) {
+                        $slice->addSection($section);
+                        $section = new Section();
+                    } else {
+                        $section
+                            ->addElementColumn((new Element())
+                                ->setContent('&nbsp;')
+                                , '8%');
+                    }
+
+                    $isSecondLane = !$isSecondLane;
+                }
+            }
+
+            if ($isSecondLane) {
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                    );
+                $slice->addSection($section);
+            }
+        }
+
+        return $slice
+            ->styleHeight('290px');
+    }
+
+    /**
+     * @param TblSubject|null $tblSubject
+     * @param Section $section
+     * @param $IsSubjectUnderlined
+     * @param $IsGradeUnderlined
+     * @param $personId
+     * @param string $marginTop
+     * @param bool $isFootnote
+     */
+    private function setCourseSubject(
+        TblSubject $tblSubject = null,
+        Section $section,
+        $IsSubjectUnderlined,
+        $IsGradeUnderlined,
+        $personId,
+        $marginTop = '10px',
+        $isFootnote = false
+    ) {
+
+        if ($tblSubject) {
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent($tblSubject ? $tblSubject->getName() : '---')
+                    ->styleBorderBottom($IsSubjectUnderlined ? '1px' : '0px', '#000')
+                    ->styleMarginTop($marginTop)
+                    , '33%');
+        } elseif ($isFootnote) {
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent('---')
+                    ->styleBorderBottom()
+                    ->styleAlignCenter()
+                    ->styleMarginTop($marginTop)
+                    , '31%');
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent('²')
+                    ->styleBorderBottom()
+                    ->styleAlignRight()
+                    ->styleMarginTop($marginTop)
+                    , '2%');
+        } else {
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent('---')
+                    ->styleBorderBottom()
+                    ->styleAlignCenter()
+                    ->styleMarginTop($marginTop)
+                    , '33%');
+        }
+        $section
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleMarginTop($marginTop)
+                , '1%')
+            ->addElementColumn((new Element())
+                ->setContent(
+                    $tblSubject ?
+                        '{% if(Content.P' . $personId . '.Grade.Data["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                            {{ Content.P' . $personId . '.Grade.Data["' . $tblSubject->getAcronym() . '"] }}
+                        {% else %}
+                             &ndash;
+                        {% endif %}'
+                        : '&ndash;')
+                ->styleAlignCenter()
+                ->styleBackgroundColor('#BBB')
+                ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                ->styleMarginTop($marginTop)
+                , '12%');
+    }
+
+    /**
+     * @param string $MarginTop
+     *
+     * @return Slice
+     */
+    private function setPointsOverview($MarginTop = '25px')
+    {
+
+        $textSize = '10px';
+        $slice = new Slice();
+        $slice
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Für die Umsetzung der Noten in Punkte gilt:')
+                    ->styleTextSize($textSize)
+                )
+            );
+
+        $section = new Section();
+        $this->setColumnElement($section, 'Notenstufen', $textSize);
+        $this->setColumnElement($section, 'sehr gut', $textSize);
+        $this->setColumnElement($section, 'gut', $textSize);
+        $this->setColumnElement($section, 'befriedigend', $textSize);
+        $this->setColumnElement($section, 'ausreichend', $textSize);
+        $this->setColumnElement($section, 'mangelhaft', $textSize);
+        $this->setColumnElement($section, 'ungenügend', $textSize, false, true);
+        $slice
+            ->addSection($section);
+
+        $section = new Section();
+        $this->setColumnElement($section, 'Noten', $textSize);
+        $this->setColumnElement($section, '+&nbsp;&nbsp;&nbsp;1&nbsp;&nbsp;&nbsp;-', $textSize);
+        $this->setColumnElement($section, '+&nbsp;&nbsp;&nbsp;2&nbsp;&nbsp;&nbsp;-', $textSize);
+        $this->setColumnElement($section, '+&nbsp;&nbsp;&nbsp;3&nbsp;&nbsp;&nbsp;-', $textSize);
+        $this->setColumnElement($section, '+&nbsp;&nbsp;&nbsp;4&nbsp;&nbsp;&nbsp;-', $textSize);
+        $this->setColumnElement($section, '+&nbsp;&nbsp;&nbsp;5&nbsp;&nbsp;&nbsp;-', $textSize);
+        $this->setColumnElement($section, '6', $textSize, false, true);
+        $slice
+            ->addSection($section);
+
+        $section = new Section();
+        $this->setColumnElement($section, 'Punkte', $textSize, true);
+        $this->setColumnElement($section, '15 14 13', $textSize, true);
+        $this->setColumnElement($section, '12 11 10', $textSize, true);
+        $this->setColumnElement($section, '09 08 07', $textSize, true);
+        $this->setColumnElement($section, '06 05 04', $textSize, true);
+        $this->setColumnElement($section, '03 02 01', $textSize, true);
+        $this->setColumnElement($section, '00', $textSize, true, true);
+        $slice
+            ->addSection($section);
+
+        return $slice
+            ->styleMarginTop($MarginTop);
+    }
+
+    /**
+     * @param Section $section
+     * @param string $name
+     * @param $textSize
+     * @param bool $isBorderBottom
+     * @param bool $isBorderRight
+     */
+    private function setColumnElement(
+        Section $section,
+        $name,
+        $textSize,
+        $isBorderBottom = false,
+        $isBorderRight = false
+    ) {
+
+        $section
+            ->addElementColumn((new Element())
+                ->setContent($name)
+                ->styleTextSize($textSize)
+                ->styleAlignCenter()
+                ->styleBorderLeft()
+                ->styleBorderTop()
+                ->styleBorderRight($isBorderRight ? '1px' : '0px')
+                ->styleBorderBottom($isBorderBottom ? '1px' : '0px')
+                , '14.28%');
+    }
+}

@@ -691,14 +691,29 @@ class Service extends AbstractService
             }
         }
 
+        $tblYear = false;
+        if ($tblDivision && ($tblYear = $tblDivision->getServiceTblYear())) {
+            $Content['P' . $personId]['Division']['Data']['Year'] = $tblYear->getName();
+        }
         // Division
         if ($tblDivision && ($tblLevel = $tblDivision->getTblLevel())) {
             $Content['P' . $personId]['Division']['Id'] = $tblDivision->getId();
             $Content['P' . $personId]['Division']['Data']['Level']['Name'] = $tblLevel->getName();
             $Content['P' . $personId]['Division']['Data']['Name'] = $tblDivision->getName();
-        }
-        if (($tblYear = $tblDivision->getServiceTblYear())) {
-            $Content['P' . $personId]['Division']['Data']['Year'] = $tblYear->getName();
+
+            $course = $tblLevel->getName();
+            $midTerm = '/1';
+            if (($tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask())
+                && $tblYear
+                && ($tblPeriodList = $tblYear->getTblPeriodAll())
+                && ($tblPeriod = $tblAppointedDateTask->getServiceTblPeriod())
+                && ($tblFirstPeriod = current($tblPeriodList))
+                && $tblPeriod->getId() != $tblFirstPeriod->getId()
+            ) {
+                $midTerm = '/2';
+            }
+            $course .= $midTerm;
+            $Content['P' . $personId]['Division']['Data']['Course']['Name'] = $course;
         }
         if ($tblPrepare->getServiceTblPersonSigner()) {
             $Content['P' . $personId]['Division']['Data']['Teacher'] = $tblPrepare->getServiceTblPersonSigner()->getFullName();
