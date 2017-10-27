@@ -166,6 +166,7 @@ class GymKurshalbjahreszeugnis extends Certificate
             )
             ->addSlice($this->getDateLine($personId))
             ->addSlice($this->getSignPart($personId, true))
+            // Todo Tudor
             ->addSlice($this->getParentSign())
             ->addSlice($this->setPointsOverview())
             ->addSlice($this->getInfo('10px',
@@ -234,13 +235,13 @@ class GymKurshalbjahreszeugnis extends Certificate
         ) {
             $this->setCourseSubject($tblSubject, $section, true, $IsGradeUnderlined, $personId);
         } else {
-            $this->setCourseSubject(null, $section, $IsGradeUnderlined, $personId);
+            $this->setCourseSubject(null, $section, true, $IsGradeUnderlined, $personId);
         }
         $section
             ->addElementColumn((new Element())
                 ->setContent('&nbsp;')
                 , '8%');
-        $this->setCourseSubject(null, $section, $IsGradeUnderlined, $personId, '10px', true);
+        $this->setCourseSubject(null, $section, true, $IsGradeUnderlined, $personId, '10px', true);
         $slice->addSection($section);
 
         $section = new Section();
@@ -249,7 +250,7 @@ class GymKurshalbjahreszeugnis extends Certificate
         ) {
             $this->setCourseSubject($tblSubject, $section, true, $IsGradeUnderlined, $personId);
         } else {
-            $this->setCourseSubject(null, $section, $IsGradeUnderlined, $personId);
+            $this->setCourseSubject(null, $section, true, $IsGradeUnderlined, $personId);
         }
         $section
             ->addElementColumn((new Element())
@@ -330,7 +331,7 @@ class GymKurshalbjahreszeugnis extends Certificate
             $section
                 ->addElementColumn((new Element())
                     ->setContent($tblSubject ? $tblSubject->getName() : '---')
-                    ->styleBorderBottom($IsSubjectUnderlined ? '1px' : '0px', '#000')
+                    ->styleBorderBottom($IsSubjectUnderlined ? '1px' : '0px')
                     ->styleMarginTop($marginTop)
                     , '33%');
         } elseif ($isFootnote) {

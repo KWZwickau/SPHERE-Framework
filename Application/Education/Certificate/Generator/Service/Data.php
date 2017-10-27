@@ -893,24 +893,26 @@ class Data extends AbstractData
             }
         }
         if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-            // todo nutzen oder festlegen?
-//            $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
-//            $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
-//            $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
-//            $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
-//            $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
-//            $this->setCertificateSubject($tblCertificate, 'GK', 1, 6);
-//            $this->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
-//            $this->setCertificateSubject($tblCertificate, 'WTH', 1, 8);
-//
-//            $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-//            $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
-//            $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
-//            $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
-//            $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
-//            $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6);
-//            $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
-//            $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
+            $row = 1;
+            $this->setCertificateSubject($tblCertificate, 'DE', $row, 1);
+            $this->setCertificateSubject($tblCertificate, 'SOR', $row, 2);
+            // 1. Fremdsprache
+            // 2. Fremdsprache
+            $this->setCertificateSubject($tblCertificate, 'KU', $row, 5, false);
+            $this->setCertificateSubject($tblCertificate, 'MU', $row, 6, false);
+            $this->setCertificateSubject($tblCertificate, 'GE', $row, 7);
+            $this->setCertificateSubject($tblCertificate, 'GEO', $row, 8);
+            $this->setCertificateSubject($tblCertificate, 'GRW', $row, 9);
+
+            $row = 2;
+            $this->setCertificateSubject($tblCertificate, 'MA', $row, 1);
+            $this->setCertificateSubject($tblCertificate, 'BIO', $row, 2);
+            $this->setCertificateSubject($tblCertificate, 'CH', $row, 3);
+            $this->setCertificateSubject($tblCertificate, 'PH', $row, 4);
+            $this->setCertificateSubject($tblCertificate, 'REE', $row, 5, false);
+            $this->setCertificateSubject($tblCertificate, 'REK', $row, 6, false);
+            $this->setCertificateSubject($tblCertificate, 'ETH', $row, 7, false);
+            $this->setCertificateSubject($tblCertificate, 'SPO', $row, 8);
         }
 
         // Alt-Last löschen
@@ -2509,10 +2511,13 @@ class Data extends AbstractData
             if (!$tblSubject) {
                 $tblSubject = Subject::useService()->getSubjectByAcronym('BIO');
             }
-        } elseif ($SubjectAcronym == 'REV' || $SubjectAcronym == 'RELI') {
+        } elseif ($SubjectAcronym == 'REV' || $SubjectAcronym == 'RELI' || $SubjectAcronym == 'REE') {
             $tblSubject = Subject::useService()->getSubjectByAcronym('REV');
             if (!$tblSubject) {
                 $tblSubject = Subject::useService()->getSubjectByAcronym('RELI');
+            }
+            if (!$tblSubject) {
+                $tblSubject = Subject::useService()->getSubjectByAcronym('REE');
             }
         } elseif ($SubjectAcronym == 'IN' || $SubjectAcronym == 'INFO') {
             $tblSubject = Subject::useService()->getSubjectByAcronym('IN');

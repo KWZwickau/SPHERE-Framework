@@ -77,6 +77,9 @@ class Data extends AbstractData
         $tblCategory = $this->createCategory('Fremdsprachen', '', true, 'FOREIGNLANGUAGE');
         $this->addGroupCategory($tblGroupStandard, $tblCategory);
 
+        $tblSubject = $this->createSubject('SOR', 'Sorbisch');
+        $this->addCategorySubject($tblCategory, $tblSubject);
+
         if (!$hasSubjects) {
             $tblSubject = $this->createSubject('EN', 'Englisch');
             $this->addCategorySubject($tblCategory, $tblSubject);
