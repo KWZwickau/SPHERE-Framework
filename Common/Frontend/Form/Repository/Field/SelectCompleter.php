@@ -66,7 +66,7 @@ class SelectCompleter extends AbstractTextField implements IFieldInterface
     private function convertToJsonArray ( $Data )
     {
         return json_encode(
-            array_values( $Data )
+            array_map('strval', array_values($Data))
         );
     }
 }

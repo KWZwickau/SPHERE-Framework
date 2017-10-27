@@ -17,7 +17,7 @@
     {{ ElementFeedbackMessage }}
 </div>
 <script type="text/javascript">
-    var Test;
+
     //noinspection JSUnresolvedFunction
     executeScript(function()
     {
@@ -26,13 +26,15 @@
             var originValue = '';
             var allowedList = {{ ElementData }};
 
-            Test = jQuery('input[name="{{ ElementName }}"]').ModCompleter({
+            var Completer = jQuery('input[name="{{ ElementName }}"]').ModCompleter({
                 options: { minLength: 0 },
                 data: {{ ElementData }},
                 limit: Infinity
-            }).on('typeahead:change keyup', function() {
+            });
+
+            Completer.on('typeahead:change keyup', function () {
                 // https://stackoverflow.com/a/36748963/626731
-                var textToFind = Test.typeahead('val');
+                var textToFind = Completer.typeahead('val');
                 //if you only want to match id- as prefix
                 var matches = allowedList.filter(function(windowValue){
                     if(windowValue) {
@@ -47,9 +49,9 @@
 //                });
                 // reset if not allowed
                 if( matches.length === 0 ) {
-                    Test.typeahead('val', originValue);
+                    Completer.typeahead('val', originValue);
                 } else {
-                    originValue = Test.typeahead('val');
+                    originValue = Completer.typeahead('val');
                 }
             });
         });

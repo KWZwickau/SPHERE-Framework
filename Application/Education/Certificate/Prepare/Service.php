@@ -1440,21 +1440,21 @@ class Service extends AbstractService
         /**
          * Skip to Frontend
          */
-        if (null === $Data) {
+        $Global = $this->getGlobal();
+        if (!isset($Global->POST['Button']['Submit'])) {
             return $Stage;
         }
 
         $error = false;
 
-        // todo pregmatch mit +-
-//        foreach ($Data as $gradeTypeId => $value) {
-//            if (trim($value) !== '') {
-//                if (!preg_match('!^[1-5]{1}$!is', trim($value))) {
-//                    $error = true;
-//                    break;
-//                }
-//            }
-//        }
+        foreach ($Data as $gradeTypeId => $value) {
+            if (trim($value) !== '') {
+                if (!preg_match('!^([1-5]{1}|[1-4]{1}[+-]{1})$!is', trim($value))) {
+                    $error = true;
+                    break;
+                }
+            }
+        }
 
         $this->setSignerFromSignedInPerson($tblPrepare);
 
