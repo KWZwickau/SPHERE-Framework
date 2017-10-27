@@ -308,7 +308,7 @@ class StudentTransfer extends Extension
         $HeadPanel = new Panel('Schüler', $tblPerson->getLastFirstName());
 
         $Stage->addButton(new External('Blanko Schülerüberweisung herunterladen',
-            'SPHERE\Application\Api\Document\Standard\SignOutCertificate\Create',
+            'SPHERE\Application\Api\Document\Standard\StudentTransfer\Create',
             new Download(), array('Data' => array('empty')),
             'Schülerüberweisung herunterladen'));
 
