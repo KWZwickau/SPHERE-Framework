@@ -1,6 +1,6 @@
 <?php
 
-namespace SPHERE\Application\Transfer\Export\Graduation;
+namespace SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Exception\Repository\TypeFileException;

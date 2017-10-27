@@ -4,7 +4,6 @@ namespace SPHERE\Application\Transfer\Export;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\Transfer\Export\Datev\Datev;
-use SPHERE\Application\Transfer\Export\Graduation\Graduation;
 use SPHERE\Application\Transfer\Export\Invoice\Invoice;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
@@ -24,7 +23,6 @@ class Export implements IApplicationInterface
     public static function registerApplication()
     {
 
-        Graduation::registerModule();
         Datev::registerModule();
         Invoice::registerModule();
 

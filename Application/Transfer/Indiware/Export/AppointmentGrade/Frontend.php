@@ -1,6 +1,6 @@
 <?php
 
-namespace SPHERE\Application\Transfer\Export\Graduation;
+namespace SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade;
 
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
@@ -21,7 +21,7 @@ use SPHERE\System\Extension\Extension;
 
 /**
  * Class Frontend
- * @package SPHERE\Application\Transfer\Export\Graduation
+ * @package SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade
  */
 class Frontend extends Extension implements IFrontendInterface
 {
@@ -84,7 +84,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Item['WorkTime'] = $tblTask->getFromDate().' - '.$tblTask->getToDate();
                 $Item['Date'] = $tblTask->getDate();
-                $Item['Option'] = new External('', 'SPHERE\Application\Api\Transfer\Task\Download', new Download(),
+                $Item['Option'] = new External('', 'SPHERE\Application\Api\Transfer\Indiware\AppointmentGrade\Download',
+                    new Download(),
                     array('TaskId' => $tblTask->getId()),
                     'Download Starten');
                 array_push($TableContent, $Item);

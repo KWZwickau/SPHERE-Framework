@@ -1,33 +1,26 @@
 <?php
 
-namespace SPHERE\Application\Transfer\Export\Graduation;
+namespace SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade;
 
 use SPHERE\Application\IModuleInterface;
-use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Main;
-use SPHERE\Common\Window\Navigation\Link;
 
 /**
  * Class Graduation
  * @package SPHERE\Application\Transfer\Export\Graduation
  */
-class Graduation implements IModuleInterface
+class AppointmentGrade implements IModuleInterface
 {
 
     public static function registerModule()
     {
-
-        /**
-         * Register Module
-         */
-//        Error::registerModule();
         /**
          * Register Navigation
          */
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Export Stichtagsnoten'),
-                new Link\Icon(new Download()))
-        );
+//        Main::getDisplay()->addModuleNavigation(
+//            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Export Stichtagsnoten'),
+//                new Link\Icon(new Download()))
+//        );
         /**
          * Register Route
          */

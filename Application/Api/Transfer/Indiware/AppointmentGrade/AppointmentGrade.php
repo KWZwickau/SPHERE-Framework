@@ -1,22 +1,22 @@
 <?php
 
-namespace SPHERE\Application\Api\Transfer\Task;
+namespace SPHERE\Application\Api\Transfer\Indiware\AppointmentGrade;
 
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
-use SPHERE\Application\Transfer\Export\Graduation\Graduation;
+use SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade\AppointmentGrade as AppointmentGradeTask;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 
-class Task implements IModuleInterface
+class AppointmentGrade implements IModuleInterface
 {
     public static function registerModule()
     {
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Download', __NAMESPACE__.'\Task::downloadTask'
+            __NAMESPACE__.'/Download', __CLASS__.'::downloadAppointmentGrade'
         ));
     }
 
@@ -41,10 +41,10 @@ class Task implements IModuleInterface
      *
      * @return bool|string
      */
-    public function downloadTask($TaskId = null)
+    public function downloadAppointmentGrade($TaskId = null)
     {
 
-        $fileLocation = Graduation::useService()
+        $fileLocation = AppointmentGradeTask::useService()
             ->createGradeListCsv($TaskId);
         $tblTask = Evaluation::useService()->getTaskById($TaskId);
         if ($fileLocation && $tblTask) {
