@@ -64,12 +64,12 @@ class Export implements IModuleInterface
 
         $Stage->setMessage('Daten exportieren');
 
-        $PanelLectureshipImport[] = new PullClear('Stichtagsnoten exportieren '.
+//        $PanelAppointmentGradeExport[] = new PullClear('Stichtagsnoten exportieren '.
+//            new Center(new Standard('', __NAMESPACE__.'/AppointmentGrade/AppointmentGrade/Prepare', new Upload()
+//                , array(), 'Stichtagsnoten Herunterladen')));
+        $PanelAppointmentGradeExport[] = new PullClear('Stichtagsnoten exportieren: '.
             new Center(new Standard('', __NAMESPACE__.'/AppointmentGrade', new Upload()
-                , array(), 'Stichtagsnoten Herunterladen')));
-//        $PanelLectureshipImport[] = new PullClear('Lehraufträge importieren: '.
-//            new Center(new Standard('', __NAMESPACE__.'/AppointmentGrade/Prepare', new Upload()
-//                , array(), 'Hochladen, danach bearbeiten')));
+                , array(), 'Hochladen, danach bearbeiten')));
 
         $Stage->setMessage('Importvorbereitung / Daten importieren');
 
@@ -78,7 +78,7 @@ class Export implements IModuleInterface
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel('Indiware-Export für Stichtagsnoten:', $PanelLectureshipImport
+                            new Panel('Indiware-Export für Stichtagsnoten:', $PanelAppointmentGradeExport
                                 , Panel::PANEL_TYPE_INFO)
                             , 4),
                     ))

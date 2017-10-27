@@ -3,7 +3,10 @@
 namespace SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade;
 
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
+use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -41,7 +44,17 @@ class Frontend extends Extension implements IFrontendInterface
 //        $tblTaskListBehavior = Evaluation::useService()->getTaskAllByTestType($tblTestTypeBehavior);
         $tblTaskList = array();
         if ($tblTaskListAppointed) {
-            $tblTaskList = $tblTaskListAppointed;
+            foreach ($tblTaskListAppointed as $tblTask) {
+                $tblYearList = Term::useService()->getYearByPeriod(Term::useService()->getPeriodById(4));  //ToDO getYearByNow !!!
+                if ($tblYearList) {
+                    /** @var TblYear $tblYear */
+                    foreach ($tblYearList as $tblYear) {
+                        if ($tblTask->getServiceTblYear() && $tblTask->getServiceTblYear()->getId() == $tblYear->getId()) {
+                            $tblTaskList[$tblTask->getId()] = $tblTask;
+                        }
+                    }
+                }
+            }
         }
 //        if($tblTaskListAppointed && $tblTaskListBehavior){
 //            $tblTaskList = array_merge($tblTaskListAppointed, $tblTaskListBehavior);
@@ -52,6 +65,7 @@ class Frontend extends Extension implements IFrontendInterface
 //        }
 
         if ($tblTaskList) {
+            /** @var TblTask $tblTask */
             foreach ($tblTaskList as $tblTask) {
                 $Item['TaskName'] = $tblTask->getName();
                 $Item['Year'] = '';
