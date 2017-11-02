@@ -74,6 +74,8 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Table\Structure\Table;
+use SPHERE\Common\Frontend\Table\Structure\TableBody;
 use SPHERE\Common\Frontend\Table\Structure\TableColumn;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Table\Structure\TableHead;
@@ -2361,15 +2363,6 @@ class Frontend extends FrontendScoreRule
                                                 }
 
                                                 if (!empty($subTableHeaderList)) {
-                                                    $interActive =  array(
-                                                        "paging" => false, // Deaktiviert Blättern
-                                                        "iDisplayLength" => -1,    // Alle Einträge zeigen
-                                                        "searching" => false, // Deaktiviert Suche
-                                                        "info" => false, // Deaktiviert Such-Info)
-                                                        "responsive" => false, // Deaktiviert RWD
-                                                        "sort" => false
-                                                    );
-
                                                     if ($isShownAverage) {
                                                         $subTableHeaderList['Average'] = '&#216;';
                                                         /*
@@ -2396,18 +2389,19 @@ class Frontend extends FrontendScoreRule
                                                         }
 
                                                         $subTableDataList[0]['Average'] = new Bold($average);
-
-                                                        $countSubHeader = count($subTableHeaderList);
-                                                        $interActive["columnDefs"] = array(array('width' => '1%', 'targets' => $countSubHeader - 1));
                                                     }
 
-//                                                    $interActive = false;
+                                                    $headerColumns = array();
+                                                    $bodyColumns = array();
+                                                    foreach ($subTableHeaderList as $key => $item) {
+                                                        $headerColumns[] = new TableColumn($item, 1, $key == 'Average' ? '1%' : 'auto');
+                                                    }
+                                                    foreach ($subTableDataList[0] as $key => $item) {
+                                                        $bodyColumns[] = new TableColumn($item, 1, $key == 'Average' ? '1%' : 'auto');
+                                                    }
+                                                    $table = new Table(new TableHead(new TableRow($headerColumns)), new TableBody(new TableRow($bodyColumns)));
 
-                                                    $tableDataList[$tblDivisionSubject->getServiceTblSubject()->getId()]['Period' . $tblPeriod->getId()] = new TableData(
-                                                        $subTableDataList, null,
-                                                        $subTableHeaderList,
-                                                        $interActive
-                                                    );
+                                                    $tableDataList[$tblDivisionSubject->getServiceTblSubject()->getId()]['Period' . $tblPeriod->getId()] = $table;
                                                 } else {
                                                     $tableDataList[$tblDivisionSubject->getServiceTblSubject()->getId()]['Period' . $tblPeriod->getId()] = '';
                                                 }
@@ -2455,7 +2449,7 @@ class Frontend extends FrontendScoreRule
                     $rowList[] = new LayoutRow(new LayoutColumn(
                         !empty($tableDataList)
                             ? (new TableData($tableDataList, null, $tableHeaderList, // null
-                                $interActive
+                                $interActive, true
                             ))->setHash(__NAMESPACE__ . '\Student\Gradebook' . $tblDivision->getId() . $tblPerson->getId())
                             : new Warning('Aktuell sind keine Noten verfügbar (Keine Fächer vorhanden)'
                             , new Exclamation())
