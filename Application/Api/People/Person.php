@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Api\People;
 
+use SPHERE\Application\Api\People\Meta\Student\ApiStudent;
 use SPHERE\Application\IApplicationInterface;
 
 /**
@@ -14,5 +15,6 @@ class Person implements IApplicationInterface
     public static function registerApplication()
     {
         ApiPerson::registerApi();
+        ApiStudent::registerApi();
     }
 }
