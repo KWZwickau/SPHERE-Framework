@@ -309,7 +309,7 @@ class AccidentReport extends Extension
                     if ($ChildAddressId
                         && $tblAddressCustody
                         && $ChildAddressId == $tblAddressCustody->getId()) {
-                        $AddressString = $tblAddressCustody->getGuiString();
+                        $AddressString = $tblAddressCustody->getGuiString(false);
                         $PersonCustodySameAddress[] = $tblPersonCustody;
                         continue;
                     } else {
