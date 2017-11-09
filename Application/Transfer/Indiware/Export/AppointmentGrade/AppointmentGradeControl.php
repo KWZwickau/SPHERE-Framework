@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: rackel
- * Date: 27.10.2017
- * Time: 10:50
- */
-
 namespace SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade;
 
 use SPHERE\Application\Transfer\Gateway\Converter\AbstractConverter;
@@ -24,7 +17,24 @@ class AppointmentGradeControl extends AbstractConverter
     private $ColumnNeeded = array(
         'Name',
         'Vorname',
-        'Geburtsdatum'
+        'Geburtsdatum',
+        'Fach1',
+        'Fach2',
+        'Fach3',
+        'Fach4',
+        'Fach5',
+        'Fach6',
+        'Fach7',
+        'Fach8',
+        'Fach9',
+        'Fach10',
+        'Fach11',
+        'Fach12',
+        'Fach13',
+        'Fach14',
+        'Fach15',
+        'Fach16',
+        'Fach17'
     );
 
     // Suchen nach
@@ -33,7 +43,7 @@ class AppointmentGradeControl extends AbstractConverter
         'Name',
         'Vorname',
         'Geburtsdatum',
-        'Fach[1-4]+[0-9]+',
+        'Fach[0-9]+',
         'Kurs[1-4]+[0-9]+'
     );
 

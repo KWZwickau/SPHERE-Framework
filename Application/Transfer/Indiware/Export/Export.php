@@ -4,7 +4,6 @@ namespace SPHERE\Application\Transfer\Indiware\Export;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
-use SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade\AppointmentGrade;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -28,7 +27,6 @@ class Export implements IModuleInterface
 
     public static function registerModule()
     {
-        AppointmentGrade::registerModule();
 
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Daten exportieren'))
@@ -64,21 +62,18 @@ class Export implements IModuleInterface
 
         $Stage->setMessage('Daten exportieren');
 
-//        $PanelAppointmentGradeExport[] = new PullClear('Stichtagsnoten exportieren '.
-//            new Center(new Standard('', __NAMESPACE__.'/AppointmentGrade/AppointmentGrade/Prepare', new Upload()
-//                , array(), 'Stichtagsnoten Herunterladen')));
         $PanelAppointmentGradeExport[] = new PullClear('Stichtagsnoten exportieren: '.
-            new Center(new Standard('', __NAMESPACE__.'/AppointmentGrade', new Upload()
-                , array(), 'Hochladen, danach bearbeiten')));
+            new Center(new Standard('', __NAMESPACE__.'/AppointmentGrade/Prepare', new Upload()
+                , array(), 'Export')));
 
-        $Stage->setMessage('Importvorbereitung / Daten importieren');
+        $Stage->setMessage('Exportvorbereitung / Daten exportieren');
 
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel('Indiware-Export für Stichtagsnoten:', $PanelAppointmentGradeExport
+                            new Panel('Indiware-Notenexport für Sekundarstufe 2:', $PanelAppointmentGradeExport
                                 , Panel::PANEL_TYPE_INFO)
                             , 4),
                     ))

@@ -3,119 +3,255 @@
 namespace SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
-use MOC\V\Component\Document\Component\Exception\Repository\TypeFileException;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
-use MOC\V\Component\Document\Exception\DocumentTypeException;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
+use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade\Service\Data;
+use SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade\Service\Entity\TblIndiwareStudentSubjectOrder;
+use SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade\Service\Setup;
+use SPHERE\System\Database\Binding\AbstractService;
 
 /**
  * Class Service
- * @package SPHERE\Application\Transfer\Export\Invoice
+ *
+ * @package SPHERE\Application\Transfer\Export\AppointmentGrade
  */
-class Service
+class Service extends AbstractService
 {
+    /**
+     * @param bool $Simulate
+     * @param bool $withData
+     *
+     * @return string
+     */
+    public function setupService($Simulate, $withData)
+    {
+
+        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($Simulate);
+        if (!$Simulate && $withData) {
+            (new Data($this->getBinding()))->setupDatabaseContent();
+        }
+        return $Protocol;
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return false|TblIndiwareStudentSubjectOrder
+     */
+    public function getIndiwareStudentSubjectOrderById($Id)
+    {
+        return (new Data($this->getBinding()))->getIndiwareStudentSubjectOrderById($Id);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblIndiwareStudentSubjectOrder
+     */
+    public function getIndiwareStudentSubjectOrderByPerson(TblPerson $tblPerson)
+    {
+        return (new Data($this->getBinding()))->getIndiwareStudentSubjectOrderByPerson($tblPerson);
+    }
+
+    /**
+     * @return false|TblIndiwareStudentSubjectOrder[]
+     */
+    public function getIndiwareStudentSubjectOrderAll()
+    {
+        return (new Data($this->getBinding()))->getIndiwareStudentSubjectOrderAll();
+    }
+
+    /**
+     * @param bool $TaskId
+     *
+     * @return array|false
+     */
+    public function getStudentExistInTaskList($TaskId = false)
+    {
+        $tblTask = Evaluation::useService()->getTaskById($TaskId);
+        if (!$tblTask) {
+            return false;
+        }
+        $StudentSubjectOrderAll = AppointmentGrade::useService()->getIndiwareStudentSubjectOrderAll();
+        $PersonList = array();
+        if ($StudentSubjectOrderAll) {
+            foreach ($StudentSubjectOrderAll as $StudentSubjectOrder) {
+                if (($tblPerson = $StudentSubjectOrder->getServiceTblPerson())) {
+                    $PersonList[$tblPerson->getId()] = true;
+                }
+            }
+        }
+
+        $PersonTestFoundList = array();
+        $tblTestList = Evaluation::useService()->getTestAllByTask($tblTask);
+        if ($tblTestList) {
+            foreach ($tblTestList as $tblTest) {
+                // stop search if every Person got found
+                if (empty($PersonList)) {
+                    break;
+                }
+                if ($tblDivision = $tblTest->getServiceTblDivision()) {
+                    if ($tbLevel = $tblDivision->getTblLevel()) {
+                        if ($tbLevel->getName() == '11' || $tbLevel->getName() == '12') {
+                            $GradeList = Gradebook::useService()->getGradeAllByTest($tblTest);
+                            if ($GradeList) {
+                                foreach ($GradeList as $Grade) {
+                                    // stop search if every Person got found
+                                    if (empty($PersonList)) {
+                                        break;
+                                    }
+                                    if (($GradePerson = $Grade->getServiceTblPerson())) {
+                                        foreach ($PersonList as $Key => $value) {
+                                            if ($Key == $GradePerson->getId()) {
+                                                $PersonTestFoundList[$Key] = true;
+                                                unset($PersonList[$Key]);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return (!empty($PersonTestFoundList) ? $PersonTestFoundList : false);
+    }
+
 
     /**
      * @param int|boolean $TaskId
      *
      * @return array|false
      */
-    public function createGradeList($TaskId = false)
+    public function getStudentGradeList($TaskId = false)
     {
 
         $tblTask = Evaluation::useService()->getTaskById($TaskId);
         if (!$tblTask) {
-            false;
+            return false;
         }
-        $TableContent = array();
+        $PeopleGradeList = array();
         $tblTestList = Evaluation::useService()->getTestAllByTask($tblTask);
         if ($tblTestList) {
             foreach ($tblTestList as $tblTest) {
-                $tblGradeList = Gradebook::useService()->getGradeAllByTest($tblTest);
-                if ($tblGradeList) {
+                if ($tblDivision = $tblTest->getServiceTblDivision()) {
+                    if ($tbLevel = $tblDivision->getTblLevel()) {
+                        if ($tbLevel->getName() == '11' || $tbLevel->getName() == '12') {
+                            $tblGradeList = Gradebook::useService()->getGradeAllByTest($tblTest);
+                            if ($tblGradeList) {
 
-                    foreach ($tblGradeList as $tblGrade) {
-                        $tblPersonStudent = $tblGrade->getServiceTblPerson();
-                        if (!isset($TableContent[$tblPersonStudent->getId()])) {
-                            $TableContent[$tblPersonStudent->getId()]['FirstName'] = $tblPersonStudent->getFirstName();
-                            $TableContent[$tblPersonStudent->getId()]['LastName'] = $tblPersonStudent->getLastName();
-                            $Birthday = '';
-                            $tblCommon = Common::useService()->getCommonByPerson($tblPersonStudent);
-                            if ($tblCommon) {
-                                $tblCommonBirthDates = $tblCommon->getTblCommonBirthDates();
-                                if ($tblCommonBirthDates) {
-                                    $Birthday = $tblCommonBirthDates->getBirthday();
+                                foreach ($tblGradeList as $tblGrade) {
+                                    $tblPersonStudent = $tblGrade->getServiceTblPerson();
+                                    if ($tblPersonStudent) {
+                                        $StudentSubjectOrder = AppointmentGrade::useService()->getIndiwareStudentSubjectOrderByPerson($tblPersonStudent);
+                                        if ($StudentSubjectOrder) {
+                                            if (!isset($PeopleGradeList[$tblPersonStudent->getId()])) {
+                                                $PeopleGradeList[$tblPersonStudent->getId()]['FirstName'] = utf8_decode($tblPersonStudent->getFirstName());
+                                                $PeopleGradeList[$tblPersonStudent->getId()]['LastName'] = utf8_decode($tblPersonStudent->getLastName());
+                                                $Birthday = '';
+                                                $tblCommon = Common::useService()->getCommonByPerson($tblPersonStudent);
+                                                if ($tblCommon) {
+                                                    $tblCommonBirthDates = $tblCommon->getTblCommonBirthDates();
+                                                    if ($tblCommonBirthDates) {
+                                                        $Birthday = $tblCommonBirthDates->getBirthday();
+                                                    }
+                                                }
+                                                $PeopleGradeList[$tblPersonStudent->getId()]['Birthday'] = $Birthday;
+                                            }
+
+                                            $tblSubject = $tblGrade->getServiceTblSubject();
+                                            if ($tblSubject) {
+                                                if (strtolower($StudentSubjectOrder->getSubject1()) == strtolower($tblSubject->getAcronym())) {
+                                                    $PeopleGradeList[$tblPersonStudent->getId()]['1'] = $tblGrade->getGrade();
+                                                } elseif (strtolower($StudentSubjectOrder->getSubject2()) == strtolower($tblSubject->getAcronym())) {
+                                                    $PeopleGradeList[$tblPersonStudent->getId()]['2'] = $tblGrade->getGrade();
+                                                } elseif (strtolower($StudentSubjectOrder->getSubject3()) == strtolower($tblSubject->getAcronym())) {
+                                                    $PeopleGradeList[$tblPersonStudent->getId()]['3'] = $tblGrade->getGrade();
+                                                } elseif (strtolower($StudentSubjectOrder->getSubject4()) == strtolower($tblSubject->getAcronym())) {
+                                                    $PeopleGradeList[$tblPersonStudent->getId()]['4'] = $tblGrade->getGrade();
+                                                } elseif (strtolower($StudentSubjectOrder->getSubject5()) == strtolower($tblSubject->getAcronym())) {
+                                                    $PeopleGradeList[$tblPersonStudent->getId()]['5'] = $tblGrade->getGrade();
+                                                } elseif (strtolower($StudentSubjectOrder->getSubject6()) == strtolower($tblSubject->getAcronym())) {
+                                                    $PeopleGradeList[$tblPersonStudent->getId()]['6'] = $tblGrade->getGrade();
+                                                } elseif (strtolower($StudentSubjectOrder->getSubject7()) == strtolower($tblSubject->getAcronym())) {
+                                                    $PeopleGradeList[$tblPersonStudent->getId()]['7'] = $tblGrade->getGrade();
+                                                } elseif (strtolower($StudentSubjectOrder->getSubject8()) == strtolower($tblSubject->getAcronym())) {
+                                                    $PeopleGradeList[$tblPersonStudent->getId()]['8'] = $tblGrade->getGrade();
+                                                } elseif (strtolower($StudentSubjectOrder->getSubject9()) == strtolower($tblSubject->getAcronym())) {
+                                                    $PeopleGradeList[$tblPersonStudent->getId()]['9'] = $tblGrade->getGrade();
+                                                } elseif (strtolower($StudentSubjectOrder->getSubject10()) == strtolower($tblSubject->getAcronym())) {
+                                                    $PeopleGradeList[$tblPersonStudent->getId()]['10'] = $tblGrade->getGrade();
+                                                } elseif (strtolower($StudentSubjectOrder->getSubject11()) == strtolower($tblSubject->getAcronym())) {
+                                                    $PeopleGradeList[$tblPersonStudent->getId()]['11'] = $tblGrade->getGrade();
+                                                } elseif (strtolower($StudentSubjectOrder->getSubject12()) == strtolower($tblSubject->getAcronym())) {
+                                                    $PeopleGradeList[$tblPersonStudent->getId()]['12'] = $tblGrade->getGrade();
+                                                } elseif (strtolower($StudentSubjectOrder->getSubject13()) == strtolower($tblSubject->getAcronym())) {
+                                                    $PeopleGradeList[$tblPersonStudent->getId()]['13'] = $tblGrade->getGrade();
+                                                } elseif (strtolower($StudentSubjectOrder->getSubject14()) == strtolower($tblSubject->getAcronym())) {
+                                                    $PeopleGradeList[$tblPersonStudent->getId()]['14'] = $tblGrade->getGrade();
+                                                } elseif (strtolower($StudentSubjectOrder->getSubject15()) == strtolower($tblSubject->getAcronym())) {
+                                                    $PeopleGradeList[$tblPersonStudent->getId()]['15'] = $tblGrade->getGrade();
+                                                } elseif (strtolower($StudentSubjectOrder->getSubject16()) == strtolower($tblSubject->getAcronym())) {
+                                                    $PeopleGradeList[$tblPersonStudent->getId()]['16'] = $tblGrade->getGrade();
+                                                } elseif (strtolower($StudentSubjectOrder->getSubject17()) == strtolower($tblSubject->getAcronym())) {
+                                                    $PeopleGradeList[$tblPersonStudent->getId()]['17'] = $tblGrade->getGrade();
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
-                            $TableContent[$tblPersonStudent->getId()]['Birthday'] = $Birthday;
-                        }
-
-                        $tblSubject = $tblGrade->getServiceTblSubject();
-                        if ($tblSubject) {
-                            $TableContent[$tblPersonStudent->getId()][$tblSubject->getAcronym()] = $tblGrade->getGrade();
                         }
                     }
                 }
             }
         }
-
-        return $TableContent;
+        return $PeopleGradeList;
     }
 
     /**
+     * @param int $Period
      * @param int $TaskId
      *
      * @return bool|FilePointer
-     * @throws TypeFileException
-     * @throws DocumentTypeException
      */
-    public function createGradeListCsv($TaskId)
+    public function createGradeListCsv($Period, $TaskId)
     {
 
-        $PeopleGradeList = $this->createGradeList($TaskId);
-        $SubjectList = array();
-        // Header Vorbereiten
-        foreach ($PeopleGradeList as $PersonRow) {
-            if ($PersonRow) {
-                foreach ($PersonRow as $key => $value) {
-                    if ($key != 'FirstName' && $key != 'LastName' && $key != 'Birthday') {
-                        $SubjectList[$key] = $key;
-                    }
-                }
-            }
-        }
-        ksort($SubjectList);
-        sort($SubjectList);
-//        Debugger::screenDump($SubjectList);
-//        exit;
+        $PeopleGradeList = $this->getStudentGradeList($TaskId);
 
-//        Debugger::screenDump($SubjectList);
         if (!empty($PeopleGradeList)) {
 
             $fileLocation = Storage::createFilePointer('csv');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
-            $export->setValue($export->getCell("0", "0"), "Name");
-            $export->setValue($export->getCell("1", "0"), "Vorname");
-            $export->setValue($export->getCell("2", "0"), "Geburtsdatum");
-            foreach ($SubjectList as $key => $Acronym) {
-                $export->setValue($export->getCell(($key + 3), "0"), $Acronym);
+
+            $export->setValue($export->getCell("0", "0"), "Geburtsdatum");
+            $export->setValue($export->getCell("1", "0"), "Name");
+            $export->setValue($export->getCell("2", "0"), "Vorname");
+
+
+            for ($i = 1; $i <= 17; $i++) {
+                $export->setValue($export->getCell(($i + 2), "0"), 'Punkte'.$Period.$i);
             }
 
             $Row = 1;
             foreach ($PeopleGradeList as $Data) {
 
-                $export->setValue($export->getCell("0", $Row), $Data['LastName']);
-                $export->setValue($export->getCell("1", $Row), $Data['FirstName']);
-                $export->setValue($export->getCell("2", $Row), $Data['Birthday']);
-                foreach ($SubjectList as $key => $Acronym) {
-                    if (isset($Data[$Acronym])) {
-                        $export->setValue($export->getCell(($key + 3), $Row), $Data[$Acronym]);
+                $export->setValue($export->getCell("0", $Row), $Data['Birthday']);
+                $export->setValue($export->getCell("1", $Row), $Data['LastName']);
+                $export->setValue($export->getCell("2", $Row), $Data['FirstName']);
+                for ($j = 1; $j <= 17; $j++) {
+                    if (isset($Data[$j])) {
+                        $export->setValue($export->getCell(($j + 2), $Row), $Data[$j]);
                     }
                 }
                 $Row++;
@@ -127,5 +263,27 @@ class Service
         }
 
         return false;
+    }
+
+    /**
+     * @param array   $ImportList
+     * @param int     $Period
+     * @param TblTask $tblTask
+     *
+     * @return bool
+     */
+    public function createIndiwareStudentSubjectOrderBulk($ImportList = array(), $Period, TblTask $tblTask)
+    {
+
+        return (new Data($this->getBinding()))->createIndiwareStudentSubjectOrderBulk($ImportList, $Period, $tblTask);
+    }
+
+    /**
+     * @return bool
+     */
+    public function destroyIndiwareStudentSubjectOrderAllBulk()
+    {
+
+        return (new Data($this->getBinding()))->destroyIndiwareStudentSubjectOrderAllBulk();
     }
 }

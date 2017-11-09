@@ -37,21 +37,29 @@ class AppointmentGrade implements IModuleInterface
     }
 
     /**
+     * @param int  $Period
      * @param null $TaskId
      *
      * @return bool|string
      */
-    public function downloadAppointmentGrade($TaskId = null)
+    public function downloadAppointmentGrade($Period, $TaskId = null)
     {
 
         $fileLocation = AppointmentGradeTask::useService()
-            ->createGradeListCsv($TaskId);
+            ->createGradeListCsv($Period, $TaskId);
         $tblTask = Evaluation::useService()->getTaskById($TaskId);
         if ($fileLocation && $tblTask) {
             return FileSystem::getDownload($fileLocation->getRealPath(),
                 "Stichtagsnoten"." Stichtag ".$tblTask->getDate().".csv")->__toString();
         }
-
         return false;
+
+//        $Display = new Display();
+//        $Stage = new Stage('Notenexport für Indiware');
+//        $Stage->setContent(
+//            new Warning('Es ist keine Person aus der Importierten CSV-Datei im Stichtagsnotenauftrag enthalten')
+//            ."<button type=\"button\" class=\"btn btn-default\" onclick=\"window.open('', '_self', ''); window.close();\">Abbrechen</button>"
+//        );
+//        return $Display->setContent($Stage);
     }
 }
