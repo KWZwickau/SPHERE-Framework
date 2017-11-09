@@ -888,21 +888,26 @@ class Data extends AbstractData
             // Begrenzung des Bemerkungsfeld
             $FieldName = 'Remark';
             if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
-                // Todo test number
-                $this->createCertificateField($tblCertificate, $FieldName, 300);
+                $this->createCertificateField($tblCertificate, $FieldName, 270);
             }
         }
         if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
             $row = 1;
             $this->setCertificateSubject($tblCertificate, 'DE', $row, 1);
             $this->setCertificateSubject($tblCertificate, 'SOR', $row, 2);
-            // 1. Fremdsprache
-            // 2. Fremdsprache
-            $this->setCertificateSubject($tblCertificate, 'KU', $row, 5, false);
-            $this->setCertificateSubject($tblCertificate, 'MU', $row, 6, false);
-            $this->setCertificateSubject($tblCertificate, 'GE', $row, 7);
-            $this->setCertificateSubject($tblCertificate, 'GEO', $row, 8);
-            $this->setCertificateSubject($tblCertificate, 'GRW', $row, 9);
+
+            $this->setCertificateSubject($tblCertificate, 'EN', $row, 3, false);
+            $this->setCertificateSubject($tblCertificate, 'EN2', $row, 4, false);
+            $this->setCertificateSubject($tblCertificate, 'FR', $row, 5, false);
+            $this->setCertificateSubject($tblCertificate, 'RU', $row, 6, false);
+            $this->setCertificateSubject($tblCertificate, 'LA', $row, 7, false);
+            $this->setCertificateSubject($tblCertificate, 'SPA', $row, 8, false);
+
+            $this->setCertificateSubject($tblCertificate, 'KU', $row, 9, false);
+            $this->setCertificateSubject($tblCertificate, 'MU', $row, 10, false);
+            $this->setCertificateSubject($tblCertificate, 'GE', $row, 11);
+            $this->setCertificateSubject($tblCertificate, 'GEO', $row, 12);
+            $this->setCertificateSubject($tblCertificate, 'GRW', $row, 13);
 
             $row = 2;
             $this->setCertificateSubject($tblCertificate, 'MA', $row, 1);

@@ -800,8 +800,10 @@ class Service extends AbstractService
                 $Content['P' . $personId]['DivisionTeacher']['Gender'] = $genderValue;
                 if ($genderValue == 'M') {
                     $Content['P' . $personId]['DivisionTeacher']['Description'] = $divisionTeacherDescription;
+                    $Content['P' . $personId]['Tudor']['Description'] = 'Tutor';
                 } elseif ($genderValue == 'F') {
                     $Content['P' . $personId]['DivisionTeacher']['Description'] = $divisionTeacherDescription . 'in';
+                    $Content['P' . $personId]['Tudor']['Description'] = 'Tutorin';
                 }
             }
         }

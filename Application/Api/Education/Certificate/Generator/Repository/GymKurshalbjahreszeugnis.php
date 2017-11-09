@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
+use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
@@ -113,7 +114,6 @@ class GymKurshalbjahreszeugnis extends Certificate
                     ->styleMarginTop('10px')
                 )
             )
-            // Todo Grundkurse
             ->addSlice($this->getBasicCourses($tblPerson))
             ->addSlice((new Slice())
                 ->addSection((new Section())
@@ -149,7 +149,6 @@ class GymKurshalbjahreszeugnis extends Certificate
                     )
                 )
             )
-            // Todo Bemerkung height
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -166,7 +165,6 @@ class GymKurshalbjahreszeugnis extends Certificate
             )
             ->addSlice($this->getDateLine($personId))
             ->addSlice($this->getSignPart($personId, true))
-            // Todo Tudor
             ->addSlice($this->getParentSign())
             ->addSlice($this->setPointsOverview())
             ->addSlice($this->getInfo('10px',
@@ -206,7 +204,7 @@ class GymKurshalbjahreszeugnis extends Certificate
                                         $advancedCourses[1] = $tblSubject->getAcronym();
                                     }
                                 } else {
-                                    $basicCourses[] = $tblSubject->getAcronym();
+                                    $basicCourses[$tblSubject->getAcronym()] = $tblSubject->getAcronym();
                                 }
                             }
                         }
@@ -273,21 +271,114 @@ class GymKurshalbjahreszeugnis extends Certificate
         $slice = new Slice();
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        // todo sortierung / platzierung
-        if ($this->BasicCourses) {
-            $isSecondLane = false;
+        $SubjectStructure = array();
+
+        if (($tblCertificateSubjectAll = Generator::useService()->getCertificateSubjectAll($this->getCertificateEntity()))) {
+            $SubjectStructure = array();
+            foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
+                $tblSubject = $tblCertificateSubject->getServiceTblSubject();
+                if ($tblSubject) {
+                    $isAddSubject = false;
+                    // Grade Exists? => Add Subject to Certificate
+                    if (isset($this->BasicCourses[$tblSubject->getAcronym()])) {
+                        $isAddSubject = true;
+                    } else if (isset($this->AdvancedCourses[0]) && $this->AdvancedCourses[0] == $tblSubject->getAcronym()) {
+                        $isAddSubject = true;
+                    } else if (isset($this->AdvancedCourses[1]) && $this->AdvancedCourses[1] == $tblSubject->getAcronym()) {
+                        $isAddSubject = true;
+                    } else {
+                        // Grade Missing, But Subject Essential => Add Subject to Certificate
+                        if ($tblCertificateSubject->isEssential()) {
+                            $isAddSubject = true;
+                        }
+                    }
+
+                    if ($isAddSubject) {
+                        $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
+                            = $tblSubject->getAcronym();
+                        $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
+                            = $tblSubject->getName();
+                    }
+                }
+            }
+
+            // Shrink Lanes
+            $LaneCounter = array(1 => 0, 2 => 0);
+            $SubjectLayout = array();
+            ksort($SubjectStructure);
+            foreach ($SubjectStructure as $SubjectList) {
+                ksort($SubjectList);
+                foreach ($SubjectList as $Lane => $Subject) {
+                    $SubjectLayout[$LaneCounter[$Lane]][$Lane] = $Subject;
+                    $LaneCounter[$Lane]++;
+                }
+            }
+            $SubjectStructure = $SubjectLayout;
+        }
+
+        $count = 0;
+        $subSection = false;
+        $isShrinkMarginTop = false;
+        foreach ($SubjectStructure as $SubjectList) {
+            $count++;
+            // Sort Lane-Ranking (1,2...)
+            ksort($SubjectList);
+
             $section = new Section();
-            foreach ($this->BasicCourses as $acronym) {
-                if (($tblSubject = Subject::useService()->getSubjectByAcronym($acronym))) {
-                    $this->setCourseSubject($tblSubject, $section, false, $IsGradeUnderlined, $personId);
+            if (count($SubjectList) == 1 && isset($SubjectList[2])) {
+                $section->addElementColumn((new Element()), 'auto');
+                $isSecondLane = true;
+            } else {
+                $isSecondLane = false;
+            }
+
+            foreach ($SubjectList as $Lane => $Subject) {
+                if (($tblSubject = Subject::useService()->getSubjectByAcronym($Subject['SubjectAcronym']))) {
+                    if (isset($this->AdvancedCourses[0]) && $this->AdvancedCourses[0] == $tblSubject->getAcronym()) {
+                        $isAdvancedCourse = true;
+                    } elseif (isset($this->AdvancedCourses[1]) && $this->AdvancedCourses[1] == $tblSubject->getAcronym()) {
+                        $isAdvancedCourse = true;
+                    } else {
+                        $isAdvancedCourse = false;
+                    }
+
+                    if (($tblCategory = Subject::useService()->getCategoryByIdentifier('FOREIGNLANGUAGE'))
+                        && Subject::useService()->existsCategorySubject($tblCategory, $tblSubject)
+                    ) {
+                        $isLanguage = true;
+                    } else {
+                        $isLanguage = false;
+                    }
+
+                    $this->setCourseSubject($tblSubject, $section, false, $IsGradeUnderlined, $personId,
+                        $isShrinkMarginTop ? '2px' : '10px', false, !$isAdvancedCourse, $isLanguage);
+
+                    if ($isLanguage) {
+                        $subSection = new Section();
+                        $subSection
+                            ->addElementColumn((new Element())
+                                ->setContent('Fremdsprache')
+                                ->styleMarginTop('0px')
+                                ->styleMarginBottom('0px')
+                                ->styleTextSize('8px')
+                            );
+                    }
 
                     if ($isSecondLane) {
                         $slice->addSection($section);
+                        if ($subSection) {
+                            $slice->addSection($subSection);
+                            $subSection = false;
+                            $isShrinkMarginTop = true;
+                        } else {
+                            $isShrinkMarginTop = false;
+                        }
                         $section = new Section();
                     } else {
                         $section
                             ->addElementColumn((new Element())
                                 ->setContent('&nbsp;')
+                                ->styleMarginTop($isShrinkMarginTop ? '2px' : '10px')
                                 , '8%');
                     }
 
@@ -311,27 +402,32 @@ class GymKurshalbjahreszeugnis extends Certificate
     /**
      * @param TblSubject|null $tblSubject
      * @param Section $section
-     * @param $IsSubjectUnderlined
-     * @param $IsGradeUnderlined
+     * @param $isSubjectUnderlined
+     * @param $isGradeUnderlined
      * @param $personId
      * @param string $marginTop
      * @param bool $isFootnote
+     * @param bool $isGradeShown
+     * @param bool $isLanguage
      */
     private function setCourseSubject(
         TblSubject $tblSubject = null,
         Section $section,
-        $IsSubjectUnderlined,
-        $IsGradeUnderlined,
+        $isSubjectUnderlined,
+        $isGradeUnderlined,
         $personId,
         $marginTop = '10px',
-        $isFootnote = false
+        $isFootnote = false,
+        $isGradeShown = true,
+        $isLanguage = false
     ) {
 
         if ($tblSubject) {
             $section
                 ->addElementColumn((new Element())
-                    ->setContent($tblSubject ? $tblSubject->getName() : '---')
-                    ->styleBorderBottom($IsSubjectUnderlined ? '1px' : '0px')
+                    ->setContent($tblSubject->getName() == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft'
+                        ? 'Gemeinschaftskunde/Rechtserziehung/ Wirtschaft' : $tblSubject->getName())
+                    ->styleBorderBottom($isSubjectUnderlined || $isLanguage ? '1px' : '0px')
                     ->styleMarginTop($marginTop)
                     , '33%');
         } elseif ($isFootnote) {
@@ -365,7 +461,7 @@ class GymKurshalbjahreszeugnis extends Certificate
                 , '1%')
             ->addElementColumn((new Element())
                 ->setContent(
-                    $tblSubject ?
+                    $tblSubject && $isGradeShown ?
                         '{% if(Content.P' . $personId . '.Grade.Data["' . $tblSubject->getAcronym() . '"] is not empty) %}
                             {{ Content.P' . $personId . '.Grade.Data["' . $tblSubject->getAcronym() . '"] }}
                         {% else %}
@@ -374,7 +470,7 @@ class GymKurshalbjahreszeugnis extends Certificate
                         : '&ndash;')
                 ->styleAlignCenter()
                 ->styleBackgroundColor('#BBB')
-                ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                ->styleBorderBottom($isGradeUnderlined ? '1px' : '0px', '#000')
                 ->styleMarginTop($marginTop)
                 , '12%');
     }
@@ -459,5 +555,138 @@ class GymKurshalbjahreszeugnis extends Certificate
                 ->styleBorderRight($isBorderRight ? '1px' : '0px')
                 ->styleBorderBottom($isBorderBottom ? '1px' : '0px')
                 , '14.28%');
+    }
+
+    /**
+     * @param $personId
+     * @param bool $isExtended with directory and stamp
+     * @param string $MarginTop
+     *
+     * @return Slice
+     */
+    protected function getSignPart($personId, $isExtended = true, $MarginTop = '25px')
+    {
+        $SignSlice = (new Slice());
+        if ($isExtended) {
+            $SignSlice->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleAlignCenter()
+                    ->styleBorderBottom('1px', '#000')
+                    , '30%')
+                ->addElementColumn((new Element())
+                    , '40%')
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleAlignCenter()
+                    ->styleBorderBottom('1px', '#000')
+                    , '30%')
+            )
+                ->styleMarginTop($MarginTop)
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if(Content.P' . $personId . '.Headmaster.Description is not empty) %}
+                                {{ Content.P' . $personId . '.Headmaster.Description }}
+                            {% else %}
+                                Schulleiter(in)
+                            {% endif %}'
+                        )
+                        ->styleAlignCenter()
+                        ->styleTextSize('11px')
+                        , '30%')
+                    ->addElementColumn((new Element())
+                        , '5%')
+                    ->addElementColumn((new Element())
+                        ->setContent('Dienstsiegel der Schule')
+                        ->styleAlignCenter()
+                        ->styleTextSize('11px')
+                        , '30%')
+                    ->addElementColumn((new Element())
+                        , '5%')
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if(Content.P' . $personId . '.Tudor.Description is not empty) %}
+                                {{ Content.P' . $personId . '.Tudor.Description }}
+                            {% else %}
+                                Tutor(in)
+                            {% endif %}'
+                        )
+                        ->styleAlignCenter()
+                        ->styleTextSize('11px')
+                        , '30%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent(
+                            '{% if(Content.P' . $personId . '.Headmaster.Name is not empty) %}
+                                {{ Content.P' . $personId . '.Headmaster.Name }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}'
+                        )
+                        ->styleTextSize('11px')
+                        ->stylePaddingTop('2px')
+                        ->styleAlignCenter()
+                        , '30%')
+                    ->addElementColumn((new Element())
+                        , '40%')
+                    ->addElementColumn((new Element())
+                        ->setContent(
+                            '{% if(Content.P' . $personId . '.DivisionTeacher.Name is not empty) %}
+                                {{ Content.P' . $personId . '.DivisionTeacher.Name }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}'
+                        )
+                        ->styleTextSize('11px')
+                        ->stylePaddingTop('2px')
+                        ->styleAlignCenter()
+                        , '30%')
+                );
+        } else {
+            $SignSlice->addSection((new Section())
+                ->addElementColumn((new Element())
+                    , '70%')
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleAlignCenter()
+                    ->styleBorderBottom('1px', '#000')
+                    , '30%')
+            )
+                ->styleMarginTop($MarginTop)
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        , '70%')
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                        {% if(Content.P' . $personId . '.DivisionTeacher.Description is not empty) %}
+                                {{ Content.P' . $personId . '.DivisionTeacher.Description }}
+                            {% else %}
+                                Klassenlehrer(in)
+                            {% endif %}
+                        ')
+                        ->styleAlignCenter()
+                        ->styleTextSize('11px')
+                        , '30%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        , '70%')
+                    ->addElementColumn((new Element())
+                        ->setContent(
+                            '{% if(Content.P' . $personId . '.DivisionTeacher.Name is not empty) %}
+                                {{ Content.P' . $personId . '.DivisionTeacher.Name }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}'
+                        )
+                        ->styleTextSize('11px')
+                        ->stylePaddingTop('2px')
+                        ->styleAlignCenter()
+                        , '30%')
+                );
+        }
+        return $SignSlice;
     }
 }
