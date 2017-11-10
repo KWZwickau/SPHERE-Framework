@@ -1408,7 +1408,7 @@ class Frontend extends FrontendScoreRule
                                                                                 } elseif ($tblTest->getServiceTblGradeType() && $tblTest->getReturnDate()) {
                                                                                     $testReturnDate = (new \DateTime($tblTest->getReturnDate()))->format("Y-m-d");
                                                                                     $now = (new \DateTime('now'))->format("Y-m-d");
-                                                                                    if ($testReturnDate < $now) {
+                                                                                    if ($testReturnDate <= $now) {
 
                                                                                         // Test anzeigen
                                                                                         $this->addTest($tblTest,
