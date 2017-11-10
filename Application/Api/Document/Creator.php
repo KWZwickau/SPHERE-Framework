@@ -12,12 +12,15 @@ use MOC\V\Component\Document\Component\Parameter\Repository\PaperOrientationPara
 use MOC\V\Component\Document\Document as PdfDocument;
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Api\Document\Standard\Repository\AccidentReport\AccidentReport;
 use SPHERE\Application\Api\Document\Standard\Repository\GradebookOverview;
+use SPHERE\Application\Api\Document\Standard\Repository\SignOutCertificate\SignOutCertificate;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\AbstractStudentCard;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\GrammarSchool;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\MultiStudentCard;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\PrimarySchool;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\SecondarySchool;
+use SPHERE\Application\Api\Document\Standard\Repository\StudentTransfer;
 use SPHERE\Application\Document\Generator\Generator;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
@@ -227,6 +230,41 @@ class Creator extends Extension
             $FileName = $Document->getName() . ' ' . date("Y-m-d") . ".pdf";
 
             return self::buildDownloadFile($File, $FileName);
+        }
+
+        return new Stage('Dokument', 'Konnte nicht erstellt werden.');
+    }
+
+    /**
+     * @param array  $Data
+     * @param string $DocumentName
+     * @param string $paperOrientation
+     *
+     * @return Stage|string
+     */
+    public static function createDataPdf($Data, $DocumentName, $paperOrientation = Creator::PAPERORIENTATION_PORTRAIT)
+    {
+        if (!empty($Data)
+        ) {
+
+            $Document = false;
+            if ($DocumentName == 'StudentTransfer') {
+                $Document = new StudentTransfer\StudentTransfer($Data);
+            }
+            if ($DocumentName == 'SignOutCertificate') {
+                $Document = new SignOutCertificate($Data);
+            }
+            if ($DocumentName == 'AccidentReport') {
+                $Document = new AccidentReport($Data);
+            }
+
+            if ($Document) {
+                $File = self::buildDummyFile($Document, array(), array(), $paperOrientation);
+
+                $FileName = $Document->getName().' '.date("Y-m-d").".pdf";
+
+                return self::buildDownloadFile($File, $FileName);
+            }
         }
 
         return new Stage('Dokument', 'Konnte nicht erstellt werden.');

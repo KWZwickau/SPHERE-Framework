@@ -501,9 +501,12 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param $IsAllYears
+     * @param $YearId
+     *
      * @return Stage
      */
-    public function frontendDivisionTeacherTask()
+    public function frontendDivisionTeacherTask($IsAllYears = false, $YearId = null)
     {
 
         $Stage = new Stage('Notenaufträge', 'Übersicht');
@@ -519,6 +522,8 @@ class Frontend extends Extension implements IFrontendInterface
                 new Edit()));
             $Stage->addButton(new Standard('Ansicht: Leitung', '/Education/Graduation/Evaluation/Task/Headmaster'));
         }
+
+        $buttonList = $this->setYearButtonList('/Education/Graduation/Evaluation/Task/Teacher', $IsAllYears, $YearId, $tblYear, true);
 
         $taskList = array();
 
@@ -563,28 +568,36 @@ class Frontend extends Extension implements IFrontendInterface
         $contentTable = array();
         if (!empty($taskList)) {
             /** @var TblTask $tblTask */
+            /** @var TblYear $tblYear */
             foreach ($taskList as $tblTask) {
-                $contentTable[] = array(
-                    'Date' => $tblTask->getDate(),
-                    'Type' => $tblTask->getTblTestType()->getName(),
-                    'Name' => $tblTask->getName(),
-                    'Period' => $tblTask->getServiceTblPeriod()
-                        ? $tblTask->getServiceTblPeriod()->getDisplayName() : 'Gesamtes Schuljahr',
-                    'EditPeriod' => $tblTask->getFromDate() . ' - ' . $tblTask->getToDate(),
-                    'Option' =>
-                        (new Standard('',
-                            '/Education/Graduation/Evaluation/Task/Teacher/Grades',
-                            new Equalizer(),
-                            array('Id' => $tblTask->getId()),
-                            'Zensurenübersicht')
-                        )
-                );
+                if ($IsAllYears || ($tblYear && $tblTask->getServiceTblYear() && $tblTask->getServiceTblYear()->getId() == $tblYear->getId())) {
+                    $contentTable[] = array(
+                        'Date' => $tblTask->getDate(),
+                        'Type' => $tblTask->getTblTestType()->getName(),
+                        'Name' => $tblTask->getName(),
+                        'Period' => $tblTask->getServiceTblPeriod()
+                            ? $tblTask->getServiceTblPeriod()->getDisplayName() : 'Gesamtes Schuljahr',
+                        'EditPeriod' => $tblTask->getFromDate() . ' - ' . $tblTask->getToDate(),
+                        'Option' =>
+                            (new Standard('',
+                                '/Education/Graduation/Evaluation/Task/Teacher/Grades',
+                                new Equalizer(),
+                                array('Id' => $tblTask->getId()),
+                                'Zensurenübersicht')
+                            )
+                    );
+                }
             }
         }
 
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
+                    new LayoutRow(array(
+                        empty($buttonList)
+                            ? null
+                            : new LayoutColumn($buttonList)
+                    )),
                     new LayoutRow(array(
                             new LayoutColumn(
                                 new TableData(
@@ -644,7 +657,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblTaskAll) {
             foreach ($tblTaskAll as $tblTask) {
                 /** @var TblYear $tblYear */
-                if ($IsAllYears || ($tblYear && $tblTask->getServiceTblYear()->getId() == $tblYear->getId())) {
+                if ($IsAllYears || ($tblYear && $tblTask->getServiceTblYear() && $tblTask->getServiceTblYear()->getId() == $tblYear->getId())) {
                     $hasEdit = true;
 
                     $contentTable[] = array(
@@ -911,7 +924,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 array('Id' => $tblTest->getId()), 'Löschen'))
                             : '')
                         . (new Standard('', $BasicRoute . '/Grade/Edit', new Listing(),
-                            array('Id' => $tblTest->getId()), 'Zensuren bearbeiten'))
+                            array('Id' => $tblTest->getId()), 'Zensuren eintragen'))
                 );
             });
         }
@@ -1617,7 +1630,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Grade = null
     ) {
 
-        $Stage = new Stage('Leistungsüberprüfung', 'Zensuren bearbeiten');
+        $Stage = new Stage('Leistungsüberprüfung', 'Zensuren eintragen');
 
         $tblTest = false;
 
@@ -2371,7 +2384,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Grade = null
     ) {
 
-        $Stage = new Stage('Leistungsüberprüfung', 'Zensuren bearbeiten');
+        $Stage = new Stage('Leistungsüberprüfung', 'Zensuren eintragen');
 
         $tblTest = false;
 
@@ -2691,10 +2704,10 @@ class Frontend extends Extension implements IFrontendInterface
             . new Redirect('/Education/Graduation/Evaluation/Task/Headmaster', Redirect::TIMEOUT_ERROR);
         }
 
-
+        $tblYear = $tblTask->getServiceTblYear();
         $Stage->addButton(
             new Standard('Zurück', '/Education/Graduation/Evaluation/Task/Headmaster',
-                new ChevronLeft())
+                new ChevronLeft(), array('YearId' => $tblYear ? $tblYear->getId(): 0))
         );
 
         $tblCurrentDivision = Division::useService()->getDivisionById($DivisionId);
@@ -3187,9 +3200,10 @@ class Frontend extends Extension implements IFrontendInterface
             . new Redirect('/Education/Graduation/Evaluation/Task/Teacher', Redirect::TIMEOUT_ERROR);
         }
 
+        $tblYear = $tblTask->getServiceTblYear();
         $Stage->addButton(
             new Standard('Zurück', '/Education/Graduation/Evaluation/Task/Teacher',
-                new ChevronLeft())
+                new ChevronLeft(), array('YearId' => $tblYear ? $tblYear->getId(): 0))
         );
 
         $tblPerson = false;
@@ -3639,9 +3653,8 @@ class Frontend extends Extension implements IFrontendInterface
      * @param TblTask|null $tblTask
      * @param TblDivision $tblDivision
      * @param TblSubject $tblSubject
-     * @param TblScoreType|null $tblScoreType
-     * @param TblTest $tblNextTest
-     * @param string $BasicRoute
+     * @param TblTest|null $tblNextTest
+     * @param $BasicRoute
      * @param $studentList
      * @param $tableColumns
      * @param $buttonList

@@ -1451,4 +1451,52 @@ class Service extends ServiceScoreRule
         }
         return $Form;
     }
+
+    /**
+     * Sorts Grades by Date asc
+     * @param $tblGradeList
+     *
+     * @return array
+     */
+    public function getSortedGradeList($tblGradeList) {
+
+        $gradeListSorted = array();
+        $count = 0;
+        /** @var TblGrade $tblGrade */
+        foreach ($tblGradeList as $tblGrade) {
+            if (($tblTest = $tblGrade->getServiceTblTest())) {
+                if ($tblTest->isContinues()) {
+                    if ($tblGrade->getDate()) {
+                        $date = $tblGrade->getDate();
+                    } else {
+                        $date = $tblTest->getFinishDate();
+                    }
+                } else {
+                    $date = $tblTest->getDate();
+                }
+
+                if ($date) {
+                    $date = new \DateTime($date);
+                    $date = $date->format('Ymd');
+                } else {
+                    $date = $count++;
+                }
+
+                if (isset($gradeListSorted[$date])) {
+                    $date .= 'a';
+                    if (isset($gradeListSorted[$date])) {
+                        $date .= 'b';
+                        if (isset($gradeListSorted[$date])) {
+                            $date .= 'c';
+                        }
+                    }
+                }
+                $gradeListSorted[$date] = $tblGrade;
+            }
+        }
+
+        ksort($gradeListSorted);
+
+        return $gradeListSorted;
+    }
 }

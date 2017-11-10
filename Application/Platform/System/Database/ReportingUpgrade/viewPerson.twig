@@ -10,7 +10,7 @@ SELECT
     viewPerson.EntityUpdate AS EntityUpdate,
     viewPerson.EntityRemove AS EntityRemove,
     viewPeopleMetaCommon.TblCommon_Remark AS TblCommon_Remark,
-    viewPeopleMetaCommon.TblCommonBirthDates_Birthday AS TblCommonBirthDates_Birthday,
+    DATE_FORMAT( viewPeopleMetaCommon.TblCommonBirthDates_Birthday, '%d.%m.%Y' ) AS TblCommonBirthDates_Birthday,
     viewPeopleMetaCommon.TblCommonBirthDates_Birthplace AS TblCommonBirthDates_Birthplace,
     viewPeopleMetaCommon.TblCommonGender_Name AS TblCommonGender_Name,
     viewPeopleMetaCommon.TblCommonInformation_Nationality AS TblCommonInformation_Nationality,
