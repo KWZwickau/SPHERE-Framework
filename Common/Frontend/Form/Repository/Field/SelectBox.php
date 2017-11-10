@@ -34,13 +34,15 @@ class SelectBox extends AbstractField implements IFieldInterface
      * @param array $Data array( value => title )
      * @param IIconInterface $Icon
      * @param bool $useAutoValue
+     * @param int $useSort SORT_{NATURAL}|null
      */
     public function __construct(
         $Name,
         $Label = '',
         $Data = array(),
         IIconInterface $Icon = null,
-        $useAutoValue = true
+        $useAutoValue = true,
+        $useSort = SORT_NATURAL
     ) {
 
         $this->Name = $Name;
@@ -123,29 +125,35 @@ class SelectBox extends AbstractField implements IFieldInterface
             }
             if (array_key_exists(0, $Convert) && $useAutoValue) {
                 unset( $Convert[0] );
-                asort($Convert, SORT_NATURAL);
-
+                if( $useSort !== null ) {
+                    asort($Convert, $useSort);
+                }
                 $Keys = array_keys( $Convert );
                 $Values = array_values( $Convert );
                 array_unshift( $Keys, 0 );
                 array_unshift( $Values, '-[ Nicht ausgewählt ]-');
                 $Convert = array_combine( $Keys, $Values );
             } else {
-                asort($Convert, SORT_NATURAL);
+                if( $useSort !== null ) {
+                    asort($Convert, $useSort);
+                }
             }
             $this->Data = $Convert;
         } else {
             if (array_key_exists(0, $Data) && $Data[0] != '-[ Nicht verfügbar ]-' && $useAutoValue) {
                 unset( $Data[0] );
-                asort($Data, SORT_NATURAL);
-
+                if( $useSort !== null ) {
+                    asort($Data, $useSort);
+                }
                 $Keys = array_keys( $Data );
                 $Values = array_values( $Data );
                 array_unshift( $Keys, 0 );
                 array_unshift( $Values, '-[ Nicht ausgewählt ]-');
                 $Data = array_combine( $Keys, $Values );
             } else {
-                asort($Data, SORT_NATURAL);
+                if( $useSort !== null ) {
+                    asort($Data, $useSort);
+                }
             }
             $this->Data = $Data;
         }

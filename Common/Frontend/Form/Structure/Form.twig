@@ -5,6 +5,7 @@
       data-toggle="validator"
       role="form"
       {% if( AjaxEventSubmit is not empty ) %} class="AjaxSubmit"{% endif %}
+      {% if EnableNewTab is not empty %} target="_blank"{% endif %}
     >
     {% for FormGroup in GridGroupList %}
         {% if( FormGroup.getFormTitle is not empty ) %}

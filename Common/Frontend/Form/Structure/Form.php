@@ -33,6 +33,8 @@ class Form extends Extension implements IFormInterface
     protected $Template = null;
     /** @var bool $EnableSaveDraft */
     private $EnableSaveDraft = false;
+    /** @var bool $EnableNewTab */
+    private $EnableNewTab = false;
     /** @var bool $DisableSubmitAction */
     private $DisableSubmitAction = false;
 
@@ -181,6 +183,15 @@ class Form extends Extension implements IFormInterface
     }
 
     /**
+     * @return Form
+     */
+    public function enableNewTab()
+    {
+        $this->EnableNewTab = true;
+        return $this;
+    }
+
+    /**
      * @param IButtonInterface $Button
      *
      * @return Form
@@ -250,6 +261,11 @@ class Form extends Extension implements IFormInterface
             $this->Template->setVariable('EnableSaveDraft', true);
         } else {
             $this->Template->setVariable('EnableSaveDraft', false);
+        }
+        if ($this->EnableNewTab) {
+            $this->Template->setVariable('EnableNewTab', true);
+        } else {
+            $this->Template->setVariable('EnableNewTab', false);
         }
         if ($this->DisableSubmitAction) {
             $this->Template->setVariable('DisableSubmitAction', true);
