@@ -2038,6 +2038,31 @@ class Data extends AbstractData
                     $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
                 }
             }
+
+            if ($tblConsumer->getAcronym() == 'ESRL' || $tblConsumer->getAcronym() == 'DEMO') {
+                $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('ESRL');
+                $tblCertificate = $this->createCertificate('Grundschule Halbjahresinformation', 'der ersten Klasse',
+                    'ESRL\EsrlGsHjOne',
+                    $tblConsumerCertificate);
+                if ($tblCertificate) {
+                    if ($tblSchoolTypePrimary) {
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary,
+                            null, true);
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                    }
+                    // Begrenzung des Bemerkungsfelds
+                    $FieldName = 'Remark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 300);
+                    }
+                }
+                // Kopfnoten
+//                if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+//                    $this->setCertificateGradeAllStandard($tblCertificate);
+//                }
+            }
         }
     }
 
