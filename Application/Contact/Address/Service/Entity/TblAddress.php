@@ -93,9 +93,11 @@ class TblAddress extends Element
     }
 
     /**
+     * @param bool $Extended (true = with Location (Country, State, Nation))
+     *
      * @return string
      */
-    public function getGuiString()
+    public function getGuiString($Extended = true)
     {
 
         $Cache = $this->getCache(new MemcachedHandler());
@@ -115,7 +117,10 @@ class TblAddress extends Element
                         .($this->getTblCity()->getDisplayDistrict() !== '' ? ' '.($this->getTblCity()->getDisplayDistrict()).',' : ',')
                         .' '.$this->getStreetName()
                         .' '.$this->getStreetNumber()
-                        .($this->getLocation() ? ' ('.$this->getLocation().')' : '');
+                        .($Extended
+                            ? ($this->getLocation() ? ' ('.$this->getLocation().')' : '')
+                            : ''
+                        );
                     break;
                 case $this::VALUE_OT_STR_NR_PLZ_ORT:
                     $Return =
@@ -124,7 +129,10 @@ class TblAddress extends Element
                         .' '.$this->getStreetNumber()
                         .', '.$this->getTblCity()->getCode()
                         .' '.$this->getTblCity()->getName()
-                        .($this->getLocation() ? ' ('.$this->getLocation().')' : '');
+                        .($Extended
+                            ? ($this->getLocation() ? ' ('.$this->getLocation().')' : '')
+                            : ''
+                        );
                     break;
                 default:
                     $Return =
