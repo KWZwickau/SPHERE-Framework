@@ -160,6 +160,7 @@ class SignOutCertificate extends Extension
             $Global->POST['Data']['BirthDate'] = '';
             $Global->POST['Data']['BirthPlace'] = '';
             $Global->POST['Data']['AddressStreet'] = '';
+            $Global->POST['Data']['SchoolCity'] = '';
             $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
             if ($tblCommon) {
                 if (($tblCommonBirthdate = $tblCommon->getTblCommonBirthDates())) {
@@ -192,7 +193,7 @@ class SignOutCertificate extends Extension
                             $tblCitySchool = $tblAddressSchool->getTblCity();
                             if ($tblCitySchool) {
                                 $Global->POST['Data']['SchoolAddressCity'] = $tblCitySchool->getCode().' '.$tblCitySchool->getName();
-                                $Global->POST['Data']['SchoolCity'] = $tblCitySchool->getName();
+                                $Global->POST['Data']['SchoolCity'] = $tblCitySchool->getName().', ';
                             }
                         }
                     }
@@ -218,7 +219,7 @@ class SignOutCertificate extends Extension
                 }
             }
 
-            $Global->POST['Data']['PlaceDate'] = $Global->POST['Data']['SchoolCity'].', '.$Global->POST['Data']['Date'];
+            $Global->POST['Data']['PlaceDate'] = $Global->POST['Data']['SchoolCity'].$Global->POST['Data']['Date'];
 
             // Hauptadresse Schüler
             $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
