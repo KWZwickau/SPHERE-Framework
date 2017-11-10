@@ -240,7 +240,7 @@ class StudentTransfer extends Extension
             // Hauptadresse Schüler
             $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
             if ($tblAddress) {
-                $Global->POST['Data']['MainAddress'] = $tblAddress->getGuiString();
+                $Global->POST['Data']['MainAddress'] = $tblAddress->getGuiString(false);
             }
 
             // Sorgeberechtigte
