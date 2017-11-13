@@ -1,7 +1,5 @@
 <?php
-
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\ESRL;
-
 
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
@@ -15,7 +13,6 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
  */
 class EsrlGsHjOne extends EsrlStyle
 {
-    const TEXT_SIZE = '12pt';
 
     /**
      * @param TblPerson|null $tblPerson
@@ -41,6 +38,9 @@ class EsrlGsHjOne extends EsrlStyle
                         self::getESRLHead()
                     )
                 )
+                ->addElement((new Element())
+                    ->styleMarginTop('10px')
+                )
                 ->addSection(
                     self::getESRLHeadLine('HALBJAHRESINFORMATION')
                 )
@@ -53,116 +53,32 @@ class EsrlGsHjOne extends EsrlStyle
                 ->addElement((new Element())
                     ->styleMarginTop('10px')
                 )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('Vorname und Name:')
-                        ->styleTextSize(self::TEXT_SIZE)
-                        , '24%')
-                    ->addElementColumn((new Element())
-                        ->setContent('{{ Content.P'.$personId.'.Person.Data.Name.First }}
-                                      {{ Content.P'.$personId.'.Person.Data.Name.Last }}')
-                        ->styleTextSize(self::TEXT_SIZE)
-                        ->stylePaddingLeft('5px')
-                        ->styleBorderBottom('1px', '#999')
-                        , '76%')
+                ->addSection(
+                    self::getESRLName($personId)
                 )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('{% if(Content.P'.$personId.'.Input.Remark is not empty) %}
-                            {{ Content.P'.$personId.'.Input.Remark|nl2br }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}')
-                        ->styleAlignJustify()
-                        ->styleHeight('520px')
-                        ->styleMarginTop('20px')
-                    )
+                ->addSection(
+                    self::getESRLRemark($personId, '540px')
                 )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('Fehltage entschuldigt:')
-                        , '22%')
-                    ->addElementColumn((new Element())
-                        ->setContent('{% if(Content.P'.$personId.'.Input.Missing is not empty) %}
-                                    {{ Content.P'.$personId.'.Input.Missing }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}')
-//                        ->styleAlignCenter()
-                        , '10%')
-                    ->addElementColumn((new Element())
-                        ->setContent('unentschuldigt:')
-                        , '15%')
-                    ->addElementColumn((new Element())
-                        ->setContent('{% if(Content.P'.$personId.'.Input.Bad.Missing is not empty) %}
-                                    &nbsp;{{ Content.P'.$personId.'.Input.Bad.Missing }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}')
-//                        ->styleAlignCenter()
-                        , '10%')
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '43%')
+                ->addSection(
+                    self::getESRLMissing($personId)
                 )
                 ->addElement((new Element())
                     ->styleMarginTop('15px')
                 )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('Datum:')
-                        , '10%')
-                    ->addElementColumn((new Element())
-                        ->setContent('{% if(Content.P'.$personId.'.Input.Date is not empty) %}
-                                {{ Content.P'.$personId.'.Input.Date }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}')
-                        ->styleBorderBottom('1px', '#999')
-                        ->styleAlignCenter()
-                        , '20%')
-                    ->addElementColumn((new Element())
-                        , '70%')
-                )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        , '70%')
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        ->styleAlignCenter()
-                        ->styleBorderBottom('1px', '#999')
-                        ->styleMarginTop('20px')
-                        , '30%')
-                )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        , '70%')
-                    ->addElementColumn((new Element())
-                        ->setContent('Klassenlehrer(in)')
-                        ->styleAlignCenter()
-                        ->styleTextSize('11px')
-                        , '30%')
+                ->addSection(
+                    self::getESRLDate($personId)
                 )
                 ->addElement((new Element())
-                    ->styleMarginTop('30px')
+                    ->styleMarginTop('10px')
                 )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('Zur Kenntnis genommen:')
-                        , '25%')
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        ->styleBorderBottom('1px', '#999')
-                        , '75%')
+                ->addSectionList(
+                    self::getESRLTeacher(false)
                 )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        , '70%')
-                    ->addElementColumn((new Element())
-                        ->setContent('Sorgeberechtigte')
-                        ->styleTextSize('11px')
-                        ->styleAlignCenter()
-                        , '30%')
+                ->addElement((new Element())
+                    ->styleMarginTop('20px')
+                )
+                ->addSectionList(
+                    self::getESRLCustody()
                 )
             );
     }
