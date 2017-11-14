@@ -579,6 +579,28 @@ class Frontend extends Extension
                             }
                         }
 
+                        // check missing subjects on certificates
+                        $missingSubjects = array();
+                        if (($checkSubjectList = Prepare::useService()->checkCertificateSubjectsForStudents($tblPrepare))) {
+                            foreach ($checkSubjectList as $subjects) {
+                                if (is_array($subjects)) {
+                                    foreach ($subjects as $acronym) {
+                                        $missingSubjects[$acronym] = $acronym;
+                                    }
+                                }
+                            }
+                            ksort($missingSubjects);
+                        }
+                        if (!empty($missingSubjects)) {
+                            $missingSubjectsString = new Warning(new Ban() .  ' ' . implode(', ',
+                                $missingSubjects) . (count($missingSubjects) > 1 ? ' fehlen' : ' fehlt')
+                                . ' auf Zeugnisvorlage(n)');
+                        } else {
+                            $missingSubjectsString = new Success(
+                                new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Alle Fächer sind zugeordnet.'
+                            );
+                        }
+
                         $tableData[] = array(
                             'SchoolType' => $tblType->getName(),
                             'Division' => $tblDivision->getDisplayName(),
@@ -589,6 +611,7 @@ class Frontend extends Extension
                                 : new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
                                     . ' ' . $countTemplates . ' von ' . $countStudents . ' Zeugnisvorlagen zugeordnet.')),
                             'Templates' => $text,
+                            'CheckSubjects' => $missingSubjectsString,
                             'Option' =>
                                 new Standard('', '/Education/Certificate/Generate/Division/SelectTemplate',
                                     new Edit(),
@@ -630,6 +653,7 @@ class Frontend extends Extension
                                     'School' => 'Aktuelle Schulen',
                                     'Status' => 'Zeugnisvorlagen Zuordnung',
                                     'Templates' => 'Zeugnisvorlagen',
+                                    'CheckSubjects' => 'Prüfung Fächer/Zeugnis',
                                     'Option' => ''
                                 ),
                                     array(
@@ -687,6 +711,7 @@ class Frontend extends Extension
             }
 
             $tableData = array();
+            $checkSubjectList = Prepare::useService()->checkCertificateSubjectsForStudents($tblPrepare);
             if (($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))) {
                 $count = 0;
                 $Global = $this->getGlobal();
@@ -709,6 +734,15 @@ class Frontend extends Extension
                         }
                     }
 
+                    if (isset($checkSubjectList[$tblPerson->getId()])) {
+                        $checkSubjectsString = new Warning(new Ban() . ' '
+                            . implode(', ', $checkSubjectList[$tblPerson->getId()])
+                            . (count($checkSubjectList[$tblPerson->getId()]) > 1 ? ' fehlen' : ' fehlt') . ' auf Zeugnisvorlage');
+                    } else {
+                        $checkSubjectsString = new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .
+                            ' alles ok');
+                    }
+
                     $courseName = $tblCourse ? $tblCourse->getName() : '';
 
                     $count++;
@@ -718,7 +752,8 @@ class Frontend extends Extension
                         'Course' => $isMuted ? new Muted($courseName) : $courseName,
                         'School' => $isMuted ? '' : ($tblCompany ? $tblCompany->getName() : new Warning(
                             new Exclamation() . ' Keine aktuelle Schule in der Schülerakte gepflegt'
-                        ))
+                        )),
+                        'CheckSubjects' => $checkSubjectsString,
                     );
 
                     if ($isMuted) {
@@ -797,7 +832,8 @@ class Frontend extends Extension
                                 'Student' => 'Schüler',
                                 'Course' => 'Bildungsgang',
                                 'School' => 'Aktuelle Schule',
-                                'Template' => 'Zeugnisvorlage'
+                                'Template' => 'Zeugnisvorlage',
+                                'CheckSubjects' => 'Prüfung Fächer/Zeugnis'
                             ), null
                             )
                         )
@@ -916,7 +952,7 @@ class Frontend extends Extension
 
     /**
      * @param TblYear|null $tblYear
-     *
+     * @param boolean $IsLocked
      * @return Form
      */
     private function formEditGenerate(TblYear $tblYear = null, $IsLocked)

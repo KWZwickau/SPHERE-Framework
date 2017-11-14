@@ -21,6 +21,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareGr
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareInformation;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Setup;
+use SPHERE\Application\Education\Certificate\Setting\Setting;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
@@ -2215,5 +2216,61 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->destroyPrepareCertificate($tblPrepareCertificate);
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     *
+     * @return array
+     */
+    public function checkCertificateSubjectsForStudents(TblPrepareCertificate $tblPrepare)
+    {
+
+        $subjectList = array();
+        $resultList = array();
+        if (($tblTask = $tblPrepare->getServiceTblAppointedDateTask())
+            && ($tblDivision = $tblPrepare->getServiceTblDivision())
+            && ($tblTestList = Evaluation::useService()->getTestAllByTask($tblTask, $tblDivision))
+            && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
+        ) {
+            foreach ($tblTestList as $tblTest) {
+                if (($tblSubject = $tblTest->getServiceTblSubject())) {
+                    if (($tblSubjectGroup = $tblTest->getServiceTblSubjectGroup())) {
+                        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+                                $tblDivision, $tblSubject, $tblSubjectGroup))
+                            && ($tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject))
+                        ) {
+                            foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                                if (($tblPerson = $tblSubjectStudent->getServiceTblPerson())) {
+                                    $subjectList[$tblPerson->getId()][$tblSubject->getAcronym()] = $tblSubject;
+                                }
+                            }
+                        }
+                    } else {
+                        foreach ($tblPersonList as $tblPerson) {
+                            $subjectList[$tblPerson->getId()][$tblSubject->getAcronym()] = $tblSubject;
+                        }
+                    }
+                }
+            }
+        }
+
+        foreach ($subjectList as $personId => $subjects) {
+            if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+                    && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                ) {
+                    ksort($subjects);
+                    /** @var TblSubject $tblSubject */
+                    foreach ($subjects as $tblSubject) {
+                        if (!Setting::useService()->getCertificateSubjectBySubject($tblCertificate, $tblSubject)) {
+                            $resultList[$tblPerson->getId()][$tblSubject->getAcronym()] = $tblSubject->getAcronym();
+                        }
+                    }
+                }
+            }
+        }
+
+        return $resultList;
     }
 }
