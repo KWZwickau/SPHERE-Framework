@@ -1527,9 +1527,11 @@ class Frontend extends Extension implements IFrontendInterface
                             $checkSubjectsString = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Ban() . ' '
                                 . implode(', ', $checkSubjectList[$tblPerson->getId()])
                                 . (count($checkSubjectList[$tblPerson->getId()]) > 1 ? ' fehlen' : ' fehlt') . ' auf Zeugnisvorlage');
-                        } else {
+                        } elseif($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate()) {
                             $checkSubjectsString = new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .
                                 ' alles ok');
+                        } else {
+                            $checkSubjectsString = '';
                         }
 
                         $studentTable[$tblPerson->getId()] = array(

@@ -735,12 +735,15 @@ class Frontend extends Extension
                     }
 
                     if (isset($checkSubjectList[$tblPerson->getId()])) {
-                        $checkSubjectsString = new Warning(new Ban() . ' '
+                        $checkSubjectsString = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Ban() . ' '
                             . implode(', ', $checkSubjectList[$tblPerson->getId()])
                             . (count($checkSubjectList[$tblPerson->getId()]) > 1 ? ' fehlen' : ' fehlt') . ' auf Zeugnisvorlage');
-                    } else {
+                    } elseif(($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+                        && $tblPrepareStudent->getServiceTblCertificate()) {
                         $checkSubjectsString = new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .
                             ' alles ok');
+                    } else {
+                        $checkSubjectsString = '';
                     }
 
                     $courseName = $tblCourse ? $tblCourse->getName() : '';
