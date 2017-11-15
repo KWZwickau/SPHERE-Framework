@@ -27,6 +27,8 @@ class TblGroup extends Element
     const META_TABLE_TEACHER = 'TEACHER';
     const META_TABLE_CLUB = 'CLUB';
     const META_TABLE_COMPANY_CONTACT = 'COMPANY_CONTACT';
+    const META_TABLE_TUDOR = 'TUDOR';
+
     /**
      * @Column(type="string")
      */
