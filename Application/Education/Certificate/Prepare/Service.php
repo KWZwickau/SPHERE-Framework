@@ -2064,6 +2064,8 @@ class Service extends AbstractService
      * @param null|bool $IsFinalGrade
      * @param $Route
      * @param $Data
+     * @param TblGroup|null $tblGroup
+     *
      * @return IFormInterface|string
      */
     public function updatePrepareExamGrades(
@@ -2073,7 +2075,8 @@ class Service extends AbstractService
         TblSubject $tblNextSubject = null,
         $IsFinalGrade = null,
         $Route,
-        $Data
+        $Data,
+        TblGroup $tblGroup = null
     ) {
 
         /**
@@ -2101,8 +2104,6 @@ class Service extends AbstractService
             }
         }
 
-        $this->setSignerFromSignedInPerson($tblPrepare);
-
         if ($error) {
             $form->prependGridGroup(
                 new FormGroup(new FormRow(new FormColumn(new Danger(
@@ -2112,76 +2113,81 @@ class Service extends AbstractService
 
             return $form;
         } else {
-            if (($tblDivision = $tblPrepare->getServiceTblDivision())) {
-                if ($Data != null) {
-                    foreach ($Data as $personId => $personGrades) {
-                        if (($tblPerson = Person::useService()->getPersonById($personId))
-                            && is_array($personGrades)
-                        ) {
-                            foreach ($personGrades as $identifier => $value) {
-                                if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier($identifier))) {
-                                    if ($tblPrepareAdditionalGrade = $this->getPrepareAdditionalGradeBy(
-                                        $tblPrepare, $tblPerson, $tblCurrentSubject, $tblPrepareAdditionalGradeType
-                                    )
-                                    ) {
-                                        (new Data($this->getBinding()))->updatePrepareAdditionalGrade($tblPrepareAdditionalGrade,
-                                            trim($value));
-                                    } elseif (trim($value) != '') {
-                                        (new Data($this->getBinding()))->createPrepareAdditionalGrade(
-                                            $tblPrepare,
-                                            $tblPerson,
-                                            $tblCurrentSubject,
-                                            $tblPrepareAdditionalGradeType,
-                                            0,
-                                            trim($value)
-                                        );
-                                    }
+            if ($Data != null) {
+                foreach ($Data as $prepareStudentId => $personGrades) {
+                    if (($tblPrepareStudent = $this->getPrepareStudentById($prepareStudentId))
+                        && ($tblPrepareItem = $tblPrepareStudent->getTblPrepareCertificate())
+                        && ($tblDivision = $tblPrepareItem->getServiceTblDivision())
+                        && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                        && is_array($personGrades)
+                    ) {
+                        $this->setSignerFromSignedInPerson($tblPrepareItem);
+
+                        foreach ($personGrades as $identifier => $value) {
+                            if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier($identifier))) {
+                                if ($tblPrepareAdditionalGrade = $this->getPrepareAdditionalGradeBy(
+                                    $tblPrepareItem, $tblPerson, $tblCurrentSubject, $tblPrepareAdditionalGradeType
+                                )
+                                ) {
+                                    (new Data($this->getBinding()))->updatePrepareAdditionalGrade($tblPrepareAdditionalGrade,
+                                        trim($value));
+                                } elseif (trim($value) != '') {
+                                    (new Data($this->getBinding()))->createPrepareAdditionalGrade(
+                                        $tblPrepareItem,
+                                        $tblPerson,
+                                        $tblCurrentSubject,
+                                        $tblPrepareAdditionalGradeType,
+                                        0,
+                                        trim($value)
+                                    );
                                 }
                             }
                         }
                     }
                 }
-                if ($tblNextSubject) {
-                    if ($IsFinalGrade) {
-                        $parameters = array(
-                            'PrepareId' => $tblPrepare->getId(),
-                            'Route' => $Route,
-                            'SubjectId' => $tblNextSubject->getId()
-                        );
-                    } else {
-                        $parameters = array(
-                            'PrepareId' => $tblPrepare->getId(),
-                            'Route' => $Route,
-                            'SubjectId' => $tblCurrentSubject->getId(),
-                            'IsFinalGrade' => true
-                        );
-                    }
-                } else {
-                    if ($IsFinalGrade) {
-                        $parameters = array(
-                            'PrepareId' => $tblPrepare->getId(),
-                            'Route' => $Route,
-                            'IsNotSubject' => true
-                        );
-                    } else {
-                        $parameters = array(
-                            'PrepareId' => $tblPrepare->getId(),
-                            'Route' => $Route,
-                            'SubjectId' => $tblCurrentSubject->getId(),
-                            'IsFinalGrade' => true
-                        );
-                    }
-                }
-
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Noten wurden gespeichert.')
-                    . new Redirect('/Education/Certificate/Prepare/Prepare/Diploma/Setting',
-                        Redirect::TIMEOUT_SUCCESS,
-                        $parameters
-                    );
             }
-        }
+            if ($tblNextSubject) {
+                if ($IsFinalGrade) {
+                    $parameters = array(
+                        'PrepareId' => $tblPrepare->getId(),
+                        'GroupId' => $tblGroup ? $tblGroup->getId() : null,
+                        'Route' => $Route,
+                        'SubjectId' => $tblNextSubject->getId()
+                    );
+                } else {
+                    $parameters = array(
+                        'PrepareId' => $tblPrepare->getId(),
+                        'GroupId' => $tblGroup ? $tblGroup->getId() : null,
+                        'Route' => $Route,
+                        'SubjectId' => $tblCurrentSubject->getId(),
+                        'IsFinalGrade' => true
+                    );
+                }
+            } else {
+                if ($IsFinalGrade) {
+                    $parameters = array(
+                        'PrepareId' => $tblPrepare->getId(),
+                        'GroupId' => $tblGroup ? $tblGroup->getId() : null,
+                        'Route' => $Route,
+                        'IsNotSubject' => true
+                    );
+                } else {
+                    $parameters = array(
+                        'PrepareId' => $tblPrepare->getId(),
+                        'GroupId' => $tblGroup ? $tblGroup->getId() : null,
+                        'Route' => $Route,
+                        'SubjectId' => $tblCurrentSubject->getId(),
+                        'IsFinalGrade' => true
+                    );
+                }
+            }
 
-        return $form;
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Noten wurden gespeichert.')
+                . new Redirect('/Education/Certificate/Prepare/Prepare/Diploma/Setting',
+                    Redirect::TIMEOUT_SUCCESS,
+                    $parameters
+                );
+        }
     }
 
     /**
