@@ -34,6 +34,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -144,6 +145,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getPrepareStudentBy($tblPrepare, $tblPerson, $isForced);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblPrepareStudent
+     */
+    public function getPrepareStudentById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getPrepareStudentById($Id);
     }
 
     /**
@@ -442,14 +454,17 @@ class Service extends AbstractService
     /**
      * @param IFormInterface|null $Stage
      * @param TblPrepareCertificate $tblPrepare
+     * @param TblGroup|null $tblGroup
      * @param string $Route
      * @param array $Data
      * @param array $CertificateList
+     *
      * @return IFormInterface|string
      */
     public function updatePrepareInformationList(
         IFormInterface $Stage = null,
         TblPrepareCertificate $tblPrepare,
+        TblGroup $tblGroup = null,
         $Route,
         $Data,
         $CertificateList
@@ -458,44 +473,39 @@ class Service extends AbstractService
         /**
          * Skip to Frontend
          */
-        if (null === $Data) {
+        $Global = $this->getGlobal();
+        if (!isset($Global->POST['Button']['Submit'])) {
             return $Stage;
         }
 
-        $this->setSignerFromSignedInPerson($tblPrepare);
+        foreach ($Data as $prepareStudentId => $array) {
+            if (($tblPrepareStudent = $this->getPrepareStudentById($prepareStudentId))
+                && ($tblPrepareItem = $tblPrepareStudent->getTblPrepareCertificate())
+                && ($tblDivision = $tblPrepareItem->getServiceTblDivision())
+                && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                && is_array($array)
+            ) {
 
-        foreach ($Data as $personId => $array) {
-            if (($tblPerson = Person::useService()->getPersonById($personId)) && is_array($array)) {
-                if (isset($CertificateList[$personId])) {
+                $this->setSignerFromSignedInPerson($tblPrepareItem);
+
+                if (isset($CertificateList[$tblPerson->getId()])) {
 
                     /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
-                    $Certificate = $CertificateList[$personId];
+                    $Certificate = $CertificateList[$tblPerson->getId()];
                     $tblCertificate = $Certificate->getCertificateEntity();
 
                     /*
                      * Fehlzeiten
                      */
                     if ($tblCertificate && isset($array['ExcusedDays']) && isset($array['UnexcusedDays'])) {
-                        if (($tblPrepareStudent = $this->getPrepareStudentBy($tblPrepare, $tblPerson))) {
-                            (new Data($this->getBinding()))->updatePrepareStudent(
-                                $tblPrepareStudent,
-                                $tblPrepareStudent->getServiceTblCertificate() ? $tblPrepareStudent->getServiceTblCertificate() : $tblCertificate,
-                                $tblPrepareStudent->isApproved(),
-                                $tblPrepareStudent->isPrinted(),
-                                $array['ExcusedDays'],
-                                $array['UnexcusedDays']
-                            );
-                        } else {
-                            (new Data($this->getBinding()))->createPrepareStudent(
-                                $tblPrepare,
-                                $tblPerson,
-                                $tblCertificate,
-                                false,
-                                false,
-                                $array['ExcusedDays'],
-                                $array['UnexcusedDays']
-                            );
-                        }
+                        (new Data($this->getBinding()))->updatePrepareStudent(
+                            $tblPrepareStudent,
+                            $tblPrepareStudent->getServiceTblCertificate() ? $tblPrepareStudent->getServiceTblCertificate() : $tblCertificate,
+                            $tblPrepareStudent->isApproved(),
+                            $tblPrepareStudent->isPrinted(),
+                            $array['ExcusedDays'],
+                            $array['UnexcusedDays']
+                        );
                     }
 
                     /*
@@ -532,19 +542,19 @@ class Service extends AbstractService
                                     }
                                 }
 
-                                if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson,
+                                if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepareItem, $tblPerson,
                                     $field))
                                 ) {
                                     (new Data($this->getBinding()))->updatePrepareInformation($tblPrepareInformation,
                                         $field,
                                         $value);
                                 } else {
-                                    (new Data($this->getBinding()))->createPrepareInformation($tblPrepare, $tblPerson,
+                                    (new Data($this->getBinding()))->createPrepareInformation($tblPrepareItem, $tblPerson,
                                         $field,
                                         $value);
                                 }
                                 // auf Leer zurücksetzen
-                            } elseif (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson,
+                            } elseif (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepareItem, $tblPerson,
                                 $field))
                             ) {
                                 (new Data($this->getBinding()))->updatePrepareInformation($tblPrepareInformation,
@@ -560,6 +570,7 @@ class Service extends AbstractService
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Informationen wurden gespeichert.')
             . new Redirect('/Education/Certificate/Prepare/Prepare/Preview', Redirect::TIMEOUT_SUCCESS, array(
                 'PrepareId' => $tblPrepare->getId(),
+                'GroupId' => $tblGroup ? $tblGroup->getId() : null,
                 'Route' => $Route
             ));
     }
@@ -1422,6 +1433,7 @@ class Service extends AbstractService
     /**
      * @param IFormInterface|null $Stage
      * @param TblPrepareCertificate $tblPrepare
+     * @param TblGroup|null $tblGroup
      * @param TblGradeType $tblGradeType
      * @param TblGradeType $tblNextGradeType
      * @param string $Route
@@ -1432,6 +1444,7 @@ class Service extends AbstractService
     public function updatePrepareBehaviorGrades(
         IFormInterface $Stage = null,
         TblPrepareCertificate $tblPrepare,
+        TblGroup $tblGroup = null,
         TblGradeType $tblGradeType,
         TblGradeType $tblNextGradeType = null,
         $Route,
@@ -1457,8 +1470,6 @@ class Service extends AbstractService
             }
         }
 
-        $this->setSignerFromSignedInPerson($tblPrepare);
-
         if ($error) {
             $Stage->prependGridGroup(
                 new FormGroup(new FormRow(new FormColumn(new Danger(
@@ -1468,15 +1479,20 @@ class Service extends AbstractService
 
             return $Stage;
         } else {
-            if (($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'))
-                && ($tblDivision = $tblPrepare->getServiceTblDivision())
-            ) {
-                foreach ($Data as $personId => $value) {
-                    if (($tblPerson = Person::useService()->getPersonById($personId))) {
+            if (($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'))) {
+                foreach ($Data as $prepareStudentId => $value) {
+                    if (($tblPrepareStudent = $this->getPrepareStudentById($prepareStudentId))
+                        && ($tblPrepareItem = $tblPrepareStudent->getTblPrepareCertificate())
+                        && ($tblDivision = $tblPrepareItem->getServiceTblDivision())
+                        && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                    ) {
+
+                        $this->setSignerFromSignedInPerson($tblPrepareItem);
+
                         if (trim($value) && trim($value) !== '' && $value != -1) {
 
                             Prepare::useService()->updatePrepareGradeForBehavior(
-                                $tblPrepare, $tblPerson, $tblDivision, $tblTestType, $tblGradeType,
+                                $tblPrepareItem, $tblPerson, $tblDivision, $tblTestType, $tblGradeType,
                                 trim($value)
                             );
                         }
@@ -1488,11 +1504,13 @@ class Service extends AbstractService
                         Redirect::TIMEOUT_SUCCESS,
                         $tblNextGradeType ? array(
                             'PrepareId' => $tblPrepare->getId(),
+                            'GroupId' => $tblGroup ? $tblGroup : null,
                             'Route' => $Route,
                             'GradeTypeId' => $tblNextGradeType->getId()
                         )
                             : array(
                             'PrepareId' => $tblPrepare->getId(),
+                            'GroupId' => $tblGroup ? $tblGroup : null,
                             'Route' => $Route,
                             'IsNotGradeType' => true
                         )

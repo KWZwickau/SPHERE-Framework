@@ -226,6 +226,17 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $Id
+     *
+     * @return false|TblPrepareStudent
+     */
+    public function getPrepareStudentById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblPrepareStudent', $Id);
+    }
+
+    /**
      * @param bool|false $IsApproved
      * @param bool|false $IsPrinted
      *
