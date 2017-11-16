@@ -1098,16 +1098,16 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new TableData($contentTable, null, array(
-                                'Date' => 'Datum',
-                                'Division' => 'Klasse',
-                                'Subject' => 'Fach',
-                                'DisplayPeriod' => 'Zeitraum',
-                                'GradeType' => 'Zensuren-Typ',
+                                'Date'               => 'Datum',
+                                'Division'           => 'Klasse',
+                                'Subject'            => 'Fach',
+                                'DisplayPeriod'      => 'Zeitraum',
+                                'GradeType'          => 'Zensuren-Typ',
                                 'DisplayDescription' => 'Thema',
-                                'CorrectionDate' => 'Korrekturdatum',
-                                'ReturnDate' => 'R&uuml;ckgabedatum',
-                                'Grades' => 'Noten eingetragen',
-                                'Option' => ''
+                                'CorrectionDate'     => 'Korrekturdatum',
+                                'ReturnDate'         => 'Bekanntgabedatum',
+                                'Grades'             => 'Noten eingetragen',
+                                'Option'             => ''
                             ), array(
                                 'order' => array(
                                     array(0, 'desc')
