@@ -1784,6 +1784,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             '', '/Education/Certificate/Prepare/Certificate/Show', new EyeOpen(),
                                             array(
                                                 'PrepareId' => $tblPrepare->getId(),
+                                                'GroupId' => $tblGroup ? $tblGroup->getId() : null,
                                                 'PersonId' => $tblPerson->getId(),
                                                 'Route' => $Route
                                             ),
@@ -1807,6 +1808,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                 new CommodityItem(),
                                                 array(
                                                     'PrepareId' => $tblPrepare->getId(),
+                                                    'GroupId' => $tblGroup ? $tblGroup->getId() : null,
                                                     'PersonId' => $tblPerson->getId(),
                                                     'Route' => $Route
                                                 ),
@@ -1871,13 +1873,13 @@ class Frontend extends Extension implements IFrontendInterface
 
             $columnTable['Option'] = '';
 
-            // Todo Group
             $buttonSigner = new Standard(
                 'Unterzeichner auswählen',
                 '/Education/Certificate/Prepare/Signer',
                 new Select(),
                 array(
-                    'PrepareId' => $tblPrepare->getId(),
+                    'PrepareId' => $tblPrepareCertificate ? $tblPrepareCertificate->getId() : null,
+                    'GroupId'=> $tblGroup ? $tblGroup->getId() : null,
                     'Route' => $Route
                 ),
                 'Unterzeichner auswählen'
@@ -1906,24 +1908,26 @@ class Frontend extends Extension implements IFrontendInterface
                                 new Panel(
                                     'Zeugnisvorbereitung',
                                     array(
-                                        $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
+                                        $tblPrepareCertificate
+                                            ? $tblPrepareCertificate->getName() . ' '
+                                            . new Small(new Muted($tblPrepareCertificate->getDate())) : '',
                                         $description
                                     ),
                                     Panel::PANEL_TYPE_INFO
                                 ),
                             ), 6),
-                            $tblPrepare->getServiceTblGenerateCertificate()
-                            && $tblPrepare->getServiceTblGenerateCertificate()->isDivisionTeacherAvailable()
+                            $tblPrepareCertificate->getServiceTblGenerateCertificate()
+                            && $tblPrepareCertificate->getServiceTblGenerateCertificate()->isDivisionTeacherAvailable()
                                 ? new LayoutColumn(array(
                                 new Panel(
                                     'Unterzeichner',
                                     array(
-                                        $tblPrepare->getServiceTblPersonSigner()
+                                        $tblPrepareCertificate->getServiceTblPersonSigner()
                                             ? $tblPrepare->getServiceTblPersonSigner()->getFullName()
                                             : new Exclamation() . ' Kein Unterzeichner ausgewählt',
                                         $buttonSigner
                                     ),
-                                    $tblPrepare->getServiceTblPersonSigner()
+                                    $tblPrepareCertificate->getServiceTblPersonSigner()
                                         ? Panel::PANEL_TYPE_SUCCESS
                                         : Panel::PANEL_TYPE_WARNING
                                 ),
@@ -1931,7 +1935,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 : null,
                             // todo Group
                             new LayoutColumn(array(
-                                $tblPrepare->getServiceTblAppointedDateTask()
+                                $tblPrepareCertificate->getServiceTblAppointedDateTask()
                                     ? new Standard(
                                     'Fachnoten ansehen',
                                     '/Education/Certificate/Prepare/Prepare/Preview/SubjectGrades',
@@ -1947,7 +1951,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     '/Api/Education/Certificate/Generator/PreviewMultiPdf',
                                     new Download(),
                                     array(
-                                        'PrepareId' => $tblPrepare->getId(),
+                                        'PrepareId' => $tblPrepareCertificate->getId(),
                                         'Name' => 'Musterzeugnis'
                                     ),
                                     false
@@ -2350,6 +2354,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $PrepareId
+     * @param null $GroupId
      * @param null $PersonId
      * @param null $Route
      *
@@ -2357,6 +2362,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendShowCertificate(
         $PrepareId = null,
+        $GroupId = null,
         $PersonId = null,
         $Route = null
     ) {
@@ -2364,6 +2370,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard(
             'Zurück', '/Education/Certificate/Prepare/Prepare/Preview', new ChevronLeft(), array(
                 'PrepareId' => $PrepareId,
+                'GroupId' => $GroupId,
                 'Route' => $Route
             )
         ));
@@ -2373,6 +2380,7 @@ class Frontend extends Extension implements IFrontendInterface
             && ($tblPerson = Person::useService()->getPersonById($PersonId))
         ) {
 
+            $tblGroup = Group::useService()->getGroupById($GroupId);
             $ContentLayout = array();
 
             $tblCertificate = false;
@@ -2416,8 +2424,8 @@ class Frontend extends Extension implements IFrontendInterface
                             ), 4),
                             new LayoutColumn(array(
                                 new Panel(
-                                    'Klasse',
-                                    $tblDivision->getDisplayName(),
+                                    $tblGroup ? 'Gruppe' : 'Klasse',
+                                    $tblGroup ? $tblGroup->getName() : $tblDivision->getDisplayName(),
                                     Panel::PANEL_TYPE_INFO
                                 ),
                             ), 4),
@@ -2458,23 +2466,26 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $PrepareId
+     * @param null $GroupId
      * @param null $Route
      * @param null $Data
      *
      * @return Stage|string
      */
-    public function frontendSigner($PrepareId = null, $Route = null, $Data = null)
+    public function frontendSigner($PrepareId = null, $GroupId = null, $Route = null, $Data = null)
     {
 
         $Stage = new Stage('Unterzeichner', 'Auswählen');
         $Stage->addButton(new Standard(
             'Zurück', '/Education/Certificate/Prepare/Prepare/Preview', new ChevronLeft(), array(
                 'PrepareId' => $PrepareId,
+                'GroupId' => $GroupId,
                 'Route' => $Route
             )
         ));
 
         $tblPrepare = Prepare::useService()->getPrepareById($PrepareId);
+        $tblGroup = Group::useService()->getGroupById($GroupId);
         if ($tblPrepare && ($tblDivision = $tblPrepare->getServiceTblDivision())) {
 
             if ($Data === null) {
@@ -2483,7 +2494,26 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global->savePost();
             }
 
-            $tblPersonList = Division::useService()->getTeacherAllByDivision($tblDivision);
+            $personList = array();
+            if ($tblGroup) {
+                // Tudors
+                if (($tudors = $tblGroup->getTudors())) {
+                    foreach ($tudors as $tblPerson) {
+                        $personList[$tblPerson->getId()] = $tblPerson->getFullName();
+                    }
+                }
+            } else {
+                // DivisionTeacher
+                if (($tblPersonList = Division::useService()->getTeacherAllByDivision($tblDivision))) {
+                    foreach ($tblPersonList as $tblPerson) {
+                        $personList[$tblPerson->getId()] = $tblPerson->getFullName();
+                    }
+                }
+            }
+
+            if (($tblPersonSigner = $tblPrepare->getServiceTblPersonSigner()) && !isset($personList[$tblPersonSigner->getId()])) {
+                $personList[$tblPersonSigner->getId()] = $tblPersonSigner->getFullName();
+            }
 
             $form = new Form(
                 new FormGroup(
@@ -2492,7 +2522,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new SelectBox(
                                 'Data',
                                 'Unterzeichner (Klassenlehrer)',
-                                array('{{ FullName }}' => $tblPersonList)
+                                $personList
                             )
                         )
                     )
@@ -2514,16 +2544,16 @@ class Frontend extends Extension implements IFrontendInterface
                             ), 6),
                             new LayoutColumn(array(
                                 new Panel(
-                                    'Klasse',
-                                    $tblDivision->getDisplayName(),
+                                    $tblGroup ? 'Gruppe' : 'Klasse',
+                                    $tblGroup ? $tblGroup->getName() : $tblDivision->getDisplayName(),
                                     Panel::PANEL_TYPE_INFO
                                 ),
                             ), 6),
                             new LayoutColumn(array(
-                                $tblPersonList
+                                !empty($personList)
                                     ? new Well(Prepare::useService()->updatePrepareSetSigner($form,
-                                    $tblPrepare, $Data, $Route))
-                                    : new Warning('Für diese Klasse sind keine Klassenlehrer vorhanden.')
+                                    $tblPrepare, $tblGroup ? $tblGroup : null, $Data, $Route))
+                                    : new Warning('Für diese Klasse sind keine Klassenlehrer/Mentoren/Tudoren vorhanden.')
                             )),
                         ))
                     ))
@@ -2539,19 +2569,28 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $PrepareId
+     * @param null $GroupId
      * @param null $PersonId
      * @param null $Route
      * @param null $Data
      *
      * @return Stage|string
      */
-    public function frontendDroppedSubjects($PrepareId = null, $PersonId = null, $Route = null, $Data = null)
+    public function frontendDroppedSubjects($PrepareId = null, $GroupId = null, $PersonId = null, $Route = null, $Data = null)
     {
+
+        if ($GroupId) {
+            $tblGroup = Group::useService()->getGroupById($GroupId);
+        } else {
+            $tblGroup = false;
+        }
+
         $Stage = new Stage('Abgewählte Fächer', 'Verwalten');
         $Stage->addButton(new Standard(
             'Zurück', '/Education/Certificate/Prepare/Prepare/Preview', new ChevronLeft(), array(
                 'PrepareId' => $PrepareId,
-                'Route' => $Route
+                'GroupId' => $tblGroup ? $tblGroup->getId() : null,
+                'Route' => $Route,
             )
         ));
 
@@ -2576,7 +2615,11 @@ class Frontend extends Extension implements IFrontendInterface
                             'Grade' => $tblPrepareAdditionalGrade->getGrade(),
                             'Option' => (new Standard('', '/Education/Certificate/Prepare/DroppedSubjects/Destroy',
                                 new Remove(),
-                                array('Id' => $tblPrepareAdditionalGrade->getId(), 'Route' => $Route), 'Löschen'))
+                                array(
+                                    'Id' => $tblPrepareAdditionalGrade->getId(),
+                                    'Route' => $Route,
+                                    'GroupId' => $tblGroup ? $tblGroup->getId() : null
+                                ), 'Löschen'))
                         );
                     }
                 }
@@ -2595,8 +2638,10 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Zeugnisvorbereitung',
                                     array(
                                         $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
-                                        'Klasse ' . (($tblDivision = $tblPrepare->getServiceTblDivision())
-                                            ? $tblDivision->getDisplayName() : '')
+                                        $tblGroup
+                                            ? 'Gruppe ' . $tblGroup->getName()
+                                            : 'Klasse ' . (($tblDivision = $tblPrepare->getServiceTblDivision())
+                                                ? $tblDivision->getDisplayName() : '')
                                     ),
                                     Panel::PANEL_TYPE_INFO
                                 ),
@@ -2627,6 +2672,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             'Url' => '/Api/Education/Prepare/Reorder',
                                             'Data' => array(
                                                 'PrepareId' => $tblPrepare->getId(),
+                                                'GroupId' => $tblGroup ? $tblGroup->getId() : null,
                                                 'PersonId' => $tblPerson->getId()
                                             )
                                         ),
@@ -2643,6 +2689,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $form,
                                     $Data,
                                     $tblPrepare,
+                                    $tblGroup ? $tblGroup : null,
                                     $tblPerson,
                                     $Route
                                 ))
@@ -2714,6 +2761,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Id
+     * @param null $GroupId
      * @param bool|false $Confirm
      * @param null $Route
      *
@@ -2721,6 +2769,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendDestroyDroppedSubjects(
         $Id = null,
+        $GroupId = null,
         $Confirm = false,
         $Route = null
     ) {
@@ -2733,9 +2782,16 @@ class Frontend extends Extension implements IFrontendInterface
 
         $parameters = array(
             'PrepareId' => $tblPrepare ? $tblPrepare->getId() : 0,
+            'GroupId' => $GroupId,
             'PersonId' => $tblPerson ? $tblPerson->getId() : 0,
             'Route' => $Route
         );
+
+        if ($GroupId) {
+            $tblGroup = Group::useService()->getGroupById($GroupId);
+        } else {
+            $tblGroup = false;
+        }
 
         if ($tblPrepareAdditionalGrade) {
             $Stage->addButton(
@@ -2751,8 +2807,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Zeugnisvorbereitung',
                                 array(
                                     $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
-                                    'Klasse ' . (($tblDivision = $tblPrepare->getServiceTblDivision())
-                                        ? $tblDivision->getDisplayName() : '')
+                                    $tblGroup
+                                        ? 'Gruppe ' . $tblGroup->getName()
+                                        : 'Klasse ' . (($tblDivision = $tblPrepare->getServiceTblDivision())
+                                            ? $tblDivision->getDisplayName() : '')
                                 ),
                                 Panel::PANEL_TYPE_INFO
                             ),
@@ -2782,7 +2840,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     Panel::PANEL_TYPE_DANGER,
                                     new Standard(
                                         'Ja', '/Education/Certificate/Prepare/DroppedSubjects/Destroy', new Ok(),
-                                        array('Id' => $Id, 'Confirm' => true, 'Route' => $Route)
+                                        array('Id' => $Id, 'GroupId'=> $GroupId, 'Confirm' => true, 'Route' => $Route)
                                     )
                                     . new Standard(
                                         'Nein', '/Education/Certificate/Prepare/DroppedSubjects', new Disable(),

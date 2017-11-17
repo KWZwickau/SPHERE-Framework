@@ -281,6 +281,7 @@ class Service extends AbstractService
     /**
      * @param IFormInterface $Stage
      * @param TblPrepareCertificate $tblPrepare
+     * @param TblGroup|null $tblGroup
      * @param $Data
      * @param $Route
      *
@@ -289,6 +290,7 @@ class Service extends AbstractService
     public function updatePrepareSetSigner(
         IFormInterface $Stage,
         TblPrepareCertificate $tblPrepare,
+        TblGroup $tblGroup = null,
         $Data,
         $Route
     ) {
@@ -308,18 +310,33 @@ class Service extends AbstractService
         }
 
         if (!$Error) {
-            (new Data($this->getBinding()))->updatePrepare(
-                $tblPrepare,
-                $tblPrepare->getDate(),
-                $tblPrepare->getName(),
-                $tblPrepare->getServiceTblAppointedDateTask() ? $tblPrepare->getServiceTblAppointedDateTask() : null,
-                $tblPrepare->getServiceTblBehaviorTask() ? $tblPrepare->getServiceTblBehaviorTask() : null,
-                $tblPerson
-            );
+            $tblPrepareList = false;
+            $tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate();
+            if ($tblGroup) {
+                if (($tblGenerateCertificate)) {
+                    $tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate);
+                }
+            } else {
+                $tblPrepareList = array(0 => $tblPrepare);
+            }
+
+            if ($tblPrepareList) {
+                foreach ($tblPrepareList as $tblPrepareItem) {
+                    (new Data($this->getBinding()))->updatePrepare(
+                        $tblPrepareItem,
+                        $tblPrepareItem->getDate(),
+                        $tblPrepareItem->getName(),
+                        $tblPrepareItem->getServiceTblAppointedDateTask() ? $tblPrepareItem->getServiceTblAppointedDateTask() : null,
+                        $tblPrepareItem->getServiceTblBehaviorTask() ? $tblPrepareItem->getServiceTblBehaviorTask() : null,
+                        $tblPerson
+                    );
+                }
+            }
 
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Unterzeichner wurde ausgewählt.')
                 . new Redirect('/Education/Certificate/Prepare/Prepare/Preview', Redirect::TIMEOUT_SUCCESS, array(
                     'PrepareId' => $tblPrepare->getId(),
+                    'GroupId' => $tblGroup ? $tblGroup->getId() : null,
                     'Route' => $Route
                 ));
         }
@@ -1742,6 +1759,7 @@ class Service extends AbstractService
      * @param IFormInterface $Form
      * @param $Data
      * @param TblPrepareCertificate $tblPrepareCertificate
+     * @param TblGroup|null $tblGroup
      * @param TblPerson $tblPerson
      * @param $Route
      *
@@ -1751,6 +1769,7 @@ class Service extends AbstractService
         IFormInterface $Form,
         $Data,
         TblPrepareCertificate $tblPrepareCertificate,
+        TblGroup $tblGroup = null,
         TblPerson $tblPerson,
         $Route
     ) {
@@ -1803,6 +1822,7 @@ class Service extends AbstractService
                         . new Redirect('/Education/Certificate/Prepare/DroppedSubjects', Redirect::TIMEOUT_SUCCESS,
                             array(
                                 'PrepareId' => $tblPrepareCertificate->getId(),
+                                'GroupId' => $tblGroup ? $tblGroup->getId() : null,
                                 'PersonId' => $tblPerson->getId(),
                                 'Route' => $Route
                             ));
