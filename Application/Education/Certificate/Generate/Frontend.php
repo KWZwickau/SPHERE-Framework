@@ -400,7 +400,7 @@ class Frontend extends Extension
             $Global->savePost();
 
             $schoolTypeList = array();
-            if ($tblGenerateCertificate->getServiceTblYear()) {
+            if ($tblGenerateCertificate->getServiceTblYear() && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())) {
                 $tblDivisionAllByYear = Division::useService()->getDivisionByYear($tblGenerateCertificate->getServiceTblYear());
                 if ($tblDivisionAllByYear) {
                     foreach ($tblDivisionAllByYear as $tblDivision) {
@@ -408,9 +408,18 @@ class Frontend extends Extension
                         if (!$tblDivision->getTblLevel()->getIsChecked()) {
                             $type = $tblDivision->getTblLevel()->getServiceTblType();
                             // auch Klassen ohne Fächer anzeigen, z.B. für 1. Klasse
-//                        $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
                             if ($type) { // && $tblDivisionSubjectList) {
-                                $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
+                                if ($tblCertificateType->getIdentifier() == 'MID_TERM_COURSE') {
+                                    // nur Gymnasium Klasse 11 und 12
+                                    if ($type->getName() == 'Gymnasium'
+                                        && (($tblLevel = $tblDivision->getTblLevel()))
+                                        && ($tblLevel->getName() == '11' || $tblLevel->getName() == '12')
+                                    ) {
+                                        $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
+                                    }
+                                } else {
+                                    $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
+                                }
                             }
                         }
                     }

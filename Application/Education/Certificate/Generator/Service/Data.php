@@ -41,6 +41,7 @@ class Data extends AbstractData
         $tblCertificateTypeRecommendation = $this->createCertificateType('Bildungsempfehlung', 'RECOMMENDATION');
         $tblCertificateTypeLeave = $this->createCertificateType('Abgangszeugnis', 'LEAVE');
         $tblCertificateTypeDiploma = $this->createCertificateType('Abschlusszeugnis', 'DIPLOMA');
+        $tblCertificateTypeMidTermCourse = $this->createCertificateType('Kurshalbjahreszeugnis', 'MID_TERM_COURSE');
 
         $tblSchoolTypePrimary = Type::useService()->getTypeByName('Grundschule');
         $tblSchoolTypeSecondary = Type::useService()->getTypeByName('Mittelschule / Oberschule');
@@ -875,6 +876,48 @@ class Data extends AbstractData
                 $this->setCertificateSubject($tblCertificate, 'REV', 1, 10);
                 $this->setCertificateSubject($tblCertificate, 'SPO', 1, 11);
             }
+        }
+
+        // Kurshalbjahreszeugnis
+        $tblCertificate = $this->createCertificate('Gymnasium Kurshalbjahreszeugnis', '', 'GymKurshalbjahreszeugnis');
+        if ($tblCertificate) {
+            if ($tblSchoolTypeGym && $tblCertificateTypeMidTermCourse) {
+                $this->updateCertificate($tblCertificate, $tblCertificateTypeMidTermCourse, $tblSchoolTypeGym,
+                   null);
+            }
+            // Begrenzung des Bemerkungsfeld
+            $FieldName = 'Remark';
+            if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+                $this->createCertificateField($tblCertificate, $FieldName, 270);
+            }
+        }
+        if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+            $row = 1;
+            $this->setCertificateSubject($tblCertificate, 'DE', $row, 1);
+            $this->setCertificateSubject($tblCertificate, 'SOR', $row, 2);
+
+            $this->setCertificateSubject($tblCertificate, 'EN', $row, 3, false);
+            $this->setCertificateSubject($tblCertificate, 'EN2', $row, 4, false);
+            $this->setCertificateSubject($tblCertificate, 'FR', $row, 5, false);
+            $this->setCertificateSubject($tblCertificate, 'RU', $row, 6, false);
+            $this->setCertificateSubject($tblCertificate, 'LA', $row, 7, false);
+            $this->setCertificateSubject($tblCertificate, 'SPA', $row, 8, false);
+
+            $this->setCertificateSubject($tblCertificate, 'KU', $row, 9, false);
+            $this->setCertificateSubject($tblCertificate, 'MU', $row, 10, false);
+            $this->setCertificateSubject($tblCertificate, 'GE', $row, 11);
+            $this->setCertificateSubject($tblCertificate, 'GEO', $row, 12);
+            $this->setCertificateSubject($tblCertificate, 'GRW', $row, 13);
+
+            $row = 2;
+            $this->setCertificateSubject($tblCertificate, 'MA', $row, 1);
+            $this->setCertificateSubject($tblCertificate, 'BIO', $row, 2);
+            $this->setCertificateSubject($tblCertificate, 'CH', $row, 3);
+            $this->setCertificateSubject($tblCertificate, 'PH', $row, 4);
+            $this->setCertificateSubject($tblCertificate, 'REE', $row, 5, false);
+            $this->setCertificateSubject($tblCertificate, 'REK', $row, 6, false);
+            $this->setCertificateSubject($tblCertificate, 'ETH', $row, 7, false);
+            $this->setCertificateSubject($tblCertificate, 'SPO', $row, 8);
         }
 
         // Alt-Last löschen
@@ -2600,10 +2643,13 @@ class Data extends AbstractData
             if (!$tblSubject) {
                 $tblSubject = Subject::useService()->getSubjectByAcronym('BIO');
             }
-        } elseif ($SubjectAcronym == 'REV' || $SubjectAcronym == 'RELI') {
+        } elseif ($SubjectAcronym == 'REV' || $SubjectAcronym == 'RELI' || $SubjectAcronym == 'REE') {
             $tblSubject = Subject::useService()->getSubjectByAcronym('REV');
             if (!$tblSubject) {
                 $tblSubject = Subject::useService()->getSubjectByAcronym('RELI');
+            }
+            if (!$tblSubject) {
+                $tblSubject = Subject::useService()->getSubjectByAcronym('REE');
             }
         } elseif ($SubjectAcronym == 'IN' || $SubjectAcronym == 'INFO') {
             $tblSubject = Subject::useService()->getSubjectByAcronym('IN');
