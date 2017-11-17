@@ -4,7 +4,16 @@ namespace SPHERE\Application\Transfer\Indiware\Export;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -18,6 +27,7 @@ class Export implements IModuleInterface
 
     public static function registerModule()
     {
+
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Daten exportieren'))
         );
@@ -51,6 +61,25 @@ class Export implements IModuleInterface
         $Stage = new Stage('Indiware', 'Datentransfer');
 
         $Stage->setMessage('Daten exportieren');
+
+        $PanelAppointmentGradeExport[] = new PullClear('Stichtagsnoten exportieren: '.
+            new Center(new Standard('', __NAMESPACE__.'/AppointmentGrade/Prepare', new Upload()
+                , array(), 'Export')));
+
+        $Stage->setMessage('Exportvorbereitung / Daten exportieren');
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Indiware-Notenexport für Sekundarstufe 2:', $PanelAppointmentGradeExport
+                                , Panel::PANEL_TYPE_INFO)
+                            , 4),
+                    ))
+                )
+            )
+        );
 
         return $Stage;
     }

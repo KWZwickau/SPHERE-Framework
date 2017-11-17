@@ -15,6 +15,11 @@ use SPHERE\System\Database\Fitting\Element;
 class TblTestType extends Element
 {
 
+    const TEST = 'TEST';
+    const BEHAVIOR = 'BEHAVIOR';
+    const APPOINTED_DATE_TASK = 'APPOINTED_DATE_TASK';
+    const BEHAVIOR_TASK = 'BEHAVIOR_TASK';
+
     const ATTR_NAME = 'Name';
     const ATTR_IDENTIFIER = 'Identifier';
 
