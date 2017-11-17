@@ -42,16 +42,17 @@ class PhpExcel extends Worksheet
     }
 
     /**
-     * @param Cell  $Cell
-     * @param mixed $Value
+     * @param Cell   $Cell
+     * @param mixed  $Value
+     * @param string $TypeString
      *
      * @return $this
      */
-    public function setValue(Cell $Cell, $Value)
+    public function setValue(Cell $Cell, $Value, $TypeString = \PHPExcel_Cell_DataType::TYPE_STRING)
     {
 
         $this->Source->getActiveSheet()->setCellValueExplicitByColumnAndRow($Cell->getColumn(), $Cell->getRow(),
-            $Value);
+            $Value, $TypeString);
         return $this;
     }
 
