@@ -2338,6 +2338,15 @@ class Frontend extends FrontendScoreRule
                                                                         // Test anzeigen
                                                                        $isAddTest = true;
                                                                     }
+                                                                } elseif ($tblTest->isContinues() && $tblTest->getFinishDate()) {
+                                                                    // continues grades without date can be view if finish date is arrived
+                                                                    $testFinishDate = (new \DateTime($tblTest->getFinishDate()))->format("Y-m-d");
+                                                                    $now = (new \DateTime('now'))->format("Y-m-d");
+                                                                    if ($testFinishDate <= $now) {
+
+                                                                        // Test anzeigen
+                                                                        $isAddTest = true;
+                                                                    }
                                                                 } elseif ($tblTest->getServiceTblGradeType() && $tblTest->getReturnDate()) {
                                                                     $testReturnDate = (new \DateTime($tblTest->getReturnDate()))->format("Y-m-d");
                                                                     $now = (new \DateTime('now'))->format("Y-m-d");
