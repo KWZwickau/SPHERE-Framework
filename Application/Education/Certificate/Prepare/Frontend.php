@@ -1349,6 +1349,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Name' => 'Name',
                     'Course' => 'Bildungs&shy;gang',
                     'SubjectGrades' => 'Fachnoten',
+                    'CheckSubjects' => 'Prüfung Fächer/Zeugnis'
                 );
             } else {
                 $columnTable = array(
@@ -1358,6 +1359,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'ExcusedAbsence' => 'E-FZ', //'ent&shy;schuld&shy;igte FZ',
                     'UnexcusedAbsence' => 'U-FZ', // 'unent&shy;schuld&shy;igte FZ',
                     'SubjectGrades' => 'Fachnoten',
+                    'CheckSubjects' => 'Prüfung Fächer/Zeugnis',
                     'BehaviorGrades' => 'Kopfnoten',
                 );
             }
@@ -1389,6 +1391,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
                 $isCourseMainDiploma = Prepare::useService()->isCourseMainDiploma($tblPrepare);
+                $checkSubjectList = Prepare::useService()->checkCertificateSubjectsForStudents($tblPrepare);
                 if ($tblStudentList) {
                     foreach ($tblStudentList as $tblPerson) {
                         $isMuted = $isCourseMainDiploma;
@@ -1514,11 +1517,22 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation() . ' ' . $subjectGradesText)
                                 : new Success(new Enable() . ' ' . $subjectGradesText))
                             : '';
-                        $behaviorGradesDiplayText = ($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate())
+                        $behaviorGradesDisplayText = ($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate())
                             ? ($countBehaviorGrades < $countBehavior || !$tblPrepare->getServiceTblBehaviorTask()
                                 ? new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation() . ' ' . $behaviorGradesText)
                                 : new Success(new Enable() . ' ' . $behaviorGradesText))
                             : '';
+
+                        if (isset($checkSubjectList[$tblPerson->getId()])) {
+                            $checkSubjectsString = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Ban() . ' '
+                                . implode(', ', $checkSubjectList[$tblPerson->getId()])
+                                . (count($checkSubjectList[$tblPerson->getId()]) > 1 ? ' fehlen' : ' fehlt') . ' auf Zeugnisvorlage');
+                        } elseif($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate()) {
+                            $checkSubjectsString = new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .
+                                ' alles ok');
+                        } else {
+                            $checkSubjectsString = '';
+                        }
 
                         $studentTable[$tblPerson->getId()] = array(
                             'Number' => $isDiploma && $isMuted ? new Muted($number) : $number,
@@ -1527,7 +1541,8 @@ class Frontend extends Extension implements IFrontendInterface
                             'ExcusedAbsence' => $excusedDays . ' ',
                             'UnexcusedAbsence' => $unexcusedDays . ' ',
                             'SubjectGrades' => $isDiploma && $isMuted ? '' : $subjectGradesDisplayText,
-                            'BehaviorGrades' => $behaviorGradesDiplayText,
+                            'BehaviorGrades' => $behaviorGradesDisplayText,
+                            'CheckSubjects' => $checkSubjectsString,
                             'Option' =>
                                 $isDiploma && $isMuted ? '' : ($tblCertificate
                                     ? (new Standard(
