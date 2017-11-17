@@ -1764,8 +1764,9 @@ class Frontend extends FrontendScoreRule
                                     }
                                 }
 
-                                // Bewertungssystem nicht mehr bearbeitbar, nachdem Zensuren vergeben wurden
-                                if (Gradebook::useService()->existsGrades($tblDivision, $tblSubject)) {
+                                // Bewertungssystem nicht mehr bearbeitbar, nachdem Zensuren mit dem TestType "TEST" vergeben wurden
+                                $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
+                                if (Gradebook::useService()->existsGrades($tblDivision, $tblSubject, $tblTestType)) {
                                     $isDisabled = true;
                                 }
 
