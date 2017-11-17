@@ -1945,13 +1945,13 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Route' => $Route
                                     )
                                 ) : null,
-                                // todo Group
                                 new External(
                                     'Alle Zeugnisse als Muster herunterladen',
                                     '/Api/Education/Certificate/Generator/PreviewMultiPdf',
                                     new Download(),
                                     array(
                                         'PrepareId' => $tblPrepareCertificate->getId(),
+                                        'GroupId' => $tblGroup ? $tblGroup->getId() : null,
                                         'Name' => 'Musterzeugnis'
                                     ),
                                     false

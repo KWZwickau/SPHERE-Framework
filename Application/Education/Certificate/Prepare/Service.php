@@ -34,6 +34,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
@@ -1117,17 +1118,42 @@ class Service extends AbstractService
         return $Content;
     }
 
-    public function getCertificateMultiContent(TblPrepareCertificate $tblPrepare)
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblGroup|null $tblGroup
+     *
+     * @return array
+     */
+    public function getCertificateMultiContent(TblPrepareCertificate $tblPrepare, TblGroup $tblGroup = null)
     {
 
         $Content = array();
-        if ($tblPrepare
-            && ($tblDivision = $tblPrepare->getServiceTblDivision())
-            && ($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))
-        ) {
-            foreach ($tblStudentList as $tblPerson) {
-                if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))) {
-                    $Content = $this->createCertificateContent($tblPrepare, $tblPerson, $Content);
+
+        $tblPrepareList = false;
+
+        $tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate();
+        if ($tblGroup) {
+            if (($tblGenerateCertificate)) {
+                $tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate);
+            }
+        } else {
+            if (($tblDivision = $tblPrepare->getServiceTblDivision())) {
+                $tblPrepareList = array(0 => $tblPrepare);
+            }
+        }
+
+        if ($tblPrepareList) {
+            foreach ($tblPrepareList as $tblPrepareItem) {
+                if (($tblDivision = $tblPrepareItem->getServiceTblDivision())
+                    && ($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))
+                ) {
+                    foreach ($tblStudentList as $tblPerson) {
+                        if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                            if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareItem, $tblPerson))) {
+                                $Content = $this->createCertificateContent($tblPrepareItem, $tblPerson, $Content);
+                            }
+                        }
+                    }
                 }
             }
         }
