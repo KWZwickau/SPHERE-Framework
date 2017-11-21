@@ -361,15 +361,30 @@ class Frontend extends Extension implements IFrontendInterface
                 && $tblAccount->getServiceTblToken()->getId() == $tblToken->getId()
             ) {
                 // Credential correct, Token correct -> LOGIN
-                Account::useService()->createSession($tblAccount);
-                $View->setTitle( new Ok().' Anmelden' );
-                $View->setContent(
-                    $this->getIdentificationLayout(
-                        new Headline('Anmelden', 'Bitte warten...')
-                        . new Redirect('/', Redirect::TIMEOUT_SUCCESS)
-                    )
-                );
-                return $View;
+                try {
+                    if (Token::useService()->isTokenValid($CredentialKey)) {
+                        if (session_status() == PHP_SESSION_ACTIVE) {
+                            session_regenerate_id();
+                        }
+                        Account::useService()->createSession($tblAccount, session_id());
+                        $View->setTitle(new Ok() . ' Anmelden');
+                        $View->setContent(
+                            $this->getIdentificationLayout(
+                                new Headline('Anmelden', 'Bitte warten...')
+                                . new Redirect('/', Redirect::TIMEOUT_SUCCESS)
+                            )
+                        );
+                        return $View;
+                    } else {
+                        // Error Token invalid
+                        $CredentialKeyField->setError('');
+                        $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
+                    }
+                } catch (\Exception $Exception) {
+                    // Error Token API Error
+                    $CredentialKeyField->setError('');
+                    $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
+                }
             } else {
                 // Error Token not registered
                 $CredentialKeyField->setError('');
