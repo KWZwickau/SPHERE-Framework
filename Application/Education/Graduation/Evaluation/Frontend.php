@@ -1135,7 +1135,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     array('orderable' => false, 'targets' => 7),
                                     array('orderable' => false, 'targets' => 8),
                                     array('orderable' => false, 'targets' => 9),
-                                )
+                                ),
+                                'responsive' => false,
                             ))
                         ))
                     ))
