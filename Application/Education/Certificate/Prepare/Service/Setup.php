@@ -150,6 +150,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblPrepareStudent', 'UnexcusedDays')) {
             $Table->addColumn('UnexcusedDays', 'integer', array('notnull' => false));
         }
+        if (!$this->getConnection()->hasColumn('tblPrepareStudent', 'serviceTblPersonSigner')) {
+            $Table->addColumn('serviceTblPersonSigner', 'bigint', array('notnull' => false));
+        }
 
         $this->getConnection()->addForeignKey($Table, $tblPrepare, true);
         $this->createIndex($Table, array('serviceTblPerson' , 'tblPrepareCertificate'));

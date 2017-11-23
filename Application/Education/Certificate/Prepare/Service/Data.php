@@ -478,6 +478,7 @@ class Data extends AbstractData
      * @param bool|false $IsPrinted
      * @param null $ExcusedDays
      * @param null $UnexcusedDays
+     * @param TblPerson|null $tblPersonSigner
      *
      * @return bool
      */
@@ -487,7 +488,8 @@ class Data extends AbstractData
         $IsApproved = false,
         $IsPrinted = false,
         $ExcusedDays = null,
-        $UnexcusedDays = null
+        $UnexcusedDays = null,
+        TblPerson $tblPersonSigner = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -496,11 +498,12 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblPrepareStudent', $tblPrepareStudent->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $Entity->setServiceTblCertificate($tblCertificate ? $tblCertificate : null);
+            $Entity->setServiceTblCertificate($tblCertificate);
             $Entity->setApproved($IsApproved);
             $Entity->setPrinted($IsPrinted);
             $Entity->setExcusedDays($ExcusedDays);
             $Entity->setUnexcusedDays($UnexcusedDays);
+            $Entity->setServiceTblPersonSigner($tblPersonSigner);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

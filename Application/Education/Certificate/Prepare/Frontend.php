@@ -1568,6 +1568,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $countBehavior = 0;
         if (($tblPrepareCertificate = Prepare::useService()->getPrepareById($PrepareId))) {
+            $tblPersonSigner = $tblPrepareCertificate->getServiceTblPersonSigner();
             $tblGradeTypeList = array();
             if ($tblPrepareCertificate->getServiceTblBehaviorTask()) {
                 $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblPrepareCertificate->getServiceTblBehaviorTask(),
@@ -1583,6 +1584,8 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
             $countBehavior = count($tblGradeTypeList);
+        } else {
+            $tblPersonSigner = false;
         }
 
         $description = '';
@@ -1614,6 +1617,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $personSignerList = array();
         if ($tblPrepareList) {
             $studentTable = array();
             foreach ($tblPrepareList as $tblPrepare) {
@@ -1718,10 +1722,22 @@ class Frontend extends Extension implements IFrontendInterface
                             $excusedDays = null;
                             $unexcusedDays = null;
                             $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson);
+                            $signer = '';
                             if ($tblPrepareStudent) {
                                 $tblCertificate = $tblPrepareStudent->getServiceTblCertificate();
                                 $excusedDays = $tblPrepareStudent->getExcusedDays();
                                 $unexcusedDays = $tblPrepareStudent->getUnexcusedDays();
+                                // überschreiben für Gruppen
+                                if ($tblPrepareStudent->getServiceTblPersonSigner()) {
+//                                    $tblPersonSigner = $tblPrepareStudent->getServiceTblPersonSigner();
+                                    $personSignerList[$tblPrepareStudent->getServiceTblPersonSigner()->getId()]
+                                        = $tblPrepareStudent->getServiceTblPersonSigner()->getFullName();
+                                    $signer = $tblPrepareStudent->getServiceTblPersonSigner()->getFullName();
+                                } elseif ($tblPersonSigner && $tblPrepareStudent->getServiceTblCertificate()) {
+                                    $personSignerList[$tblPersonSigner->getId()]
+                                        = $tblPersonSigner->getFullName();
+                                    $signer = $tblPersonSigner->getFullName();
+                                }
                             } else {
                                 $tblCertificate = false;
                             }
@@ -1777,6 +1793,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'SubjectGrades' => $isDiploma && $isMuted ? '' : $subjectGradesDisplayText,
                                 'BehaviorGrades' => $behaviorGradesDisplayText,
                                 'CheckSubjects' => $checkSubjectsString,
+                                'Signer' => $signer,
                                 'Option' =>
                                     $isDiploma && $isMuted ? '' : ($tblCertificate
                                         ? (new Standard(
@@ -1870,8 +1887,6 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
-            $columnTable['Option'] = '';
-
             $buttonSigner = new Standard(
                 'Unterzeichner auswählen',
                 '/Education/Certificate/Prepare/Signer',
@@ -1883,6 +1898,23 @@ class Frontend extends Extension implements IFrontendInterface
                 ),
                 'Unterzeichner auswählen'
             );
+
+            if (!empty($personSignerList)) {
+                $hasPersonSigner = true;
+                if ($tblPrepareCertificate->getServiceTblGenerateCertificate()
+                    && $tblPrepareCertificate->getServiceTblGenerateCertificate()->isDivisionTeacherAvailable()
+                    && count($personSignerList) > 1
+                ) {
+                    $columnTable['Signer'] = 'Unterzeichner';
+                }
+                $personSignerDisplayData = $personSignerList;
+            } else {
+                $hasPersonSigner = false;
+                $personSignerDisplayData[] = new Exclamation() . ' Kein Unterzeichner ausgewählt';
+            }
+            $personSignerDisplayData[] = $buttonSigner;
+
+            $columnTable['Option'] = '';
 
             $columnDef = array(
                 array(
@@ -1920,13 +1952,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new LayoutColumn(array(
                                 new Panel(
                                     'Unterzeichner',
-                                    array(
-                                        $tblPrepareCertificate->getServiceTblPersonSigner()
-                                            ? $tblPrepareCertificate->getServiceTblPersonSigner()->getFullName()
-                                            : new Exclamation() . ' Kein Unterzeichner ausgewählt',
-                                        $buttonSigner
-                                    ),
-                                    $tblPrepareCertificate->getServiceTblPersonSigner()
+                                    $personSignerDisplayData,
+                                    !empty($hasPersonSigner)
                                         ? Panel::PANEL_TYPE_SUCCESS
                                         : Panel::PANEL_TYPE_WARNING
                                 ),
@@ -2534,7 +2561,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global->savePost();
             }
 
-            $personList = array();
+            $personList[0] = '-[Nicht ausgewählt]-';
             if ($tblGroup) {
                 // Tudors
                 if (($tudors = $tblGroup->getTudors())) {

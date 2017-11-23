@@ -323,14 +323,24 @@ class Service extends AbstractService
 
             if ($tblPrepareList) {
                 foreach ($tblPrepareList as $tblPrepareItem) {
-                    (new Data($this->getBinding()))->updatePrepare(
-                        $tblPrepareItem,
-                        $tblPrepareItem->getDate(),
-                        $tblPrepareItem->getName(),
-                        $tblPrepareItem->getServiceTblAppointedDateTask() ? $tblPrepareItem->getServiceTblAppointedDateTask() : null,
-                        $tblPrepareItem->getServiceTblBehaviorTask() ? $tblPrepareItem->getServiceTblBehaviorTask() : null,
-                        $tblPerson
-                    );
+                    if (($tblPrepareStudentList = $this->getPrepareStudentAllByPrepare($tblPrepareItem))) {
+                        foreach ($tblPrepareStudentList as $tblPrepareStudent) {
+                            if (!$tblGroup
+                                || (($tblPersonTemp = $tblPrepareStudent->getServiceTblPerson())
+                                    && Group::useService()->existsGroupPerson($tblGroup, $tblPersonTemp))
+                            ) {
+                                (new Data($this->getBinding()))->updatePrepareStudent(
+                                    $tblPrepareStudent,
+                                    $tblPrepareStudent->getServiceTblCertificate() ? $tblPrepareStudent->getServiceTblCertificate() : null,
+                                    $tblPrepareStudent->isApproved(),
+                                    $tblPrepareStudent->isPrinted(),
+                                    $tblPrepareStudent->getExcusedDays(),
+                                    $tblPrepareStudent->getUnexcusedDays(),
+                                    $tblPerson
+                                );
+                            }
+                        }
+                    }
                 }
             }
 
@@ -365,7 +375,8 @@ class Service extends AbstractService
                 $tblPrepareStudent->isApproved(),
                 $tblPrepareStudent->isPrinted(),
                 $tblPrepareStudent->getExcusedDays(),
-                $tblPrepareStudent->getUnexcusedDays()
+                $tblPrepareStudent->getUnexcusedDays(),
+                $tblPrepareStudent->getServiceTblPersonSigner() ? $tblPrepareStudent->getServiceTblPersonSigner() : null
             );
         } else {
             (new Data($this->getBinding()))->createPrepareStudent(
@@ -435,7 +446,8 @@ class Service extends AbstractService
                 $tblPrepareStudent->isApproved(),
                 true,
                 $tblPrepareStudent->getExcusedDays(),
-                $tblPrepareStudent->getUnexcusedDays()
+                $tblPrepareStudent->getUnexcusedDays(),
+                $tblPrepareStudent->getServiceTblPersonSigner() ? $tblPrepareStudent->getServiceTblPersonSigner() : null
             );
         } else {
             return false;
@@ -461,7 +473,8 @@ class Service extends AbstractService
                 false,
                 false,
                 $tblPrepareStudent->getExcusedDays(),
-                $tblPrepareStudent->getUnexcusedDays()
+                $tblPrepareStudent->getUnexcusedDays(),
+                $tblPrepareStudent->getServiceTblPersonSigner() ? $tblPrepareStudent->getServiceTblPersonSigner() : null
             );
         } else {
             return false;
@@ -504,7 +517,7 @@ class Service extends AbstractService
                 && is_array($array)
             ) {
 
-                $this->setSignerFromSignedInPerson($tblPrepareItem);
+                $this->setSignerFromSignedInPerson($tblPrepareStudent);
 
                 if (isset($CertificateList[$tblPerson->getId()])) {
 
@@ -522,7 +535,8 @@ class Service extends AbstractService
                             $tblPrepareStudent->isApproved(),
                             $tblPrepareStudent->isPrinted(),
                             $array['ExcusedDays'],
-                            $array['UnexcusedDays']
+                            $array['UnexcusedDays'],
+                            $tblPrepareStudent->getServiceTblPersonSigner() ? $tblPrepareStudent->getServiceTblPersonSigner() : null
                         );
                     }
 
@@ -730,8 +744,10 @@ class Service extends AbstractService
         if (($tblYear = $tblDivision->getServiceTblYear())) {
             $Content['P' . $personId]['Division']['Data']['Year'] = $tblYear->getName();
         }
-        if ($tblPrepare->getServiceTblPersonSigner()) {
-            $Content['P' . $personId]['Division']['Data']['Teacher'] = $tblPrepare->getServiceTblPersonSigner()->getFullName();
+        if (($tblPrepareStudent && ($tblPersonSigner = $tblPrepareStudent->getServiceTblPersonSigner()))
+            || ($tblPersonSigner = $tblPrepare->getServiceTblPersonSigner())
+        ) {
+            $Content['P' . $personId]['Division']['Data']['Teacher'] = $tblPersonSigner->getFullName();
         }
 
         // zusätzliche Informationen
@@ -784,7 +800,7 @@ class Service extends AbstractService
 
         // Klassenlehrer
         // Todo als Mandanteneinstellung umbauen
-        if (($tblPersonSigner = $tblPrepare->getServiceTblPersonSigner())) {
+        if ($tblPersonSigner) {
             $divisionTeacherDescription = 'Klassenlehrer';
 
             if (($tblConsumer = Consumer::useService()->getConsumerBySession())
@@ -1409,7 +1425,8 @@ class Service extends AbstractService
                 $tblPrepareStudent->isApproved(),
                 $tblPrepareStudent->isPrinted(),
                 $tblPrepareStudent->getExcusedDays(),
-                $tblPrepareStudent->getUnexcusedDays()
+                $tblPrepareStudent->getUnexcusedDays(),
+                $tblPrepareStudent->getServiceTblPersonSigner() ? $tblPrepareStudent->getServiceTblPersonSigner() : null
             );
 
             return $tblPrepareStudent;
@@ -1530,7 +1547,7 @@ class Service extends AbstractService
                         && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
                     ) {
 
-                        $this->setSignerFromSignedInPerson($tblPrepareItem);
+                        $this->setSignerFromSignedInPerson($tblPrepareStudent);
 
                         if (trim($value) && trim($value) !== '' && $value != -1) {
 
@@ -1567,15 +1584,15 @@ class Service extends AbstractService
     /**
      * Unterzeichner Klassenlehrer automatisch die angemeldete Person setzen
      *
-     * @param TblPrepareCertificate $tblPrepare
+     * @param TblPrepareStudent $tblPrepareStudent
      */
-    private function setSignerFromSignedInPerson(TblPrepareCertificate $tblPrepare)
+    private function setSignerFromSignedInPerson(TblPrepareStudent $tblPrepareStudent)
     {
 
-        // Unterzeichner Klassenlehrer automatisch die angemeldete Person setzen
-        if (!$tblPrepare->getServiceTblPersonSigner()
-            && $tblPrepare->getServiceTblGenerateCertificate()
-            && $tblPrepare->getServiceTblGenerateCertificate()->isDivisionTeacherAvailable()
+        if (!$tblPrepareStudent->getServiceTblPersonSigner()
+            && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
+            && ($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())
+            && $tblGenerateCertificate->isDivisionTeacherAvailable()
         ) {
             $tblPerson = false;
             $tblAccount = Account::useService()->getAccountBySession();
@@ -1585,13 +1602,15 @@ class Service extends AbstractService
                     $tblPerson = $tblPersonAllByAccount[0];
                 }
             }
+
             if ($tblPerson) {
-                (new Data($this->getBinding()))->updatePrepare(
-                    $tblPrepare,
-                    $tblPrepare->getDate(),
-                    $tblPrepare->getName(),
-                    $tblPrepare->getServiceTblAppointedDateTask() ? $tblPrepare->getServiceTblAppointedDateTask() : null,
-                    $tblPrepare->getServiceTblBehaviorTask() ? $tblPrepare->getServiceTblBehaviorTask() : null,
+                (new Data($this->getBinding()))->updatePrepareStudent(
+                    $tblPrepareStudent,
+                    $tblPrepareStudent->getServiceTblCertificate() ? $tblPrepareStudent->getServiceTblCertificate() : null,
+                    $tblPrepareStudent->isApproved(),
+                    $tblPrepareStudent->isPrinted(),
+                    $tblPrepareStudent->getExcusedDays(),
+                    $tblPrepareStudent->getUnexcusedDays(),
                     $tblPerson
                 );
             }
@@ -2167,7 +2186,7 @@ class Service extends AbstractService
                         && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
                         && is_array($personGrades)
                     ) {
-                        $this->setSignerFromSignedInPerson($tblPrepareItem);
+                        $this->setSignerFromSignedInPerson($tblPrepareStudent);
 
                         foreach ($personGrades as $identifier => $value) {
                             if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier($identifier))) {

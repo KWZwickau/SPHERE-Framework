@@ -68,6 +68,10 @@ class TblPrepareStudent extends Element
      */
     protected $UnexcusedDays;
 
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblPersonSigner;
 
     /**
      * @return false|TblPrepareCertificate
@@ -201,5 +205,27 @@ class TblPrepareStudent extends Element
     public function setUnexcusedDays($UnexcusedDays)
     {
         $this->UnexcusedDays = $UnexcusedDays;
+    }
+
+    /**
+     * @return bool|TblPerson
+     */
+    public function getServiceTblPersonSigner()
+    {
+
+        if (null === $this->serviceTblPersonSigner) {
+            return false;
+        } else {
+            return Person::useService()->getPersonById($this->serviceTblPersonSigner);
+        }
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     */
+    public function setServiceTblPersonSigner(TblPerson $tblPerson = null)
+    {
+
+        $this->serviceTblPersonSigner = ( null === $tblPerson ? null : $tblPerson->getId() );
     }
 }
