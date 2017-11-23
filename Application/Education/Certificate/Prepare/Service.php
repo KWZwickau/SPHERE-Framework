@@ -769,12 +769,14 @@ class Service extends AbstractService
         }
 
         // Klassenlehrer
+        $tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate();
         // Todo als Mandanteneinstellung umbauen
         if (($tblPersonSigner = $tblPrepare->getServiceTblPersonSigner())) {
             $divisionTeacherDescription = 'Klassenlehrer';
 
             if (($tblConsumer = Consumer::useService()->getConsumerBySession())
                 && $tblConsumer->getAcronym() == 'EVSR'
+                && $tblGenerateCertificate->isDivisionTeacherAvailable()
             ) {
                 $firstName = $tblPersonSigner->getFirstName();
                 if (strlen($firstName) > 1) {
@@ -784,17 +786,21 @@ class Service extends AbstractService
                     . $tblPersonSigner->getLastName();
             } elseif (($tblConsumer = Consumer::useService()->getConsumerBySession())
                 && $tblConsumer->getAcronym() == 'ESZC'
+                && $tblGenerateCertificate->isDivisionTeacherAvailable()
             ) {
                 $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getSalutation()
                     . " " . $tblPersonSigner->getLastName());
             } elseif (($tblConsumer = Consumer::useService()->getConsumerBySession())
                 && $tblConsumer->getAcronym() == 'EVSC'
+                && $tblGenerateCertificate->isDivisionTeacherAvailable()
             ) {
                 $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getFirstName()
                     . " " . $tblPersonSigner->getLastName());
                 $divisionTeacherDescription = 'Klassenleiter';
             } else {
-                $Content['P' . $personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
+                if ($tblGenerateCertificate->isDivisionTeacherAvailable()) {
+                    $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
+                }
             }
 
             if (($genderValue = $this->getGenderByPerson($tblPersonSigner))) {
@@ -811,10 +817,12 @@ class Service extends AbstractService
 
         // Schulleitung
         if (($tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate())) {
-            if ($tblGenerateCertificate->getHeadmasterName()) {
+            if ($tblGenerateCertificate->getHeadmasterName()
+                && $tblGenerateCertificate) {
                 $Content['P' . $personId]['Headmaster']['Name'] = $tblGenerateCertificate->getHeadmasterName();
             }
-            if (($tblCommonGender = $tblGenerateCertificate->getServiceTblCommonGenderHeadmaster())) {
+            if (($tblCommonGender = $tblGenerateCertificate->getServiceTblCommonGenderHeadmaster())
+                && $tblGenerateCertificate->isDivisionTeacherAvailable()) {
                 if ($tblCommonGender->getName() == 'Männlich') {
                     $Content['P' . $personId]['Headmaster']['Description'] = 'Schulleiter';
                 } elseif ($tblCommonGender->getName() == 'Weiblich') {
