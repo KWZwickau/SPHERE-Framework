@@ -2208,6 +2208,33 @@ class Data extends AbstractData
                     $this->setCertificateSubject($tblCertificate, 'CHOR', 2, 6);
                 }
             }
+            if ($tblConsumer->getAcronym() == 'CMS' || $tblConsumer->getAcronym() == 'DEMO') {
+                // declare active Consumer
+                $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('CMS');
+
+                $tblCertificate = $this->createCertificate('Grundschule Jahreseinschätzung', 'Klasse 1-2',
+                    'CMS\CmsGsJOneTwo',
+                    $tblConsumerCertificate);
+                if ($tblCertificate) {
+                    if ($tblSchoolTypePrimary) {
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary,
+                            null, true);
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                    }
+                    // Begrenzung des Bemerkungsfelds
+                    $FieldName = 'Remark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 2700);
+                    }
+//                    // Begrenzung des Bemerkungsfelds   ToDO SecondPage Remark
+//                    $FieldName = 'RemarkSecondPage';
+//                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+//                        $this->createCertificateField($tblCertificate, $FieldName, 3700);
+//                    }
+                }
+            }
         }
     }
 
