@@ -45,6 +45,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -904,20 +905,36 @@ class Frontend extends Extension implements IFrontendInterface
                 $grades = ($countGrades == $countStudents ? new Success($countGrades . ' von ' . $countStudents) :
                     new Warning($countGrades . ' von ' . $countStudents));
 
+                // standard
+                $stringDate = $tblTest->getDate();
+                $stringReturnDate = $tblTest->getReturnDate();
+
+//                // modify date if normal test where date is reached
+                if ($tblTest->getReturnDate()
+                    && new \DateTime($tblTest->getReturnDate()) <= new \DateTime()
+                    && $tblTest->getTblTestType()->getIdentifier() == 'TEST') {
+                    $stringReturnDate = new Success(new Bold($tblTest->getDate()));
+                }
+                // modify with continues tests
+                if ($tblTest->getFinishDate()) {
+                    $stringDate = $tblTest->getFinishDate();
+                    $stringReturnDate = $tblTest->getFinishDate();
+                }
+
                 $contentTable[] = array(
-                    'Date' => $tblTest->getDate(),
-                    'Division' => $tblTest->getServiceTblDivision()
+                    'Date'               => $stringDate,
+                    'Division'           => $tblTest->getServiceTblDivision()
                         ? $tblTest->getServiceTblDivision()->getDisplayName() : '',
-                    'Subject' => $tblTest->getServiceTblSubject() ? $tblTest->getServiceTblSubject()->getName() : '',
-                    'DisplayPeriod' => $tblTask
+                    'Subject'            => $tblTest->getServiceTblSubject() ? $tblTest->getServiceTblSubject()->getName() : '',
+                    'DisplayPeriod'      => $tblTask
                         ? $tblTask->getFromDate() . ' - ' . $tblTask->getToDate()
                         : ($tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod()->getDisplayName() : ''),
-                    'GradeType' => $gradeType,
+                    'GradeType'          => $gradeType,
                     'DisplayDescription' => $tblTask ? $tblTask->getName() : $tblTest->getDescription(),
-                    'CorrectionDate' => $tblTest->getCorrectionDate(),
-                    'ReturnDate' => $tblTest->getReturnDate(),
-                    'Grades' => $grades,
-                    'Option' => ($tblTest->getTblTestType()->getId() == Evaluation::useService()->getTestTypeByIdentifier('TEST')->getId()
+                    'CorrectionDate'     => $tblTest->getCorrectionDate(),
+                    'ReturnDate'         => $stringReturnDate,
+                    'Grades'             => new Bold($grades),
+                    'Option'             => ($tblTest->getTblTestType()->getId() == Evaluation::useService()->getTestTypeByIdentifier('TEST')->getId()
                             ? (new Standard('', $BasicRoute . '/Edit', new Edit(),
                                 array('Id' => $tblTest->getId()), 'Bearbeiten'))
                             . (new Standard('', $BasicRoute . '/Destroy', new Remove(),
@@ -1098,22 +1115,26 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new TableData($contentTable, null, array(
-                                'Date' => 'Datum',
-                                'Division' => 'Klasse',
-                                'Subject' => 'Fach',
-                                'DisplayPeriod' => 'Zeitraum',
-                                'GradeType' => 'Zensuren-Typ',
+                                'Date'               => 'Datum',
+                                'Division'           => 'Klasse',
+                                'Subject'            => 'Fach',
+                                'DisplayPeriod'      => 'Zeitraum',
+                                'GradeType'          => 'Zensuren-Typ',
                                 'DisplayDescription' => 'Thema',
-                                'CorrectionDate' => 'Korrekturdatum',
-                                'ReturnDate' => 'R&uuml;ckgabedatum',
-                                'Grades' => 'Noten eingetragen',
-                                'Option' => ''
+                                'CorrectionDate'     => 'Korrekturdatum',
+                                'ReturnDate'         => 'Bekanntgabedatum',
+                                'Grades'             => 'Noten eingetragen',
+                                'Option'             => ''
                             ), array(
                                 'order' => array(
                                     array(0, 'desc')
                                 ),
                                 'columnDefs' => array(
-                                    array('type' => 'de_date', 'targets' => 0)
+                                    array('type' => 'de_date', 'targets' => 0),
+                                    array('type' => 'de_date', 'targets' => 6),
+                                    array('orderable' => false, 'targets' => 7),
+                                    array('orderable' => false, 'targets' => 8),
+                                    array('orderable' => false, 'targets' => 9),
                                 )
                             ))
                         ))
@@ -1195,7 +1216,11 @@ class Frontend extends Extension implements IFrontendInterface
             )),
             new FormRow(array(
                 new FormColumn(
-                    new CheckBox('Test[IsContinues]', new Bold('fortlaufendes Datum (z.B. für Mündliche Noten)'), 1,
+                    new CheckBox('Test[IsContinues]', new Bold('fortlaufendes Datum '.
+                        new ToolTip(new InfoIcon(), "Bei Tests mit 'fortlaufendes Datum (z.B. für Mündliche Noten)' 
+                        erfolgt die Freigabe für die Notenübersicht (Eltern, Schüler) automatisch, sobald das Datum der 
+                        jeweiligen Note (Prio1) oder das optionale Enddatum (Prio2) erreicht ist.")
+                    ), 1,
                         array(
                             'Test[FinishDate]',
                             'Test[Date]',

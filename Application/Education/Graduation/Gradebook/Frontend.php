@@ -1764,8 +1764,9 @@ class Frontend extends FrontendScoreRule
                                     }
                                 }
 
-                                // Bewertungssystem nicht mehr bearbeitbar, nachdem Zensuren vergeben wurden
-                                if (Gradebook::useService()->existsGrades($tblDivision, $tblSubject)) {
+                                // Bewertungssystem nicht mehr bearbeitbar, nachdem Zensuren mit dem TestType "TEST" vergeben wurden
+                                $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
+                                if (Gradebook::useService()->existsGrades($tblDivision, $tblSubject, $tblTestType)) {
                                     $isDisabled = true;
                                 }
 
@@ -2336,6 +2337,15 @@ class Frontend extends FrontendScoreRule
 
                                                                         // Test anzeigen
                                                                        $isAddTest = true;
+                                                                    }
+                                                                } elseif ($tblTest->isContinues() && $tblTest->getFinishDate()) {
+                                                                    // continues grades without date can be view if finish date is arrived
+                                                                    $testFinishDate = (new \DateTime($tblTest->getFinishDate()))->format("Y-m-d");
+                                                                    $now = (new \DateTime('now'))->format("Y-m-d");
+                                                                    if ($testFinishDate <= $now) {
+
+                                                                        // Test anzeigen
+                                                                        $isAddTest = true;
                                                                     }
                                                                 } elseif ($tblTest->getServiceTblGradeType() && $tblTest->getReturnDate()) {
                                                                     $testReturnDate = (new \DateTime($tblTest->getReturnDate()))->format("Y-m-d");

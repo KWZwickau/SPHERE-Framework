@@ -1086,12 +1086,13 @@ class Service extends ServiceScoreRule
         // bei bereits vorhandenen Einträgen Berechnungsvorschrift zurücksetzten
         $tblScoreTypeDivisionSubjectList = $this->getScoreRuleDivisionSubjectAllByScoreType($tblScoreType);
         if ($tblScoreTypeDivisionSubjectList) {
+            $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
             foreach ($tblScoreTypeDivisionSubjectList as $tblScoreTypeDivisionSubject) {
                 $tblDivision = $tblScoreTypeDivisionSubject->getServiceTblDivision();
                 $tblSubject = $tblScoreTypeDivisionSubject->getServiceTblSubject();
                 if ($tblDivision && $tblSubject) {
                     if ($tblDivision->getServiceTblYear()->getId() == $tblYear->getId()
-                        && !Gradebook::useService()->existsGrades($tblDivision, $tblSubject)
+                        && !Gradebook::useService()->existsGrades($tblDivision, $tblSubject, $tblTestType)
                     ) {
                         if (!isset($Data[$tblDivision->getId()][-1])                // alle Fächer
                             && !isset($Data[$tblDivision->getId()][$tblSubject->getId()])
@@ -1152,14 +1153,15 @@ class Service extends ServiceScoreRule
 
     /**
      * @param TblDivision $tblDivision
-     * @param TblSubject $tblSubject
+     * @param TblSubject  $tblSubject
+     * @param TblTestType $tblTestType
      *
      * @return bool
      */
-    public function existsGrades(TblDivision $tblDivision, TblSubject $tblSubject)
+    public function existsGrades(TblDivision $tblDivision, TblSubject $tblSubject, TblTestType $tblTestType)
     {
 
-        return (new Data($this->getBinding()))->existsGrades($tblDivision, $tblSubject);
+        return (new Data($this->getBinding()))->existsGrades($tblDivision, $tblSubject, $tblTestType);
     }
 
     /**

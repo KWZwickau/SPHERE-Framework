@@ -73,6 +73,8 @@ class Data extends AbstractData
             $this->addCategorySubject($tblCategory, $tblSubject);
         }
 
+        $this->createSubject('SOR', 'Sorbisch');
+
         // Fremdsprache
         $tblCategory = $this->createCategory('Fremdsprachen', '', true, 'FOREIGNLANGUAGE');
         $this->addGroupCategory($tblGroupStandard, $tblCategory);
@@ -526,7 +528,7 @@ class Data extends AbstractData
             });
             $EntityList = array_filter($EntityList);
         }
-
+        /** @var TblSubject[] $EntityList */
         return empty($EntityList) ? false : $EntityList;
     }
 
@@ -555,6 +557,7 @@ class Data extends AbstractData
             });
             $EntityList = array_filter($EntityList);
         }
+        /** @var TblCategory[] $EntityList */
         return ( null === $EntityList ? false : $EntityList );
     }
 
@@ -589,6 +592,7 @@ class Data extends AbstractData
                 $V = $V->getTblGroup();
             });
         }
+        /** @var TblGroup[] $EntityList */
         return ( null === $EntityList ? false : $EntityList );
     }
 
@@ -727,5 +731,20 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCategory');
+    }
+
+    /**
+     * @param TblCategory $tblCategory
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function existsCategorySubject(TblCategory $tblCategory, TblSubject $tblSubject)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblCategorySubject', array(
+            TblCategorySubject::ATTR_TBL_CATEGORY => $tblCategory->getId(),
+            TblCategorySubject::ATTR_TBL_SUBJECT => $tblSubject->getId()
+        )) ? true : false;
     }
 }

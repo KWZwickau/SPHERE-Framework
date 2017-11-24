@@ -247,7 +247,7 @@ class GradebookOverview extends AbstractDocument
                                                     $maxGradesPerPeriodCount[$tblPeriod->getId()] = $maxCount;
                                                 }
                                             } else {
-                                                $data[$tblDivisionSubject->getServiceTblSubject()->getAcronym()] = false;
+                                                $maxGradesPerPeriodCount[$tblPeriod->getId()] = 0;
                                             }
                                         }
 

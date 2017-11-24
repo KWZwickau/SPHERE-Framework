@@ -735,14 +735,29 @@ class Service extends AbstractService
             }
         }
 
+        $tblYear = false;
+        if ($tblDivision && ($tblYear = $tblDivision->getServiceTblYear())) {
+            $Content['P' . $personId]['Division']['Data']['Year'] = $tblYear->getName();
+        }
         // Division
         if ($tblDivision && ($tblLevel = $tblDivision->getTblLevel())) {
             $Content['P' . $personId]['Division']['Id'] = $tblDivision->getId();
             $Content['P' . $personId]['Division']['Data']['Level']['Name'] = $tblLevel->getName();
             $Content['P' . $personId]['Division']['Data']['Name'] = $tblDivision->getName();
-        }
-        if (($tblYear = $tblDivision->getServiceTblYear())) {
-            $Content['P' . $personId]['Division']['Data']['Year'] = $tblYear->getName();
+
+            $course = $tblLevel->getName();
+            $midTerm = '/1';
+            if (($tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask())
+                && $tblYear
+                && ($tblPeriodList = $tblYear->getTblPeriodAll())
+                && ($tblPeriod = $tblAppointedDateTask->getServiceTblPeriod())
+                && ($tblFirstPeriod = current($tblPeriodList))
+                && $tblPeriod->getId() != $tblFirstPeriod->getId()
+            ) {
+                $midTerm = '/2';
+            }
+            $course .= $midTerm;
+            $Content['P' . $personId]['Division']['Data']['Course']['Name'] = $course;
         }
         if (($tblPrepareStudent && ($tblPersonSigner = $tblPrepareStudent->getServiceTblPersonSigner()))
             || ($tblPersonSigner = $tblPrepare->getServiceTblPersonSigner())
@@ -831,8 +846,10 @@ class Service extends AbstractService
                 $Content['P' . $personId]['DivisionTeacher']['Gender'] = $genderValue;
                 if ($genderValue == 'M') {
                     $Content['P' . $personId]['DivisionTeacher']['Description'] = $divisionTeacherDescription;
+                    $Content['P' . $personId]['Tudor']['Description'] = 'Tutor';
                 } elseif ($genderValue == 'F') {
                     $Content['P' . $personId]['DivisionTeacher']['Description'] = $divisionTeacherDescription . 'in';
+                    $Content['P' . $personId]['Tudor']['Description'] = 'Tutorin';
                 }
             }
         }

@@ -10,8 +10,8 @@ use MOC\V\Core\FileSystem\Component\Exception\Repository\TypeFileException;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
-use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson as TblToPersonPhone;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson;
+use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson as TblToPersonPhone;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -21,9 +21,12 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
+use SPHERE\Application\People\Meta\Club\Club;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -973,7 +976,7 @@ class Service extends Extension
 
             $All = 0;
 
-            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$All) {
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$All, $tblGroup) {
 
                 $All++;
                 $Item['FirstName'] = $tblPerson->getFirstSecondName();
@@ -984,6 +987,8 @@ class Service extends Extension
                 $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = $Item['District'] = '';
                 $Item['Address'] = '';
                 $Item['Birthday'] = '';
+                $Item['BirthdaySort'] = '';
+                $Item['BirthdayYearSort'] = '';
                 $Item['PhoneNumber'] = '';
                 $Item['MobilPhoneNumber'] = '';
                 $Item['Mail'] = '';
@@ -1002,6 +1007,17 @@ class Service extends Extension
                     $Item['RemarkFrontend'] = nl2br($tblCommon->getRemark());
                     if (($tblBirthdates = $tblCommon->getTblCommonBirthDates())) {
                         $Item['Birthday'] = $tblBirthdates->getBirthday();
+                        if ($Item['Birthday'] != '') {
+                            $Year = substr($Item['Birthday'], 6, 4);
+                            $Month = substr($Item['Birthday'], 3, 2);
+                            $Day = substr($Item['Birthday'], 0, 2);
+                            if (is_numeric($Month) && is_numeric($Day)) {
+                                $Item['BirthdaySort'] = $Month * 100 + $Day;
+                            }
+                            if (is_numeric($Year) && is_numeric($Month) && is_numeric($Day)) {
+                                $Item['BirthdayYearSort'] = ($Year * 10000) + ($Month * 100) + $Day;
+                            }
+                        }
                         $Item['BirthPlace'] = $tblBirthdates->getBirthplace();
                         if (($tblGender = $tblBirthdates->getTblCommonGender())) {
                             $Item['Gender'] = $tblGender->getName();
@@ -1069,6 +1085,145 @@ class Service extends Extension
                     $Item['Mail'] = $mailList[0];
                 }
 
+                if ($tblGroup->getMetaTable() == 'PROSPECT') {
+                    $Item['ReservationDate'] = '';
+                    $Item['InterviewDate'] = '';
+                    $Item['TrialDate'] = '';
+                    $Item['ReservationYear'] = '';
+                    $Item['ReservationDivision'] = '';
+                    $Item['SchoolTypeA'] = '';
+                    $Item['SchoolTypeB'] = '';
+                    if (($tblProspect = Prospect::useService()->getProspectByPerson($tblPerson))) {
+                        if (($tblProspectAppointment = $tblProspect->getTblProspectAppointment())) {
+                            $Item['ReservationDate'] = $tblProspectAppointment->getReservationDate();
+                            $Item['InterviewDate'] = $tblProspectAppointment->getInterviewDate();
+                            $Item['TrialDate'] = $tblProspectAppointment->getTrialDate();
+                        }
+                        if (($tblProspectReservation = $tblProspect->getTblProspectReservation())) {
+                            $Item['ReservationYear'] = $tblProspectReservation->getReservationYear();
+                            $Item['ReservationDivision'] = $tblProspectReservation->getReservationDivision();
+                            $Item['SchoolTypeA'] = ($tblProspectReservation->getServiceTblTypeOptionA() ? $tblProspectReservation->getServiceTblTypeOptionA()->getName() : '');
+                            $Item['SchoolTypeB'] = ($tblProspectReservation->getServiceTblTypeOptionB() ? $tblProspectReservation->getServiceTblTypeOptionB()->getName() : '');
+                        }
+                    }
+                }
+
+                if ($tblGroup->getMetaTable() == 'STUDENT') {
+                    $Item['Identifier'] = '';
+                    $Item['School'] = '';
+                    $Item['SchoolCourse'] = '';
+                    $Item['SchoolType'] = '';
+                    $Item['PictureSchoolWriting'] = '';
+                    $Item['PicturePublication'] = '';
+                    $Item['PictureWeb'] = '';
+                    $Item['PictureFacebook'] = '';
+                    $Item['PicturePrint'] = '';
+                    $Item['PictureFilm'] = '';
+                    $Item['PictureAdd'] = '';
+                    $Item['NameSchoolWriting'] = '';
+                    $Item['NamePublication'] = '';
+                    $Item['NameWeb'] = '';
+                    $Item['NameFacebook'] = '';
+                    $Item['NamePrint'] = '';
+                    $Item['NameFilm'] = '';
+                    $Item['NameAdd'] = '';
+                    if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
+                        $tblDivisionList = Student::useService()->getCurrentDivisionListByPerson($tblPerson);
+                        if ($tblDivisionList) {
+                            foreach ($tblDivisionList as $tblDivision) {
+                                if ($tblDivision->getTblLevel() && $tblDivision->getTblLevel()->getName() != '') {
+                                    $Item['SchoolType'] = $tblDivision->getTypeName();
+                                }
+                            }
+                        }
+                        $Item['Division'] = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson);
+                        $Item['Identifier'] = $tblStudent->getIdentifier();
+                        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
+                        if (($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                            $tblStudentTransferType))) {
+                            $Item['School'] = ($tblStudentTransfer->getServiceTblCompany()
+                                ? $tblStudentTransfer->getServiceTblCompany()->getDisplayName()
+                                : '');
+                            $Item['SchoolCourse'] = (Student::useService()->getCourseByStudent($tblStudent)
+                                ? Student::useService()->getCourseByStudent($tblStudent)->getName()
+                                : '');
+                        }
+                        $tblAgreementList = Student::useService()->getStudentAgreementAllByStudent($tblStudent);
+                        if ($tblAgreementList) {
+                            $MarkValue = 'Ja';
+                            foreach ($tblAgreementList as $tblAgreement) {
+                                $tblAgreementType = $tblAgreement->getTblStudentAgreementType();
+                                $CategoryString = $tblAgreementType->getTblStudentAgreementCategory()->getName();
+                                switch ($tblAgreementType->getName()) {
+                                    case 'in Schulschriften':
+                                        ($CategoryString == 'Foto des Schülers'
+                                            ? $Item['PictureSchoolWriting'] = $MarkValue
+                                            : $Item['NameSchoolWriting'] = $MarkValue);
+                                        break;
+                                    case 'in Veröffentlichungen':
+                                        ($CategoryString == 'Foto des Schülers'
+                                            ? $Item['PicturePublication'] = $MarkValue
+                                            : $Item['NamePublication'] = $MarkValue);
+                                        break;
+                                    case 'auf Internetpräsenz':
+                                        ($CategoryString == 'Foto des Schülers'
+                                            ? $Item['PictureWeb'] = $MarkValue
+                                            : $Item['NameWeb'] = $MarkValue);
+                                        break;
+                                    case 'auf Facebookseite':
+                                        ($CategoryString == 'Foto des Schülers'
+                                            ? $Item['PictureFacebook'] = $MarkValue
+                                            : $Item['NameFacebook'] = $MarkValue);
+                                        break;
+                                    case 'für Druckpresse':
+                                        ($CategoryString == 'Foto des Schülers'
+                                            ? $Item['PicturePrint'] = $MarkValue
+                                            : $Item['NamePrint'] = $MarkValue);
+                                        break;
+                                    case 'durch Ton/Video/Film':
+                                        ($CategoryString == 'Foto des Schülers'
+                                            ? $Item['PictureFilm'] = $MarkValue
+                                            : $Item['NameFilm'] = $MarkValue);
+                                        break;
+                                    case 'für Werbung in eigener Sache':
+                                        ($CategoryString == 'Foto des Schülers'
+                                            ? $Item['PictureAdd'] = $MarkValue
+                                            : $Item['NameAdd'] = $MarkValue);
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                }
+                if ($tblGroup->getMetaTable() == 'CUSTODY') {
+                    $Item['Occupation'] = '';
+                    $Item['Employment'] = '';
+                    $Item['Remark'] = '';
+                    if (($tblCustody = Custody::useService()->getCustodyByPerson($tblPerson))) {
+                        $Item['Occupation'] = $tblCustody->getOccupation();
+                        $Item['Employment'] = $tblCustody->getEmployment();
+                        $Item['Remark'] = $tblCustody->getRemark();
+                    }
+                }
+                if ($tblGroup->getMetaTable() == 'TEACHER') {
+                    $Item['TeacherAcronym'] = '';
+                    if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))) {
+                        $Item['TeacherAcronym'] = $tblTeacher->getAcronym();
+                    }
+                }
+                if ($tblGroup->getMetaTable() == 'CLUB') {
+                    $Item['ClubIdentifier'] = '';
+                    $Item['EntryDate'] = '';
+                    $Item['ExitDate'] = '';
+                    $Item['ClubRemark'] = '';
+                    if (($tblClub = Club::useService()->getClubByPerson($tblPerson))) {
+                        $Item['ClubIdentifier'] = $tblClub->getIdentifier();
+                        $Item['EntryDate'] = $tblClub->getEntryDate();
+                        $Item['ExitDate'] = $tblClub->getExitDate();
+                        $Item['ClubRemark'] = $tblClub->getRemark();
+                    }
+                }
+
                 array_push($TableContent, $Item);
             });
         }
@@ -1079,6 +1234,7 @@ class Service extends Extension
     /**
      * @param array $PersonList
      * @param array $tblPersonList
+     * @param int   $GroupId
      *
      * @return bool|FilePointer
      * @throws TypeFileException
@@ -1089,92 +1245,169 @@ class Service extends Extension
 
         $tblGroup = Group::useService()->getGroupById($GroupId);
         if (!empty($PersonList) && $tblGroup) {
+            $ColumnStandard = array(
+                'Number'                   => 'lfd. Nr.',
+                'Salutation'               => 'Anrede',
+                'FirstName'                => 'Vorname',
+                'LastName'                 => 'Nachname',
+                'StreetName'               => 'Straße',
+                'StreetNumber'             => 'Str.Nr',
+                'Code'                     => 'PLZ',
+                'City'                     => 'Ort',
+                'District'                 => 'Ortsteil',
+                'PhoneNumber'              => 'Telefon Festnetz',
+                'MobilPhoneNumber'         => 'Telefon Mobil',
+                'Mail'                     => 'E-mail',
+                'Birthday'                 => 'Geburtstag',
+                'BirthdaySort'             => 'Sortierung Geburtstag',
+                'BirthdayYearSort'         => 'Sortierung Geburtsdatum',
+                'BirthPlace'               => 'Geburtsort',
+                'Gender'                   => 'Geschlecht',
+                'Nationality'              => 'Staatsangehörigkeit',
+                'Religion'                 => 'Konfession',
+                'ParticipationWillingness' => 'Mitarbeitsbereitschaft',
+                'ParticipationActivities'  => 'Mitarbeitsbereitschaft - Tätigkeiten',
+                'RemarkExcel'              => 'Bemerkungen'
+            );
+            $ColumnCustom = array();
+
+            if ($tblGroup->getMetaTable() == 'PROSPECT') {
+                $ColumnCustom = array(
+                    'ReservationDate'     => 'Eingangsdatum',
+                    'InterviewDate'       => 'Aufnahmegespräch',
+                    'TrialDate'           => 'Schnuppertag',
+                    'ReservationYear'     => 'Voranmeldung Schuljahr',
+                    'ReservationDivision' => 'Voranmeldung Stufe',
+                    'SchoolTypeA'         => 'Voranmeldung Schulart A',
+                    'SchoolTypeB'         => 'Voranmeldung Schulart B'
+                );
+            }
+            if ($tblGroup->getMetaTable() == 'STUDENT') {
+                $ColumnCustom = array(
+                    'Identifier'           => 'Schülernummer',
+                    'School'               => 'Schule',
+                    'SchoolType'           => 'Schulart',
+                    'SchoolCourse'         => 'Bildungsgang',
+                    'Division'             => 'aktuelle Klasse',
+                    'PictureSchoolWriting' => 'Einverständnis Foto Schulschriften',
+                    'PicturePublication'   => 'Einverständnis Foto Veröffentlichungen',
+                    'PictureWeb'           => 'Einverständnis Foto Internetpräsenz',
+                    'PictureFacebook'      => 'Einverständnis Foto Facebookseite',
+                    'PicturePrint'         => 'Einverständnis Foto Druckpresse',
+                    'PictureFilm'          => 'Einverständnis Foto Ton/Video/Film',
+                    'PictureAdd'           => 'Einverständnis Foto Werbung in eigener Sache',
+                    'NameSchoolWriting'    => 'Einverständnis Name Schulschriften',
+                    'NamePublication'      => 'Einverständnis Name Veröffentlichungen',
+                    'NameWeb'              => 'Einverständnis Name Internetpräsenz',
+                    'NameFacebook'         => 'Einverständnis Name Facebookseite',
+                    'NamePrint'            => 'Einverständnis Name Druckpresse',
+                    'NameFilm'             => 'Einverständnis Name Ton/Video/Film',
+                    'NameAdd'              => 'Einverständnis Name Werbung in eigener Sache',
+                );
+            }
+            if ($tblGroup->getMetaTable() == 'CUSTODY') {
+                $ColumnCustom = array(
+                    'Occupation' => 'Beruf',
+                    'Employment' => 'Arbeitsstelle',
+                    'Remark'     => 'Bemerkung Sorgeberechtigter',
+                );
+            }
+            if ($tblGroup->getMetaTable() == 'TEACHER') {
+                $ColumnCustom = array(
+                    'TeacherAcronym' => 'Lehrerkürzel',
+                );
+            }
+            if ($tblGroup->getMetaTable() == 'CLUB') {
+                $ColumnCustom = array(
+                    'ClubIdentifier' => 'Mitgliedsnummer',
+                    'EntryDate'      => 'Eintrittsdatum',
+                    'ExitDate'       => 'Austrittsdatum',
+                    'ClubRemark'     => 'Bemerkung Vereinsmitglied',
+                );
+            }
+
 
             $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
 
             $Row = 0;
-
-            $export->setStyle($export->getCell(0, 0), $export->getCell(12, 0))
-                ->mergeCells()->setAlignmentCenter();
+//            $export->setStyle($export->getCell(0, 0), $export->getCell(12, 0))
+//                ->mergeCells()->setAlignmentCenter();
             $export->setValue($export->getCell(0, 0), 'Gruppenliste ' . $tblGroup->getName());
 
             if (!empty($tblGroup->getDescription())) {
                 $Row++;
-                $export->setStyle($export->getCell(0, 1), $export->getCell(12, 1))
-                    ->mergeCells()->setAlignmentCenter();
+//                $export->setStyle($export->getCell(0, 1), $export->getCell(12, 1))
+//                    ->mergeCells()->setAlignmentCenter();
                 $export->setValue($export->getCell(0, 1), $tblGroup->getDescription());
             }
 
             if (!empty($tblGroup->getRemark())) {
                 $Row++;
-                $export->setStyle($export->getCell(0, 2), $export->getCell(12, 2))
-                    ->mergeCells()->setAlignmentCenter();
+//                $export->setStyle($export->getCell(0, 2), $export->getCell(12, 2))
+//                    ->mergeCells()->setAlignmentCenter();
                 $export->setValue($export->getCell(0, 2), $tblGroup->getRemark());
             }
 
             $Row += 2;
 
-            $export->setValue($export->getCell("0", $Row), "lfd. Nr.");
-            $export->setValue($export->getCell("1", $Row), "Anrede");
-            $export->setValue($export->getCell("2", $Row), "Vorname");
-            $export->setValue($export->getCell("3", $Row), "Nachname");
-            $export->setValue($export->getCell("4", $Row), "Straße");
-            $export->setValue($export->getCell("5", $Row), "Nummer");
-            $export->setValue($export->getCell("6", $Row), "PLZ");
-            $export->setValue($export->getCell("7", $Row), "Stadt");
-            $export->setValue($export->getCell("8", $Row), "Ortsteil");
-            $export->setValue($export->getCell("9", $Row), "Telefon Festnetz");
-            $export->setValue($export->getCell("10", $Row), "Telefon Mobil");
-            $export->setValue($export->getCell("11", $Row), "E-mail");
-            $export->setValue($export->getCell("12", $Row), "Geburtstag");
-            $export->setValue($export->getCell("13", $Row), "Geburtsort");
-            $export->setValue($export->getCell("14", $Row), "Geschlecht");
-            $export->setValue($export->getCell("15", $Row), "Staatsangehörigkeit");
-            $export->setValue($export->getCell("16", $Row), "Konfession");
-            $export->setValue($export->getCell("17", $Row), "Mitarbeitsbereitschaft");
-            $export->setValue($export->getCell("18", $Row), "Mitarbeitsbereitschaft - Tätigkeiten");
-            $export->setValue($export->getCell("19", $Row), "Bemerkungen");
+            $Column = 0;
+            foreach ($ColumnStandard as $Key => $Value) {
+                $export->setValue($export->getCell($Column, $Row), $Value);
+                $Column++;
+            }
+            foreach ($ColumnCustom as $Key => $Value) {
+                $export->setValue($export->getCell($Column, $Row), $Value);
+//                $export->setStyle($export->getCell($Column, $Row))->setWrapText();
+                $Column++;
+            }
 
             $Row++;
 
             foreach ($PersonList as $PersonData) {
-
-                $export->setValue($export->getCell("0", $Row), $PersonData['Number']);
-                $export->setValue($export->getCell("1", $Row), $PersonData['Salutation']);
-                $export->setValue($export->getCell("2", $Row), $PersonData['FirstName']);
-                $export->setValue($export->getCell("3", $Row), $PersonData['LastName']);
-                $export->setValue($export->getCell("4", $Row), $PersonData['StreetName']);
-                $export->setValue($export->getCell("5", $Row), $PersonData['StreetNumber']);
-                $export->setValue($export->getCell("6", $Row), $PersonData['Code']);
-                $export->setValue($export->getCell("7", $Row), $PersonData['City']);
-                $export->setValue($export->getCell("8", $Row), $PersonData['District']);
-                $export->setValue($export->getCell("9", $Row), $PersonData['PhoneNumber']);
-                $export->setValue($export->getCell("10", $Row), $PersonData['MobilPhoneNumber']);
-                $export->setValue($export->getCell("11", $Row), $PersonData['Mail']);
-                $export->setValue($export->getCell("12", $Row), $PersonData['Birthday']);
-                $export->setValue($export->getCell("13", $Row), $PersonData['BirthPlace']);
-                $export->setValue($export->getCell("14", $Row), $PersonData['Gender']);
-                $export->setValue($export->getCell("15", $Row), $PersonData['Nationality']);
-                $export->setValue($export->getCell("16", $Row), $PersonData['Religion']);
-                $export->setValue($export->getCell("17", $Row), $PersonData['ParticipationWillingness']);
-                $export->setValue($export->getCell("18", $Row), $PersonData['ParticipationActivities']);
-                $export->setValue($export->getCell("19", $Row), $PersonData['RemarkExcel']);
-                $export->setStyle($export->getCell("19", $Row))->setWrapText();
+                $Column = 0;
+                foreach ($ColumnStandard as $Key => $Value) {
+                    if (isset($PersonData[$Key])) {
+                        // handle value as numeric
+                        if ($Key == 'Number'
+                            || $Key == 'BirthdaySort'
+                            || $Key == 'BirthdayYearSort') {
+                            // don't display if empty
+                            if ($PersonData[$Key] != '') {
+                                $export->setValue($export->getCell($Column, $Row), $PersonData[$Key],
+                                    \PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                            }
+                        } else {
+                            $export->setValue($export->getCell($Column, $Row), $PersonData[$Key]);
+                            if ($Key == 'RemarkExcel') {
+                                $export->setStyle($export->getCell($Column, $Row))->setWrapText()
+                                    ->setAlignmentMiddle();
+                            }
+                        }
+                    }
+                    $Column++;
+                }
+                if (!empty($ColumnCustom)) {
+                    foreach ($ColumnCustom as $Key => $Value) {
+                        if (isset($PersonData[$Key])) {
+                            $export->setValue($export->getCell($Column, $Row), $PersonData[$Key]);
+                        }
+                        $Column++;
+                    }
+                }
 
                 $Row++;
             }
 
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Weiblich:');
-            $export->setValue($export->getCell("1", $Row), Person::countFemaleGenderByPersonList($tblPersonList));
+            $export->setValue($export->getCell("0", $Row),
+                'Weiblich: '.Person::countFemaleGenderByPersonList($tblPersonList));
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Männlich:');
-            $export->setValue($export->getCell("1", $Row), Person::countMaleGenderByPersonList($tblPersonList));
+            $export->setValue($export->getCell("0", $Row),
+                'Männlich: '.Person::countMaleGenderByPersonList($tblPersonList));
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Gesamt:');
-            $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+            $export->setValue($export->getCell("0", $Row), 'Gesamt: '.count($tblPersonList));;
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 

@@ -573,16 +573,18 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
 
     /**
      * @param TblDivision $tblDivision
-     * @param TblSubject $tblSubject
+     * @param TblSubject  $tblSubject
+     * @param TblTestType $tblTestType
      *
      * @return bool
      */
-    public function existsGrades(TblDivision $tblDivision, TblSubject $tblSubject)
+    public function existsGrades(TblDivision $tblDivision, TblSubject $tblSubject, TblTestType $tblTestType)
     {
 
         if( $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade', array(
-            TblGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-            TblGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+            TblGrade::ATTR_SERVICE_TBL_DIVISION  => $tblDivision->getId(),
+            TblGrade::ATTR_SERVICE_TBL_SUBJECT   => $tblSubject->getId(),
+            TblGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId()
         ))) {
             return true;
         }
