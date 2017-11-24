@@ -1217,9 +1217,10 @@ class Frontend extends Extension implements IFrontendInterface
             new FormRow(array(
                 new FormColumn(
                     new CheckBox('Test[IsContinues]', new Bold('fortlaufendes Datum '.
-                        new ToolTip(new InfoIcon(), "Bei Tests mit 'fortlaufendes Datum (z.B. für Mündliche Noten)' 
+                        new ToolTip(new InfoIcon(), "Bei Tests mit 'fortlaufendes Datum' 
                         erfolgt die Freigabe für die Notenübersicht (Eltern, Schüler) automatisch, sobald das Datum der 
                         jeweiligen Note (Prio1) oder das optionale Enddatum (Prio2) erreicht ist.")
+                        .'(z.B. für Mündliche Noten)'
                     ), 1,
                         array(
                             'Test[FinishDate]',
