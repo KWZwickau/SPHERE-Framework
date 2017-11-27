@@ -1583,7 +1583,7 @@ class Frontend extends Extension implements IFrontendInterface
             $personSubjectList = array();
             $personAdvancedCourseList = array();
             $personBasicCourseList = array();
-            $personMissingCourseList = array();
+            $missingCourseList = array();
             if (($tblLevel = $tblDivision->getTblLevel())
                 && ($tblType = $tblLevel->getServiceTblType())
                 && $tblType->getName() == 'Gymnasium'
@@ -1776,7 +1776,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                                     = $tblSubjectTemp->getAcronym();
                                                             }
                                                         } else {
-                                                            $personMissingCourseList[$tblPerson->getId()][$tblSubjectTemp->getAcronym()]
+                                                            $missingCourseList[$tblSubjectTemp->getAcronym()]
                                                                 = $tblSubjectTemp->getAcronym();
                                                         }
                                                     } else {
@@ -1843,7 +1843,7 @@ class Frontend extends Extension implements IFrontendInterface
                         foreach ($tblDivisionStudentList as $tblTempPerson) {
                             if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())) {
                                 if ($IsSekTwo) {
-                                    $personMissingCourseList[$tblTempPerson->getId()][$tblSubject->getAcronym()]
+                                    $missingCourseList[$tblSubject->getAcronym()]
                                         = $tblSubject->getAcronym();
                                 } else {
                                     $personSubjectList[$tblTempPerson->getId()][$tblSubject->getAcronym()]
@@ -1866,15 +1866,11 @@ class Frontend extends Extension implements IFrontendInterface
                 'Course'   => 'Bildungsgang'
             );
 
-            $hasMissingCourses = false;
             if ($tblDivisionStudentList) {
                 if ($IsSekTwo) {
                     $columnList['AdvancedCourse1'] = '1. LK';
                     $columnList['AdvancedCourse2'] = '2. LK';
                     $columnList['BasicCourses'] = 'Grundkurse';
-                    if (!empty($personMissingCourseList)) {
-                        $columnList['MissingCourses'] = 'Fehlende Kurszuordnung';
-                    }
                     foreach ($tblDivisionStudentList as $tblPerson) {
                         if (isset($personAdvancedCourseList[$tblPerson->getId()])
                             && !empty($personAdvancedCourseList[$tblPerson->getId()])
@@ -1902,16 +1898,6 @@ class Frontend extends Extension implements IFrontendInterface
                         } else {
                             $tblPerson->BasicCourses = '';
                         }
-                        if (isset($personMissingCourseList[$tblPerson->getId()])
-                            && !empty($personMissingCourseList[$tblPerson->getId()])
-                        ) {
-                            $hasMissingCourses = true;
-                            ksort($personMissingCourseList[$tblPerson->getId()]);
-                            $tblPerson->MissingCourses = new WarningText(new Exclamation() . ' '
-                                . implode(', ', $personMissingCourseList[$tblPerson->getId()]));
-                        } else {
-                            $tblPerson->MissingCourses = '';
-                        }
                     }
                 } else {
                     foreach ($tblDivisionStudentList as $tblPerson) {
@@ -1927,6 +1913,8 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
             }
+
+            ksort($missingCourseList);
 
             $table = new TableData($tblDivisionSubjectList, null,
                 array(
@@ -1949,9 +1937,10 @@ class Frontend extends Extension implements IFrontendInterface
                     ),
                     new LayoutGroup(array(
                         new LayoutRow(
-                            new LayoutColumn($hasMissingCourses
+                            new LayoutColumn(!empty($missingCourseList)
                                 ? new Warning('Es wurden nicht für alle Fächer Kurse angelegt. Bitte legen Sie für die 
-                                entsprechenden Fächer Gruppen an.', new Exclamation())
+                                folgenden Fächer Gruppen an. <br>'
+                                    . implode(', ', $missingCourseList) , new Exclamation())
                                 : null
                             )
                         ),
