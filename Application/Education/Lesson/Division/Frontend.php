@@ -35,6 +35,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
@@ -1582,6 +1583,7 @@ class Frontend extends Extension implements IFrontendInterface
             $personSubjectList = array();
             $personAdvancedCourseList = array();
             $personBasicCourseList = array();
+            $personMissingCourseList = array();
             if (($tblLevel = $tblDivision->getTblLevel())
                 && ($tblType = $tblLevel->getServiceTblType())
                 && $tblType->getName() == 'Gymnasium'
@@ -1759,19 +1761,22 @@ class Frontend extends Extension implements IFrontendInterface
                                                     && ($tblSubjectTemp = $tblDivisionSubjectTemp->getServiceTblSubject())
                                                     && ($tblPerson = $tblSubjectStudent->getServiceTblPerson())
                                                 ) {
-                                                    if ($IsSekTwo
-                                                        && ($tblSubjectGroup = $tblDivisionSubjectTemp->getTblSubjectGroup())
-                                                    ) {
-                                                        if ($tblSubjectGroup->isAdvancedCourse()) {
-                                                            if ($tblSubjectTemp->getName() == 'Deutsch' || $tblSubjectTemp->getName() == 'Mathematik') {
-                                                                $personAdvancedCourseList[$tblPerson->getId()][0]
-                                                                    = $tblSubjectTemp->getAcronym();
+                                                    if ($IsSekTwo) {
+                                                        if (($tblSubjectGroup = $tblDivisionSubjectTemp->getTblSubjectGroup())) {
+                                                            if ($tblSubjectGroup->isAdvancedCourse()) {
+                                                                if ($tblSubjectTemp->getName() == 'Deutsch' || $tblSubjectTemp->getName() == 'Mathematik') {
+                                                                    $personAdvancedCourseList[$tblPerson->getId()][0]
+                                                                        = $tblSubjectTemp->getAcronym();
+                                                                } else {
+                                                                    $personAdvancedCourseList[$tblPerson->getId()][1]
+                                                                        = $tblSubjectTemp->getAcronym();
+                                                                }
                                                             } else {
-                                                                $personAdvancedCourseList[$tblPerson->getId()][1]
+                                                                $personBasicCourseList[$tblPerson->getId()][$tblSubjectTemp->getAcronym()]
                                                                     = $tblSubjectTemp->getAcronym();
                                                             }
                                                         } else {
-                                                            $personBasicCourseList[$tblPerson->getId()][$tblSubjectTemp->getAcronym()]
+                                                            $personMissingCourseList[$tblPerson->getId()][$tblSubjectTemp->getAcronym()]
                                                                 = $tblSubjectTemp->getAcronym();
                                                         }
                                                     } else {
@@ -1796,7 +1801,6 @@ class Frontend extends Extension implements IFrontendInterface
                                         ), 'Schüler zuordnen'));
                             }
                         }
-
 
                         ksort($GroupArray);
                         ksort($TeacherPanelArray);
@@ -1839,7 +1843,7 @@ class Frontend extends Extension implements IFrontendInterface
                         foreach ($tblDivisionStudentList as $tblTempPerson) {
                             if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())) {
                                 if ($IsSekTwo) {
-                                    $personBasicCourseList[$tblTempPerson->getId()][$tblSubject->getAcronym()]
+                                    $personMissingCourseList[$tblTempPerson->getId()][$tblSubject->getAcronym()]
                                         = $tblSubject->getAcronym();
                                 } else {
                                     $personSubjectList[$tblTempPerson->getId()][$tblSubject->getAcronym()]
@@ -1862,11 +1866,15 @@ class Frontend extends Extension implements IFrontendInterface
                 'Course'   => 'Bildungsgang'
             );
 
+            $hasMissingCourses = false;
             if ($tblDivisionStudentList) {
                 if ($IsSekTwo) {
                     $columnList['AdvancedCourse1'] = '1. LK';
                     $columnList['AdvancedCourse2'] = '2. LK';
                     $columnList['BasicCourses'] = 'Grundkurse';
+                    if (!empty($personMissingCourseList)) {
+                        $columnList['MissingCourses'] = 'Fehlende Kurszuordnung';
+                    }
                     foreach ($tblDivisionStudentList as $tblPerson) {
                         if (isset($personAdvancedCourseList[$tblPerson->getId()])
                             && !empty($personAdvancedCourseList[$tblPerson->getId()])
@@ -1893,6 +1901,16 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblPerson->BasicCourses = implode(', ', $personBasicCourseList[$tblPerson->getId()]);
                         } else {
                             $tblPerson->BasicCourses = '';
+                        }
+                        if (isset($personMissingCourseList[$tblPerson->getId()])
+                            && !empty($personMissingCourseList[$tblPerson->getId()])
+                        ) {
+                            $hasMissingCourses = true;
+                            ksort($personMissingCourseList[$tblPerson->getId()]);
+                            $tblPerson->MissingCourses = new WarningText(new Exclamation() . ' '
+                                . implode(', ', $personMissingCourseList[$tblPerson->getId()]));
+                        } else {
+                            $tblPerson->MissingCourses = '';
                         }
                     }
                 } else {
@@ -1929,7 +1947,14 @@ class Frontend extends Extension implements IFrontendInterface
                             ))
                         ))
                     ),
-                    new LayoutGroup(
+                    new LayoutGroup(array(
+                        new LayoutRow(
+                            new LayoutColumn($hasMissingCourses
+                                ? new Warning('Es wurden nicht für alle Fächer Kurse angelegt. Bitte legen Sie für die 
+                                entsprechenden Fächer Gruppen an.', new Exclamation())
+                                : null
+                            )
+                        ),
                         new LayoutRow(array(
                             new LayoutColumn(array(
                                 ( ( !empty( $tblDivisionStudentList ) ) ?
@@ -1940,8 +1965,8 @@ class Frontend extends Extension implements IFrontendInterface
                             ), 9),
                             new LayoutColumn($tblPersonList, 3),
                             new LayoutColumn($tblCustodyList, 3)
-                        )), new Title($TitleClass)
-                    )
+                        ))
+                    ), new Title($TitleClass))
                 )).
                 new Layout(
                     new LayoutGroup(
