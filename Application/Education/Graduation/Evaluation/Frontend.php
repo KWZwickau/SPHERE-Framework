@@ -913,7 +913,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblTest->getReturnDate()
                     && new \DateTime($tblTest->getReturnDate()) <= new \DateTime()
                     && $tblTest->getTblTestType()->getIdentifier() == 'TEST') {
-                    $stringReturnDate = new Success(new Bold($tblTest->getDate()));
+                    $stringReturnDate = new Success(new Bold($tblTest->getReturnDate()));
                 }
                 // modify with continues tests
                 if ($tblTest->getFinishDate()) {
