@@ -86,10 +86,10 @@ class CmsMsJ extends CmsStyle
                     self::getCMSGradeInfo()
                 )
                 ->addElement((new Element())
-                    ->styleMarginTop('15px')
+                    ->styleMarginTop('10px')
                 )
-                ->addSection(
-                    self::getCMSRemark($personId, '160px')
+                ->addSectionList(
+                    self::getCMSRemark($personId, '150px', true)
                 )
                 ->addSection(
                     self::getCMSMissing($personId)

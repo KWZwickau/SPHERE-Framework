@@ -373,14 +373,24 @@ abstract class CmsStyle extends Certificate
     }
 
     /**
-     * @param        $personId
+     * @param int    $personId
      * @param string $Hight
+     * @param bool   $IsHeadLine
      *
-     * @return Section
+     * @return Section[]
      */
-    public function getCMSRemark($personId, $Hight = '100px')
+    public function getCMSRemark($personId, $Hight = '100px', $IsHeadLine = false)
     {
-
+        $SectionList = array();
+        if ($IsHeadLine) {
+            $Section = new Section();
+            $Section->addElementColumn((new Element())
+                ->setContent('Bemerkungen:')
+                ->styleTextSize('10pt')
+                ->styleTextBold()
+            );
+            $SectionList[] = $Section;
+        }
         $Section = new Section();
         $Section->addElementColumn((new Element())
             ->setContent('{% if(Content.P'.$personId.'.Input.Remark is not empty) %}
@@ -391,7 +401,8 @@ abstract class CmsStyle extends Certificate
             ->styleAlignJustify()
             ->styleHeight($Hight)
         );
-        return $Section;
+        $SectionList[] = $Section;
+        return $SectionList;
     }
 
     public function getCMSMissing($personId)
