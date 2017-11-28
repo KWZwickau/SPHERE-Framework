@@ -2222,6 +2222,9 @@ class Data extends AbstractData
                         if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
                             $this->createCertificateLevel($tblCertificate, $tblLevel);
                         }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
                     }
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'Remark';
@@ -2233,6 +2236,101 @@ class Data extends AbstractData
 //                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
 //                        $this->createCertificateField($tblCertificate, $FieldName, 3700);
 //                    }
+                }
+                //
+                $tblCertificate = $this->createCertificate('Grundschule Jahreseinschätzung', 'Klasse 3-4',
+                    'CMS\CmsGsJ',
+                    $tblConsumerCertificate);
+                if ($tblCertificate) {
+                    if ($tblSchoolTypePrimary) {
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary,
+                            null, true);
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                    }
+                    // Begrenzung des Bemerkungsfelds
+                    $FieldName = 'Remark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 2100);
+                    }
+//                    // Begrenzung des Bemerkungsfelds   ToDO SecondPage Remark
+//                    $FieldName = 'RemarkSecondPage';
+//                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+//                        $this->createCertificateField($tblCertificate, $FieldName, 3700);
+//                    }
+                    // Kopfnoten
+                    if (!$this->getCertificateGradeAll($tblCertificate)) {
+                        $this->setCertificateGradeAllStandard($tblCertificate);
+                    }
+                    if (!$this->getCertificateSubjectAll($tblCertificate)) {
+                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+                        $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
+
+                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                    }
+                }
+                $tblCertificate = $this->createCertificate('Oberschule Jahreseinschätzung', 'Klasse 5-9',
+                    'CMS\CmsMsJ',
+                    $tblConsumerCertificate);
+                if ($tblCertificate) {
+                    if ($tblSchoolTypePrimary) {
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary,
+                            null, true);
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '5'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '6'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '7'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '8'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '9'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                    }
+                    // Begrenzung des Bemerkungsfelds
+                    $FieldName = 'Remark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 1100);
+                    }
+//                    // Begrenzung des Bemerkungsfelds   ToDO SecondPage Remark
+//                    $FieldName = 'RemarkSecondPage';
+//                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+//                        $this->createCertificateField($tblCertificate, $FieldName, 3700);
+//                    }
+                    // Kopfnoten
+                    if (!$this->getCertificateGradeAll($tblCertificate)) {
+                        $this->setCertificateGradeAllStandard($tblCertificate);
+                    }
+                    if (!$this->getCertificateSubjectAll($tblCertificate)) {
+                        $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 6);
+                        $this->setCertificateSubject($tblCertificate, 'WTH', 1, 7);
+                        $this->setCertificateSubject($tblCertificate, 'FR', 1, 8);
+
+                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                        $this->setCertificateSubject($tblCertificate, 'BI', 2, 2);
+                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 3);
+                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+                        $this->setCertificateSubject($tblCertificate, 'REV', 2, 5, false);
+                        $this->setCertificateSubject($tblCertificate, 'RKA', 2, 6, false);
+                        $this->setCertificateSubject($tblCertificate, 'ETH', 2, 7, false);
+                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 8);
+                        // ToDO Neigungskurse
+                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 10);
+                    }
                 }
             }
         }

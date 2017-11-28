@@ -155,7 +155,7 @@ abstract class CmsStyle extends Certificate
      *
      * @return Slice
      */
-    protected function getESRLHeadGrade($personId)
+    protected function getCMSHeadGrade($personId)
     {
 
         $GradeSlice = (new Slice());
@@ -235,12 +235,13 @@ abstract class CmsStyle extends Certificate
     }
 
     /**
-     * @param        $personId
+     * @param int    $personId
+     * @param bool   $IsHeadline
      * @param string $Height
      *
      * @return Slice
      */
-    public function getESRLSubjectLanes($personId, $Height = '175px')
+    public function getCMSSubjectLanes($personId, $IsHeadline = true, $Height = '235px')
     {
 
         $SubjectSlice = (new Slice());
@@ -285,16 +286,17 @@ abstract class CmsStyle extends Certificate
                 }
             }
             $SubjectStructure = $SubjectLayout;
-
             $count = 0;
 
-            $HeaderSection = (new Section());
-            $HeaderSection->addElementColumn((new Element())
-                ->setContent('Leistungen in den einzelnen Fächern:')
-                ->styleTextSize('10pt')
-                ->styleTextBold()
-            );
-            $SectionList[] = $HeaderSection;
+            if ($IsHeadline) {
+                $HeaderSection = (new Section());
+                $HeaderSection->addElementColumn((new Element())
+                    ->setContent('Leistungen in den einzelnen Fächern:')
+                    ->styleTextSize('10pt')
+                    ->styleTextBold()
+                );
+                $SectionList[] = $HeaderSection;
+            }
 
             foreach ($SubjectStructure as $SubjectList) {
                 $count++;
@@ -344,6 +346,30 @@ abstract class CmsStyle extends Certificate
         }
 
         return $SubjectSlice;
+    }
+
+    /**
+     * @param bool $IsHead
+     *
+     * @return Section
+     */
+    public function getCMSGradeInfo($IsHead = false)
+    {
+
+        $Section = new Section();
+        if ($IsHead) {
+            $Section->addElementColumn((new Element())
+                ->setContent('Noten: 1 = sehr gut, 2 = gut, 3 = befriedigend, 4 = ausreichend, 5 = mangelhalft')
+                ->styleTextSize('7pt')
+                ->stylePaddingTop('5px')
+            );
+        } else {
+            $Section->addElementColumn((new Element())
+                ->setContent('Noten: 1 = sehr gut, 2 = gut, 3 = befriedigend, 4 = ausreichend, 5 = mangelhalft, 6 = ungenügend')
+                ->styleTextSize('7pt')
+            );
+        }
+        return $Section;
     }
 
     /**
