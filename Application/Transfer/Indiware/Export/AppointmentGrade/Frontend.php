@@ -306,9 +306,10 @@ class Frontend extends Extension implements IFrontendInterface
                         ));
                     }
                     // course definition
-                    $Item['PersonTest'] = new WarningMessage(' Person nicht im Stichtagsnotenauftrag enthalten '.
+                    $Item['PersonTest'] = new WarningMessage('Keine Noten vorhanden. Weitere Hinweise siehe Info-Symbol '.
                         new ToolTip(new InfoIcon(),
-                            'Personen, die nicht im Stichtagsnotenauftrag vorhanden sind, können nicht exportiert werden'));
+                            'Die Personen, die keine Noten erhalten haben, können nicht exportiert werden. Mögliche Ursache:
+                             keine Stichtagsnote hinterlegt oder falscher Stichtagsnotenauftrag ausgewählt.'));
                     if (($tblPerson = $tblStudentSubjectOrder->getServiceTblPerson())
                         && $PersonFoundList
                         && isset($PersonFoundList[$tblPerson->getId()])) {
@@ -364,7 +365,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
-                    new LayoutRow(
+                    new LayoutRow(array(
                         new LayoutColumn(
                             $MissingDownloadInfo
                             .new Title(new ListingTable().' Personen aus Indiware')
@@ -386,8 +387,19 @@ class Frontend extends Extension implements IFrontendInterface
                                     ),
                                 )
                             )
+                        ),
+                        new LayoutColumn(
+                            ($tblTask && $ShowDownload
+                                ? new PrimaryLink('Herunterladen',
+                                    'SPHERE\Application\Api\Transfer\Indiware\AppointmentGrade\Download',
+                                    new Download(),
+                                    array(
+                                        'Period' => $SelectPeriod,
+                                        'TaskId' => $tblTask->getId()
+                                    ), false)
+                                : '')
                         )
-                    )
+                    ))
                 )
             )
         );
