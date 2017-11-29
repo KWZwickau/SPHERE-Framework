@@ -13,6 +13,7 @@ use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\ViewAbsence;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Setup;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -115,6 +116,38 @@ class Service extends AbstractService
             }
         }
 
+        $minDate = false;
+        $maxDate = false;
+        if (($tblYear = $tblDivision->getServiceTblYear())) {
+            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+            if ($tblPeriodList) {
+                foreach ($tblPeriodList as $tblPeriod) {
+                    if (!$minDate) {
+                        $minDate = new \DateTime($tblPeriod->getFromDate());
+                    } elseif ($minDate >= new \DateTime($tblPeriod->getFromDate())) {
+                        $minDate = new \DateTime($tblPeriod->getFromDate());
+                    }
+                    if (!$maxDate) {
+                        $maxDate = new \DateTime($tblPeriod->getToDate());
+                    } elseif ($maxDate <= new \DateTime($tblPeriod->getToDate())) {
+                        $maxDate = new \DateTime($tblPeriod->getToDate());
+                    }
+                }
+            }
+        }
+        if (!$Error && $minDate && $maxDate) {
+            if (new \DateTime($Data['FromDate']) < $minDate) {
+                $Stage->setError('Data[FromDate]',
+                    'Eingabe außerhalb des Schuljahres ('.$minDate->format('d.m.Y').' - '.$maxDate->format('d.m.Y').')');
+                $Error = true;
+            }
+            if (new \DateTime($Data['ToDate']) > $maxDate) {
+                $Stage->setError('Data[ToDate]',
+                    'Eingabe außerhalb des Schuljahres ('.$minDate->format('d.m.Y').' - '.$maxDate->format('d.m.Y').')');
+                $Error = true;
+            }
+        }
+
         // ToDo setError for RadioBox
         if (!isset($Data['Status'])) {
             $Stage->setError('Data[Status]', 'Bitte geben Sie einen Status an');
@@ -179,6 +212,40 @@ class Service extends AbstractService
         if (!isset($Data['Status'])) {
             $Stage->setError('Data[Status]', 'Bitte geben Sie einen Status an');
             $Error = true;
+        }
+
+        $minDate = false;
+        $maxDate = false;
+        if (($tblDivision = $tblAbsence->getServiceTblDivision())) {
+            if (($tblYear = $tblDivision->getServiceTblYear())) {
+                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+                if ($tblPeriodList) {
+                    foreach ($tblPeriodList as $tblPeriod) {
+                        if (!$minDate) {
+                            $minDate = new \DateTime($tblPeriod->getFromDate());
+                        } elseif ($minDate >= new \DateTime($tblPeriod->getFromDate())) {
+                            $minDate = new \DateTime($tblPeriod->getFromDate());
+                        }
+                        if (!$maxDate) {
+                            $maxDate = new \DateTime($tblPeriod->getToDate());
+                        } elseif ($maxDate <= new \DateTime($tblPeriod->getToDate())) {
+                            $maxDate = new \DateTime($tblPeriod->getToDate());
+                        }
+                    }
+                }
+            }
+            if (!$Error && $minDate && $maxDate) {
+                if (new \DateTime($Data['FromDate']) < $minDate) {
+                    $Stage->setError('Data[FromDate]',
+                        'Eingabe außerhalb des Schuljahres ('.$minDate->format('d.m.Y').' - '.$maxDate->format('d.m.Y').')');
+                    $Error = true;
+                }
+                if (new \DateTime($Data['ToDate']) > $maxDate) {
+                    $Stage->setError('Data[ToDate]',
+                        'Eingabe außerhalb des Schuljahres ('.$minDate->format('d.m.Y').' - '.$maxDate->format('d.m.Y').')');
+                    $Error = true;
+                }
+            }
         }
 
         if (!$Error) {

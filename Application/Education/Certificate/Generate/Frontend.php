@@ -400,7 +400,7 @@ class Frontend extends Extension
             $Global->savePost();
 
             $schoolTypeList = array();
-            if ($tblGenerateCertificate->getServiceTblYear()) {
+            if ($tblGenerateCertificate->getServiceTblYear() && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())) {
                 $tblDivisionAllByYear = Division::useService()->getDivisionByYear($tblGenerateCertificate->getServiceTblYear());
                 if ($tblDivisionAllByYear) {
                     foreach ($tblDivisionAllByYear as $tblDivision) {
@@ -408,9 +408,18 @@ class Frontend extends Extension
                         if (!$tblDivision->getTblLevel()->getIsChecked()) {
                             $type = $tblDivision->getTblLevel()->getServiceTblType();
                             // auch Klassen ohne Fächer anzeigen, z.B. für 1. Klasse
-//                        $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
                             if ($type) { // && $tblDivisionSubjectList) {
-                                $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
+                                if ($tblCertificateType->getIdentifier() == 'MID_TERM_COURSE') {
+                                    // nur Gymnasium Klasse 11 und 12
+                                    if ($type->getName() == 'Gymnasium'
+                                        && (($tblLevel = $tblDivision->getTblLevel()))
+                                        && ($tblLevel->getName() == '11' || $tblLevel->getName() == '12')
+                                    ) {
+                                        $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
+                                    }
+                                } else {
+                                    $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
+                                }
                             }
                         }
                     }
@@ -579,6 +588,28 @@ class Frontend extends Extension
                             }
                         }
 
+                        // check missing subjects on certificates
+                        $missingSubjects = array();
+                        if (($checkSubjectList = Prepare::useService()->checkCertificateSubjectsForStudents($tblPrepare))) {
+                            foreach ($checkSubjectList as $subjects) {
+                                if (is_array($subjects)) {
+                                    foreach ($subjects as $acronym) {
+                                        $missingSubjects[$acronym] = $acronym;
+                                    }
+                                }
+                            }
+                            ksort($missingSubjects);
+                        }
+                        if (!empty($missingSubjects)) {
+                            $missingSubjectsString = new Warning(new Ban() .  ' ' . implode(', ',
+                                $missingSubjects) . (count($missingSubjects) > 1 ? ' fehlen' : ' fehlt')
+                                . ' auf Zeugnisvorlage(n)');
+                        } else {
+                            $missingSubjectsString = new Success(
+                                new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Alle Fächer sind zugeordnet.'
+                            );
+                        }
+
                         $tableData[] = array(
                             'SchoolType' => $tblType->getName(),
                             'Division' => $tblDivision->getDisplayName(),
@@ -589,6 +620,7 @@ class Frontend extends Extension
                                 : new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
                                     . ' ' . $countTemplates . ' von ' . $countStudents . ' Zeugnisvorlagen zugeordnet.')),
                             'Templates' => $text,
+                            'CheckSubjects' => $missingSubjectsString,
                             'Option' =>
                                 new Standard('', '/Education/Certificate/Generate/Division/SelectTemplate',
                                     new Edit(),
@@ -630,6 +662,7 @@ class Frontend extends Extension
                                     'School' => 'Aktuelle Schulen',
                                     'Status' => 'Zeugnisvorlagen Zuordnung',
                                     'Templates' => 'Zeugnisvorlagen',
+                                    'CheckSubjects' => 'Prüfung Fächer/Zeugnis',
                                     'Option' => ''
                                 ),
                                     array(
@@ -687,6 +720,7 @@ class Frontend extends Extension
             }
 
             $tableData = array();
+            $checkSubjectList = Prepare::useService()->checkCertificateSubjectsForStudents($tblPrepare);
             if (($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))) {
                 $count = 0;
                 $Global = $this->getGlobal();
@@ -709,6 +743,18 @@ class Frontend extends Extension
                         }
                     }
 
+                    if (isset($checkSubjectList[$tblPerson->getId()])) {
+                        $checkSubjectsString = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Ban() . ' '
+                            . implode(', ', $checkSubjectList[$tblPerson->getId()])
+                            . (count($checkSubjectList[$tblPerson->getId()]) > 1 ? ' fehlen' : ' fehlt') . ' auf Zeugnisvorlage');
+                    } elseif(($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+                        && $tblPrepareStudent->getServiceTblCertificate()) {
+                        $checkSubjectsString = new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .
+                            ' alles ok');
+                    } else {
+                        $checkSubjectsString = '';
+                    }
+
                     $courseName = $tblCourse ? $tblCourse->getName() : '';
 
                     $count++;
@@ -718,7 +764,8 @@ class Frontend extends Extension
                         'Course' => $isMuted ? new Muted($courseName) : $courseName,
                         'School' => $isMuted ? '' : ($tblCompany ? $tblCompany->getName() : new Warning(
                             new Exclamation() . ' Keine aktuelle Schule in der Schülerakte gepflegt'
-                        ))
+                        )),
+                        'CheckSubjects' => $checkSubjectsString,
                     );
 
                     if ($isMuted) {
@@ -797,7 +844,8 @@ class Frontend extends Extension
                                 'Student' => 'Schüler',
                                 'Course' => 'Bildungsgang',
                                 'School' => 'Aktuelle Schule',
-                                'Template' => 'Zeugnisvorlage'
+                                'Template' => 'Zeugnisvorlage',
+                                'CheckSubjects' => 'Prüfung Fächer/Zeugnis'
                             ), null
                             )
                         )
@@ -916,7 +964,7 @@ class Frontend extends Extension
 
     /**
      * @param TblYear|null $tblYear
-     *
+     * @param boolean $IsLocked
      * @return Form
      */
     private function formEditGenerate(TblYear $tblYear = null, $IsLocked)

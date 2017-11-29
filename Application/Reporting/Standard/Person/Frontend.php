@@ -8,6 +8,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Search\Group\Group;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -623,15 +624,27 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Auswertung', 'Personengruppenlisten');
         $tblGroupAll = Group::useService()->getGroupAll();
         $PersonList = array();
-
+        $TableContent = array();
         if ($GroupId === null) {
             if ($tblGroupAll) {
-                foreach ($tblGroupAll as &$tblGroup) {
-                    $tblGroup->Count = Group::useService()->countMemberByGroup($tblGroup);
-                    $tblGroup->Option = new Standard(new Select(), '/Reporting/Standard/Person/GroupList', null, array(
+                array_walk($tblGroupAll, function (TblGroup $tblGroup) use (&$TableContent) {
+
+                    $MoreColumnInfo = '';
+                    if ($tblGroup->getMetaTable() == 'PROSPECT'
+                        || $tblGroup->getMetaTable() == 'STUDENT'
+                        || $tblGroup->getMetaTable() == 'CUSTODY'
+                        || $tblGroup->getMetaTable() == 'TEACHER'
+                        || $tblGroup->getMetaTable() == 'CLUB') {
+                        $MoreColumnInfo = ' '.new ToolTip(new Info(), 'Enthält gruppenspezifische Spalten');
+                    }
+
+                    $Item['Name'] = $tblGroup->getName().$MoreColumnInfo;
+                    $Item['Count'] = Group::useService()->countMemberByGroup($tblGroup);
+                    $Item['Option'] = new Standard(new Select(), '/Reporting/Standard/Person/GroupList', null, array(
                         'GroupId' => $tblGroup->getId()
                     ));
-                }
+                    array_push($TableContent, $Item);
+                });
             }
 
             $Stage->setContent(
@@ -640,7 +653,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(
                             new LayoutColumn(
                                 new TableData(
-                                    $tblGroupAll, null, array('Name' => 'Name', 'Count' => 'Personen', 'Option' => '')
+                                    $TableContent, null, array('Name' => 'Name', 'Count' => 'Personen', 'Option' => '')
                                 )
                             )
                         )
@@ -648,12 +661,109 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             );
         } else {
-
             $tblGroup = Group::useService()->getGroupById($GroupId);
             $Stage->addButton(
                 new Standard('Zurück', '/Reporting/Standard/Person/GroupList', new ChevronLeft())
             );
+            // TableData standard sort definition
+            $ColumnDef = array(
+                array('type' => 'german-string', 'targets' => 2),
+                array('type' => 'german-string', 'targets' => 3),
+                array('type' => 'de_date', 'targets' => 8)
+            );
+            $ColumnDefAdd = array();
+            $ColumnHead = array();
             if ($tblGroup) {
+
+                $ColumnStart = array(
+                    'Number'                   => 'lfd. Nr.',
+                    'Salutation'               => 'Anrede',
+                    'FirstName'                => 'Vorname',
+                    'LastName'                 => 'Nachname',
+                    'Address'                  => 'Anschrift',
+                    'PhoneNumber'              => 'Telefon Festnetz',
+                    'MobilPhoneNumber'         => 'Telefon Mobil',
+                    'Mail'                     => 'E-mail',
+                    'Birthday'                 => 'Geburtstag',
+                    'BirthPlace'               => 'Geburtsort',
+                    'Gender'                   => 'Geschlecht',
+                    'Nationality'              => 'Staatsangehörigkeit',
+                    'Religion'                 => 'Konfession',
+                    'ParticipationWillingness' => 'Mitarbeitsbereitschaft',
+                    'ParticipationActivities'  => 'Mitarbeitsbereitschaft - Tätigkeiten',
+                    'RemarkFrontend'           => 'Bemerkungen'
+                );
+                $ColumnCustom = array();
+                if ($tblGroup->getMetaTable() == 'PROSPECT') {
+                    $ColumnCustom = array(
+                        'ReservationDate'     => 'Eingangsdatum',
+                        'InterviewDate'       => 'Aufnahmegespräch',
+                        'TrialDate'           => 'Schnuppertag',
+                        'ReservationYear'     => 'Voranmeldung Schuljahr',
+                        'ReservationDivision' => 'Voranmeldung Stufe',
+                        'SchoolTypeA'         => 'Voranmeldung Schulart A',
+                        'SchoolTypeB'         => 'Voranmeldung Schulart B'
+                    );
+                    $ColumnDefAdd = array(
+                        array('type' => 'de_date', 'targets' => 16),
+                        array('type' => 'de_date', 'targets' => 17),
+                        array('type' => 'de_date', 'targets' => 18),
+                    );
+                }
+                if ($tblGroup->getMetaTable() == 'STUDENT') {
+                    $ColumnCustom = array(
+                        'Identifier'           => 'Schülernummer',
+                        'School'               => 'Schule',
+                        'SchoolType'           => 'Schulart',
+                        'SchoolCourse'         => 'Bildungsgang',
+                        'Division'             => 'aktuelle Klasse',
+                        'PictureSchoolWriting' => 'Einverständnis Foto Schulschriften',
+                        'PicturePublication'   => 'Einverständnis Foto Veröffentlichungen',
+                        'PictureWeb'           => 'Einverständnis Foto Internetpräsenz',
+                        'PictureFacebook'      => 'Einverständnis Foto Facebookseite',
+                        'PicturePrint'         => 'Einverständnis Foto Druckpresse',
+                        'PictureFilm'          => 'Einverständnis Foto Ton/Video/Film',
+                        'PictureAdd'           => 'Einverständnis Foto Werbung in eigener Sache',
+                        'NameSchoolWriting'    => 'Einverständnis Name Schulschriften',
+                        'NamePublication'      => 'Einverständnis Name Veröffentlichungen',
+                        'NameWeb'              => 'Einverständnis Name Internetpräsenz',
+                        'NameFacebook'         => 'Einverständnis Name Facebookseite',
+                        'NamePrint'            => 'Einverständnis Name Druckpresse',
+                        'NameFilm'             => 'Einverständnis Name Ton/Video/Film',
+                        'NameAdd'              => 'Einverständnis Name Werbung in eigener Sache',
+                    );
+                }
+                if ($tblGroup->getMetaTable() == 'CUSTODY') {
+                    $ColumnCustom = array(
+                        'Occupation' => 'Beruf',
+                        'Employment' => 'Arbeitsstelle',
+                        'Remark'     => 'Bemerkung Sorgeberechtigter',
+                    );
+                }
+                if ($tblGroup->getMetaTable() == 'TEACHER') {
+                    $ColumnCustom = array(
+                        'TeacherAcronym' => 'Lehrerkürzel',
+                    );
+                }
+                if ($tblGroup->getMetaTable() == 'CLUB') {
+                    $ColumnCustom = array(
+                        'ClubIdentifier' => 'Mitgliedsnummer',
+                        'EntryDate'      => 'Eintrittsdatum',
+                        'ExitDate'       => 'Austrittsdatum',
+                        'ClubRemark'     => 'Bemerkung Vereinsmitglied',
+                    );
+                    $ColumnDefAdd = array(
+                        array('type' => 'de_date', 'targets' => 17),
+                        array('type' => 'de_date', 'targets' => 18),
+                    );
+                }
+                // merge used column
+                $ColumnHead = array_merge($ColumnStart, $ColumnCustom);
+                // merge definition
+                if (!empty($ColumnDefAdd)) {
+                    $ColumnDef = array_merge($ColumnDef, $ColumnDefAdd);
+                }
+
                 $PersonList = Person::useService()->createGroupList($tblGroup);
                 if ($PersonList) {
                     $Stage->addButton(
@@ -685,31 +795,15 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(
                             new LayoutColumn(
                                 new TableData($PersonList, null,
+                                    $ColumnHead,
                                     array(
-                                        'Number' => 'lfd. Nr.',
-                                        'Salutation' => 'Anrede',
-                                        'FirstName' => 'Vorname',
-                                        'LastName' => 'Nachname',
-                                        'Address' => 'Anschrift',
-                                        'PhoneNumber' => 'Telefon Festnetz',
-                                        'MobilPhoneNumber' => 'Telefon Mobil',
-                                        'Mail' => 'E-mail',
-                                        'Birthday' => 'Geburtstag',
-                                        'BirthPlace' => 'Geburtsort',
-                                        'Gender' => 'Geschlecht',
-                                        'Nationality' => 'Staatsangehörigkeit',
-                                        'Religion' => 'Konfession',
-                                        'ParticipationWillingness' => 'Mitarbeitsbereitschaft',
-                                        'ParticipationActivities' => 'Mitarbeitsbereitschaft - Tätigkeiten',
-                                        'RemarkFrontend' => 'Bemerkungen',
-                                    ),
-                                    array(
-                                        'order' => array(
+                                        'order'      => array(
                                             array(3, 'asc'),
                                             array(2, 'asc')
                                         ),
-                                        "pageLength" => -1,
-                                        "responsive" => false
+                                        'columnDefs' => $ColumnDef,
+                                        'pageLength' => -1,
+                                        'responsive' => false
                                     )
                                 )
                             )

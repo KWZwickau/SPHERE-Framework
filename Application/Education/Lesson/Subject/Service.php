@@ -882,8 +882,9 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param                $Id
-     * @param null           $Filter
+     * @param $Id
+     * @param $SubjectId
+     * @param null $Filter
      *
      * @return IFormInterface|string
      */
@@ -969,5 +970,17 @@ class Service extends AbstractService
                 }
             }
         }
+    }
+
+    /**
+     * @param TblCategory $tblCategory
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function existsCategorySubject(TblCategory $tblCategory, TblSubject $tblSubject)
+    {
+
+        return (new Data($this->getBinding()))->existsCategorySubject($tblCategory, $tblSubject);
     }
 }
