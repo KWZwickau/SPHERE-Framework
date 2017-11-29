@@ -7,7 +7,6 @@ use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Cache\Handler\DataCacheHandler;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\ColumnHydrator;
@@ -42,6 +41,7 @@ class Data extends AbstractData
         $this->createGroup('Lehrer', 'Alle Mitarbeiter, welche einer Lehrtätigkeit nachgehen', '', true, TblGroup::META_TABLE_TEACHER);
         $this->createGroup('Vereinsmitglieder', '', '', true, TblGroup::META_TABLE_CLUB);
         $this->createGroup('Institutionen-Ansprechpartner', 'Institutionen Ansprechpartner', '', true, TblGroup::META_TABLE_COMPANY_CONTACT);
+        $this->createGroup('Tutoren/Mentoren', '', '', true, TblGroup::META_TABLE_TUDOR);
     }
 
     /**

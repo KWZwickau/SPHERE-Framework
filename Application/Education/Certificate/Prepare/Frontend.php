@@ -22,6 +22,8 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -142,8 +144,12 @@ class Frontend extends Extension implements IFrontendInterface
                 // nur Mittelschule Klasse 9 und 10
                 if (($tblLevel = $tblDivision->getTblLevel())
                     && ($tblSchoolType = $tblLevel->getServiceTblType())
-                    && $tblSchoolType->getName() == 'Mittelschule / Oberschule'
-                    && ($tblLevel->getName() == '09' || $tblLevel->getName() == '9' || $tblLevel->getName() == '10')
+                    && (($tblSchoolType->getName() == 'Mittelschule / Oberschule'
+                            && ($tblLevel->getName() == '09' || $tblLevel->getName() == '9' || $tblLevel->getName() == '10'))
+                    // Gymnasium später
+//                        || (($tblSchoolType->getName() == 'Gymnasium'
+//                            && $tblLevel->getName() == '12'))
+                    )
                 ) {
                     $divisionTable[] = array(
                         'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
@@ -161,6 +167,29 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
+        // erstmal keine Gruppen
+        // tudorGroups
+//        if (($tblGroupAll = Group::useService()->getGroupAll())) {
+//            foreach ($tblGroupAll as $tblGroup) {
+//                if (!$tblGroup->isLocked()
+//                    && $tblGroup->getTudors()
+//                ) {
+//                    $divisionTable[] = array(
+//                        'Year' => '',
+//                        'Type' => '',
+//                        'Division' => 'Gruppe ' . $tblGroup->getName(),
+//                        'Option' => new Standard(
+//                            '', '/Education/Certificate/Prepare/Prepare', new Select(),
+//                            array(
+//                                'GroupId' => $tblGroup->getId(),
+//                                'Route' => 'Diploma'
+//                            ),
+//                            'Auswählen'
+//                        )
+//                    );
+//                }
+//            }
+//        }
 
         $Stage->setContent(
             new Layout(array(
@@ -196,11 +225,12 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param bool $IsAllYears
+     * @param bool $IsGroup
      * @param null $YearId
      *
      * @return Stage
      */
-    public function frontendTeacherSelectDivision($IsAllYears = false, $YearId = null)
+    public function frontendTeacherSelectDivision($IsAllYears = false, $IsGroup = false, $YearId = null)
     {
 
         $Stage = new Stage('Zeugnisvorbereitung', 'Klasse auswählen');
@@ -215,41 +245,92 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        if ($tblPerson) {
-            $tblDivisionList = Division::useService()->getDivisionTeacherAllByTeacher($tblPerson);
-        } else {
-            $tblDivisionList = false;
-        }
+        $buttonList = Prepare::useService()->setYearGroupButtonList('/Education/Certificate/Prepare/Teacher',
+            $IsAllYears, $IsGroup, $YearId, $tblYear, false);
 
-        $buttonList = Evaluation::useFrontend()->setYearButtonList('/Education/Certificate/Prepare/Teacher',
-            $IsAllYears, $YearId, $tblYear, false);
-
+        $table = false;
         $divisionTable = array();
-        if ($tblDivisionList) {
-            foreach ($tblDivisionList as $tblDivisionTeacher) {
-                $tblDivision = $tblDivisionTeacher->getTblDivision();
-
-                // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
-                /** @var TblYear $tblYear */
-                if ($tblYear && $tblDivision && $tblDivision->getServiceTblYear()
-                    && $tblDivision->getServiceTblYear()->getId() != $tblYear->getId()
+        if ($tblPerson) {
+            if ($IsGroup) {
+                if (($tblTudorGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR))
+                    && Group::useService()->existsGroupPerson($tblTudorGroup, $tblPerson)
                 ) {
-                    continue;
+                    if (($tblGroupAll = Group::useService()->getGroupAll())) {
+                        foreach ($tblGroupAll as $tblGroup) {
+                            if (!$tblGroup->isLocked() && Group::useService()->existsGroupPerson($tblGroup,
+                                    $tblPerson)
+                            ) {
+                                $divisionTable[] = array(
+                                    'Group' => $tblGroup->getName(),
+                                    'Option' => new Standard(
+                                        '', '/Education/Certificate/Prepare/Prepare', new Select(),
+                                        array(
+                                            'GroupId' => $tblGroup->getId(),
+                                            'Route' => 'Teacher'
+                                        ),
+                                        'Auswählen'
+                                    )
+                                );
+                            }
+                        }
+                    }
                 }
 
-                $divisionTable[] = array(
-                    'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
-                    'Type' => $tblDivision->getTypeName(),
-                    'Division' => $tblDivision->getDisplayName(),
-                    'Option' => new Standard(
-                        '', '/Education/Certificate/Prepare/Prepare', new Select(),
-                        array(
-                            'DivisionId' => $tblDivision->getId(),
-                            'Route' => 'Teacher'
-                        ),
-                        'Auswählen'
-                    )
-                );
+                $table = new TableData($divisionTable, null, array(
+                    'Group' => 'Gruppe',
+                    'Option' => ''
+                ), array(
+                    'order' => array(
+                        array('0', 'asc'),
+                    ),
+                    'columnDefs' => array(
+                        array('type' => 'natural', 'targets' => 0)
+                    ),
+                ));
+            } else {
+                if (($tblDivisionList = Division::useService()->getDivisionTeacherAllByTeacher($tblPerson))) {
+                    foreach ($tblDivisionList as $tblDivisionTeacher) {
+                        $tblDivision = $tblDivisionTeacher->getTblDivision();
+
+                        // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
+                        /** @var TblYear $tblYear */
+                        if ($tblYear && $tblDivision && $tblDivision->getServiceTblYear()
+                            && $tblDivision->getServiceTblYear()->getId() != $tblYear->getId()
+                        ) {
+                            continue;
+                        }
+
+                        $divisionTable[] = array(
+                            'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                            'Type' => $tblDivision->getTypeName(),
+                            'Division' => $tblDivision->getDisplayName(),
+                            'Option' => new Standard(
+                                '', '/Education/Certificate/Prepare/Prepare', new Select(),
+                                array(
+                                    'DivisionId' => $tblDivision->getId(),
+                                    'Route' => 'Teacher'
+                                ),
+                                'Auswählen'
+                            )
+                        );
+                    }
+                }
+
+                $table = new TableData($divisionTable, null, array(
+                    'Year' => 'Schuljahr',
+                    'Type' => 'Schulart',
+                    'Division' => 'Klasse',
+                    'Option' => ''
+                ), array(
+                    'order' => array(
+                        array('0', 'desc'),
+                        array('1', 'asc'),
+                        array('2', 'asc'),
+                    ),
+                    'columnDefs' => array(
+                        array('type' => 'natural', 'targets' => 2)
+                    ),
+                ));
             }
         }
 
@@ -260,23 +341,9 @@ class Frontend extends Extension implements IFrontendInterface
                         empty($buttonList)
                             ? null
                             : new LayoutColumn($buttonList),
-                        new LayoutColumn(array(
-                            new TableData($divisionTable, null, array(
-                                'Year' => 'Schuljahr',
-                                'Type' => 'Schulart',
-                                'Division' => 'Klasse',
-                                'Option' => ''
-                            ), array(
-                                'order' => array(
-                                    array('0', 'desc'),
-                                    array('1', 'asc'),
-                                    array('2', 'asc'),
-                                ),
-                                'columnDefs' => array(
-                                    array('type' => 'natural', 'targets' => 2)
-                                ),
-                            ))
-                        ))
+                        $table
+                            ? new LayoutColumn(array($table))
+                            : null
                     ))
                 ), new Title(new Select() . ' Auswahl'))
             ))
@@ -287,11 +354,12 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param bool $IsAllYears
+     * @param bool $IsGroup
      * @param null $YearId
      *
      * @return Stage
      */
-    public function frontendHeadmasterSelectDivision($IsAllYears = false, $YearId = null)
+    public function frontendHeadmasterSelectDivision($IsAllYears = false, $IsGroup = false, $YearId = null)
     {
 
         $Stage = new Stage('Zeugnisvorbereitung', 'Klasse auswählen');
@@ -299,36 +367,87 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblDivisionList = Division::useService()->getDivisionAll();
 
-        $buttonList = Evaluation::useFrontend()->setYearButtonList('/Education/Certificate/Prepare/Headmaster',
-            $IsAllYears, $YearId, $tblYear);
+        $buttonList = Prepare::useService()->setYearGroupButtonList('/Education/Certificate/Prepare/Headmaster',
+            $IsAllYears, $IsGroup, $YearId, $tblYear);
 
         $divisionTable = array();
-        if ($tblDivisionList) {
-            foreach ($tblDivisionList as $tblDivision) {
-                // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
-                /** @var TblYear $tblYear */
-                if ($tblYear && $tblDivision && $tblDivision->getServiceTblYear()
-                    && $tblDivision->getServiceTblYear()->getId() != $tblYear->getId()
-                ) {
-                    continue;
-                }
-
-                if ($tblDivision) {
-                    $divisionTable[] = array(
-                        'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
-                        'Type' => $tblDivision->getTypeName(),
-                        'Division' => $tblDivision->getDisplayName(),
-                        'Option' => new Standard(
-                            '', '/Education/Certificate/Prepare/Prepare', new Select(),
-                            array(
-                                'DivisionId' => $tblDivision->getId(),
-                                'Route' => 'Headmaster'
-                            ),
-                            'Auswählen'
-                        )
-                    );
+        if ($IsGroup) {
+            // tudorGroups
+            if (($tblGroupAll = Group::useService()->getGroupAll())) {
+                foreach ($tblGroupAll as $tblGroup) {
+                    if (!$tblGroup->isLocked()
+                        && $tblGroup->getTudors()
+                    ) {
+                        $divisionTable[] = array(
+                            'Group' => $tblGroup->getName(),
+                            'Option' => new Standard(
+                                '', '/Education/Certificate/Prepare/Prepare', new Select(),
+                                array(
+                                    'GroupId' => $tblGroup->getId(),
+                                    'Route' => 'Headmaster'
+                                ),
+                                'Auswählen'
+                            )
+                        );
+                    }
                 }
             }
+
+            $table = new TableData($divisionTable, null, array(
+                'Group' => 'Gruppe',
+                'Option' => ''
+            ), array(
+                'order' => array(
+                    array('0', 'asc'),
+                ),
+                'columnDefs' => array(
+                    array('type' => 'natural', 'targets' => 0)
+                ),
+            ));
+        } else {
+            if ($tblDivisionList) {
+                foreach ($tblDivisionList as $tblDivision) {
+                    // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
+                    /** @var TblYear $tblYear */
+                    if ($tblYear && $tblDivision && $tblDivision->getServiceTblYear()
+                        && $tblDivision->getServiceTblYear()->getId() != $tblYear->getId()
+                    ) {
+                        continue;
+                    }
+
+                    if ($tblDivision) {
+                        $divisionTable[] = array(
+                            'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                            'Type' => $tblDivision->getTypeName(),
+                            'Division' => $tblDivision->getDisplayName(),
+                            'Option' => new Standard(
+                                '', '/Education/Certificate/Prepare/Prepare', new Select(),
+                                array(
+                                    'DivisionId' => $tblDivision->getId(),
+                                    'Route' => 'Headmaster'
+                                ),
+                                'Auswählen'
+                            )
+                        );
+                    }
+                }
+            }
+
+            $table = new TableData($divisionTable, null, array(
+                'Year' => 'Schuljahr',
+                'Type' => 'Schulart',
+                'Division' => 'Klasse',
+                'Option' => ''
+            ), array(
+                'order' => array(
+                    array('0', 'desc'),
+                    array('1', 'asc'),
+                    array('2', 'asc'),
+                ),
+                'columnDefs' => array(
+                    array('type' => 'natural', 'targets' => 2)
+                ),
+            ));
         }
 
         $Stage->setContent(
@@ -338,23 +457,7 @@ class Frontend extends Extension implements IFrontendInterface
                         empty($buttonList)
                             ? null
                             : new LayoutColumn($buttonList),
-                        new LayoutColumn(array(
-                            new TableData($divisionTable, null, array(
-                                'Year' => 'Schuljahr',
-                                'Type' => 'Schulart',
-                                'Division' => 'Klasse',
-                                'Option' => ''
-                            ), array(
-                                'order' => array(
-                                    array('0', 'desc'),
-                                    array('1', 'asc'),
-                                    array('2', 'asc'),
-                                ),
-                                'columnDefs' => array(
-                                    array('type' => 'natural', 'targets' => 2)
-                                ),
-                            ))
-                        ))
+                        new LayoutColumn($table)
                     ))
                 ), new Title(new Select() . ' Auswahl'))
             ))
@@ -365,11 +468,11 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $DivisionId
+     * @param null $GroupId
      * @param string $Route
-     *
      * @return Stage|string
      */
-    public function frontendPrepare($DivisionId = null, $Route = 'Teacher')
+    public function frontendPrepare($DivisionId = null, $GroupId = null, $Route = 'Teacher')
     {
 
         $Stage = new Stage('Zeugnisvorbereitungen', 'Übersicht');
@@ -377,60 +480,77 @@ class Frontend extends Extension implements IFrontendInterface
             'Zurück', '/Education/Certificate/Prepare/' . $Route, new ChevronLeft()
         ));
 
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        if ($tblDivision) {
-
-            $tableData = array();
-            $tblPrepareAllByDivision = Prepare::useService()->getPrepareAllByDivision($tblDivision);
-            if ($tblPrepareAllByDivision) {
-                foreach ($tblPrepareAllByDivision as $tblPrepareCertificate) {
-                    $tblGenerateCertificate = $tblPrepareCertificate->getServiceTblGenerateCertificate();
-                    $tblCertificateType = $tblGenerateCertificate ? $tblGenerateCertificate->getServiceTblCertificateType() : false;
-
-                    if ($tblCertificateType) {
-                        if ($Route != 'Diploma') {
-                            // Abschlusszeugnisse überspringen
-                            if ($tblCertificateType->getIdentifier() == 'DIPLOMA') {
-                                continue;
-                            }
-                        } else {
-                            // alle außer Abschlusszeugnisse überspringen
-                            if ($tblCertificateType->getIdentifier() != 'DIPLOMA') {
-                                continue;
+        // Tudor
+        if ($GroupId != null) {
+            if (($tblGroup = Group::useService()->getGroupById($GroupId))) {
+                if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
+                    $tblDivisionList = array();
+                    foreach ($tblPersonList as $tblPerson) {
+                        if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
+                            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                                if (($tblDivision = $tblDivisionStudent->getTblDivision())) {
+                                    $tblDivisionList[$tblDivision->getId()] = $tblDivision;
+                                }
                             }
                         }
                     }
 
-                    // Setzen der Zeugnisvorlagen
-                    Prepare::useService()->setTemplatesAllByPrepareCertificate($tblPrepareCertificate);
+                    $tableData = array();
+                    foreach ($tblDivisionList as $tblDivision) {
+                        $tableData = $this->setPrepareDivisionSelectData($tblDivision, $Route, $tableData, $GroupId);
+                    }
 
-                    $tableData[] = array(
-                        'Date' => $tblPrepareCertificate->getDate(),
-                        'Type' => $tblCertificateType ? $tblCertificateType->getName()
-                            : '',
-                        'Name' => $tblPrepareCertificate->getName(),
-                        'Option' =>
-                            (new Standard(
-                                '', '/Education/Certificate/Prepare/Prepare'
-                                . ($Route == 'Diploma' ? '/Diploma' : '')
-                                . '/Setting', new Setup(),
-                                array(
-                                    'PrepareId' => $tblPrepareCertificate->getId(),
-                                    'Route' => $Route
-                                )
-                                , 'Einstellungen'
-                            ))
-                            . (new Standard(
-                                '', '/Education/Certificate/Prepare/Prepare/Preview', new EyeOpen(),
-                                array(
-                                    'PrepareId' => $tblPrepareCertificate->getId(),
-                                    'Route' => $Route
-                                )
-                                , 'Vorschau der Zeugnisse'
-                            ))
+                    $Stage->setContent(
+                        new Layout(array(
+                                new LayoutGroup(array(
+                                    new LayoutRow(array(
+                                        new LayoutColumn(array(
+                                            new Panel(
+                                                'Gruppe',
+                                                $tblGroup->getName(),
+                                                Panel::PANEL_TYPE_INFO
+                                            )
+                                        ))
+                                    ))
+                                )),
+                                new LayoutGroup(array(
+                                    new LayoutRow(array(
+                                        new LayoutColumn(array(
+                                            new TableData($tableData, null, array(
+                                                'Date' => 'Zeugnisdatum',
+                                                'Type' => 'Typ',
+                                                'Name' => 'Name',
+                                                'Option' => ''
+                                            ),
+                                                array(
+                                                    'order' => array(
+                                                        array(0, 'desc')
+                                                    ),
+                                                    'columnDefs' => array(
+                                                        array('type' => 'de_date', 'targets' => 0)
+                                                    )
+                                                )
+                                            )
+                                        ))
+                                    ))
+                                ), new Title(new ListingTable() . ' Übersicht')),
+                            )
+                        )
                     );
                 }
+
+                return $Stage;
+            } else {
+
+                return $Stage . new Danger('Gruppe nicht gefunden.', new Ban());
             }
+        }
+
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        if ($tblDivision) {
+
+            $tableData = array();
+            $tableData = $this->setPrepareDivisionSelectData($tblDivision, $Route, $tableData);
 
             $Stage->setContent(
                 new Layout(array(
@@ -479,7 +599,75 @@ class Frontend extends Extension implements IFrontendInterface
 
 
     /**
+     * @param $tblDivision
+     * @param $Route
+     * @param $tableData
+     * @param bool|int $GroupId
+     *
+     * @return array
+     */
+    private function setPrepareDivisionSelectData($tblDivision, $Route, $tableData, $GroupId = false)
+    {
+
+        $tblPrepareAllByDivision = Prepare::useService()->getPrepareAllByDivision($tblDivision);
+        if ($tblPrepareAllByDivision) {
+            foreach ($tblPrepareAllByDivision as $tblPrepareCertificate) {
+                $tblGenerateCertificate = $tblPrepareCertificate->getServiceTblGenerateCertificate();
+                $tblCertificateType = $tblGenerateCertificate ? $tblGenerateCertificate->getServiceTblCertificateType() : false;
+
+                if ($tblCertificateType) {
+                    if ($Route != 'Diploma') {
+                        // Abschlusszeugnisse überspringen
+                        if ($tblCertificateType->getIdentifier() == 'DIPLOMA') {
+                            continue;
+                        }
+                    } else {
+                        // alle außer Abschlusszeugnisse überspringen
+                        if ($tblCertificateType->getIdentifier() != 'DIPLOMA') {
+                            continue;
+                        }
+                    }
+                }
+
+                // Setzen der Zeugnisvorlagen
+                Prepare::useService()->setTemplatesAllByPrepareCertificate($tblPrepareCertificate);
+
+                $tableData[$tblGenerateCertificate ? $tblGenerateCertificate->getId() : 0] = array(
+                    'Date' => $tblPrepareCertificate->getDate(),
+                    'Type' => $tblCertificateType ? $tblCertificateType->getName()
+                        : '',
+                    'Name' => $tblPrepareCertificate->getName(),
+                    'Option' =>
+                        (new Standard(
+                            '', '/Education/Certificate/Prepare/Prepare'
+                            . ($Route == 'Diploma' ? '/Diploma' : '')
+                            . '/Setting', new Setup(),
+                            array(
+                                'PrepareId' => $tblPrepareCertificate->getId(),
+                                'Route' => $Route,
+                                'GroupId' => $GroupId
+                            )
+                            , 'Einstellungen'
+                        ))
+                        . (new Standard(
+                            '', '/Education/Certificate/Prepare/Prepare/Preview', new EyeOpen(),
+                            array(
+                                'PrepareId' => $tblPrepareCertificate->getId(),
+                                'Route' => $Route,
+                                'GroupId' => $GroupId
+                            )
+                            , 'Vorschau der Zeugnisse'
+                        ))
+                );
+            }
+        }
+
+        return $tableData;
+    }
+
+    /**
      * @param null $PrepareId
+     * @param null $GroupId
      * @param string $Route
      * @param null $GradeTypeId
      * @param null $IsNotGradeType
@@ -490,6 +678,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendPrepareSetting(
         $PrepareId = null,
+        $GroupId = null,
         $Route = 'Teacher',
         $GradeTypeId = null,
         $IsNotGradeType = null,
@@ -497,343 +686,53 @@ class Frontend extends Extension implements IFrontendInterface
         $CertificateList = null
     ) {
 
-        $tblPrepare = Prepare::useService()->getPrepareById($PrepareId);
-        if ($tblPrepare) {
-            // Kopfnoten festlegen
-            if (!$IsNotGradeType
-                && $tblPrepare->getServiceTblBehaviorTask()
-                && ($tblDivision = $tblPrepare->getServiceTblDivision())
-                && ($tblTestList = Evaluation::useService()->getTestAllByTask($tblPrepare->getServiceTblBehaviorTask(),
-                    $tblDivision))
-            ) {
-                $Stage = new Stage('Zeugnisvorbereitung', 'Kopfnoten festlegen');
-                $Stage->addButton(new Standard(
-                    'Zurück', '/Education/Certificate/Prepare/Prepare', new ChevronLeft(),
-                    array(
-                        'DivisionId' => $tblDivision->getId(),
-                        'Route' => $Route
-                    )
-                ));
-
-                $hasPreviewGrades = false;
-                $tblCurrentGradeType = false;
-                $tblNextGradeType = false;
-                $tblGradeTypeList = array();
-                foreach ($tblTestList as $tblTest) {
-                    if (($tblGradeTypeItem = $tblTest->getServiceTblGradeType())) {
-                        if (!isset($tblGradeTypeList[$tblGradeTypeItem->getId()])) {
-                            $tblGradeTypeList[$tblGradeTypeItem->getId()] = $tblGradeTypeItem;
-                            if ($tblCurrentGradeType && !$tblNextGradeType) {
-                                $tblNextGradeType = $tblGradeTypeItem;
-                            }
-                            if ($GradeTypeId && $GradeTypeId == $tblGradeTypeItem->getId()) {
-                                $tblCurrentGradeType = $tblGradeTypeItem;
-                            }
-                        }
-                    }
+        $description = '';
+        $tblPrepareList = false;
+        $tblGroup = false;
+        if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))) {
+            $tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate();
+            if ($GroupId && ($tblGroup = Group::useService()->getGroupById($GroupId))) {
+                $description = 'Gruppe ' . $tblGroup->getName();
+                if (($tblGenerateCertificate)) {
+                    $tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate);
                 }
-                if (!$tblCurrentGradeType && !empty($tblGradeTypeList)) {
-                    $tblCurrentGradeType = current($tblGradeTypeList);
-                    if (count($tblGradeTypeList) > 1) {
-                        $tblNextGradeType = next($tblGradeTypeList);
-                    }
+            } else {
+                if (($tblDivision = $tblPrepare->getServiceTblDivision())) {
+
+                    $description = 'Klasse ' . $tblDivision->getDisplayName();
+                    $tblPrepareList = array(0 => $tblPrepare);
                 }
+            }
 
-                $buttonList = array();
-                /** @var TblGradeType $tblGradeType */
-                foreach ($tblGradeTypeList as $tblGradeType) {
-                    if ($tblCurrentGradeType->getId() == $tblGradeType->getId()) {
-                        $name = new Info(new Bold($tblGradeType->getName()));
-                        $icon = new Edit();
-                    } else {
-                        $name = $tblGradeType->getName();
-                        $icon = null;
-                    }
-
-                    $buttonList[] = new Standard($name,
-                        '/Education/Certificate/Prepare/Prepare/Setting', $icon, array(
-                            'PrepareId' => $tblPrepare->getId(),
-                            'Route' => $Route,
-                            'GradeTypeId' => $tblGradeType->getId()
-                        )
-                    );
-                }
-
-                $buttonList[] = new Standard('Sonstige Informationen',
-                    '/Education/Certificate/Prepare/Prepare/Setting', null, array(
-                        'PrepareId' => $tblPrepare->getId(),
-                        'Route' => $Route,
-                        'IsNotGradeType' => true
-                    )
-                );
-
-                $studentTable = array();
-                $columnTable = array(
-                    'Number' => '#',
-                    'Name' => 'Name',
-                    'Course' => 'Bildungsgang',
-                    'Grades' => 'Einzelnoten in ' . ($tblCurrentGradeType ? $tblCurrentGradeType->getName() : ''),
-                    'Average' => '&#216;',
-                    'Data' => 'Zensur'
-                );
-
-                $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
-                if ($tblStudentList) {
-//                    $selectListWithTrend[-1] = '&nbsp;';
-                    for ($i = 1; $i < 5; $i++) {
-                        $selectListWithTrend[$i . '+'] = (string)($i . '+');
-                        $selectListWithTrend[$i] = (string)$i;
-                        $selectListWithTrend[$i . '-'] = (string)($i . '-');
-                    }
-                    $selectListWithTrend[5] = "5";
-
-//                    $selectListWithOutTrend[-1] = '&nbsp;';
-                    for ($i = 1; $i < 5; $i++) {
-                        $selectListWithOutTrend[$i] = (string)$i;
-                    }
-                    $selectListWithOutTrend[5] = "5";
-
-                    $tabIndex = 1;
-                    /** @var TblPerson $tblPerson */
-                    foreach ($tblStudentList as $tblPerson) {
-                        $studentTable[$tblPerson->getId()] = array(
-                            'Number' => count($studentTable) + 1,
-                            'Name' => $tblPerson->getLastFirstName()
-                        );
-
-                        // Bildungsgang
-                        $tblCourse = false;
-                        if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
-                            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
-                        ) {
-                            $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                                $tblTransferType);
-                            if ($tblStudentTransfer) {
-                                $tblCourse = $tblStudentTransfer->getServiceTblCourse();
-                            }
-                        }
-                        $studentTable[$tblPerson->getId()]['Course'] = $tblCourse ? $tblCourse->getName() : '';
-
-                        if ($tblCurrentGradeType) {
-                            $subjectGradeList = array();
-                            $gradeList = array();
-                            foreach ($tblTestList as $tblTest) {
-                                if (($tblGradeType = $tblTest->getServiceTblGradeType())
-                                    && $tblGradeType->getId() == $tblCurrentGradeType->getId()
-                                ) {
-                                    if (($tblSubject = $tblTest->getServiceTblSubject())
-                                        && ($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
-                                            $tblPerson))
-                                    ) {
-                                        $subjectGradeList[$tblSubject->getAcronym()] = $tblGrade;
-                                    }
-                                }
-                            }
-
-                            $gradeListString = '';
-                            if (!empty($subjectGradeList)) {
-                                ksort($subjectGradeList);
-                            }
-
-                            // Zusammensetzen (für Anzeige) der vergebenen Kopfnoten
-                            /** @var TblGrade $grade */
-                            foreach ($subjectGradeList as $subjectAcronym => $grade) {
-                                $tblSubject = Subject::useService()->getSubjectByAcronym($subjectAcronym);
-                                if ($tblSubject) {
-                                    if ($grade->getGrade() && is_numeric($grade->getGrade())) {
-                                        $gradeList[] = floatval($grade->getGrade());
-                                    }
-                                    if (empty($gradeListString)) {
-                                        $gradeListString =
-                                            $tblSubject->getAcronym() . ':' . $grade->getDisplayGrade();
-                                    } else {
-                                        $gradeListString .= ' | '
-                                            . $tblSubject->getAcronym() . ':' . $grade->getDisplayGrade();
-                                    }
-                                }
-                            }
-                            $studentTable[$tblPerson->getId()]['Grades'] = $gradeListString;
-
-                            // calc average
-                            $average = '';
-                            if (!empty($gradeList)) {
-                                $count = count($gradeList);
-                                $average = $count > 0 ? round(array_sum($gradeList) / $count, 2) : '';
-                                $studentTable[$tblPerson->getId()]['Average'] = $average;
-                            } else {
-                                $studentTable[$tblPerson->getId()]['Average'] = '';
-                            }
-
-                            // Post setzen
-                            if ($Data === null
-                                && ($tblTask = $tblPrepare->getServiceTblBehaviorTask())
-                                && ($tblTestType = $tblTask->getTblTestType())
-                                && $tblCurrentGradeType
-                            ) {
-                                $Global = $this->getGlobal();
-                                $tblPrepareGrade = Prepare::useService()->getPrepareGradeByGradeType(
-                                    $tblPrepare, $tblPerson, $tblDivision, $tblTestType, $tblCurrentGradeType
-                                );
-                                if ($tblPrepareGrade) {
-                                    $gradeValue = $tblPrepareGrade->getGrade();
-                                    $Global->POST['Data'][$tblPerson->getId()] = $gradeValue;
-                                } elseif ($average) {
-                                    // Noten aus dem Notendurchschnitt als Vorschlag eintragen
-                                    $hasPreviewGrades = true;
-                                    $Global->POST['Data'][$tblPerson->getId()] =
-                                        str_replace('.', ',', round($average, 0));
-                                }
-
-                                $Global->savePost();
-                            }
-
-                            if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
-                                $tblPerson))
-                                && $tblPrepareStudent->getServiceTblCertificate()
-                            ) {
-                                if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-                                    && $tblCertificate->isInformation()
-                                ) {
-                                    $selectList = $selectListWithTrend;
-                                } else {
-                                    $selectList = $selectListWithOutTrend;
-                                }
-
-//                                $selectBox = (new SelectBox('Data[' . $tblPerson->getId() . ']', '', $selectList));
-//                                $selectBox->setTabIndex($tabIndex++);
-//                                $selectBox->configureLibrary( SelectBox::LIBRARY_SELECT2 );
-                                $selectComplete = (new SelectCompleter('Data[' . $tblPerson->getId() . ']', '', '', $selectList))
-                                    ->setTabIndex($tabIndex++);
-                                if ($tblPrepareStudent->isApproved()) {
-                                    $selectComplete->setDisabled();
-                                }
-
-                                $studentTable[$tblPerson->getId()]['Data'] = $selectComplete;
-                            } else {
-                                // keine Zeugnisvorlage ausgewählt
-                                $studentTable[$tblPerson->getId()]['Data'] = '';
-                            }
-                        }
-                    }
-                }
-
-                $columnDef = array(
-                    array(
-                        "width" => "7px",
-                        "targets" => 0
-                    ),
-                    array(
-                        "width" => "200px",
-                        "targets" => 1
-                    ),
-                    array(
-                        "width" => "80px",
-                        "targets" => 2
-                    ),
-                    array(
-                        "width" => "50px",
-                        "targets" => array(4)
-                    ),
-                    array(
-                        "width" => "80px",
-                        "targets" => array(5)
-                    ),
-                );
-
-                $tableData = new TableData($studentTable, null, $columnTable,
-                    array(
-                        "columnDefs" => $columnDef,
-                        'order' => array(
-                            array('0', 'asc'),
-                        ),
-                        "paging" => false, // Deaktivieren Blättern
-                        "iDisplayLength" => -1,    // Alle Einträge zeigen
-                        "searching" => false, // Deaktivieren Suchen
-                        "info" => false,  // Deaktivieren Such-Info
-                        "sort" => false,
-                        "responsive" => false
-                    )
-                );
-
-                $form = new Form(
-                    new FormGroup(array(
-                        new FormRow(
-                            new FormColumn(
-                                $tableData
-                            )
-                        ),
-                    ))
-                    , new Primary('Speichern', new Save())
-                );
-
-                $Stage->setContent(
-                    new Layout(array(
-                        new LayoutGroup(array(
-                            new LayoutRow(array(
-                                new LayoutColumn(array(
-                                    new Panel(
-                                        'Zeugnis',
-                                        array(
-                                            $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate()))
-                                        ),
-                                        Panel::PANEL_TYPE_INFO
-                                    ),
-                                ), 6),
-                                new LayoutColumn(array(
-                                    new Panel(
-                                        'Klasse',
-                                        $tblDivision->getDisplayName(),
-                                        Panel::PANEL_TYPE_INFO
-                                    ),
-                                ), 6),
-                                new LayoutColumn($buttonList),
-                                $hasPreviewGrades
-                                    ? new LayoutColumn(new Warning(
-                                    'Es wurden noch nicht alle Notenvorschläge gespeichert.', new Exclamation()
-                                ))
-                                    : null,
-                            )),
-                        )),
-                        new LayoutGroup(array(
-                            new LayoutRow(array(
-                                new LayoutColumn(array(
-                                    Prepare::useService()->updatePrepareBehaviorGrades(
-                                        $form,
-                                        $tblPrepare,
-                                        $tblCurrentGradeType,
-                                        $tblNextGradeType ? $tblNextGradeType : null,
-                                        $Route,
-                                        $Data
-                                    )
-                                ))
-                            ))
-                        ))
-                    ))
-                );
-
-                return $Stage;
-
-                // Sonstige Informationen
-            } elseif (($tblDivision = $tblPrepare->getServiceTblDivision())
-                && (($IsNotGradeType
-                        || (!$IsNotGradeType && !$tblPrepare->getServiceTblBehaviorTask()))
-                    || (!$IsNotGradeType && $tblPrepare->getServiceTblBehaviorTask()
-                        && !Evaluation::useService()->getTestAllByTask($tblPrepare->getServiceTblBehaviorTask(),
-                            $tblDivision)))
-            ) {
-                $Stage = new Stage('Zeugnisvorbereitung', 'Sonstige Informationen festlegen');
-                $Stage->addButton(new Standard(
-                    'Zurück', '/Education/Certificate/Prepare/Prepare', new ChevronLeft(),
-                    array(
-                        'DivisionId' => $tblDivision->getId(),
-                        'Route' => $Route
-                    )
-                ));
-
-                if ($tblPrepare->getServiceTblBehaviorTask()
+            if ($tblPrepareList) {
+                // Kopfnoten festlegen
+                if (!$IsNotGradeType
+                    && $tblGenerateCertificate->getServiceTblBehaviorTask()
+                    && ($tblDivision = $tblPrepare->getServiceTblDivision())
                     && ($tblTestList = Evaluation::useService()->getTestAllByTask($tblPrepare->getServiceTblBehaviorTask(),
                         $tblDivision))
                 ) {
+                    $Stage = new Stage('Zeugnisvorbereitung', 'Kopfnoten festlegen');
+
+                    if ($tblGroup) {
+                        $Stage->addButton(new Standard(
+                            'Zurück', '/Education/Certificate/Prepare/Prepare', new ChevronLeft(),
+                            array(
+                                'GroupId' => $tblGroup->getId(),
+                                'Route' => $Route
+                            )
+                        ));
+                    } else {
+                        $Stage->addButton(new Standard(
+                            'Zurück', '/Education/Certificate/Prepare/Prepare', new ChevronLeft(),
+                            array(
+                                'DivisionId' => $tblDivision->getId(),
+                                'Route' => $Route
+                            )
+                        ));
+                    }
+
+                    $hasPreviewGrades = false;
                     $tblCurrentGradeType = false;
                     $tblNextGradeType = false;
                     $tblGradeTypeList = array();
@@ -850,209 +749,550 @@ class Frontend extends Extension implements IFrontendInterface
                             }
                         }
                     }
+                    if (!$tblCurrentGradeType && !empty($tblGradeTypeList)) {
+                        $tblCurrentGradeType = current($tblGradeTypeList);
+                        if (count($tblGradeTypeList) > 1) {
+                            $tblNextGradeType = next($tblGradeTypeList);
+                        }
+                    }
 
                     $buttonList = array();
                     /** @var TblGradeType $tblGradeType */
                     foreach ($tblGradeTypeList as $tblGradeType) {
-                        $buttonList[] = new Standard($tblGradeType->getName(),
-                            '/Education/Certificate/Prepare/Prepare/Setting', null, array(
+                        if ($tblCurrentGradeType->getId() == $tblGradeType->getId()) {
+                            $name = new Info(new Bold($tblGradeType->getName()));
+                            $icon = new Edit();
+                        } else {
+                            $name = $tblGradeType->getName();
+                            $icon = null;
+                        }
+
+                        $buttonList[] = new Standard($name,
+                            '/Education/Certificate/Prepare/Prepare/Setting', $icon, array(
                                 'PrepareId' => $tblPrepare->getId(),
+                                'GroupId' => $tblGroup ? $tblGroup->getId() : null,
                                 'Route' => $Route,
                                 'GradeTypeId' => $tblGradeType->getId()
                             )
                         );
                     }
-                }
 
-                $buttonList[] = new Standard(new Info(new Bold('Sonstige Informationen')),
-                    '/Education/Certificate/Prepare/Prepare/Setting', new Edit(), array(
-                        'PrepareId' => $tblPrepare->getId(),
-                        'Route' => $Route,
-                        'IsNotGradeType' => true
-                    )
-                );
+                    $buttonList[] = new Standard('Sonstige Informationen',
+                        '/Education/Certificate/Prepare/Prepare/Setting', null, array(
+                            'PrepareId' => $tblPrepare->getId(),
+                            'GroupId' => $tblGroup ? $tblGroup->getId() : null,
+                            'Route' => $Route,
+                            'IsNotGradeType' => true
+                        )
+                    );
 
-                $studentTable = array();
-                $columnTable = array(
-                    'Number' => '#',
-                    'Name' => 'Name',
-                    'Course' => 'Bildungsgang',
-                    'ExcusedDays' => 'E-FZ', //'ent&shy;schuld&shy;igte FZ',
-                    'UnexcusedDays' => 'U-FZ' // 'unent&shy;schuld&shy;igte FZ'
-                );
+                    $studentTable = array();
+                    $columnTable = array(
+                        'Number' => '#',
+                        'Name' => 'Name',
+                        'Course' => 'Bildungsgang',
+                        'Grades' => 'Einzelnoten in ' . ($tblCurrentGradeType ? $tblCurrentGradeType->getName() : ''),
+                        'Average' => '&#216;',
+                        'Data' => 'Zensur'
+                    );
 
-                $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
-                if ($tblStudentList) {
-                    /** @var TblPerson $tblPerson */
-                    foreach ($tblStudentList as $tblPerson) {
-                        $studentTable[$tblPerson->getId()] = array(
-                            'Number' => count($studentTable) + 1,
-                            'Name' => $tblPerson->getLastFirstName()
-                        );
+                    for ($i = 1; $i < 5; $i++) {
+                        $selectListWithTrend[$i . '+'] = (string)($i . '+');
+                        $selectListWithTrend[$i] = (string)$i;
+                        $selectListWithTrend[$i . '-'] = (string)($i . '-');
+                    }
+                    $selectListWithTrend[5] = "5";
 
-                        // Bildungsgang
-                        $tblCourse = false;
-                        if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
-                            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+                    for ($i = 1; $i < 5; $i++) {
+                        $selectListWithOutTrend[$i] = (string)$i;
+                    }
+                    $selectListWithOutTrend[5] = "5";
+
+                    $tabIndex = 1;
+
+                    foreach ($tblPrepareList as $tblPrepareItem) {
+                        if (($tblDivisionItem = $tblPrepareItem->getServiceTblDivision())
+                            && (($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivisionItem)))
                         ) {
-                            $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                                $tblTransferType);
-                            if ($tblStudentTransfer) {
-                                $tblCourse = $tblStudentTransfer->getServiceTblCourse();
-                            }
-                        }
-                        $studentTable[$tblPerson->getId()]['Course'] = $tblCourse ? $tblCourse->getName() : '';
+                            foreach ($tblStudentList as $tblPerson) {
+                                if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
 
-                        $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson);
+                                    $studentTable[$tblPerson->getId()] = array(
+                                        'Number' => count($studentTable) + 1,
+                                        'Name' => $tblPerson->getLastFirstName()
+                                            . ($tblGroup
+                                                ? new Small(new Muted(' (' . $tblDivisionItem->getDisplayName() . ')')) : '')
+                                    );
 
-                        /*
-                         * Fehlzeiten
-                         */
-                        // Post setzen von Fehlzeiten und Fehlzeiten aus dem Klassenbuch voreintragen
-                        if ($Data === null) {
-                            $Global = $this->getGlobal();
-                            if ($Global) {
-                                $Global->POST['Data'][$tblPerson->getId()]['ExcusedDays'] =
-                                    $tblPrepareStudent && $tblPrepareStudent->getExcusedDays() !== null
-                                        ? $tblPrepareStudent->getExcusedDays()
-                                        : Absence::useService()->getExcusedDaysByPerson($tblPerson,
-                                        $tblDivision, new \DateTime($tblPrepare->getDate()));
-                                $Global->POST['Data'][$tblPerson->getId()]['UnexcusedDays'] =
-                                    $tblPrepareStudent && $tblPrepareStudent->getUnexcusedDays() !== null
-                                        ? $tblPrepareStudent->getUnexcusedDays()
-                                        : Absence::useService()->getUnexcusedDaysByPerson($tblPerson,
-                                        $tblDivision, new \DateTime($tblPrepare->getDate()));
-                            }
-                            $Global->savePost();
-                        }
+                                    // Bildungsgang
+                                    $tblCourse = false;
+                                    if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
+                                        && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+                                    ) {
+                                        $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                                            $tblTransferType);
+                                        if ($tblStudentTransfer) {
+                                            $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                                        }
+                                    }
+                                    $studentTable[$tblPerson->getId()]['Course'] = $tblCourse ? $tblCourse->getName() : '';
 
-                        if ($tblPrepareStudent && $tblPrepareStudent->isApproved()) {
-                            $studentTable[$tblPerson->getId()]['ExcusedDays'] =
-                                (new NumberField('Data[' . $tblPerson->getId() . '][ExcusedDays]', '',
-                                    ''))->setDisabled();
-                            $studentTable[$tblPerson->getId()]['UnexcusedDays'] =
-                                (new NumberField('Data[' . $tblPerson->getId() . '][UnexcusedDays]', '',
-                                    ''))->setDisabled();
-                        } elseif ($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate()) {
-                            $studentTable[$tblPerson->getId()]['ExcusedDays'] =
-                                new NumberField('Data[' . $tblPerson->getId() . '][ExcusedDays]', '', '');
-                            $studentTable[$tblPerson->getId()]['UnexcusedDays'] =
-                                new NumberField('Data[' . $tblPerson->getId() . '][UnexcusedDays]', '', '');
-                        } else {
-                            // keine Zeugnisvorlage ausgewählt
-                            $studentTable[$tblPerson->getId()]['ExcusedDays'] = '';
-                            $studentTable[$tblPerson->getId()]['UnexcusedDays'] = '';
-                        }
-                        /*
-                         * Sonstige Informationen der Zeugnisvorlage
-                         */
-                        $this->getTemplateInformation($tblPrepare, $tblPerson, $studentTable, $columnTable, $Data,
-                            $CertificateList);
+                                    if ($tblCurrentGradeType) {
+                                        $subjectGradeList = array();
+                                        $gradeList = array();
+                                        if (($tblTestList = Evaluation::useService()->getTestAllByTask($tblPrepareItem->getServiceTblBehaviorTask(),
+                                            $tblDivisionItem))) {
+                                            foreach ($tblTestList as $tblTest) {
+                                                if (($tblGradeType = $tblTest->getServiceTblGradeType())
+                                                    && $tblGradeType->getId() == $tblCurrentGradeType->getId()
+                                                ) {
+                                                    if (($tblSubject = $tblTest->getServiceTblSubject())
+                                                        && ($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
+                                                            $tblPerson))
+                                                    ) {
+                                                        $subjectGradeList[$tblSubject->getAcronym()] = $tblGrade;
+                                                    }
+                                                }
+                                            }
+                                        }
 
-                        // leere Elemente auffühlen (sonst steht die Spaltennummer drin)
-                        foreach ($columnTable as $columnKey => $columnName) {
-                            foreach ($studentTable as $personId => $value) {
-                                if (!isset($studentTable[$personId][$columnKey])) {
-                                    $studentTable[$personId][$columnKey] = '';
+                                        $gradeListString = '';
+                                        if (!empty($subjectGradeList)) {
+                                            ksort($subjectGradeList);
+                                        }
+
+                                        // Zusammensetzen (für Anzeige) der vergebenen Kopfnoten
+                                        /** @var TblGrade $grade */
+                                        foreach ($subjectGradeList as $subjectAcronym => $grade) {
+                                            $tblSubject = Subject::useService()->getSubjectByAcronym($subjectAcronym);
+                                            if ($tblSubject) {
+                                                if ($grade->getGrade() && is_numeric($grade->getGrade())) {
+                                                    $gradeList[] = floatval($grade->getGrade());
+                                                }
+                                                if (empty($gradeListString)) {
+                                                    $gradeListString =
+                                                        $tblSubject->getAcronym() . ':' . $grade->getDisplayGrade();
+                                                } else {
+                                                    $gradeListString .= ' | '
+                                                        . $tblSubject->getAcronym() . ':' . $grade->getDisplayGrade();
+                                                }
+                                            }
+                                        }
+                                        $studentTable[$tblPerson->getId()]['Grades'] = $gradeListString;
+
+                                        // calc average
+                                        $average = '';
+                                        if (!empty($gradeList)) {
+                                            $count = count($gradeList);
+                                            $average = $count > 0 ? round(array_sum($gradeList) / $count, 2) : '';
+                                            $studentTable[$tblPerson->getId()]['Average'] = $average;
+                                        } else {
+                                            $studentTable[$tblPerson->getId()]['Average'] = '';
+                                        }
+
+                                        $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareItem,
+                                            $tblPerson);
+                                        // Post setzen
+                                        if ($Data === null
+                                            && $tblPrepareStudent
+                                            && ($tblTask = $tblPrepareItem->getServiceTblBehaviorTask())
+                                            && ($tblTestType = $tblTask->getTblTestType())
+                                            && $tblCurrentGradeType
+                                        ) {
+                                            $Global = $this->getGlobal();
+                                            $tblPrepareGrade = Prepare::useService()->getPrepareGradeByGradeType(
+                                                $tblPrepareItem, $tblPerson, $tblDivisionItem, $tblTestType,
+                                                $tblCurrentGradeType
+                                            );
+                                            if ($tblPrepareGrade) {
+                                                $gradeValue = $tblPrepareGrade->getGrade();
+                                                $Global->POST['Data'][$tblPrepareStudent->getId()] = $gradeValue;
+                                            } elseif ($average) {
+                                                // Noten aus dem Notendurchschnitt als Vorschlag eintragen
+                                                $hasPreviewGrades = true;
+                                                $Global->POST['Data'][$tblPrepareStudent->getId()] =
+                                                    str_replace('.', ',', round($average, 0));
+                                            }
+
+                                            $Global->savePost();
+                                        }
+
+                                        if ($tblPrepareStudent
+                                            && $tblPrepareStudent->getServiceTblCertificate()
+                                        ) {
+                                            if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                                                && $tblCertificate->isInformation()
+                                            ) {
+                                                $selectList = $selectListWithTrend;
+                                            } else {
+                                                $selectList = $selectListWithOutTrend;
+                                            }
+
+                                            $selectComplete = (new SelectCompleter('Data[' . $tblPrepareStudent->getId() . ']',
+                                                '', '', $selectList))
+                                                ->setTabIndex($tabIndex++);
+                                            if ($tblPrepareStudent->isApproved()) {
+                                                $selectComplete->setDisabled();
+                                            }
+
+                                            $studentTable[$tblPerson->getId()]['Data'] = $selectComplete;
+                                        } else {
+                                            // keine Zeugnisvorlage ausgewählt
+                                            $studentTable[$tblPerson->getId()]['Data'] = '';
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                $tableData = new TableData($studentTable, null, $columnTable,
-                    array(
-                        "columnDefs" => array(
-                            array(
-                                "width" => "7px",
-                                "targets" => 0
-                            ),
-                            array(
-                                "width" => "200px",
-                                "targets" => 1
-                            ),
-                            array(
-                                "width" => "80px",
-                                "targets" => 2
-                            ),
-                            array(
-                                "width" => "50px",
-                                "targets" => array(3, 4)
-                            ),
+                    $columnDef = array(
+                        array(
+                            "width" => "7px",
+                            "targets" => 0
                         ),
-                        'order' => array(
-                            array('0', 'asc'),
+                        array(
+                            "width" => "200px",
+                            "targets" => 1
                         ),
-                        "paging" => false, // Deaktivieren Blättern
-                        "iDisplayLength" => -1,    // Alle Einträge zeigen
-                        "searching" => false, // Deaktivieren Suchen
-                        "info" => false,  // Deaktivieren Such-Info
-                        "sort" => false,
-                        "responsive" => false
-                    ),
-                    true
-                );
-
-//                $form = new Form(
-//                    new FormGroup(
-//                        new FormRow(array(
-//                            new FormColumn(
-//                                new NumberField('Data[ExcusedDays]', '', 'Entschuldigte Fehltage'), 6
-//                            ),
-//                            new FormColumn(
-//                                new NumberField('Data[UnexcusedDays]', '', 'Unentschuldigte Fehltage'), 6
-//                            )
-//                        ))
-//                    )
-//                );
-
-                $form = new Form(
-                    new FormGroup(array(
-                        new FormRow(
-                            new FormColumn(
-                                $tableData
-                            )
+                        array(
+                            "width" => "80px",
+                            "targets" => 2
                         ),
-                    ))
-                    , new Primary('Speichern', new Save())
-                );
+                        array(
+                            "width" => "50px",
+                            "targets" => array(4)
+                        ),
+                        array(
+                            "width" => "80px",
+                            "targets" => array(5)
+                        ),
+                    );
 
-                $Stage->setContent(
-                    new Layout(array(
-                        new LayoutGroup(array(
-                            new LayoutRow(array(
-                                new LayoutColumn(array(
-                                    new Panel(
-                                        'Zeugnis',
-                                        array(
-                                            $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate()))
+                    $tableData = new TableData($studentTable, null, $columnTable,
+                        array(
+                            "columnDefs" => $columnDef,
+                            'order' => array(
+                                array('0', 'asc'),
+                            ),
+                            "paging" => false, // Deaktivieren Blättern
+                            "iDisplayLength" => -1,    // Alle Einträge zeigen
+                            "searching" => false, // Deaktivieren Suchen
+                            "info" => false,  // Deaktivieren Such-Info
+                            "sort" => false,
+                            "responsive" => false
+                        )
+                    );
+
+                    $form = new Form(
+                        new FormGroup(array(
+                            new FormRow(
+                                new FormColumn(
+                                    $tableData
+                                )
+                            ),
+                        ))
+                        , new Primary('Speichern', new Save())
+                    );
+
+                    $Stage->setContent(
+                        new Layout(array(
+                            new LayoutGroup(array(
+                                new LayoutRow(array(
+                                    new LayoutColumn(array(
+                                        new Panel(
+                                            'Zeugnis',
+                                            array(
+                                                $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate()))
+                                            ),
+                                            Panel::PANEL_TYPE_INFO
                                         ),
-                                        Panel::PANEL_TYPE_INFO
-                                    ),
-                                ), 6),
-                                new LayoutColumn(array(
-                                    new Panel(
-                                        'Klasse',
-                                        $tblDivision->getDisplayName(),
-                                        Panel::PANEL_TYPE_INFO
-                                    ),
-                                ), 6),
-                                new LayoutColumn($buttonList),
+                                    ), 6),
+                                    new LayoutColumn(array(
+                                        new Panel(
+                                            $tblGroup ? 'Gruppe' : 'Klasse',
+                                            $description,
+                                            Panel::PANEL_TYPE_INFO
+                                        ),
+                                    ), 6),
+                                    new LayoutColumn($buttonList),
+                                    $hasPreviewGrades
+                                        ? new LayoutColumn(new Warning(
+                                        'Es wurden noch nicht alle Notenvorschläge gespeichert.', new Exclamation()
+                                    ))
+                                        : null,
+                                )),
                             )),
-                        )),
-                        new LayoutGroup(array(
-                            new LayoutRow(array(
-                                new LayoutColumn(array(
-                                    Prepare::useService()->updatePrepareInformationList($form, $tblPrepare, $Route,
-                                        $Data, $CertificateList)
+                            new LayoutGroup(array(
+                                new LayoutRow(array(
+                                    new LayoutColumn(array(
+                                        Prepare::useService()->updatePrepareBehaviorGrades(
+                                            $form,
+                                            $tblPrepare,
+                                            $tblGroup ? $tblGroup : null,
+                                            $tblCurrentGradeType,
+                                            $tblNextGradeType ? $tblNextGradeType : null,
+                                            $Route,
+                                            $Data
+                                        )
+                                    ))
                                 ))
                             ))
                         ))
-                    ))
-                );
+                    );
 
-                return $Stage;
+                    return $Stage;
+
+                    // Sonstige Informationen
+                } elseif (($tblDivision = $tblPrepare->getServiceTblDivision())
+                    && (($IsNotGradeType
+                            || (!$IsNotGradeType && !$tblPrepare->getServiceTblBehaviorTask()))
+                        || (!$IsNotGradeType && $tblPrepare->getServiceTblBehaviorTask()
+                            && !Evaluation::useService()->getTestAllByTask($tblPrepare->getServiceTblBehaviorTask(),
+                                $tblDivision)))
+                ) {
+                    $Stage = new Stage('Zeugnisvorbereitung', 'Sonstige Informationen festlegen');
+
+                    if ($tblGroup) {
+                        $Stage->addButton(new Standard(
+                            'Zurück', '/Education/Certificate/Prepare/Prepare', new ChevronLeft(),
+                            array(
+                                'GroupId' => $tblGroup->getId(),
+                                'Route' => $Route
+                            )
+                        ));
+                    } else {
+                        $Stage->addButton(new Standard(
+                            'Zurück', '/Education/Certificate/Prepare/Prepare', new ChevronLeft(),
+                            array(
+                                'DivisionId' => $tblDivision->getId(),
+                                'Route' => $Route
+                            )
+                        ));
+                    }
+
+                    if ($tblPrepare->getServiceTblBehaviorTask()
+                        && ($tblTestList = Evaluation::useService()->getTestAllByTask($tblPrepare->getServiceTblBehaviorTask(),
+                            $tblDivision))
+                    ) {
+                        $tblCurrentGradeType = false;
+                        $tblNextGradeType = false;
+                        $tblGradeTypeList = array();
+                        foreach ($tblTestList as $tblTest) {
+                            if (($tblGradeTypeItem = $tblTest->getServiceTblGradeType())) {
+                                if (!isset($tblGradeTypeList[$tblGradeTypeItem->getId()])) {
+                                    $tblGradeTypeList[$tblGradeTypeItem->getId()] = $tblGradeTypeItem;
+                                    if ($tblCurrentGradeType && !$tblNextGradeType) {
+                                        $tblNextGradeType = $tblGradeTypeItem;
+                                    }
+                                    if ($GradeTypeId && $GradeTypeId == $tblGradeTypeItem->getId()) {
+                                        $tblCurrentGradeType = $tblGradeTypeItem;
+                                    }
+                                }
+                            }
+                        }
+
+                        $buttonList = array();
+                        /** @var TblGradeType $tblGradeType */
+                        foreach ($tblGradeTypeList as $tblGradeType) {
+                            $buttonList[] = new Standard($tblGradeType->getName(),
+                                '/Education/Certificate/Prepare/Prepare/Setting', null, array(
+                                    'PrepareId' => $tblPrepare->getId(),
+                                    'GroupId' => $tblGroup ? $tblGroup->getId() : null,
+                                    'Route' => $Route,
+                                    'GradeTypeId' => $tblGradeType->getId()
+                                )
+                            );
+                        }
+                    }
+
+                    $buttonList[] = new Standard(new Info(new Bold('Sonstige Informationen')),
+                        '/Education/Certificate/Prepare/Prepare/Setting', new Edit(), array(
+                            'PrepareId' => $tblPrepare->getId(),
+                            'GroupId' => $tblGroup ? $tblGroup->getId() : null,
+                            'Route' => $Route,
+                            'IsNotGradeType' => true
+                        )
+                    );
+
+                    $studentTable = array();
+                    $columnTable = array(
+                        'Number' => '#',
+                        'Name' => 'Name',
+                        'Course' => 'Bildungsgang',
+                        'ExcusedDays' => 'E-FZ', //'ent&shy;schuld&shy;igte FZ',
+                        'UnexcusedDays' => 'U-FZ' // 'unent&shy;schuld&shy;igte FZ'
+                    );
+
+                    foreach ($tblPrepareList as $tblPrepareItem) {
+                        if (($tblDivisionItem = $tblPrepareItem->getServiceTblDivision())
+                            && (($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivisionItem)))
+                        ) {
+                            foreach ($tblStudentList as $tblPerson) {
+                                if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                                    $studentTable[$tblPerson->getId()] = array(
+                                        'Number' => count($studentTable) + 1,
+                                        'Name' => $tblPerson->getLastFirstName()
+                                            . ($tblGroup
+                                                ? new Small(new Muted(' (' . $tblDivisionItem->getDisplayName() . ')')) : '')
+                                    );
+
+                                    // Bildungsgang
+                                    $tblCourse = false;
+                                    if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
+                                        && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+                                    ) {
+                                        $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                                            $tblTransferType);
+                                        if ($tblStudentTransfer) {
+                                            $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                                        }
+                                    }
+                                    $studentTable[$tblPerson->getId()]['Course'] = $tblCourse ? $tblCourse->getName() : '';
+
+                                    $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareItem,
+                                        $tblPerson);
+
+                                    /*
+                                     * Fehlzeiten
+                                     */
+                                    // Post setzen von Fehlzeiten und Fehlzeiten aus dem Klassenbuch voreintragen
+                                    if ($Data === null) {
+                                        $Global = $this->getGlobal();
+                                        if ($Global) {
+                                            $Global->POST['Data'][$tblPrepareStudent->getId()]['ExcusedDays'] =
+                                                $tblPrepareStudent && $tblPrepareStudent->getExcusedDays() !== null
+                                                    ? $tblPrepareStudent->getExcusedDays()
+                                                    : Absence::useService()->getExcusedDaysByPerson($tblPerson,
+                                                    $tblDivisionItem, new \DateTime($tblPrepareItem->getDate()));
+                                            $Global->POST['Data'][$tblPrepareStudent->getId()]['UnexcusedDays'] =
+                                                $tblPrepareStudent && $tblPrepareStudent->getUnexcusedDays() !== null
+                                                    ? $tblPrepareStudent->getUnexcusedDays()
+                                                    : Absence::useService()->getUnexcusedDaysByPerson($tblPerson,
+                                                    $tblDivisionItem, new \DateTime($tblPrepareItem->getDate()));
+                                        }
+                                        $Global->savePost();
+                                    }
+
+                                    if ($tblPrepareStudent && $tblPrepareStudent->isApproved()) {
+                                        $studentTable[$tblPerson->getId()]['ExcusedDays'] =
+                                            (new NumberField('Data[' . $tblPrepareStudent->getId() . '][ExcusedDays]', '',
+                                                ''))->setDisabled();
+                                        $studentTable[$tblPerson->getId()]['UnexcusedDays'] =
+                                            (new NumberField('Data[' . $tblPrepareStudent->getId() . '][UnexcusedDays]', '',
+                                                ''))->setDisabled();
+                                    } elseif ($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate()) {
+                                        $studentTable[$tblPerson->getId()]['ExcusedDays'] =
+                                            new NumberField('Data[' . $tblPrepareStudent->getId() . '][ExcusedDays]', '', '');
+                                        $studentTable[$tblPerson->getId()]['UnexcusedDays'] =
+                                            new NumberField('Data[' . $tblPrepareStudent->getId() . '][UnexcusedDays]', '', '');
+                                    } else {
+                                        // keine Zeugnisvorlage ausgewählt
+                                        $studentTable[$tblPerson->getId()]['ExcusedDays'] = '';
+                                        $studentTable[$tblPerson->getId()]['UnexcusedDays'] = '';
+                                    }
+                                    /*
+                                     * Sonstige Informationen der Zeugnisvorlage
+                                     */
+                                    $this->getTemplateInformation($tblPrepareItem, $tblPerson, $studentTable, $columnTable,
+                                        $Data,
+                                        $CertificateList);
+
+                                    // leere Elemente auffühlen (sonst steht die Spaltennummer drin)
+                                    foreach ($columnTable as $columnKey => $columnName) {
+                                        foreach ($studentTable as $personId => $value) {
+                                            if (!isset($studentTable[$personId][$columnKey])) {
+                                                $studentTable[$personId][$columnKey] = '';
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    $tableData = new TableData($studentTable, null, $columnTable,
+                        array(
+                            "columnDefs" => array(
+                                array(
+                                    "width" => "7px",
+                                    "targets" => 0
+                                ),
+                                array(
+                                    "width" => "200px",
+                                    "targets" => 1
+                                ),
+                                array(
+                                    "width" => "80px",
+                                    "targets" => 2
+                                ),
+                                array(
+                                    "width" => "50px",
+                                    "targets" => array(3, 4)
+                                ),
+                            ),
+                            'order' => array(
+                                array('0', 'asc'),
+                            ),
+                            "paging" => false, // Deaktivieren Blättern
+                            "iDisplayLength" => -1,    // Alle Einträge zeigen
+                            "searching" => false, // Deaktivieren Suchen
+                            "info" => false,  // Deaktivieren Such-Info
+                            "sort" => false,
+                            "responsive" => false
+                        ),
+                        true
+                    );
+
+                    $form = new Form(
+                        new FormGroup(array(
+                            new FormRow(
+                                new FormColumn(
+                                    $tableData
+                                )
+                            ),
+                        ))
+                        , new Primary('Speichern', new Save())
+                    );
+
+                    $Stage->setContent(
+                        new Layout(array(
+                            new LayoutGroup(array(
+                                new LayoutRow(array(
+                                    new LayoutColumn(array(
+                                        new Panel(
+                                            'Zeugnis',
+                                            array(
+                                                $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate()))
+                                            ),
+                                            Panel::PANEL_TYPE_INFO
+                                        ),
+                                    ), 6),
+                                    new LayoutColumn(array(
+                                        new Panel(
+                                            $tblGroup ? 'Gruppe' : 'Klasse',
+                                            $description,
+                                            Panel::PANEL_TYPE_INFO
+                                        ),
+                                    ), 6),
+                                    new LayoutColumn($buttonList),
+                                )),
+                            )),
+                            new LayoutGroup(array(
+                                new LayoutRow(array(
+                                    new LayoutColumn(array(
+                                        Prepare::useService()->updatePrepareInformationList($form, $tblPrepare,
+                                            $tblGroup ? $tblGroup : null, $Route, $Data, $CertificateList)
+                                    ))
+                                ))
+                            ))
+                        ))
+                    );
+
+                    return $Stage;
+                }
             }
+
         }
 
         $Stage = new Stage('Zeugnisvorbereitung', 'Einstellungen');
@@ -1127,24 +1367,24 @@ class Frontend extends Extension implements IFrontendInterface
                                 if ($tblPrepareInformation->getField() == 'SchoolType'
                                     && method_exists($Certificate, 'selectValuesSchoolType')
                                 ) {
-                                    $Global->POST['Data'][$tblPerson->getId()][$tblPrepareInformation->getField()] =
+                                    $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()] =
                                         array_search($tblPrepareInformation->getValue(),
                                             $Certificate->selectValuesSchoolType());
                                 } elseif ($tblPrepareInformation->getField() == 'Type'
                                     && method_exists($Certificate, 'selectValuesType')
                                 ) {
-                                    $Global->POST['Data'][$tblPerson->getId()][$tblPrepareInformation->getField()] =
+                                    $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()] =
                                         array_search($tblPrepareInformation->getValue(),
                                             $Certificate->selectValuesType());
                                 } elseif ($tblPrepareInformation->getField() == 'Transfer'
                                     && method_exists($Certificate, 'selectValuesTransfer')
                                 ) {
-                                    $Global->POST['Data'][$tblPerson->getId()][$tblPrepareInformation->getField()] =
+                                    $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()] =
                                         array_search($tblPrepareInformation->getValue(),
                                             $Certificate->selectValuesTransfer());
                                     $hasTransfer = true;
                                 } else {
-                                    $Global->POST['Data'][$tblPerson->getId()][$tblPrepareInformation->getField()]
+                                    $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareInformation->getField()]
                                         = $tblPrepareInformation->getValue();
                                 }
                             }
@@ -1163,7 +1403,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ) {
                                 $nextLevel = floatval($tblLevel->getName()) + 1;
                             }
-                            $Global->POST['Data'][$tblPerson->getId()]['Remark'] =
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['Remark'] =
                                 $tblPerson->getFirstSecondName() . ' wird versetzt in Klasse ' . $nextLevel . '.';
                         }
 
@@ -1182,15 +1422,15 @@ class Frontend extends Extension implements IFrontendInterface
                                     }
                                 }
                                 if (!empty($tempList)) {
-                                    $Global->POST['Data'][$tblPerson->getId()]['Team'] = implode(', ', $tempList);
-                                    $Global->POST['Data'][$tblPerson->getId()]['TeamExtra'] = implode(', ', $tempList);
+                                    $Global->POST['Data'][$tblPrepareStudent->getId()]['Team'] = implode(', ', $tempList);
+                                    $Global->POST['Data'][$tblPrepareStudent->getId()]['TeamExtra'] = implode(', ', $tempList);
                                 }
                             }
                         }
 
                         // Vorsetzen auf Versetzungsvermerk: wird versetzt
                         if (!$hasTransfer) {
-                            $Global->POST['Data'][$tblPerson->getId()]['Transfer'] = 1;
+                            $Global->POST['Data'][$tblPrepareStudent->getId()]['Transfer'] = 1;
                         }
 
                         $Global->savePost();
@@ -1223,7 +1463,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                                 $FieldName = $PlaceholderList[0] . '[' . implode('][', $Identifier) . ']';
 
-                                $dataFieldName = str_replace('Content[Input]', 'Data[' . $tblPerson->getId() . ']',
+                                $dataFieldName = str_replace('Content[Input]', 'Data[' . $tblPrepareStudent->getId() . ']',
                                     $FieldName);
 
                                 $PlaceholderName = str_replace('.P' . $tblPerson->getId(), '', $Placeholder);
@@ -1280,7 +1520,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                             $columnTable['Team'] = 'Arbeitsgemeinschaften';
                                                         }
                                                         $studentTable[$tblPerson->getId()]['Team']
-                                                            = (new TextField('Data[' . $tblPerson->getId() . '][Team]',
+                                                            = (new TextField('Data[' . $tblPrepareStudent->getId() . '][Team]',
                                                             '', ''));
                                                     }
 
@@ -1323,33 +1563,105 @@ class Frontend extends Extension implements IFrontendInterface
         }
     }
 
-
     /**
      * @param null $PrepareId
      * @param string $Route
+     * @param bool|int $GroupId
      *
      * @return Stage|string
      */
     public function frontendPreparePreview(
         $PrepareId = null,
-        $Route = 'Teacher'
+        $Route = 'Teacher',
+        $GroupId = false
     ) {
 
         $Stage = new Stage('Zeugnisvorbereitung', 'Vorschau');
 
         $isDiploma = $Route == 'Diploma';
 
-        $tblPrepare = Prepare::useService()->getPrepareById($PrepareId);
-        if ($tblPrepare) {
-            $tblDivision = $tblPrepare->getServiceTblDivision();
+        $countBehavior = 0;
+        if (($tblPrepareCertificate = Prepare::useService()->getPrepareById($PrepareId))) {
+            $tblPersonSigner = $tblPrepareCertificate->getServiceTblPersonSigner();
+            $tblGradeTypeList = array();
+            if ($tblPrepareCertificate->getServiceTblBehaviorTask()) {
+                $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblPrepareCertificate->getServiceTblBehaviorTask(),
+                    $tblDivision = $tblPrepareCertificate->getServiceTblDivision() ? $tblPrepareCertificate->getServiceTblDivision() : null);
+                if ($tblTestAllByTask) {
+                    foreach ($tblTestAllByTask as $tblTest) {
+                        if (($tblGradeType = $tblTest->getServiceTblGradeType())) {
+                            if (!isset($tblGradeTypeList[$tblGradeType->getId()])) {
+                                $tblGradeTypeList[$tblGradeType->getId()] = $tblGradeType;
+                            }
+                        }
+                    }
+                }
+            }
+            $countBehavior = count($tblGradeTypeList);
+        } else {
+            $tblPersonSigner = false;
+        }
 
-            if ($isDiploma) {
+        $description = '';
+        $tblPrepareList = false;
+        $tblGroup = false;
+        if ($GroupId && ($tblGroup = Group::useService()->getGroupById($GroupId))) {
+            $Stage->addButton(new Standard(
+                'Zurück', '/Education/Certificate/Prepare/Prepare', new ChevronLeft(), array(
+                    'GroupId' => $tblGroup->getId(),
+                    'Route' => $Route
+                )
+            ));
+
+            $description = 'Gruppe ' . $tblGroup->getName();
+            if (($tblGenerateCertificate = $tblPrepareCertificate->getServiceTblGenerateCertificate())) {
+                $tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate);
+            }
+        } elseif ($tblPrepareCertificate) {
+            if (($tblDivision = $tblPrepareCertificate->getServiceTblDivision())) {
+                $Stage->addButton(new Standard(
+                    'Zurück', '/Education/Certificate/Prepare/Prepare', new ChevronLeft(), array(
+                        'DivisionId' => $tblDivision->getId(),
+                        'Route' => $Route
+                    )
+                ));
+
+                $description = 'Klasse ' . $tblDivision->getDisplayName();
+                $tblPrepareList = array(0 => $tblPrepareCertificate);
+            }
+        }
+
+        if ($isDiploma) {
+            if ($tblGroup) {
                 $columnTable = array(
                     'Number' => '#',
                     'Name' => 'Name',
                     'Course' => 'Bildungs&shy;gang',
                     'SubjectGrades' => 'Fachnoten',
                     'CheckSubjects' => 'Prüfung Fächer/Zeugnis'
+                );
+            } else {
+                $columnTable = array(
+                    'Number' => '#',
+                    'Name' => 'Name',
+                    'Division' => 'Klasse',
+                    'Course' => 'Bildungs&shy;gang',
+                    'SubjectGrades' => 'Fachnoten',
+                    'CheckSubjects' => 'Prüfung Fächer/Zeugnis'
+                );
+            }
+        } else {
+            if ($tblGroup) {
+                $columnTable = array(
+                    'Number' => '#',
+                    'Name' => 'Name',
+                    'Division' => 'Klasse',
+                    'Course' => 'Bildungs&shy;gang',
+                    'ExcusedAbsence' => 'E-FZ', //'ent&shy;schuld&shy;igte FZ',
+                    'UnexcusedAbsence' => 'U-FZ', // 'unent&shy;schuld&shy;igte FZ',
+                    'SubjectGrades' => 'Fachnoten',
+                    'CheckSubjects' => 'Prüfung Fächer/Zeugnis',
+                    'BehaviorGrades' => 'Kopfnoten',
                 );
             } else {
                 $columnTable = array(
@@ -1363,286 +1675,305 @@ class Frontend extends Extension implements IFrontendInterface
                     'BehaviorGrades' => 'Kopfnoten',
                 );
             }
+        }
 
+        $personSignerList = array();
+        if ($tblPrepareList) {
             $studentTable = array();
-            if ($tblDivision) {
-                $Stage->addButton(new Standard(
-                    'Zurück', '/Education/Certificate/Prepare/Prepare', new ChevronLeft(), array(
-                        'DivisionId' => $tblDivision->getId(),
-                        'Route' => $Route
-                    )
-                ));
-
-                $tblGradeTypeList = array();
-                if ($tblPrepare->getServiceTblBehaviorTask()) {
-                    $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblPrepare->getServiceTblBehaviorTask(),
-                        $tblDivision);
-                    if ($tblTestAllByTask) {
-                        foreach ($tblTestAllByTask as $tblTest) {
-                            if (($tblGradeType = $tblTest->getServiceTblGradeType())) {
-                                if (!isset($tblGradeTypeList[$tblGradeType->getId()])) {
-                                    $tblGradeTypeList[$tblGradeType->getId()] = $tblGradeType;
-                                }
-                            }
-                        }
-                    }
-                }
-                $countBehavior = count($tblGradeTypeList);
-
-                $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
+            foreach ($tblPrepareList as $tblPrepare) {
                 $isCourseMainDiploma = Prepare::useService()->isCourseMainDiploma($tblPrepare);
                 $checkSubjectList = Prepare::useService()->checkCertificateSubjectsForStudents($tblPrepare);
-                if ($tblStudentList) {
+                if (($tblDivision = $tblPrepare->getServiceTblDivision())
+                    && ($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision))
+                ) {
                     foreach ($tblStudentList as $tblPerson) {
-                        $isMuted = $isCourseMainDiploma;
-                        $course = '';
-                        if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
-                            $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
-                            if ($tblTransferType) {
-                                $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                                    $tblTransferType);
-                                if ($tblStudentTransfer) {
-                                    $tblCourse = $tblStudentTransfer->getServiceTblCourse();
-                                    if ($tblCourse) {
-                                        $course = $tblCourse->getName();
-                                        if ($course == 'Hauptschule') {
-                                            $isMuted = false;
+                        if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                            $isMuted = $isCourseMainDiploma;
+                            $course = '';
+                            if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
+                                $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
+                                if ($tblTransferType) {
+                                    $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                                        $tblTransferType);
+                                    if ($tblStudentTransfer) {
+                                        $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                                        if ($tblCourse) {
+                                            $course = $tblCourse->getName();
+                                            if ($course == 'Hauptschule') {
+                                                $isMuted = false;
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
 
-                        // Fächer zählen
-                        if ($tblDivision->getServiceTblYear()) {
-                            $tblDivisionSubjectList = Division::useService()->getDivisionSubjectAllByPersonAndYear(
-                                $tblPerson, $tblDivision->getServiceTblYear()
-                            );
-                        } else {
-                            $tblDivisionSubjectList = false;
-                        }
-                        if ($tblDivisionSubjectList) {
-                            $countSubjects = count($tblDivisionSubjectList);
-                        } else {
-                            $countSubjects = 0;
-                        }
+                            // Fächer zählen
+                            if ($tblDivision->getServiceTblYear()) {
+                                $tblDivisionSubjectList = Division::useService()->getDivisionSubjectAllByPersonAndYear(
+                                    $tblPerson, $tblDivision->getServiceTblYear()
+                                );
+                            } else {
+                                $tblDivisionSubjectList = false;
+                            }
+                            if ($tblDivisionSubjectList) {
+                                $countSubjects = count($tblDivisionSubjectList);
+                            } else {
+                                $countSubjects = 0;
+                            }
 
-                        $countSubjectGrades = 0;
-                        // Zensuren zählen
-                        if ($isDiploma) {
-                            if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN'))
-                                && ($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
-                                    $tblPrepare,
-                                    $tblPerson,
-                                    $tblPrepareAdditionalGradeType
-                                ))
-                            ) {
-                                foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
-                                    if ($tblPrepareAdditionalGrade->getGrade() !== null && $tblPrepareAdditionalGrade->getGrade() !== '') {
-                                        $countSubjectGrades++;
+                            $countSubjectGrades = 0;
+                            // Zensuren zählen
+                            if ($isDiploma) {
+                                if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN'))
+                                    && ($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
+                                        $tblPrepare,
+                                        $tblPerson,
+                                        $tblPrepareAdditionalGradeType
+                                    ))
+                                ) {
+                                    foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
+                                        if ($tblPrepareAdditionalGrade->getGrade() !== null && $tblPrepareAdditionalGrade->getGrade() !== '') {
+                                            $countSubjectGrades++;
+                                        }
+                                    }
+                                }
+                            } else {
+                                if (($tblTask = $tblPrepare->getServiceTblAppointedDateTask())
+                                    && ($tblTestList = Evaluation::useService()->getTestAllByTask($tblTask,
+                                        $tblDivision))
+                                ) {
+                                    foreach ($tblTestList as $tblTest) {
+                                        if (($tblGradeItem = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
+                                                $tblPerson))
+                                            && $tblTest->getServiceTblSubject()
+                                            && $tblGradeItem->getGrade() !== null && $tblGradeItem->getGrade() !== ''
+                                        ) {
+                                            $countSubjectGrades++;
+                                        }
                                     }
                                 }
                             }
-                        } else {
-                            if (($tblTask = $tblPrepare->getServiceTblAppointedDateTask())
-                                && ($tblTestList = Evaluation::useService()->getTestAllByTask($tblTask, $tblDivision))
-                            ) {
-                                foreach ($tblTestList as $tblTest) {
-                                    if (($tblGradeItem = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
-                                            $tblPerson))
-                                        && $tblTest->getServiceTblSubject()
-                                        && $tblGradeItem->getGrade() !== null && $tblGradeItem->getGrade() !== ''
-                                    ) {
-                                        $countSubjectGrades++;
-                                    }
+
+                            if ($tblPrepare->getServiceTblBehaviorTask()) {
+                                $tblPrepareGradeBehaviorList = Prepare::useService()->getPrepareGradeAllByPerson(
+                                    $tblPrepare, $tblPerson, $tblPrepare->getServiceTblBehaviorTask()->getTblTestType()
+                                );
+                            } else {
+                                $tblPrepareGradeBehaviorList = false;
+                            }
+                            if ($tblPrepareGradeBehaviorList) {
+                                $countBehaviorGrades = count($tblPrepareGradeBehaviorList);
+                            } else {
+                                $countBehaviorGrades = 0;
+                            }
+
+                            if ($tblPrepare->getServiceTblAppointedDateTask()) {
+                                $subjectGradesText = $countSubjectGrades . ' von ' . $countSubjects; // . ' Zensuren&nbsp;';
+                            } else {
+                                $subjectGradesText = 'Kein Stichtagsnotenauftrag ausgewählt';
+                            }
+
+                            if ($tblPrepare->getServiceTblBehaviorTask()) {
+                                $behaviorGradesText = $countBehaviorGrades . ' von ' . $countBehavior; // . ' Zensuren&nbsp;';
+                            } else {
+                                $behaviorGradesText = 'Kein Kopfnoten ausgewählt';
+                            }
+
+                            $excusedDays = null;
+                            $unexcusedDays = null;
+                            $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson);
+                            $signer = '';
+                            if ($tblPrepareStudent) {
+                                $tblCertificate = $tblPrepareStudent->getServiceTblCertificate();
+                                $excusedDays = $tblPrepareStudent->getExcusedDays();
+                                $unexcusedDays = $tblPrepareStudent->getUnexcusedDays();
+                                // überschreiben für Gruppen
+                                if ($tblPrepareStudent->getServiceTblPersonSigner()) {
+//                                    $tblPersonSigner = $tblPrepareStudent->getServiceTblPersonSigner();
+                                    $personSignerList[$tblPrepareStudent->getServiceTblPersonSigner()->getId()]
+                                        = $tblPrepareStudent->getServiceTblPersonSigner()->getFullName();
+                                    $signer = $tblPrepareStudent->getServiceTblPersonSigner()->getFullName();
+                                } elseif ($tblPersonSigner && $tblPrepareStudent->getServiceTblCertificate()) {
+                                    $personSignerList[$tblPersonSigner->getId()]
+                                        = $tblPersonSigner->getFullName();
+                                    $signer = $tblPersonSigner->getFullName();
                                 }
+                            } else {
+                                $tblCertificate = false;
                             }
-                        }
 
-                        if ($tblPrepare->getServiceTblBehaviorTask()) {
-                            $tblPrepareGradeBehaviorList = Prepare::useService()->getPrepareGradeAllByPerson(
-                                $tblPrepare, $tblPerson, $tblPrepare->getServiceTblBehaviorTask()->getTblTestType()
-                            );
-                        } else {
-                            $tblPrepareGradeBehaviorList = false;
-                        }
-                        if ($tblPrepareGradeBehaviorList) {
-                            $countBehaviorGrades = count($tblPrepareGradeBehaviorList);
-                        } else {
-                            $countBehaviorGrades = 0;
-                        }
-
-                        if ($tblPrepare->getServiceTblAppointedDateTask()) {
-                            $subjectGradesText = $countSubjectGrades . ' von ' . $countSubjects; // . ' Zensuren&nbsp;';
-                        } else {
-                            $subjectGradesText = 'Kein Stichtagsnotenauftrag ausgewählt';
-                        }
-
-                        if ($tblPrepare->getServiceTblBehaviorTask()) {
-                            $behaviorGradesText = $countBehaviorGrades . ' von ' . $countBehavior; // . ' Zensuren&nbsp;';
-                        } else {
-                            $behaviorGradesText = 'Kein Kopfnoten ausgewählt';
-                        }
-
-                        $excusedDays = null;
-                        $unexcusedDays = null;
-                        $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson);
-                        if ($tblPrepareStudent) {
-                            $tblCertificate = $tblPrepareStudent->getServiceTblCertificate();
-                            $excusedDays = $tblPrepareStudent->getExcusedDays();
-                            $unexcusedDays = $tblPrepareStudent->getUnexcusedDays();
-                        } else {
-                            $tblCertificate = false;
-                        }
-
-                        if ($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate()) {
-                            if ($excusedDays === null) {
-                                $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson, $tblDivision,
-                                    new \DateTime($tblPrepare->getDate()));
+                            if ($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate()) {
+                                if ($excusedDays === null) {
+                                    $excusedDays = Absence::useService()->getExcusedDaysByPerson($tblPerson,
+                                        $tblDivision,
+                                        new \DateTime($tblPrepare->getDate()));
+                                }
+                                if ($unexcusedDays === null) {
+                                    $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson,
+                                        $tblDivision,
+                                        new \DateTime($tblPrepare->getDate()));
+                                }
+                            } else {
+                                $excusedDays = '';
+                                $unexcusedDays = '';
                             }
-                            if ($unexcusedDays === null) {
-                                $unexcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson,
-                                    $tblDivision,
-                                    new \DateTime($tblPrepare->getDate()));
+
+                            $number = count($studentTable) + 1;
+                            $name = $tblPerson->getLastFirstName();
+                            $subjectGradesDisplayText = ($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate())
+                                ? ($countSubjectGrades < $countSubjects || !$tblPrepare->getServiceTblAppointedDateTask()
+                                    ? new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation() . ' ' . $subjectGradesText)
+                                    : new Success(new Enable() . ' ' . $subjectGradesText))
+                                : '';
+                            $behaviorGradesDisplayText = ($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate())
+                                ? ($countBehaviorGrades < $countBehavior || !$tblPrepare->getServiceTblBehaviorTask()
+                                    ? new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation() . ' ' . $behaviorGradesText)
+                                    : new Success(new Enable() . ' ' . $behaviorGradesText))
+                                : '';
+
+                            if (isset($checkSubjectList[$tblPerson->getId()])) {
+                                $checkSubjectsString = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Ban() . ' '
+                                    . implode(', ', $checkSubjectList[$tblPerson->getId()])
+                                    . (count($checkSubjectList[$tblPerson->getId()]) > 1 ? ' fehlen' : ' fehlt') . ' auf Zeugnisvorlage');
+                            } elseif ($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate()) {
+                                $checkSubjectsString = new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .
+                                    ' alles ok');
+                            } else {
+                                $checkSubjectsString = '';
                             }
-                        } else {
-                            $excusedDays = '';
-                            $unexcusedDays = '';
-                        }
 
-                        $number = count($studentTable) + 1;
-                        $name = $tblPerson->getLastFirstName();
-                        $subjectGradesDisplayText = ($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate())
-                            ? ($countSubjectGrades < $countSubjects || !$tblPrepare->getServiceTblAppointedDateTask()
-                                ? new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation() . ' ' . $subjectGradesText)
-                                : new Success(new Enable() . ' ' . $subjectGradesText))
-                            : '';
-                        $behaviorGradesDisplayText = ($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate())
-                            ? ($countBehaviorGrades < $countBehavior || !$tblPrepare->getServiceTblBehaviorTask()
-                                ? new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation() . ' ' . $behaviorGradesText)
-                                : new Success(new Enable() . ' ' . $behaviorGradesText))
-                            : '';
-
-                        if (isset($checkSubjectList[$tblPerson->getId()])) {
-                            $checkSubjectsString = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Ban() . ' '
-                                . implode(', ', $checkSubjectList[$tblPerson->getId()])
-                                . (count($checkSubjectList[$tblPerson->getId()]) > 1 ? ' fehlen' : ' fehlt') . ' auf Zeugnisvorlage');
-                        } elseif($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate()) {
-                            $checkSubjectsString = new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .
-                                ' alles ok');
-                        } else {
-                            $checkSubjectsString = '';
-                        }
-
-                        $studentTable[$tblPerson->getId()] = array(
-                            'Number' => $isDiploma && $isMuted ? new Muted($number) : $number,
-                            'Name' => $isDiploma && $isMuted ? new Muted($name) : $name,
-                            'Course' => $isDiploma && $isMuted ? new Muted($course) : $course,
-                            'ExcusedAbsence' => $excusedDays . ' ',
-                            'UnexcusedAbsence' => $unexcusedDays . ' ',
-                            'SubjectGrades' => $isDiploma && $isMuted ? '' : $subjectGradesDisplayText,
-                            'BehaviorGrades' => $behaviorGradesDisplayText,
-                            'CheckSubjects' => $checkSubjectsString,
-                            'Option' =>
-                                $isDiploma && $isMuted ? '' : ($tblCertificate
-                                    ? (new Standard(
-                                        '', '/Education/Certificate/Prepare/Certificate/Show', new EyeOpen(),
-                                        array(
-                                            'PrepareId' => $tblPrepare->getId(),
-                                            'PersonId' => $tblPerson->getId(),
-                                            'Route' => $Route
-                                        ),
-                                        'Zeugnisvorschau anzeigen'))
-                                    . (new External(
-                                        '',
-                                        '/Api/Education/Certificate/Generator/Preview',
-                                        new Download(),
-                                        array(
-                                            'PrepareId' => $tblPrepare->getId(),
-                                            'PersonId' => $tblPerson->getId(),
-                                            'Name' => 'Zeugnismuster'
-                                        ),
-                                        'Zeugnis als Muster herunterladen'))
-                                    // Mittelschule Abschlusszeugnis Realschule
-                                    . (($tblCertificate->getCertificate() == 'MsAbsRs'
-                                        && $tblPrepareStudent
-                                        && !$tblPrepareStudent->isApproved())
-                                        ? new Standard(
-                                            '', '/Education/Certificate/Prepare/DroppedSubjects', new CommodityItem(),
+                            $studentTable[$tblPerson->getId()] = array(
+                                'Number' => $isDiploma && $isMuted ? new Muted($number) : $number,
+                                'Name' => ($isDiploma && $isMuted ? new Muted($name) : $name),
+                                'Division' => $tblDivision->getDisplayName(),
+                                'Course' => $isDiploma && $isMuted ? new Muted($course) : $course,
+                                'ExcusedAbsence' => $excusedDays . ' ',
+                                'UnexcusedAbsence' => $unexcusedDays . ' ',
+                                'SubjectGrades' => $isDiploma && $isMuted ? '' : $subjectGradesDisplayText,
+                                'BehaviorGrades' => $behaviorGradesDisplayText,
+                                'CheckSubjects' => $checkSubjectsString,
+                                'Signer' => $signer,
+                                'Option' =>
+                                    $isDiploma && $isMuted ? '' : ($tblCertificate
+                                        ? (new Standard(
+                                            '', '/Education/Certificate/Prepare/Certificate/Show', new EyeOpen(),
                                             array(
                                                 'PrepareId' => $tblPrepare->getId(),
+                                                'GroupId' => $tblGroup ? $tblGroup->getId() : null,
                                                 'PersonId' => $tblPerson->getId(),
                                                 'Route' => $Route
                                             ),
-                                            'Abgewählte Fächer verwalten')
+                                            'Zeugnisvorschau anzeigen'))
+                                        . (new External(
+                                            '',
+                                            '/Api/Education/Certificate/Generator/Preview',
+                                            new Download(),
+                                            array(
+                                                'PrepareId' => $tblPrepare->getId(),
+                                                'PersonId' => $tblPerson->getId(),
+                                                'Name' => 'Zeugnismuster'
+                                            ),
+                                            'Zeugnis als Muster herunterladen'))
+                                        // Mittelschule Abschlusszeugnis Realschule
+                                        . (($tblCertificate->getCertificate() == 'MsAbsRs'
+                                            && $tblPrepareStudent
+                                            && !$tblPrepareStudent->isApproved())
+                                            ? new Standard(
+                                                '', '/Education/Certificate/Prepare/DroppedSubjects',
+                                                new CommodityItem(),
+                                                array(
+                                                    'PrepareId' => $tblPrepare->getId(),
+                                                    'GroupId' => $tblGroup ? $tblGroup->getId() : null,
+                                                    'PersonId' => $tblPerson->getId(),
+                                                    'Route' => $Route
+                                                ),
+                                                'Abgewählte Fächer verwalten')
+                                            : '')
                                         : '')
-                                    : '')
-                        );
+                            );
 
-                        // Vorlagen informationen
-                        if (!($isDiploma && $isMuted)) {
-                            $this->getTemplateInformationForPreview($tblPrepare, $tblPerson, $studentTable,
-                                $columnTable);
-                        }
-
-                        // Noten vom Vorjahr ermitteln (abgeschlossene Fächer) und speichern
-                        // Mittelschule Abschlusszeugnis Realschule
-                        if (!($isDiploma && $isMuted)
-                            && $tblCertificate && $tblCertificate->getCertificate() == 'MsAbsRs'
-                            && ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PRIOR_YEAR_GRADE'))
-                        ) {
-                            if (!isset($columnTable['DroppedSubjects'])) {
-                                $columnTable['DroppedSubjects'] = 'Abgewählte Fächer';
+                            // Vorlagen informationen
+                            if (!($isDiploma && $isMuted)) {
+                                $this->getTemplateInformationForPreview($tblPrepare, $tblPerson, $studentTable,
+                                    $columnTable);
                             }
 
-                            // automatisch vom letzten Schuljahr setzen
-                            $gradeString = '';
-                            if (!Prepare::useService()->getPrepareAdditionalGradeListBy($tblPrepare, $tblPerson,
-                                $tblPrepareAdditionalGradeType)
+                            // Noten vom Vorjahr ermitteln (abgeschlossene Fächer) und speichern
+                            // Mittelschule Abschlusszeugnis Realschule
+                            if (!($isDiploma && $isMuted)
+                                && $tblCertificate && $tblCertificate->getCertificate() == 'MsAbsRs'
+                                && ($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('PRIOR_YEAR_GRADE'))
                             ) {
-                                $gradeString = Prepare::useService()->setAutoDroppedSubjects($tblPrepare, $tblPerson);
-                            }
-
-                            if ($gradeString) {
-                                $studentTable[$tblPerson->getId()]['DroppedSubjects'] = $gradeString;
-                            } elseif (($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
-                                $tblPrepare, $tblPerson, $tblPrepareAdditionalGradeType))
-                            ) {
-                                $gradeString = '';
-                                foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
-                                    if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
-                                        $gradeString .= $tblSubject->getAcronym() . ':' . $tblPrepareAdditionalGrade->getGrade() . ' ';
-                                    }
+                                if (!isset($columnTable['DroppedSubjects'])) {
+                                    $columnTable['DroppedSubjects'] = 'Abgewählte Fächer';
                                 }
-                                $studentTable[$tblPerson->getId()]['DroppedSubjects'] = $gradeString;
-                            } else {
-                                $studentTable[$tblPerson->getId()]['DroppedSubjects'] = new \SPHERE\Common\Frontend\Text\Repository\Warning(
-                                    new Exclamation() . ' nicht erledigt'
-                                );
-                            }
-                        }
 
-                        if (isset($columnTable['DroppedSubjects'])
-                            && !isset($studentTable[$tblPerson->getId()]['DroppedSubjects'])
-                        ) {
-                            $studentTable[$tblPerson->getId()]['DroppedSubjects'] = '';
+                                // automatisch vom letzten Schuljahr setzen
+                                $gradeString = '';
+                                if (!Prepare::useService()->getPrepareAdditionalGradeListBy($tblPrepare, $tblPerson,
+                                    $tblPrepareAdditionalGradeType)
+                                ) {
+                                    $gradeString = Prepare::useService()->setAutoDroppedSubjects($tblPrepare,
+                                        $tblPerson);
+                                }
+
+                                if ($gradeString) {
+                                    $studentTable[$tblPerson->getId()]['DroppedSubjects'] = $gradeString;
+                                } elseif (($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
+                                    $tblPrepare, $tblPerson, $tblPrepareAdditionalGradeType))
+                                ) {
+                                    $gradeString = '';
+                                    foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
+                                        if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
+                                            $gradeString .= $tblSubject->getAcronym() . ':' . $tblPrepareAdditionalGrade->getGrade() . ' ';
+                                        }
+                                    }
+                                    $studentTable[$tblPerson->getId()]['DroppedSubjects'] = $gradeString;
+                                } else {
+                                    $studentTable[$tblPerson->getId()]['DroppedSubjects'] = new \SPHERE\Common\Frontend\Text\Repository\Warning(
+                                        new Exclamation() . ' nicht erledigt'
+                                    );
+                                }
+                            }
+
+                            if (isset($columnTable['DroppedSubjects'])
+                                && !isset($studentTable[$tblPerson->getId()]['DroppedSubjects'])
+                            ) {
+                                $studentTable[$tblPerson->getId()]['DroppedSubjects'] = '';
+                            }
                         }
                     }
                 }
             }
-
-            $columnTable['Option'] = '';
 
             $buttonSigner = new Standard(
                 'Unterzeichner auswählen',
                 '/Education/Certificate/Prepare/Signer',
                 new Select(),
                 array(
-                    'PrepareId' => $tblPrepare->getId(),
+                    'PrepareId' => $tblPrepareCertificate ? $tblPrepareCertificate->getId() : null,
+                    'GroupId'=> $tblGroup ? $tblGroup->getId() : null,
                     'Route' => $Route
                 ),
                 'Unterzeichner auswählen'
             );
+
+            if (!empty($personSignerList)) {
+                $hasPersonSigner = true;
+                if ($tblPrepareCertificate->getServiceTblGenerateCertificate()
+                    && $tblPrepareCertificate->getServiceTblGenerateCertificate()->isDivisionTeacherAvailable()
+                    && count($personSignerList) > 1
+                ) {
+                    $columnTable['Signer'] = 'Unterzeichner';
+                }
+                $personSignerDisplayData = $personSignerList;
+            } else {
+                $hasPersonSigner = false;
+                $personSignerDisplayData[] = new Exclamation() . ' Kein Unterzeichner ausgewählt';
+            }
+            $personSignerDisplayData[] = $buttonSigner;
+
+            $columnTable['Option'] = '';
 
             $columnDef = array(
                 array(
@@ -1667,37 +1998,35 @@ class Frontend extends Extension implements IFrontendInterface
                                 new Panel(
                                     'Zeugnisvorbereitung',
                                     array(
-                                        $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
-                                        'Klasse ' . $tblDivision->getDisplayName()
+                                        $tblPrepareCertificate
+                                            ? $tblPrepareCertificate->getName() . ' '
+                                            . new Small(new Muted($tblPrepareCertificate->getDate())) : '',
+                                        $description
                                     ),
                                     Panel::PANEL_TYPE_INFO
                                 ),
                             ), 6),
-                            $tblPrepare->getServiceTblGenerateCertificate()
-                            && $tblPrepare->getServiceTblGenerateCertificate()->isDivisionTeacherAvailable()
+                            $tblPrepareCertificate->getServiceTblGenerateCertificate()
+                            && $tblPrepareCertificate->getServiceTblGenerateCertificate()->isDivisionTeacherAvailable()
                                 ? new LayoutColumn(array(
                                 new Panel(
                                     'Unterzeichner',
-                                    array(
-                                        $tblPrepare->getServiceTblPersonSigner()
-                                            ? $tblPrepare->getServiceTblPersonSigner()->getFullName()
-                                            : new Exclamation() . ' Kein Unterzeichner ausgewählt',
-                                        $buttonSigner
-                                    ),
-                                    $tblPrepare->getServiceTblPersonSigner()
+                                    $personSignerDisplayData,
+                                    !empty($hasPersonSigner)
                                         ? Panel::PANEL_TYPE_SUCCESS
                                         : Panel::PANEL_TYPE_WARNING
                                 ),
                             ), 6)
                                 : null,
                             new LayoutColumn(array(
-                                $tblPrepare->getServiceTblAppointedDateTask()
+                                $tblPrepareCertificate->getServiceTblAppointedDateTask()
                                     ? new Standard(
                                     'Fachnoten ansehen',
                                     '/Education/Certificate/Prepare/Prepare/Preview/SubjectGrades',
                                     null,
                                     array(
                                         'PrepareId' => $PrepareId,
+                                        'GroupId' => $tblGroup ? $tblGroup->getId() : null,
                                         'Route' => $Route
                                     )
                                 ) : null,
@@ -1706,7 +2035,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     '/Api/Education/Certificate/Generator/PreviewMultiPdf',
                                     new Download(),
                                     array(
-                                        'PrepareId' => $tblPrepare->getId(),
+                                        'PrepareId' => $tblPrepareCertificate->getId(),
+                                        'GroupId' => $tblGroup ? $tblGroup->getId() : null,
                                         'Name' => 'Musterzeugnis'
                                     ),
                                     false
@@ -1849,101 +2179,143 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $PrepareId
+     * @param null $GroupId
      * @param null $Route
      *
      * @return Stage|string
      */
-    public function frontendPrepareShowSubjectGrades($PrepareId = null, $Route = null)
+    public function frontendPrepareShowSubjectGrades($PrepareId = null, $GroupId = null, $Route = null)
     {
 
         $Stage = new Stage('Zeugnisvorbereitung', 'Fachnoten-Übersicht');
 
-        if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
-            && ($tblDivision = $tblPrepare->getServiceTblDivision())
-            && ($tblTask = $tblPrepare->getServiceTblAppointedDateTask())
-        ) {
+        $description = '';
+        $tblPrepareList = false;
+        $tblGroup = false;
+        if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))) {
+            $tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate();
+            if ($GroupId && ($tblGroup = Group::useService()->getGroupById($GroupId))) {
+                $description = 'Gruppe ' . $tblGroup->getName();
+                if (($tblGenerateCertificate)) {
+                    $tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate);
+                }
+            } else {
+                if (($tblDivisionTemp = $tblPrepare->getServiceTblDivision())) {
+                    $description = 'Klasse ' . $tblDivisionTemp->getDisplayName();
+                    $tblPrepareList = array(0 => $tblPrepare);
+                }
+            }
 
             $Stage->addButton(new Standard('Zurück', '/Education/Certificate/Prepare/Prepare/Preview',
                     new ChevronLeft(),
-                    array('PrepareId' => $PrepareId, 'Route' => $Route))
+                    array(
+                        'PrepareId' => $PrepareId,
+                        'GroupId' => $GroupId,
+                        'Route' => $Route
+                    )
+                )
             );
 
             $studentList = array();
             $tableHeaderList = array();
-            // Alle Klassen ermitteln in denen der Schüler im Schuljahr Unterricht hat
             $divisionList = array();
-            $tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision);
             $divisionPersonList = array();
-            if ($tblDivisionStudentAll) {
-                foreach ($tblDivisionStudentAll as $tblPerson) {
-                    if (($tblYear = $tblDivision->getServiceTblYear())
-                        && ($tblPersonDivisionList = Student::useService()->getDivisionListByPersonAndYear($tblPerson, $tblYear))
+
+            if ($tblPrepareList
+                && $tblGenerateCertificate
+                && ($tblTask = $tblGenerateCertificate->getServiceTblAppointedDateTask())
+            ) {
+                foreach ($tblPrepareList as $tblPrepareItem) {
+                    if (($tblDivision = $tblPrepareItem->getServiceTblDivision())
+                        && ($tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision))
                     ) {
-                        foreach ($tblPersonDivisionList as $tblDivisionItem) {
-                            if (!isset($divisionList[$tblDivisionItem->getId()])) {
-                                $divisionList[$tblDivisionItem->getId()] = $tblDivisionItem;
-                            }
-                        }
-                    }
-                    $divisionPersonList[$tblPerson->getId()] = 1;
-                }
-            }
-
-            foreach ($divisionList as $tblDivisionItem) {
-                if (($tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask, $tblDivisionItem))) {
-                    foreach ($tblTestAllByTask as $tblTest) {
-                        $tblSubject = $tblTest->getServiceTblSubject();
-                        if ($tblSubject && $tblTest->getServiceTblDivision()) {
-                            $tableHeaderList[$tblSubject->getAcronym()] = $tblSubject->getAcronym();
-
-                            $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
-                                $tblTest->getServiceTblDivision(),
-                                $tblSubject,
-                                $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
-                            );
-
-                            if ($tblDivisionSubject && $tblDivisionSubject->getTblSubjectGroup()) {
-                                $tblSubjectStudentAllByDivisionSubject =
-                                    Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
-                                if ($tblSubjectStudentAllByDivisionSubject) {
-                                    foreach ($tblSubjectStudentAllByDivisionSubject as $tblSubjectStudent) {
-
-                                        $tblPerson = $tblSubjectStudent->getServiceTblPerson();
-                                        if ($tblPerson) {
-                                            if ($Route == 'Diploma') {
-                                                $studentList = $this->setDiplomaGrade($tblPrepare, $tblPerson,
-                                                    $tblSubject, $studentList);
-                                            } else {
-                                                $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
-                                                    $tblTest, $tblSubject, $tblPerson, $studentList,
-                                                    $tblDivisionSubject->getTblSubjectGroup()
-                                                        ? $tblDivisionSubject->getTblSubjectGroup() : null,
-                                                    $tblPrepare
-                                                );
-                                            }
-                                        }
-                                    }
-
-                                    // nicht vorhandene Schüler in der Gruppe auf leer setzten
-                                    if ($tblDivisionStudentAll) {
-                                        foreach ($tblDivisionStudentAll as $tblPersonItem) {
-                                            if (!isset($studentList[$tblPersonItem->getId()][$tblSubject->getAcronym()])) {
-                                                $studentList[$tblPersonItem->getId()][$tblSubject->getAcronym()] = '';
-                                            }
+                        // Alle Klassen ermitteln in denen der Schüler im Schuljahr Unterricht hat
+                        foreach ($tblDivisionStudentAll as $tblPerson) {
+                            if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                                if (($tblYear = $tblDivision->getServiceTblYear())
+                                    && ($tblPersonDivisionList = Student::useService()->getDivisionListByPersonAndYear($tblPerson,
+                                        $tblYear))
+                                ) {
+                                    foreach ($tblPersonDivisionList as $tblDivisionItem) {
+                                        if (!isset($divisionList[$tblDivisionItem->getId()])) {
+                                            $divisionList[$tblDivisionItem->getId()] = $tblDivisionItem;
                                         }
                                     }
                                 }
-                            } else {
-                                if ($tblDivisionStudentAll) {
-                                    foreach ($tblDivisionStudentAll as $tblPerson) {
-                                        // nur Schüler der ausgewählten Klasse
-                                        if (isset($divisionPersonList[$tblPerson->getId()])) {
-                                            if ($Route == 'Diploma') {
-                                                $studentList = $this->setDiplomaGrade($tblPrepare, $tblPerson,
-                                                    $tblSubject, $studentList);
-                                            } else {
-                                                $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
-                                                    $tblTest, $tblSubject, $tblPerson, $studentList, null, $tblPrepare);
+                                $divisionPersonList[$tblPerson->getId()] = 1;
+                            }
+                        }
+
+                        foreach ($divisionList as $tblDivisionItem) {
+                            if (($tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask,
+                                $tblDivisionItem))
+                            ) {
+                                foreach ($tblTestAllByTask as $tblTest) {
+                                    $tblSubject = $tblTest->getServiceTblSubject();
+                                    if ($tblSubject && $tblTest->getServiceTblDivision()) {
+                                        $tableHeaderList[$tblSubject->getAcronym()] = $tblSubject->getAcronym();
+
+                                        $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+                                            $tblTest->getServiceTblDivision(),
+                                            $tblSubject,
+                                            $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
+                                        );
+
+                                        if ($tblDivisionSubject && $tblDivisionSubject->getTblSubjectGroup()) {
+                                            $tblSubjectStudentAllByDivisionSubject =
+                                                Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
+                                            if ($tblSubjectStudentAllByDivisionSubject) {
+                                                foreach ($tblSubjectStudentAllByDivisionSubject as $tblSubjectStudent) {
+
+                                                    $tblPerson = $tblSubjectStudent->getServiceTblPerson();
+                                                    if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                                                        if ($tblPerson) {
+                                                            if ($Route == 'Diploma') {
+                                                                $studentList = $this->setDiplomaGrade($tblPrepareItem,
+                                                                    $tblPerson,
+                                                                    $tblSubject, $studentList);
+                                                            } else {
+                                                                $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
+                                                                    $tblTest, $tblSubject, $tblPerson, $studentList,
+                                                                    $tblDivisionSubject->getTblSubjectGroup()
+                                                                        ? $tblDivisionSubject->getTblSubjectGroup() : null,
+                                                                    $tblPrepareItem
+                                                                );
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                                // nicht vorhandene Schüler in der Gruppe auf leer setzten
+                                                if ($tblDivisionStudentAll) {
+                                                    foreach ($tblDivisionStudentAll as $tblPersonItem) {
+                                                        if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPersonItem)) {
+                                                            if (!isset($studentList[$tblPersonItem->getId()][$tblSubject->getAcronym()])) {
+                                                                $studentList[$tblPersonItem->getId()][$tblSubject->getAcronym()] = '';
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        } else {
+                                            if ($tblDivisionStudentAll) {
+                                                foreach ($tblDivisionStudentAll as $tblPerson) {
+                                                    if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                                                        // nur Schüler der ausgewählten Klasse
+                                                        if (isset($divisionPersonList[$tblPerson->getId()])) {
+                                                            if ($Route == 'Diploma') {
+                                                                $studentList = $this->setDiplomaGrade($tblPrepareItem,
+                                                                    $tblPerson,
+                                                                    $tblSubject, $studentList);
+                                                            } else {
+                                                                $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
+                                                                    $tblTest, $tblSubject, $tblPerson, $studentList,
+                                                                    null,
+                                                                    $tblPrepareItem);
+                                                            }
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -1978,7 +2350,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Zeugnisvorbereitung',
                                         array(
                                             $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
-                                            'Klasse ' . $tblDivision->getDisplayName()
+                                            $description
                                         ),
                                         Panel::PANEL_TYPE_INFO
                                     ),
@@ -2108,6 +2480,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $PrepareId
+     * @param null $GroupId
      * @param null $PersonId
      * @param null $Route
      *
@@ -2115,6 +2488,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendShowCertificate(
         $PrepareId = null,
+        $GroupId = null,
         $PersonId = null,
         $Route = null
     ) {
@@ -2122,6 +2496,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard(
             'Zurück', '/Education/Certificate/Prepare/Prepare/Preview', new ChevronLeft(), array(
                 'PrepareId' => $PrepareId,
+                'GroupId' => $GroupId,
                 'Route' => $Route
             )
         ));
@@ -2131,6 +2506,7 @@ class Frontend extends Extension implements IFrontendInterface
             && ($tblPerson = Person::useService()->getPersonById($PersonId))
         ) {
 
+            $tblGroup = Group::useService()->getGroupById($GroupId);
             $ContentLayout = array();
 
             $tblCertificate = false;
@@ -2174,8 +2550,8 @@ class Frontend extends Extension implements IFrontendInterface
                             ), 4),
                             new LayoutColumn(array(
                                 new Panel(
-                                    'Klasse',
-                                    $tblDivision->getDisplayName(),
+                                    $tblGroup ? 'Gruppe' : 'Klasse',
+                                    $tblGroup ? $tblGroup->getName() : $tblDivision->getDisplayName(),
                                     Panel::PANEL_TYPE_INFO
                                 ),
                             ), 4),
@@ -2216,23 +2592,26 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $PrepareId
+     * @param null $GroupId
      * @param null $Route
      * @param null $Data
      *
      * @return Stage|string
      */
-    public function frontendSigner($PrepareId = null, $Route = null, $Data = null)
+    public function frontendSigner($PrepareId = null, $GroupId = null, $Route = null, $Data = null)
     {
 
         $Stage = new Stage('Unterzeichner', 'Auswählen');
         $Stage->addButton(new Standard(
             'Zurück', '/Education/Certificate/Prepare/Prepare/Preview', new ChevronLeft(), array(
                 'PrepareId' => $PrepareId,
+                'GroupId' => $GroupId,
                 'Route' => $Route
             )
         ));
 
         $tblPrepare = Prepare::useService()->getPrepareById($PrepareId);
+        $tblGroup = Group::useService()->getGroupById($GroupId);
         if ($tblPrepare && ($tblDivision = $tblPrepare->getServiceTblDivision())) {
 
             if ($Data === null) {
@@ -2241,7 +2620,26 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global->savePost();
             }
 
-            $tblPersonList = Division::useService()->getTeacherAllByDivision($tblDivision);
+            $personList[0] = '-[Nicht ausgewählt]-';
+            if ($tblGroup) {
+                // Tudors
+                if (($tudors = $tblGroup->getTudors())) {
+                    foreach ($tudors as $tblPerson) {
+                        $personList[$tblPerson->getId()] = $tblPerson->getFullName();
+                    }
+                }
+            } else {
+                // DivisionTeacher
+                if (($tblPersonList = Division::useService()->getTeacherAllByDivision($tblDivision))) {
+                    foreach ($tblPersonList as $tblPerson) {
+                        $personList[$tblPerson->getId()] = $tblPerson->getFullName();
+                    }
+                }
+            }
+
+            if (($tblPersonSigner = $tblPrepare->getServiceTblPersonSigner()) && !isset($personList[$tblPersonSigner->getId()])) {
+                $personList[$tblPersonSigner->getId()] = $tblPersonSigner->getFullName();
+            }
 
             $form = new Form(
                 new FormGroup(
@@ -2250,7 +2648,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new SelectBox(
                                 'Data',
                                 'Unterzeichner (Klassenlehrer)',
-                                array('{{ FullName }}' => $tblPersonList)
+                                $personList
                             )
                         )
                     )
@@ -2272,16 +2670,16 @@ class Frontend extends Extension implements IFrontendInterface
                             ), 6),
                             new LayoutColumn(array(
                                 new Panel(
-                                    'Klasse',
-                                    $tblDivision->getDisplayName(),
+                                    $tblGroup ? 'Gruppe' : 'Klasse',
+                                    $tblGroup ? $tblGroup->getName() : $tblDivision->getDisplayName(),
                                     Panel::PANEL_TYPE_INFO
                                 ),
                             ), 6),
                             new LayoutColumn(array(
-                                $tblPersonList
+                                !empty($personList)
                                     ? new Well(Prepare::useService()->updatePrepareSetSigner($form,
-                                    $tblPrepare, $Data, $Route))
-                                    : new Warning('Für diese Klasse sind keine Klassenlehrer vorhanden.')
+                                    $tblPrepare, $tblGroup ? $tblGroup : null, $Data, $Route))
+                                    : new Warning('Für diese Klasse sind keine Klassenlehrer/Mentoren/Tudoren vorhanden.')
                             )),
                         ))
                     ))
@@ -2297,19 +2695,28 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $PrepareId
+     * @param null $GroupId
      * @param null $PersonId
      * @param null $Route
      * @param null $Data
      *
      * @return Stage|string
      */
-    public function frontendDroppedSubjects($PrepareId = null, $PersonId = null, $Route = null, $Data = null)
+    public function frontendDroppedSubjects($PrepareId = null, $GroupId = null, $PersonId = null, $Route = null, $Data = null)
     {
+
+        if ($GroupId) {
+            $tblGroup = Group::useService()->getGroupById($GroupId);
+        } else {
+            $tblGroup = false;
+        }
+
         $Stage = new Stage('Abgewählte Fächer', 'Verwalten');
         $Stage->addButton(new Standard(
             'Zurück', '/Education/Certificate/Prepare/Prepare/Preview', new ChevronLeft(), array(
                 'PrepareId' => $PrepareId,
-                'Route' => $Route
+                'GroupId' => $tblGroup ? $tblGroup->getId() : null,
+                'Route' => $Route,
             )
         ));
 
@@ -2334,7 +2741,11 @@ class Frontend extends Extension implements IFrontendInterface
                             'Grade' => $tblPrepareAdditionalGrade->getGrade(),
                             'Option' => (new Standard('', '/Education/Certificate/Prepare/DroppedSubjects/Destroy',
                                 new Remove(),
-                                array('Id' => $tblPrepareAdditionalGrade->getId(), 'Route' => $Route), 'Löschen'))
+                                array(
+                                    'Id' => $tblPrepareAdditionalGrade->getId(),
+                                    'Route' => $Route,
+                                    'GroupId' => $tblGroup ? $tblGroup->getId() : null
+                                ), 'Löschen'))
                         );
                     }
                 }
@@ -2353,8 +2764,10 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Zeugnisvorbereitung',
                                     array(
                                         $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
-                                        'Klasse ' . (($tblDivision = $tblPrepare->getServiceTblDivision())
-                                            ? $tblDivision->getDisplayName() : '')
+                                        $tblGroup
+                                            ? 'Gruppe ' . $tblGroup->getName()
+                                            : 'Klasse ' . (($tblDivision = $tblPrepare->getServiceTblDivision())
+                                                ? $tblDivision->getDisplayName() : '')
                                     ),
                                     Panel::PANEL_TYPE_INFO
                                 ),
@@ -2385,6 +2798,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             'Url' => '/Api/Education/Prepare/Reorder',
                                             'Data' => array(
                                                 'PrepareId' => $tblPrepare->getId(),
+                                                'GroupId' => $tblGroup ? $tblGroup->getId() : null,
                                                 'PersonId' => $tblPerson->getId()
                                             )
                                         ),
@@ -2401,6 +2815,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $form,
                                     $Data,
                                     $tblPrepare,
+                                    $tblGroup ? $tblGroup : null,
                                     $tblPerson,
                                     $Route
                                 ))
@@ -2472,6 +2887,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Id
+     * @param null $GroupId
      * @param bool|false $Confirm
      * @param null $Route
      *
@@ -2479,6 +2895,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendDestroyDroppedSubjects(
         $Id = null,
+        $GroupId = null,
         $Confirm = false,
         $Route = null
     ) {
@@ -2491,9 +2908,16 @@ class Frontend extends Extension implements IFrontendInterface
 
         $parameters = array(
             'PrepareId' => $tblPrepare ? $tblPrepare->getId() : 0,
+            'GroupId' => $GroupId,
             'PersonId' => $tblPerson ? $tblPerson->getId() : 0,
             'Route' => $Route
         );
+
+        if ($GroupId) {
+            $tblGroup = Group::useService()->getGroupById($GroupId);
+        } else {
+            $tblGroup = false;
+        }
 
         if ($tblPrepareAdditionalGrade) {
             $Stage->addButton(
@@ -2509,8 +2933,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Zeugnisvorbereitung',
                                 array(
                                     $tblPrepare->getName() . ' ' . new Small(new Muted($tblPrepare->getDate())),
-                                    'Klasse ' . (($tblDivision = $tblPrepare->getServiceTblDivision())
-                                        ? $tblDivision->getDisplayName() : '')
+                                    $tblGroup
+                                        ? 'Gruppe ' . $tblGroup->getName()
+                                        : 'Klasse ' . (($tblDivision = $tblPrepare->getServiceTblDivision())
+                                            ? $tblDivision->getDisplayName() : '')
                                 ),
                                 Panel::PANEL_TYPE_INFO
                             ),
@@ -2540,7 +2966,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     Panel::PANEL_TYPE_DANGER,
                                     new Standard(
                                         'Ja', '/Education/Certificate/Prepare/DroppedSubjects/Destroy', new Ok(),
-                                        array('Id' => $Id, 'Confirm' => true, 'Route' => $Route)
+                                        array('Id' => $Id, 'GroupId'=> $GroupId, 'Confirm' => true, 'Route' => $Route)
                                     )
                                     . new Standard(
                                         'Nein', '/Education/Certificate/Prepare/DroppedSubjects', new Disable(),
@@ -2628,6 +3054,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $PrepareId
+     * @param null $GroupId
      * @param null $SubjectId
      * @param null $Route
      * @param null $IsNotSubject
@@ -2639,6 +3066,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendPrepareDiplomaSetting(
         $PrepareId = null,
+        $GroupId = null,
         $SubjectId = null,
         $Route = null,
         $IsNotSubject = null,
@@ -2647,8 +3075,23 @@ class Frontend extends Extension implements IFrontendInterface
         $CertificateList = null
     ) {
 
-        $tblPrepare = Prepare::useService()->getPrepareById($PrepareId);
-        if ($tblPrepare) {
+        if ($tblPrepare = Prepare::useService()->getPrepareById($PrepareId)) {
+            $tblGroup = false;
+            $tblPrepareList = false;
+            $description = '';
+            $tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate();
+            if ($GroupId && ($tblGroup = Group::useService()->getGroupById($GroupId))) {
+                $description = 'Gruppe ' . $tblGroup->getName();
+                if (($tblGenerateCertificate)) {
+                    $tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate);
+                }
+            } else {
+                if (($tblDivision = $tblPrepare->getServiceTblDivision())) {
+
+                    $description = 'Klasse ' . $tblDivision->getDisplayName();
+                    $tblPrepareList = array(0 => $tblPrepare);
+                }
+            }
 
             // Fachnoten mit Prüfungsnoten festlegen
             if (!$IsNotSubject
@@ -2658,8 +3101,8 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblDivision))
             ) {
 
-                return $this->setExamsSetting($tblPrepare, $tblDivision, $tblTestList, $SubjectId, $Route,
-                    $IsFinalGrade, $Data, $IsNotSubject);
+                return $this->setExamsSetting($tblPrepare, $tblDivision, $tblGroup ? $tblGroup : null, $tblTestList, $SubjectId, $Route,
+                    $IsFinalGrade, $Data, $IsNotSubject, $tblPrepareList, $description);
 
                 // Sonstige Informationen
             } elseif (($tblDivision = $tblPrepare->getServiceTblDivision())
@@ -2670,13 +3113,24 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblDivision)))
             ) {
                 $Stage = new Stage('Zeugnisvorbereitung', 'Sonstige Informationen festlegen');
-                $Stage->addButton(new Standard(
-                    'Zurück', '/Education/Certificate/Prepare/Prepare', new ChevronLeft(),
-                    array(
-                        'DivisionId' => $tblDivision->getId(),
-                        'Route' => $Route
-                    )
-                ));
+
+                if ($tblGroup) {
+                    $Stage->addButton(new Standard(
+                        'Zurück', '/Education/Certificate/Prepare/Prepare', new ChevronLeft(),
+                        array(
+                            'GroupId' => $tblGroup->getId(),
+                            'Route' => $Route
+                        )
+                    ));
+                } else {
+                    $Stage->addButton(new Standard(
+                        'Zurück', '/Education/Certificate/Prepare/Prepare', new ChevronLeft(),
+                        array(
+                            'DivisionId' => $tblDivision->getId(),
+                            'Route' => $Route
+                        )
+                    ));
+                }
 
                 $tblCurrentSubject = false;
                 $tblNextSubject = false;
@@ -2692,7 +3146,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 $buttonList = $this->createExamsButtonList(
                     $tblPrepare, $tblCurrentSubject, $tblNextSubject, $tblTestList, $SubjectId, $Route, $tblSubjectList,
-                    $IsNotSubject
+                    $IsNotSubject, $tblGroup ? $tblGroup : null
                 );
 
                 $studentTable = array();
@@ -2702,46 +3156,55 @@ class Frontend extends Extension implements IFrontendInterface
                     'Course' => 'Bildungsgang',
                 );
 
-                $isCourseMainDiploma = Prepare::useService()->isCourseMainDiploma($tblPrepare);
-                $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
-                if ($tblStudentList) {
-                    /** @var TblPerson $tblPerson */
-                    foreach ($tblStudentList as $tblPerson) {
-                        $isMuted = $isCourseMainDiploma;
-                        // Bildungsgang
-                        $tblCourse = false;
-                        if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
-                            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
-                        ) {
-                            $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                                $tblTransferType);
-                            if ($tblStudentTransfer) {
-                                $tblCourse = $tblStudentTransfer->getServiceTblCourse();
-                                if ($tblCourse && $tblCourse->getName() == 'Hauptschule') {
-                                    $isMuted = false;
+                foreach ($tblPrepareList as $tblPrepareItem) {
+                    if (($tblDivisionItem = $tblPrepareItem->getServiceTblDivision())
+                        && (($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivisionItem)))
+                    ) {
+
+                        $isCourseMainDiploma = Prepare::useService()->isCourseMainDiploma($tblPrepareItem);
+                        foreach ($tblStudentList as $tblPerson) {
+                            if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                                $isMuted = $isCourseMainDiploma;
+                                // Bildungsgang
+                                $tblCourse = false;
+                                if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
+                                    && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+                                ) {
+                                    $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                                        $tblTransferType);
+                                    if ($tblStudentTransfer) {
+                                        $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                                        if ($tblCourse && $tblCourse->getName() == 'Hauptschule') {
+                                            $isMuted = false;
+                                        }
+                                    }
                                 }
-                            }
-                        }
-                        $studentTable[$tblPerson->getId()] = array(
-                            'Number' => $isMuted ? new Muted(count($studentTable) + 1) : count($studentTable) + 1,
-                            'Name' => $isMuted ? new Muted($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName()
-                        );
-                        $courseName = $tblCourse ? $tblCourse->getName() : '';
-                        $studentTable[$tblPerson->getId()]['Course'] = $isMuted ? new Muted($courseName) : $courseName;
+                                $studentTable[$tblPerson->getId()] = array(
+                                    'Number' => $isMuted ? new Muted(count($studentTable) + 1) : count($studentTable) + 1,
+                                    'Name' => ($isMuted ? new Muted($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName())
+                                        . ($tblGroup
+                                            ? new Small(new Muted(' (' . $tblDivisionItem->getDisplayName() . ')')) : '')
+                                );
+                                $courseName = $tblCourse ? $tblCourse->getName() : '';
+                                $studentTable[$tblPerson->getId()]['Course'] = $isMuted ? new Muted($courseName) : $courseName;
 
-                        /*
-                         * Sonstige Informationen der Zeugnisvorlage
-                         */
-                        if (!$isMuted) {
-                            $this->getTemplateInformation($tblPrepare, $tblPerson, $studentTable, $columnTable, $Data,
-                                $CertificateList);
-                        }
+                                /*
+                                 * Sonstige Informationen der Zeugnisvorlage
+                                 */
+                                if (!$isMuted) {
+                                    $this->getTemplateInformation($tblPrepareItem, $tblPerson, $studentTable,
+                                        $columnTable,
+                                        $Data,
+                                        $CertificateList);
+                                }
 
-                        // leere Elemente auffühlen (sonst steht die Spaltennummer drin)
-                        foreach ($columnTable as $columnKey => $columnName) {
-                            foreach ($studentTable as $personId => $value) {
-                                if (!isset($studentTable[$personId][$columnKey])) {
-                                    $studentTable[$personId][$columnKey] = '';
+                                // leere Elemente auffühlen (sonst steht die Spaltennummer drin)
+                                foreach ($columnTable as $columnKey => $columnName) {
+                                    foreach ($studentTable as $personId => $value) {
+                                        if (!isset($studentTable[$personId][$columnKey])) {
+                                            $studentTable[$personId][$columnKey] = '';
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -2807,8 +3270,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 ), 6),
                                 new LayoutColumn(array(
                                     new Panel(
-                                        'Klasse',
-                                        $tblDivision->getDisplayName(),
+                                        $tblGroup ? 'Gruppe' : 'Klasse',
+                                        $description,
                                         Panel::PANEL_TYPE_INFO
                                     ),
                                 ), 6),
@@ -2822,8 +3285,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         ? new Warning('Die aktuelle Klasse ist nicht in dem ausgewählten Stichttagsnotenauftrag enthalten.'
                                         , new Exclamation())
                                         : null,
-                                    Prepare::useService()->updatePrepareInformationList($form, $tblPrepare, $Route,
-                                        $Data, $CertificateList)
+                                    Prepare::useService()->updatePrepareInformationList($form, $tblPrepare,
+                                        $tblGroup ? $tblGroup : null, $Route, $Data, $CertificateList)
                                 ))
                             ))
                         ))
@@ -2846,33 +3309,51 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param TblPrepareCertificate $tblPrepare
      * @param TblDivision $tblDivision
+     * @param TblGroup|null $tblGroup
      * @param $tblTestList
      * @param $SubjectId
      * @param $Route
      * @param $IsFinalGrade
      * @param $Data
-     *
      * @param $IsNotSubject
+     * @param false|TblPrepareCertificate[] $tblPrepareList
+     * @param $description
+     *
      * @return Stage
      */
     private function setExamsSetting(
         TblPrepareCertificate $tblPrepare,
         TblDivision $tblDivision,
+        TblGroup $tblGroup = null,
         $tblTestList,
         $SubjectId,
         $Route,
         $IsFinalGrade,
         $Data,
-        $IsNotSubject
+        $IsNotSubject,
+        $tblPrepareList,
+        $description
     ) {
+
         $Stage = new Stage('Zeugnisvorbereitung', 'Fachnoten festlegen');
-        $Stage->addButton(new Standard(
-            'Zurück', '/Education/Certificate/Prepare/Prepare', new ChevronLeft(),
-            array(
-                'DivisionId' => $tblDivision->getId(),
-                'Route' => $Route
-            )
-        ));
+
+        if ($tblGroup) {
+            $Stage->addButton(new Standard(
+                'Zurück', '/Education/Certificate/Prepare/Prepare', new ChevronLeft(),
+                array(
+                    'GroupId' => $tblGroup->getId(),
+                    'Route' => $Route
+                )
+            ));
+        } else {
+            $Stage->addButton(new Standard(
+                'Zurück', '/Education/Certificate/Prepare/Prepare', new ChevronLeft(),
+                array(
+                    'DivisionId' => $tblDivision->getId(),
+                    'Route' => $Route
+                )
+            ));
+        }
 
         $tblCurrentSubject = false;
         $tblNextSubject = false;
@@ -2880,7 +3361,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $buttonList = $this->createExamsButtonList(
             $tblPrepare, $tblCurrentSubject, $tblNextSubject, $tblTestList, $SubjectId, $Route, $tblSubjectList,
-            $IsNotSubject
+            $IsNotSubject, $tblGroup ? $tblGroup : null
         );
 
         $studentTable = array();
@@ -2940,8 +3421,8 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        list($studentTable, $hasPreviewGrades) = $this->createExamsContent($tblPrepare, $tblDivision, $tblTestList,
-            $IsFinalGrade, $studentTable, $tblCurrentSubject, $tblSubjectList);
+        list($studentTable, $hasPreviewGrades) = $this->createExamsContent($tblTestList,
+            $IsFinalGrade, $studentTable, $tblCurrentSubject, $tblSubjectList, $tblPrepareList, $tblGroup);
 
         $columnDef = array(
             array(
@@ -3003,8 +3484,8 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 6),
                         new LayoutColumn(array(
                             new Panel(
-                                'Klasse',
-                                $tblDivision->getDisplayName(),
+                                $tblGroup ? 'Gruppe' : 'Klasse',
+                                $description,
                                 Panel::PANEL_TYPE_INFO
                             ),
                         ), 6),
@@ -3026,7 +3507,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblNextSubject ? $tblNextSubject : null,
                                 $IsFinalGrade ? $IsFinalGrade : null,
                                 $Route,
-                                $Data
+                                $Data,
+                                $tblGroup ? $tblGroup : null
                             )
                         ))
                     ))
@@ -3046,6 +3528,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $Route
      * @param $tblSubjectList
      * @param $IsNotSubject
+     * @param TblGroup|null $tblGroup
      *
      * @return array
      */
@@ -3057,7 +3540,8 @@ class Frontend extends Extension implements IFrontendInterface
         $SubjectId,
         $Route,
         &$tblSubjectList,
-        $IsNotSubject
+        $IsNotSubject,
+        TblGroup $tblGroup = null
     ) {
 
         if ($tblTestList) {
@@ -3116,6 +3600,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $buttonList[] = new Standard($name,
                     '/Education/Certificate/Prepare/Prepare/Diploma/Setting', $icon, array(
                         'PrepareId' => $tblPrepare->getId(),
+                        'GroupId' => $tblGroup ? $tblGroup->getId() : null,
                         'Route' => $Route,
                         'SubjectId' => $tblSubject->getId()
                     )
@@ -3133,6 +3618,7 @@ class Frontend extends Extension implements IFrontendInterface
         $buttonList[] = new Standard($name,
             '/Education/Certificate/Prepare/Prepare/Diploma/Setting', $icon, array(
                 'PrepareId' => $tblPrepare->getId(),
+                'GroupId' => $tblGroup ? $tblGroup->getId() : null,
                 'Route' => $Route,
                 'IsNotSubject' => true
             )
@@ -3142,329 +3628,336 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param TblPrepareCertificate $tblPrepare
-     * @param TblDivision $tblDivision
      * @param $tblTestList
      * @param $IsFinalGrade
      * @param $studentTable
      * @param $tblCurrentSubject
      * @param $tblSubjectList
+     * @param false|TblPrepareCertificate[] $tblPrepareList
+     * @param TblGroup|null $tblGroup
      *
      * @return array
      */
     private function createExamsContent(
-        TblPrepareCertificate $tblPrepare,
-        TblDivision $tblDivision,
         $tblTestList,
         $IsFinalGrade,
         $studentTable,
         $tblCurrentSubject,
-        $tblSubjectList
+        $tblSubjectList,
+        $tblPrepareList,
+        TblGroup $tblGroup = null
     ) {
 
         $hasPreviewGrades = false;
-        $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
-        $isCourseMainDiploma = Prepare::useService()->isCourseMainDiploma($tblPrepare);
-        if ($tblStudentList) {
-            $tabIndex = 1;
-            /** @var TblPerson $tblPerson */
-            foreach ($tblStudentList as $tblPerson) {
-                $hasSubject = false;
+        $tabIndex = 1;
+        foreach ($tblPrepareList as $tblPrepareItem) {
+            if (($tblDivisionItem = $tblPrepareItem->getServiceTblDivision())
+                && (($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivisionItem)))
+            ) {
+                $isCourseMainDiploma = Prepare::useService()->isCourseMainDiploma($tblPrepareItem);
+                foreach ($tblStudentList as $tblPerson) {
+                    if (!$tblGroup || Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
+                        $hasSubject = false;
+                        $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareItem, $tblPerson);
 
-                // Bildungsgang
-                $tblCourse = false;
-                $isMuted = $isCourseMainDiploma;
-                if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
-                    && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
-                ) {
-                    $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
-                        $tblTransferType);
-                    if ($tblStudentTransfer) {
-                        $tblCourse = $tblStudentTransfer->getServiceTblCourse();
-                        if ($tblCourse && $tblCourse->getName() == 'Hauptschule') {
-                            $isMuted = false;
-                        }
-                    }
-                }
-
-                $studentTable[$tblPerson->getId()] = array(
-                    'Number' => $isMuted ? new Muted(count($studentTable) + 1) : count($studentTable) + 1,
-                    'Name' => $isMuted ? new Muted($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName()
-                );
-                $courseName = $tblCourse ? $tblCourse->getName() : '';
-                $studentTable[$tblPerson->getId()]['Course'] = $isMuted ? new Muted($courseName) : $courseName;
-
-                if ($tblCurrentSubject) {
-                    /** @var TblSubject $tblCurrentSubject */
-                    $subjectGradeList = array();
-                    /** @var TblTest $tblTest */
-                    foreach ($tblTestList as $tblTest) {
-                        if (($tblSubject = $tblTest->getServiceTblSubject())
-                            && $tblSubject->getId() == $tblCurrentSubject->getId()
+                        // Bildungsgang
+                        $tblCourse = false;
+                        $isMuted = $isCourseMainDiploma;
+                        if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
+                            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
                         ) {
-                            if (($tblSubject = $tblTest->getServiceTblSubject())
-                                && ($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
-                                    $tblPerson))
-                            ) {
-                                $subjectGradeList[$tblSubject->getAcronym()] = $tblGrade;
+                            $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                                $tblTransferType);
+                            if ($tblStudentTransfer) {
+                                $tblCourse = $tblStudentTransfer->getServiceTblCourse();
+                                if ($tblCourse && $tblCourse->getName() == 'Hauptschule') {
+                                    $isMuted = false;
+                                }
                             }
+                        }
 
-                            // besucht der Schüler das Fach
-                            if (($tblSubjectGroup = $tblTest->getServiceTblSubjectGroup())) {
-                                if (($tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
-                                        $tblDivision, $tblSubject, $tblSubjectGroup
-                                    ))
-                                    && (($tblSubjectStudent = Division::useService()->exitsSubjectStudent(
-                                        $tblDivisionSubject, $tblPerson
-                                    )))
+                        $studentTable[$tblPerson->getId()] = array(
+                            'Number' => $isMuted ? new Muted(count($studentTable) + 1) : count($studentTable) + 1,
+                            'Name' => ($isMuted ? new Muted($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName())
+                                . ($tblGroup
+                                    ? new Small(new Muted(' (' . $tblDivisionItem->getDisplayName() . ')')) : '')
+                        );
+                        $courseName = $tblCourse ? $tblCourse->getName() : '';
+                        $studentTable[$tblPerson->getId()]['Course'] = $isMuted ? new Muted($courseName) : $courseName;
+
+                        if ($tblCurrentSubject) {
+                            /** @var TblSubject $tblCurrentSubject */
+                            $subjectGradeList = array();
+                            /** @var TblTest $tblTest */
+                            foreach ($tblTestList as $tblTest) {
+                                if (($tblSubject = $tblTest->getServiceTblSubject())
+                                    && $tblSubject->getId() == $tblCurrentSubject->getId()
                                 ) {
-                                    $hasSubject = true;
-                                }
-                            } else {
-                                $hasSubject = true;
-                            }
-                        }
-                    }
-
-                    // Post setzen
-                    if (($tblTask = $tblPrepare->getServiceTblAppointedDateTask())
-                        && ($tblTestType = $tblTask->getTblTestType())
-                        && $tblCurrentSubject
-                    ) {
-                        if (isset($tblSubjectList[$tblCurrentSubject->getId()])) {
-                            $Global = $this->getGlobal();
-                            $gradeList = array();
-
-                            foreach ($tblSubjectList[$tblCurrentSubject->getId()] as $testId => $value) {
-                                if ($isCourseMainDiploma) {
-                                    if (!$isMuted && ($tblTestTemp = Evaluation::useService()->getTestById($testId))) {
-                                        $tblScoreRule = Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
-                                            $tblDivision,
-                                            $tblCurrentSubject,
-                                            $tblTestTemp->getServiceTblSubjectGroup() ? $tblTestTemp->getServiceTblSubjectGroup() : null
-                                        );
-                                        $average = Gradebook::useService()->calcStudentGrade(
-                                            $tblPerson,
-                                            $tblDivision,
-                                            $tblCurrentSubject,
-                                            Evaluation::useService()->getTestTypeByIdentifier('TEST'),
-                                            $tblScoreRule ? $tblScoreRule : null,
-                                            $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod() : null,
-                                            $tblTestTemp->getServiceTblSubjectGroup() ? $tblTestTemp->getServiceTblSubjectGroup() : null,
-                                            false,
-                                            $tblTask->getDate() ? $tblTask->getDate() : false
-                                        );
-
-                                        if ($average) {
-                                            if (!is_array($average) && ($pos = strpos($average, '('))){
-                                                $average = substr($average, 0, $pos);
-                                            }
-                                            $Global->POST['Data'][$tblPerson->getId()]['J'] = str_replace('.', ',',
-                                                $average);
-                                            $gradeList['J'] = $average;
-                                        }
-                                    }
-                                } else {
-                                    if (($tblTestTemp = Evaluation::useService()->getTestById($testId))) {
-                                        $tblGrade = Gradebook::useService()->getGradeByTestAndStudent(
-                                            $tblTestTemp, $tblPerson
-                                        );
-                                        if ($tblGrade) {
-                                            $gradeValue = $tblGrade->getDisplayGrade();
-                                            $Global->POST['Data'][$tblPerson->getId()]['JN'] = $gradeValue;
-                                            if ($gradeValue && is_numeric($gradeValue)) {
-                                                $gradeList['JN'] = $gradeValue;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            if (($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
-                                $tblPrepare,
-                                $tblPerson
-                            ))
-                            ) {
-                                foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
-                                    if ($tblPrepareAdditionalGrade->getServiceTblSubject()
-                                        && $tblCurrentSubject->getId() == $tblPrepareAdditionalGrade->getServiceTblSubject()->getId()
-                                        && ($tblPrepareAdditionalGradeType = $tblPrepareAdditionalGrade->getTblPrepareAdditionalGradeType())
-                                        && $tblPrepareAdditionalGradeType->getIdentifier() != 'PRIOR_YEAR_GRADE'
+                                    if (($tblSubject = $tblTest->getServiceTblSubject())
+                                        && ($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
+                                            $tblPerson))
                                     ) {
-                                        $Global->POST['Data'][$tblPerson->getId()][$tblPrepareAdditionalGradeType->getIdentifier()]
-                                            = $tblPrepareAdditionalGrade->getGrade();
-                                        if ($tblPrepareAdditionalGrade->getGrade()) {
-                                            $gradeList[$tblPrepareAdditionalGradeType->getIdentifier()] = $tblPrepareAdditionalGrade->getGrade();
-                                        }
+                                        $subjectGradeList[$tblSubject->getAcronym()] = $tblGrade;
                                     }
-                                }
-                            }
 
-                            // calc average --> finalGrade
-                            if ($IsFinalGrade) {
-                                if ($isCourseMainDiploma) {
-                                    if (!$isMuted) {
-                                        $calcValue = '';
-                                        if (isset($gradeList['J'])) {
-                                            $calc = false;
-                                            if (isset($gradeList['LS'])) {
-                                                $calc = (2 * $gradeList['J'] + $gradeList['LS']) / 3;
-                                            } elseif (isset($gradeList['LM'])) {
-                                                $calc = (2 * $gradeList['J'] + $gradeList['LM']) / 3;
-                                            }
-                                            if ($calc) {
-                                                $calcValue = round($calc, 2);
-                                            } else {
-                                                $calcValue = $gradeList['J'];
-                                            }
-                                        }
-
-                                        $studentTable[$tblPerson->getId()]['Average'] = str_replace('.', ',',
-                                            $calcValue);
-
-                                        if (!Prepare::useService()->getPrepareAdditionalGradeBy(
-                                                $tblPrepare,
-                                                $tblPerson,
-                                                $tblCurrentSubject,
-                                                Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN')
-                                            )
-                                            && $calcValue
+                                    // besucht der Schüler das Fach
+                                    if (($tblSubjectGroup = $tblTest->getServiceTblSubjectGroup())) {
+                                        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+                                                $tblDivisionItem, $tblSubject, $tblSubjectGroup
+                                            ))
+                                            && (($tblSubjectStudent = Division::useService()->exitsSubjectStudent(
+                                                $tblDivisionSubject, $tblPerson
+                                            )))
                                         ) {
-                                            $hasPreviewGrades = true;
-                                            $Global->POST['Data'][$tblPerson->getId()]['EN'] = round($calcValue, 0);
+                                            $hasSubject = true;
                                         }
+                                    } else {
+                                        $hasSubject = true;
                                     }
-                                } else {
-                                    $calcValue = '';
-                                    if (isset($gradeList['JN'])) {
-                                        $calc = false;
-                                        if (isset($gradeList['PZ'])) {
-                                            if (isset($gradeList['PS'])) {
-                                                $calc = ($gradeList['JN'] + $gradeList['PS'] + $gradeList['PZ']) / 3;
-                                            } elseif (isset($gradeList['PM'])) {
-                                                $calc = ($gradeList['JN'] + $gradeList['PM'] + $gradeList['PZ']) / 3;
-                                            }
-                                        } else {
-                                            if (isset($gradeList['PS'])) {
-                                                $calc = ($gradeList['JN'] + $gradeList['PS']) / 2;
-                                            } elseif (isset($gradeList['PM'])) {
-                                                $calc = ($gradeList['JN'] + $gradeList['PM']) / 2;
-                                            }
-                                        }
-                                        if ($calc) {
-                                            $calcValue = round($calc, 2);
-                                        } else {
-                                            $calcValue = $gradeList['JN'];
-                                        }
-                                    }
-                                    $studentTable[$tblPerson->getId()]['Average'] = str_replace('.', ',',
-                                        $calcValue);
+                                }
+                            }
 
-                                    if (!Prepare::useService()->getPrepareAdditionalGradeBy(
-                                            $tblPrepare,
-                                            $tblPerson,
-                                            $tblCurrentSubject,
-                                            Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN')
-                                        )
-                                        && $calcValue
+                            // Post setzen
+                            if (($tblTask = $tblPrepareItem->getServiceTblAppointedDateTask())
+                                && ($tblTestType = $tblTask->getTblTestType())
+                                && $tblCurrentSubject
+                                && $tblPrepareStudent
+                            ) {
+                                if (isset($tblSubjectList[$tblCurrentSubject->getId()])) {
+                                    $Global = $this->getGlobal();
+                                    $gradeList = array();
+
+                                    foreach ($tblSubjectList[$tblCurrentSubject->getId()] as $testId => $value) {
+                                        if ($isCourseMainDiploma) {
+                                            if (!$isMuted && ($tblTestTemp = Evaluation::useService()->getTestById($testId))) {
+                                                $tblScoreRule = Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
+                                                    $tblDivisionItem,
+                                                    $tblCurrentSubject,
+                                                    $tblTestTemp->getServiceTblSubjectGroup() ? $tblTestTemp->getServiceTblSubjectGroup() : null
+                                                );
+                                                $average = Gradebook::useService()->calcStudentGrade(
+                                                    $tblPerson,
+                                                    $tblDivisionItem,
+                                                    $tblCurrentSubject,
+                                                    Evaluation::useService()->getTestTypeByIdentifier('TEST'),
+                                                    $tblScoreRule ? $tblScoreRule : null,
+                                                    $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod() : null,
+                                                    $tblTestTemp->getServiceTblSubjectGroup() ? $tblTestTemp->getServiceTblSubjectGroup() : null,
+                                                    false,
+                                                    $tblTask->getDate() ? $tblTask->getDate() : false
+                                                );
+
+                                                if ($average) {
+                                                    if (!is_array($average) && ($pos = strpos($average, '('))) {
+                                                        $average = substr($average, 0, $pos);
+                                                    }
+                                                    $Global->POST['Data'][$tblPrepareStudent->getId()]['J'] = str_replace('.',
+                                                        ',',
+                                                        $average);
+                                                    $gradeList['J'] = $average;
+                                                }
+                                            }
+                                        } else {
+                                            if (($tblTestTemp = Evaluation::useService()->getTestById($testId))) {
+                                                $tblGrade = Gradebook::useService()->getGradeByTestAndStudent(
+                                                    $tblTestTemp, $tblPerson
+                                                );
+                                                if ($tblGrade) {
+                                                    $gradeValue = $tblGrade->getDisplayGrade();
+                                                    $Global->POST['Data'][$tblPrepareStudent->getId()]['JN'] = $gradeValue;
+                                                    if ($gradeValue && is_numeric($gradeValue)) {
+                                                        $gradeList['JN'] = $gradeValue;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    if (($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
+                                        $tblPrepareItem,
+                                        $tblPerson
+                                    ))
                                     ) {
-                                        $hasPreviewGrades = true;
-                                        $Global->POST['Data'][$tblPerson->getId()]['EN'] = round($calcValue, 0);
+                                        foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
+                                            if ($tblPrepareAdditionalGrade->getServiceTblSubject()
+                                                && $tblCurrentSubject->getId() == $tblPrepareAdditionalGrade->getServiceTblSubject()->getId()
+                                                && ($tblPrepareAdditionalGradeType = $tblPrepareAdditionalGrade->getTblPrepareAdditionalGradeType())
+                                                && $tblPrepareAdditionalGradeType->getIdentifier() != 'PRIOR_YEAR_GRADE'
+                                            ) {
+                                                $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareAdditionalGradeType->getIdentifier()]
+                                                    = $tblPrepareAdditionalGrade->getGrade();
+                                                if ($tblPrepareAdditionalGrade->getGrade()) {
+                                                    $gradeList[$tblPrepareAdditionalGradeType->getIdentifier()] = $tblPrepareAdditionalGrade->getGrade();
+                                                }
+                                            }
+                                        }
                                     }
+
+                                    // calc average --> finalGrade
+                                    if ($IsFinalGrade && $tblPrepareStudent) {
+                                        if ($isCourseMainDiploma) {
+                                            if (!$isMuted) {
+                                                $calcValue = '';
+                                                if (isset($gradeList['J'])) {
+                                                    $calc = false;
+                                                    if (isset($gradeList['LS'])) {
+                                                        $calc = (2 * $gradeList['J'] + $gradeList['LS']) / 3;
+                                                    } elseif (isset($gradeList['LM'])) {
+                                                        $calc = (2 * $gradeList['J'] + $gradeList['LM']) / 3;
+                                                    }
+                                                    if ($calc) {
+                                                        $calcValue = round($calc, 2);
+                                                    } else {
+                                                        $calcValue = $gradeList['J'];
+                                                    }
+                                                }
+
+                                                $studentTable[$tblPerson->getId()]['Average'] = str_replace('.', ',',
+                                                    $calcValue);
+
+                                                if (!Prepare::useService()->getPrepareAdditionalGradeBy(
+                                                        $tblPrepareItem,
+                                                        $tblPerson,
+                                                        $tblCurrentSubject,
+                                                        Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN')
+                                                    )
+                                                    && $calcValue
+                                                ) {
+                                                    $hasPreviewGrades = true;
+                                                    $Global->POST['Data'][$tblPrepareStudent->getId()]['EN'] = round($calcValue,
+                                                        0);
+                                                }
+                                            }
+                                        } else {
+                                            $calcValue = '';
+                                            if (isset($gradeList['JN'])) {
+                                                $calc = false;
+                                                if (isset($gradeList['PZ'])) {
+                                                    if (isset($gradeList['PS'])) {
+                                                        $calc = ($gradeList['JN'] + $gradeList['PS'] + $gradeList['PZ']) / 3;
+                                                    } elseif (isset($gradeList['PM'])) {
+                                                        $calc = ($gradeList['JN'] + $gradeList['PM'] + $gradeList['PZ']) / 3;
+                                                    }
+                                                } else {
+                                                    if (isset($gradeList['PS'])) {
+                                                        $calc = ($gradeList['JN'] + $gradeList['PS']) / 2;
+                                                    } elseif (isset($gradeList['PM'])) {
+                                                        $calc = ($gradeList['JN'] + $gradeList['PM']) / 2;
+                                                    }
+                                                }
+                                                if ($calc) {
+                                                    $calcValue = round($calc, 2);
+                                                } else {
+                                                    $calcValue = $gradeList['JN'];
+                                                }
+                                            }
+                                            $studentTable[$tblPerson->getId()]['Average'] = str_replace('.', ',',
+                                                $calcValue);
+
+                                            if (!Prepare::useService()->getPrepareAdditionalGradeBy(
+                                                    $tblPrepareItem,
+                                                    $tblPerson,
+                                                    $tblCurrentSubject,
+                                                    Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EN')
+                                                )
+                                                && $calcValue
+                                            ) {
+                                                $hasPreviewGrades = true;
+                                                $Global->POST['Data'][$tblPrepareStudent->getId()]['EN'] = round($calcValue, 0);
+                                            }
+                                        }
+                                    }
+
+                                    $Global->savePost();
                                 }
                             }
 
-                            $Global->savePost();
-                        }
-                    }
+                            if ($isCourseMainDiploma && $tblPrepareStudent) {
+                                // Klasse 9 Hauptschule
+                                if (!$isMuted && $hasSubject) {
+                                    $isApproved = $tblPrepareStudent && $tblPrepareStudent->isApproved();
+                                    if ($IsFinalGrade
+                                        || $isApproved
+                                    ) {
+                                        $studentTable[$tblPerson->getId()]['J'] =
+                                            (new TextField('Data[' . $tblPrepareStudent->getId() . '][J]'))->setDisabled();
+                                        $studentTable[$tblPerson->getId()]['LS'] =
+                                            (new NumberField('Data[' . $tblPrepareStudent->getId() . '][LS]'))->setDisabled();
+                                        $studentTable[$tblPerson->getId()]['LM'] =
+                                            (new NumberField('Data[' . $tblPrepareStudent->getId() . '][LM]'))->setDisabled();
+                                    } else {
+                                        $studentTable[$tblPerson->getId()]['J'] =
+                                            (new TextField('Data[' . $tblPrepareStudent->getId() . '][J]'))->setTabIndex($tabIndex++)->setDisabled();
+                                        $studentTable[$tblPerson->getId()]['LS'] =
+                                            (new NumberField('Data[' . $tblPrepareStudent->getId() . '][LS]'))->setTabIndex($tabIndex++);
+                                        $studentTable[$tblPerson->getId()]['LM'] =
+                                            (new NumberField('Data[' . $tblPrepareStudent->getId() . '][LM]'))->setTabIndex($tabIndex++);
+                                    }
 
-                    if ($isCourseMainDiploma) {
-                        // Klasse 9 Hauptschule
-                        if (!$isMuted && $hasSubject) {
-                            $isApproved = ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
-                                    $tblPerson))
-                                && $tblPrepareStudent->isApproved();
-                            if ($IsFinalGrade
-                                || $isApproved
-                            ) {
-                                $studentTable[$tblPerson->getId()]['J'] =
-                                    (new TextField('Data[' . $tblPerson->getId() . '][J]'))->setDisabled();
-                                $studentTable[$tblPerson->getId()]['LS'] =
-                                    (new NumberField('Data[' . $tblPerson->getId() . '][LS]'))->setDisabled();
-                                $studentTable[$tblPerson->getId()]['LM'] =
-                                    (new NumberField('Data[' . $tblPerson->getId() . '][LM]'))->setDisabled();
-                            } else {
-                                $studentTable[$tblPerson->getId()]['J'] =
-                                    (new TextField('Data[' . $tblPerson->getId() . '][J]'))->setTabIndex($tabIndex++)->setDisabled();
-                                $studentTable[$tblPerson->getId()]['LS'] =
-                                    (new NumberField('Data[' . $tblPerson->getId() . '][LS]'))->setTabIndex($tabIndex++);
-                                $studentTable[$tblPerson->getId()]['LM'] =
-                                    (new NumberField('Data[' . $tblPerson->getId() . '][LM]'))->setTabIndex($tabIndex++);
-                            }
-
-                            if ($IsFinalGrade) {
-                                if ($isApproved) {
-                                    $studentTable[$tblPerson->getId()]['EN'] =
-                                        (new NumberField('Data[' . $tblPerson->getId() . '][EN]'))->setDisabled();
+                                    if ($IsFinalGrade) {
+                                        if ($isApproved) {
+                                            $studentTable[$tblPerson->getId()]['EN'] =
+                                                (new NumberField('Data[' . $tblPrepareStudent->getId() . '][EN]'))->setDisabled();
+                                        } else {
+                                            $studentTable[$tblPerson->getId()]['EN'] =
+                                                (new NumberField('Data[' . $tblPrepareStudent->getId() . '][EN]'))->setTabIndex($tabIndex++);
+                                        }
+                                    }
                                 } else {
-                                    $studentTable[$tblPerson->getId()]['EN'] =
-                                        (new NumberField('Data[' . $tblPerson->getId() . '][EN]'))->setTabIndex($tabIndex++);
+                                    $studentTable[$tblPerson->getId()]['J']
+                                        = $studentTable[$tblPerson->getId()]['LS']
+                                        = $studentTable[$tblPerson->getId()]['LM']
+                                        = $studentTable[$tblPerson->getId()]['EN'] = '';
                                 }
-                            }
-                        } else {
-                            $studentTable[$tblPerson->getId()]['J']
-                                = $studentTable[$tblPerson->getId()]['LS']
-                                = $studentTable[$tblPerson->getId()]['LM']
-                                = $studentTable[$tblPerson->getId()]['EN'] = '';
-                        }
-                    } else {
-                        // Klasse 10 Realschule
-                        if ($hasSubject) {
-                            $isApproved = ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
-                                    $tblPerson))
-                                && $tblPrepareStudent->isApproved();
-                            if ($IsFinalGrade
-                                || $isApproved
-                            ) {
-                                $studentTable[$tblPerson->getId()]['JN'] =
-                                    (new TextField('Data[' . $tblPerson->getId() . '][JN]'))->setDisabled();
-                                $studentTable[$tblPerson->getId()]['PS'] =
-                                    (new NumberField('Data[' . $tblPerson->getId() . '][PS]'))->setDisabled();
-                                $studentTable[$tblPerson->getId()]['PM'] =
-                                    (new NumberField('Data[' . $tblPerson->getId() . '][PM]'))->setDisabled();
-                                $studentTable[$tblPerson->getId()]['PZ'] =
-                                    (new NumberField('Data[' . $tblPerson->getId() . '][PZ]'))->setDisabled();
                             } else {
-                                $studentTable[$tblPerson->getId()]['JN'] =
-                                    (new TextField('Data[' . $tblPerson->getId() . '][JN]'))->setTabIndex($tabIndex++)->setDisabled();
-                                $studentTable[$tblPerson->getId()]['PS'] =
-                                    (new NumberField('Data[' . $tblPerson->getId() . '][PS]'))->setTabIndex($tabIndex++);
-                                $studentTable[$tblPerson->getId()]['PM'] =
-                                    (new NumberField('Data[' . $tblPerson->getId() . '][PM]'))->setTabIndex($tabIndex++);
-                                $studentTable[$tblPerson->getId()]['PZ'] =
-                                    (new NumberField('Data[' . $tblPerson->getId() . '][PZ]'))->setTabIndex($tabIndex++);
-                            }
+                                // Klasse 10 Realschule
+                                if ($hasSubject && $tblPrepareStudent) {
+                                    $isApproved = $tblPrepareStudent->isApproved();
+                                    if ($IsFinalGrade
+                                        || $isApproved
+                                    ) {
+                                        $studentTable[$tblPerson->getId()]['JN'] =
+                                            (new TextField('Data[' . $tblPrepareStudent->getId() . '][JN]'))->setDisabled();
+                                        $studentTable[$tblPerson->getId()]['PS'] =
+                                            (new NumberField('Data[' . $tblPrepareStudent->getId() . '][PS]'))->setDisabled();
+                                        $studentTable[$tblPerson->getId()]['PM'] =
+                                            (new NumberField('Data[' . $tblPrepareStudent->getId() . '][PM]'))->setDisabled();
+                                        $studentTable[$tblPerson->getId()]['PZ'] =
+                                            (new NumberField('Data[' . $tblPrepareStudent->getId() . '][PZ]'))->setDisabled();
+                                    } else {
+                                        $studentTable[$tblPerson->getId()]['JN'] =
+                                            (new TextField('Data[' . $tblPrepareStudent->getId() . '][JN]'))->setTabIndex($tabIndex++)->setDisabled();
+                                        $studentTable[$tblPerson->getId()]['PS'] =
+                                            (new NumberField('Data[' . $tblPrepareStudent->getId() . '][PS]'))->setTabIndex($tabIndex++);
+                                        $studentTable[$tblPerson->getId()]['PM'] =
+                                            (new NumberField('Data[' . $tblPrepareStudent->getId() . '][PM]'))->setTabIndex($tabIndex++);
+                                        $studentTable[$tblPerson->getId()]['PZ'] =
+                                            (new NumberField('Data[' . $tblPrepareStudent->getId() . '][PZ]'))->setTabIndex($tabIndex++);
+                                    }
 
-                            if ($IsFinalGrade) {
-                                if ($isApproved) {
-                                    $studentTable[$tblPerson->getId()]['EN'] =
-                                        (new NumberField('Data[' . $tblPerson->getId() . '][EN]'))->setDisabled();
+                                    if ($IsFinalGrade) {
+                                        if ($isApproved) {
+                                            $studentTable[$tblPerson->getId()]['EN'] =
+                                                (new NumberField('Data[' . $tblPrepareStudent->getId() . '][EN]'))->setDisabled();
+                                        } else {
+                                            $studentTable[$tblPerson->getId()]['EN'] =
+                                                (new NumberField('Data[' . $tblPrepareStudent->getId() . '][EN]'))->setTabIndex($tabIndex++);
+                                        }
+                                    }
                                 } else {
-                                    $studentTable[$tblPerson->getId()]['EN'] =
-                                        (new NumberField('Data[' . $tblPerson->getId() . '][EN]'))->setTabIndex($tabIndex++);
+                                    $studentTable[$tblPerson->getId()]['JN']
+                                        = $studentTable[$tblPerson->getId()]['PS']
+                                        = $studentTable[$tblPerson->getId()]['PM']
+                                        = $studentTable[$tblPerson->getId()]['PZ']
+                                        = $studentTable[$tblPerson->getId()]['EN'] = '';
                                 }
                             }
-                        } else {
-                            $studentTable[$tblPerson->getId()]['JN']
-                                = $studentTable[$tblPerson->getId()]['PS']
-                                = $studentTable[$tblPerson->getId()]['PM']
-                                = $studentTable[$tblPerson->getId()]['PZ']
-                                = $studentTable[$tblPerson->getId()]['EN'] = '';
                         }
                     }
                 }
             }
         }
+
         return array($studentTable, $hasPreviewGrades);
     }
 

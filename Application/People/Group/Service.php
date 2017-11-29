@@ -592,4 +592,29 @@ class Service extends AbstractService
             }
         }
     }
+
+    /**
+     * @param TblGroup $tblGroup
+     * @return TblPerson[]|bool
+     */
+    public function getTudors(TblGroup $tblGroup)
+    {
+
+        if ($tblGroup->isLocked()) {
+            return false;
+        } else {
+            $tudors = array();
+            if (($tblPersonList = $this->getPersonAllByGroup($tblGroup))
+                && ($tblGroupTudor = $this->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR))
+            ) {
+                foreach ($tblPersonList as $tblPerson) {
+                    if ($this->existsGroupPerson($tblGroupTudor, $tblPerson)) {
+                        $tudors[] = $tblPerson;
+                    }
+                }
+            }
+
+            return empty($tudors) ? false : $tudors;
+        }
+    }
 }
