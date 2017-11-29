@@ -34,6 +34,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
@@ -49,9 +50,14 @@ use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -2378,5 +2384,67 @@ class Service extends AbstractService
         }
 
         return $resultList;
+    }
+
+    /**
+     * @param $Route
+     * @param $IsAllYears
+     * @param $IsGroup
+     * @param $YearId
+     * @param $tblYear
+     * @param bool $HasAllYears
+     *
+     * @return array
+     */
+    public function setYearGroupButtonList($Route, $IsAllYears, $IsGroup, $YearId, &$tblYear, $HasAllYears = true)
+    {
+
+        $tblYear = false;
+        $tblYearList = Term::useService()->getYearByNow();
+        if ($YearId) {
+            $tblYear = Term::useService()->getYearById($YearId);
+        } elseif (!$IsAllYears && !$IsGroup && $tblYearList) {
+            $tblYear = end($tblYearList);
+        }
+
+        $buttonList = array();
+        if ($tblYearList) {
+            $tblYearList = $this->getSorter($tblYearList)->sortObjectBy('DisplayName');
+            /** @var TblYear $tblYearItem */
+            foreach ($tblYearList as $tblYearItem) {
+                if ($tblYear && $tblYear->getId() == $tblYearItem->getId()) {
+                    $buttonList[] = (new Standard(new Info(new Bold($tblYearItem->getDisplayName())),
+                        $Route, new Edit(), array('YearId' => $tblYearItem->getId())));
+                } else {
+                    $buttonList[] = (new Standard($tblYearItem->getDisplayName(), $Route,
+                        null, array('YearId' => $tblYearItem->getId())));
+                }
+            }
+
+            // Fachlehrer sollen nur Zugriff auf Leistungsüberprüfungen aller aktuellen Schuljahre haben
+            // #SSW-1169 Anlegen von Leistungsüberprüfung von noch nicht erreichten Schuljahren verhindern
+            if ($HasAllYears) {
+                if ($IsAllYears) {
+                    $buttonList[] = (new Standard(new Info(new Bold('Alle Schuljahre')),
+                        $Route, new Edit(), array('IsAllYears' => true)));
+                }  else {
+                    $buttonList[] = (new Standard('Alle Schuljahre', $Route, null,
+                        array('IsAllYears' => true)));
+                }
+            }
+
+            if ($IsGroup) {
+                $buttonList[] = (new Standard(new Info(new Bold('Gruppen')),
+                    $Route, new Edit(), array('IsGroup' => true)));
+            }  else {
+                $buttonList[] = (new Standard('Gruppen', $Route, null,
+                    array('IsGroup' => true)));
+            }
+
+            // Abstandszeile
+            $buttonList[] = new Container('&nbsp;');
+        }
+
+        return $buttonList;
     }
 }

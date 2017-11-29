@@ -141,13 +141,15 @@ class Frontend extends Extension implements IFrontendInterface
                     continue;
                 }
 
-                // nur Mittelschule Klasse 9 und 10 und Gymnasium Klasse 12
+                // nur Mittelschule Klasse 9 und 10
                 if (($tblLevel = $tblDivision->getTblLevel())
                     && ($tblSchoolType = $tblLevel->getServiceTblType())
                     && (($tblSchoolType->getName() == 'Mittelschule / Oberschule'
                             && ($tblLevel->getName() == '09' || $tblLevel->getName() == '9' || $tblLevel->getName() == '10'))
-                        || (($tblSchoolType->getName() == 'Gymnasium'
-                            && $tblLevel->getName() == '12')))
+                    // Gymnasium später
+//                        || (($tblSchoolType->getName() == 'Gymnasium'
+//                            && $tblLevel->getName() == '12'))
+                    )
                 ) {
                     $divisionTable[] = array(
                         'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
@@ -165,28 +167,29 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
+        // erstmal keine Gruppen
         // tudorGroups
-        if (($tblGroupAll = Group::useService()->getGroupAll())) {
-            foreach ($tblGroupAll as $tblGroup) {
-                if (!$tblGroup->isLocked()
-                    && $tblGroup->getTudors()
-                ) {
-                    $divisionTable[] = array(
-                        'Year' => '',
-                        'Type' => '',
-                        'Division' => 'Gruppe ' . $tblGroup->getName(),
-                        'Option' => new Standard(
-                            '', '/Education/Certificate/Prepare/Prepare', new Select(),
-                            array(
-                                'GroupId' => $tblGroup->getId(),
-                                'Route' => 'Diploma'
-                            ),
-                            'Auswählen'
-                        )
-                    );
-                }
-            }
-        }
+//        if (($tblGroupAll = Group::useService()->getGroupAll())) {
+//            foreach ($tblGroupAll as $tblGroup) {
+//                if (!$tblGroup->isLocked()
+//                    && $tblGroup->getTudors()
+//                ) {
+//                    $divisionTable[] = array(
+//                        'Year' => '',
+//                        'Type' => '',
+//                        'Division' => 'Gruppe ' . $tblGroup->getName(),
+//                        'Option' => new Standard(
+//                            '', '/Education/Certificate/Prepare/Prepare', new Select(),
+//                            array(
+//                                'GroupId' => $tblGroup->getId(),
+//                                'Route' => 'Diploma'
+//                            ),
+//                            'Auswählen'
+//                        )
+//                    );
+//                }
+//            }
+//        }
 
         $Stage->setContent(
             new Layout(array(
@@ -199,7 +202,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new TableData($divisionTable, null, array(
                                 'Year' => 'Schuljahr',
                                 'Type' => 'Schulart',
-                                'Division' => 'Klasse/Gruppe',
+                                'Division' => 'Klasse',
                                 'Option' => ''
                             ), array(
                                 'order' => array(
@@ -222,11 +225,12 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param bool $IsAllYears
+     * @param bool $IsGroup
      * @param null $YearId
      *
      * @return Stage
      */
-    public function frontendTeacherSelectDivision($IsAllYears = false, $YearId = null)
+    public function frontendTeacherSelectDivision($IsAllYears = false, $IsGroup = false, $YearId = null)
     {
 
         $Stage = new Stage('Zeugnisvorbereitung', 'Klasse auswählen');
@@ -241,61 +245,92 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $buttonList = Evaluation::useFrontend()->setYearButtonList('/Education/Certificate/Prepare/Teacher',
-            $IsAllYears, $YearId, $tblYear, false);
+        $buttonList = Prepare::useService()->setYearGroupButtonList('/Education/Certificate/Prepare/Teacher',
+            $IsAllYears, $IsGroup, $YearId, $tblYear, false);
 
+        $table = false;
         $divisionTable = array();
         if ($tblPerson) {
-            if (($tblDivisionList = Division::useService()->getDivisionTeacherAllByTeacher($tblPerson))) {
-                foreach ($tblDivisionList as $tblDivisionTeacher) {
-                    $tblDivision = $tblDivisionTeacher->getTblDivision();
-
-                    // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
-                    /** @var TblYear $tblYear */
-                    if ($tblYear && $tblDivision && $tblDivision->getServiceTblYear()
-                        && $tblDivision->getServiceTblYear()->getId() != $tblYear->getId()
-                    ) {
-                        continue;
-                    }
-
-                    $divisionTable[] = array(
-                        'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
-                        'Type' => $tblDivision->getTypeName(),
-                        'Division' => 'Klasse ' . $tblDivision->getDisplayName(),
-                        'Option' => new Standard(
-                            '', '/Education/Certificate/Prepare/Prepare', new Select(),
-                            array(
-                                'DivisionId' => $tblDivision->getId(),
-                                'Route' => 'Teacher'
-                            ),
-                            'Auswählen'
-                        )
-                    );
-                }
-            }
-
-            if (($tblTudorGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR))
-                && Group::useService()->existsGroupPerson($tblTudorGroup, $tblPerson)
-            ) {
-                if (($tblGroupAll = Group::useService()->getGroupAll())) {
-                    foreach ($tblGroupAll as $tblGroup) {
-                        if (!$tblGroup->isLocked() && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)) {
-                            $divisionTable[] = array(
-                                'Year' => '',
-                                'Type' => '',
-                                'Division' => 'Gruppe ' . $tblGroup->getName(),
-                                'Option' => new Standard(
-                                    '', '/Education/Certificate/Prepare/Prepare', new Select(),
-                                    array(
-                                        'GroupId' => $tblGroup->getId(),
-                                        'Route' => 'Teacher'
-                                    ),
-                                    'Auswählen'
-                                )
-                            );
+            if ($IsGroup) {
+                if (($tblTudorGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR))
+                    && Group::useService()->existsGroupPerson($tblTudorGroup, $tblPerson)
+                ) {
+                    if (($tblGroupAll = Group::useService()->getGroupAll())) {
+                        foreach ($tblGroupAll as $tblGroup) {
+                            if (!$tblGroup->isLocked() && Group::useService()->existsGroupPerson($tblGroup,
+                                    $tblPerson)
+                            ) {
+                                $divisionTable[] = array(
+                                    'Group' => $tblGroup->getName(),
+                                    'Option' => new Standard(
+                                        '', '/Education/Certificate/Prepare/Prepare', new Select(),
+                                        array(
+                                            'GroupId' => $tblGroup->getId(),
+                                            'Route' => 'Teacher'
+                                        ),
+                                        'Auswählen'
+                                    )
+                                );
+                            }
                         }
                     }
                 }
+
+                $table = new TableData($divisionTable, null, array(
+                    'Group' => 'Gruppe',
+                    'Option' => ''
+                ), array(
+                    'order' => array(
+                        array('0', 'asc'),
+                    ),
+                    'columnDefs' => array(
+                        array('type' => 'natural', 'targets' => 0)
+                    ),
+                ));
+            } else {
+                if (($tblDivisionList = Division::useService()->getDivisionTeacherAllByTeacher($tblPerson))) {
+                    foreach ($tblDivisionList as $tblDivisionTeacher) {
+                        $tblDivision = $tblDivisionTeacher->getTblDivision();
+
+                        // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
+                        /** @var TblYear $tblYear */
+                        if ($tblYear && $tblDivision && $tblDivision->getServiceTblYear()
+                            && $tblDivision->getServiceTblYear()->getId() != $tblYear->getId()
+                        ) {
+                            continue;
+                        }
+
+                        $divisionTable[] = array(
+                            'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                            'Type' => $tblDivision->getTypeName(),
+                            'Division' => $tblDivision->getDisplayName(),
+                            'Option' => new Standard(
+                                '', '/Education/Certificate/Prepare/Prepare', new Select(),
+                                array(
+                                    'DivisionId' => $tblDivision->getId(),
+                                    'Route' => 'Teacher'
+                                ),
+                                'Auswählen'
+                            )
+                        );
+                    }
+                }
+
+                $table = new TableData($divisionTable, null, array(
+                    'Year' => 'Schuljahr',
+                    'Type' => 'Schulart',
+                    'Division' => 'Klasse',
+                    'Option' => ''
+                ), array(
+                    'order' => array(
+                        array('0', 'desc'),
+                        array('1', 'asc'),
+                        array('2', 'asc'),
+                    ),
+                    'columnDefs' => array(
+                        array('type' => 'natural', 'targets' => 2)
+                    ),
+                ));
             }
         }
 
@@ -306,23 +341,9 @@ class Frontend extends Extension implements IFrontendInterface
                         empty($buttonList)
                             ? null
                             : new LayoutColumn($buttonList),
-                        new LayoutColumn(array(
-                            new TableData($divisionTable, null, array(
-                                'Year' => 'Schuljahr',
-                                'Type' => 'Schulart',
-                                'Division' => 'Klasse/Gruppe',
-                                'Option' => ''
-                            ), array(
-                                'order' => array(
-                                    array('0', 'desc'),
-                                    array('1', 'asc'),
-                                    array('2', 'asc'),
-                                ),
-                                'columnDefs' => array(
-                                    array('type' => 'natural', 'targets' => 2)
-                                ),
-                            ))
-                        ))
+                        $table
+                            ? new LayoutColumn(array($table))
+                            : null
                     ))
                 ), new Title(new Select() . ' Auswahl'))
             ))
@@ -333,11 +354,12 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param bool $IsAllYears
+     * @param bool $IsGroup
      * @param null $YearId
      *
      * @return Stage
      */
-    public function frontendHeadmasterSelectDivision($IsAllYears = false, $YearId = null)
+    public function frontendHeadmasterSelectDivision($IsAllYears = false, $IsGroup = false, $YearId = null)
     {
 
         $Stage = new Stage('Zeugnisvorbereitung', 'Klasse auswählen');
@@ -345,58 +367,87 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblDivisionList = Division::useService()->getDivisionAll();
 
-        $buttonList = Evaluation::useFrontend()->setYearButtonList('/Education/Certificate/Prepare/Headmaster',
-            $IsAllYears, $YearId, $tblYear);
+        $buttonList = Prepare::useService()->setYearGroupButtonList('/Education/Certificate/Prepare/Headmaster',
+            $IsAllYears, $IsGroup, $YearId, $tblYear);
 
         $divisionTable = array();
-        if ($tblDivisionList) {
-            foreach ($tblDivisionList as $tblDivision) {
-                // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
-                /** @var TblYear $tblYear */
-                if ($tblYear && $tblDivision && $tblDivision->getServiceTblYear()
-                    && $tblDivision->getServiceTblYear()->getId() != $tblYear->getId()
-                ) {
-                    continue;
+        if ($IsGroup) {
+            // tudorGroups
+            if (($tblGroupAll = Group::useService()->getGroupAll())) {
+                foreach ($tblGroupAll as $tblGroup) {
+                    if (!$tblGroup->isLocked()
+                        && $tblGroup->getTudors()
+                    ) {
+                        $divisionTable[] = array(
+                            'Group' => $tblGroup->getName(),
+                            'Option' => new Standard(
+                                '', '/Education/Certificate/Prepare/Prepare', new Select(),
+                                array(
+                                    'GroupId' => $tblGroup->getId(),
+                                    'Route' => 'Headmaster'
+                                ),
+                                'Auswählen'
+                            )
+                        );
+                    }
                 }
+            }
 
-                if ($tblDivision) {
-                    $divisionTable[] = array(
-                        'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
-                        'Type' => $tblDivision->getTypeName(),
-                        'Division' => 'Klasse ' . $tblDivision->getDisplayName(),
-                        'Option' => new Standard(
-                            '', '/Education/Certificate/Prepare/Prepare', new Select(),
-                            array(
-                                'DivisionId' => $tblDivision->getId(),
-                                'Route' => 'Headmaster'
-                            ),
-                            'Auswählen'
-                        )
-                    );
+            $table = new TableData($divisionTable, null, array(
+                'Group' => 'Gruppe',
+                'Option' => ''
+            ), array(
+                'order' => array(
+                    array('0', 'asc'),
+                ),
+                'columnDefs' => array(
+                    array('type' => 'natural', 'targets' => 0)
+                ),
+            ));
+        } else {
+            if ($tblDivisionList) {
+                foreach ($tblDivisionList as $tblDivision) {
+                    // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
+                    /** @var TblYear $tblYear */
+                    if ($tblYear && $tblDivision && $tblDivision->getServiceTblYear()
+                        && $tblDivision->getServiceTblYear()->getId() != $tblYear->getId()
+                    ) {
+                        continue;
+                    }
+
+                    if ($tblDivision) {
+                        $divisionTable[] = array(
+                            'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                            'Type' => $tblDivision->getTypeName(),
+                            'Division' => $tblDivision->getDisplayName(),
+                            'Option' => new Standard(
+                                '', '/Education/Certificate/Prepare/Prepare', new Select(),
+                                array(
+                                    'DivisionId' => $tblDivision->getId(),
+                                    'Route' => 'Headmaster'
+                                ),
+                                'Auswählen'
+                            )
+                        );
+                    }
                 }
             }
-        }
-        // tudorGroups
-        if (($tblGroupAll = Group::useService()->getGroupAll())) {
-            foreach ($tblGroupAll as $tblGroup) {
-                if (!$tblGroup->isLocked()
-                    && $tblGroup->getTudors()
-                ) {
-                    $divisionTable[] = array(
-                        'Year' => '',
-                        'Type' => '',
-                        'Division' => 'Gruppe ' . $tblGroup->getName(),
-                        'Option' => new Standard(
-                            '', '/Education/Certificate/Prepare/Prepare', new Select(),
-                            array(
-                                'GroupId' => $tblGroup->getId(),
-                                'Route' => 'Headmaster'
-                            ),
-                            'Auswählen'
-                        )
-                    );
-                }
-            }
+
+            $table = new TableData($divisionTable, null, array(
+                'Year' => 'Schuljahr',
+                'Type' => 'Schulart',
+                'Division' => 'Klasse',
+                'Option' => ''
+            ), array(
+                'order' => array(
+                    array('0', 'desc'),
+                    array('1', 'asc'),
+                    array('2', 'asc'),
+                ),
+                'columnDefs' => array(
+                    array('type' => 'natural', 'targets' => 2)
+                ),
+            ));
         }
 
         $Stage->setContent(
@@ -406,23 +457,7 @@ class Frontend extends Extension implements IFrontendInterface
                         empty($buttonList)
                             ? null
                             : new LayoutColumn($buttonList),
-                        new LayoutColumn(array(
-                            new TableData($divisionTable, null, array(
-                                'Year' => 'Schuljahr',
-                                'Type' => 'Schulart',
-                                'Division' => 'Klasse/Gruppe',
-                                'Option' => ''
-                            ), array(
-                                'order' => array(
-                                    array('0', 'desc'),
-                                    array('1', 'asc'),
-                                    array('2', 'asc'),
-                                ),
-                                'columnDefs' => array(
-                                    array('type' => 'natural', 'targets' => 2)
-                                ),
-                            ))
-                        ))
+                        new LayoutColumn($table)
                     ))
                 ), new Title(new Select() . ' Auswahl'))
             ))
