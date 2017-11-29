@@ -15,6 +15,16 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 class CmsMsJ extends CmsStyle
 {
 
+    /**
+     * @return array
+     */
+    public function selectValuesTransfer()
+    {
+        return array(
+            1 => "wird versetzt",
+            2 => "wird nicht versetzt"
+        );
+    }
 
     /**
      * @param TblPerson|null $tblPerson
@@ -30,7 +40,6 @@ class CmsMsJ extends CmsStyle
 
         return (new Page())
             ->addSlice((new Slice())
-                ->stylePaddingTop('20px')
                 ->stylePaddingLeft('16px')
                 ->stylePaddingRight('16px')
                 ->addSection((new Section())
@@ -43,13 +52,13 @@ class CmsMsJ extends CmsStyle
                 )
                 ->addSectionList(
                     self::getCMSSchoolLine('Staatlich anerkannte Ersatzschule in Trägerschaft von Christen machen Schule
-                    Zwickau gemeinnützige GmbH', 'Evangelische Schule "Stephan Roth" (Grundschule)')
+                    Zwickau gemeinnützige GmbH', 'Evangelische Schule "Stephan Roth" (Oberschule)')
                 )
                 ->addElement((new Element())
-                    ->styleMarginTop('10px')
+                    ->styleMarginTop('20px')
                 )
                 ->addSection(
-                    self::getCMSHeadLine('Jahreseinschätzung')
+                    self::getCMSHeadLine('Jahreszeugnis der Oberschule')
                 )
                 ->addElement((new Element())
                     ->styleMarginTop('20px')
@@ -89,7 +98,7 @@ class CmsMsJ extends CmsStyle
                     ->styleMarginTop('10px')
                 )
                 ->addSectionList(
-                    self::getCMSRemark($personId, '150px', true)
+                    self::getCMSRemark($personId, '95px', true)
                 )
                 ->addSection(
                     self::getCMSMissing($personId)
@@ -99,6 +108,12 @@ class CmsMsJ extends CmsStyle
                 )
                 ->addSection(
                     self::getCMSDate($personId)
+                )
+                ->addElement((new Element())
+                    ->styleMarginTop('15px')
+                )
+                ->addSection(
+                    self::getCMSTransfer($personId)
                 )
                 ->addElement((new Element())
                     ->styleMarginTop('10px')

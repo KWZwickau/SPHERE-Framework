@@ -15,6 +15,16 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 class CmsGsJ extends CmsStyle
 {
 
+    /**
+     * @return array
+     */
+    public function selectValuesTransfer()
+    {
+        return array(
+            1 => "wird versetzt",
+            2 => "wird nicht versetzt"
+        );
+    }
 
     /**
      * @param TblPerson|null $tblPerson
@@ -30,7 +40,6 @@ class CmsGsJ extends CmsStyle
 
         return (new Page())
             ->addSlice((new Slice())
-                ->stylePaddingTop('20px')
                 ->stylePaddingLeft('16px')
                 ->stylePaddingRight('16px')
                 ->addSection((new Section())
@@ -46,10 +55,10 @@ class CmsGsJ extends CmsStyle
                     Zwickau gemeinnützige GmbH', 'Evangelische Schule "Stephan Roth" (Grundschule)')
                 )
                 ->addElement((new Element())
-                    ->styleMarginTop('10px')
+                    ->styleMarginTop('20px')
                 )
                 ->addSection(
-                    self::getCMSHeadLine('Jahreseinschätzung')
+                    self::getCMSHeadLine('Jahreszeugnis der Grundschule')
                 )
                 ->addElement((new Element())
                     ->styleMarginTop('20px')
@@ -83,10 +92,16 @@ class CmsGsJ extends CmsStyle
                     ->styleMarginTop('20px')
                 )
                 ->addSectionList(
-                    self::getCMSRemark($personId, '340px')
+                    self::getCMSRemark($personId, '310px')
                 )
                 ->addSection(
                     self::getCMSMissing($personId)
+                )
+                ->addElement((new Element())
+                    ->styleMarginTop('15px')
+                )
+                ->addSection(
+                    self::getCMSTransfer($personId)
                 )
                 ->addElement((new Element())
                     ->styleMarginTop('15px')

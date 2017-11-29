@@ -9,10 +9,10 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
- * Class CmsGsJOneTwo
+ * Class CmsMsHj
  * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository\CMS
  */
-class CmsGsJOneTwo extends CmsStyle
+class CmsMsHj extends CmsStyle
 {
 
     /**
@@ -52,13 +52,13 @@ class CmsGsJOneTwo extends CmsStyle
                 )
                 ->addSectionList(
                     self::getCMSSchoolLine('Staatlich anerkannte Ersatzschule in Trägerschaft von Christen machen Schule
-                    Zwickau gemeinnützige GmbH', 'Evangelische Schule "Stephan Roth" (Grundschule)')
+                    Zwickau gemeinnützige GmbH', 'Evangelische Schule "Stephan Roth" (Oberschule)')
                 )
                 ->addElement((new Element())
                     ->styleMarginTop('20px')
                 )
                 ->addSection(
-                    self::getCMSHeadLine('Jahreszeugnis der Grundschule')
+                    self::getCMSHeadLine('Halbjahresinformation der Oberschule')
                 )
                 ->addElement((new Element())
                     ->styleMarginTop('20px')
@@ -73,19 +73,35 @@ class CmsGsJOneTwo extends CmsStyle
                     self::getCMSName($personId)
                 )
                 ->addElement((new Element())
-                    ->styleMarginTop('20px')
+                    ->styleMarginTop('10px')
+                )
+                ->addSection((new Section())
+                    ->addSliceColumn(
+                        self::getCMSHeadGrade($personId)
+                    )
+                )
+                ->addSection(
+                    self::getCMSGradeInfo(true)
+                )
+                ->addElement((new Element())
+                    ->styleMarginTop('10px')
+                )
+                ->addSection((new Section())
+                    ->addSliceColumn(
+                        self::getCMSSubjectLanes($personId)
+                    )
+                )
+                ->addSection(
+                    self::getCMSGradeInfo()
+                )
+                ->addElement((new Element())
+                    ->styleMarginTop('10px')
                 )
                 ->addSectionList(
-                    self::getCMSRemark($personId, '467px')
+                    self::getCMSRemark($personId, '128px', true)
                 )
                 ->addSection(
                     self::getCMSMissing($personId)
-                )
-                ->addElement((new Element())
-                    ->styleMarginTop('15px')
-                )
-                ->addSection(
-                    self::getCMSTransfer($personId)
                 )
                 ->addElement((new Element())
                     ->styleMarginTop('15px')

@@ -25,29 +25,34 @@ abstract class CmsStyle extends Certificate
     public function getCMSHead($PictureHeight = 100)
     {
 
-        $PictureSection = (new Section())
-            ->addElementColumn((new Element\Image('Common/Style/Resource/Logo/CMS_Logo.jpg',
-                'auto', $PictureHeight.'px'))
-                ->styleAlignCenter()
-                , '100%');
-
         if ($this->isSample()) {
-            $Header = (new Slice())
-                ->addSection(
-                    $PictureSection
-                )
-                // display "Sample" over picture
-                ->addSection((new Section())
-                    ->addElementColumn((new Element\Sample())
-                        ->styleTextSize('30px')
-                        ->stylePaddingTop('-'.($PictureHeight + 30).'px')
-                    )
-                );
+            $Header = (new Slice)->addSection((new Section())
+                ->addElementColumn((new Element\Sample())
+                    ->styleTextSize('30px')
+                    ->stylePaddingTop('20px')
+                    , '33%')
+                ->addElementColumn((new Element\Image('Common/Style/Resource/Logo/CMS_Logo.jpg',
+                    'auto', $PictureHeight.'px'))
+                    ->styleAlignCenter()
+                    , '34%')
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '33%')
+            );
+
         } else {
-            $Header = (new Slice())
-                ->addSection(
-                    $PictureSection
-                );
+            $Header = (new Slice)->addSection((new Section())
+                ->addElementColumn((new Element\Sample())
+                    ->styleTextSize('30px')
+                    , '33%')
+                ->addElementColumn((new Element\Image('Common/Style/Resource/Logo/CMS_Logo.jpg',
+                    'auto', $PictureHeight.'px'))
+                    ->styleAlignCenter()
+                    , '34%')
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '33%')
+            );
         }
         return $Header;
     }
@@ -95,39 +100,34 @@ abstract class CmsStyle extends Certificate
     }
 
     /**
-     * @param $personId
+     * @param int    $personId
+     * @param string $YearString
      *
      * @return Section
      */
-    public function getCMSDivisionAndYear($personId)
+    public function getCMSDivisionAndYear($personId, $YearString = 'Schuljahr')
     {
 
         $Section = (new Section());
         $Section->addElementColumn((new Element())
             ->setContent('Klasse:')
-            ->styleTextSize(self::TEXT_SIZE)
-            , '10%')
+            , '7%')
             ->addElementColumn((new Element())
                 ->setContent('{{ Content.P'.$personId.'.Division.Data.Level.Name }}{{ Content.P'.$personId.'.Division.Data.Name }}')
-                ->styleTextSize('11pt')
-                ->styleBorderBottom('1px', '#999')
+                ->styleBorderBottom()
                 ->styleAlignCenter()
-                , '15%')
+                , '7%')
             ->addElementColumn((new Element())
-                ->setContent('&nbsp;')
-                ->styleTextSize(self::TEXT_SIZE)
-                , '40%')
+                , '55%')
             ->addElementColumn((new Element())
-                ->setContent('Schuljahr: &nbsp;&nbsp;')
-                ->styleTextSize(self::TEXT_SIZE)
+                ->setContent($YearString.':')
                 ->styleAlignRight()
-                , '15%')
+                , '18%')
             ->addElementColumn((new Element())
                 ->setContent('{{ Content.P'.$personId.'.Division.Data.Year }}')
-                ->styleTextSize('11pt')
-                ->styleBorderBottom('1px', '#999')
+                ->styleBorderBottom()
                 ->styleAlignCenter()
-                , '20%');
+                , '13%');
         return $Section;
     }
 
@@ -141,12 +141,35 @@ abstract class CmsStyle extends Certificate
 
         $Section = new Section();
         $Section->addElementColumn((new Element())
-            ->setContent('{{ Content.P'.$personId.'.Person.Data.Name.First }}
-                          {{ Content.P'.$personId.'.Person.Data.Name.Last }}')
-            ->styleTextSize('13pt')
-            ->styleTextBold()
-            ->styleAlignCenter()
-        );
+            ->setContent('Vorname und Name:')
+            , '21%')
+            ->addElementColumn((new Element())
+                ->setContent('{{ Content.P'.$personId.'.Person.Data.Name.First }}
+                              {{ Content.P'.$personId.'.Person.Data.Name.Last }}')
+                ->styleBorderBottom()
+                ->stylePaddingLeft('7px')
+                , '79%');
+        return $Section;
+    }
+
+    /**
+     * @param $personId
+     *
+     * @return Section
+     */
+    public function getCMSNameExtraPaper($personId)
+    {
+
+        $Section = new Section();
+        $Section->addElementColumn((new Element())
+            ->setContent('Beiblatt zum Zeugnis für:')
+            , '21%')
+            ->addElementColumn((new Element())
+                ->setContent('{{ Content.P'.$personId.'.Person.Data.Name.First }}
+                              {{ Content.P'.$personId.'.Person.Data.Name.Last }}')
+                ->styleBorderBottom()
+                ->styleAlignCenter()
+                , '79%');
         return $Section;
     }
 
@@ -207,20 +230,20 @@ abstract class CmsStyle extends Certificate
                     $GradeSection->addElementColumn((new Element())
                         ->setContent($Grade['GradeName'])
                         ->stylePaddingTop()
-                        ->styleMarginTop('8px')
-                        , '28%');
+                        ->styleMarginTop('10px')
+                        , '39%');
                     $GradeSection->addElementColumn((new Element())
                         ->setContent('{% if(Content.P'.$personId.'.Input["'.$Grade['GradeAcronym'].'"] is not empty) %}
-                                 {{ Content.P'.$personId.'.Input["'.$Grade['GradeAcronym'].'"] }}
-                             {% else %}
-                                 &ndash;
-                             {% endif %}')
+                                         {{ Content.P'.$personId.'.Input["'.$Grade['GradeAcronym'].'"] }}
+                                     {% else %}
+                                         &ndash;
+                                     {% endif %}')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#CCC')
-                        ->stylePaddingTop('1px')
-                        ->stylePaddingBottom('1px')
-                        ->styleMarginTop('8px')
-                        , '20%');
+                        ->styleBackgroundColor('#BBB')
+                        ->stylePaddingTop()
+                        ->stylePaddingBottom()
+                        ->styleMarginTop('10px')
+                        , '9%');
                 }
 
                 if (count($GradeList) == 1 && isset($GradeList[1])) {
@@ -241,7 +264,7 @@ abstract class CmsStyle extends Certificate
      *
      * @return Slice
      */
-    public function getCMSSubjectLanes($personId, $IsHeadline = true, $Height = '235px')
+    public function getCMSSubjectLanes($personId, $IsHeadline = true, $Height = '256px')
     {
 
         $SubjectSlice = (new Slice());
@@ -318,8 +341,8 @@ abstract class CmsStyle extends Certificate
                     $SubjectSection->addElementColumn((new Element())
                         ->setContent($Subject['SubjectName'])
                         ->stylePaddingTop()
-                        ->styleMarginTop('8px')
-                        , '28%');
+                        ->styleMarginTop('10px')
+                        , '39%');
 
 
                     $SubjectSection->addElementColumn((new Element())
@@ -329,11 +352,11 @@ abstract class CmsStyle extends Certificate
                                              &ndash;
                                          {% endif %}')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#CCC')
+                        ->styleBackgroundColor('#BBB')
                         ->stylePaddingTop('1px')
                         ->stylePaddingBottom('1px')
-                        ->styleMarginTop('8px')
-                        , '20%');
+                        ->styleMarginTop('10px')
+                        , '9%');
                 }
 
                 if (count($SubjectList) == 1 && isset($SubjectList[1])) {
@@ -411,32 +434,29 @@ abstract class CmsStyle extends Certificate
         $Section = new Section();
         $Section->addElementColumn((new Element())
             ->setContent('Fehltage entschuldigt:')
-            ->styleTextSize(self::TEXT_SIZE)
-            ->styleBorderBottom()
-            , '35%')
+            , '21%')
             ->addElementColumn((new Element())
                 ->setContent('{% if(Content.P'.$personId.'.Input.Missing is not empty) %}
                     {{ Content.P'.$personId.'.Input.Missing }}
                 {% else %}
                     &nbsp;
                 {% endif %}')
-                ->styleTextSize(self::TEXT_SIZE)
-                ->styleBorderBottom()
-                , '15%')
+                ->styleAlignCenter()
+                , '8%')
             ->addElementColumn((new Element())
                 ->setContent('unentschuldigt:')
-                ->styleTextSize(self::TEXT_SIZE)
-                ->styleBorderBottom()
-                , '35%')
+                , '13%')
             ->addElementColumn((new Element())
                 ->setContent('{% if(Content.P'.$personId.'.Input.Bad.Missing is not empty) %}
                     &nbsp;{{ Content.P'.$personId.'.Input.Bad.Missing }}
                 {% else %}
                     &nbsp;
                 {% endif %}')
-                ->styleTextSize(self::TEXT_SIZE)
-                ->styleBorderBottom()
-                , '15%');
+                ->styleAlignCenter()
+                , '8%')
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                , '50%');
         return $Section;
     }
 
@@ -450,16 +470,18 @@ abstract class CmsStyle extends Certificate
         $Section = new Section();
         $Section->addElementColumn((new Element())
             ->setContent('Versetzungsvermerk:')
-            ->styleTextSize(self::TEXT_SIZE)
-            ->styleTextBold()
-            , '24%')
+            , '21%')
             ->addElementColumn((new Element())
                 ->setContent('{% if(Content.P'.$personId.'.Input.Transfer) %}
-                        {{ Content.P'.$personId.'.Input.Transfer }}
-                    {% else %}
-                          &nbsp;
-                    {% endif %}')
-                , '76%');
+                                        {{ Content.P'.$personId.'.Input.Transfer }}
+                                    {% else %}
+                                          &nbsp;
+                                    {% endif %}')
+                ->styleBorderBottom('1px')
+                ->stylePaddingLeft('7px')
+                , '58%')
+            ->addElementColumn((new Element())
+                , '20%');
         return $Section;
     }
 
@@ -473,7 +495,6 @@ abstract class CmsStyle extends Certificate
 
         $Section = (new Section())->addElementColumn((new Element())
             ->setContent('Zwickau, den')
-            ->styleTextSize(self::TEXT_SIZE)
             , '15%')
             ->addElementColumn((new Element())
                 ->setContent('{% if(Content.P'.$personId.'.Input.Date is not empty) %}
@@ -481,7 +502,6 @@ abstract class CmsStyle extends Certificate
                         {% else %}
                             &nbsp;
                         {% endif %}')
-                ->styleTextSize(self::TEXT_SIZE)
                 ->styleBorderBottom()
                 ->styleAlignCenter()
                 , '20%')
