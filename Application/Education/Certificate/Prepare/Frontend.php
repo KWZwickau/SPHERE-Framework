@@ -1580,27 +1580,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $isDiploma = $Route == 'Diploma';
 
-        if ($isDiploma) {
-            $columnTable = array(
-                'Number' => '#',
-                'Name' => 'Name',
-                'Course' => 'Bildungs&shy;gang',
-                'SubjectGrades' => 'Fachnoten',
-                'CheckSubjects' => 'Prüfung Fächer/Zeugnis'
-            );
-        } else {
-            $columnTable = array(
-                'Number' => '#',
-                'Name' => 'Name',
-                'Course' => 'Bildungs&shy;gang',
-                'ExcusedAbsence' => 'E-FZ', //'ent&shy;schuld&shy;igte FZ',
-                'UnexcusedAbsence' => 'U-FZ', // 'unent&shy;schuld&shy;igte FZ',
-                'SubjectGrades' => 'Fachnoten',
-                'CheckSubjects' => 'Prüfung Fächer/Zeugnis',
-                'BehaviorGrades' => 'Kopfnoten',
-            );
-        }
-
         $countBehavior = 0;
         if (($tblPrepareCertificate = Prepare::useService()->getPrepareById($PrepareId))) {
             $tblPersonSigner = $tblPrepareCertificate->getServiceTblPersonSigner();
@@ -1649,6 +1628,52 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $description = 'Klasse ' . $tblDivision->getDisplayName();
                 $tblPrepareList = array(0 => $tblPrepareCertificate);
+            }
+        }
+
+        if ($isDiploma) {
+            if ($tblGroup) {
+                $columnTable = array(
+                    'Number' => '#',
+                    'Name' => 'Name',
+                    'Course' => 'Bildungs&shy;gang',
+                    'SubjectGrades' => 'Fachnoten',
+                    'CheckSubjects' => 'Prüfung Fächer/Zeugnis'
+                );
+            } else {
+                $columnTable = array(
+                    'Number' => '#',
+                    'Name' => 'Name',
+                    'Division' => 'Klasse',
+                    'Course' => 'Bildungs&shy;gang',
+                    'SubjectGrades' => 'Fachnoten',
+                    'CheckSubjects' => 'Prüfung Fächer/Zeugnis'
+                );
+            }
+        } else {
+            if ($tblGroup) {
+                $columnTable = array(
+                    'Number' => '#',
+                    'Name' => 'Name',
+                    'Division' => 'Klasse',
+                    'Course' => 'Bildungs&shy;gang',
+                    'ExcusedAbsence' => 'E-FZ', //'ent&shy;schuld&shy;igte FZ',
+                    'UnexcusedAbsence' => 'U-FZ', // 'unent&shy;schuld&shy;igte FZ',
+                    'SubjectGrades' => 'Fachnoten',
+                    'CheckSubjects' => 'Prüfung Fächer/Zeugnis',
+                    'BehaviorGrades' => 'Kopfnoten',
+                );
+            } else {
+                $columnTable = array(
+                    'Number' => '#',
+                    'Name' => 'Name',
+                    'Course' => 'Bildungs&shy;gang',
+                    'ExcusedAbsence' => 'E-FZ', //'ent&shy;schuld&shy;igte FZ',
+                    'UnexcusedAbsence' => 'U-FZ', // 'unent&shy;schuld&shy;igte FZ',
+                    'SubjectGrades' => 'Fachnoten',
+                    'CheckSubjects' => 'Prüfung Fächer/Zeugnis',
+                    'BehaviorGrades' => 'Kopfnoten',
+                );
             }
         }
 
@@ -1819,9 +1844,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                             $studentTable[$tblPerson->getId()] = array(
                                 'Number' => $isDiploma && $isMuted ? new Muted($number) : $number,
-                                'Name' => ($isDiploma && $isMuted ? new Muted($name) : $name)
-                                    . ($tblGroup
-                                        ? new Small(new Muted(' (' . $tblDivision->getDisplayName() . ')')) : ''),
+                                'Name' => ($isDiploma && $isMuted ? new Muted($name) : $name),
+                                'Division' => $tblDivision->getDisplayName(),
                                 'Course' => $isDiploma && $isMuted ? new Muted($course) : $course,
                                 'ExcusedAbsence' => $excusedDays . ' ',
                                 'UnexcusedAbsence' => $unexcusedDays . ' ',
