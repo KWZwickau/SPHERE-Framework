@@ -117,8 +117,9 @@ class Frontend extends Extension implements IFrontendInterface
                                                     Spaltenreihenfolge festlegen kann, ist es notwendig zuerst einen 
                                                     Export aus der Abiturverwaltung von Indiware einzulesen. Bitte verwenden 
                                                     Sie dafür einen kompletten Schüler-Export (alle Spalten) aus der 
-                                                    Abiturverwaltung von Indiware mit „Komma oder Semikolon“ als Trennzeichen.
-                                                    Der Export benutzt als Trennzeichen ein Komma.')
+                                                    Abiturverwaltung von Indiware mit '.new Bold('„Komma oder Semikolon“')
+                                                        .' als Trennzeichen. Der Export benutzt als Trennzeichen ein '.
+                                                        new Bold('„Komma“').'.')
                                                     .new Danger(new Small(new Small('Pflichtfelder ')).'*')
                                                 ), Panel::PANEL_TYPE_INFO)
                                         )
