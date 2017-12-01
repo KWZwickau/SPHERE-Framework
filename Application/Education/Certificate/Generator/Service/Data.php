@@ -2353,8 +2353,58 @@ class Data extends AbstractData
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
                         $this->createCertificateField($tblCertificate, $FieldName, 1000);
                     }
+                    // Begrenzung des Bemerkungsfelds   ToDO SecondPage Remark
+                    $FieldName = 'SecondRemark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 3700);
+                    }
+                    // Kopfnoten
+                    if (!$this->getCertificateGradeAll($tblCertificate)) {
+                        $this->setCertificateGradeAllStandard($tblCertificate);
+                    }
+                    if (!$this->getCertificateSubjectAll($tblCertificate)) {
+                        $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 6);
+                        $this->setCertificateSubject($tblCertificate, 'WTH', 1, 7);
+                        $this->setCertificateSubject($tblCertificate, 'FR', 1, 8);
+
+                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                        $this->setCertificateSubject($tblCertificate, 'BI', 2, 2);
+                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 3);
+                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+                        $this->setCertificateSubject($tblCertificate, 'REV', 2, 5, false);
+                        $this->setCertificateSubject($tblCertificate, 'RKA', 2, 6, false);
+                        $this->setCertificateSubject($tblCertificate, 'ETH', 2, 7, false);
+                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 8);
+                        // ToDO Neigungskurse
+                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 10);
+                    }
+                }
+                $tblCertificate = $this->createCertificate('Oberschule Halbjahreszeugnis', 'Klasse 9-10',
+                    'CMS\CmsMsHjZ',
+                    $tblConsumerCertificate);
+                if ($tblCertificate) {
+                    if ($tblSchoolTypeSecondary) {
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary,
+                            null, true);
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '10'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                    }
+                    // Begrenzung des Bemerkungsfelds
+                    $FieldName = 'Remark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 1000);
+                    }
 //                    // Begrenzung des Bemerkungsfelds   ToDO SecondPage Remark
-//                    $FieldName = 'RemarkSecondPage';
+//                    $FieldName = 'SecondRemark';
 //                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
 //                        $this->createCertificateField($tblCertificate, $FieldName, 3700);
 //                    }

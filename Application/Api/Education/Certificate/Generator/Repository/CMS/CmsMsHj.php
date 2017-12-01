@@ -16,14 +16,100 @@ class CmsMsHj extends CmsStyle
 {
 
     /**
-     * @return array
+     * @param        $personId
+     * @param string $TitleText
+     *
+     * @return Slice
      */
-    public function selectValuesTransfer()
+    public function getCmsMsHjSlice($personId, $TitleText = '')
     {
-        return array(
-            1 => "wird versetzt",
-            2 => "wird nicht versetzt"
-        );
+        return (new Slice())
+            ->stylePaddingLeft('16px')
+            ->stylePaddingRight('16px')
+            ->addSection((new Section())
+                ->addSliceColumn(
+                    self::getCMSHead()
+                )
+            )
+            ->addElement((new Element())
+                ->styleMarginTop('10px')
+            )
+            ->addSectionList(
+                self::getCMSSchoolLine('Staatlich anerkannte Ersatzschule in Trägerschaft von Christen machen Schule
+                    Zwickau gemeinnützige GmbH', 'Evangelische Schule "Stephan Roth" (Oberschule)')
+            )
+            ->addElement((new Element())
+                ->styleMarginTop('20px')
+            )
+            ->addSection(
+                self::getCMSHeadLine($TitleText)
+            )
+            ->addElement((new Element())
+                ->styleMarginTop('20px')
+            )
+            ->addSection(
+                self::getCMSDivisionAndYear($personId)
+            )
+            ->addElement((new Element())
+                ->styleMarginTop('20px')
+            )
+            ->addSection(
+                self::getCMSName($personId)
+            )
+            ->addElement((new Element())
+                ->styleMarginTop('10px')
+            )
+            ->addSection((new Section())
+                ->addSliceColumn(
+                    self::getCMSHeadGrade($personId)
+                )
+            )
+            ->addSection(
+                self::getCMSGradeInfo(true)
+            )
+            ->addElement((new Element())
+                ->styleMarginTop('10px')
+            )
+            ->addSection((new Section())
+                ->addSliceColumn(
+                    self::getCMSSubjectLanes($personId)
+                )
+            )
+            ->addSection(
+                self::getCMSGradeInfo()
+            )
+            ->addElement((new Element())
+                ->styleMarginTop('10px')
+            )
+            ->addSectionList(
+                self::getCMSRemark($personId, '128px', true)
+            )
+            ->addSection(
+                self::getCMSMissing($personId)
+            )
+            ->addElement((new Element())
+                ->styleMarginTop('15px')
+            )
+            ->addSection(
+                self::getCMSDate($personId)
+            )
+            ->addElement((new Element())
+                ->styleMarginTop('10px')
+            )
+            ->addSection((new Section())
+                ->addSliceColumn(
+                    self::getCMSTeacher($personId, true)
+                )
+            )
+            ->addElement((new Element())
+                ->styleMarginTop('20px')
+            )
+            ->addSectionList(
+                self::getCMSCustody()
+            )
+            ->addSectionList(
+                self::getCMSFoot()
+            );
     }
 
     /**
@@ -39,93 +125,8 @@ class CmsMsHj extends CmsStyle
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         return (new Page())
-            ->addSlice((new Slice())
-                ->stylePaddingLeft('16px')
-                ->stylePaddingRight('16px')
-                ->addSection((new Section())
-                    ->addSliceColumn(
-                        self::getCMSHead()
-                    )
-                )
-                ->addElement((new Element())
-                    ->styleMarginTop('10px')
-                )
-                ->addSectionList(
-                    self::getCMSSchoolLine('Staatlich anerkannte Ersatzschule in Trägerschaft von Christen machen Schule
-                    Zwickau gemeinnützige GmbH', 'Evangelische Schule "Stephan Roth" (Oberschule)')
-                )
-                ->addElement((new Element())
-                    ->styleMarginTop('20px')
-                )
-                ->addSection(
-                    self::getCMSHeadLine('Halbjahresinformation der Oberschule')
-                )
-                ->addElement((new Element())
-                    ->styleMarginTop('20px')
-                )
-                ->addSection(
-                    self::getCMSDivisionAndYear($personId)
-                )
-                ->addElement((new Element())
-                    ->styleMarginTop('20px')
-                )
-                ->addSection(
-                    self::getCMSName($personId)
-                )
-                ->addElement((new Element())
-                    ->styleMarginTop('10px')
-                )
-                ->addSection((new Section())
-                    ->addSliceColumn(
-                        self::getCMSHeadGrade($personId)
-                    )
-                )
-                ->addSection(
-                    self::getCMSGradeInfo(true)
-                )
-                ->addElement((new Element())
-                    ->styleMarginTop('10px')
-                )
-                ->addSection((new Section())
-                    ->addSliceColumn(
-                        self::getCMSSubjectLanes($personId)
-                    )
-                )
-                ->addSection(
-                    self::getCMSGradeInfo()
-                )
-                ->addElement((new Element())
-                    ->styleMarginTop('10px')
-                )
-                ->addSectionList(
-                    self::getCMSRemark($personId, '128px', true)
-                )
-                ->addSection(
-                    self::getCMSMissing($personId)
-                )
-                ->addElement((new Element())
-                    ->styleMarginTop('15px')
-                )
-                ->addSection(
-                    self::getCMSDate($personId)
-                )
-                ->addElement((new Element())
-                    ->styleMarginTop('10px')
-                )
-                ->addSection((new Section())
-                    ->addSliceColumn(
-                        self::getCMSTeacher($personId, true)
-                    )
-                )
-                ->addElement((new Element())
-                    ->styleMarginTop('20px')
-                )
-                ->addSectionList(
-                    self::getCMSCustody()
-                )
-                ->addSectionList(
-                    self::getCMSFoot()
-                )
+            ->addSlice(
+                $this->getCmsMsHjSlice($personId, 'Halbjahresinformation der Oberschule')
             );
     }
 }

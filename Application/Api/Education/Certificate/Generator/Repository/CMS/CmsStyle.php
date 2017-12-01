@@ -397,12 +397,12 @@ abstract class CmsStyle extends Certificate
 
     /**
      * @param int    $personId
-     * @param string $Hight
+     * @param string $Height
      * @param bool   $IsHeadLine
      *
      * @return Section[]
      */
-    public function getCMSRemark($personId, $Hight = '100px', $IsHeadLine = false)
+    public function getCMSRemark($personId, $Height = '100px', $IsHeadLine = false)
     {
         $SectionList = array();
         if ($IsHeadLine) {
@@ -422,7 +422,40 @@ abstract class CmsStyle extends Certificate
                     &nbsp;
                 {% endif %}')
             ->styleAlignJustify()
-            ->styleHeight($Hight)
+            ->styleHeight($Height)
+        );
+        $SectionList[] = $Section;
+        return $SectionList;
+    }
+
+    /**
+     * @param int    $personId
+     * @param string $Height
+     * @param bool   $IsHeadLine
+     *
+     * @return Section[]
+     */
+    public function getCMSSecondRemark($personId, $Height = '100px', $IsHeadLine = false)
+    {
+        $SectionList = array();
+        if ($IsHeadLine) {
+            $Section = new Section();
+            $Section->addElementColumn((new Element())
+                ->setContent('Bemerkungen:')
+                ->styleTextSize('10pt')
+                ->styleTextBold()
+            );
+            $SectionList[] = $Section;
+        }
+        $Section = new Section();
+        $Section->addElementColumn((new Element())
+            ->setContent('{% if(Content.P'.$personId.'.Input.SecondRemark is not empty) %}
+                    {{ Content.P'.$personId.'.Input.SecondRemark|nl2br }}
+                {% else %}
+                    &nbsp;
+                {% endif %}')
+            ->styleAlignJustify()
+            ->styleHeight($Height)
         );
         $SectionList[] = $Section;
         return $SectionList;
