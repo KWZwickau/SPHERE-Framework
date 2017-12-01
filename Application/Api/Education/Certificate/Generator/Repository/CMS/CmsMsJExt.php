@@ -9,10 +9,10 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
- * Class CmsMsJ
+ * Class CmsMsJExt
  * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository\CMS
  */
-class CmsMsJ extends CmsStyle
+class CmsMsJExt extends CmsStyle
 {
 
     /**
@@ -29,7 +29,7 @@ class CmsMsJ extends CmsStyle
     /**
      * @param TblPerson|null $tblPerson
      *
-     * @return Page
+     * @return Page[]
      * @internal param bool $IsSample
      *
      */
@@ -37,8 +37,8 @@ class CmsMsJ extends CmsStyle
     {
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
-
-        return (new Page())
+        $PageList = array();
+        $PageList[] = (new Page())
             ->addSlice((new Slice())
                 ->stylePaddingLeft('16px')
                 ->stylePaddingRight('16px')
@@ -98,7 +98,24 @@ class CmsMsJ extends CmsStyle
                     ->styleMarginTop('10px')
                 )
                 ->addSectionList(
-                    self::getCMSRemark($personId, '87px', true)
+                    self::getCMSRemark($personId, '250px', true)
+                )
+            );
+        $PageList[] = (new Page())
+            ->addSlice((new Slice())
+                ->stylePaddingLeft('16px')
+                ->stylePaddingRight('16px')
+                ->addElement((new Element())
+                    ->styleMarginTop('20px')
+                )
+                ->addSection(
+                    self::getCMSExtendedName($personId)
+                )
+                ->addElement((new Element())
+                    ->styleMarginTop('20px')
+                )
+                ->addSectionList(
+                    self::getCMSSecondRemark($personId, '737px')
                 )
                 ->addSection(
                     self::getCMSMissing($personId)
@@ -133,5 +150,6 @@ class CmsMsJ extends CmsStyle
                     self::getCMSFoot()
                 )
             );
+        return $PageList;
     }
 }

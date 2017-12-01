@@ -9,27 +9,17 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
- * Class CmsMsJ
+ * Class CmsGsHjOneTwoExt
  * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository\CMS
  */
-class CmsMsJ extends CmsStyle
+class CmsGsHjOneTwoExt extends CmsStyle
 {
 
-    /**
-     * @return array
-     */
-    public function selectValuesTransfer()
-    {
-        return array(
-            1 => "wird versetzt",
-            2 => "wird nicht versetzt"
-        );
-    }
 
     /**
      * @param TblPerson|null $tblPerson
      *
-     * @return Page
+     * @return Page[]
      * @internal param bool $IsSample
      *
      */
@@ -37,8 +27,8 @@ class CmsMsJ extends CmsStyle
     {
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
-
-        return (new Page())
+        $PageList = array();
+        $PageList[] = (new Page())
             ->addSlice((new Slice())
                 ->stylePaddingLeft('16px')
                 ->stylePaddingRight('16px')
@@ -52,13 +42,13 @@ class CmsMsJ extends CmsStyle
                 )
                 ->addSectionList(
                     self::getCMSSchoolLine('Staatlich anerkannte Ersatzschule in Trägerschaft von Christen machen Schule
-                    Zwickau gemeinnützige GmbH', 'Evangelische Schule "Stephan Roth" (Oberschule)')
+                    Zwickau gemeinnützige GmbH', 'Evangelische Schule "Stephan Roth" (Grundschule)')
                 )
                 ->addElement((new Element())
                     ->styleMarginTop('20px')
                 )
                 ->addSection(
-                    self::getCMSHeadLine('Jahreszeugnis der Oberschule')
+                    self::getCMSHeadLine('Halbjahresinformation der Grundschule')
                 )
                 ->addElement((new Element())
                     ->styleMarginTop('20px')
@@ -73,32 +63,27 @@ class CmsMsJ extends CmsStyle
                     self::getCMSName($personId)
                 )
                 ->addElement((new Element())
-                    ->styleMarginTop('10px')
-                )
-                ->addSection((new Section())
-                    ->addSliceColumn(
-                        self::getCMSHeadGrade($personId)
-                    )
-                )
-                ->addSection(
-                    self::getCMSGradeInfo(true)
-                )
-                ->addElement((new Element())
-                    ->styleMarginTop('10px')
-                )
-                ->addSection((new Section())
-                    ->addSliceColumn(
-                        self::getCMSSubjectLanes($personId)
-                    )
-                )
-                ->addSection(
-                    self::getCMSGradeInfo()
-                )
-                ->addElement((new Element())
-                    ->styleMarginTop('10px')
+                    ->styleMarginTop('20px')
                 )
                 ->addSectionList(
-                    self::getCMSRemark($personId, '87px', true)
+                    self::getCMSRemark($personId, '600px')
+                )
+            );
+        $PageList[] = (new Page())
+            ->addSlice((new Slice())
+                ->stylePaddingLeft('16px')
+                ->stylePaddingRight('16px')
+                ->addElement((new Element())
+                    ->styleMarginTop('20px')
+                )
+                ->addSection(
+                    self::getCMSExtendedName($personId)
+                )
+                ->addElement((new Element())
+                    ->styleMarginTop('20px')
+                )
+                ->addSectionList(
+                    self::getCMSSecondRemark($personId, '770px')
                 )
                 ->addSection(
                     self::getCMSMissing($personId)
@@ -108,12 +93,6 @@ class CmsMsJ extends CmsStyle
                 )
                 ->addSection(
                     self::getCMSDate($personId)
-                )
-                ->addElement((new Element())
-                    ->styleMarginTop('15px')
-                )
-                ->addSection(
-                    self::getCMSTransfer($personId)
                 )
                 ->addElement((new Element())
                     ->styleMarginTop('10px')
@@ -133,5 +112,6 @@ class CmsMsJ extends CmsStyle
                     self::getCMSFoot()
                 )
             );
+        return $PageList;
     }
 }

@@ -9,36 +9,22 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
- * Class CmsMsJ
+ * Class CmsMsHjExt
  * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository\CMS
  */
-class CmsMsJ extends CmsStyle
+class CmsMsHjExt extends CmsStyle
 {
 
     /**
-     * @return array
-     */
-    public function selectValuesTransfer()
-    {
-        return array(
-            1 => "wird versetzt",
-            2 => "wird nicht versetzt"
-        );
-    }
-
-    /**
-     * @param TblPerson|null $tblPerson
+     * @param        $personId
+     * @param string $TitleText
      *
-     * @return Page
-     * @internal param bool $IsSample
-     *
+     * @return Page[]
      */
-    public function buildPages(TblPerson $tblPerson = null)
+    public function getCmsMsHjPageList($personId, $TitleText = '')
     {
-
-        $personId = $tblPerson ? $tblPerson->getId() : 0;
-
-        return (new Page())
+        $PageList = array();
+        $PageList[] = (new Page())
             ->addSlice((new Slice())
                 ->stylePaddingLeft('16px')
                 ->stylePaddingRight('16px')
@@ -52,13 +38,13 @@ class CmsMsJ extends CmsStyle
                 )
                 ->addSectionList(
                     self::getCMSSchoolLine('Staatlich anerkannte Ersatzschule in Trägerschaft von Christen machen Schule
-                    Zwickau gemeinnützige GmbH', 'Evangelische Schule "Stephan Roth" (Oberschule)')
+                        Zwickau gemeinnützige GmbH', 'Evangelische Schule "Stephan Roth" (Oberschule)')
                 )
                 ->addElement((new Element())
                     ->styleMarginTop('20px')
                 )
                 ->addSection(
-                    self::getCMSHeadLine('Jahreszeugnis der Oberschule')
+                    self::getCMSHeadLine($TitleText)
                 )
                 ->addElement((new Element())
                     ->styleMarginTop('20px')
@@ -98,7 +84,24 @@ class CmsMsJ extends CmsStyle
                     ->styleMarginTop('10px')
                 )
                 ->addSectionList(
-                    self::getCMSRemark($personId, '87px', true)
+                    self::getCMSRemark($personId, '300px', true)
+                )
+            );
+        $PageList[] = (new Page())
+            ->addSlice((new Slice())
+                ->stylePaddingLeft('16px')
+                ->stylePaddingRight('16px')
+                ->addElement((new Element())
+                    ->styleMarginTop('20px')
+                )
+                ->addSection(
+                    self::getCMSExtendedName($personId)
+                )
+                ->addElement((new Element())
+                    ->styleMarginTop('20px')
+                )
+                ->addSectionList(
+                    self::getCMSSecondRemark($personId, '770px')
                 )
                 ->addSection(
                     self::getCMSMissing($personId)
@@ -108,12 +111,6 @@ class CmsMsJ extends CmsStyle
                 )
                 ->addSection(
                     self::getCMSDate($personId)
-                )
-                ->addElement((new Element())
-                    ->styleMarginTop('15px')
-                )
-                ->addSection(
-                    self::getCMSTransfer($personId)
                 )
                 ->addElement((new Element())
                     ->styleMarginTop('10px')
@@ -133,5 +130,21 @@ class CmsMsJ extends CmsStyle
                     self::getCMSFoot()
                 )
             );
+        return $PageList;
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     *
+     * @return Page[]
+     * @internal param bool $IsSample
+     *
+     */
+    public function buildPages(TblPerson $tblPerson = null)
+    {
+
+        $personId = $tblPerson ? $tblPerson->getId() : 0;
+
+        return $this->getCmsMsHjPageList($personId, 'Halbjahresinformation der Oberschule');
     }
 }

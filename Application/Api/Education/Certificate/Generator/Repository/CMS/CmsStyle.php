@@ -157,6 +157,29 @@ abstract class CmsStyle extends Certificate
      *
      * @return Section
      */
+    public function getCMSExtendedName($personId)
+    {
+
+        $Section = new Section();
+        $Section->addElementColumn((new Element())
+            ->setContent('Beiblatt zum Zeugnis für:')
+            , '24%')
+            ->addElementColumn((new Element())
+                ->setContent('{{ Content.P'.$personId.'.Person.Data.Name.First }}
+                              {{ Content.P'.$personId.'.Person.Data.Name.Last }}')
+                ->styleAlignCenter()
+                ->styleBorderBottom()
+//                ->stylePaddingRight('120px')
+                ->stylePaddingLeft('7px')
+                , '76%');
+        return $Section;
+    }
+
+    /**
+     * @param $personId
+     *
+     * @return Section
+     */
     public function getCMSNameExtraPaper($personId)
     {
 
@@ -264,7 +287,7 @@ abstract class CmsStyle extends Certificate
      *
      * @return Slice
      */
-    public function getCMSSubjectLanes($personId, $IsHeadline = true, $Height = '256px')
+    public function getCMSSubjectLanes($personId, $IsHeadline = true, $Height = '270px')
     {
 
         $SubjectSlice = (new Slice());
@@ -321,6 +344,11 @@ abstract class CmsStyle extends Certificate
                 $SectionList[] = $HeaderSection;
             }
 
+            // shrink definition parameter
+            $TextSize = '14px';
+            $TextSizeSmall = '8.5px';
+            $paddingTopShrinking = '5px';
+            $paddingBottomShrinking = '6px';
             foreach ($SubjectStructure as $SubjectList) {
                 $count++;
                 // Sort Lane-Ranking (1,2...)
@@ -353,9 +381,34 @@ abstract class CmsStyle extends Certificate
                                          {% endif %}')
                         ->styleAlignCenter()
                         ->styleBackgroundColor('#BBB')
-                        ->stylePaddingTop('1px')
-                        ->stylePaddingBottom('1px')
                         ->styleMarginTop('10px')
+                        ->stylePaddingTop(
+                            '{% if((Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$Subject['SubjectAcronym'].'"] is not empty)
+                                and (Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty)
+                            ) %}
+                                '.$paddingTopShrinking.' 
+                             {% else %}
+                                 2px
+                             {% endif %}'
+                        )
+                        ->stylePaddingBottom(
+                            '{% if((Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$Subject['SubjectAcronym'].'"] is not empty)
+                                and (Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty)
+                            ) %}
+                               '.$paddingBottomShrinking.' 
+                             {% else %}
+                                 2px
+                             {% endif %}'
+                        )
+                        ->styleTextSize(
+                            '{% if((Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$Subject['SubjectAcronym'].'"] is not empty)
+                                and (Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty)
+                            ) %}
+                                 '.$TextSizeSmall.'
+                             {% else %}
+                                 '.$TextSize.'
+                             {% endif %}'
+                        )
                         , '9%');
                 }
 
@@ -422,6 +475,7 @@ abstract class CmsStyle extends Certificate
                     &nbsp;
                 {% endif %}')
             ->styleAlignJustify()
+//            ->styleBorderLeft()
             ->styleHeight($Height)
         );
         $SectionList[] = $Section;
@@ -455,6 +509,7 @@ abstract class CmsStyle extends Certificate
                     &nbsp;
                 {% endif %}')
             ->styleAlignJustify()
+//            ->styleBorderLeft()
             ->styleHeight($Height)
         );
         $SectionList[] = $Section;
