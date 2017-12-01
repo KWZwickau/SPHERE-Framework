@@ -73,7 +73,7 @@ class Export implements IModuleInterface
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel('Indiware-Notenexport für Sekundarstufe 2:', $PanelAppointmentGradeExport
+                            new Panel('Indiware-Notenexport für SEK II', $PanelAppointmentGradeExport
                                 , Panel::PANEL_TYPE_INFO)
                             , 4),
                     ))

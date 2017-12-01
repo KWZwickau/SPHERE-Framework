@@ -117,8 +117,9 @@ class Frontend extends Extension implements IFrontendInterface
                                                     Spaltenreihenfolge festlegen kann, ist es notwendig zuerst einen 
                                                     Export aus der Abiturverwaltung von Indiware einzulesen. Bitte verwenden 
                                                     Sie dafür einen kompletten Schüler-Export (alle Spalten) aus der 
-                                                    Abiturverwaltung von Indiware mit „Komma oder Semikolon“ als Trennzeichen.
-                                                    Der Export benutzt als Trennzeichen ein Komma.')
+                                                    Abiturverwaltung von Indiware mit '.new Bold('„Komma oder Semikolon“')
+                                                        .' als Trennzeichen. Der Export benutzt als Trennzeichen ein '.
+                                                        new Bold('„Komma“').'.')
                                                     .new Danger(new Small(new Small('Pflichtfelder ')).'*')
                                                 ), Panel::PANEL_TYPE_INFO)
                                         )
@@ -306,9 +307,10 @@ class Frontend extends Extension implements IFrontendInterface
                         ));
                     }
                     // course definition
-                    $Item['PersonTest'] = new WarningMessage(' Person nicht im Stichtagsnotenauftrag enthalten '.
+                    $Item['PersonTest'] = new WarningMessage('Keine Noten vorhanden. Weitere Hinweise siehe Info-Symbol '.
                         new ToolTip(new InfoIcon(),
-                            'Personen, die nicht im Stichtagsnotenauftrag vorhanden sind, können nicht exportiert werden'));
+                            'Die Personen, die keine Noten erhalten haben, können nicht exportiert werden. Mögliche Ursache:
+                             keine Stichtagsnote hinterlegt oder falscher Stichtagsnotenauftrag ausgewählt.'));
                     if (($tblPerson = $tblStudentSubjectOrder->getServiceTblPerson())
                         && $PersonFoundList
                         && isset($PersonFoundList[$tblPerson->getId()])) {
@@ -364,7 +366,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
-                    new LayoutRow(
+                    new LayoutRow(array(
                         new LayoutColumn(
                             $MissingDownloadInfo
                             .new Title(new ListingTable().' Personen aus Indiware')
@@ -386,8 +388,19 @@ class Frontend extends Extension implements IFrontendInterface
                                     ),
                                 )
                             )
+                        ),
+                        new LayoutColumn(
+                            ($tblTask && $ShowDownload
+                                ? new PrimaryLink('Herunterladen',
+                                    'SPHERE\Application\Api\Transfer\Indiware\AppointmentGrade\Download',
+                                    new Download(),
+                                    array(
+                                        'Period' => $SelectPeriod,
+                                        'TaskId' => $tblTask->getId()
+                                    ), false)
+                                : '')
                         )
-                    )
+                    ))
                 )
             )
         );

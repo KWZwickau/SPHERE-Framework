@@ -84,7 +84,7 @@ class EsrlGsJ extends EsrlStyle
                     )
                 )
                 ->addSection(
-                    self::getESRLRemark($personId, '240px')
+                    self::getESRLRemark($personId, '220px')
                 )
                 ->addSection(
                     self::getESRLMissing($personId)
@@ -104,8 +104,10 @@ class EsrlGsJ extends EsrlStyle
                 ->addElement((new Element())
                     ->styleMarginTop('10px')
                 )
-                ->addSectionList(
-                    self::getESRLTeacher()
+                ->addSection((new Section())
+                    ->addSliceColumn(
+                        self::getESRLTeacher($personId, true)
+                    )
                 )
                 ->addElement((new Element())
                     ->styleMarginTop('20px')

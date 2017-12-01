@@ -432,19 +432,21 @@ abstract class EsrlStyle extends Certificate
     }
 
     /**
-     * @return Section[]
+     * @param        $personId
+     * @param bool   $isExtended with directory and stamp
+     * @param string $MarginTop
+     *
+     * @return Slice
      */
-    public function getESRLTeacher($withSchoolLeader = true)
+    protected function getESRLTeacher($personId, $isExtended = true, $MarginTop = '25px')
     {
-
-        $SectionList = array();
-        if ($withSchoolLeader) {
-            $SectionList[] = (new Section())
+        $SignSlice = (new Slice());
+        if ($isExtended) {
+            $SignSlice->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
                     ->styleAlignCenter()
                     ->styleBorderBottom('1px', '#999')
-                    ->styleMarginTop('20px')
                     , '30%')
                 ->addElementColumn((new Element())
                     , '40%')
@@ -452,42 +454,114 @@ abstract class EsrlStyle extends Certificate
                     ->setContent('&nbsp;')
                     ->styleAlignCenter()
                     ->styleBorderBottom('1px', '#999')
-                    ->styleMarginTop('20px')
-                    , '30%');
-            $SectionList[] = (new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Schulleiter(in)')
-                    ->styleAlignCenter()
-                    ->styleTextSize('11px')
                     , '30%')
-                ->addElementColumn((new Element())
-                    , '40%')
-                ->addElementColumn((new Element())
-                    ->setContent('Klassenlehrer(in)')
-                    ->styleAlignCenter()
-                    ->styleTextSize('11px')
-                    , '30%');
+            )
+                ->styleMarginTop($MarginTop)
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if(Content.P'.$personId.'.Headmaster.Description is not empty) %}
+                                {{ Content.P'.$personId.'.Headmaster.Description }}
+                            {% else %}
+                                Schulleiter(in)
+                            {% endif %}'
+                        )
+                        ->styleAlignCenter()
+                        ->styleTextSize('11px')
+                        , '30%')
+                    ->addElementColumn((new Element())
+                        , '5%')
+                    ->addElementColumn((new Element())
+                        ->setContent('Dienstsiegel der Schule')
+                        ->styleAlignCenter()
+                        ->styleTextSize('11px')
+                        , '30%')
+                    ->addElementColumn((new Element())
+                        , '5%')
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if(Content.P'.$personId.'.DivisionTeacher.Description is not empty) %}
+                                {{ Content.P'.$personId.'.DivisionTeacher.Description }}
+                            {% else %}
+                                Klassenlehrer(in)
+                            {% endif %}'
+                        )
+                        ->styleAlignCenter()
+                        ->styleTextSize('11px')
+                        , '30%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent(
+                            '{% if(Content.P'.$personId.'.Headmaster.Name is not empty) %}
+                                {{ Content.P'.$personId.'.Headmaster.Name }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}'
+                        )
+                        ->styleTextSize('11px')
+                        ->stylePaddingTop('2px')
+                        ->styleAlignCenter()
+                        , '30%')
+                    ->addElementColumn((new Element())
+                        , '40%')
+                    ->addElementColumn((new Element())
+                        ->setContent(
+                            '{% if(Content.P'.$personId.'.DivisionTeacher.Name is not empty) %}
+                                {{ Content.P'.$personId.'.DivisionTeacher.Name }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}'
+                        )
+                        ->styleTextSize('11px')
+                        ->stylePaddingTop('2px')
+                        ->styleAlignCenter()
+                        , '30%')
+                );
         } else {
-            $SectionList[] = (new Section())
+            $SignSlice->addSection((new Section())
                 ->addElementColumn((new Element())
                     , '70%')
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
                     ->styleAlignCenter()
                     ->styleBorderBottom('1px', '#999')
-                    ->styleMarginTop('20px')
-                    , '30%');
-            $SectionList[] = (new Section())
-                ->addElementColumn((new Element())
-                    , '70%')
-                ->addElementColumn((new Element())
-                    ->setContent('Klassenlehrer(in)')
-                    ->styleAlignCenter()
-                    ->styleTextSize('11px')
-                    , '30%');
+                    , '30%')
+            )
+                ->styleMarginTop($MarginTop)
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        , '70%')
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                        {% if(Content.P'.$personId.'.DivisionTeacher.Description is not empty) %}
+                                {{ Content.P'.$personId.'.DivisionTeacher.Description }}
+                            {% else %}
+                                Klassenlehrer(in)
+                            {% endif %}
+                        ')
+                        ->styleAlignCenter()
+                        ->styleTextSize('11px')
+                        , '30%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        , '70%')
+                    ->addElementColumn((new Element())
+                        ->setContent(
+                            '{% if(Content.P'.$personId.'.DivisionTeacher.Name is not empty) %}
+                                {{ Content.P'.$personId.'.DivisionTeacher.Name }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}'
+                        )
+                        ->styleTextSize('11px')
+                        ->stylePaddingTop('2px')
+                        ->styleAlignCenter()
+                        , '30%')
+                );
         }
-
-        return $SectionList;
+        return $SignSlice;
     }
 
     /**
