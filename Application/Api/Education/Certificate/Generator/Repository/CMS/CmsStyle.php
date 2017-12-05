@@ -7,6 +7,11 @@ use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
+use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 /**
  * Class EsrlStyle
@@ -58,21 +63,28 @@ abstract class CmsStyle extends Certificate
     }
 
     /**
-     * @param string $firstLine
-     * @param string $secondLine
+     * @param $personId
      *
      * @return Section[]
      */
-    public function getCMSSchoolLine($firstLine = '', $secondLine = '')
+    public function getCMSSchoolLine($personId)
     {
 
         $SectionList[] = (new Section())->addElementColumn((new Element())
-            ->setContent($firstLine)
+            ->setContent('{% if(Content.P'.$personId.'.Company.Data.ExtendedName) %}
+                    {{ Content.P'.$personId.'.Company.Data.ExtendedName }}
+                {% else %}
+                      &nbsp;
+                {% endif %}')
             ->styleTextSize(self::TEXT_SIZE)
             ->styleAlignCenter()
         );
         $SectionList[] = (new Section())->addElementColumn((new Element())
-            ->setContent($secondLine)
+            ->setContent('{% if(Content.P'.$personId.'.Company.Data.Name) %}
+                    {{ Content.P'.$personId.'.Company.Data.Name }}
+                {% else %}
+                      &nbsp;
+                {% endif %}')
             ->styleTextSize(self::TEXT_SIZE)
             ->styleAlignCenter()
             ->styleMarginTop('18px')
@@ -169,7 +181,7 @@ abstract class CmsStyle extends Certificate
                               {{ Content.P'.$personId.'.Person.Data.Name.Last }}')
                 ->styleAlignCenter()
                 ->styleBorderBottom()
-//                ->stylePaddingRight('120px')
+                ->stylePaddingRight('120px')
                 ->stylePaddingLeft('7px')
                 , '76%');
         return $Section;
@@ -340,6 +352,7 @@ abstract class CmsStyle extends Certificate
                     ->setContent('Leistungen in den einzelnen Fächern:')
                     ->styleTextSize('10pt')
                     ->styleTextBold()
+                    ->stylePaddingTop('10px')
                 );
                 $SectionList[] = $HeaderSection;
             }
@@ -425,27 +438,312 @@ abstract class CmsStyle extends Certificate
     }
 
     /**
-     * @param bool $IsHead
+     * @param        $personId
+     * @param string $TextSize
+     * @param bool   $IsGradeUnderlined
      *
-     * @return Section
+     * @return Slice
      */
-    public function getCMSGradeInfo($IsHead = false)
+    public function getCMSOrientationStandard($personId, $TextSize = '14px', $IsGradeUnderlined = false)
     {
 
-        $Section = new Section();
-        if ($IsHead) {
-            $Section->addElementColumn((new Element())
-                ->setContent('Noten: 1 = sehr gut, 2 = gut, 3 = befriedigend, 4 = ausreichend, 5 = mangelhalft')
-                ->styleTextSize('7pt')
-                ->stylePaddingTop('5px')
-            );
+        $tblPerson = Person::useService()->getPersonById($personId);
+
+        $marginTop = '3px';
+
+        $slice = new Slice();
+        $sectionList = array();
+
+        $elementOrientationName = false;
+        $elementOrientationGrade = false;
+        $elementForeignLanguageName = false;
+        $elementForeignLanguageGrade = false;
+
+        // Zeugnisnoten im Wortlaut auf Abschlusszeugnissen --> breiter Zensurenfelder
+        if (($tblCertificate = $this->getCertificateEntity())
+            && ($tblCertificateType = $tblCertificate->getTblCertificateType())
+            && ($tblCertificateType->getIdentifier() == 'DIPLOMA')
+            && ($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnDiploma'))
+            && $tblSetting->getValue()
+        ) {
+            $subjectWidth = 89;
+            $gradeWidth = 11;
+            $TextSizeSmall = '13px';
+            $paddingTopShrinking = '4px';
+            $paddingBottomShrinking = '4px';
         } else {
-            $Section->addElementColumn((new Element())
-                ->setContent('Noten: 1 = sehr gut, 2 = gut, 3 = befriedigend, 4 = ausreichend, 5 = mangelhalft, 6 = ungenügend')
-                ->styleTextSize('7pt')
-            );
+            $subjectWidth = 91;
+            $gradeWidth = 9;
+            $TextSizeSmall = '8.5px';
+            $paddingTopShrinking = '5px';
+            $paddingBottomShrinking = '6px';
         }
-        return $Section;
+
+        if ($tblPerson
+            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+        ) {
+
+            // Neigungskurs
+            if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))
+                && ($tblSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                    $tblStudentSubjectType))
+            ) {
+                /** @var TblStudentSubject $tblStudentSubject */
+                $tblStudentSubject = current($tblSubjectList);
+                if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+
+                    if (($tblSetting = Consumer::useService()->getSetting('Api', 'Education', 'Certificate',
+                            'OrientationAcronym'))
+                        && ($value = $tblSetting->getValue())
+                    ) {
+                        $subjectAcronymForGrade = $value;
+                    } else {
+                        $subjectAcronymForGrade = $tblSubject->getAcronym();
+                    }
+
+                    $elementOrientationName = new Element();
+                    $elementOrientationName
+                        ->setContent('
+                            {% if(Content.P'.$personId.'.Student.Orientation["'.$tblSubject->getAcronym().'"] is not empty) %}
+                                 {{ Content.P'.$personId.'.Student.Orientation["'.$tblSubject->getAcronym().'"].Name'.' }}
+                            {% else %}
+                                 &nbsp;
+                            {% endif %}')
+                        ->stylePaddingTop('0px')
+                        ->stylePaddingBottom('0px')
+                        ->styleMarginTop('7px')
+                        ->styleTextSize($TextSize);
+
+                    $elementOrientationGrade = new Element();
+                    $elementOrientationGrade
+                        ->setContent('
+                            {% if(Content.P'.$personId.'.Grade.Data["'.$subjectAcronymForGrade.'"] is not empty) %}
+                                {{ Content.P'.$personId.'.Grade.Data["'.$subjectAcronymForGrade.'"] }}
+                            {% else %}
+                                &ndash;
+                            {% endif %}')
+                        ->styleAlignCenter()
+                        ->styleBackgroundColor('#BBB')
+                        ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                        ->stylePaddingTop(
+                            '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$subjectAcronymForGrade.'"] is not empty) %}
+                                 '.$paddingTopShrinking.' 
+                             {% else %}
+                                 2px
+                             {% endif %}'
+                        )
+                        ->stylePaddingBottom(
+                            '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$subjectAcronymForGrade.'"] is not empty) %}
+                                  '.$paddingBottomShrinking.' 
+                             {% else %}
+                                 2px
+                             {% endif %}'
+                        )
+                        ->styleTextSize(
+                            '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$subjectAcronymForGrade.'"] is not empty) %}
+                                 '.$TextSizeSmall.'
+                             {% else %}
+                                 '.$TextSize.'
+                             {% endif %}'
+                        )
+                        ->styleMarginTop($marginTop);
+                }
+            }
+
+            // 2. Fremdsprache
+            if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+                && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                    $tblStudentSubjectType))
+            ) {
+                /** @var TblStudentSubject $tblStudentSubject */
+                foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                    if ($tblStudentSubject->getTblStudentSubjectRanking()
+                        && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
+                        && ($tblSubject = $tblStudentSubject->getServiceTblSubject())
+                    ) {
+                        $elementForeignLanguageName = new Element();
+                        $elementForeignLanguageName
+                            ->setContent('
+                            {% if(Content.P'.$personId.'.Student.ForeignLanguage["'.$tblSubject->getAcronym().'"] is not empty) %}
+                                 {{ Content.P'.$personId.'.Student.ForeignLanguage["'.$tblSubject->getAcronym().'"].Name'.' }}
+                            {% else %}
+                                 &nbsp;
+                            {% endif %}')
+                            ->stylePaddingTop('0px')
+                            ->stylePaddingBottom('0px')
+                            ->styleMarginTop('7px')
+                            ->styleTextSize($TextSize);
+
+                        $elementForeignLanguageGrade = new Element();
+                        $elementForeignLanguageGrade
+                            ->setContent('
+                            {% if(Content.P'.$personId.'.Grade.Data["'.$tblSubject->getAcronym().'"] is not empty) %}
+                                {{ Content.P'.$personId.'.Grade.Data["'.$tblSubject->getAcronym().'"] }}
+                            {% else %}
+                                &ndash;
+                            {% endif %}')
+                            ->styleAlignCenter()
+                            ->styleBackgroundColor('#BBB')
+                            ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                            ->stylePaddingTop(
+                                '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$tblSubject->getAcronym().'"] is not empty) %}
+                                 '.$paddingTopShrinking.' 
+                             {% else %}
+                                 2px
+                             {% endif %}'
+                            )
+                            ->stylePaddingBottom(
+                                '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$tblSubject->getAcronym().'"] is not empty) %}
+                                  '.$paddingBottomShrinking.' 
+                             {% else %}
+                                 2px
+                             {% endif %}'
+                            )
+                            ->styleTextSize(
+                                '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$tblSubject->getAcronym().'"] is not empty) %}
+                                 '.$TextSizeSmall.'
+                             {% else %}
+                                 '.$TextSize.'
+                             {% endif %}'
+                            )
+                            ->styleMarginTop($marginTop);
+                    }
+                }
+            }
+
+            // aktuell immer anzeigen
+//            if ($elementOrientationName || $elementForeignLanguageName) {
+            $section = new Section();
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent('Wahlpflichtbereich:')
+                    ->styleTextBold()
+                    ->styleMarginTop('10px')
+                    ->styleTextSize($TextSize)
+                );
+            $sectionList[] = $section;
+//            }
+
+            if ($elementOrientationName) {
+                $section = new Section();
+                $section
+                    ->addElementColumn($elementOrientationName, (string)$subjectWidth.'%')
+                    ->addElementColumn($elementOrientationGrade, (string)$gradeWidth.'%');
+                $sectionList[] = $section;
+
+                $section = new Section();
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('<u>Neigungskurs (Neigungskursbereich)</u> / 2. Fremdsprache (abschlussorientiert)')
+                        ->styleBorderTop()
+                        ->styleMarginTop('0px')
+                        ->stylePaddingTop()
+                        ->styleTextSize('13px')
+                        , (string)($subjectWidth - 2).'%')
+                    ->addElementColumn((new Element()), (string)($gradeWidth + 2).'%');
+                $sectionList[] = $section;
+            } elseif ($elementForeignLanguageName) {
+                $section = new Section();
+                $section
+                    ->addElementColumn($elementForeignLanguageName, (string)$subjectWidth.'%')
+                    ->addElementColumn($elementForeignLanguageGrade, (string)$gradeWidth.'%');
+                $sectionList[] = $section;
+
+                $section = new Section();
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('Neigungskurs (Neigungskursbereich) / <u>2. Fremdsprache (abschlussorientiert)</u>')
+                        ->styleBorderTop()
+                        ->styleMarginTop('0px')
+                        ->stylePaddingTop()
+                        ->styleTextSize('13px')
+                        , (string)($subjectWidth - 2).'%')
+                    ->addElementColumn((new Element()), (string)($gradeWidth + 2).'%');
+                $sectionList[] = $section;
+            } else {
+                $elementName = (new Element())
+                    ->setContent('---')
+                    ->styleBorderBottom()
+                    ->styleMarginTop($marginTop)
+                    ->styleTextSize($TextSize);
+
+                $elementGrade = (new Element())
+                    ->setContent('&ndash;')
+                    ->styleAlignCenter()
+                    ->styleBackgroundColor('#BBB')
+                    ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                    ->stylePaddingTop('0px')
+                    ->stylePaddingBottom('0px')
+                    ->styleMarginTop($marginTop)
+                    ->styleTextSize($TextSize);
+
+                $section = new Section();
+                $section
+                    ->addElementColumn($elementName
+                        , '90%')
+                    ->addElementColumn((new Element())
+                        , '1%')
+                    ->addElementColumn($elementGrade
+                        , '9%');
+                $sectionList[] = $section;
+
+                $section = new Section();
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('Neigungskurs (Neigungskursbereich)/2. Fremdsprache (abschlussorientiert)')
+                        ->styleTextSize('11px')
+                        , '50%');
+                $sectionList[] = $section;
+            }
+        } else {
+
+            $section = new Section();
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent('Wahlpflichtbereich:')
+                    ->styleTextBold()
+                    ->styleMarginTop('10px')
+                    ->styleTextSize($TextSize)
+                );
+            $sectionList[] = $section;
+
+            $elementName = (new Element())
+                ->setContent('---')
+                ->styleBorderBottom()
+                ->styleMarginTop($marginTop)
+                ->styleTextSize($TextSize);
+
+            $elementGrade = (new Element())
+                ->setContent('&ndash;')
+                ->styleAlignCenter()
+                ->styleBackgroundColor('#BBB')
+                ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
+                ->stylePaddingTop('0px')
+                ->stylePaddingBottom('0px')
+                ->styleMarginTop($marginTop)
+                ->styleTextSize($TextSize);
+
+            $section = new Section();
+            $section
+                ->addElementColumn($elementName
+                    , '90%')
+                ->addElementColumn((new Element())
+                    , '1%')
+                ->addElementColumn($elementGrade
+                    , '9%');
+            $sectionList[] = $section;
+
+            $section = new Section();
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent('Neigungskurs (Neigungskursbereich)/2. Fremdsprache (abschlussorientiert)')
+                    ->styleTextSize('11px')
+                    , '50%');
+            $sectionList[] = $section;
+        }
+
+        return empty($sectionList) ? (new Slice())->styleHeight('60px') : $slice->addSectionList($sectionList);
     }
 
     /**
@@ -767,9 +1065,12 @@ abstract class CmsStyle extends Certificate
             ->styleBorderBottom()
         );
         $SectionList[] = (new Section())->addElementColumn((new Element())
-            ->setContent('Evangelische Schule Stephan Roth, Kirchstr. 4, 08064 Zwickau')
+            ->setContent(
+                'Notenerläuterung:'
+                .new Container('Noten: 1 = sehr gut, 2 = gut, 3 = befriedigend, 4 = ausreichend, 5 = mangelhalft,
+                6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)')
+            )
             ->styleTextSize('8.5px')
-            ->styleAlignRight()
             ->stylePaddingTop()
         );
         return $SectionList;

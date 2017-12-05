@@ -35,8 +35,7 @@ class CmsMsHj extends CmsStyle
                 ->styleMarginTop('10px')
             )
             ->addSectionList(
-                self::getCMSSchoolLine('Staatlich anerkannte Ersatzschule in Trägerschaft von Christen machen Schule
-                    Zwickau gemeinnützige GmbH', 'Evangelische Schule "Stephan Roth" (Oberschule)')
+                self::getCMSSchoolLine($personId)
             )
             ->addElement((new Element())
                 ->styleMarginTop('20px')
@@ -64,9 +63,6 @@ class CmsMsHj extends CmsStyle
                     self::getCMSHeadGrade($personId)
                 )
             )
-            ->addSection(
-                self::getCMSGradeInfo(true)
-            )
             ->addElement((new Element())
                 ->styleMarginTop('10px')
             )
@@ -75,14 +71,19 @@ class CmsMsHj extends CmsStyle
                     self::getCMSSubjectLanes($personId)
                 )
             )
-            ->addSection(
-                self::getCMSGradeInfo()
+            ->addElement((new Element())
+                ->styleMarginTop('10px')
+            )
+            ->addSection((new Section())
+                ->addSliceColumn(
+                    self::getCMSOrientationStandard($personId)
+                )
             )
             ->addElement((new Element())
                 ->styleMarginTop('10px')
             )
             ->addSectionList(
-                self::getCMSRemark($personId, '120px', true)
+                self::getCMSRemark($personId, '55px', true)
             )
             ->addSection(
                 self::getCMSMissing($personId)

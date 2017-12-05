@@ -2229,7 +2229,7 @@ class Data extends AbstractData
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'Remark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 2600);
+                        $this->createCertificateField($tblCertificate, $FieldName, 2500);
                     }
                 }
                 //
@@ -2255,7 +2255,7 @@ class Data extends AbstractData
                     // Begrenzung des Bemerkungsfelds der 2.ten Seite
                     $FieldName = 'SecondRemark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 3800);
+                        $this->createCertificateField($tblCertificate, $FieldName, 3700);
                     }
                 }
                 //
@@ -2302,7 +2302,7 @@ class Data extends AbstractData
                     // Begrenzung des Bemerkungsfelds der 2.ten Seite
                     $FieldName = 'SecondRemark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 3600);
+                        $this->createCertificateField($tblCertificate, $FieldName, 3500);
                     }
                 }
                 //
@@ -2359,7 +2359,7 @@ class Data extends AbstractData
                     // Begrenzung des Bemerkungsfelds der 2.ten Seite
                     $FieldName = 'SecondRemark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 3800);
+                        $this->createCertificateField($tblCertificate, $FieldName, 3700);
                     }
                     // Kopfnoten
                     if (!$this->getCertificateGradeAll($tblCertificate)) {
@@ -2390,7 +2390,7 @@ class Data extends AbstractData
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'Remark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 1900);
+                        $this->createCertificateField($tblCertificate, $FieldName, 1800);
                     }
                     // Kopfnoten
                     if (!$this->getCertificateGradeAll($tblCertificate)) {
@@ -2426,7 +2426,7 @@ class Data extends AbstractData
                     // Begrenzung des Bemerkungsfelds der 2.ten Seite
                     $FieldName = 'SecondRemark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 3600);
+                        $this->createCertificateField($tblCertificate, $FieldName, 3500);
                     }
                     // Kopfnoten
                     if (!$this->getCertificateGradeAll($tblCertificate)) {
@@ -2466,7 +2466,7 @@ class Data extends AbstractData
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'Remark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 950);
+                        $this->createCertificateField($tblCertificate, $FieldName, 600);
                     }
                     // Kopfnoten
                     if (!$this->getCertificateGradeAll($tblCertificate)) {
@@ -2490,8 +2490,7 @@ class Data extends AbstractData
                         $this->setCertificateSubject($tblCertificate, 'RKA', 2, 6, false);
                         $this->setCertificateSubject($tblCertificate, 'ETH', 2, 7, false);
                         $this->setCertificateSubject($tblCertificate, 'SPO', 2, 8);
-                        // ToDO Neigungskurse
-                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 10);
+                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 9);
                     }
                 }
                 //
@@ -2521,12 +2520,12 @@ class Data extends AbstractData
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'Remark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 1700);
+                        $this->createCertificateField($tblCertificate, $FieldName, 1400);
                     }
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'SecondRemark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 3800);
+                        $this->createCertificateField($tblCertificate, $FieldName, 3700);
                     }
                     // Kopfnoten
                     if (!$this->getCertificateGradeAll($tblCertificate)) {
@@ -2550,8 +2549,7 @@ class Data extends AbstractData
                         $this->setCertificateSubject($tblCertificate, 'RKA', 2, 6, false);
                         $this->setCertificateSubject($tblCertificate, 'ETH', 2, 7, false);
                         $this->setCertificateSubject($tblCertificate, 'SPO', 2, 8);
-                        // ToDO Neigungskurse
-                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 10);
+                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 9);
                     }
                 }
                 //
@@ -2572,7 +2570,7 @@ class Data extends AbstractData
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'Remark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 950);
+                        $this->createCertificateField($tblCertificate, $FieldName, 600);
                     }
                     // Kopfnoten
                     if (!$this->getCertificateGradeAll($tblCertificate)) {
@@ -2596,8 +2594,7 @@ class Data extends AbstractData
                         $this->setCertificateSubject($tblCertificate, 'RKA', 2, 6, false);
                         $this->setCertificateSubject($tblCertificate, 'ETH', 2, 7, false);
                         $this->setCertificateSubject($tblCertificate, 'SPO', 2, 8);
-                        // ToDO Neigungskurse
-                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 10);
+                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 9);
                     }
                 }
                 //
@@ -2618,12 +2615,12 @@ class Data extends AbstractData
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'Remark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 1700);
+                        $this->createCertificateField($tblCertificate, $FieldName, 1400);
                     }
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'SecondRemark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 3800);
+                        $this->createCertificateField($tblCertificate, $FieldName, 3700);
                     }
                     // Kopfnoten
                     if (!$this->getCertificateGradeAll($tblCertificate)) {
@@ -2647,8 +2644,7 @@ class Data extends AbstractData
                         $this->setCertificateSubject($tblCertificate, 'RKA', 2, 6, false);
                         $this->setCertificateSubject($tblCertificate, 'ETH', 2, 7, false);
                         $this->setCertificateSubject($tblCertificate, 'SPO', 2, 8);
-                        // ToDO Neigungskurse
-                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 10);
+                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 9);
                     }
                 }
                 //
@@ -2678,7 +2674,7 @@ class Data extends AbstractData
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'Remark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 750);
+                        $this->createCertificateField($tblCertificate, $FieldName, 500);
                     }
                     // Kopfnoten
                     if (!$this->getCertificateGradeAll($tblCertificate)) {
@@ -2702,8 +2698,7 @@ class Data extends AbstractData
                         $this->setCertificateSubject($tblCertificate, 'RKA', 2, 6, false);
                         $this->setCertificateSubject($tblCertificate, 'ETH', 2, 7, false);
                         $this->setCertificateSubject($tblCertificate, 'SPO', 2, 8);
-                        // ToDO Neigungskurse
-                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 10);
+                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 9);
                     }
                 }
                 //
@@ -2733,12 +2728,12 @@ class Data extends AbstractData
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'Remark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 1700);
+                        $this->createCertificateField($tblCertificate, $FieldName, 1400);
                     }
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'SecondRemark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 3600);
+                        $this->createCertificateField($tblCertificate, $FieldName, 3500);
                     }
                     // Kopfnoten
                     if (!$this->getCertificateGradeAll($tblCertificate)) {
@@ -2762,8 +2757,7 @@ class Data extends AbstractData
                         $this->setCertificateSubject($tblCertificate, 'RKA', 2, 6, false);
                         $this->setCertificateSubject($tblCertificate, 'ETH', 2, 7, false);
                         $this->setCertificateSubject($tblCertificate, 'SPO', 2, 8);
-                        // ToDO Neigungskurse
-                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 10);
+                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 9);
                     }
                 }
             }

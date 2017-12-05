@@ -51,8 +51,7 @@ class CmsMsJExt extends CmsStyle
                     ->styleMarginTop('10px')
                 )
                 ->addSectionList(
-                    self::getCMSSchoolLine('Staatlich anerkannte Ersatzschule in Trägerschaft von Christen machen Schule
-                    Zwickau gemeinnützige GmbH', 'Evangelische Schule "Stephan Roth" (Oberschule)')
+                    self::getCMSSchoolLine($personId)
                 )
                 ->addElement((new Element())
                     ->styleMarginTop('20px')
@@ -80,9 +79,6 @@ class CmsMsJExt extends CmsStyle
                         self::getCMSHeadGrade($personId)
                     )
                 )
-                ->addSection(
-                    self::getCMSGradeInfo(true)
-                )
                 ->addElement((new Element())
                     ->styleMarginTop('10px')
                 )
@@ -91,14 +87,16 @@ class CmsMsJExt extends CmsStyle
                         self::getCMSSubjectLanes($personId)
                     )
                 )
-                ->addSection(
-                    self::getCMSGradeInfo()
+                ->addSection((new Section())
+                    ->addSliceColumn(
+                        self::getCMSOrientationStandard($personId)
+                    )
                 )
                 ->addElement((new Element())
                     ->styleMarginTop('10px')
                 )
                 ->addSectionList(
-                    self::getCMSRemark($personId, '250px', true)
+                    self::getCMSRemark($personId, '190px', true)
                 )
             );
         $PageList[] = (new Page())
@@ -115,7 +113,7 @@ class CmsMsJExt extends CmsStyle
                     ->styleMarginTop('20px')
                 )
                 ->addSectionList(
-                    self::getCMSSecondRemark($personId, '737px')
+                    self::getCMSSecondRemark($personId, '729px')
                 )
                 ->addSection(
                     self::getCMSMissing($personId)

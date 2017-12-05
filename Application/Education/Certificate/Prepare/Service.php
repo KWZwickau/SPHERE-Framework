@@ -648,6 +648,7 @@ class Service extends AbstractService
         if ($tblCompany) {
             $Content['P' . $personId]['Company']['Id'] = $tblCompany->getId();
             $Content['P' . $personId]['Company']['Data']['Name'] = $tblCompany->getName();
+            $Content['P'.$personId]['Company']['Data']['ExtendedName'] = $tblCompany->getExtendedName();
             if (($tblAddress = $tblCompany->fetchMainAddress())) {
                 $Content['P' . $personId]['Company']['Address']['Street']['Name'] = $tblAddress->getStreetName();
                 $Content['P' . $personId]['Company']['Address']['Street']['Number'] = $tblAddress->getStreetNumber();
@@ -1598,6 +1599,21 @@ class Service extends AbstractService
                         } else {
                             continue;
                         }
+                        // ToDO Template setzen bei mehreren verfügbaren Zeugnissen
+//                      // Eigene Vorlage CMS bestimmen
+//                        if($tblConsumer->getAcronym() === 'CMS'
+//                            && count($certificateList) >= 1){
+//                            /** @var TblCertificate $certificate */
+//                            foreach($certificateList as $certificate){
+//                                if(($certificate->getName() == 'Grundschule Halbjahresinformation'
+//                                    || $certificate->getName() == 'Grundschule Jahreszeugnis'
+//                                    || $certificate->getName() == 'Oberschule Halbjahresinformation'
+//                                    || $certificate->getName() == 'Oberschule Jahreszeugnis')
+//                                ){
+//                                    $this->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, $certificate);
+//                                }
+//                            }
+//                        }
                         // Standard Vorlagen
                     } elseif (($certificateList = Generate::useService()->getPossibleCertificates($tblPrepare,
                         $tblPerson))
