@@ -1596,24 +1596,21 @@ class Service extends AbstractService
                     ) {
                         if (count($certificateList) == 1) {
                             $this->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, current($certificateList));
+                        } elseif (count($certificateList) > 1) {
+                            /** @var TblCertificate $certificate */
+                            $ChosenCertificate = false;
+                            foreach ($certificateList as $certificate) {
+                                if ($certificate->isChosenDefault()) {
+                                    $ChosenCertificate = $certificate;
+                                    break;
+                                }
+                            }
+                            if ($ChosenCertificate) {
+                                $this->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, $ChosenCertificate);
+                            }
                         } else {
                             continue;
                         }
-                        // ToDO Template setzen bei mehreren verfügbaren Zeugnissen
-//                      // Eigene Vorlage CMS bestimmen
-//                        if($tblConsumer->getAcronym() === 'CMS'
-//                            && count($certificateList) >= 1){
-//                            /** @var TblCertificate $certificate */
-//                            foreach($certificateList as $certificate){
-//                                if(($certificate->getName() == 'Grundschule Halbjahresinformation'
-//                                    || $certificate->getName() == 'Grundschule Jahreszeugnis'
-//                                    || $certificate->getName() == 'Oberschule Halbjahresinformation'
-//                                    || $certificate->getName() == 'Oberschule Jahreszeugnis')
-//                                ){
-//                                    $this->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, $certificate);
-//                                }
-//                            }
-//                        }
                         // Standard Vorlagen
                     } elseif (($certificateList = Generate::useService()->getPossibleCertificates($tblPrepare,
                         $tblPerson))
