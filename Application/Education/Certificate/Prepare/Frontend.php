@@ -796,6 +796,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'Data' => 'Zensur'
                     );
 
+                    $selectListWithTrend[-1] = '';
                     for ($i = 1; $i < 5; $i++) {
                         $selectListWithTrend[$i . '+'] = (string)($i . '+');
                         $selectListWithTrend[$i] = (string)$i;
@@ -803,6 +804,7 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                     $selectListWithTrend[5] = "5";
 
+                    $selectListWithOutTrend[-1] = '';
                     for ($i = 1; $i < 5; $i++) {
                         $selectListWithOutTrend[$i] = (string)$i;
                     }
