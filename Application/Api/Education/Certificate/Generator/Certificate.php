@@ -283,6 +283,7 @@ abstract class Certificate extends Extension
                                           &nbsp;
                                     {% endif %}')
                     ->styleBorderBottom()
+                    ->styleAlignCenter()
                     , '82%')
             )->styleMarginTop($MarginTop);
         } else {
