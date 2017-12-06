@@ -95,8 +95,11 @@ class CmsMsJ extends CmsStyle
                         self::getCMSOrientationStandard($personId)
                     )
                 )
+                ->addElement((new Element())
+                    ->styleMarginTop('10px')
+                )
                 ->addSectionList(
-                    self::getCMSRemark($personId, '40px', true)
+                    self::getCMSRemark($personId, '47px', true)
                 )
                 ->addSection(
                     self::getCMSMissing($personId)

@@ -80,7 +80,7 @@ class CmsGsHj extends CmsStyle
                     ->styleMarginTop('20px')
                 )
                 ->addSectionList(
-                    self::getCMSRemark($personId, '335px')
+                    self::getCMSRemark($personId, '354px')
                 )
                 ->addSection(
                     self::getCMSMissing($personId)

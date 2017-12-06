@@ -92,7 +92,7 @@ class CmsGsJOneTwoExt extends CmsStyle
                     ->styleMarginTop('20px')
                 )
                 ->addSectionList(
-                    self::getCMSSecondRemark($personId, '729px')
+                    self::getCMSSecondRemark($personId, '725px')
                 )
                 ->addSection(
                     self::getCMSMissing($personId)

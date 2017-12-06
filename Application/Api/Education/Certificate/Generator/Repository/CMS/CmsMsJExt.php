@@ -87,6 +87,9 @@ class CmsMsJExt extends CmsStyle
                         self::getCMSSubjectLanes($personId)
                     )
                 )
+                ->addElement((new Element())
+                    ->styleMarginTop('10px')
+                )
                 ->addSection((new Section())
                     ->addSliceColumn(
                         self::getCMSOrientationStandard($personId)
@@ -113,7 +116,7 @@ class CmsMsJExt extends CmsStyle
                     ->styleMarginTop('20px')
                 )
                 ->addSectionList(
-                    self::getCMSSecondRemark($personId, '729px')
+                    self::getCMSSecondRemark($personId, '725px')
                 )
                 ->addSection(
                     self::getCMSMissing($personId)

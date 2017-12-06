@@ -2228,7 +2228,7 @@ class Data extends AbstractData
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'Remark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 2500);
+                        $this->createCertificateField($tblCertificate, $FieldName, 2600);
                     }
                 }
                 //
@@ -2248,7 +2248,7 @@ class Data extends AbstractData
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'Remark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 3500);
+                        $this->createCertificateField($tblCertificate, $FieldName, 3600);
                     }
                     // Begrenzung des Bemerkungsfelds der 2.ten Seite
                     $FieldName = 'SecondRemark';
@@ -2273,7 +2273,7 @@ class Data extends AbstractData
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'Remark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 2500);
+                        $this->createCertificateField($tblCertificate, $FieldName, 2600);
                     }
                 }
                 //
@@ -2293,7 +2293,7 @@ class Data extends AbstractData
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'Remark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 3500);
+                        $this->createCertificateField($tblCertificate, $FieldName, 3600);
                     }
                     // Begrenzung des Bemerkungsfelds der 2.ten Seite
                     $FieldName = 'SecondRemark';
@@ -2318,7 +2318,7 @@ class Data extends AbstractData
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'Remark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 2000);
+                        $this->createCertificateField($tblCertificate, $FieldName, 2100);
                     }
                     // Kopfnoten
                     if (!$this->getCertificateGradeAll($tblCertificate)) {
@@ -2383,7 +2383,7 @@ class Data extends AbstractData
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'Remark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 1800);
+                        $this->createCertificateField($tblCertificate, $FieldName, 1900);
                     }
                     // Kopfnoten
                     if (!$this->getCertificateGradeAll($tblCertificate)) {
@@ -2457,7 +2457,7 @@ class Data extends AbstractData
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'Remark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 600);
+                        $this->createCertificateField($tblCertificate, $FieldName, 700);
                     }
                     // Kopfnoten
                     if (!$this->getCertificateGradeAll($tblCertificate)) {
@@ -2510,7 +2510,7 @@ class Data extends AbstractData
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'Remark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 1400);
+                        $this->createCertificateField($tblCertificate, $FieldName, 1600);
                     }
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'SecondRemark';
@@ -2559,7 +2559,7 @@ class Data extends AbstractData
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'Remark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 600);
+                        $this->createCertificateField($tblCertificate, $FieldName, 700);
                     }
                     // Kopfnoten
                     if (!$this->getCertificateGradeAll($tblCertificate)) {
@@ -2603,7 +2603,7 @@ class Data extends AbstractData
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'Remark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 1400);
+                        $this->createCertificateField($tblCertificate, $FieldName, 1600);
                     }
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'SecondRemark';
@@ -2714,7 +2714,7 @@ class Data extends AbstractData
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'Remark';
                     if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                        $this->createCertificateField($tblCertificate, $FieldName, 1400);
+                        $this->createCertificateField($tblCertificate, $FieldName, 1600);
                     }
                     // Begrenzung des Bemerkungsfelds
                     $FieldName = 'SecondRemark';

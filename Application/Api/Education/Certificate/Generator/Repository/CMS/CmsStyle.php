@@ -71,15 +71,6 @@ abstract class CmsStyle extends Certificate
     {
 
         $SectionList[] = (new Section())->addElementColumn((new Element())
-            ->setContent('{% if(Content.P'.$personId.'.Company.Data.ExtendedName) %}
-                    {{ Content.P'.$personId.'.Company.Data.ExtendedName }}
-                {% else %}
-                      &nbsp;
-                {% endif %}')
-            ->styleTextSize(self::TEXT_SIZE)
-            ->styleAlignCenter()
-        );
-        $SectionList[] = (new Section())->addElementColumn((new Element())
             ->setContent('{% if(Content.P'.$personId.'.Company.Data.Name) %}
                     {{ Content.P'.$personId.'.Company.Data.Name }}
                 {% else %}
@@ -87,10 +78,20 @@ abstract class CmsStyle extends Certificate
                 {% endif %}')
             ->styleTextSize(self::TEXT_SIZE)
             ->styleAlignCenter()
-            ->styleMarginTop('18px')
+        );
+        $SectionList[] = (new Section())->addElementColumn((new Element())
+            ->setContent('{% if(Content.P'.$personId.'.Company.Data.ExtendedName) %}
+                    {{ Content.P'.$personId.'.Company.Data.ExtendedName }}
+                {% else %}
+                      &nbsp;
+                {% endif %}')
+            ->styleTextSize(self::TEXT_SIZE)
+            ->styleAlignCenter()
+            ->stylePaddingTop()
             ->stylePaddingBottom()
             ->styleBorderBottom()
         );
+
         return $SectionList;
     }
 
