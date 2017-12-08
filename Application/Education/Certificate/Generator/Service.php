@@ -387,19 +387,20 @@ class Service extends AbstractService
     {
 
         return array(
-            'Content.Input.Remark'          => 'TextArea',
-            'Content.Input.Rating'          => 'TextArea',
-            'Content.Input.TechnicalRating' => 'TextArea',
-            'Content.Input.Survey'          => 'TextArea',
-            'Content.Input.Deepening'       => 'TextField',
-            'Content.Input.SchoolType'      => 'SelectBox',
-            'Content.Input.Type'            => 'SelectBox',
-            'Content.Input.DateCertifcate'  => 'DatePicker',
-            'Content.Input.DateConference'  => 'DatePicker',
-            'Content.Input.Transfer'        => 'SelectBox',
-            'Content.Input.IndividualTransfer'       => 'TextField',
-            'Content.Input.TeamExtra'       => 'TextField',
-            'Content.Input.BellSubject'       => 'TextField'
+            'Content.Input.Remark'             => 'TextArea',
+            'Content.Input.SecondRemark'       => 'TextArea',
+            'Content.Input.Rating'             => 'TextArea',
+            'Content.Input.TechnicalRating'    => 'TextArea',
+            'Content.Input.Survey'             => 'TextArea',
+            'Content.Input.Deepening'          => 'TextField',
+            'Content.Input.SchoolType'         => 'SelectBox',
+            'Content.Input.Type'               => 'SelectBox',
+            'Content.Input.DateCertifcate'     => 'DatePicker',
+            'Content.Input.DateConference'     => 'DatePicker',
+            'Content.Input.Transfer'           => 'SelectBox',
+            'Content.Input.IndividualTransfer' => 'TextField',
+            'Content.Input.TeamExtra'          => 'TextField',
+            'Content.Input.BellSubject'        => 'TextField'
         );
     }
 
@@ -411,6 +412,7 @@ class Service extends AbstractService
 
         return array(
             'Content.Input.Remark'          => 'Bemerkungen',
+            'Content.Input.SecondRemark'    => 'Bemerkung Seite 2',
             'Content.Input.Rating'          => 'Einschätzung',
             'Content.Input.TechnicalRating' => 'Fachliche Einschätzung',
             'Content.Input.Survey'          => 'Gutachten',

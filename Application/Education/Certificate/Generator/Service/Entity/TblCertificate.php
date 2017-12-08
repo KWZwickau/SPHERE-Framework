@@ -33,6 +33,7 @@ class TblCertificate extends Element
     const ATTR_IS_GRADE_INFORMATION = 'IsGradeInformation';
     const ATTR_TBL_CERTIFICATE_TYPE = 'tblCertificateType';
     const ATTR_IS_INFORMATION = 'IsInformation';
+    const ATTR_IS_CHOSEN_DEFAULT = 'IsChosenDefault';
 
     /**
      * @Column(type="string")
@@ -76,6 +77,11 @@ class TblCertificate extends Element
      * @Column(type="boolean")
      */
     protected $IsInformation;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsChosenDefault;
 
     /**
      * @return bool|TblConsumer
@@ -276,5 +282,21 @@ class TblCertificate extends Element
     public function setIsInformation($IsInformation)
     {
         $this->IsInformation = $IsInformation;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isChosenDefault()
+    {
+        return $this->IsChosenDefault;
+    }
+
+    /**
+     * @param boolean $IsChosenDefault
+     */
+    public function setIsChosenDefault($IsChosenDefault)
+    {
+        $this->IsChosenDefault = $IsChosenDefault;
     }
 }

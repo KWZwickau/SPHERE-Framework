@@ -1681,136 +1681,136 @@ class Data extends AbstractData
                 }
             }
 
-            if ($tblConsumer->getAcronym() == 'EVSR' || $tblConsumer->getAcronym() == 'DEMO') {
-                $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('EVSR');
-                if ($tblConsumerCertificate) {
-
-//                    $tblCertificate = $this->createCertificate(
-//                        'Jahreszeugnis', '', 'EVSR\RadebeulJahreszeugnis', $tblConsumerCertificate
-//                    );
-//                    if ($tblCertificate) {
-//                        if ($tblSchoolTypePrimary) {
-//                            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary);
-//                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
-//                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-//                            }
-//                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
-//                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-//                            }
-//                        }
-//                        // Begrenzung des Einschätzungfelds
-//                        $FieldName = 'Rating';
-//                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
-//                            $this->createCertificateField($tblCertificate, $FieldName, 170);
-//                        }
-//                        // Begrenzung des Bemerkungsfelds
-//                        $FieldName = 'Remark';
-//                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
-//                            $this->createCertificateField($tblCertificate, $FieldName, 600);
-//                        }
-//                    }
-//                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
-//                        $this->setCertificateGradeAllStandard($tblCertificate);
-//                    }
-//                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-//                        $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
-//                        $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
-//                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
-//                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
-//                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 5);
+//            if ($tblConsumer->getAcronym() == 'EVSR' || $tblConsumer->getAcronym() == 'DEMO') {
+//                $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('EVSR');
+//                if ($tblConsumerCertificate) {
 //
-//                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-//                        $this->setCertificateSubject($tblCertificate, 'WE', 2, 2);
-//                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 3);
-//                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 4);
-//                    }
+////                    $tblCertificate = $this->createCertificate(
+////                        'Jahreszeugnis', '', 'EVSR\RadebeulJahreszeugnis', $tblConsumerCertificate
+////                    );
+////                    if ($tblCertificate) {
+////                        if ($tblSchoolTypePrimary) {
+////                            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary);
+////                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+////                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+////                            }
+////                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+////                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+////                            }
+////                        }
+////                        // Begrenzung des Einschätzungfelds
+////                        $FieldName = 'Rating';
+////                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+////                            $this->createCertificateField($tblCertificate, $FieldName, 170);
+////                        }
+////                        // Begrenzung des Bemerkungsfelds
+////                        $FieldName = 'Remark';
+////                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+////                            $this->createCertificateField($tblCertificate, $FieldName, 600);
+////                        }
+////                    }
+////                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+////                        $this->setCertificateGradeAllStandard($tblCertificate);
+////                    }
+////                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+////                        $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+////                        $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
+////                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+////                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+////                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 5);
+////
+////                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+////                        $this->setCertificateSubject($tblCertificate, 'WE', 2, 2);
+////                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 3);
+////                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 4);
+////                    }
+////
+////                    $tblCertificate = $this->createCertificate(
+////                        'Halbjahresinformation', '', 'EVSR\RadebeulHalbjahresinformation', $tblConsumerCertificate
+////                    );
+////                    if ($tblCertificate) {
+////                        if ($tblSchoolTypePrimary) {
+////                            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary);
+////                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+////                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+////                            }
+////                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+////                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+////                            }
+////                        }
+////                        // Begrenzung des Einschätzungfelds
+////                        $FieldName = 'Rating';
+////                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+////                            $this->createCertificateField($tblCertificate, $FieldName, 170);
+////                        }
+////                        // Begrenzung des Bemerkungsfelds
+////                        $FieldName = 'Remark';
+////                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+////                            $this->createCertificateField($tblCertificate, $FieldName, 600);
+////                        }
+////                    }
+////                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+////                        $this->setCertificateGradeAllStandard($tblCertificate);
+////                    }
+////                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+////                        $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+////                        $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
+////                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+////                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+////                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 5);
+////
+////                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+////                        $this->setCertificateSubject($tblCertificate, 'WE', 2, 2);
+////                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 3);
+////                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 4);
+////                    }
+////
+////                    $tblCertificate = $this->createCertificate(
+////                        'Bildungsempfehlung', 'Klassenstufe 4', 'EVSR\RadebeulBildungsempfehlung',
+////                        $tblConsumerCertificate
+////                    );
+////                    if ($tblCertificate){
+////                        $this->updateCertificate($tblCertificate, $tblCertificateTypeRecommendation, $tblSchoolTypePrimary);
+////                    }
+////                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+////
+////                        $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+////                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+////
+////                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+////                    }
 //
-//                    $tblCertificate = $this->createCertificate(
-//                        'Halbjahresinformation', '', 'EVSR\RadebeulHalbjahresinformation', $tblConsumerCertificate
-//                    );
-//                    if ($tblCertificate) {
-//                        if ($tblSchoolTypePrimary) {
-//                            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary);
-//                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
-//                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-//                            }
-//                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
-//                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-//                            }
-//                        }
-//                        // Begrenzung des Einschätzungfelds
-//                        $FieldName = 'Rating';
-//                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
-//                            $this->createCertificateField($tblCertificate, $FieldName, 170);
-//                        }
-//                        // Begrenzung des Bemerkungsfelds
-//                        $FieldName = 'Remark';
-//                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
-//                            $this->createCertificateField($tblCertificate, $FieldName, 600);
-//                        }
-//                    }
-//                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
-//                        $this->setCertificateGradeAllStandard($tblCertificate);
-//                    }
-//                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-//                        $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
-//                        $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
-//                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
-//                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
-//                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 5);
+////                    $tblCertificate = $this->createCertificate(
+////                        'Kinderbrief', '', 'EVSR\RadebeulKinderbrief', $tblConsumerCertificate
+////                    );
+////                    if ($tblCertificate) {
+////                        if ($tblSchoolTypePrimary) {
+////                            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary);
+////                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+////                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+////                            }
+////                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+////                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+////                            }
+////                        }
+////                    }
 //
-//                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-//                        $this->setCertificateSubject($tblCertificate, 'WE', 2, 2);
-//                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 3);
-//                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 4);
-//                    }
-//
-//                    $tblCertificate = $this->createCertificate(
-//                        'Bildungsempfehlung', 'Klassenstufe 4', 'EVSR\RadebeulBildungsempfehlung',
-//                        $tblConsumerCertificate
-//                    );
-//                    if ($tblCertificate){
-//                        $this->updateCertificate($tblCertificate, $tblCertificateTypeRecommendation, $tblSchoolTypePrimary);
-//                    }
-//                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-//
-//                        $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
-//                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
-//
-//                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-//                    }
-
-//                    $tblCertificate = $this->createCertificate(
-//                        'Kinderbrief', '', 'EVSR\RadebeulKinderbrief', $tblConsumerCertificate
-//                    );
-//                    if ($tblCertificate) {
-//                        if ($tblSchoolTypePrimary) {
-//                            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary);
-//                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
-//                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-//                            }
-//                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
-//                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-//                            }
-//                        }
-//                    }
-
-//                    $tblCertificate = $this->createCertificate(
-//                        'Lernentwicklungsbericht', '', 'EVSR\RadebeulLernentwicklungsbericht', $tblConsumerCertificate
-//                    );
-//                    if ($tblCertificate) {
-//                        if ($tblSchoolTypePrimary) {
-//                            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary);
-//                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
-//                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-//                            }
-//                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
-//                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-//                            }
-//                        }
-//                    }
-                }
-            }
+////                    $tblCertificate = $this->createCertificate(
+////                        'Lernentwicklungsbericht', '', 'EVSR\RadebeulLernentwicklungsbericht', $tblConsumerCertificate
+////                    );
+////                    if ($tblCertificate) {
+////                        if ($tblSchoolTypePrimary) {
+////                            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary);
+////                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+////                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+////                            }
+////                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+////                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+////                            }
+////                        }
+////                    }
+//                }
+//            }
 
 //            // ToDO Zeugnisse wurden entfernt beachten beim erneuten einkommentieren
 //            if ($tblConsumer->getAcronym() == 'ESS' || $tblConsumer->getAcronym() == 'DEMO') {
@@ -2172,13 +2172,13 @@ class Data extends AbstractData
                     if ($tblSchoolTypePrimary) {
                         $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary,
                             null, false);
-                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '2'))) {
                             $this->createCertificateLevel($tblCertificate, $tblLevel);
                         }
-                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '3'))) {
                             $this->createCertificateLevel($tblCertificate, $tblLevel);
                         }
-                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '4'))) {
                             $this->createCertificateLevel($tblCertificate, $tblLevel);
                         }
                     }
@@ -2208,16 +2208,556 @@ class Data extends AbstractData
                     $this->setCertificateSubject($tblCertificate, 'CHOR', 2, 6);
                 }
             }
+            if ($tblConsumer->getAcronym() == 'CMS' || $tblConsumer->getAcronym() == 'DEMO') {
+                // declare active Consumer
+                $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('CMS');
+
+                $tblCertificate = $this->createCertificate('Grundschule Halbjahresinformation', 'Klasse 1-2',
+                    'CMS\CmsGsHjOneTwo', $tblConsumerCertificate);
+                if ($tblCertificate) {
+                    if ($tblSchoolTypePrimary) {
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary,
+                            null, true);
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                    }
+                    // Begrenzung des Bemerkungsfelds
+                    $FieldName = 'Remark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 2600);
+                    }
+                }
+                //
+                $tblCertificate = $this->createCertificate('Grundschule Halbjahresinformation (2 Seiten)', 'Klasse 1-2',
+                    'CMS\CmsGsHjOneTwoExt', $tblConsumerCertificate, false, false, true);
+                if ($tblCertificate) {
+                    if ($tblSchoolTypePrimary) {
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary,
+                            null, true);
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                    }
+                    // Begrenzung des Bemerkungsfelds
+                    $FieldName = 'Remark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 3600);
+                    }
+                    // Begrenzung des Bemerkungsfelds der 2.ten Seite
+                    $FieldName = 'SecondRemark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 3700);
+                    }
+                }
+                //
+                $tblCertificate = $this->createCertificate('Grundschule Jahreszeugnis', 'Klasse 1-2',
+                    'CMS\CmsGsJOneTwo', $tblConsumerCertificate);
+                if ($tblCertificate) {
+                    if ($tblSchoolTypePrimary) {
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary,
+                            null, true);
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                    }
+                    // Begrenzung des Bemerkungsfelds
+                    $FieldName = 'Remark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 2600);
+                    }
+                }
+                //
+                $tblCertificate = $this->createCertificate('Grundschule Jahreszeugnis (2 Seiten)', 'Klasse 1-2',
+                    'CMS\CmsGsJOneTwoExt', $tblConsumerCertificate, false, false, true);
+                if ($tblCertificate) {
+                    if ($tblSchoolTypePrimary) {
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary,
+                            null, true);
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                    }
+                    // Begrenzung des Bemerkungsfelds
+                    $FieldName = 'Remark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 3600);
+                    }
+                    // Begrenzung des Bemerkungsfelds der 2.ten Seite
+                    $FieldName = 'SecondRemark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 3500);
+                    }
+                }
+                //
+                $tblCertificate = $this->createCertificate('Grundschule Halbjahresinformation', 'Klasse 3-4',
+                    'CMS\CmsGsHj', $tblConsumerCertificate);
+                if ($tblCertificate) {
+                    if ($tblSchoolTypePrimary) {
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary,
+                            null, true);
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                    }
+                    // Begrenzung des Bemerkungsfelds
+                    $FieldName = 'Remark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 2100);
+                    }
+                    // Kopfnoten
+                    if (!$this->getCertificateGradeAll($tblCertificate)) {
+                        $this->setCertificateGradeAllStandard($tblCertificate);
+                    }
+                    if (!$this->getCertificateSubjectAll($tblCertificate)) {
+                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+                        $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
+
+                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                    }
+                }
+                //
+                $tblCertificate = $this->createCertificate('Grundschule Halbjahresinformation (2 Seiten)', 'Klasse 3-4',
+                    'CMS\CmsGsHjExt', $tblConsumerCertificate, false, false, true);
+                if ($tblCertificate) {
+                    if ($tblSchoolTypePrimary) {
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary,
+                            null, true);
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                    }
+                    // Begrenzung des Bemerkungsfelds
+                    $FieldName = 'Remark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 2900);
+                    }
+                    // Begrenzung des Bemerkungsfelds der 2.ten Seite
+                    $FieldName = 'SecondRemark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 3700);
+                    }
+                    // Kopfnoten
+                    if (!$this->getCertificateGradeAll($tblCertificate)) {
+                        $this->setCertificateGradeAllStandard($tblCertificate);
+                    }
+                    if (!$this->getCertificateSubjectAll($tblCertificate)) {
+                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+                        $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
+
+                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                    }
+                }
+                //
+                $tblCertificate = $this->createCertificate('Jahreszeugnis Grundschule ', 'Klasse 3-4',
+                    'CMS\CmsGsJ', $tblConsumerCertificate);
+                if ($tblCertificate) {
+                    if ($tblSchoolTypePrimary) {
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary,
+                            null, true);
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                    }
+                    // Begrenzung des Bemerkungsfelds
+                    $FieldName = 'Remark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 1900);
+                    }
+                    // Kopfnoten
+                    if (!$this->getCertificateGradeAll($tblCertificate)) {
+                        $this->setCertificateGradeAllStandard($tblCertificate);
+                    }
+                    if (!$this->getCertificateSubjectAll($tblCertificate)) {
+                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+                        $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
+
+                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                    }
+                }
+                //
+                $tblCertificate = $this->createCertificate('Jahreszeugnis Grundschule (2 Seiten)', 'Klasse 3-4',
+                    'CMS\CmsGsJExt', $tblConsumerCertificate, false, false, true);
+                if ($tblCertificate) {
+                    if ($tblSchoolTypePrimary) {
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary,
+                            null, true);
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                    }
+                    // Begrenzung des Bemerkungsfelds
+                    $FieldName = 'Remark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 2900);
+                    }
+                    // Begrenzung des Bemerkungsfelds der 2.ten Seite
+                    $FieldName = 'SecondRemark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 3500);
+                    }
+                    // Kopfnoten
+                    if (!$this->getCertificateGradeAll($tblCertificate)) {
+                        $this->setCertificateGradeAllStandard($tblCertificate);
+                    }
+                    if (!$this->getCertificateSubjectAll($tblCertificate)) {
+                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+                        $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
+
+                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                    }
+                }
+                //
+                $tblCertificate = $this->createCertificate('Oberschule Halbjahresinformation', 'Klasse 5-9',
+                    'CMS\CmsMsHj', $tblConsumerCertificate);
+                if ($tblCertificate) {
+                    if ($tblSchoolTypeSecondary) {
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary,
+                            null, true);
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                    }
+                    // Begrenzung des Bemerkungsfelds
+                    $FieldName = 'Remark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 700);
+                    }
+                    // Kopfnoten
+                    if (!$this->getCertificateGradeAll($tblCertificate)) {
+                        $this->setCertificateGradeAllStandard($tblCertificate);
+                    }
+                    if (!$this->getCertificateSubjectAll($tblCertificate)) {
+                        $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 6);
+                        $this->setCertificateSubject($tblCertificate, 'WTH', 1, 7);
+                        $this->setCertificateSubject($tblCertificate, 'FR', 1, 8);
+
+                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                        $this->setCertificateSubject($tblCertificate, 'BI', 2, 2);
+                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 3);
+                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+                        $this->setCertificateSubject($tblCertificate, 'REV', 2, 5, false);
+                        $this->setCertificateSubject($tblCertificate, 'RKA', 2, 6, false);
+                        $this->setCertificateSubject($tblCertificate, 'ETH', 2, 7, false);
+                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 8);
+                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 9);
+                    }
+                }
+                //
+                $tblCertificate = $this->createCertificate('Oberschule Halbjahresinformation (2 Seiten)', 'Klasse 5-9',
+                    'CMS\CmsMsHjExt', $tblConsumerCertificate, false, false, true);
+                if ($tblCertificate) {
+                    if ($tblSchoolTypeSecondary) {
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary,
+                            null, true);
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                    }
+                    // Begrenzung des Bemerkungsfelds
+                    $FieldName = 'Remark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 1600);
+                    }
+                    // Begrenzung des Bemerkungsfelds
+                    $FieldName = 'SecondRemark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 3700);
+                    }
+                    // Kopfnoten
+                    if (!$this->getCertificateGradeAll($tblCertificate)) {
+                        $this->setCertificateGradeAllStandard($tblCertificate);
+                    }
+                    if (!$this->getCertificateSubjectAll($tblCertificate)) {
+                        $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 6);
+                        $this->setCertificateSubject($tblCertificate, 'WTH', 1, 7);
+                        $this->setCertificateSubject($tblCertificate, 'FR', 1, 8);
+
+                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                        $this->setCertificateSubject($tblCertificate, 'BI', 2, 2);
+                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 3);
+                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+                        $this->setCertificateSubject($tblCertificate, 'REV', 2, 5, false);
+                        $this->setCertificateSubject($tblCertificate, 'RKA', 2, 6, false);
+                        $this->setCertificateSubject($tblCertificate, 'ETH', 2, 7, false);
+                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 8);
+                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 9);
+                    }
+                }
+                //
+                $tblCertificate = $this->createCertificate('Oberschule Halbjahreszeugnis', 'Klasse 9-10',
+                    'CMS\CmsMsHjZ', $tblConsumerCertificate);
+                if ($tblCertificate) {
+                    if ($tblSchoolTypeSecondary) {
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary,
+                            null, true);
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '10'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                    }
+                    // Begrenzung des Bemerkungsfelds
+                    $FieldName = 'Remark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 700);
+                    }
+                    // Kopfnoten
+                    if (!$this->getCertificateGradeAll($tblCertificate)) {
+                        $this->setCertificateGradeAllStandard($tblCertificate);
+                    }
+                    if (!$this->getCertificateSubjectAll($tblCertificate)) {
+                        $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 6);
+                        $this->setCertificateSubject($tblCertificate, 'WTH', 1, 7);
+                        $this->setCertificateSubject($tblCertificate, 'FR', 1, 8);
+
+                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                        $this->setCertificateSubject($tblCertificate, 'BI', 2, 2);
+                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 3);
+                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+                        $this->setCertificateSubject($tblCertificate, 'REV', 2, 5, false);
+                        $this->setCertificateSubject($tblCertificate, 'RKA', 2, 6, false);
+                        $this->setCertificateSubject($tblCertificate, 'ETH', 2, 7, false);
+                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 8);
+                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 9);
+                    }
+                }
+                //
+                $tblCertificate = $this->createCertificate('Oberschule Halbjahreszeugnis (2 Seiten)', 'Klasse 9-10',
+                    'CMS\CmsMsHjZExt', $tblConsumerCertificate, false, false, true);
+                if ($tblCertificate) {
+                    if ($tblSchoolTypeSecondary) {
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary,
+                            null, true);
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '10'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                    }
+                    // Begrenzung des Bemerkungsfelds
+                    $FieldName = 'Remark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 1600);
+                    }
+                    // Begrenzung des Bemerkungsfelds
+                    $FieldName = 'SecondRemark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 3700);
+                    }
+                    // Kopfnoten
+                    if (!$this->getCertificateGradeAll($tblCertificate)) {
+                        $this->setCertificateGradeAllStandard($tblCertificate);
+                    }
+                    if (!$this->getCertificateSubjectAll($tblCertificate)) {
+                        $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 6);
+                        $this->setCertificateSubject($tblCertificate, 'WTH', 1, 7);
+                        $this->setCertificateSubject($tblCertificate, 'FR', 1, 8);
+
+                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                        $this->setCertificateSubject($tblCertificate, 'BI', 2, 2);
+                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 3);
+                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+                        $this->setCertificateSubject($tblCertificate, 'REV', 2, 5, false);
+                        $this->setCertificateSubject($tblCertificate, 'RKA', 2, 6, false);
+                        $this->setCertificateSubject($tblCertificate, 'ETH', 2, 7, false);
+                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 8);
+                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 9);
+                    }
+                }
+                //
+                $tblCertificate = $this->createCertificate('Oberschule Jahreszeugnis', 'Klasse 5-9',
+                    'CMS\CmsMsJ', $tblConsumerCertificate);
+                if ($tblCertificate) {
+                    if ($tblSchoolTypeSecondary) {
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypeSecondary,
+                            null, true);
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                    }
+                    // Begrenzung des Bemerkungsfelds
+                    $FieldName = 'Remark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 500);
+                    }
+                    // Kopfnoten
+                    if (!$this->getCertificateGradeAll($tblCertificate)) {
+                        $this->setCertificateGradeAllStandard($tblCertificate);
+                    }
+                    if (!$this->getCertificateSubjectAll($tblCertificate)) {
+                        $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 6);
+                        $this->setCertificateSubject($tblCertificate, 'WTH', 1, 7);
+                        $this->setCertificateSubject($tblCertificate, 'FR', 1, 8);
+
+                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                        $this->setCertificateSubject($tblCertificate, 'BI', 2, 2);
+                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 3);
+                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+                        $this->setCertificateSubject($tblCertificate, 'REV', 2, 5, false);
+                        $this->setCertificateSubject($tblCertificate, 'RKA', 2, 6, false);
+                        $this->setCertificateSubject($tblCertificate, 'ETH', 2, 7, false);
+                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 8);
+                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 9);
+                    }
+                }
+                //
+                $tblCertificate = $this->createCertificate('Oberschule Jahreszeugnis (2 Seiten)', 'Klasse 5-9',
+                    'CMS\CmsMsJExt', $tblConsumerCertificate, false, false, true);
+                if ($tblCertificate) {
+                    if ($tblSchoolTypeSecondary) {
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypeSecondary,
+                            null, true);
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                        if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                            $this->createCertificateLevel($tblCertificate, $tblLevel);
+                        }
+                    }
+                    // Begrenzung des Bemerkungsfelds
+                    $FieldName = 'Remark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 1600);
+                    }
+                    // Begrenzung des Bemerkungsfelds
+                    $FieldName = 'SecondRemark';
+                    if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                        $this->createCertificateField($tblCertificate, $FieldName, 3500);
+                    }
+                    // Kopfnoten
+                    if (!$this->getCertificateGradeAll($tblCertificate)) {
+                        $this->setCertificateGradeAllStandard($tblCertificate);
+                    }
+                    if (!$this->getCertificateSubjectAll($tblCertificate)) {
+                        $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 6);
+                        $this->setCertificateSubject($tblCertificate, 'WTH', 1, 7);
+                        $this->setCertificateSubject($tblCertificate, 'FR', 1, 8);
+
+                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                        $this->setCertificateSubject($tblCertificate, 'BI', 2, 2);
+                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 3);
+                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+                        $this->setCertificateSubject($tblCertificate, 'REV', 2, 5, false);
+                        $this->setCertificateSubject($tblCertificate, 'RKA', 2, 6, false);
+                        $this->setCertificateSubject($tblCertificate, 'ETH', 2, 7, false);
+                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 8);
+                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 9);
+                    }
+                }
+            }
         }
     }
 
     /**
-     * @param string $Name
-     * @param string $Description
-     * @param string $Certificate
+     * @param string           $Name
+     * @param string           $Description
+     * @param string           $Certificate
      * @param TblConsumer|null $tblConsumer
-     * @param bool $IsGradeInformation
-     * @param bool $IsInformation
+     * @param bool             $IsGradeInformation
+     * @param bool             $IsInformation
+     * @param bool             $IsChosenDefault
      *
      * @return null|object|TblCertificate
      */
@@ -2227,7 +2767,8 @@ class Data extends AbstractData
         $Certificate,
         TblConsumer $tblConsumer = null,
         $IsGradeInformation = false,
-        $IsInformation = false
+        $IsInformation = false,
+        $IsChosenDefault = false
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -2244,6 +2785,7 @@ class Data extends AbstractData
             $Entity->setServiceTblConsumer($tblConsumer);
             $Entity->setIsGradeInformation($IsGradeInformation);
             $Entity->setIsInformation($IsInformation);
+            $Entity->setIsChosenDefault($IsChosenDefault);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -2656,8 +3198,8 @@ class Data extends AbstractData
             if (!$tblSubject) {
                 $tblSubject = Subject::useService()->getSubjectByAcronym('INFO');
             }
-        } elseif (($tblSubject = Subject::useService()->getSubjectByAcronym($SubjectAcronym))) {
-
+        } else {
+            $tblSubject = Subject::useService()->getSubjectByAcronym($SubjectAcronym);
         }
 
         if ($tblSubject){

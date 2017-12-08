@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Education\Certificate\Generate;
 
 use SPHERE\Application\Education\Certificate\Generator\Generator;
+use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -802,6 +803,18 @@ class Frontend extends Extension
                                 }
                                 if (count($certificateList) == 1) {
                                     $tblCertificate = current($certificateList);
+                                } elseif (count($certificateList) > 1) {
+                                    /** @var TblCertificate $certificate */
+                                    $ChosenCertificate = false;
+                                    foreach ($certificateList as $certificate) {
+                                        if ($certificate->isChosenDefault()) {
+                                            $ChosenCertificate = $certificate;
+                                            break;
+                                        }
+                                    }
+                                    if ($ChosenCertificate) {
+                                        $tblCertificate = $ChosenCertificate;
+                                    }
                                 }
                             }
                         }

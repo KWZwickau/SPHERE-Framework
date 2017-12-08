@@ -648,6 +648,7 @@ class Service extends AbstractService
         if ($tblCompany) {
             $Content['P' . $personId]['Company']['Id'] = $tblCompany->getId();
             $Content['P' . $personId]['Company']['Data']['Name'] = $tblCompany->getName();
+            $Content['P'.$personId]['Company']['Data']['ExtendedName'] = $tblCompany->getExtendedName();
             if (($tblAddress = $tblCompany->fetchMainAddress())) {
                 $Content['P' . $personId]['Company']['Address']['Street']['Name'] = $tblAddress->getStreetName();
                 $Content['P' . $personId]['Company']['Address']['Street']['Number'] = $tblAddress->getStreetNumber();
@@ -1598,6 +1599,18 @@ class Service extends AbstractService
                     ) {
                         if (count($certificateList) == 1) {
                             $this->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, current($certificateList));
+                        } elseif (count($certificateList) > 1) {
+                            /** @var TblCertificate $certificate */
+                            $ChosenCertificate = false;
+                            foreach ($certificateList as $certificate) {
+                                if ($certificate->isChosenDefault()) {
+                                    $ChosenCertificate = $certificate;
+                                    break;
+                                }
+                            }
+                            if ($ChosenCertificate) {
+                                $this->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, $ChosenCertificate);
+                            }
                         } else {
                             continue;
                         }
