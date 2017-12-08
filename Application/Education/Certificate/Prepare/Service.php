@@ -703,7 +703,9 @@ class Service extends AbstractService
             $Content['P' . $personId]['Division']['Data']['Name'] = $tblDivision->getName();
 
             $course = $tblLevel->getName();
-            $midTerm = '/1';
+            // html funktioniert, allerdings kann es der DOM-PDF nicht, enable utf-8 for domPdf? oder eventuell Schriftart ändern
+            // $midTerm = '/&#x2160;';
+            $midTerm = '/I';
             if (($tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask())
                 && $tblYear
                 && ($tblPeriodList = $tblYear->getTblPeriodAll())
@@ -711,7 +713,8 @@ class Service extends AbstractService
                 && ($tblFirstPeriod = current($tblPeriodList))
                 && $tblPeriod->getId() != $tblFirstPeriod->getId()
             ) {
-                $midTerm = '/2';
+                // $midTerm = '/&#x2161;';
+                $midTerm = '/II';
             }
             $course .= $midTerm;
             $Content['P' . $personId]['Division']['Data']['Course']['Name'] = $course;
