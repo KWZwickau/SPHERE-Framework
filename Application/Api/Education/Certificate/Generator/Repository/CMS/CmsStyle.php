@@ -1064,7 +1064,12 @@ abstract class CmsStyle extends Certificate
             ->setContent('&nbsp;')
             ->styleTextSize('5px')
             ->styleBorderBottom()
-        );
+            , '25%')
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleTextSize('5px')
+                , '75%'
+            );
         $SectionList[] = (new Section())->addElementColumn((new Element())
             ->setContent(
                 'Notenerläuterung:'

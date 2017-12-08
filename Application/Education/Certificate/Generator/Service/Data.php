@@ -3199,6 +3199,8 @@ class Data extends AbstractData
             if (!$tblSubject) {
                 $tblSubject = Subject::useService()->getSubjectByAcronym('INFO');
             }
+        } elseif (($searchSubject = Subject::useService()->getSubjectByAcronym($SubjectAcronym))) {
+            $tblSubject = $searchSubject;
         }
 
         if ($tblSubject){
