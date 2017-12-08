@@ -3174,7 +3174,6 @@ class Data extends AbstractData
         TblStudentLiberationCategory $tblStudentLiberationCategory = null
     ) {
 
-        $tblSubject = false;
         // Chemnitz abweichende Fächer
         if ($SubjectAcronym == 'DE' || $SubjectAcronym == 'D') {
             $tblSubject = Subject::useService()->getSubjectByAcronym('DE');
@@ -3199,8 +3198,8 @@ class Data extends AbstractData
             if (!$tblSubject) {
                 $tblSubject = Subject::useService()->getSubjectByAcronym('INFO');
             }
-        } elseif (($searchSubject = Subject::useService()->getSubjectByAcronym($SubjectAcronym))) {
-            $tblSubject = $searchSubject;
+        } else {
+            $tblSubject = Subject::useService()->getSubjectByAcronym($SubjectAcronym);
         }
 
         if ($tblSubject){
