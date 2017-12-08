@@ -279,6 +279,25 @@ class Service extends AbstractService
                                     . $tblCertificate->getName() . ($tblCertificate->getDescription()
                                         ? ' ' . $tblCertificate->getDescription() : '');
                             }
+                        } elseif (count($certificateList) > 1) {
+                            /** @var TblCertificate $certificate */
+                            $ChosenCertificate = false;
+                            foreach ($certificateList as $certificate) {
+                                if ($certificate->isChosenDefault()) {
+                                    $ChosenCertificate = $certificate;
+                                    break;
+                                }
+                            }
+                            if ($ChosenCertificate) {
+                                $tblCertificate = $ChosenCertificate;
+                                if ($tblCertificate && !isset($certificateNameList[$tblCertificate->getId()])) {
+                                    $tblConsumer = $tblCertificate->getServiceTblConsumer();
+                                    $certificateNameList[$tblCertificate->getId()]
+                                        = ($tblConsumer ? $tblConsumer->getAcronym().' ' : '')
+                                        .$tblCertificate->getName().($tblCertificate->getDescription()
+                                            ? ' '.$tblCertificate->getDescription() : '');
+                                }
+                            }
                         } else {
                             continue;
                         }

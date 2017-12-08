@@ -697,6 +697,7 @@ class Service extends AbstractService
         if ($tblCompany) {
             $Content['P' . $personId]['Company']['Id'] = $tblCompany->getId();
             $Content['P' . $personId]['Company']['Data']['Name'] = $tblCompany->getName();
+            $Content['P'.$personId]['Company']['Data']['ExtendedName'] = $tblCompany->getExtendedName();
             if (($tblAddress = $tblCompany->fetchMainAddress())) {
                 $Content['P' . $personId]['Company']['Address']['Street']['Name'] = $tblAddress->getStreetName();
                 $Content['P' . $personId]['Company']['Address']['Street']['Number'] = $tblAddress->getStreetNumber();
@@ -752,7 +753,9 @@ class Service extends AbstractService
             $Content['P' . $personId]['Division']['Data']['Name'] = $tblDivision->getName();
 
             $course = $tblLevel->getName();
-            $midTerm = '/1';
+            // html funktioniert, allerdings kann es der DOM-PDF nicht, enable utf-8 for domPdf? oder eventuell Schriftart ändern
+            // $midTerm = '/&#x2160;';
+            $midTerm = '/I';
             if (($tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask())
                 && $tblYear
                 && ($tblPeriodList = $tblYear->getTblPeriodAll())
@@ -760,7 +763,8 @@ class Service extends AbstractService
                 && ($tblFirstPeriod = current($tblPeriodList))
                 && $tblPeriod->getId() != $tblFirstPeriod->getId()
             ) {
-                $midTerm = '/2';
+                // $midTerm = '/&#x2161;';
+                $midTerm = '/II';
             }
             $course .= $midTerm;
             $Content['P' . $personId]['Division']['Data']['Course']['Name'] = $course;
@@ -1681,6 +1685,18 @@ class Service extends AbstractService
                     ) {
                         if (count($certificateList) == 1) {
                             $this->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, current($certificateList));
+                        } elseif (count($certificateList) > 1) {
+                            /** @var TblCertificate $certificate */
+                            $ChosenCertificate = false;
+                            foreach ($certificateList as $certificate) {
+                                if ($certificate->isChosenDefault()) {
+                                    $ChosenCertificate = $certificate;
+                                    break;
+                                }
+                            }
+                            if ($ChosenCertificate) {
+                                $this->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, $ChosenCertificate);
+                            }
                         } else {
                             continue;
                         }

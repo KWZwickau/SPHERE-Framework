@@ -90,6 +90,7 @@ class GymKurshalbjahreszeugnis extends Certificate
                     ->addElementColumn((new Element())
                         ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
                               {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
+                        ->styleAlignCenter()
                         ->styleBorderBottom()
                     )
                 )->styleMarginTop('10px')
@@ -279,12 +280,8 @@ class GymKurshalbjahreszeugnis extends Certificate
                 $tblSubject = $tblCertificateSubject->getServiceTblSubject();
                 if ($tblSubject) {
                     $isAddSubject = false;
-                    // Grade Exists? => Add Subject to Certificate
+                    // Student has basicCourse? => Add Subject to Certificate
                     if (isset($this->BasicCourses[$tblSubject->getAcronym()])) {
-                        $isAddSubject = true;
-                    } else if (isset($this->AdvancedCourses[0]) && $this->AdvancedCourses[0] == $tblSubject->getAcronym()) {
-                        $isAddSubject = true;
-                    } else if (isset($this->AdvancedCourses[1]) && $this->AdvancedCourses[1] == $tblSubject->getAcronym()) {
                         $isAddSubject = true;
                     } else {
                         // Grade Missing, But Subject Essential => Add Subject to Certificate

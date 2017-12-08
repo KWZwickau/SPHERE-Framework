@@ -697,6 +697,18 @@ class Data extends AbstractData
                             ) {
                                 if (count($certificateList) == 1) {
                                     $Entity->setServiceTblCertificate(current($certificateList));
+                                } elseif (count($certificateList) > 1) {
+                                    /** @var TblCertificate $certificate */
+                                    $ChosenCertificate = false;
+                                    foreach ($certificateList as $certificate) {
+                                        if ($certificate->isChosenDefault()) {
+                                            $ChosenCertificate = $certificate;
+                                            break;
+                                        }
+                                    }
+                                    if ($ChosenCertificate) {
+                                        $Entity->setServiceTblCertificate($ChosenCertificate);
+                                    }
                                 }
                                 // Standard Vorlagen
                             } elseif (($certificateList = Generate::useService()->getPossibleCertificates($tblPrepare,
@@ -908,6 +920,18 @@ class Data extends AbstractData
                         ) {
                             if (count($certificateList) == 1) {
                                 $Entity->setServiceTblCertificate(current($certificateList));
+                            } elseif (count($certificateList) > 1) {
+                                /** @var TblCertificate $certificate */
+                                $ChosenCertificate = false;
+                                foreach ($certificateList as $certificate) {
+                                    if ($certificate->isChosenDefault()) {
+                                        $ChosenCertificate = $certificate;
+                                        break;
+                                    }
+                                }
+                                if ($ChosenCertificate) {
+                                    $Entity->setServiceTblCertificate($ChosenCertificate);
+                                }
                             }
                             // Standard Vorlagen
                         } elseif (($certificateList = Generate::useService()->getPossibleCertificates($tblPrepare,

@@ -66,6 +66,7 @@ class Setup extends AbstractSetup
             $Table->addColumn('IsGradeInformation', 'boolean');
         }
         $this->createColumn($Table, 'IsInformation', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($Table, 'IsChosenDefault', self::FIELD_TYPE_BOOLEAN);
 
         $this->createColumn($Table, 'serviceTblCourse', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblSchoolType', self::FIELD_TYPE_BIGINT, true);
