@@ -2213,7 +2213,7 @@ class Data extends AbstractData
                 $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('CMS');
 
                 $tblCertificate = $this->createCertificate('Grundschule Halbjahresinformation', 'Klasse 1-2',
-                    'CMS\CmsGsHjOneTwo', $tblConsumerCertificate);
+                    'CMS\CmsGsHjOneTwo', $tblConsumerCertificate, false, true);
                 if ($tblCertificate) {
                     if ($tblSchoolTypePrimary) {
                         $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary,
@@ -2233,7 +2233,7 @@ class Data extends AbstractData
                 }
                 //
                 $tblCertificate = $this->createCertificate('Grundschule Halbjahresinformation (2 Seiten)', 'Klasse 1-2',
-                    'CMS\CmsGsHjOneTwoExt', $tblConsumerCertificate, false, false, true);
+                    'CMS\CmsGsHjOneTwoExt', $tblConsumerCertificate, false, true, true);
                 if ($tblCertificate) {
                     if ($tblSchoolTypePrimary) {
                         $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary,
@@ -2261,8 +2261,7 @@ class Data extends AbstractData
                     'CMS\CmsGsJOneTwo', $tblConsumerCertificate);
                 if ($tblCertificate) {
                     if ($tblSchoolTypePrimary) {
-                        $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary,
-                            null, true);
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary);
                         if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
                             $this->createCertificateLevel($tblCertificate, $tblLevel);
                         }
@@ -2281,8 +2280,7 @@ class Data extends AbstractData
                     'CMS\CmsGsJOneTwoExt', $tblConsumerCertificate, false, false, true);
                 if ($tblCertificate) {
                     if ($tblSchoolTypePrimary) {
-                        $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary,
-                            null, true);
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary);
                         if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
                             $this->createCertificateLevel($tblCertificate, $tblLevel);
                         }
@@ -2303,7 +2301,7 @@ class Data extends AbstractData
                 }
                 //
                 $tblCertificate = $this->createCertificate('Grundschule Halbjahresinformation', 'Klasse 3-4',
-                    'CMS\CmsGsHj', $tblConsumerCertificate);
+                    'CMS\CmsGsHj', $tblConsumerCertificate, false, true);
                 if ($tblCertificate) {
                     if ($tblSchoolTypePrimary) {
                         $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary,
@@ -2333,7 +2331,7 @@ class Data extends AbstractData
                 }
                 //
                 $tblCertificate = $this->createCertificate('Grundschule Halbjahresinformation (2 Seiten)', 'Klasse 3-4',
-                    'CMS\CmsGsHjExt', $tblConsumerCertificate, false, false, true);
+                    'CMS\CmsGsHjExt', $tblConsumerCertificate, false, true, true);
                 if ($tblCertificate) {
                     if ($tblSchoolTypePrimary) {
                         $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary,
@@ -2371,8 +2369,7 @@ class Data extends AbstractData
                     'CMS\CmsGsJ', $tblConsumerCertificate);
                 if ($tblCertificate) {
                     if ($tblSchoolTypePrimary) {
-                        $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary,
-                            null, true);
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary);
                         if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
                             $this->createCertificateLevel($tblCertificate, $tblLevel);
                         }
@@ -2401,8 +2398,7 @@ class Data extends AbstractData
                     'CMS\CmsGsJExt', $tblConsumerCertificate, false, false, true);
                 if ($tblCertificate) {
                     if ($tblSchoolTypePrimary) {
-                        $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary,
-                            null, true);
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary);
                         if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
                             $this->createCertificateLevel($tblCertificate, $tblLevel);
                         }
@@ -2433,7 +2429,7 @@ class Data extends AbstractData
                 }
                 //
                 $tblCertificate = $this->createCertificate('Oberschule Halbjahresinformation', 'Klasse 5-9',
-                    'CMS\CmsMsHj', $tblConsumerCertificate);
+                    'CMS\CmsMsHj', $tblConsumerCertificate, false, true);
                 if ($tblCertificate) {
                     if ($tblSchoolTypeSecondary) {
                         $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary,
@@ -2486,7 +2482,7 @@ class Data extends AbstractData
                 }
                 //
                 $tblCertificate = $this->createCertificate('Oberschule Halbjahresinformation (2 Seiten)', 'Klasse 5-9',
-                    'CMS\CmsMsHjExt', $tblConsumerCertificate, false, false, true);
+                    'CMS\CmsMsHjExt', $tblConsumerCertificate, false, true, true);
                 if ($tblCertificate) {
                     if ($tblSchoolTypeSecondary) {
                         $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary,
@@ -2547,8 +2543,7 @@ class Data extends AbstractData
                     'CMS\CmsMsHjZ', $tblConsumerCertificate);
                 if ($tblCertificate) {
                     if ($tblSchoolTypeSecondary) {
-                        $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary,
-                            null, true);
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary);
                         if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
                             $this->createCertificateLevel($tblCertificate, $tblLevel);
                         }
@@ -2591,8 +2586,7 @@ class Data extends AbstractData
                     'CMS\CmsMsHjZExt', $tblConsumerCertificate, false, false, true);
                 if ($tblCertificate) {
                     if ($tblSchoolTypeSecondary) {
-                        $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary,
-                            null, true);
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary);
                         if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
                             $this->createCertificateLevel($tblCertificate, $tblLevel);
                         }
@@ -2640,8 +2634,7 @@ class Data extends AbstractData
                     'CMS\CmsMsJ', $tblConsumerCertificate);
                 if ($tblCertificate) {
                     if ($tblSchoolTypeSecondary) {
-                        $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypeSecondary,
-                            null, true);
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypeSecondary);
                         if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
                             $this->createCertificateLevel($tblCertificate, $tblLevel);
                         }
@@ -2693,8 +2686,7 @@ class Data extends AbstractData
                     'CMS\CmsMsJExt', $tblConsumerCertificate, false, false, true);
                 if ($tblCertificate) {
                     if ($tblSchoolTypeSecondary) {
-                        $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypeSecondary,
-                            null, true);
+                        $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypeSecondary);
                         if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
                             $this->createCertificateLevel($tblCertificate, $tblLevel);
                         }
