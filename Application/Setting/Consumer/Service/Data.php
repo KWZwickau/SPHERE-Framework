@@ -84,6 +84,28 @@ class Data extends AbstractData
                     '0'
                 );
             }
+
+            if ($tblConsumer->getAcronym() == 'EVAMTL'
+                || $tblConsumer->getAcronym() == 'CMS'
+            ) {
+                $this->createSetting(
+                    'Education',
+                    'Certificate',
+                    'Prepare',
+                    'IsSchoolExtendedNameDisplayed',
+                    TblSetting::TYPE_BOOLEAN,
+                    '1'
+                );
+            } else {
+                $this->createSetting(
+                    'Education',
+                    'Certificate',
+                    'Prepare',
+                    'IsSchoolExtendedNameDisplayed',
+                    TblSetting::TYPE_BOOLEAN,
+                    '0'
+                );
+            }
         }
         $this->createSetting(
             'Education',

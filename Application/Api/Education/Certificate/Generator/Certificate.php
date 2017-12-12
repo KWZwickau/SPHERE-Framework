@@ -252,7 +252,24 @@ abstract class Certificate extends Extension
     protected function getSchoolName($personId, $MarginTop = '20px')
     {
 
+        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+            'Education', 'Certificate', 'Prepare', 'IsSchoolExtendedNameDisplayed'))
+            && $tblSetting->getValue()
+        ) {
+            $isSchoolExtendedNameDisplayed = true;
+        } else {
+            $isSchoolExtendedNameDisplayed = false;
+        }
+        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                'Education', 'Certificate', 'Prepare', 'SchoolExtendedNameSeparator'))
+            && $tblSetting->getValue()
+        ) {
+            $separator = $tblSetting->getValue();
+        } else {
+            $separator = false;
+        }
         $isLargeCompanyName = false;
+        $name = '';
         // get company name
         if (($tblPerson = Person::useService()->getPersonById($personId))) {
             if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
@@ -261,7 +278,9 @@ abstract class Certificate extends Extension
                         $tblTransferType);
                     if ($tblStudentTransfer) {
                         if (($tblCompany = $tblStudentTransfer->getServiceTblCompany())) {
-                            if (strlen($tblCompany->getName()) > 60) {
+                            $name = $isSchoolExtendedNameDisplayed ? $tblCompany->getName() .
+                                ($separator ? ' ' . $separator . ' ' : ' ') . $tblCompany->getExtendedName() : $tblCompany->getName();
+                            if (strlen($name) > 60) {
                                 $isLargeCompanyName = true;
                             }
                         }
@@ -277,11 +296,7 @@ abstract class Certificate extends Extension
                     ->setContent('Name der Schule:')
                     , '18%')
                 ->addElementColumn((new Element())
-                    ->setContent('{% if(Content.P'.$personId.'.Company.Data.Name) %}
-                                        {{ Content.P'.$personId.'.Company.Data.Name }}
-                                    {% else %}
-                                          &nbsp;
-                                    {% endif %}')
+                    ->setContent($name ? $name : '&nbsp;')
                     ->styleBorderBottom()
                     ->styleAlignCenter()
                     , '82%')
@@ -292,11 +307,7 @@ abstract class Certificate extends Extension
                     ->setContent('Name der Schule:')
                     , '18%')
                 ->addElementColumn((new Element())
-                    ->setContent('{% if(Content.P'.$personId.'.Company.Data.Name) %}
-                                        {{ Content.P' . $personId . '.Company.Data.Name }}
-                                    {% else %}
-                                          &nbsp;
-                                    {% endif %}')
+                    ->setContent($name ? $name : '&nbsp;')
                     ->styleBorderBottom()
                     ->styleAlignCenter()
                     , '64%')
@@ -306,7 +317,6 @@ abstract class Certificate extends Extension
                     , '18%')
             )->styleMarginTop($MarginTop);
         }
-
 
         return $SchoolSlice;
     }
