@@ -51,25 +51,7 @@ class BeMi extends Certificate
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         return (new Page())
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('Name der Schule:')
-                        ->stylePaddingTop('10px')
-                        ->stylePaddingLeft('5px')
-                        ->styleTextSize('13px')
-                        , '16%')
-                    ->addElementColumn((new Element())
-                        ->setContent('{% if(Content.P' . $personId . '.Company.Data.Name is not empty) %}
-                                    {{ Content.P' . $personId . '.Company.Data.Name }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}')
-                        ->stylePaddingTop('9px')
-                        ->styleBorderBottom()
-                        , '84%')
-                )
-            )
+            ->addSlice($this->getSchoolName($personId, '10px'))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('Bildungsempfehlung in den Klassenstufen 5-6')
