@@ -101,6 +101,15 @@ class Data extends AbstractData
             TblSetting::TYPE_BOOLEAN,
             '1'
         );
+        // Kopfnoten können auch für Fächer vergebenen werden, welche nicht benotet werden
+        $this->createSetting(
+            'Education',
+            'Graduation',
+            'Evaluation',
+            'HasBehaviorGradesForSubjectsWithNoGrading',
+            TblSetting::TYPE_BOOLEAN,
+            '0'
+        );
     }
 
     /**

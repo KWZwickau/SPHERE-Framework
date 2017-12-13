@@ -26,6 +26,7 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -163,7 +164,12 @@ class Frontend extends Extension implements IFrontendInterface
                     ) {
                         continue;
                     }
-                    if ($tblDivisionSubject && $tblDivisionSubject->getTblDivision()) {
+                    if ($tblDivisionSubject && $tblDivisionSubject->getTblDivision()
+                        && ($tblDivisionSubject->getHasGrading() || (($tblSetting = Consumer::useService()->getSetting(
+                                    'Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading'
+                                ))
+                                && $tblSetting->getValue()))
+                    ) {
                         if ($tblDivisionSubject->getTblSubjectGroup()) {
                             if ($tblDivisionSubject->getServiceTblSubject()) {
                                 $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
@@ -367,7 +373,13 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblDivisionSubjectAllByDivision) {
                     /** @var TblDivisionSubject $tblDivisionSubject */
                     foreach ($tblDivisionSubjectAllByDivision as $tblDivisionSubject) {
-                        if ($tblDivisionSubject && $tblDivisionSubject->getServiceTblSubject() && $tblDivisionSubject->getTblDivision()) {
+                        if ($tblDivisionSubject && $tblDivisionSubject->getServiceTblSubject()
+                            && $tblDivisionSubject->getTblDivision()
+                            && ($tblDivisionSubject->getHasGrading() || (($tblSetting = Consumer::useService()->getSetting(
+                                        'Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading'
+                                    ))
+                                    && $tblSetting->getValue()))
+                        ) {
                             if ($tblDivisionSubject->getTblSubjectGroup()) {
                                 $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
                                 [$tblDivisionSubject->getServiceTblSubject()->getId()]
@@ -1144,16 +1156,19 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            $Form
-                                ? new Well(Evaluation::useService()->createTest($Form, $tblDivisionSubject->getId(),
-                                $Test, $BasicRoute))
-                                : new Danger('Schuljahr nicht gefunden', new Ban())
+                            $tblDivisionSubject->getHasGrading()
+                                ? $Form
+                                    ? new Well(Evaluation::useService()->createTest($Form, $tblDivisionSubject->getId(),
+                                    $Test, $BasicRoute))
+                                    : new Danger('Schuljahr nicht gefunden', new Ban())
+                                : new \SPHERE\Common\Frontend\Message\Repository\Warning('Es können keine Leistungsüberprüfungen angelegt werden, da für dieses 
+                                Fach: wird nicht benotet, eingestellt ist.', new Exclamation())
                         ))
                     ))
                 ), new Title(new PlusSign() . ' Leistungsüberprüfung anlegen')),
-                new LayoutGroup(
-                    $preview
-                    , new Title(new Clock() . ' Planung'))
+                $tblDivisionSubject->getHasGrading()
+                    ? new LayoutGroup($preview, new Title(new Clock() . ' Planung'))
+                    : null
             ))
         );
 

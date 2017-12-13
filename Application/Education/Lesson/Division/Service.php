@@ -2108,7 +2108,7 @@ class Service extends AbstractService
                     foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
                         if ($tblDivisionSubject->getServiceTblSubject()) {
                             $tblDivisionSubjectCopy = (new Data($this->getBinding()))->addDivisionSubject($tblDivisionCopy,
-                                $tblDivisionSubject->getServiceTblSubject());
+                                $tblDivisionSubject->getServiceTblSubject(), null, $tblDivisionSubject->getHasGrading());
 
                             $tblSubjectTeacherList = false;
                             if (!$tblDivisionSubject->getTblSubjectGroup()) {
@@ -2161,11 +2161,12 @@ class Service extends AbstractService
                             if (isset($tblSubjectGroupCopy)) {
                                 $tblDivisionSubjectCopy = (new Data($this->getBinding()))->addDivisionSubject($tblDivisionCopy,
                                     $tblDivisionSubject->getServiceTblSubject(),
-                                    $tblSubjectGroupCopy);
+                                    $tblSubjectGroupCopy,
+                                    $tblDivisionSubject->getHasGrading());
 
                             } else {
                                 $tblDivisionSubjectCopy = (new Data($this->getBinding()))->addDivisionSubject($tblDivisionCopy,
-                                    $tblDivisionSubject->getServiceTblSubject());
+                                    $tblDivisionSubject->getServiceTblSubject(), null, $tblDivisionSubject->getHasGrading());
                             }
 
                             if ($tblSubjectTeacherList) {
@@ -2188,7 +2189,7 @@ class Service extends AbstractService
                     } else {
                         if ($tblDivisionSubject->getServiceTblSubject()) {
                             $tblDivisionSubjectCopy = (new Data($this->getBinding()))->addDivisionSubject($tblDivisionCopy,
-                                $tblDivisionSubject->getServiceTblSubject());
+                                $tblDivisionSubject->getServiceTblSubject(), null, $tblDivisionSubject->getHasGrading());
 
                             $tblSubjectTeacherList = $this->getSubjectTeacherByDivisionSubject($tblDivisionSubject);
 
