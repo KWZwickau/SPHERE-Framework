@@ -139,6 +139,7 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblDivisionSubject', 'tblSubjectGroup')) {
             $Table->addColumn('tblSubjectGroup', 'bigint', array('notnull' => false));
         }
+        $this->createColumn($Table, 'HasGrading', self::FIELD_TYPE_BOOLEAN, false, true);
         $this->getConnection()->addForeignKey($Table, $tblDivision);
         return $Table;
     }

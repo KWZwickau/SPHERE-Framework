@@ -1010,13 +1010,15 @@ class Data extends AbstractData
      * @param TblDivision $tblDivision
      * @param TblSubject $tblSubject
      * @param TblSubjectGroup|null $tblSubjectGroup
+     * @param bool $HasGrading
      *
      * @return null|object|TblDivisionSubject
      */
     public function addDivisionSubject(
         TblDivision $tblDivision,
         TblSubject $tblSubject,
-        TblSubjectGroup $tblSubjectGroup = null
+        TblSubjectGroup $tblSubjectGroup = null,
+        $HasGrading = true
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -1041,6 +1043,7 @@ class Data extends AbstractData
             $Entity->setTblDivision($tblDivision);
             $Entity->setServiceTblSubject($tblSubject);
             $Entity->setTblSubjectGroup($tblSubjectGroup);
+            $Entity->setHasGrading($HasGrading);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -1861,7 +1864,8 @@ class Data extends AbstractData
                 'TblDivisionSubject',
                 array(
                     TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId(),
-                    TblDivisionSubject::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+                    TblDivisionSubject::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                    TblDivisionSubject::ATTR_TBL_SUBJECT_GROUP => null
                 )
             );
         } else {
@@ -2248,5 +2252,30 @@ class Data extends AbstractData
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblDivision',
             array(TblDivision::ATTR_YEAR => $tblYear->getId()));
+    }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     * @param $HasGrading
+     *
+     * @return bool
+     */
+    public function updateDivisionSubject(TblDivisionSubject $tblDivisionSubject, $HasGrading)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblDivisionSubject $Entity */
+        $Entity = $Manager->getEntityById('TblDivisionSubject', $tblDivisionSubject->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setHasGrading($HasGrading);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
     }
 }
