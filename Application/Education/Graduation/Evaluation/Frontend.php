@@ -1837,6 +1837,7 @@ class Frontend extends Extension implements IFrontendInterface
         $hasPreviewGrades = false;
 
         if ($tblTestLinkedList) {
+            $displayDivisionSubjectList = array();
             $studentList = $this->setStudentList($tblDivisionSubject, $tblTest, $studentList, $studentTestList, true);
             foreach ($tblTestLinkedList as $tblTestLinked) {
                 if ($tblTestLinked->getServiceTblDivision()
@@ -1849,10 +1850,23 @@ class Frontend extends Extension implements IFrontendInterface
                 ) {
                     $studentList = $this->setStudentList($testDivisionSubject, $tblTestLinked, $studentList,
                         $studentTestList, true);
+                    $displayDivisionSubjectList[$tblTestLinked->getServiceTblDivision()->getDisplayName()
+                    . $tblTestLinked->getServiceTblSubject()->getAcronym()]
+                        = 'Klasse ' . $tblTestLinked->getServiceTblDivision()->getDisplayName()
+                        . ' - ' . $tblTestLinked->getServiceTblSubject()->getAcronym() . ' '
+                        . $tblTestLinked->getServiceTblSubject()->getName()
+                        . ($tblTestLinked->getServiceTblSubjectGroup()
+                            ? new Small(' (Gruppe: ' . $tblTestLinked->getServiceTblSubjectGroup()->getName() . ')')
+                            : '');
                 }
             }
+            ksort($displayDivisionSubjectList);
         } else {
             $studentList = $this->setStudentList($tblDivisionSubject, $tblTest, $studentList, $studentTestList);
+            $displayDivisionSubjectList[] = 'Klasse ' . $tblDivision->getDisplayName() . ' - ' .
+                ($tblTest->getServiceTblSubject() ? $tblTest->getServiceTblSubject()->getName() : '') .
+                ($tblTest->getServiceTblSubjectGroup() ? new Small(
+                    ' (Gruppe: ' . $tblTest->getServiceTblSubjectGroup()->getName() . ')') : '');
         }
 
         if ($tblTask) {
@@ -2259,10 +2273,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new Panel(
                                 'Fach-Klasse',
-                                'Klasse ' . $tblDivision->getDisplayName() . ' - ' .
-                                ($tblTest->getServiceTblSubject() ? $tblTest->getServiceTblSubject()->getName() : '') .
-                                ($tblTest->getServiceTblSubjectGroup() ? new Small(
-                                    ' (Gruppe: ' . $tblTest->getServiceTblSubjectGroup()->getName() . ')') : ''),
+                                $displayDivisionSubjectList,
                                 Panel::PANEL_TYPE_INFO
                             ), 3
                         ),
