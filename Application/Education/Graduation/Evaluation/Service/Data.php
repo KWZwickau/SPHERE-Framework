@@ -16,6 +16,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\System\Database\Binding\AbstractData;
 
 /**
@@ -888,50 +889,56 @@ class Data extends AbstractData
             ) {
 
                 foreach ($tblDivisionSubjectAll as $tblDivisionSubject) {
+                    if ($tblDivisionSubject->getHasGrading() || (($tblSetting = Consumer::useService()->getSetting(
+                                'Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading'
+                            ))
+                            && $tblSetting->getValue())
+                    ) {
+                        $tblSubject = $tblDivisionSubject->getServiceTblSubject();
+                        $tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup();
 
-                    $tblSubject = $tblDivisionSubject->getServiceTblSubject();
-                    $tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup();
-
-                    $Entity = null;
-                    if ($tblTask && $tblGradeType) {
-                        if ($tblSubjectGroup) {
-                            $Entity = $Manager->getEntity('TblTest')
-                                ->findOneBy(
-                                    array(
-                                        TblTest::ATTR_TBL_TASK => $tblTask->getId(),
-                                        TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                                        TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-                                        TblTest::ATTR_SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId(),
-                                        TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId(),
-                                    )
-                                );
-                        } else {
-                            $Entity = $Manager->getEntity('TblTest')
-                                ->findOneBy(
-                                    array(
-                                        TblTest::ATTR_TBL_TASK => $tblTask->getId(),
-                                        TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                                        TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-                                        TblTest::ATTR_SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId(),
-                                    )
-                                );
+                        $Entity = null;
+                        if ($tblTask && $tblGradeType) {
+                            if ($tblSubjectGroup) {
+                                $Entity = $Manager->getEntity('TblTest')
+                                    ->findOneBy(
+                                        array(
+                                            TblTest::ATTR_TBL_TASK => $tblTask->getId(),
+                                            TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                                            TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                                            TblTest::ATTR_SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId(),
+                                            TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId(),
+                                        )
+                                    );
+                            } else {
+                                $Entity = $Manager->getEntity('TblTest')
+                                    ->findOneBy(
+                                        array(
+                                            TblTest::ATTR_TBL_TASK => $tblTask->getId(),
+                                            TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                                            TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                                            TblTest::ATTR_SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId(),
+                                        )
+                                    );
+                            }
                         }
-                    }
 
-                    if ($Entity === null) {
-                        $Entity = new TblTest();
-                        $Entity->setServiceTblDivision($tblDivision);
-                        $Entity->setServiceTblSubject($tblSubject);
-                        $Entity->setServiceTblSubjectGroup($tblSubjectGroup ? $tblSubjectGroup : null);
-                        $Entity->setServiceTblGradeType($tblGradeType);
-                        $Entity->setTblTestType($tblTask->getTblTestType());
-                        $Entity->setTblTask($tblTask);
-                        $Entity->setDescription('');
-                        $Entity->setDate($tblTask->getDate() ? new \DateTime($tblTask->getDate()) : null);
-                        $Entity->setIsContinues(false);
+                        if ($Entity === null) {
+                            $Entity = new TblTest();
+                            $Entity->setServiceTblDivision($tblDivision);
+                            $Entity->setServiceTblSubject($tblSubject);
+                            $Entity->setServiceTblSubjectGroup($tblSubjectGroup ? $tblSubjectGroup : null);
+                            $Entity->setServiceTblGradeType($tblGradeType);
+                            $Entity->setTblTestType($tblTask->getTblTestType());
+                            $Entity->setTblTask($tblTask);
+                            $Entity->setDescription('');
+                            $Entity->setDate($tblTask->getDate() ? new \DateTime($tblTask->getDate()) : null);
+                            $Entity->setIsContinues(false);
 
-                        $Manager->bulkSaveEntity($Entity);
-                        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+                            $Manager->bulkSaveEntity($Entity);
+                            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity,
+                                true);
+                        }
                     }
                 }
             }
@@ -977,47 +984,49 @@ class Data extends AbstractData
             ) {
 
                 foreach ($tblDivisionSubjectAll as $tblDivisionSubject) {
+                    if ($tblDivisionSubject->getHasGrading()) {
+                        $tblSubject = $tblDivisionSubject->getServiceTblSubject();
+                        $tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup();
 
-                    $tblSubject = $tblDivisionSubject->getServiceTblSubject();
-                    $tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup();
-
-                    $Entity = null;
-                    if ($tblTask) {
-                        if ($tblSubjectGroup) {
-                            $Entity = $Manager->getEntity('TblTest')
-                                ->findOneBy(
-                                    array(
-                                        TblTest::ATTR_TBL_TASK => $tblTask->getId(),
-                                        TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                                        TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-                                        TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId(),
-                                    )
-                                );
-                        } else {
-                            $Entity = $Manager->getEntity('TblTest')
-                                ->findOneBy(
-                                    array(
-                                        TblTest::ATTR_TBL_TASK => $tblTask->getId(),
-                                        TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                                        TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-                                    )
-                                );
+                        $Entity = null;
+                        if ($tblTask) {
+                            if ($tblSubjectGroup) {
+                                $Entity = $Manager->getEntity('TblTest')
+                                    ->findOneBy(
+                                        array(
+                                            TblTest::ATTR_TBL_TASK => $tblTask->getId(),
+                                            TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                                            TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                                            TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId(),
+                                        )
+                                    );
+                            } else {
+                                $Entity = $Manager->getEntity('TblTest')
+                                    ->findOneBy(
+                                        array(
+                                            TblTest::ATTR_TBL_TASK => $tblTask->getId(),
+                                            TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                                            TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                                        )
+                                    );
+                            }
                         }
-                    }
 
-                    if ($Entity === null) {
-                        $Entity = new TblTest();
-                        $Entity->setServiceTblDivision($tblDivision);
-                        $Entity->setServiceTblSubject($tblSubject);
-                        $Entity->setServiceTblSubjectGroup($tblSubjectGroup ? $tblSubjectGroup : null);
-                        $Entity->setTblTestType($tblTask->getTblTestType());
-                        $Entity->setTblTask($tblTask);
-                        $Entity->setDescription('');
-                        $Entity->setDate($tblTask->getDate() ? new \DateTime($tblTask->getDate()) : null);
-                        $Entity->setIsContinues(false);
+                        if ($Entity === null) {
+                            $Entity = new TblTest();
+                            $Entity->setServiceTblDivision($tblDivision);
+                            $Entity->setServiceTblSubject($tblSubject);
+                            $Entity->setServiceTblSubjectGroup($tblSubjectGroup ? $tblSubjectGroup : null);
+                            $Entity->setTblTestType($tblTask->getTblTestType());
+                            $Entity->setTblTask($tblTask);
+                            $Entity->setDescription('');
+                            $Entity->setDate($tblTask->getDate() ? new \DateTime($tblTask->getDate()) : null);
+                            $Entity->setIsContinues(false);
 
-                        $Manager->bulkSaveEntity($Entity);
-                        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+                            $Manager->bulkSaveEntity($Entity);
+                            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity,
+                                true);
+                        }
                     }
                 }
             }
