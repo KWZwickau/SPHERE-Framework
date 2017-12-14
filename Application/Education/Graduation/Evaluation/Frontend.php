@@ -2956,6 +2956,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $tableHeaderList[$tblDivision->getId()]['Name'] = 'Schüler';
                     $grades = array();
 
+                    $count = 1;
                     if (!empty($testList)) {
                         /** @var TblTest $tblTest */
                         foreach ($testList as $tblTest) {
@@ -2981,7 +2982,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                 $tblPerson = $tblSubjectStudent->getServiceTblPerson();
                                                 if ($tblPerson) {
                                                     list($studentList, $grades) = $this->setTableContentForBehaviourTask($tblDivision,
-                                                        $tblTest, $tblPerson, $studentList, $grades);
+                                                        $tblTest, $tblPerson, $studentList, $grades, $count);
                                                 }
                                             }
                                         }
@@ -2990,7 +2991,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         if ($tblDivisionStudentAll) {
                                             foreach ($tblDivisionStudentAll as $tblPerson) {
                                                 list($studentList, $grades) = $this->setTableContentForBehaviourTask($tblDivision,
-                                                    $tblTest, $tblPerson, $studentList, $grades);
+                                                    $tblTest, $tblPerson, $studentList, $grades, $count);
                                             }
                                         }
                                     }
@@ -3166,6 +3167,8 @@ class Frontend extends Extension implements IFrontendInterface
      * @param TblPerson $tblPerson
      * @param $studentList
      * @param $grades
+     * @param $count
+     *
      * @return array
      */
     private function setTableContentForBehaviourTask(
@@ -3173,11 +3176,15 @@ class Frontend extends Extension implements IFrontendInterface
         TblTest $tblTest,
         TblPerson $tblPerson,
         $studentList,
-        $grades
+        $grades,
+        &$count
     ) {
 
-        $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
-            $tblPerson->getLastFirstName();
+        if (!isset($studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'])) {
+            $studentList[$tblDivision->getId()][$tblPerson->getId()]['Number'] = $count++;
+            $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
+                $tblPerson->getLastFirstName();
+        }
         $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
             $tblPerson);
 
