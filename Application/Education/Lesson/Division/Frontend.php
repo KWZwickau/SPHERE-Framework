@@ -51,6 +51,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
@@ -714,10 +715,11 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Id
+     * @param bool $IsHasGradingView
      *
      * @return Stage|string
      */
-    public function frontendSubjectAdd($Id = null)
+    public function frontendSubjectAdd($Id = null, $IsHasGradingView = false, $Data = null)
     {
 
         $tblDivision = $Id === null ? false : Division::useService()->getDivisionById($Id);
@@ -725,30 +727,94 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage = new Stage('Fächer', 'hinzufügen');
             $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
             $Stage->setContent(new Warning('Klasse nicht gefunden'));
+
             return $Stage.new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
         }
-        $Title = 'der Klasse '.new Bold($tblDivision->getDisplayName());
-        $Stage = new Stage('Fächer', $Title);
-        $Stage->setMessage('');
+
+        $Stage = new Stage('Fächer', 'der Klasse '.new Bold($tblDivision->getDisplayName()));
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
             array('Id' => $tblDivision->getId())));
+        if ($IsHasGradingView) {
+            $buttonList[] = new Standard('Fächer Hinzufügen/Entfernen',
+                '/Education/Lesson/Division/Subject/Add', null, array('Id' => $Id));
+            $buttonList[] = new Standard(new \SPHERE\Common\Frontend\Text\Repository\Info(new Bold('Fächer Benotung')),
+                '/Education/Lesson/Division/Subject/Add', new Edit(), array('Id' => $Id, 'IsHasGradingView' => true));
 
-        $Stage->setContent(
-            SubjectSelectAPI::receiverUsed(SubjectSelectAPI::tableUsedSubject($tblDivision->getId()))
+            $subjectList = array();
+            if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))) {
+                if (($Global = $this->getGlobal())){
+                    foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                        if (!$tblDivisionSubject->getTblSubjectGroup() && ($tblSubject = $tblDivisionSubject->getServiceTblSubject())) {
+                            $Global->POST['Data'][$tblSubject->getId()] = $tblDivisionSubject->getHasGrading();
+                        }
+                    }
+                    $Global->savePost();
+                }
 
-//            new Layout(
-//                new LayoutGroup(
-//                    new LayoutRow(array(
-//                        new LayoutColumn(
-//                            SubjectSelectAPI::receiverUsed(SubjectSelectAPI::tableUsedSubject($tblDivision->getId()))
-//                            , 6),
-//                        new LayoutColumn(
-//                            SubjectSelectAPI::receiverAvailable(SubjectSelectAPI::tableAvailableSubject($tblDivision->getId()))
-//                            , 6),
-//                    ))
-//                )
-//            )
-        );
+                foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                    if (!$tblDivisionSubject->getTblSubjectGroup() && ($tblSubject = $tblDivisionSubject->getServiceTblSubject())) {
+                        $subjectList[$tblSubject->getAcronym()] = new CheckBox('Data[' . $tblSubject->getId() . ']',
+                            $tblSubject->getAcronym() . ' - ' . $tblSubject->getName(), 1);
+                    }
+                }
+
+                ksort($subjectList);
+            }
+
+            $form = new Form(
+                new FormGroup(array(
+                    new FormRow(array(
+                        new FormColumn(
+                            new Panel('Fächer werden benotet bzw. erhalten Zeugnistext' , $subjectList, Panel::PANEL_TYPE_INFO)
+                            , 12),
+                    )),
+                )));
+            $form->appendFormButton(new Primary('Speichern', new Save()));
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                $buttonList
+                            )
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Container('&nbsp;'),
+                                new Container(new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation() . ' Fächer die keine Benotung
+                                    und keinen Zeugnistext erhalten, können abgewählt werden. Danach sind diese nicht mehr sichtbar bei:
+                                    Leistungsüberprüfungen, im Notenbuch, bei Notenaufträgen und der Zeugnisvorbereitung.')),
+                                new Container('&nbsp;'),
+                                new Well(Division::useService()->updateDivisionSubject($form, $tblDivision, $Data))
+                            ))
+                        ))
+                    ))
+                ))
+            );
+        } else {
+            $buttonList[] = new Standard(new \SPHERE\Common\Frontend\Text\Repository\Info(new Bold('Fächer Hinzufügen/Entfernen')),
+                '/Education/Lesson/Division/Subject/Add', new Edit(), array('Id' => $Id));
+            $buttonList[] = new Standard('Fächer Benotung', '/Education/Lesson/Division/Subject/Add', null,
+                array('Id' => $Id, 'IsHasGradingView' => true));
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                $buttonList
+                            )
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                SubjectSelectAPI::receiverUsed(SubjectSelectAPI::tableUsedSubject($tblDivision->getId()))
+                            ))
+                        ))
+                    ))
+                ))
+            );
+        }
 
         return $Stage;
     }
@@ -1679,9 +1745,10 @@ class Frontend extends Extension implements IFrontendInterface
                         . ($tblDivisionSubject->getServiceTblSubject()->getDescription()
                             ? ' - ' . new Small($tblDivisionSubject->getServiceTblSubject()->getDescription())
                             : '')
+                        . ($tblDivisionSubject->getHasGrading() ? '' : new Small(' (Fach wird nicht benotet)'))
                         : '',
                         $StudentTableCount.' / '.$StudentTableCount.' Schüler aus der Klasse',
-                        Panel::PANEL_TYPE_INFO) : '';
+                        $tblDivisionSubject->getHasGrading() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_WARNING) : '';
 
                     $tblDivisionTeachersList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubject);
                     $TeacherArray = array();
@@ -1692,7 +1759,8 @@ class Frontend extends Extension implements IFrontendInterface
                             }
                         }
                     }
-                    $SubjectTeacherPanel = new Panel('Fachlehrer', $TeacherArray, Panel::PANEL_TYPE_INFO,
+                    $SubjectTeacherPanel = new Panel('Fachlehrer', $TeacherArray,
+                        $tblDivisionSubject->getHasGrading() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_WARNING,
                         new Standard('Lehrer', '/Education/Lesson/Division/SubjectTeacher/Add', new Pencil(),
                             array(
                                 'Id'                => $tblDivision->getId(),
@@ -1734,7 +1802,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $tblDivisionSubjectTest->getTblSubjectGroup()->isAdvancedCourse()
                                         ? new Bold($tblDivisionSubjectTest->getTblSubjectGroup()->getName())
                                         : $tblDivisionSubjectTest->getTblSubjectGroup()->getName(),
-                                    $TeachersArray, Panel::PANEL_TYPE_INFO,
+                                    $TeachersArray, $tblDivisionSubject->getHasGrading() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_WARNING,
                                     new Standard('Lehrer', '/Education/Lesson/Division/SubjectTeacher/Add',
                                         new Pencil(),
                                         array(
@@ -1792,7 +1860,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $tblDivisionSubjectTest->getTblSubjectGroup()->isAdvancedCourse()
                                         ? new Bold($tblDivisionSubjectTest->getTblSubjectGroup()->getName())
                                         : $tblDivisionSubjectTest->getTblSubjectGroup()->getName(),
-                                    $StudentArray, Panel::PANEL_TYPE_INFO,
+                                    $StudentArray, $tblDivisionSubject->getHasGrading() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_WARNING,
                                     new Standard('Schüler', '/Education/Lesson/Division/SubjectStudent/Add',
                                         new Pencil(),
                                         array(
@@ -1816,10 +1884,11 @@ class Frontend extends Extension implements IFrontendInterface
                                     : '')
                                 :'',
                                 new WarningText($StudentsGroupCount.' / '.$StudentTableCount.' Schüler aus der Klasse'),
-                                Panel::PANEL_TYPE_INFO);
+                                $tblDivisionSubject->getHasGrading() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_WARNING);
                         }
 
-                        $tblDivisionSubject->Group = new Panel('Gruppen', $GroupArray, Panel::PANEL_TYPE_INFO,
+                        $tblDivisionSubject->Group = new Panel('Gruppen', $GroupArray,
+                            $tblDivisionSubject->getHasGrading() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_WARNING,
                             new Standard('Gruppen', '/Education/Lesson/Division/SubjectGroup/Add', new Pencil(),
                                 array(
                                     'Id'                => $tblDivision->getId(),
@@ -1831,7 +1900,8 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblDivisionSubject->Student = (new Accordion())
                             ->addItem('Enthaltene Schüler', $StudentPanel, false);
                     } else {
-                        $tblDivisionSubject->Group = new Panel('Gruppen', '', Panel::PANEL_TYPE_INFO,
+                        $tblDivisionSubject->Group = new Panel('Gruppen', '',
+                            $tblDivisionSubject->getHasGrading() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_WARNING,
                             new Standard('Gruppe', '/Education/Lesson/Division/SubjectGroup/Add', new Plus(),
                                 array(
                                     'Id'                => $tblDivision->getId(),
