@@ -3,6 +3,7 @@ namespace SPHERE\Application\Platform\System\Database;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -142,9 +143,9 @@ class Database extends Extension implements IModuleInterface
                                 ( isset( $Service[4] ) ? $Service[4] : null )
                             )
                         );
-                        $Status = new Success('Verbunden', new Ok());
+                        $Status = new Success(new Ok().' Verbunden');
                     } catch (\Exception $E) {
-                        $Status = new Danger('Fehler', new Warning());
+                        $Status = new Danger(new Warning().' Fehler');
                     }
                     $Result[] = $this->statusRow($Status, $Service, $Parameter, $Connection);
                 }
@@ -160,9 +161,9 @@ class Database extends Extension implements IModuleInterface
                             ( isset( $Service[4] ) ? $Service[4] : null )
                         )
                     );
-                    $Status = new Success('Verbunden', new Ok());
+                    $Status = new Success(new Ok().' Verbunden');
                 } catch (\Exception $E) {
-                    $Status = new Danger('Fehler', new Warning());
+                    $Status = new Danger(new Warning().' Fehler');
                 }
                 $Result[] = $this->statusRow($Status, $Service, $Parameter, $Connection);
             }
@@ -287,7 +288,6 @@ class Database extends Extension implements IModuleInterface
                         .'?'.http_build_query($Authenticator->createSignature(array(
                             'Consumer' => $tblConsumer->getAcronym()
                         ), '/Api/Platform/Database/Upgrade'));
-
                 });
 
             ksort($ConsumerRequestList);
@@ -295,6 +295,18 @@ class Database extends Extension implements IModuleInterface
             $Api = $ConsumerRequestList['DEMO'];
             unset( $ConsumerRequestList['DEMO'] );
             $ConsumerRequestList['DEMO'] = $Api;
+        }
+
+        // prepare: change to first Consumer
+        if (!empty($ConsumerRequestList)) {
+            $tblConsumerOne = false;
+            foreach ($ConsumerRequestList as $key => $val) {
+                $tblConsumerOne = Consumer::useService()->getConsumerByAcronym($key);
+                break;
+            }
+            if ($tblConsumerOne) {
+                Account::useService()->changeConsumer($tblConsumerOne);
+            }
         }
 
         $Stage->setContent(
