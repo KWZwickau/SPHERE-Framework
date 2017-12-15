@@ -20,6 +20,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Authorization\Account\Account;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
@@ -1123,33 +1124,42 @@ class Service extends AbstractService
                     && ($tblSubject = $tblDivisionSubject->getServiceTblSubject())
                 ) {
 
-                    $appointedDateTaskList = $this->setCurrentTaskList(
-                        $tblDivision,
-                        $tblSubject,
-                        ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
-                            ? $tblSubjectGroup : null, $this->getTestTypeByIdentifier('APPOINTED_DATE_TASK'),
-                        $appointedDateTaskList);
+                    if ($tblDivisionSubject->getHasGrading()) {
+                        $appointedDateTaskList = $this->setCurrentTaskList(
+                            $tblDivision,
+                            $tblSubject,
+                            ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
+                                ? $tblSubjectGroup : null, $this->getTestTypeByIdentifier('APPOINTED_DATE_TASK'),
+                            $appointedDateTaskList);
 
-                    $behaviorTask = $this->setCurrentTaskList(
-                        $tblDivision,
-                        $tblSubject,
-                        ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
-                            ? $tblSubjectGroup : null, $this->getTestTypeByIdentifier('BEHAVIOR_TASK'),
-                        $behaviorTask);
+                        $futureAppointedDateTaskList = $this->setFutureTaskList(
+                            $tblDivision,
+                            $tblSubject,
+                            ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
+                                ? $tblSubjectGroup : null, $this->getTestTypeByIdentifier('APPOINTED_DATE_TASK'),
+                            $futureAppointedDateTaskList);
+                    }
 
-                    $futureAppointedDateTaskList = $this->setFutureTaskList(
-                        $tblDivision,
-                        $tblSubject,
-                        ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
-                            ? $tblSubjectGroup : null, $this->getTestTypeByIdentifier('APPOINTED_DATE_TASK'),
-                        $futureAppointedDateTaskList);
+                    if ($tblDivisionSubject->getHasGrading() || (($tblSetting = Consumer::useService()->getSetting(
+                                'Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading'
+                            ))
+                            && $tblSetting->getValue())
+                    ) {
+                        $behaviorTask = $this->setCurrentTaskList(
+                            $tblDivision,
+                            $tblSubject,
+                            ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
+                                ? $tblSubjectGroup : null, $this->getTestTypeByIdentifier('BEHAVIOR_TASK'),
+                            $behaviorTask);
 
-                    $futureBehaviorTask = $this->setFutureTaskList(
-                        $tblDivision,
-                        $tblSubject,
-                        ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
-                            ? $tblSubjectGroup : null, $this->getTestTypeByIdentifier('BEHAVIOR_TASK'),
-                        $futureBehaviorTask);
+
+                        $futureBehaviorTask = $this->setFutureTaskList(
+                            $tblDivision,
+                            $tblSubject,
+                            ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
+                                ? $tblSubjectGroup : null, $this->getTestTypeByIdentifier('BEHAVIOR_TASK'),
+                            $futureBehaviorTask);
+                    }
                 }
             }
         }
@@ -1168,11 +1178,22 @@ class Service extends AbstractService
         if (empty($columns)) {
             return false;
         } else {
-            return new Layout(array(
-                new LayoutGroup(array(
-                    new LayoutRow($columns)
-                ))
-            ));
+            $LayoutRowList = array();
+            $LayoutRowCount = 0;
+            $LayoutRow = null;
+            /**
+             * @var LayoutColumn $tblPhone
+             */
+            foreach ($columns as $column) {
+                if ($LayoutRowCount % 2 == 0) {
+                    $LayoutRow = new LayoutRow(array());
+                    $LayoutRowList[] = $LayoutRow;
+                }
+                $LayoutRow->addColumn($column);
+                $LayoutRowCount++;
+            }
+
+            return new Layout(new LayoutGroup($LayoutRowList));
         }
     }
 

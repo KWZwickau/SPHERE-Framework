@@ -838,7 +838,14 @@ class Service extends AbstractService
             $tblGroup = (new Data($this->getBinding()))->createSubjectGroup($Group['Name'], $Group['Description'],
                 $IsSekTwo ? isset($Group['IsAdvancedCourse']) : null);
             if ($tblGroup) {
-                if ((new Data($this->getBinding()))->addDivisionSubject($tblDivision, $tblSubject, $tblGroup)) {
+                // Prüfung ob das Fach bewertet wird
+                if (($tblDivisionSubject = $this->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivision, $tblSubject, null))) {
+                    $hasGrading = $tblDivisionSubject->getHasGrading();
+                } else {
+                    $hasGrading = false;
+                }
+
+                if ((new Data($this->getBinding()))->addDivisionSubject($tblDivision, $tblSubject, $tblGroup, $hasGrading)) {
                     return new Success('Die Gruppe ' . new Bold($Group['Name']) . ' wurde erfolgreich angelegt')
                     . new Redirect('/Education/Lesson/Division/SubjectGroup/Add', Redirect::TIMEOUT_SUCCESS, array(
                         'Id' => $tblDivision->getId(),
@@ -2101,7 +2108,7 @@ class Service extends AbstractService
                     foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
                         if ($tblDivisionSubject->getServiceTblSubject()) {
                             $tblDivisionSubjectCopy = (new Data($this->getBinding()))->addDivisionSubject($tblDivisionCopy,
-                                $tblDivisionSubject->getServiceTblSubject());
+                                $tblDivisionSubject->getServiceTblSubject(), null, $tblDivisionSubject->getHasGrading());
 
                             $tblSubjectTeacherList = false;
                             if (!$tblDivisionSubject->getTblSubjectGroup()) {
@@ -2154,11 +2161,12 @@ class Service extends AbstractService
                             if (isset($tblSubjectGroupCopy)) {
                                 $tblDivisionSubjectCopy = (new Data($this->getBinding()))->addDivisionSubject($tblDivisionCopy,
                                     $tblDivisionSubject->getServiceTblSubject(),
-                                    $tblSubjectGroupCopy);
+                                    $tblSubjectGroupCopy,
+                                    $tblDivisionSubject->getHasGrading());
 
                             } else {
                                 $tblDivisionSubjectCopy = (new Data($this->getBinding()))->addDivisionSubject($tblDivisionCopy,
-                                    $tblDivisionSubject->getServiceTblSubject());
+                                    $tblDivisionSubject->getServiceTblSubject(), null, $tblDivisionSubject->getHasGrading());
                             }
 
                             if ($tblSubjectTeacherList) {
@@ -2181,7 +2189,7 @@ class Service extends AbstractService
                     } else {
                         if ($tblDivisionSubject->getServiceTblSubject()) {
                             $tblDivisionSubjectCopy = (new Data($this->getBinding()))->addDivisionSubject($tblDivisionCopy,
-                                $tblDivisionSubject->getServiceTblSubject());
+                                $tblDivisionSubject->getServiceTblSubject(), null, $tblDivisionSubject->getHasGrading());
 
                             $tblSubjectTeacherList = $this->getSubjectTeacherByDivisionSubject($tblDivisionSubject);
 
@@ -2550,5 +2558,42 @@ class Service extends AbstractService
         }
 
         return $countStudentsByYear;
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param TblDivision $tblDivision
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function updateDivisionSubject(
+        IFormInterface $Form,
+        TblDivision $tblDivision,
+        $Data
+    ) {
+
+        $Global = $this->getGlobal();
+
+        /**
+         * Skip to Frontend
+         */
+        if (!isset($Global->POST['Button']['Submit'])) {
+            return $Form;
+        }
+
+        if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))) {
+            foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())
+                    && isset($Data[$tblSubject->getId()]) != $tblDivisionSubject->getHasGrading()
+                ) {
+                    (new Data($this->getBinding()))->updateDivisionSubject($tblDivisionSubject, isset($Data[$tblSubject->getId()]));
+                }
+            }
+        }
+
+        return new Success('Die Zuordnung, welche Fächer benotet werden sollen, wurden erfolgreich gespeichert.')
+            . new Redirect('/Education/Lesson/Division/Subject/Add', Redirect::TIMEOUT_SUCCESS,
+                array('Id' => $tblDivision->getId(), 'IsHasGradingView' => true));
     }
 }

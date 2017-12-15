@@ -375,7 +375,9 @@ class Frontend extends FrontendScoreRule
                         continue;
                     }
 
-                    if ($tblDivisionSubject && $tblDivisionSubject->getServiceTblSubject() && $tblDivisionSubject->getTblDivision()) {
+                    if ($tblDivisionSubject && $tblDivisionSubject->getServiceTblSubject()
+                        && $tblDivisionSubject->getTblDivision() && $tblDivisionSubject->getHasGrading()
+                    ) {
                         if ($tblDivisionSubject->getTblSubjectGroup()) {
                             $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
                             [$tblDivisionSubject->getServiceTblSubject()->getId()]
@@ -421,7 +423,9 @@ class Frontend extends FrontendScoreRule
                             = Division::useService()->getDivisionSubjectByDivision($tblDivisionTeacher->getTblDivision());
                         if ($tblDivisionSubjectAllByDivision) {
                             foreach ($tblDivisionSubjectAllByDivision as $tblDivisionSubject) {
-                                if ($tblDivisionSubject && $tblDivisionSubject->getServiceTblSubject() && $tblDivisionSubject->getTblDivision()) {
+                                if ($tblDivisionSubject && $tblDivisionSubject->getServiceTblSubject()
+                                    && $tblDivisionSubject->getTblDivision() && $tblDivisionSubject->getHasGrading()
+                                ) {
                                     if ($tblDivisionSubject->getTblSubjectGroup()) {
                                         $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
                                         [$tblDivisionSubject->getServiceTblSubject()->getId()]
@@ -606,7 +610,9 @@ class Frontend extends FrontendScoreRule
                 $tblDivisionSubjectAllByDivision = Division::useService()->getDivisionSubjectByDivision($tblDivision);
                 if ($tblDivisionSubjectAllByDivision) {
                     foreach ($tblDivisionSubjectAllByDivision as $tblDivisionSubject) {
-                        if ($tblDivisionSubject->getServiceTblSubject() && $tblDivisionSubject->getTblDivision()) {
+                        if ($tblDivisionSubject->getServiceTblSubject() && $tblDivisionSubject->getTblDivision()
+                            && $tblDivisionSubject->getHasGrading()
+                        ) {
                             if ($tblDivisionSubject->getTblSubjectGroup()) {
                                 $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
                                 [$tblDivisionSubject->getServiceTblSubject()->getId()]

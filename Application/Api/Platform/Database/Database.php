@@ -65,7 +65,7 @@ class Database extends Extension implements IModuleInterface
             $tblConsumer = Consumer::useService()->getConsumerByAcronym($Consumer);
             if ($tblConsumer) {
 
-                $Break = 10;
+                $Break = 3;
                 $Acronym = '';
                 while (( ( $Break-- ) > 0 ) && ( strtoupper($Consumer) != strtoupper($Acronym) )) {
                     Account::useService()->changeConsumer($tblConsumer);
@@ -83,16 +83,21 @@ class Database extends Extension implements IModuleInterface
                     $Acronym = Consumer::useService()->getConsumerBySession()->getAcronym();
                 }
 
-                Main::registerGuiPlatform();
+//                Main::registerGuiPlatform();
 
-                $Protocol = (new \SPHERE\Application\Platform\System\Database\Database())->frontendSetup(false, true);
                 if (strtoupper($Consumer) != strtoupper($Acronym)) {
+                    // missmatch = do nothing and display error
                     $Icon = new \SPHERE\Common\Frontend\Text\Repository\Danger(new Exclamation());
+                    $Result = $Acronym.' '.(new Accordion(false))->addItem($Icon.' Protocol für '.$Consumer.' (Current User: '.$Acronym.')'
+                            , '');
                 } else {
+                    Main::registerGuiPlatform();
+                    $Protocol = (new \SPHERE\Application\Platform\System\Database\Database())->frontendSetup(false,
+                        true);
                     $Icon = new \SPHERE\Common\Frontend\Text\Repository\Success(new Success());
+                    $Result = $Acronym.' '.(new Accordion(false))->addItem($Icon.' Protocol für '.$Consumer.' (Execution on: '.$Acronym.')',
+                            $Protocol->getContent())->getContent();
                 }
-                $Result = $Acronym.' '.(new Accordion(false))->addItem($Icon.' Protocol für '.$Consumer.' (Execution on: '.$Acronym.')',
-                        $Protocol->getContent())->getContent();
             } else {
                 return json_encode($Consumer.' '.(new Danger('Mandant '.$Consumer.' not valid!')));
             }
