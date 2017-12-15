@@ -24,7 +24,7 @@ class BeGs extends Certificate
     {
         return array(
             1 => "der Halbjahresinformation",
-            2 => "der für das Jahreszeugnis vorgesehene Noten gemäß Beschluss der Klassenkonferenz"
+            2 => "der für das Jahreszeugnis vorgesehenen Noten gemäß Beschluss der Klassenkonferenz"
         );
     }
 
@@ -48,6 +48,7 @@ class BeGs extends Certificate
     public function buildPages(TblPerson $tblPerson = null)
     {
 
+        $PaddingTopInfo = '5px';
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
         return (new Page())
@@ -59,7 +60,7 @@ class BeGs extends Certificate
                     ->styleTextSize('20px')
                     ->styleTextBold()
                     ->stylePaddingTop('15px')
-                    ->stylePaddingBottom('20px')
+                    ->stylePaddingBottom('35px')
                 )
             )
             ->addSlice((new Slice())
@@ -67,7 +68,7 @@ class BeGs extends Certificate
                     ->addElementColumn((new Element())
                         ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
                                           {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
-                        ->stylePaddingTop()
+                        ->stylePaddingTop($PaddingTopInfo)
                         ->stylePaddingLeft()
                         ->styleBorderBottom()
                         , '46%')
@@ -75,7 +76,7 @@ class BeGs extends Certificate
                         , '4%')
                     ->addElementColumn((new Element())
                         ->setContent('{{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}')
-                        ->stylePaddingTop()
+                        ->stylePaddingTop($PaddingTopInfo)
                         ->stylePaddingLeft()
                         ->styleBorderBottom()
                         , '23%')
@@ -83,7 +84,7 @@ class BeGs extends Certificate
                         , '4%')
                     ->addElementColumn((new Element())
                         ->setContent('{{ Content.P' . $personId . '.Division.Data.Year }}')
-                        ->stylePaddingTop()
+                        ->stylePaddingTop($PaddingTopInfo)
                         ->stylePaddingLeft()
                         ->styleBorderBottom()
                         , '23%')
@@ -119,11 +120,11 @@ class BeGs extends Certificate
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('{% if(Content.P' . $personId . '.Person.Common.BirthDates.Birthday is not empty) %}
-                                    {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthday|date("d.m.Y") }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}')
-                        ->stylePaddingTop()
+                                {{ Content.P'.$personId.'.Person.Common.BirthDates.Birthday|date("d.m.Y") }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}')
+                        ->stylePaddingTop($PaddingTopInfo)
                         ->stylePaddingBottom()
                         ->stylePaddingLeft('5px')
                         ->styleBorderBottom()
@@ -136,7 +137,7 @@ class BeGs extends Certificate
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
-                        ->stylePaddingTop()
+                        ->stylePaddingTop($PaddingTopInfo)
                         ->stylePaddingBottom()
                         ->stylePaddingLeft('5px')
                         ->styleBorderBottom()
@@ -163,14 +164,14 @@ class BeGs extends Certificate
                 )
                 ->addElement((new Element())
                     ->setContent('{% if(Content.P' . $personId . '.Person.Address.City.Name) %}
-                                    {{ Content.P' . $personId . '.Person.Address.Street.Name }}
-                                    {{ Content.P' . $personId . '.Person.Address.Street.Number }},
-                                    {{ Content.P' . $personId . '.Person.Address.City.Code }}
-                                    {{ Content.P' . $personId . '.Person.Address.City.Name }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}')
-                    ->stylePaddingTop()
+                            {{ Content.P'.$personId.'.Person.Address.Street.Name }}
+                            {{ Content.P'.$personId.'.Person.Address.Street.Number }},
+                            {{ Content.P'.$personId.'.Person.Address.City.Code }}
+                            {{ Content.P'.$personId.'.Person.Address.City.Name }}
+                        {% else %}
+                              &nbsp;
+                        {% endif %}')
+                    ->stylePaddingTop($PaddingTopInfo)
                     ->stylePaddingBottom()
                     ->stylePaddingLeft('5px')
                     ->styleBorderBottom()
@@ -185,14 +186,14 @@ class BeGs extends Certificate
                 )
                 ->addElement((new Element())
                     ->setContent('{% if(Content.P' . $personId . '.Person.Parent) %}
-                                    {{ Content.P' . $personId . '.Person.Parent.Mother.Name.First }}
-                                    {{ Content.P' . $personId . '.Person.Parent.Mother.Name.Last }},
-                                    {{ Content.P' . $personId . '.Person.Parent.Father.Name.First }}
-                                    {{ Content.P' . $personId . '.Person.Parent.Father.Name.Last }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}')
-                    ->stylePaddingTop()
+                            {{ Content.P'.$personId.'.Person.Parent.Mother.Name.First }}
+                            {{ Content.P'.$personId.'.Person.Parent.Mother.Name.Last }},
+                            {{ Content.P'.$personId.'.Person.Parent.Father.Name.First }}
+                            {{ Content.P'.$personId.'.Person.Parent.Father.Name.Last }}
+                        {% else %}
+                              &nbsp;
+                        {% endif %}')
+                    ->stylePaddingTop($PaddingTopInfo)
                     ->stylePaddingBottom()
                     ->stylePaddingLeft('5px')
                     ->styleBorderBottom()
@@ -211,7 +212,7 @@ class BeGs extends Certificate
                     ->styleTextSize('16px')
                     ->styleTextBold()
                     ->styleMarginTop('15px')
-                    ->stylePaddingBottom('5px')
+                    ->stylePaddingBottom('20px')
                 )
             )
             ->addSlice((new Slice())
@@ -219,7 +220,7 @@ class BeGs extends Certificate
                     ->addElementColumn((new Element())
                         ->setContent('
                             {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
-                                                Die Schülerin
+                                Die Schülerin
                             {% else %}
                                 {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
                                     Der Schüler
@@ -231,7 +232,7 @@ class BeGs extends Certificate
                                  hat ausweislich {{ Content.P' . $personId . '.Input.Type }}
                             {% else %}
                                 hat ausweislich der Halbjahresinformation /
-                                der für das Jahreszeugnis vorgesehene Noten gemäß Beschluss der Klassenkonferenz¹
+                                der für das Jahreszeugnis vorgesehenen Noten gemäß Beschluss der Klassenkonferenz¹
                             {% endif %}
                                 vom
                             {% if(Content.P' . $personId . '.Input.DateCertifcate is not empty) %}
@@ -253,10 +254,10 @@ class BeGs extends Certificate
                         , '80%')
                     ->addElementColumn((new Element())
                         ->setContent('{% if(Content.P' . $personId . '.Grade.Data.Average is not empty) %}
-                                    {{ Content.P' . $personId . '.Grade.Data.Average }}
-                                {% else %}
-                                    ---
-                                {% endif %}')
+                                {{ Content.P'.$personId.'.Grade.Data.Average }}
+                            {% else %}
+                                ---
+                            {% endif %}')
                         ->stylePaddingTop()
                         ->stylePaddingBottom()
                         ->styleMarginTop('20px')
@@ -277,85 +278,82 @@ class BeGs extends Certificate
             )
             ->addSlice((new Slice())
                 ->addElement((new Element())
-                    ->setContent('2. Gutachten²')
+                    ->setContent('2. Pädagogische Einschätzung²')
                     ->styleTextSize('16px')
                     ->styleTextBold()
-                    ->styleMarginTop('6px')
-                    ->stylePaddingBottom('5px')
-                )
-            )
-            ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('{% if(Content.P' . $personId . '.Input.Survey is not empty) %}
-                                    {{ Content.P' . $personId . '.Input.Survey|nl2br }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}')
-                    ->styleHeight('170px')
-                    ->styleAlignJustify()
-                    ->stylePaddingBottom()
-                )
-            )
-            ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('Auf Grund des Leitungsstandes und des Gutachtens wird
-                        {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
-                                der Schülerin
-                            {% else %}
-                                {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
-                                    dem Schüler
-                                {% else %}
-                                    der Schülerin/dem Schüler¹
-                                {% endif %}
-                            {% endif %} empfohlen,')
                     ->styleMarginTop('15px')
+                    ->stylePaddingBottom('7px')
                 )
+            )
+            ->addSlice((new Slice())
                 ->addElement((new Element())
-                    ->setContent('{% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
-                                ihre Ausbildung
-                                {% if(Content.P' . $personId . '.Input.SchoolType is not empty) %}
-                                {{ Content.P' . $personId . '.Input.SchoolType }}
+                    ->setContent('Auf Grund des Lern- und Arbeitsverhaltens, der Art und Ausprägung der schulischen
+                        Leistungen und der Entwicklung wird
+                        {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
+                            der Schülerin
+                        {% else %}
+                            {% if Content.P'.$personId.'.Person.Common.BirthDates.Gender == 1 %}
+                                dem Schüler
+                            {% else %}
+                                der Schülerin/dem Schüler¹
+                            {% endif %}
+                        {% endif %} empfohlen,
+                        {% if Content.P'.$personId.'.Person.Common.BirthDates.Gender == 2 %}
+                        ihre Ausbildung
+                        {% if(Content.P'.$personId.'.Input.SchoolType is not empty) %}
+                            {{ Content.P'.$personId.'.Input.SchoolType }}
+                            {% else %}
+                                ________________________________
+                            {% endif %}
+                            fortzusetzen.
+                        {% else %}
+                            {% if Content.P'.$personId.'.Person.Common.BirthDates.Gender == 1 %}
+                                seine Ausbildung
+                                {% if(Content.P'.$personId.'.Input.SchoolType is not empty) %}
+                                {{ Content.P'.$personId.'.Input.SchoolType }}
                                 {% else %}
                                     ________________________________
                                 {% endif %}
-                                fortzusetzen.
+                            fortzusetzen.
                             {% else %}
-                                {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
-                                    seine Ausbildung
-                                    {% if(Content.P' . $personId . '.Input.SchoolType is not empty) %}
-                                    {{ Content.P' . $personId . '.Input.SchoolType }}
-                                    {% else %}
-                                        ________________________________
-                                    {% endif %}
-                                fortzusetzen.
+                                ihre/seine¹ Ausbildung
+                                 {% if(Content.P'.$personId.'.Input.SchoolType is not empty) %}
+                                {{ Content.P'.$personId.'.Input.SchoolType }}
                                 {% else %}
-                                    ihre/seine¹ Ausbildung
-                                     {% if(Content.P' . $personId . '.Input.SchoolType is not empty) %}
-                                    {{ Content.P' . $personId . '.Input.SchoolType }}
-                                    {% else %}
-                                        ________________________________
-                                    {% endif %}
-                                     fortzusetzen.
+                                    ________________________________
                                 {% endif %}
-                            {% endif %}')
-                    ->styleMarginTop('2px')
-
+                                 fortzusetzen.
+                            {% endif %}
+                        {% endif %}')
+                    ->styleLineHeight('200%')
                 )
                 ->stylePaddingTop()
                 ->stylePaddingBottom()
-                ->styleMarginTop('20px')
             )
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('Diese Empfehlung wurde durch die Klassenkonferenz am
-                            {% if(Content.P' . $personId . '.Input.DateConference is not empty) %}
-                                {{ Content.P' . $personId . '.Input.DateConference }}
-                            {% else %}
-                                ______________
-                            {% endif %}
-                                beschlossen.
-                                ')
-                    ->styleMarginTop('20px')
+                        {% if(Content.P'.$personId.'.Input.DateConference is not empty) %}
+                            {{ Content.P'.$personId.'.Input.DateConference }}
+                        {% else %}
+                            ______________
+                        {% endif %}
+                            beschlossen.
+                        ')
+                    ->styleMarginTop('30px')
+                )
+            )
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('Mit den Eltern fand am 
+                        {% if(Content.P'.$personId.'.Input.DateConsulting is not empty) %}
+                            {{ Content.P'.$personId.'.Input.DateConsulting }}
+                        {% else %}
+                            ______________
+                        {% endif %}
+                            eine Bildungsberatung statt.
+                        ')
+                    ->styleMarginTop('30px')
                 )
             )
             ->addSlice((new Slice())
@@ -366,10 +364,10 @@ class BeGs extends Certificate
                         , '7%')
                     ->addElementColumn((new Element())
                         ->setContent('{% if(Content.P' . $personId . '.Input.Date is not empty) %}
-                                    {{ Content.P' . $personId . '.Input.Date }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}')
+                                {{ Content.P'.$personId.'.Input.Date }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}')
                         ->styleBorderBottom('1px', '#000')
                         ->styleAlignCenter()
                         ->styleMarginTop('45px')
@@ -460,7 +458,7 @@ class BeGs extends Certificate
                         , '30%')
                     ->addElementColumn((new Element())
                         , '70%')
-                )->styleMarginTop('10px')
+                )->styleMarginTop('50px')
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent(
@@ -471,7 +469,8 @@ class BeGs extends Certificate
                                         ¹ Nichtzutreffendes streichen.     
                                     {% endif %}
                                 {% endif %}'
-                            . new Container('² Falls der Raum für Eintragungen nicht ausreicht, ist ein Beiblatt zu verwenden.')
+                            .new Container('² Kann auf Bitte der Eltern auf einem Beiblatt durch weitergehende
+                            Ausführungen ergänzt werden.')
                         )
                         ->styleTextSize('9px')
                         ->styleMarginTop('5px')
