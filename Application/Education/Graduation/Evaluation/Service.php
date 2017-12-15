@@ -1168,11 +1168,22 @@ class Service extends AbstractService
         if (empty($columns)) {
             return false;
         } else {
-            return new Layout(array(
-                new LayoutGroup(array(
-                    new LayoutRow($columns)
-                ))
-            ));
+            $LayoutRowList = array();
+            $LayoutRowCount = 0;
+            $LayoutRow = null;
+            /**
+             * @var LayoutColumn $tblPhone
+             */
+            foreach ($columns as $column) {
+                if ($LayoutRowCount % 2 == 0) {
+                    $LayoutRow = new LayoutRow(array());
+                    $LayoutRowList[] = $LayoutRow;
+                }
+                $LayoutRow->addColumn($column);
+                $LayoutRowCount++;
+            }
+
+            return new Layout(new LayoutGroup($LayoutRowList));
         }
     }
 
