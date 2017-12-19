@@ -1,6 +1,6 @@
 <?php
 
-namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\CMS;
+namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\EZSH;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
@@ -11,23 +11,20 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Setting\Consumer\Consumer;
-use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 /**
- * Class CmsStyle
- * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository\CMS
+ * Class EzshStyle
+ * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository\EZSH
  */
-abstract class CmsStyle extends Certificate
+abstract class EzshStyle extends Certificate
 {
 
     const TEXT_SIZE = '10pt';
 
     /**
-     * @param int $PictureHeight
-     *
      * @return Slice
      */
-    public function getCMSHead($PictureHeight = 100)
+    public function getEZSHSample()
     {
 
         if ($this->isSample()) {
@@ -35,80 +32,66 @@ abstract class CmsStyle extends Certificate
                 ->addElementColumn((new Element\Sample())
                     ->styleTextSize('30px')
                     ->stylePaddingTop('20px')
-                    , '33%')
-                ->addElementColumn((new Element\Image('Common/Style/Resource/Logo/CMS_Logo.jpg',
-                    'auto', $PictureHeight.'px'))
-                    ->styleAlignCenter()
-                    , '34%')
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '33%')
+                    ->styleHeight('110px')
+                )
             );
 
         } else {
             $Header = (new Slice)->addSection((new Section())
                 ->addElementColumn((new Element())
-                    , '33%')
-                ->addElementColumn((new Element\Image('Common/Style/Resource/Logo/CMS_Logo.jpg',
-                    'auto', $PictureHeight.'px'))
-                    ->styleAlignCenter()
-                    , '34%')
-                ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
-                    , '33%')
+                    ->styleHeight('110px')
+                )
             );
         }
         return $Header;
     }
 
     /**
-     * @param $personId
+     * @param string $ContentHead
+     * @param string $ContentSchool
      *
      * @return Section[]
      */
-    public function getCMSSchoolLine($personId)
+    public function getEZSHHeadLine($ContentHead = '', $ContentSchool = '')
     {
 
         $SectionList[] = (new Section())->addElementColumn((new Element())
-            ->setContent('{% if(Content.P'.$personId.'.Company.Data.Name) %}
-                    {{ Content.P'.$personId.'.Company.Data.Name }}
-                {% else %}
-                      &nbsp;
-                {% endif %}')
-            ->styleTextSize(self::TEXT_SIZE)
-            ->styleAlignCenter()
+            ->setContent($ContentHead)
+            ->styleTextSize('21pt')
+            ->styleTextBold()
         );
         $SectionList[] = (new Section())->addElementColumn((new Element())
-            ->setContent('{% if(Content.P'.$personId.'.Company.Data.ExtendedName) %}
-                    {{ Content.P'.$personId.'.Company.Data.ExtendedName }}
-                {% else %}
-                      &nbsp;
-                {% endif %}')
-            ->styleTextSize(self::TEXT_SIZE)
-            ->styleAlignCenter()
+            ->setContent($ContentSchool)
+            ->styleTextSize('12pt')
+            ->styleTextBold()
             ->stylePaddingTop()
-            ->stylePaddingBottom()
-            ->styleBorderBottom()
         );
 
         return $SectionList;
     }
 
     /**
-     * @param string $Content
+     * @param $personId
      *
      * @return Section
      */
-    public function getCMSHeadLine($Content = '')
+    public function getEZSHName($personId)
     {
 
         $Section = new Section();
-        return $Section->addElementColumn((new Element())
-            ->setContent($Content)
-            ->styleTextSize('14pt')
-            ->styleTextBold()
-            ->styleAlignCenter()
-        );
+        $Section->addElementColumn((new Element())
+            ->setContent('Name')
+            , '15%')
+            ->addElementColumn((new Element())
+                ->setContent('{{ Content.P'.$personId.'.Person.Data.Name.First }}
+                              {{ Content.P'.$personId.'.Person.Data.Name.Last }}')
+                ->styleBorderBottom('1px', '#BBB')
+                ->stylePaddingLeft('7px')
+                , '66%')
+            ->addElementColumn((new Element())
+                , '19%');
+        return $Section;
     }
 
     /**
@@ -117,50 +100,32 @@ abstract class CmsStyle extends Certificate
      *
      * @return Section
      */
-    public function getCMSDivisionAndYear($personId, $YearString = 'Schuljahr')
+    public function getEZSHDivisionAndYear($personId, $YearString = 'Schuljahr')
     {
 
         $Section = (new Section());
-        $Section->addElementColumn((new Element())
-            ->setContent('Klasse:')
-            , '7%')
+        $Section
             ->addElementColumn((new Element())
-                ->setContent('{{ Content.P'.$personId.'.Division.Data.Level.Name }}{{ Content.P'.$personId.'.Division.Data.Name }}')
-                ->styleBorderBottom()
-                ->styleAlignCenter()
-                , '7%')
-            ->addElementColumn((new Element())
-                , '55%')
-            ->addElementColumn((new Element())
-                ->setContent($YearString.':')
-                ->styleAlignRight()
-                , '18%')
+                ->setContent($YearString)
+                , '15%')
             ->addElementColumn((new Element())
                 ->setContent('{{ Content.P'.$personId.'.Division.Data.Year }}')
-                ->styleBorderBottom()
+                ->styleBorderBottom('1px', '#BBB')
                 ->styleAlignCenter()
-                , '13%');
-        return $Section;
-    }
-
-    /**
-     * @param $personId
-     *
-     * @return Section
-     */
-    public function getCMSName($personId)
-    {
-
-        $Section = new Section();
-        $Section->addElementColumn((new Element())
-            ->setContent('Vorname und Name:')
-            , '21%')
+                , '12%')
             ->addElementColumn((new Element())
-                ->setContent('{{ Content.P'.$personId.'.Person.Data.Name.First }}
-                              {{ Content.P'.$personId.'.Person.Data.Name.Last }}')
-                ->styleBorderBottom()
-                ->stylePaddingLeft('7px')
-                , '79%');
+                , '25%')
+            ->addElementColumn((new Element())
+                ->setContent('Klasse')
+                , '8%')
+            ->addElementColumn((new Element())
+                ->setContent('{{ Content.P'.$personId.'.Division.Data.Level.Name }}{{ Content.P'.$personId.'.Division.Data.Name }}')
+                ->styleBorderBottom('1px', '#BBB')
+                ->styleAlignCenter()
+                , '21%')
+            ->addElementColumn((new Element())
+                , '19%');
+
         return $Section;
     }
 
@@ -169,7 +134,7 @@ abstract class CmsStyle extends Certificate
      *
      * @return Section
      */
-    public function getCMSExtendedName($personId)
+    public function getEZSHExtendedName($personId)
     {
 
         $Section = new Section();
@@ -192,7 +157,7 @@ abstract class CmsStyle extends Certificate
      *
      * @return Section
      */
-    public function getCMSNameExtraPaper($personId)
+    public function getEZSHNameExtraPaper($personId)
     {
 
         $Section = new Section();
@@ -213,7 +178,7 @@ abstract class CmsStyle extends Certificate
      *
      * @return Slice
      */
-    protected function getCMSHeadGrade($personId)
+    protected function getEZSHHeadGrade($personId)
     {
 
         $GradeSlice = (new Slice());
@@ -294,12 +259,11 @@ abstract class CmsStyle extends Certificate
 
     /**
      * @param int    $personId
-     * @param bool   $IsHeadline
      * @param string $Height
      *
      * @return Slice
      */
-    public function getCMSSubjectLanes($personId, $IsHeadline = true, $Height = '270px')
+    public function getEZSHSubjectLanes($personId, $Height = '360px')
     {
 
         $SubjectSlice = (new Slice());
@@ -346,21 +310,28 @@ abstract class CmsStyle extends Certificate
             $SubjectStructure = $SubjectLayout;
             $count = 0;
 
-            if ($IsHeadline) {
-                $HeaderSection = (new Section());
-                $HeaderSection->addElementColumn((new Element())
-                    ->setContent('Leistungen in den einzelnen Fächern:')
-                    ->styleTextSize('10pt')
-                    ->styleTextBold()
-                    ->stylePaddingTop('10px')
-                );
-                $SectionList[] = $HeaderSection;
-            }
+            // headline for grades
+            $HeaderSection = (new Section());
+            $HeaderSection->addElementColumn((new Element())
+                ->setContent('LEISTUNGEN in den einzelnen Fächern')
+                ->styleTextSize('10pt')
+                ->styleTextBold()
+                ->stylePaddingTop('10px')
+            );
+            $SectionList[] = $HeaderSection;
+            $HeaderSectionTwo = (new Section());
+            $HeaderSectionTwo->addElementColumn((new Element())
+                ->setContent('Pflichtbereich:')
+                ->styleTextSize('10pt')
+                ->styleTextBold()
+                ->stylePaddingTop('10px')
+            );
+            $SectionList[] = $HeaderSectionTwo;
 
             // shrink definition parameter
             $TextSize = '14px';
-            $TextSizeSmall = '8.5px';
-            $paddingTopShrinking = '5px';
+            $TextSizeSmall = '11px';
+            $paddingTopShrinking = '6px';
             $paddingBottomShrinking = '6px';
             foreach ($SubjectStructure as $SubjectList) {
                 $count++;
@@ -377,13 +348,13 @@ abstract class CmsStyle extends Certificate
 
                     if ($Lane > 1) {
                         $SubjectSection->addElementColumn((new Element())
-                            , '4%');
+                            , '6%');
                     }
                     $SubjectSection->addElementColumn((new Element())
                         ->setContent($Subject['SubjectName'])
                         ->stylePaddingTop()
                         ->styleMarginTop('10px')
-                        , '39%');
+                        , '30%');
 
 
                     $SubjectSection->addElementColumn((new Element())
@@ -393,15 +364,15 @@ abstract class CmsStyle extends Certificate
                                              &ndash;
                                          {% endif %}')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#BBB')
-                        ->styleMarginTop('10px')
+                        ->styleBackgroundColor('#E6E6E6')
+                        ->styleMarginTop('12px')
                         ->stylePaddingTop(
                             '{% if((Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$Subject['SubjectAcronym'].'"] is not empty)
                                 and (Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty)
                             ) %}
                                 '.$paddingTopShrinking.' 
                              {% else %}
-                                 2px
+                                 4px
                              {% endif %}'
                         )
                         ->stylePaddingBottom(
@@ -410,7 +381,7 @@ abstract class CmsStyle extends Certificate
                             ) %}
                                '.$paddingBottomShrinking.' 
                              {% else %}
-                                 2px
+                                 4px
                              {% endif %}'
                         )
                         ->styleTextSize(
@@ -422,11 +393,11 @@ abstract class CmsStyle extends Certificate
                                  '.$TextSize.'
                              {% endif %}'
                         )
-                        , '9%');
+                        , '17%');
                 }
 
                 if (count($SubjectList) == 1 && isset($SubjectList[1])) {
-                    $SubjectSection->addElementColumn((new Element()), '52%');
+                    $SubjectSection->addElementColumn((new Element()), '53%');
                 }
                 $SectionList[] = $SubjectSection;
             }
@@ -444,7 +415,7 @@ abstract class CmsStyle extends Certificate
      *
      * @return Slice
      */
-    public function getCMSOrientationStandard($personId, $TextSize = '14px', $IsGradeUnderlined = false)
+    public function getEZSHOrientationStandard($personId, $TextSize = '14px', $IsGradeUnderlined = false)
     {
 
         $tblPerson = Person::useService()->getPersonById($personId);
@@ -459,6 +430,11 @@ abstract class CmsStyle extends Certificate
         $elementForeignLanguageName = false;
         $elementForeignLanguageGrade = false;
 
+        $subjectWidth = 83;
+        $gradeWidth = 17;
+        $paddingTopShrinking = '6px';
+        $paddingBottomShrinking = '6px';
+
         // Zeugnisnoten im Wortlaut auf Abschlusszeugnissen --> breiter Zensurenfelder
         if (($tblCertificate = $this->getCertificateEntity())
             && ($tblCertificateType = $tblCertificate->getTblCertificateType())
@@ -467,17 +443,9 @@ abstract class CmsStyle extends Certificate
                 'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnDiploma'))
             && $tblSetting->getValue()
         ) {
-            $subjectWidth = 89;
-            $gradeWidth = 11;
             $TextSizeSmall = '13px';
-            $paddingTopShrinking = '4px';
-            $paddingBottomShrinking = '4px';
         } else {
-            $subjectWidth = 91;
-            $gradeWidth = 9;
-            $TextSizeSmall = '8.5px';
-            $paddingTopShrinking = '5px';
-            $paddingBottomShrinking = '6px';
+            $TextSizeSmall = '11px';
         }
 
         if ($tblPerson
@@ -524,20 +492,20 @@ abstract class CmsStyle extends Certificate
                                 &ndash;
                             {% endif %}')
                         ->styleAlignCenter()
-                        ->styleBackgroundColor('#BBB')
+                        ->styleBackgroundColor('#E6E6E6')
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                         ->stylePaddingTop(
                             '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$subjectAcronymForGrade.'"] is not empty) %}
                                  '.$paddingTopShrinking.' 
                              {% else %}
-                                 2px
+                                 4px
                              {% endif %}'
                         )
                         ->stylePaddingBottom(
                             '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$subjectAcronymForGrade.'"] is not empty) %}
                                   '.$paddingBottomShrinking.' 
                              {% else %}
-                                 2px
+                                 4px
                              {% endif %}'
                         )
                         ->styleTextSize(
@@ -551,6 +519,8 @@ abstract class CmsStyle extends Certificate
                 }
             }
 
+            $Level = 'false';
+
             // 2. Fremdsprache
             if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
                 && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
@@ -562,6 +532,14 @@ abstract class CmsStyle extends Certificate
                         && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
                         && ($tblSubject = $tblStudentSubject->getServiceTblSubject())
                     ) {
+
+                        if (($tblLevelFrom = $tblStudentSubject->getServiceTblLevelFrom())) {
+                            $Level = $tblLevelFrom->getName();
+                            if (!$Level) {
+                                $Level = 'false';
+                            }
+                        }
+
                         $elementForeignLanguageName = new Element();
                         $elementForeignLanguageName
                             ->setContent('
@@ -584,20 +562,20 @@ abstract class CmsStyle extends Certificate
                                 &ndash;
                             {% endif %}')
                             ->styleAlignCenter()
-                            ->styleBackgroundColor('#BBB')
+                            ->styleBackgroundColor('#E6E6E6')
                             ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                             ->stylePaddingTop(
                                 '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$tblSubject->getAcronym().'"] is not empty) %}
                                  '.$paddingTopShrinking.' 
                              {% else %}
-                                 2px
+                                 4px
                              {% endif %}'
                             )
                             ->stylePaddingBottom(
                                 '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$tblSubject->getAcronym().'"] is not empty) %}
                                   '.$paddingBottomShrinking.' 
                              {% else %}
-                                 2px
+                                 4px
                              {% endif %}'
                             )
                             ->styleTextSize(
@@ -633,10 +611,11 @@ abstract class CmsStyle extends Certificate
                 $sectionList[] = $section;
 
                 $section = new Section();
+
                 $section
                     ->addElementColumn((new Element())
-                        ->setContent('<u>Neigungskurs (Neigungskursbereich)</u> / 2. Fremdsprache (abschlussorientiert)')
-                        ->styleBorderTop()
+                        ->setContent('2. Fremdsprache ab Klasse 6 / <u>Neigungskurs ab Klasse 7</u>')
+                        ->styleBorderTop('1px', '#BBB')
                         ->styleMarginTop('0px')
                         ->stylePaddingTop()
                         ->styleTextSize('13px')
@@ -650,12 +629,20 @@ abstract class CmsStyle extends Certificate
                     ->addElementColumn($elementForeignLanguageGrade, (string)$gradeWidth.'%');
                 $sectionList[] = $section;
 
+
+                //Wahlfach Fremdsprache finden
+
                 $section = new Section();
                 $section
                     ->addElementColumn((new Element())
-                        ->setContent('Neigungskurs (Neigungskursbereich) / <u>2. Fremdsprache (abschlussorientiert)</u>')
-                        ->styleBorderTop()
-                        ->styleMarginTop('0px')
+                        ->setContent(' <u>2. Fremdsprache ab Klasse 
+                            {% if '.$Level.' == false %}
+                                6
+                            {% else %}
+                                '.$Level.'
+                            {% endif %}
+                            </u> / Neigungskurs ab Klasse 7')
+                        ->styleBorderTop('1px', '#BBB')
                         ->stylePaddingTop()
                         ->styleTextSize('13px')
                         , (string)($subjectWidth - 2).'%')
@@ -664,36 +651,45 @@ abstract class CmsStyle extends Certificate
             } else {
                 $elementName = (new Element())
                     ->setContent('---')
-                    ->styleBorderBottom()
                     ->styleMarginTop($marginTop)
                     ->styleTextSize($TextSize);
 
                 $elementGrade = (new Element())
                     ->setContent('&ndash;')
                     ->styleAlignCenter()
-                    ->styleBackgroundColor('#BBB')
+                    ->styleBackgroundColor('#E6E6E6')
                     ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
-                    ->stylePaddingTop('0px')
-                    ->stylePaddingBottom('0px')
-                    ->styleMarginTop($marginTop)
-                    ->styleTextSize($TextSize);
+                    ->stylePaddingTop('4px')
+                    ->stylePaddingBottom('4px')
+                    ->styleTextSize($TextSize)
+                    ->styleMarginTop($marginTop);
 
                 $section = new Section();
                 $section
                     ->addElementColumn($elementName
-                        , '90%')
+                        , '82%')
                     ->addElementColumn((new Element())
                         , '1%')
                     ->addElementColumn($elementGrade
-                        , '9%');
+                        , '17%');
                 $sectionList[] = $section;
 
                 $section = new Section();
                 $section
                     ->addElementColumn((new Element())
-                        ->setContent('Neigungskurs (Neigungskursbereich)/2. Fremdsprache (abschlussorientiert)')
-                        ->styleTextSize('11px')
-                        , '50%');
+                        ->setContent('2. Fremdsprache ab Klasse'
+                            .'{% if '.$Level.' == false %}
+                                6
+                            {% else %}
+                                '.$Level.'
+                            {% endif %}'
+                            .'/ Neigungskurs ab Klasse 7')
+                        ->styleBorderTop('1px', '#BBB')
+                        ->stylePaddingTop()
+                        ->styleTextSize('13px')
+                        , '80%')
+                    ->addElementColumn((new Element())
+                        , '20%');
                 $sectionList[] = $section;
             }
         } else {
@@ -710,36 +706,39 @@ abstract class CmsStyle extends Certificate
 
             $elementName = (new Element())
                 ->setContent('---')
-                ->styleBorderBottom()
                 ->styleMarginTop($marginTop)
                 ->styleTextSize($TextSize);
 
             $elementGrade = (new Element())
                 ->setContent('&ndash;')
                 ->styleAlignCenter()
-                ->styleBackgroundColor('#BBB')
+                ->styleBackgroundColor('#E6E6E6')
                 ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
-                ->stylePaddingTop('0px')
-                ->stylePaddingBottom('0px')
-                ->styleMarginTop($marginTop)
-                ->styleTextSize($TextSize);
+                ->stylePaddingTop('4px')
+                ->stylePaddingBottom('4px')
+                ->styleTextSize($TextSize)
+                ->styleMarginTop($marginTop);
 
             $section = new Section();
             $section
                 ->addElementColumn($elementName
-                    , '90%')
+                    , '82%')
                 ->addElementColumn((new Element())
-                    , '1%')
+                    , '2%')
                 ->addElementColumn($elementGrade
-                    , '9%');
+                    , '17%');
             $sectionList[] = $section;
 
             $section = new Section();
             $section
                 ->addElementColumn((new Element())
-                    ->setContent('Neigungskurs (Neigungskursbereich)/2. Fremdsprache (abschlussorientiert)')
-                    ->styleTextSize('11px')
-                    , '50%');
+                    ->setContent('2. Fremdsprache ab Klasse 6 / Neigungskurs ab Klasse 7')
+                    ->styleBorderTop('1px', '#BBB')
+                    ->stylePaddingTop()
+                    ->styleTextSize('13px')
+                    , '80%')
+                ->addElementColumn((new Element())
+                    , '20%');
             $sectionList[] = $section;
         }
 
@@ -747,24 +746,107 @@ abstract class CmsStyle extends Certificate
     }
 
     /**
-     * @param int    $personId
-     * @param string $Height
-     * @param bool   $IsHeadLine
+     * @param int $personId
      *
      * @return Section[]
      */
-    public function getCMSRemark($personId, $Height = '100px', $IsHeadLine = false)
+    public function getEZSHPerformanceGroup($personId)
+    {
+
+        $SectionList = array();
+        $Section = new Section();
+        $Section->addElementColumn((new Element())
+            ->setContent('{% if(Content.P'.$personId.'.Input.PerformanceGroup is not empty) %}
+                    {{ Content.P'.$personId.'.Input.PerformanceGroup }}
+                {% else %}
+                    &nbsp;
+                {% endif %}')
+            ->styleBorderBottom('1px', '#BBB')
+            , '46%')
+            ->addSliceColumn(
+                $this->setCheckBox('{% if(Content.P'.$personId.'.Input.PerformanceGroup is not empty) %}
+                    X
+                {% else %}
+                    &nbsp;
+                {% endif %}')
+                    ->styleMarginTop('-4px')
+                , '5%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('teilgenommen')
+                , '22%'
+            )
+            ->addSliceColumn(
+                $this->setCheckBox('{% if(Content.P'.$personId.'.Input.PerformanceGroup is not empty) %}
+                    &nbsp;
+                {% else %}
+                    X
+                {% endif %}')
+                    ->styleMarginTop('-4px')
+                , '5%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('nicht teilgenommen')
+                , '22%'
+            );
+        $SectionList[] = $Section;
+        $Section = new Section();
+        $Section->addElementColumn((new Element())
+            ->setContent('Leistungsgruppe')
+        );
+        $SectionList[] = $Section;
+
+        return $SectionList;
+    }
+
+    /**
+     * @param int    $personId
+     * @param string $Height
+     *
+     * @return Section[]
+     */
+    public function getEZSHRating($personId, $Height = '575px')
     {
         $SectionList = array();
-        if ($IsHeadLine) {
-            $Section = new Section();
-            $Section->addElementColumn((new Element())
-                ->setContent('Bemerkungen:')
-                ->styleTextSize('10pt')
-                ->styleTextBold()
-            );
-            $SectionList[] = $Section;
-        }
+        $Section = new Section();
+        $Section->addElementColumn(((new Element())
+            ->setContent('EINSCHÄTZUNG')
+            ->styleTextSize('10pt')
+            ->styleTextBold()
+            ->stylePaddingBottom('4px')
+        )
+        );
+        $SectionList[] = $Section;
+        $Section = new Section();
+        $Section->addElementColumn((new Element())
+            ->setContent('{% if(Content.P'.$personId.'.Input.Rating is not empty) %}
+                    {{ Content.P'.$personId.'.Input.Rating|nl2br }}
+                {% else %}
+                    &nbsp;
+                {% endif %}')
+            ->styleHeight($Height)
+        );
+        $SectionList[] = $Section;
+        return $SectionList;
+    }
+
+    /**
+     * @param int    $personId
+     * @param string $Height
+     *
+     * @return Section[]
+     */
+    public function getEZSHRemark($personId, $Height = '170px')
+    {
+        $SectionList = array();
+        $Section = new Section();
+        $Section->addElementColumn((new Element())
+            ->setContent('BEMERKUNGEN')
+            ->styleTextSize('10pt')
+            ->styleTextBold()
+            ->stylePaddingBottom('4px')
+        );
+        $SectionList[] = $Section;
         $Section = new Section();
         $Section->addElementColumn((new Element())
             ->setContent('{% if(Content.P'.$personId.'.Input.Remark is not empty) %}
@@ -772,8 +854,7 @@ abstract class CmsStyle extends Certificate
                 {% else %}
                     &nbsp;
                 {% endif %}')
-            ->styleAlignJustify()
-//            ->styleBorderLeft()
+//            ->styleAlignJustify()
             ->styleHeight($Height)
         );
         $SectionList[] = $Section;
@@ -781,69 +862,53 @@ abstract class CmsStyle extends Certificate
     }
 
     /**
-     * @param int    $personId
-     * @param string $Height
-     * @param bool   $IsHeadLine
+     * @param $personId
      *
      * @return Section[]
      */
-    public function getCMSSecondRemark($personId, $Height = '100px', $IsHeadLine = false)
+    public function getEZSHMissing($personId)
     {
+
         $SectionList = array();
-        if ($IsHeadLine) {
-            $Section = new Section();
-            $Section->addElementColumn((new Element())
-                ->setContent('Bemerkungen:')
-                ->styleTextSize('10pt')
-                ->styleTextBold()
-            );
-            $SectionList[] = $Section;
-        }
         $Section = new Section();
         $Section->addElementColumn((new Element())
-            ->setContent('{% if(Content.P'.$personId.'.Input.SecondRemark is not empty) %}
-                    {{ Content.P'.$personId.'.Input.SecondRemark|nl2br }}
-                {% else %}
-                    &nbsp;
-                {% endif %}')
-            ->styleAlignJustify()
-//            ->styleBorderLeft()
-            ->styleHeight($Height)
+            ->setContent('FEHLTAGE')
+            ->styleTextBold()
+            ->stylePaddingBottom('5px')
         );
         $SectionList[] = $Section;
-        return $SectionList;
-    }
-
-    public function getCMSMissing($personId)
-    {
 
         $Section = new Section();
         $Section->addElementColumn((new Element())
-            ->setContent('Fehltage entschuldigt:')
-            , '21%')
+            ->setContent('entschuldigt')
+            , '16%')
             ->addElementColumn((new Element())
                 ->setContent('{% if(Content.P'.$personId.'.Input.Missing is not empty) %}
-                    {{ Content.P'.$personId.'.Input.Missing }}
-                {% else %}
-                    &nbsp;
-                {% endif %}')
+                {{ Content.P'.$personId.'.Input.Missing }}
+            {% else %}
+                &nbsp;
+            {% endif %}')
                 ->styleAlignCenter()
-                , '8%')
+                ->styleBorderBottom('1px', '#BBB')
+                , '18%')
             ->addElementColumn((new Element())
-                ->setContent('unentschuldigt:')
-                , '13%')
+                , '15%')
+            ->addElementColumn((new Element())
+                ->setContent('unentschuldigt')
+                , '18%')
             ->addElementColumn((new Element())
                 ->setContent('{% if(Content.P'.$personId.'.Input.Bad.Missing is not empty) %}
-                    &nbsp;{{ Content.P'.$personId.'.Input.Bad.Missing }}
-                {% else %}
-                    &nbsp;
-                {% endif %}')
+                &nbsp;{{ Content.P'.$personId.'.Input.Bad.Missing }}
+            {% else %}
+                &nbsp;
+            {% endif %}')
                 ->styleAlignCenter()
-                , '8%')
+                ->styleBorderBottom('1px', '#BBB')
+                , '18%')
             ->addElementColumn((new Element())
-                ->setContent('&nbsp;')
-                , '50%');
-        return $Section;
+                , '15%');
+        $SectionList[] = $Section;
+        return $SectionList;
     }
 
     /**
@@ -851,7 +916,7 @@ abstract class CmsStyle extends Certificate
      *
      * @return Section
      */
-    public function getCMSTransfer($personId)   // noch nicht angepasst
+    public function getEZSHTransfer($personId)
     {
         $Section = new Section();
         $Section->addElementColumn((new Element())
@@ -874,180 +939,83 @@ abstract class CmsStyle extends Certificate
     /**
      * @param $personId
      *
-     * @return Section
+     * @return Section[]
      */
-    public function getCMSDate($personId)
+    public function getEZSHDateSign($personId)
     {
 
-        $Section = (new Section())->addElementColumn((new Element())
-            ->setContent('Zwickau, den')
+        $SectionList = array();
+        $Section = new Section();
+        $Section->addElementColumn((new Element())
+            ->setContent('{% if(Content.P'.$personId.'.Input.Date is not empty) %}
+                    {{ Content.P'.$personId.'.Input.Date }}
+                {% else %}
+                    &nbsp;
+                {% endif %}')
+            ->styleBorderBottom('1px', '#BBB')
+            ->styleAlignCenter()
             , '15%')
             ->addElementColumn((new Element())
-                ->setContent('{% if(Content.P'.$personId.'.Input.Date is not empty) %}
-                            {{ Content.P'.$personId.'.Input.Date }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}')
-                ->styleBorderBottom()
-                ->styleAlignCenter()
-                , '20%')
+                , '10%')
             ->addElementColumn((new Element())
-                , '65%');
-        return $Section;
-    }
-
-    /**
-     * @param        $personId
-     * @param bool   $isExtended with directory and stamp
-     * @param string $MarginTop
-     *
-     * @return Slice
-     */
-    protected function getCMSTeacher($personId, $isExtended = true, $MarginTop = '25px')
-    {
-        $SignSlice = (new Slice());
-        if ($isExtended) {
-            $SignSlice->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleAlignCenter()
-                    ->styleBorderBottom()
-                    , '30%')
-                ->addElementColumn((new Element())
-                    ->setContent('Dienstsiegel der Schule')
-                    ->styleAlignCenter()
-                    ->styleTextSize('11px')
-                    , '40%')
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleAlignCenter()
-                    ->styleBorderBottom()
-                    , '30%')
-            )
-                ->styleMarginTop($MarginTop)
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('
-                            {% if(Content.P'.$personId.'.Headmaster.Description is not empty) %}
-                                {{ Content.P'.$personId.'.Headmaster.Description }}
-                            {% else %}
-                                Schulleiter(in)
-                            {% endif %}'
-                        )
-                        ->styleAlignCenter()
-                        ->styleTextSize('11px')
-                        , '30%')
-                    ->addElementColumn((new Element())
-                        , '40%')
-                    ->addElementColumn((new Element())
-                        ->setContent('
-                            {% if(Content.P'.$personId.'.DivisionTeacher.Description is not empty) %}
-                                {{ Content.P'.$personId.'.DivisionTeacher.Description }}
-                            {% else %}
-                                Klassenlehrer(in)
-                            {% endif %}'
-                        )
-                        ->styleAlignCenter()
-                        ->styleTextSize('11px')
-                        , '30%')
-                )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent(
-                            '{% if(Content.P'.$personId.'.Headmaster.Name is not empty) %}
-                                {{ Content.P'.$personId.'.Headmaster.Name }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}'
-                        )
-                        ->styleTextSize('11px')
-                        ->stylePaddingTop('2px')
-                        ->styleAlignCenter()
-                        , '30%')
-                    ->addElementColumn((new Element())
-                        , '40%')
-                    ->addElementColumn((new Element())
-                        ->setContent(
-                            '{% if(Content.P'.$personId.'.DivisionTeacher.Name is not empty) %}
-                                {{ Content.P'.$personId.'.DivisionTeacher.Name }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}'
-                        )
-                        ->styleTextSize('11px')
-                        ->stylePaddingTop('2px')
-                        ->styleAlignCenter()
-                        , '30%')
-                );
-        } else {
-            $SignSlice->addSection((new Section())
-                ->addElementColumn((new Element())
-                    , '70%')
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleAlignCenter()
-                    ->styleBorderBottom()
-                    , '30%')
-            )
-                ->styleMarginTop($MarginTop)
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        , '70%')
-                    ->addElementColumn((new Element())
-                        ->setContent('
-                        {% if(Content.P'.$personId.'.DivisionTeacher.Description is not empty) %}
-                                {{ Content.P'.$personId.'.DivisionTeacher.Description }}
-                            {% else %}
-                                Klassenlehrer(in)
-                            {% endif %}
-                        ')
-                        ->styleAlignCenter()
-                        ->styleTextSize('11px')
-                        , '30%')
-                )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        , '70%')
-                    ->addElementColumn((new Element())
-                        ->setContent(
-                            '{% if(Content.P'.$personId.'.DivisionTeacher.Name is not empty) %}
-                                {{ Content.P'.$personId.'.DivisionTeacher.Name }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}'
-                        )
-                        ->styleTextSize('11px')
-                        ->stylePaddingTop('2px')
-                        ->styleAlignCenter()
-                        , '30%')
-                );
-        }
-        return $SignSlice;
+                ->setContent('&nbsp;')
+                ->styleBorderBottom('1px', '#BBB')
+                , '30%')
+            ->addElementColumn((new Element())
+                , '10%')
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleBorderBottom('1px', '#BBB')
+                , '30%')
+            ->addElementColumn((new Element())
+                , '5%');
+        $SectionList[] = $Section;
+        $Section = new Section();
+        $Section->addElementColumn((new Element())
+            ->setContent('Datum')
+            , '25%'
+        );
+        $Section->addElementColumn((new Element())
+            ->setContent('{% if(Content.P'.$personId.'.DivisionTeacher.Description is not empty) %}
+                    {{ Content.P'.$personId.'.DivisionTeacher.Description }}
+                {% else %}
+                    Klassenlehrer(in)
+                {% endif %}')
+            , '40%'
+        );
+        $Section->addElementColumn((new Element())
+            ->setContent('Für den Schulträger')
+            , '35%'
+        );
+        $SectionList[] = $Section;
+        return $SectionList;
     }
 
     /**
      * @return Section[]
      */
-    public function getCMSCustody()
+    public function getEZSHCustody()
     {
 
         $SectionList = array();
         $SectionList[] = (new Section())->addElementColumn((new Element())
             ->setContent('Zur Kenntnis genommen:')
-            , '25%')
+            , '30%')
             ->addElementColumn((new Element())
                 ->setContent('&nbsp;')
-                ->styleBorderBottom()
-                , '50%')
+                ->styleBorderBottom('1px', '#BBB')
+                , '65%')
             ->addElementColumn((new Element())
                 ->setContent('&nbsp;')
-                , '25%');
+                , '5%');
 
         $SectionList[] = (new Section())
             ->addElementColumn((new Element())
-                ->setContent('Erziehungsberechtigte/r')
-                ->styleTextSize('11px')
-                ->styleAlignCenter()
+                , '30%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('Personensorgeberechtigte(r) ')
+                , '70%'
             );
 
         return $SectionList;
@@ -1056,28 +1024,22 @@ abstract class CmsStyle extends Certificate
     /**
      * @return Section[]
      */
-    public function getCMSFoot()
+    public function getEZSHGradeInfo()
     {
         $SectionList = array();
-        $SectionList[] = (new Section())->addElementColumn((new Element())
-            ->setContent('&nbsp;')
-            ->styleTextSize('5px')
-            ->styleBorderBottom()
-            , '25%')
-            ->addElementColumn((new Element())
-                ->setContent('&nbsp;')
-                ->styleTextSize('5px')
-                , '75%'
-            );
-        $SectionList[] = (new Section())->addElementColumn((new Element())
-            ->setContent(
-                'Notenerläuterung:'
-                .new Container('Noten: 1 = sehr gut, 2 = gut, 3 = befriedigend, 4 = ausreichend, 5 = mangelhalft,
-                6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)')
-            )
-            ->styleTextSize('8.5px')
+        $Section = new Section();
+        $Section->addElementColumn((new Element())
+            ->setContent('Noten: 1 = sehr gut, 2 = gut, 3 = befriedigend, 4 = ausreichend, 5 = mangelhalft, 6 = ungenügend')
+            ->styleTextSize('8pt')
+        );
+        $SectionList[] = $Section;
+        $Section = new Section();
+        $Section->addElementColumn((new Element())
+            ->setContent('* Bei Belegung der zweiten abschlussorientierten Fremdsprache entfällt der Neigungskurs (§ 18 SOMIA)')
+            ->styleTextSize('8pt')
             ->stylePaddingTop()
         );
+        $SectionList[] = $Section;
         return $SectionList;
     }
 }
