@@ -377,7 +377,8 @@ class GradebookOverview extends AbstractDocument
                                         }
                                         $text = $date . '<br>'
                                             . $tblTest->getServiceTblGradeType()->getCode() . '<br>'
-                                            . ($tblGrade->getDisplayGrade() ? $tblGrade->getDisplayGrade() : '&nbsp;');
+                                            . ($tblGrade->getDisplayGrade() !== null
+                                            && $tblGrade->getDisplayGrade() !== '' ? $tblGrade->getDisplayGrade() : '&nbsp;');
                                         $section
                                             ->addElementColumn((new Element())
                                                 ->setContent($text)

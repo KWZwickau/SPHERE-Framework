@@ -2345,7 +2345,7 @@ class Frontend extends FrontendScoreRule
             (new ToolTip($text, htmlspecialchars($toolTip)))->enableHtml();
 
         $gradeValue = $tblGrade->getGrade();
-        if ($gradeValue) {
+        if ($gradeValue !== null && $gradeValue !== '') {
             $trend = $tblGrade->getTrend();
             if (TblGrade::VALUE_TREND_PLUS === $trend) {
                 $gradeValue .= '+';
@@ -2360,7 +2360,7 @@ class Frontend extends FrontendScoreRule
             $gradeValue = new Bold($gradeValue);
         }
 
-        $subTableDataList[0]['Test' . $tblTest->getId()] = $gradeValue ? $gradeValue : '';
+        $subTableDataList[0]['Test' . $tblTest->getId()] = $gradeValue !== null && $gradeValue !== '' ? $gradeValue : '';
     }
 
     /**
@@ -2754,11 +2754,15 @@ class Frontend extends FrontendScoreRule
                                             $average = substr($average, 0, strpos($average, '('));
                                         }
 
-                                        $data[$tblSubject->getId() . 'Id'] = ($average != '' ? '&empty; ' . $average : '');
+
                                         // Anzeige Notendurchschnitt genau 0
-                                        if ($average === 0.0) {
-                                            $data[$tblSubject->getId() . 'Id'] = '&empty; ' . $average;
+                                        if ($average === (float) 0) {
+                                            $averageString = '&empty; 0';
+
+                                        } else {
+                                            $averageString = ($average != '' ? '&empty; ' . $average : '');
                                         }
+                                        $data[$tblSubject->getId() . 'Id'] = $averageString;
                                         // add ToolTip if Student is in Group
                                         if ($tblSubjectStudentList) {
                                             /** @var TblSubjectStudent $tblSubjectStudent */
@@ -2768,7 +2772,7 @@ class Frontend extends FrontendScoreRule
                                                         if (($tblSubjectFromStudent = $tblDivisionSubjectStudent->getServiceTblSubject())) {
                                                             if ($tblSubjectFromStudent->getId() == $tblSubject->getId()) {
                                                                 if (($tblSubjectGroup = $tblDivisionSubjectStudent->getTblSubjectGroup())) {
-                                                                    $data[$tblSubject->getId() . 'Id'] = (new ToolTip(($average != '' ? '&empty; ' . $average : '')
+                                                                    $data[$tblSubject->getId() . 'Id'] = (new ToolTip($averageString
                                                                         , htmlspecialchars($tblSubjectGroup->getName())))->enableHtml();
                                                                 }
                                                             }

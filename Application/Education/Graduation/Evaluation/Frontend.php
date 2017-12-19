@@ -2021,10 +2021,15 @@ class Frontend extends Extension implements IFrontendInterface
                                                     && ($finishDate = new \DateTime($tblTest->getFinishDate()))
                                                     && ($taskDate->format('Y-m-d') >= $finishDate->format('Y-m-d')))
                                             ) {
+                                                if ($tblGrade->getGrade() !== null && $tblGrade->getGrade() !== '') {
+                                                    $value = ' ' . $tblGrade->getDisplayGrade();
+                                                } else {
+                                                    $value = '&nbsp;';
+                                                }
                                                 $data[$column] = $tblTestTemp->getServiceTblGradeType()
                                                     ? ($tblTestTemp->getServiceTblGradeType()->isHighlighted()
-                                                        ? new Bold($tblGrade->getDisplayGrade()) : $tblGrade->getDisplayGrade())
-                                                    : $tblGrade->getDisplayGrade();
+                                                        ? new Bold($value) : $value)
+                                                    : $value;
                                             }
                                         }
                                     }
@@ -2084,7 +2089,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         }
 
                                         // Zensuren voreintragen bei Stichtagsnotenauftrag, wenn noch keine vergeben ist
-                                        if ($average && !Gradebook::useService()->getGradeByTestAndStudent($tblTest,
+                                        if (($average || $average === (float) 0) && !Gradebook::useService()->getGradeByTestAndStudent($tblTest,
                                                 $tblPerson)
                                         ) {
                                             $hasPreviewGrades = true;
@@ -3131,12 +3136,12 @@ class Frontend extends Extension implements IFrontendInterface
             $gradeValue = $tblGrade->getGrade();
             $trend = $tblGrade->getTrend();
 
-            if ($gradeValue) {
+            if ($gradeValue !== null && $gradeValue !== '') {
                 $gradeList[$tblPerson->getId()][] = $gradeValue;
             }
 
             $isGradeInRange = true;
-            if ($average !== ' ' && $average && $gradeValue !== null) {
+            if ($average !== '' && $average !== null && $gradeValue !== null) {
                 if (is_numeric($gradeValue)) {
                     $gradeFloat = floatval($gradeValue);
                     if (($gradeFloat - 0.5) <= $average && ($gradeFloat + 0.5) >= $average) {
@@ -3161,13 +3166,13 @@ class Frontend extends Extension implements IFrontendInterface
 
             $studentList[$tblDivision->getId()][$tblPerson->getId()]
             ['Subject' . $tblSubject->getId()] = ($tblGrade->getGrade() !== null ?
-                    $gradeValue : '') . (($average !== ' ' && $average) ? new Muted('&nbsp;&nbsp; &#216;' . $average) : '');
+                    $gradeValue : '') . (($average || $average === (float)0) ? new Muted('&nbsp;&nbsp; &#216;' . $average) : '');
             return $studentList;
         } else {
             $studentList[$tblDivision->getId()][$tblPerson->getId()]
             ['Subject' . $tblSubject->getId()] =
                 new Warning('fehlt')
-                . (($average !== ' ' && $average) ? new Muted('&nbsp;&nbsp; &#216;' . $average) : '');
+                . (($average || $average === (float)0) ? new Muted('&nbsp;&nbsp; &#216;' . $average) : '');
             return $studentList;
         }
     }
