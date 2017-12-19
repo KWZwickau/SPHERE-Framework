@@ -2589,6 +2589,9 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tblTestAllByTest = Evaluation::useService()->getTestAllByTask($tblTask);
+        $tblGradeTypeList = $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByTestType(
+            Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR')
+        );
         if ($tblTestAllByTest) {
             $Global = $this->getGlobal();
             if (!$Global->POST) {
@@ -2603,6 +2606,14 @@ class Frontend extends Extension implements IFrontendInterface
                             $Global->POST['Data']['GradeType'][$tblGradeType->getId()] = 1;
                         }
                     }
+                }
+                $Global->savePost();
+            }
+        } elseif ($tblGradeTypeList) {
+            $Global = $this->getGlobal();
+            if (!$Global->POST) {
+                foreach ($tblGradeTypeList as $tblGradeTypeItem) {
+                    $Global->POST['Data']['GradeType'][$tblGradeTypeItem->getId()] = 1;
                 }
                 $Global->savePost();
             }
@@ -2642,9 +2653,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $gradeTypeColumnList = array();
         if ($isBehaviorTask) {
-            $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByTestType(
-                Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR')
-            );
             if ($tblGradeTypeList) {
                 foreach ($tblGradeTypeList as $tblGradeType) {
                     if ($hasEdit && !$isLocked) {
