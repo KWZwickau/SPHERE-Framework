@@ -762,11 +762,11 @@ abstract class Certificate extends Extension
                     $SubjectSection->addElementColumn((new Element())
                         ->setContent($hasAdditionalLine['Ranking'] . '. Fremdsprache (ab Klassenstufe ' .
                             '{% if(Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] is not empty) %}
-                                     {{ Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] }}
+                                     {{ Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] }})
                                  {% else %}
-                                    &nbsp;
+                                    &ndash;)
                                  {% endif %}'
-                            . ')')
+                            )
                         ->stylePaddingTop('0px')
                         ->stylePaddingBottom('0px')
                         ->styleMarginTop('0px')
