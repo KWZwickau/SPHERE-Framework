@@ -2304,6 +2304,57 @@ class Service extends AbstractService
                     ksort($subjects);
                     /** @var TblSubject $tblSubject */
                     foreach ($subjects as $tblSubject) {
+                        // Profile überspringen --> stehen extra im Wahlpflichtbereich
+                        if (($tblStudent = $tblPerson->getStudent())
+                            && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE'))
+                            && ($tblProfileList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                                $tblStudentSubjectType))
+                        ) {
+                            $isProfile = false;
+                            foreach ($tblProfileList as $tblProfile) {
+                                if ($tblProfile->getServiceTblSubject() && $tblProfile->getServiceTblSubject()->getId() == $tblSubject->getId()) {
+                                    $isProfile = true;
+                                }
+                            }
+                            if ($isProfile) {
+                                continue;
+                            }
+                        }
+
+                        // Neigungskurs überspringen --> stehen extra im Wahlpflichtbereich
+                        if (($tblStudent = $tblPerson->getStudent())
+                            && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))
+                            && ($tblOrientationList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                                $tblStudentSubjectType))
+                        ) {
+                            $isProfile = false;
+                            foreach ($tblOrientationList as $tblOrientation) {
+                                if ($tblOrientation->getServiceTblSubject() && $tblOrientation->getServiceTblSubject()->getId() == $tblSubject->getId()) {
+                                    $isProfile = true;
+                                }
+                            }
+                            if ($isProfile) {
+                                continue;
+                            }
+                        }
+
+                        // 2. Fremdsprache ignorieren
+                        if (($tblStudent = $tblPerson->getStudent())
+                            && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+                            && ($tblForeignLanguageList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                                $tblStudentSubjectType))
+                        ) {
+                            $isProfile = false;
+                            foreach ($tblForeignLanguageList as $tblForeignLanguage) {
+                                if ($tblForeignLanguage->getServiceTblSubject() && $tblForeignLanguage->getServiceTblSubject()->getId() == $tblSubject->getId()) {
+                                    $isProfile = true;
+                                }
+                            }
+                            if ($isProfile) {
+                                continue;
+                            }
+                        }
+
                         if (!Setting::useService()->getCertificateSubjectBySubject($tblCertificate, $tblSubject)) {
                             $resultList[$tblPerson->getId()][$tblSubject->getAcronym()] = $tblSubject->getAcronym();
                         }
