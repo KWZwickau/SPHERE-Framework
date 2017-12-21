@@ -979,16 +979,42 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         // Vorschau Test
-        $tblTestAllByDivision = Evaluation::useService()->getTestAllByTestTypeAndDivision(Evaluation::useService()->getTestTypeByIdentifier('TEST'),
-            $tblDivision);
         $testArray = array();
-        if ($tblTestAllByDivision) {
-            $tblTestAllByDivision = $this->getSorter($tblTestAllByDivision)->sortObjectBy('Date', new DateTimeSorter());
+        $testArrayTemp = array();
+        if (($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST'))
+            && ($tblTestAllByDivision = $tblTestAllByDivision = Evaluation::useService()->getTestAllByTestTypeAndDivision($tblTestType,
+            $tblDivision))
+        ) {
+            $linkedDivisions = array();
+            /** @var TblTest $testItem */
+            foreach ($tblTestAllByDivision as $testItem) {
+                $testArrayTemp[$testItem->getId()] = $testItem;
+                if (($linkedTestList = $testItem->getLinkedTestAll())) {
+                    foreach ($linkedTestList as $linkedTest) {
+                        if (($linkedDivision = $linkedTest->getServiceTblDivision())
+                            && $linkedDivision->getId() != $tblDivision->getId()
+                        ) {
+                            if (!isset($linkedDivisions[$linkedDivision->getId()])) {
+                                $linkedDivisions[$linkedDivision->getId()] = $linkedDivision;
+                            }
+                        }
+                    }
+                }
+            }
+            foreach ($linkedDivisions as $linkedDivisionItem) {
+                if (($linkedTestListByLinkedDivision = Evaluation::useService()->getTestAllByTestTypeAndDivision($tblTestType, $linkedDivisionItem))) {
+                    foreach ($linkedTestListByLinkedDivision as $tblTestItem) {
+                        $testArrayTemp[$tblTestItem->getId()] = $tblTestItem;
+                    }
+                }
+            }
+
+            $testArrayTemp = $this->getSorter($testArrayTemp)->sortObjectBy('Date', new DateTimeSorter());
 
             $nowWeek = date('W');
             $nowYear = (new \DateTime('now'))->format('Y');
             /** @var TblTest $item */
-            foreach ($tblTestAllByDivision as $item) {
+            foreach ($testArrayTemp as $item) {
                 if ($item->getDate()) {
                     $dateWeek = date('W', strtotime($item->getDate()));
                     $dateYear = (new \DateTime($item->getDate()))->format('Y');
@@ -1018,7 +1044,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $date = new \DateTime();
                 if (!empty($testList)) {
                     foreach ($testList as $item) {
-                        if ($item->getServiceTblSubject() && $item->getServiceTblGradeType()) {
+                        if ($item->getServiceTblSubject() && $item->getServiceTblDivision() && $item->getServiceTblGradeType()) {
                             $tblSubject = $item->getServiceTblSubject();
                             $tblSubjectGroup = $item->getServiceTblSubjectGroup();
                             $TeacherAcronymList = array();
@@ -1070,7 +1096,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     , 'Kein Lehrauftrag vorhanden');
                             }
 
-                            $content = $item->getServiceTblSubject()->getAcronym() . ' '
+                            $content =  $item->getServiceTblDivision()->getDisplayName() . ' '
+                                . $item->getServiceTblSubject()->getAcronym() . ' '
                                 . ($item->getServiceTblSubjectGroup()
                                     ? '(' . $item->getServiceTblSubjectGroup()->getName() . ') ' : '')
                                 . $item->getServiceTblGradeType()->getCode() . ' '
