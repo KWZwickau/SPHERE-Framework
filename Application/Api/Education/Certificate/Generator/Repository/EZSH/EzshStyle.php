@@ -258,12 +258,12 @@ abstract class EzshStyle extends Certificate
     }
 
     /**
-     * @param int    $personId
+     * @param int $personId
      * @param string $Height
-     *
+     * @param bool $isTitle
      * @return Slice
      */
-    public function getEZSHSubjectLanes($personId, $Height = '360px')
+    public function getEZSHSubjectLanes($personId, $Height = '360px', $isTitle = true)
     {
 
         $SubjectSlice = (new Slice());
@@ -317,16 +317,20 @@ abstract class EzshStyle extends Certificate
                 ->styleTextSize('10pt')
                 ->styleTextBold()
                 ->stylePaddingTop('10px')
+                ->stylePaddingBottom(($isTitle ? '0px': '26px'))
             );
             $SectionList[] = $HeaderSection;
-            $HeaderSectionTwo = (new Section());
-            $HeaderSectionTwo->addElementColumn((new Element())
-                ->setContent('Pflichtbereich:')
-                ->styleTextSize('10pt')
-                ->styleTextBold()
-                ->stylePaddingTop('10px')
-            );
-            $SectionList[] = $HeaderSectionTwo;
+            if($isTitle){
+                $HeaderSectionTwo = (new Section());
+                $HeaderSectionTwo->addElementColumn((new Element())
+                    ->setContent('Pflichtbereich:')
+                    ->styleTextSize('10pt')
+                    ->styleTextBold()
+                    ->stylePaddingTop('10px')
+                );
+                $SectionList[] = $HeaderSectionTwo;
+            }
+
 
             // shrink definition parameter
             $TextSize = '14px';
@@ -409,13 +413,13 @@ abstract class EzshStyle extends Certificate
     }
 
     /**
-     * @param        $personId
+     * @param $personId
      * @param string $TextSize
-     * @param bool   $IsGradeUnderlined
+     * @param bool $isInformatics
      *
      * @return Slice
      */
-    public function getEZSHOrientationStandard($personId, $TextSize = '14px', $IsGradeUnderlined = false)
+    public function getEZSHOrientationStandard($personId, $TextSize = '14px', $isInformatics = false)
     {
 
         $tblPerson = Person::useService()->getPersonById($personId);
@@ -493,7 +497,6 @@ abstract class EzshStyle extends Certificate
                             {% endif %}')
                         ->styleAlignCenter()
                         ->styleBackgroundColor('#E6E6E6')
-                        ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                         ->stylePaddingTop(
                             '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$subjectAcronymForGrade.'"] is not empty) %}
                                  '.$paddingTopShrinking.' 
@@ -563,7 +566,6 @@ abstract class EzshStyle extends Certificate
                             {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#E6E6E6')
-                            ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                             ->stylePaddingTop(
                                 '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$tblSubject->getAcronym().'"] is not empty) %}
                                  '.$paddingTopShrinking.' 
@@ -593,13 +595,24 @@ abstract class EzshStyle extends Certificate
             // aktuell immer anzeigen
 //            if ($elementOrientationName || $elementForeignLanguageName) {
             $section = new Section();
-            $section
-                ->addElementColumn((new Element())
-                    ->setContent('Wahlpflichtbereich:')
-                    ->styleTextBold()
-                    ->styleMarginTop('10px')
-                    ->styleTextSize($TextSize)
-                );
+            if($isInformatics){
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('Wahlpflichtbereich mit informatorischer Bildung ab Klasse 8:')
+                        ->styleTextBold()
+                        ->styleMarginTop('10px')
+                        ->styleTextSize($TextSize)
+                    );
+            } else {
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('Wahlpflichtbereich:')
+                        ->styleTextBold()
+                        ->styleMarginTop('10px')
+                        ->styleTextSize($TextSize)
+                    );
+            }
+
             $sectionList[] = $section;
 //            }
 
@@ -611,17 +624,27 @@ abstract class EzshStyle extends Certificate
                 $sectionList[] = $section;
 
                 $section = new Section();
-
-                $section
-                    ->addElementColumn((new Element())
-                        ->setContent('2. Fremdsprache ab Klasse 6 / <u>Neigungskurs ab Klasse 7</u>')
-                        ->styleBorderTop('1px', '#BBB')
-                        ->styleMarginTop('0px')
-                        ->stylePaddingTop()
-                        ->styleTextSize('13px')
-                        , (string)($subjectWidth - 2).'%')
-                    ->addElementColumn((new Element()), (string)($gradeWidth + 2).'%');
-                $sectionList[] = $section;
+                if($isInformatics) {
+                    $section
+                        ->addElementColumn((new Element())
+                            ->styleBorderTop('1px', '#BBB')
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom('10px')
+                            , (string)($subjectWidth - 2) . '%')
+                        ->addElementColumn((new Element()), (string)($gradeWidth + 2) . '%');
+                    $sectionList[] = $section;
+                } else {
+                    $section
+                        ->addElementColumn((new Element())
+                            ->setContent('2. Fremdsprache ab Klasse 6 / <u>Neigungskurs ab Klasse 7</u>')
+                            ->styleBorderTop('1px', '#BBB')
+                            ->styleMarginTop('0px')
+                            ->stylePaddingTop()
+                            ->styleTextSize('13px')
+                            , (string)($subjectWidth - 2) . '%')
+                        ->addElementColumn((new Element()), (string)($gradeWidth + 2) . '%');
+                    $sectionList[] = $section;
+                }
             } elseif ($elementForeignLanguageName) {
                 $section = new Section();
                 $section
@@ -630,24 +653,34 @@ abstract class EzshStyle extends Certificate
                 $sectionList[] = $section;
 
 
-                //Wahlfach Fremdsprache finden
-
                 $section = new Section();
-                $section
-                    ->addElementColumn((new Element())
-                        ->setContent(' <u>2. Fremdsprache ab Klasse 
-                            {% if '.$Level.' == false %}
-                                6
-                            {% else %}
-                                '.$Level.'
-                            {% endif %}
-                            </u> / Neigungskurs ab Klasse 7')
-                        ->styleBorderTop('1px', '#BBB')
-                        ->stylePaddingTop()
-                        ->styleTextSize('13px')
-                        , (string)($subjectWidth - 2).'%')
-                    ->addElementColumn((new Element()), (string)($gradeWidth + 2).'%');
-                $sectionList[] = $section;
+                //Wahlfach Fremdsprache finden
+                if($isInformatics) {
+                    $section
+                        ->addElementColumn((new Element())
+                            ->styleBorderTop('1px', '#BBB')
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom('10px')
+                            , (string)($subjectWidth - 2) . '%')
+                        ->addElementColumn((new Element()), (string)($gradeWidth + 2) . '%');
+                    $sectionList[] = $section;
+                } else {
+                    $section
+                        ->addElementColumn((new Element())
+                            ->setContent(' <u>2. Fremdsprache ab Klasse 
+                        {% if ' . $Level . ' == false %}
+                            6
+                        {% else %}
+                            ' . $Level . '
+                        {% endif %}
+                        </u> / Neigungskurs ab Klasse 7')
+                            ->styleBorderTop('1px', '#BBB')
+                            ->stylePaddingTop()
+                            ->styleTextSize('13px')
+                            , (string)($subjectWidth - 2) . '%')
+                        ->addElementColumn((new Element()), (string)($gradeWidth + 2) . '%');
+                    $sectionList[] = $section;
+                }
             } else {
                 $elementName = (new Element())
                     ->setContent('---')
@@ -658,7 +691,6 @@ abstract class EzshStyle extends Certificate
                     ->setContent('&ndash;')
                     ->styleAlignCenter()
                     ->styleBackgroundColor('#E6E6E6')
-                    ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                     ->stylePaddingTop('4px')
                     ->stylePaddingBottom('4px')
                     ->styleTextSize($TextSize)
@@ -673,35 +705,56 @@ abstract class EzshStyle extends Certificate
                     ->addElementColumn($elementGrade
                         , '17%');
                 $sectionList[] = $section;
-
                 $section = new Section();
-                $section
-                    ->addElementColumn((new Element())
-                        ->setContent('2. Fremdsprache ab Klasse'
-                            .'{% if '.$Level.' == false %}
-                                6
-                            {% else %}
-                                '.$Level.'
-                            {% endif %}'
-                            .'/ Neigungskurs ab Klasse 7')
-                        ->styleBorderTop('1px', '#BBB')
-                        ->stylePaddingTop()
-                        ->styleTextSize('13px')
-                        , '80%')
-                    ->addElementColumn((new Element())
-                        , '20%');
-                $sectionList[] = $section;
+                if(!$isInformatics) {
+                    $section
+                        ->addElementColumn((new Element())
+                            ->styleBorderTop('1px', '#BBB')
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom('10px')
+                            , '80%')
+                        ->addElementColumn((new Element())
+                            , '20%');
+                    $sectionList[] = $section;
+                } else {
+                    $section
+                        ->addElementColumn((new Element())
+                            ->setContent('2. Fremdsprache ab Klasse'
+                                . '{% if ' . $Level . ' == false %}
+                            6
+                        {% else %}
+                            ' . $Level . '
+                        {% endif %}'
+                                . '/ Neigungskurs ab Klasse 7')
+                            ->styleBorderTop('1px', '#BBB')
+                            ->stylePaddingTop()
+                            ->styleTextSize('13px')
+                            , '80%')
+                        ->addElementColumn((new Element())
+                            , '20%');
+                    $sectionList[] = $section;
+                }
             }
         } else {
 
             $section = new Section();
-            $section
-                ->addElementColumn((new Element())
-                    ->setContent('Wahlpflichtbereich:')
-                    ->styleTextBold()
-                    ->styleMarginTop('10px')
-                    ->styleTextSize($TextSize)
-                );
+            if($isInformatics){
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('Wahlpflichtbereich mit informatorischer Bildung ab Klasse 8:')
+                        ->styleTextBold()
+                        ->styleMarginTop('10px')
+                        ->styleTextSize($TextSize)
+                    );
+            } else {
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('Wahlpflichtbereich:')
+                        ->styleTextBold()
+                        ->styleMarginTop('10px')
+                        ->styleTextSize($TextSize)
+                    );
+            }
             $sectionList[] = $section;
 
             $elementName = (new Element())
@@ -713,7 +766,6 @@ abstract class EzshStyle extends Certificate
                 ->setContent('&ndash;')
                 ->styleAlignCenter()
                 ->styleBackgroundColor('#E6E6E6')
-                ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
                 ->stylePaddingTop('4px')
                 ->stylePaddingBottom('4px')
                 ->styleTextSize($TextSize)
@@ -728,18 +780,30 @@ abstract class EzshStyle extends Certificate
                 ->addElementColumn($elementGrade
                     , '17%');
             $sectionList[] = $section;
-
             $section = new Section();
-            $section
-                ->addElementColumn((new Element())
-                    ->setContent('2. Fremdsprache ab Klasse 6 / Neigungskurs ab Klasse 7')
-                    ->styleBorderTop('1px', '#BBB')
-                    ->stylePaddingTop()
-                    ->styleTextSize('13px')
-                    , '80%')
-                ->addElementColumn((new Element())
-                    , '20%');
-            $sectionList[] = $section;
+            if($isInformatics){
+                $section
+                    ->addElementColumn((new Element())
+                        ->styleBorderTop('1px', '#BBB')
+                        ->stylePaddingTop()
+                        ->stylePaddingBottom('10px')
+                        , '80%')
+                    ->addElementColumn((new Element())
+                        , '20%');
+                $sectionList[] = $section;
+            } else {
+                $section = new Section();
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('2. Fremdsprache ab Klasse 6 / Neigungskurs ab Klasse 7')
+                        ->styleBorderTop('1px', '#BBB')
+                        ->stylePaddingTop()
+                        ->styleTextSize('13px')
+                        , '80%')
+                    ->addElementColumn((new Element())
+                        , '20%');
+                $sectionList[] = $section;
+            }
         }
 
         return empty($sectionList) ? (new Slice())->styleHeight('60px') : $slice->addSectionList($sectionList);
@@ -1022,24 +1086,29 @@ abstract class EzshStyle extends Certificate
     }
 
     /**
+     * @param bool $isExtend
+     *
      * @return Section[]
      */
-    public function getEZSHGradeInfo()
+    public function getEZSHGradeInfo($isExtend = true)
     {
         $SectionList = array();
         $Section = new Section();
         $Section->addElementColumn((new Element())
             ->setContent('Noten: 1 = sehr gut, 2 = gut, 3 = befriedigend, 4 = ausreichend, 5 = mangelhalft, 6 = ungenügend')
             ->styleTextSize('8pt')
+            ->stylePaddingBottom(($isExtend ? '0px' : '12px' ))
         );
         $SectionList[] = $Section;
-        $Section = new Section();
-        $Section->addElementColumn((new Element())
-            ->setContent('* Bei Belegung der zweiten abschlussorientierten Fremdsprache entfällt der Neigungskurs (§ 18 SOMIA)')
-            ->styleTextSize('8pt')
-            ->stylePaddingTop()
-        );
-        $SectionList[] = $Section;
+        if($isExtend){
+            $Section = new Section();
+            $Section->addElementColumn((new Element())
+                ->setContent('* Bei Belegung der zweiten abschlussorientierten Fremdsprache entfällt der Neigungskurs (§ 18 SOMIA)')
+                ->styleTextSize('8pt')
+                ->stylePaddingTop()
+            );
+            $SectionList[] = $Section;
+        }
         return $SectionList;
     }
 }

@@ -9,10 +9,10 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
- * Class EzshMsHj
+ * Class EzshGymHjZ
  * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository\EZSH
  */
-class EzshMsHj extends EzshStyle
+class EzshGymHjZ extends EzshStyle
 {
     /**
      * @param $personId
@@ -32,7 +32,7 @@ class EzshMsHj extends EzshStyle
                         )
                     )
                     ->addSectionList(
-                        self::getEZSHHeadLine('HALBJAHRESINFORMATION', 'OBERSCHULE – staatlich genehmigte Ersatzschule')
+                        self::getEZSHHeadLine('HALBJAHRESZEUGNIS', 'GYMNASIUM – staatlich anerkannte Ersatzschule')
                     )
                     ->addElement((new Element())
                         ->styleMarginTop('35px')
@@ -51,7 +51,8 @@ class EzshMsHj extends EzshStyle
                     )
                     ->addSection((new Section())
                         ->addSliceColumn(
-                            self::getEZSHSubjectLanes($personId)
+                            self::getEZSHSubjectLanes($personId, '360px', false)
+
                         )
                     )
                     ->addElement((new Element())
@@ -59,23 +60,17 @@ class EzshMsHj extends EzshStyle
                     )
                     ->addSection((new Section())
                         ->addSliceColumn(
-                            self::getEZSHOrientationStandard($personId)
+                            self::getEZSHOrientationStandard($personId, '14px', true)
                         )
-                    )
-                    ->addElement((new Element())
-                        ->styleMarginTop('15px')
-                    )
-                    ->addSectionList(
-                        self::getEZSHPerformanceGroup($personId)
                     )
                     ->addElement((new Element())
                         ->styleMarginTop('35px')
                     )
                     ->addSectionList(
-                        self::getEZSHGradeInfo()
+                        self::getEZSHGradeInfo(false)
                     )
                     ->addElement((new Element())
-                        ->styleMarginTop('45px')
+                        ->styleMarginTop('70px')
                     )
                     ->addSectionList(
                         self::getEZSHMissing($personId)
