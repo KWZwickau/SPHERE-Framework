@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
+use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
@@ -81,6 +82,8 @@ use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Sorter;
+use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 /**
  * Class Frontend
@@ -705,12 +708,29 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             if ($tblPrepareList) {
+                $tblDivision = $tblPrepare->getServiceTblDivision();
+                $useMultipleBehaviorTasks = false;
+                $tblTaskList = false;
+                $tblTestList = false;
+                $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK');
+                if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                        'Education', 'Certificate', 'Prepare', 'UseMultipleBehaviorTasks'))
+                    && $tblSetting->getValue()
+                    && $tblDivision
+                    && $tblTestType
+                ) {
+                    if (($tblTaskList = Evaluation::useService()->getTaskAllByDivision($tblDivision, $tblTestType))) {
+                        $useMultipleBehaviorTasks = true;
+                    }
+                }
+
                 // Kopfnoten festlegen
                 if (!$IsNotGradeType
-                    && $tblGenerateCertificate->getServiceTblBehaviorTask()
-                    && ($tblDivision = $tblPrepare->getServiceTblDivision())
-                    && ($tblTestList = Evaluation::useService()->getTestAllByTask($tblPrepare->getServiceTblBehaviorTask(),
-                        $tblDivision))
+                    && $tblDivision
+                    && (($tblGenerateCertificate->getServiceTblBehaviorTask()
+                            && ($tblTestList = Evaluation::useService()->getTestAllByTask($tblPrepare->getServiceTblBehaviorTask(),
+                                $tblDivision)))
+                        || $useMultipleBehaviorTasks)
                 ) {
                     $Stage = new Stage('Zeugnisvorbereitung', 'Kopfnoten festlegen');
 
@@ -736,23 +756,33 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblCurrentGradeType = false;
                     $tblNextGradeType = false;
                     $tblGradeTypeList = array();
-                    foreach ($tblTestList as $tblTest) {
-                        if (($tblGradeTypeItem = $tblTest->getServiceTblGradeType())) {
-                            if (!isset($tblGradeTypeList[$tblGradeTypeItem->getId()])) {
-                                $tblGradeTypeList[$tblGradeTypeItem->getId()] = $tblGradeTypeItem;
-                                if ($tblCurrentGradeType && !$tblNextGradeType) {
-                                    $tblNextGradeType = $tblGradeTypeItem;
-                                }
-                                if ($GradeTypeId && $GradeTypeId == $tblGradeTypeItem->getId()) {
-                                    $tblCurrentGradeType = $tblGradeTypeItem;
+                    if ($useMultipleBehaviorTasks && $tblTaskList) {
+                        /** @var TblTask $tblTaskTemp */
+                        $tblTaskTemp = reset($tblTaskList);
+                        $tblTestTempList = Evaluation::useService()->getTestAllByTask($tblTaskTemp);
+                    } else {
+                        $tblTestTempList = $tblTestList;
+                    }
+
+                    if ($tblTestTempList) {
+                        foreach ($tblTestTempList as $tblTest) {
+                            if (($tblGradeTypeItem = $tblTest->getServiceTblGradeType())) {
+                                if (!isset($tblGradeTypeList[$tblGradeTypeItem->getId()])) {
+                                    $tblGradeTypeList[$tblGradeTypeItem->getId()] = $tblGradeTypeItem;
+                                    if ($tblCurrentGradeType && !$tblNextGradeType) {
+                                        $tblNextGradeType = $tblGradeTypeItem;
+                                    }
+                                    if ($GradeTypeId && $GradeTypeId == $tblGradeTypeItem->getId()) {
+                                        $tblCurrentGradeType = $tblGradeTypeItem;
+                                    }
                                 }
                             }
                         }
-                    }
-                    if (!$tblCurrentGradeType && !empty($tblGradeTypeList)) {
-                        $tblCurrentGradeType = current($tblGradeTypeList);
-                        if (count($tblGradeTypeList) > 1) {
-                            $tblNextGradeType = next($tblGradeTypeList);
+                        if (!$tblCurrentGradeType && !empty($tblGradeTypeList)) {
+                            $tblCurrentGradeType = current($tblGradeTypeList);
+                            if (count($tblGradeTypeList) > 1) {
+                                $tblNextGradeType = next($tblGradeTypeList);
+                            }
                         }
                     }
 
@@ -812,6 +842,11 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $tabIndex = 1;
 
+                    if ($tblTaskList) {
+                        $tblTaskList = $this->getSorter($tblTaskList)->sortObjectBy('Date', new DateTimeSorter(),
+                            Sorter::ORDER_DESC);
+                    }
+
                     foreach ($tblPrepareList as $tblPrepareItem) {
                         if (($tblDivisionItem = $tblPrepareItem->getServiceTblDivision())
                             && (($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivisionItem)))
@@ -842,8 +877,72 @@ class Frontend extends Extension implements IFrontendInterface
                                     if ($tblCurrentGradeType) {
                                         $subjectGradeList = array();
                                         $gradeList = array();
-                                        if (($tblTestList = Evaluation::useService()->getTestAllByTask($tblPrepareItem->getServiceTblBehaviorTask(),
-                                            $tblDivisionItem))) {
+                                        $gradeListString = '';
+                                        $averageStudent = false;
+                                        if ($useMultipleBehaviorTasks && $tblTaskList) {
+                                            /** @var tblTask $tblTaskItem */
+                                            foreach ($tblTaskList as $tblTaskItem) {
+                                                if (($tblTestTaskList = Evaluation::useService()->getTestAllByTask($tblTaskItem, $tblDivisionItem))) {
+                                                    foreach ($tblTestTaskList as $tblTestItem) {
+                                                        if (($tblGradeType = $tblTestItem->getServiceTblGradeType())
+                                                            && $tblGradeType->getId() == $tblCurrentGradeType->getId()
+                                                        ) {
+                                                            if (($tblSubject = $tblTestItem->getServiceTblSubject())
+                                                                && ($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTestItem,
+                                                                    $tblPerson))
+                                                            ) {
+                                                                $subjectGradeList[$tblTaskItem->getId()][$tblSubject->getAcronym()] = $tblGrade;
+                                                            }
+                                                        }
+                                                    }
+
+                                                    if (!empty($subjectGradeList[$tblTaskItem->getId()])) {
+                                                        ksort($subjectGradeList[$tblTaskItem->getId()]);
+                                                    }
+                                                }
+                                            }
+
+                                            $averageList = array();
+                                            // Zusammensetzen (für Anzeige) der vergebenen mehrfachen Kopfnoten
+                                            /** @var TblGrade $grade */
+                                            foreach ($subjectGradeList as $taskId => $subjectTaskGradeList) {
+                                                $subString = '';
+                                                if (($tblTaskItem = Evaluation::useService()->getTaskById($taskId))) {
+                                                    foreach ($subjectTaskGradeList as $subjectAcronym => $grade) {
+                                                        $tblSubject = Subject::useService()->getSubjectByAcronym($subjectAcronym);
+                                                        if ($tblSubject) {
+                                                            if ($grade->getGrade() && is_numeric($grade->getGrade())) {
+                                                                $gradeList[$taskId][] = floatval($grade->getGrade());
+                                                            }
+
+                                                            if (empty($subString)) {
+                                                                $subString =
+                                                                    $tblSubject->getAcronym() . ':' . $grade->getDisplayGrade();
+                                                            } else {
+                                                                $subString .= ' | '
+                                                                    . $tblSubject->getAcronym() . ':' . $grade->getDisplayGrade();
+                                                            }
+                                                        }
+                                                    }
+                                                    if (!empty($subString)) {
+                                                        $count = count($gradeList[$taskId]);
+                                                        $average = $count > 0 ? round(array_sum($gradeList[$taskId]) / $count, 2) : '';
+                                                        if ($average) {
+                                                            $averageList[$taskId] = $average;
+                                                            $average = number_format($average, 2, ',', '.');
+                                                        }
+                                                        $gradeListString .= $tblTaskItem->getDate() . '&nbsp;&nbsp;&nbsp;'
+                                                            . new Bold('&#216;' . $average) . '&nbsp;&nbsp;&nbsp;' . $subString
+                                                        . '<br>';
+                                                    }
+                                                }
+                                            }
+                                            $countAverages = count($averageList);
+                                            $average = $countAverages > 0 ? round(array_sum($averageList) / $countAverages, 2) : '';
+                                            $studentTable[$tblPerson->getId()]['Average'] = $average;
+                                            $averageStudent = $average;
+                                            $studentTable[$tblPerson->getId()]['Grades'] = $gradeListString;
+                                        } elseif ($tblTestList) {
                                             foreach ($tblTestList as $tblTest) {
                                                 if (($tblGradeType = $tblTest->getServiceTblGradeType())
                                                     && $tblGradeType->getId() == $tblCurrentGradeType->getId()
@@ -856,40 +955,41 @@ class Frontend extends Extension implements IFrontendInterface
                                                     }
                                                 }
                                             }
-                                        }
 
-                                        $gradeListString = '';
-                                        if (!empty($subjectGradeList)) {
-                                            ksort($subjectGradeList);
-                                        }
+                                            if (!empty($subjectGradeList)) {
+                                                ksort($subjectGradeList);
+                                            }
 
-                                        // Zusammensetzen (für Anzeige) der vergebenen Kopfnoten
-                                        /** @var TblGrade $grade */
-                                        foreach ($subjectGradeList as $subjectAcronym => $grade) {
-                                            $tblSubject = Subject::useService()->getSubjectByAcronym($subjectAcronym);
-                                            if ($tblSubject) {
-                                                if ($grade->getGrade() && is_numeric($grade->getGrade())) {
-                                                    $gradeList[] = floatval($grade->getGrade());
-                                                }
-                                                if (empty($gradeListString)) {
-                                                    $gradeListString =
-                                                        $tblSubject->getAcronym() . ':' . $grade->getDisplayGrade();
-                                                } else {
-                                                    $gradeListString .= ' | '
-                                                        . $tblSubject->getAcronym() . ':' . $grade->getDisplayGrade();
+                                            // Zusammensetzen (für Anzeige) der vergebenen Kopfnoten
+                                            /** @var TblGrade $grade */
+                                            foreach ($subjectGradeList as $subjectAcronym => $grade) {
+                                                $tblSubject = Subject::useService()->getSubjectByAcronym($subjectAcronym);
+                                                if ($tblSubject) {
+                                                    if ($grade->getGrade() && is_numeric($grade->getGrade())) {
+                                                        $gradeList[] = floatval($grade->getGrade());
+                                                    }
+                                                    if (empty($gradeListString)) {
+                                                        $gradeListString =
+                                                            $tblSubject->getAcronym() . ':' . $grade->getDisplayGrade();
+                                                    } else {
+                                                        $gradeListString .= ' | '
+                                                            . $tblSubject->getAcronym() . ':' . $grade->getDisplayGrade();
+                                                    }
                                                 }
                                             }
-                                        }
-                                        $studentTable[$tblPerson->getId()]['Grades'] = $gradeListString;
+                                            $studentTable[$tblPerson->getId()]['Grades'] = $gradeListString;
 
-                                        // calc average
-                                        $average = '';
-                                        if (!empty($gradeList)) {
-                                            $count = count($gradeList);
-                                            $average = $count > 0 ? round(array_sum($gradeList) / $count, 2) : '';
-                                            $studentTable[$tblPerson->getId()]['Average'] = $average;
-                                        } else {
-                                            $studentTable[$tblPerson->getId()]['Average'] = '';
+                                            // calc average
+                                            if (!empty($gradeList)) {
+                                                $count = count($gradeList);
+                                                $average = $count > 0 ? round(array_sum($gradeList) / $count, 2) : '';
+                                                $studentTable[$tblPerson->getId()]['Average'] = $average;
+                                                if ($average) {
+                                                    $averageStudent = $average;
+                                                }
+                                            } else {
+                                                $studentTable[$tblPerson->getId()]['Average'] = '';
+                                            }
                                         }
 
                                         $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareItem,
@@ -897,8 +997,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         // Post setzen
                                         if ($Data === null
                                             && $tblPrepareStudent
-                                            && ($tblTask = $tblPrepareItem->getServiceTblBehaviorTask())
-                                            && ($tblTestType = $tblTask->getTblTestType())
+                                            && $tblTestType
                                             && $tblCurrentGradeType
                                         ) {
                                             $Global = $this->getGlobal();
@@ -909,11 +1008,10 @@ class Frontend extends Extension implements IFrontendInterface
                                             if ($tblPrepareGrade) {
                                                 $gradeValue = $tblPrepareGrade->getGrade();
                                                 $Global->POST['Data'][$tblPrepareStudent->getId()] = $gradeValue;
-                                            } elseif ($average) {
+                                            } elseif ($averageStudent) {
                                                 // Noten aus dem Notendurchschnitt als Vorschlag eintragen
                                                 $hasPreviewGrades = true;
-                                                $Global->POST['Data'][$tblPrepareStudent->getId()] =
-                                                    str_replace('.', ',', round($average, 0));
+                                                $Global->POST['Data'][$tblPrepareStudent->getId()] = round($averageStudent, 0);
                                             }
 
                                             $Global->savePost();

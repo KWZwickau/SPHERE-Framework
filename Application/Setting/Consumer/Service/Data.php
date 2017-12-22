@@ -106,6 +106,29 @@ class Data extends AbstractData
                     '0'
                 );
             }
+
+            // Verwendung aller Kopfnotenaufträgen für eine Zeugnisvorbereitung
+            if ($tblConsumer->getAcronym() == 'EGE'
+                || $tblConsumer->getAcronym() == 'FESH'
+            ) {
+                $this->createSetting(
+                    'Education',
+                    'Certificate',
+                    'Prepare',
+                    'UseMultipleBehaviorTasks',
+                    TblSetting::TYPE_BOOLEAN,
+                    '1'
+                );
+            } else {
+                $this->createSetting(
+                    'Education',
+                    'Certificate',
+                    'Prepare',
+                    'UseMultipleBehaviorTasks',
+                    TblSetting::TYPE_BOOLEAN,
+                    '0'
+                );
+            }
         }
         $this->createSetting(
             'Education',
