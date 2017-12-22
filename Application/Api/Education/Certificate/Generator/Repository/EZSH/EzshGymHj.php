@@ -51,8 +51,8 @@ class EzshGymHj extends EzshStyle
                     )
                     ->addSection((new Section())
                         ->addSliceColumn(
-                            self::getEZSHSubjectLanes($personId, '360px', false)
-
+                            self::getEZSHSubjectLanes($personId, true, array('Lane' => 1, 'Rank' => 3), false)
+                                ->styleHeight('360px')
                         )
                     )
                     ->addElement((new Element())

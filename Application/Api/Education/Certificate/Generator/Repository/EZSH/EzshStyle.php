@@ -258,13 +258,21 @@ abstract class EzshStyle extends Certificate
     }
 
     /**
-     * @param int $personId
-     * @param string $Height
+     * @param $personId
+     * @param bool|true $isSlice
+     * @param array $languagesWithStartLevel
      * @param bool $isTitle
-     * @return Slice
+     *
+     * @return Section[]|Slice
      */
-    public function getEZSHSubjectLanes($personId, $Height = '360px', $isTitle = true)
-    {
+    protected function getEZSHSubjectLanes(
+        $personId,
+        $isSlice = true,
+        $languagesWithStartLevel = array(),
+        $isTitle = true
+    ) {
+
+        $tblPerson = Person::useService()->getPersonById($personId);
 
         $SubjectSlice = (new Slice());
 
@@ -296,6 +304,39 @@ abstract class EzshStyle extends Certificate
                 }
             }
 
+            // add SecondLanguageField, Fach wird aus der Schüleraktte des Schülers ermittelt
+            $tblSecondForeignLanguage = false;
+            if (!empty($languagesWithStartLevel)) {
+                if (isset($languagesWithStartLevel['Lane']) && isset($languagesWithStartLevel['Rank'])) {
+                    $SubjectStructure[$languagesWithStartLevel['Rank']]
+                    [$languagesWithStartLevel['Lane']]['SubjectAcronym'] = 'Empty';
+                    $SubjectStructure[$languagesWithStartLevel['Rank']]
+                    [$languagesWithStartLevel['Lane']]['SubjectName'] = '&nbsp;';
+                    if ($tblPerson
+                        && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+                    ) {
+                        if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+                            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                                $tblStudentSubjectType))
+                        ) {
+                            /** @var TblStudentSubject $tblStudentSubject */
+                            foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                                if ($tblStudentSubject->getTblStudentSubjectRanking()
+                                    && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
+                                    && ($tblSubjectForeignLanguage = $tblStudentSubject->getServiceTblSubject())
+                                ) {
+                                    $tblSecondForeignLanguage = $tblSubjectForeignLanguage;
+                                    $SubjectStructure[$languagesWithStartLevel['Rank']]
+                                    [$languagesWithStartLevel['Lane']]['SubjectAcronym'] = $tblSubjectForeignLanguage->getAcronym();
+                                    $SubjectStructure[$languagesWithStartLevel['Rank']]
+                                    [$languagesWithStartLevel['Lane']]['SubjectName'] = $tblSubjectForeignLanguage->getName();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             // Shrink Lanes
             $LaneCounter = array(1 => 0, 2 => 0);
             $SubjectLayout = array();
@@ -308,7 +349,6 @@ abstract class EzshStyle extends Certificate
                 }
             }
             $SubjectStructure = $SubjectLayout;
-            $count = 0;
 
             // headline for grades
             $HeaderSection = (new Section());
@@ -320,6 +360,7 @@ abstract class EzshStyle extends Certificate
                 ->stylePaddingBottom(($isTitle ? '0px': '26px'))
             );
             $SectionList[] = $HeaderSection;
+            $SubjectSlice->addSection($HeaderSection);
             if($isTitle){
                 $HeaderSectionTwo = (new Section());
                 $HeaderSectionTwo->addElementColumn((new Element())
@@ -329,14 +370,20 @@ abstract class EzshStyle extends Certificate
                     ->stylePaddingTop('10px')
                 );
                 $SectionList[] = $HeaderSectionTwo;
+                $SubjectSlice->addSection($HeaderSectionTwo);
             }
 
+            $hasAdditionalLine = false;
+            $isShrinkMarginTop = false;
 
-            // shrink definition parameter
+            $subjectWidth = 30;
+            $gradeWidth = 17;
             $TextSize = '14px';
-            $TextSizeSmall = '11px';
+            $TextSizeSmall = '8.5px';
             $paddingTopShrinking = '6px';
             $paddingBottomShrinking = '6px';
+
+            $count = 0;
             foreach ($SubjectStructure as $SubjectList) {
                 $count++;
                 // Sort Lane-Ranking (1,2...)
@@ -349,21 +396,57 @@ abstract class EzshStyle extends Certificate
                 }
 
                 foreach ($SubjectList as $Lane => $Subject) {
+                    // 2. Fremdsprache ab Klassenstufe
+                    if (isset($languagesWithStartLevel['Lane']) && isset($languagesWithStartLevel['Rank'])
+                        && $languagesWithStartLevel['Lane'] == $Lane && $languagesWithStartLevel['Rank'] == $count
+                    ) {
+                        $hasAdditionalLine['Lane'] = $Lane;
+                        $hasAdditionalLine['Ranking'] = 2;
+                        $hasAdditionalLine['SubjectAcronym'] = $tblSecondForeignLanguage
+                            ? $tblSecondForeignLanguage->getAcronym() : 'Empty';
+                    }
 
                     if ($Lane > 1) {
                         $SubjectSection->addElementColumn((new Element())
                             , '6%');
                     }
-                    $SubjectSection->addElementColumn((new Element())
-                        ->setContent($Subject['SubjectName'])
-                        ->stylePaddingTop()
-                        ->styleMarginTop('10px')
-                        , '30%');
+                    if ($hasAdditionalLine && $Lane == $hasAdditionalLine['Lane']) {
+                        $SubjectSection->addElementColumn((new Element())
+                            ->setContent($Subject['SubjectName'])
+                            ->stylePaddingTop()
+                            ->stylePaddingBottom('0px')
+                            ->styleMarginBottom('0px')
+                            ->styleBorderBottom('1px', '#BBB')
+                            ->styleMarginTop('10px')
+                            ->styleTextSize($TextSize)
+                            , (string)($subjectWidth - 2) . '%');
+                        $SubjectSection->addElementColumn((new Element()), '2%');
+                    } elseif (strlen($Subject['SubjectName']) > 27) {
+                        $SubjectSection->addElementColumn((new Element())
+                            ->setContent($Subject['SubjectName'])
+                            ->stylePaddingTop()
+                            ->styleMarginTop('5px')
+                            ->styleTextSize($TextSize)
+                            , (string)$subjectWidth . '%');
+                    }elseif ($isShrinkMarginTop) {
+                        $SubjectSection->addElementColumn((new Element())
+                            ->setContent($Subject['SubjectName'])
+                            ->stylePaddingTop()
+                            ->styleMarginTop('0px')
+                            ->styleTextSize($TextSize)
+                            , (string)$subjectWidth . '%');
+                    } else {
+                        $SubjectSection->addElementColumn((new Element())
+                            ->setContent($Subject['SubjectName'])
+                            ->stylePaddingTop()
+                            ->styleMarginTop('10px')
+                            ->styleTextSize($TextSize)
+                            , (string)$subjectWidth . '%');
+                    }
 
-
                     $SubjectSection->addElementColumn((new Element())
-                        ->setContent('{% if(Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty) %}
-                                             {{ Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] }}
+                        ->setContent('{% if(Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                                             {{ Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
                                          {% else %}
                                              &ndash;
                                          {% endif %}')
@@ -371,45 +454,90 @@ abstract class EzshStyle extends Certificate
                         ->styleBackgroundColor('#E6E6E6')
                         ->styleMarginTop('12px')
                         ->stylePaddingTop(
-                            '{% if((Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$Subject['SubjectAcronym'].'"] is not empty)
-                                and (Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty)
+                            '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                                and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
                             ) %}
-                                '.$paddingTopShrinking.' 
+                                ' . $paddingTopShrinking . ' 
                              {% else %}
                                  4px
                              {% endif %}'
                         )
                         ->stylePaddingBottom(
-                            '{% if((Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$Subject['SubjectAcronym'].'"] is not empty)
-                                and (Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty)
+                            '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                                and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
                             ) %}
-                               '.$paddingBottomShrinking.' 
+                               ' . $paddingBottomShrinking . ' 
                              {% else %}
                                  4px
                              {% endif %}'
                         )
+                        ->styleMarginTop($isShrinkMarginTop ? '0px' : '10px')
                         ->styleTextSize(
-                            '{% if((Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$Subject['SubjectAcronym'].'"] is not empty)
-                                and (Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty)
+                            '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                                and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
                             ) %}
-                                 '.$TextSizeSmall.'
+                                 ' . $TextSizeSmall . '
                              {% else %}
-                                 '.$TextSize.'
+                                 ' . $TextSize . '
                              {% endif %}'
                         )
-                        , '17%');
+                        , (string)$gradeWidth . '%');
+
+                    if ($isShrinkMarginTop && $Lane == 2) {
+                        $isShrinkMarginTop = false;
+                    }
                 }
 
                 if (count($SubjectList) == 1 && isset($SubjectList[1])) {
                     $SubjectSection->addElementColumn((new Element()), '53%');
+                    $isShrinkMarginTop = false;
                 }
+
+                $SubjectSlice->addSection($SubjectSection);
                 $SectionList[] = $SubjectSection;
+
+                if ($hasAdditionalLine) {
+                    $SubjectSection = (new Section());
+
+                    if ($hasAdditionalLine['Lane'] == 2) {
+                        $SubjectSection->addElementColumn((new Element()), '52%');
+                    }
+                    $SubjectSection->addElementColumn((new Element())
+                        ->setContent($hasAdditionalLine['Ranking'] . '. Fremdsprache (ab Klassenstufe ' .
+                            '{% if(Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] is not empty) %}
+                                     {{ Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] }}
+                                 {% else %}
+                                    &nbsp;
+                                 {% endif %}'
+                            . ')')
+                        ->stylePaddingTop('0px')
+                        ->stylePaddingBottom('0px')
+                        ->styleMarginTop('-6px')
+                        ->styleMarginBottom('0px')
+                        ->styleTextSize('9px')
+                        , (string)$subjectWidth . '%');
+
+                    if ($hasAdditionalLine['Lane'] == 1) {
+                        $SubjectSection->addElementColumn((new Element()), '53%');
+                    }
+
+                    $hasAdditionalLine = false;
+
+                    // es wird abstand gelassen, einkommentieren für keinen extra Abstand der nächsten Zeile
+//                    $isShrinkMarginTop = true;
+
+                    $SubjectSlice->addSection($SubjectSection);
+                    $SectionList[] = $SubjectSection;
+                }
+
             }
-            return $SubjectSlice->addSectionList($SectionList)
-                ->styleHeight($Height);
         }
 
-        return $SubjectSlice;
+        if ($isSlice) {
+            return $SubjectSlice;
+        } else {
+            return $SectionList;
+        }
     }
 
     /**
@@ -528,6 +656,7 @@ abstract class EzshStyle extends Certificate
             if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
                 && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
                     $tblStudentSubjectType))
+                && !$isInformatics
             ) {
                 /** @var TblStudentSubject $tblStudentSubject */
                 foreach ($tblStudentSubjectList as $tblStudentSubject) {
@@ -706,7 +835,7 @@ abstract class EzshStyle extends Certificate
                         , '17%');
                 $sectionList[] = $section;
                 $section = new Section();
-                if(!$isInformatics) {
+                if($isInformatics) {
                     $section
                         ->addElementColumn((new Element())
                             ->styleBorderTop('1px', '#BBB')
@@ -725,7 +854,7 @@ abstract class EzshStyle extends Certificate
                         {% else %}
                             ' . $Level . '
                         {% endif %}'
-                                . '/ Neigungskurs ab Klasse 7')
+                                . '/ Neigungskurs ab Klasse 7 test 2')
                             ->styleBorderTop('1px', '#BBB')
                             ->stylePaddingTop()
                             ->styleTextSize('13px')

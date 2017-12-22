@@ -2847,13 +2847,15 @@ class Data extends AbstractData
                         if (!$this->getCertificateSubjectAll($tblCertificate)) {
                             $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
                             $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+
+                            $this->setCertificateSubject($tblCertificate, 'TSCN', 1, 3, false);
+                            $this->setCertificateSubject($tblCertificate, 'LA', 1, 4, false);
                             // lücke für Fremdsprachen
-                            $this->setCertificateSubject($tblCertificate, 'KU', 1, 5);
-                            $this->setCertificateSubject($tblCertificate, 'MU', 1, 6);
-                            $this->setCertificateSubject($tblCertificate, 'GE', 1, 7);
-                            $this->setCertificateSubject($tblCertificate, 'GRW', 1, 8);
-                            $this->setCertificateSubject($tblCertificate, 'GEO', 1, 9);
-                            $this->setCertificateSubject($tblCertificate, 'WTH', 1, 10);
+                            $this->setCertificateSubject($tblCertificate, 'KU', 1, 6);
+                            $this->setCertificateSubject($tblCertificate, 'MU', 1, 7);
+                            $this->setCertificateSubject($tblCertificate, 'GE', 1, 8);
+                            $this->setCertificateSubject($tblCertificate, 'WTH', 1, 9);
+                            $this->setCertificateSubject($tblCertificate, 'GEO', 1, 10);
 
                             $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
                             $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
@@ -2888,13 +2890,14 @@ class Data extends AbstractData
                         if (!$this->getCertificateSubjectAll($tblCertificate)) {
                             $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
                             $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+                            $this->setCertificateSubject($tblCertificate, 'TSCN', 1, 3, false);
+                            $this->setCertificateSubject($tblCertificate, 'LA', 1, 4, false);
                             // lücke für Fremdsprachen
-                            $this->setCertificateSubject($tblCertificate, 'KU', 1, 5);
-                            $this->setCertificateSubject($tblCertificate, 'MU', 1, 6);
-                            $this->setCertificateSubject($tblCertificate, 'GE', 1, 7);
-                            $this->setCertificateSubject($tblCertificate, 'GRW', 1, 8);
-                            $this->setCertificateSubject($tblCertificate, 'GEO', 1, 9);
-                            $this->setCertificateSubject($tblCertificate, 'WTH', 1, 10);
+                            $this->setCertificateSubject($tblCertificate, 'KU', 1, 6);
+                            $this->setCertificateSubject($tblCertificate, 'MU', 1, 7);
+                            $this->setCertificateSubject($tblCertificate, 'GE', 1, 8);
+                            $this->setCertificateSubject($tblCertificate, 'WTH', 1, 9);
+                            $this->setCertificateSubject($tblCertificate, 'GEO', 1, 10);
 
                             $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
                             $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
