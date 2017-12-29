@@ -430,13 +430,13 @@ class Service extends AbstractService
         if (!$Error) {
             $tblPeriod = Term::useService()->getPeriodById($Task['Period']);
             $tblScoreType = Gradebook::useService()->getScoreTypeById($Task['ScoreType']);
-            (new Data($this->getBinding()))->createTask(
+            $tblTask = (new Data($this->getBinding()))->createTask(
                 $tblTestType, $Task['Name'], $Task['Date'], $Task['FromDate'], $Task['ToDate'],
                 $tblPeriod ? $tblPeriod : null, $tblScoreType ? $tblScoreType : null, $tblYear ? $tblYear : null
             );
             $Stage .= new Success('Notenauftrag erfolgreich angelegt',
                     new \SPHERE\Common\Frontend\Icon\Repository\Success())
-                . new Redirect('/Education/Graduation/Evaluation/Task/Headmaster', Redirect::TIMEOUT_SUCCESS, array('YearId' => $tblYear->getId()));
+                . new Redirect('/Education/Graduation/Evaluation/Task/Headmaster/Division', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblTask->getId()));
         }
 
         return $Stage;
