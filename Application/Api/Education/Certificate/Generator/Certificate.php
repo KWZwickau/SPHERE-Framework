@@ -762,11 +762,11 @@ abstract class Certificate extends Extension
                     $SubjectSection->addElementColumn((new Element())
                         ->setContent($hasAdditionalLine['Ranking'] . '. Fremdsprache (ab Klassenstufe ' .
                             '{% if(Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] is not empty) %}
-                                     {{ Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] }}
+                                     {{ Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] }})
                                  {% else %}
-                                    &nbsp;
+                                    &ndash;)
                                  {% endif %}'
-                            . ')')
+                            )
                         ->stylePaddingTop('0px')
                         ->stylePaddingBottom('0px')
                         ->styleMarginTop('0px')
@@ -3027,5 +3027,42 @@ abstract class Certificate extends Extension
         }
 
         return $value ? $value : '50px';
+    }
+
+    /**
+     * @param string $content
+     * @param string $thicknessInnerLines
+     *
+     * @return Slice
+     */
+    protected function setCheckBox($content = '&nbsp;', $thicknessInnerLines = '0.5px')
+    {
+        return (new Slice())
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleHeight('7px')
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleHeight('10px')
+                    , '1.2%')
+                ->addElementColumn((new Element())
+                    ->setContent($content)
+                    ->styleHeight('14px')
+                    ->styleTextSize('8.5')
+                    ->stylePaddingLeft('1.2px')
+                    ->stylePaddingTop('-2px')
+                    ->stylePaddingBottom('-2px')
+                    ->styleBorderAll($thicknessInnerLines)
+                    , '1.6%')
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleHeight('10px')
+                    , '1.2%')
+            )
+            ->styleHeight('24px');
     }
 }

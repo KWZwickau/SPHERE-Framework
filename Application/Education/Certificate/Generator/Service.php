@@ -397,10 +397,12 @@ class Service extends AbstractService
             'Content.Input.Type'               => 'SelectBox',
             'Content.Input.DateCertifcate'     => 'DatePicker',
             'Content.Input.DateConference'     => 'DatePicker',
+            'Content.Input.DateConsulting'     => 'DatePicker',
             'Content.Input.Transfer'           => 'SelectBox',
             'Content.Input.IndividualTransfer' => 'TextField',
             'Content.Input.TeamExtra'          => 'TextField',
-            'Content.Input.BellSubject'        => 'TextField'
+            'Content.Input.BellSubject'        => 'TextField',
+            'Content.Input.PerformanceGroup'   => 'TextField'
         );
     }
 
@@ -411,20 +413,22 @@ class Service extends AbstractService
     {
 
         return array(
-            'Content.Input.Remark'          => 'Bemerkungen',
-            'Content.Input.SecondRemark'    => 'Bemerkung Seite 2',
-            'Content.Input.Rating'          => 'Einschätzung',
-            'Content.Input.TechnicalRating' => 'Fachliche Einschätzung',
-            'Content.Input.Survey'          => 'Gutachten',
-            'Content.Input.Deepening'       => 'Vertiefungsrichtung',
-            'Content.Input.SchoolType'      => 'Ausbildung fortsetzen',
-            'Content.Input.Type'            => 'Bezieht sich auf',
-            'Content.Input.DateCertifcate'  => 'Datum des Zeugnisses',
-            'Content.Input.DateConference'  => 'Datum der Konferenz',
-            'Content.Input.Transfer'        => 'Versetzungsvermerk',
-            'Content.Input.IndividualTransfer'       => 'Versetzungsvermerk',
-            'Content.Input.TeamExtra'       => 'Arbeitsgemeinschaften',
-            'Content.Input.BellSubject'       => 'Thema BELL'
+            'Content.Input.Remark'             => 'Bemerkungen',
+            'Content.Input.SecondRemark'       => 'Bemerkung Seite 2',
+            'Content.Input.Rating'             => 'Einschätzung',
+            'Content.Input.TechnicalRating'    => 'Fachliche Einschätzung',
+            'Content.Input.Survey'             => 'Gutachten',
+            'Content.Input.Deepening'          => 'Vertiefungsrichtung',
+            'Content.Input.SchoolType'         => 'Ausbildung fortsetzen',
+            'Content.Input.Type'               => 'Bezieht sich auf',
+            'Content.Input.DateCertifcate'     => 'Datum des Zeugnisses',
+            'Content.Input.DateConference'     => 'Datum der Klassenkonferenz',
+            'Content.Input.DateConsulting'     => 'Datum der Bildungsberatung',
+            'Content.Input.Transfer'           => 'Versetzungsvermerk',
+            'Content.Input.IndividualTransfer' => 'Versetzungsvermerk',
+            'Content.Input.TeamExtra'          => 'Arbeitsgemeinschaften',
+            'Content.Input.BellSubject'        => 'Thema BELL',
+            'Content.Input.PerformanceGroup'   => 'Leistungsgruppe'
         );
     }
 

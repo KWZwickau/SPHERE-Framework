@@ -14,8 +14,8 @@ use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 /**
- * Class EsrlStyle
- * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository\ESRL
+ * Class CmsStyle
+ * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository\CMS
  */
 abstract class CmsStyle extends Certificate
 {
@@ -47,8 +47,7 @@ abstract class CmsStyle extends Certificate
 
         } else {
             $Header = (new Slice)->addSection((new Section())
-                ->addElementColumn((new Element\Sample())
-                    ->styleTextSize('30px')
+                ->addElementColumn((new Element())
                     , '33%')
                 ->addElementColumn((new Element\Image('Common/Style/Resource/Logo/CMS_Logo.jpg',
                     'auto', $PictureHeight.'px'))

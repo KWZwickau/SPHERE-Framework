@@ -267,6 +267,7 @@ class Service extends AbstractService
                         $tblConsumerBySession))
                     ) {
                         if (count($certificateList) == 1) {
+                            // todo bulksave für CertificateUpdate
                             // Aus Performance gründen Speicherung beim Aufruf in der Zeugnisvorbereitung
 //                            Prepare::useService()->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, current($certificateList));
                             $countTemplates++;
