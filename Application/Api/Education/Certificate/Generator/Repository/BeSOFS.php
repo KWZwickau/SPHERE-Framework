@@ -31,7 +31,7 @@ class BeSOFS extends Certificate
             ->addSlice($this->getSchoolName($personId, '10px'))
             ->addSlice((new Slice())
                 ->addElement((new Element())
-                    ->setContent('Bildungsempfehlung gemäß § 34 Abs. 3 SOFS')
+                    ->setContent('Bildungsempfehlung gemäß § 34 Absatz 3 der Schulordnung Förderschulen')
                     ->styleAlignCenter()
                     ->styleTextSize('20px')
                     ->styleTextBold()
