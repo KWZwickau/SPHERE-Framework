@@ -6,10 +6,13 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
-use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Binding\AbstractView;
@@ -232,8 +235,22 @@ class ViewEducationStudent extends AbstractView
     {
 
         switch ($PropertyName) {
+            case self::TBL_TYPE_NAME:
+                $Data = Type::useService()->getPropertyList(new TblType(), TblType::ATTR_NAME);
+                $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount, true);
+                break;
             case self::TBL_YEAR_YEAR:
                 $Data = Term::useService()->getPropertyList( new TblYear(), TblYear::ATTR_YEAR );
+                $Field = $this->getFormFieldAutoCompleter($Data, $PropertyName, $Placeholder, $Label, $Icon,
+                    $doResetCount);
+                break;
+            case self::TBL_SUBJECT_NAME:
+                $Data = Subject::useService()->getPropertyList(new TblSubject(), TblSubject::ATTR_NAME);
+                $Field = $this->getFormFieldAutoCompleter($Data, $PropertyName, $Placeholder, $Label, $Icon,
+                    $doResetCount);
+                break;
+            case self::TBL_SUBJECT_ACRONYM:
+                $Data = Subject::useService()->getPropertyList(new TblSubject(), TblSubject::ATTR_ACRONYM);
                 $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
                 break;
             case self::TBL_LEVEL_IS_CHECKED:

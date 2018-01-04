@@ -6,29 +6,19 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Contact\Address\Address;
-use SPHERE\Application\Contact\Address\Service\Entity\TblCity;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
-use SPHERE\Application\Education\School\School;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransfer;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
-use SPHERE\Application\Reporting\Individual\Individual;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
-use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
-use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
-use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
-use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
-use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Binding\AbstractView;
 
@@ -868,7 +858,25 @@ class ViewStudent extends AbstractView
                 );
                 break;
             case self::TBL_CITY_CITY:
-                $Data = Address::useService()->getPropertyList( new TblCity(), TblCity::ATTR_NAME );
+                // Test Address By Student
+                $Data = array();
+                $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
+                $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+                if ($tblPersonList) {
+                    foreach ($tblPersonList as $tblPerson) {
+                        $tblAddress = $tblPerson->fetchMainAddress();
+                        if ($tblAddress) {
+                            $tblCity = $tblAddress->getTblCity();
+                            if ($tblCity) {
+                                if (!isset($Data[$tblCity->getName()])) {
+                                    $Data[$tblCity->getName()] = $tblCity->getName();
+                                }
+                            }
+                        }
+                    }
+                }
+//                // old version: all name from City
+//                $Data = Address::useService()->getPropertyList( new TblCity(), TblCity::ATTR_NAME );
                 $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
                 break;
             case self::TBL_COMMON_BIRTHDATES_BIRTHPLACE:

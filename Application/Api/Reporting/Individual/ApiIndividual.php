@@ -77,8 +77,6 @@ use SPHERE\Common\Main;
 use SPHERE\Common\Window\Error;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\System\Database\Binding\AbstractView;
-use SPHERE\System\Debugger\Logger\BenchmarkLogger;
-use SPHERE\System\Debugger\Logger\ErrorLogger;
 use SPHERE\System\Debugger\Logger\QueryLogger;
 
 /**
@@ -801,7 +799,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
      * @param $Field
      * @param $View
      */
-    public function addField($Field, $View)
+    public function addField($Field, $View) //ToDO keep POST data
     {
 
         $Position = 1;
@@ -1000,9 +998,20 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     ))
                 );
 
-                $Listing = new Listing( array_merge( array( new Bold( $FieldName ) . new PullRight( (new Link(new DangerText( new Disable() ), ApiIndividual::getEndpoint(), null, array(),
-                        'Feld&nbsp;entfernen'))
-                        ->ajaxPipelineOnClick(ApiIndividual::pipelineDeleteFilterField($tblWorkSpace->getId()))) ), $FilterInputList )
+                $Listing = new Listing(
+                    array_merge(
+                        array(
+                            new PullClear(new Bold($FieldName)
+                                .new PullRight(
+                                    (new Link(new DangerText(new Disable())
+                                        , ApiIndividual::getEndpoint()
+                                        , null
+                                        , array()
+                                        , 'Feld&nbsp;entfernen'))
+                                        ->ajaxPipelineOnClick(ApiIndividual::pipelineDeleteFilterField($tblWorkSpace->getId()))
+                                )
+                            )
+                        ), $FilterInputList)
                 );
 
                 $FormColumnAll[$tblWorkSpace->getPosition()] = new FormColumn( $Listing, 3);
