@@ -1162,6 +1162,10 @@ class Service extends AbstractService
                 if (($tblSubjectProfile = $tblStudentSubject->getServiceTblSubject())) {
                     $Content['P' . $personId]['Student']['Profile'][$tblSubjectProfile->getAcronym()]['Name']
                         = str_replace('Profil', '', $tblSubjectProfile->getName());
+
+                    // bei Herrnhut EZSH steht das Wort "Profil" nicht Extra auf dem Formular
+                    $Content['P' . $personId]['Student']['ProfileEZSH'][$tblSubjectProfile->getAcronym()]['Name']
+                        = $tblSubjectProfile->getName();
                 }
             }
         }

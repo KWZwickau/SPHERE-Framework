@@ -60,7 +60,7 @@ class EzshGymHj extends EzshStyle
                     )
                     ->addSection((new Section())
                         ->addSliceColumn(
-                            self::getEZSHOrientationStandard($personId, '14px', true)
+                            self::getEZSHObligation($personId, '14px', true)
                         )
                     )
                     ->addElement((new Element())

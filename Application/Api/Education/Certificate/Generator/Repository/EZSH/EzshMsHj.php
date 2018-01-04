@@ -59,7 +59,7 @@ class EzshMsHj extends EzshStyle
                     )
                     ->addSection((new Section())
                         ->addSliceColumn(
-                            self::getEZSHOrientationStandard($personId)
+                            self::getEZSHObligation($personId)
                         )
                     )
                     ->addElement((new Element())
