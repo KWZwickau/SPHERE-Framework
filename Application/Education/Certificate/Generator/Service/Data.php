@@ -65,22 +65,9 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
         }
 
-        $tblCertificate = $this->createCertificate('Bildungsempfehlung', 'Mittelschule Klasse 5-6', 'BeMi');
-        if ($tblCertificate) {
-            if ($tblSchoolTypeSecondary) {
-                $this->updateCertificate($tblCertificate, $tblCertificateTypeRecommendation, $tblSchoolTypeSecondary);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-            }
-        }
-        if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-            $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
-            $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
-            $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+        // SSW-1981 Deaktivierung Bildungsempfehlung Klasse 5/6
+        if (($tblCertificate = $this->getCertificateByCertificateClassName('BeMi'))) {
+            $this->destroyCertificate($tblCertificate);
         }
 
         $tblCertificate = $this->createCertificate('Bildungsempfehlung', '§ 34 Abs. 3 SOFS', 'BeSOFS');
