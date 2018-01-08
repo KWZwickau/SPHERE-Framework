@@ -47,14 +47,14 @@ class Standard extends Extension implements IModuleInterface
     }
 
     /**
-     * @param null $PersonId
+     * @param array $Data
      *
      * @return \SPHERE\Common\Window\Stage|string
      */
-    public static function createEnrollmentDocumentPdf($PersonId = null)
+    public static function createEnrollmentDocumentPdf($Data = array())
     {
 
-        return Creator::createPdf($PersonId, __NAMESPACE__ . '\Repository\EnrollmentDocument');
+        return Creator::createDataPdf($Data, 'EnrollmentDocument', Creator::PAPERORIENTATION_PORTRAIT);
     }
 
     /**

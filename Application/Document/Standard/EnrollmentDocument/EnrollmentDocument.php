@@ -3,6 +3,8 @@ namespace SPHERE\Application\Document\Standard\EnrollmentDocument;
 
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Group\Group;
@@ -10,6 +12,8 @@ use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -90,7 +94,7 @@ class EnrollmentDocument extends Extension implements IModuleInterface
                         'Address'  => $tblAddress ? $tblAddress->getGuiString() : '',
                         'Division' => Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson),
                         'Option'   => new Standard('Erstellen', __NAMESPACE__.'/Fill', null,
-                            array('Id' => $tblPerson->getId()))
+                            array('PersonId' => $tblPerson->getId()))
 //                        'Option' => new External(
 //                            'Herunterladen',
 //                            'SPHERE\Application\Api\Document\Standard\EnrollmentDocument\Create',
@@ -129,25 +133,28 @@ class EnrollmentDocument extends Extension implements IModuleInterface
     }
 
     /**
-     * @param null $Id
+     * @param null $PersonId
      *
      * @return Stage
      */
-    public function frontendFillAccidentReport($Id = null)
+    public function frontendFillAccidentReport($PersonId = null)
     {
 
         $Stage = new Stage('Schulbescheinigung', 'Erstellen');
-        $tblPerson = Person::useService()->getPersonById($Id);
+        $tblPerson = Person::useService()->getPersonById($PersonId);
         $Global = $this->getGlobal();
+        $Gender = false;
         if ($tblPerson) {
+            $Global->POST['Data']['PersonId'] = $PersonId;
             $Global->POST['Data']['FirstLastName'] = $tblPerson->getFirstName().' '.$tblPerson->getLastName();
             $Global->POST['Data']['Date'] = (new \DateTime())->format('d.m.Y');
 
             if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
                 if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
                     $Global->POST['Data']['Birthday'] = $tblCommonBirthDates->getBirthday();
+                    $Global->POST['Data']['Birthplace'] = $tblCommonBirthDates->getBirthplace();
                     if (($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())) {
-                        $Global->POST['Data']['Gender'] = $tblCommonGender->getName();
+                        $Global->POST['Data']['Gender'] = $Gender = $tblCommonGender->getName();
                     }
                 }
             }
@@ -165,10 +172,11 @@ class EnrollmentDocument extends Extension implements IModuleInterface
                         $Global->POST['Data']['SchoolExtended'] = $tblCompanySchool->getExtendedName();
                         $tblAddressSchool = Address::useService()->getAddressByCompany($tblCompanySchool);
                         if ($tblAddressSchool) {
-                            $Global->POST['Data']['SchoolAddressStreet'] = $tblAddressSchool->getStreetName().', '.$tblAddressSchool->getStreetNumber();
+                            $Global->POST['Data']['SchoolAddressStreet'] = $tblAddressSchool->getStreetName().' '.$tblAddressSchool->getStreetNumber();
                             $tblCitySchool = $tblAddressSchool->getTblCity();
                             if ($tblCitySchool) {
                                 $Global->POST['Data']['SchoolAddressCity'] = $tblCitySchool->getCode().' '.$tblCitySchool->getName();
+                                $Global->POST['Data']['Place'] = $tblCitySchool->getName();
                             }
                         }
                     }
@@ -177,6 +185,10 @@ class EnrollmentDocument extends Extension implements IModuleInterface
                 $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
                     $tblStudentTransferType);
                 $Now = new \DateTime('now');
+                // increase year if date after 31.07.20xx
+                if ($Now > new \DateTime('31.07.'.$Now->format('Y'))) {
+                    $Now->add(new \DateInterval('P1Y'));
+                }
                 $MaxDate = new \DateTime('31.07.'.$Now->format('Y'));
                 $DateString = $MaxDate->format('d.m.Y');
                 if ($tblStudentTransfer) {
@@ -190,10 +202,21 @@ class EnrollmentDocument extends Extension implements IModuleInterface
                 $Global->POST['Data']['LeaveDate'] = $DateString;
             }
 
+            // Aktuelle Klasse
+            $tblYearList = Term::useService()->getYearByNow();
+            if ($tblYearList) {
+                foreach ($tblYearList as $tblYear) {
+                    $tblDivision = Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear);
+                    if ($tblDivision && $tblDivision->getTblLevel() && $tblDivision->getTblLevel()->getName() != '') {
+                        $Global->POST['Data']['Division'] = $tblDivision->getTblLevel()->getName();
+                    }
+                }
+            }
+
             // Hauptadresse Schüler
             $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
             if ($tblAddress) {
-                $Global->POST['Data']['AddressStreet'] = $tblAddress->getStreetName().', '.$tblAddress->getStreetNumber();
+                $Global->POST['Data']['AddressStreet'] = $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber();
                 $tblCity = $tblAddress->getTblCity();
                 if ($tblCity) {
                     $Global->POST['Data']['AddressPLZ'] = $tblCity->getCode();
@@ -203,7 +226,7 @@ class EnrollmentDocument extends Extension implements IModuleInterface
         }
         $Global->savePost();
 
-        $form = $this->formStudentDocument();
+        $form = $this->formStudentDocument($Gender);
 
         $HeadPanel = new Panel('Schüler', $tblPerson->getLastFirstName());
 
@@ -240,15 +263,20 @@ class EnrollmentDocument extends Extension implements IModuleInterface
     }
 
     /**
+     * @param $Gender
+     *
      * @return Form
      */
-    private function formStudentDocument()
+    private function formStudentDocument($Gender)
     {
 //        $Data[] = 'BohrEy';
 
         return new Form(
             new FormGroup(array(
-                new FormRow(
+                new FormRow(array(
+                    new FormColumn(
+                        new HiddenField('Data[PersonId]')   //ToDO Hidden ersetzen
+                    ),
                     new FormColumn(
                         new Layout(
                             new LayoutGroup(
@@ -288,15 +316,27 @@ class EnrollmentDocument extends Extension implements IModuleInterface
                                     new LayoutColumn(new Well(
                                         new Layout(
                                             new LayoutGroup(array(
-                                                new LayoutRow(array(
+                                                new LayoutRow(
                                                     new LayoutColumn(
                                                         new TextField('Data[FirstLastName]', 'Vorname, Name',
-                                                            'Name, Vorname des Schülers/der Schülerin')
-                                                        , 8),
+                                                            'Vorname, Name '.
+                                                            ($Gender == 'Männlich'
+                                                                ? 'des Schülers'
+                                                                : ($Gender == 'Weiblich'
+                                                                    ? 'der Schülerin'
+                                                                    : 'des Schülers/der Schülerin')
+                                                            ))
+                                                        , 12)
+                                                ),
+                                                new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        new TextField('Data[Birthday]', 'Geburtstag',
+                                                        new TextField('Data[Birthday]', 'Geboren am',
                                                             'Geburtstag')
-                                                        , 4),
+                                                        , 6),
+                                                    new LayoutColumn(
+                                                        new TextField('Data[Birthplace]', 'Geboren in',
+                                                            'Geburtstag')
+                                                        , 6),
                                                 )),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
@@ -318,20 +358,38 @@ class EnrollmentDocument extends Extension implements IModuleInterface
                                                             'Besucht zur Zeit die Klasse')
                                                         , 6),
                                                     new LayoutColumn(
-                                                        new TextField('Data[LeaveDate]', 'Postleitzahl',
-                                                            'Postleitzahl')
+                                                        new TextField('Data[LeaveDate]', 'Vorraussichtlich bis',
+                                                            'Vorraussichtlich bis')
                                                         , 6)
                                                 )),
                                             ))
+                                        )
+                                    )),
+                                    new LayoutColumn(
+                                        new Title('Dokument')
+                                    ),
+                                    new LayoutColumn(new Well(
+                                        new Layout(
+                                            new LayoutGroup(
+                                                new LayoutRow(array(
+                                                    new LayoutColumn(
+                                                        new TextField('Data[Place]', 'Ort', 'Ort')
+                                                        , 6),
+                                                    new LayoutColumn(
+                                                        new DatePicker('Data[Date]', 'Datum', 'Datum')
+                                                        , 6)
+                                                ))
+                                            )
                                         )
                                     )),
                                 ))
                             )
                         )
                     )
-                ),
+                )),
             ))
-            , new Primary('Download', new Download(), true), '\Api\Document\Standard\AccidentReport\Create'
+            , new Primary('Download', new Download(), true),
+            '\Api\Document\Standard\EnrollmentDocument\Create' // ToDo zusätzliche Daten mitgeben
         );
     }
 }

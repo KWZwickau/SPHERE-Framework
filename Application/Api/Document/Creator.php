@@ -13,6 +13,7 @@ use MOC\V\Component\Document\Document as PdfDocument;
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Document\Standard\Repository\AccidentReport\AccidentReport;
+use SPHERE\Application\Api\Document\Standard\Repository\EnrollmentDocument;
 use SPHERE\Application\Api\Document\Standard\Repository\GradebookOverview;
 use SPHERE\Application\Api\Document\Standard\Repository\SignOutCertificate\SignOutCertificate;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\AbstractStudentCard;
@@ -248,6 +249,9 @@ class Creator extends Extension
         ) {
 
             $Document = false;
+            if ($DocumentName == 'EnrollmentDocument') {
+                $Document = new EnrollmentDocument($Data);
+            }
             if ($DocumentName == 'StudentTransfer') {
                 $Document = new StudentTransfer\StudentTransfer($Data);
             }

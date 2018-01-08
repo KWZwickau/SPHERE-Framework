@@ -112,7 +112,11 @@ class Frontend extends Extension implements IFrontendInterface
         if ($hasApiRight && $tblPerson != null) {
             $Info = new External(
                 'Herunterladen der Schülerkartei', 'SPHERE\Application\Api\Document\Standard\StudentCard\Create',
-                new Download(), array('PersonId' => $tblPerson->getId()), 'Schülerkartei herunterladen');
+                    new Download(), array('PersonId' => $tblPerson->getId()), 'Schülerkartei herunterladen')
+                .new External(
+                    'Erstellen der Schulbescheinigung', '\Document\Standard\EnrollmentDocument\Fill',
+                    new Download(), array('PersonId' => $tblPerson->getId()),
+                    'Erstellen und Herunterladen einer Schulbescheinigung');
         }
 
         $this->setYearAndDivisionForMassReplace($tblPerson, $Year, $Division);

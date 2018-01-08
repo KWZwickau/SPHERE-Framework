@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 09.09.2016
- * Time: 10:06
- */
-
 namespace SPHERE\Application\Api\Document\Standard\Repository;
 
 use SPHERE\Application\Api\Document\AbstractDocument;
@@ -15,6 +8,8 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Person\Person;
 
 /**
  * Class EnrollmentDocument
@@ -23,6 +18,78 @@ use SPHERE\Application\Document\Generator\Repository\Slice;
  */
 class EnrollmentDocument extends AbstractDocument
 {
+
+    /**
+     * AccidentReport constructor.
+     *
+     * @param array $Data
+     */
+    function __construct($Data)
+    {
+
+        $this->setFieldValue($Data);
+    }
+
+    /**
+     * @var array
+     */
+    private $FieldValue = array();
+
+    /**
+     * @param $DataPost
+     *
+     * @return $this
+     */
+    private function setFieldValue($DataPost)
+    {
+
+        //getPerson
+        $this->FieldValue['PersonId'] = $PersonId = (isset($DataPost['PersonId']) && $DataPost['PersonId'] != '' ? $DataPost['PersonId'] : false);
+        $this->FieldValue['Gender'] = false;
+        if ($PersonId) {
+            if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
+                //get Gender
+                if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
+                    if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
+                        if (($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())) {
+                            $this->FieldValue['Gender'] = $tblCommonGender->getName();
+                        }
+                    }
+                }
+            }
+        }
+
+        // school
+        $this->FieldValue['School'] = (isset($DataPost['School']) && $DataPost['School'] != '' ? $DataPost['School'] : '&nbsp;');
+        $this->FieldValue['SchoolExtended'] = (isset($DataPost['SchoolExtended']) && $DataPost['SchoolExtended'] != '' ? $DataPost['SchoolExtended'] : '&nbsp;');
+        $this->FieldValue['SchoolAddressStreet'] = (isset($DataPost['SchoolAddressStreet']) && $DataPost['SchoolAddressStreet'] != '' ? $DataPost['SchoolAddressStreet'] : '&nbsp;');
+        $this->FieldValue['SchoolAddressCity'] = (isset($DataPost['SchoolAddressCity']) && $DataPost['SchoolAddressCity'] != '' ? $DataPost['SchoolAddressCity'] : '&nbsp;');
+        // student
+        $this->FieldValue['FirstLastName'] = (isset($DataPost['FirstLastName']) && $DataPost['FirstLastName'] != '' ? $DataPost['FirstLastName'] : '&nbsp;');
+        $this->FieldValue['Birthday'] = (isset($DataPost['Birthday']) && $DataPost['Birthday'] != '' ? $DataPost['Birthday'] : '&nbsp;');
+        $this->FieldValue['AddressStreet'] = (isset($DataPost['AddressStreet']) && $DataPost['AddressStreet'] != '' ? $DataPost['AddressStreet'] : '&nbsp;');
+        $this->FieldValue['AddressPLZ'] = (isset($DataPost['AddressPLZ']) && $DataPost['AddressPLZ'] != '' ? $DataPost['AddressPLZ'] : '&nbsp;');
+        $this->FieldValue['AddressCity'] = (isset($DataPost['AddressCity']) && $DataPost['AddressCity'] != '' ? $DataPost['AddressCity'] : '&nbsp;');
+        $this->FieldValue['Birthday'] = (isset($DataPost['Birthday']) && $DataPost['Birthday'] != '' ? $DataPost['Birthday'] : '&nbsp;');
+        $this->FieldValue['Birthplace'] = (isset($DataPost['Birthplace']) && $DataPost['Birthplace'] != '' ? $DataPost['Birthplace'] : '&nbsp;');
+
+        $this->FieldValue['Division'] = (isset($DataPost['Division']) && $DataPost['Division'] != '' ? $DataPost['Division'] : '&nbsp;');
+        $this->FieldValue['LeaveDate'] = (isset($DataPost['LeaveDate']) && $DataPost['LeaveDate'] != '' ? $DataPost['LeaveDate'] : '&nbsp;');
+        // common
+
+        $this->FieldValue['Male'] = 'false';
+        $this->FieldValue['Female'] = 'false';
+        if (isset($this->FieldValue['Gender']) && $this->FieldValue['Gender'] == 'Männlich') {
+            $this->FieldValue['Male'] = 'true';
+        } elseif (isset($this->FieldValue['Gender']) && $this->FieldValue['Gender'] == 'Weiblich') {
+            $this->FieldValue['Female'] = 'true';
+        }
+        // last line
+        $this->FieldValue['Place'] = (isset($DataPost['Place']) && $DataPost['Place'] != '' ? $DataPost['Place'].', ' : '&nbsp;');
+        $this->FieldValue['Date'] = (isset($DataPost['Date']) && $DataPost['Date'] != '' ? $DataPost['Date'] : '&nbsp;');
+
+        return $this;
+    }
 
     /**
      * @return string
@@ -65,23 +132,11 @@ class EnrollmentDocument extends AbstractDocument
                                     )
                                     ->addSection((new Section())
                                         ->addElementColumn((new Element())
-                                            ->setContent('
-                                {% if(Content.Student.Company is not empty) %}
-                                    {{ Content.Student.Company }} 
-                                    {% if(Content.Student.Company2 is not empty) %}
-                                        <br/> {{ Content.Student.Company2 }}
-                                    {% else %}
-                                        &nbsp;
-                                    {% endif %}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}
-                                {% if(Content.Student.CompanyAddress is not empty) %}
-                                    <br/> {{ Content.Student.CompanyAddress }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %} 
-                                ')
+                                            ->setContent($this->FieldValue['School']
+                                                .($this->FieldValue['SchoolExtended'] != '&nbsp;' ? '<br/>'.$this->FieldValue['SchoolExtended'] : '')
+                                                .($this->FieldValue['SchoolAddressStreet'] != '&nbsp;' ? '<br/>'.$this->FieldValue['SchoolAddressStreet'] : '')
+                                                .($this->FieldValue['SchoolAddressCity'] != '&nbsp;' ? '<br/>'.$this->FieldValue['SchoolAddressCity'] : '')
+                                            )
                                             ->styleHeight('140px')
                                         )
                                     ), '60%'
@@ -101,10 +156,10 @@ class EnrollmentDocument extends AbstractDocument
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
                                     ->setContent('
-                                {% if Content.Person.Common.BirthDates.Gender == 2 %}
+                                {% if '.$this->FieldValue['Female'].' == "true" %}
                                     Die Schülerin
                                 {% else %}
-                                    {% if Content.Person.Common.BirthDates.Gender == 1 %}
+                                    {% if '.$this->FieldValue['Male'].' == "true" %}
                                         Der Schüler
                                     {% else %}
                                         Die Schülerin/Der Schüler
@@ -114,13 +169,7 @@ class EnrollmentDocument extends AbstractDocument
                                     ->stylePaddingTop('50px')
                                     , '35%')
                                 ->addElementColumn((new Element())
-                                    ->setContent('
-                                {% if( Content.Person.Data.Name.First is not empty) %}
-                                    {{ Content.Person.Data.Name.First }} {{ Content.Person.Data.Name.Last }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}'
-                                    )
+                                    ->setContent($this->FieldValue['FirstLastName'])
                                     ->stylePaddingTop('50px')
                                     ->styleBorderBottom()
                                     , '65%')
@@ -131,12 +180,7 @@ class EnrollmentDocument extends AbstractDocument
                                     ->stylePaddingTop('30px')
                                     , '35%')
                                 ->addElementColumn((new Element())
-                                    ->setContent('
-                                {% if(Content.Person.Common.BirthDates.Birthday is not empty) %}
-                                    {{ Content.Person.Common.BirthDates.Birthday|date("d.m.Y") }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}')
+                                    ->setContent($this->FieldValue['Birthday'])
                                     ->stylePaddingTop('30px')
                                     ->styleBorderBottom()
                                     , '65%')
@@ -147,12 +191,7 @@ class EnrollmentDocument extends AbstractDocument
                                     ->stylePaddingTop('30px')
                                     , '35%')
                                 ->addElementColumn((new Element())
-                                    ->setContent('
-                                {% if(Content.Person.Common.BirthDates.Birthplace is not empty) %}
-                                    {{ Content.Person.Common.BirthDates.Birthplace }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}')
+                                    ->setContent($this->FieldValue['Birthplace'])
                                     ->stylePaddingTop('30px')
                                     ->styleBorderBottom()
                                     , '65%')
@@ -163,13 +202,7 @@ class EnrollmentDocument extends AbstractDocument
                                     ->stylePaddingTop('30px')
                                     , '35%')
                                 ->addElementColumn((new Element())
-                                    ->setContent('
-                               {% if(Content.Person.Address.Street.Name) %}
-                                    {{ Content.Person.Address.Street.Name }}
-                                    {{ Content.Person.Address.Street.Number }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}')
+                                    ->setContent($this->FieldValue['AddressStreet'])
                                     ->stylePaddingTop('30px')
                                     ->styleBorderBottom()
                                     , '65%')
@@ -180,13 +213,7 @@ class EnrollmentDocument extends AbstractDocument
                                     ->stylePaddingTop('30px')
                                     , '35%')
                                 ->addElementColumn((new Element())
-                                    ->setContent('
-                               {% if(Content.Person.Address.City.Name) %}
-                                    {{ Content.Person.Address.City.Code }}
-                                    {{ Content.Person.Address.City.Name }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}')
+                                    ->setContent($this->FieldValue['AddressPLZ'].' '.$this->FieldValue['AddressCity'])
                                     ->stylePaddingTop('30px')
                                     ->styleBorderBottom()
                                     , '65%')
@@ -197,12 +224,7 @@ class EnrollmentDocument extends AbstractDocument
                                     ->stylePaddingTop('30px')
                                     , '35%')
                                 ->addElementColumn((new Element())
-                                    ->setContent('
-                               {% if(Content.Student.Division.Name) %}
-                                    {{ Content.Student.Division.Name }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}')
+                                    ->setContent($this->FieldValue['Division'])
                                     ->stylePaddingTop('30px')
                                     ->styleBorderBottom()
                                     , '65%')
@@ -210,10 +232,10 @@ class EnrollmentDocument extends AbstractDocument
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
                                     ->setContent('
-                                {% if Content.Person.Common.BirthDates.Gender == 2 %}
+                                {% if '.$this->FieldValue['Female'].' == "true" %}
                                     Sie
                                 {% else %}
-                                    {% if Content.Person.Common.BirthDates.Gender == 1 %}
+                                    {% if '.$this->FieldValue['Male'].' == "true" %}
                                         Er
                                     {% else %}
                                         Sie/Er
@@ -224,24 +246,19 @@ class EnrollmentDocument extends AbstractDocument
                                     ->stylePaddingTop('100px')
                                     , '35%')
                                 ->addElementColumn((new Element())
-                                    ->setContent('
-                                {% if(Content.Student.LeaveDate) %}
-                                    {{ Content.Student.LeaveDate }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}
-                            ')
+                                    ->setContent($this->FieldValue['LeaveDate'])
                                     ->stylePaddingTop('100px')
                                     ->styleBorderBottom()
                                     , '65%')
                             )
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
+                                    ->setContent($this->FieldValue['Male'])
                                     ->setContent('
-                                {% if Content.Person.Common.BirthDates.Gender == 2 %}
+                                {% if '.$this->FieldValue['Female'].' == "true" %}
                                     Schülerin
                                 {% else %}
-                                    {% if Content.Person.Common.BirthDates.Gender == 1 %}
+                                    {% if '.$this->FieldValue['Male'].' == "true" %}
                                         Schüler
                                     {% else %}
                                         Schülerin/Schüler
@@ -254,13 +271,7 @@ class EnrollmentDocument extends AbstractDocument
                             )
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
-                                    ->setContent('
-                                {% if(Content.Document.PlaceDate) %}
-                                    {{ Content.Document.PlaceDate }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}
-                            ')
+                                    ->setContent($this->FieldValue['Place'].$this->FieldValue['Date'])
                                     ->stylePaddingTop('100px')
                                     ->styleBorderBottom()
                                     , '45%')
