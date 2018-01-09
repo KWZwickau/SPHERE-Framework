@@ -175,9 +175,11 @@ class Service extends AbstractService
         }
 
         if ($Data !== null && !empty($Data)) {
+            $saveCertificatesForStudents = array();
+            $tblConsumerBySession = Consumer::useService()->getConsumerBySession();
             foreach ($Data['Division'] as $divisionId => $value) {
                 if (($tblDivision = Division::useService()->getDivisionById($divisionId))) {
-                    Prepare::useService()->createPrepareData(
+                    if (($tblPrepare = Prepare::useService()->createPrepareData(
                         $tblDivision,
                         $tblGenerateCertificate->getDate(),
                         $tblGenerateCertificate->getName(),
@@ -190,8 +192,84 @@ class Service extends AbstractService
                             ? $tblGenerateCertificate->getServiceTblAppointedDateTask() : null,
                         $tblGenerateCertificate->getServiceTblBehaviorTask()
                             ? $tblGenerateCertificate->getServiceTblBehaviorTask() : null
-                    );
+                    ))
+                    ) {
+
+                        if (($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))) {
+                            foreach ($tblPersonList as $tblPerson) {
+                                // Template bereits gesetzt
+                                if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
+                                    $tblPerson))
+                                ) {
+                                    if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())) {
+                                        continue;
+                                    }
+                                }
+
+                                if ($tblConsumerBySession) {
+                                    // Eigene Vorlage
+                                    if (($certificateList = $this->getPossibleCertificates($tblPrepare, $tblPerson,
+                                        $tblConsumerBySession))
+                                    ) {
+                                        if (count($certificateList) == 1) {
+                                            /** @var TblCertificate $tblCertificate */
+                                            $tblCertificate = current($certificateList);
+                                            $saveCertificatesForStudents[$tblPrepare->getId()][$tblPerson->getId()] = $tblCertificate;
+                                        } elseif (count($certificateList) > 1) {
+                                            /** @var TblCertificate $certificate */
+                                            $ChosenCertificate = false;
+                                            foreach ($certificateList as $certificate) {
+                                                if ($certificate->isChosenDefault()) {
+                                                    $ChosenCertificate = $certificate;
+                                                    break;
+                                                }
+                                            }
+                                            if ($ChosenCertificate) {
+                                                $tblCertificate = $ChosenCertificate;
+                                                $saveCertificatesForStudents[$tblPrepare->getId()][$tblPerson->getId()] = $tblCertificate;
+                                            }
+                                        } else {
+                                            continue;
+                                        }
+                                        // Standard Vorlagen
+                                    } elseif (($certificateList = $this->getPossibleCertificates($tblPrepare, $tblPerson))) {
+                                        if (count($certificateList) == 1) {
+                                            /** @var TblCertificate $tblCertificate */
+                                            $tblCertificate = current($certificateList);
+                                            if (!isset($certificateNameList[$tblCertificate->getId()])) {
+                                                $tblConsumer = $tblCertificate->getServiceTblConsumer();
+                                                $certificateNameList[$tblCertificate->getId()]
+                                                    = ($tblConsumer ? $tblConsumer->getAcronym() . ' ' : '')
+                                                    . $tblCertificate->getName() . ($tblCertificate->getDescription()
+                                                        ? ' ' . $tblCertificate->getDescription() : '');
+                                            }
+                                            $saveCertificatesForStudents[$tblPrepare->getId()][$tblPerson->getId()] = $tblCertificate;
+                                        } elseif (count($certificateList) > 1) {
+                                            /** @var TblCertificate $certificate */
+                                            $ChosenCertificate = false;
+                                            foreach ($certificateList as $certificate) {
+                                                if ($certificate->isChosenDefault()) {
+                                                    $ChosenCertificate = $certificate;
+                                                    break;
+                                                }
+                                            }
+                                            if ($ChosenCertificate) {
+                                                $tblCertificate = $ChosenCertificate;
+                                                $saveCertificatesForStudents[$tblPrepare->getId()][$tblPerson->getId()] = $tblCertificate;
+                                            }
+                                        } else {
+                                            continue;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
+            }
+
+            if (!empty($saveCertificatesForStudents)) {
+                Prepare::useService()->createPrepareStudentSetBulkTemplates($saveCertificatesForStudents);
             }
         }
 
@@ -261,15 +339,13 @@ class Service extends AbstractService
                     }
                 }
 
+                // todo entfernen nach Februar 2018
                 if ($tblConsumerBySession) {
                     // Eigene Vorlage
                     if (($certificateList = $this->getPossibleCertificates($tblPrepare, $tblPerson,
                         $tblConsumerBySession))
                     ) {
                         if (count($certificateList) == 1) {
-                            // todo bulksave für CertificateUpdate
-                            // Aus Performance gründen Speicherung beim Aufruf in der Zeugnisvorbereitung
-//                            Prepare::useService()->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, current($certificateList));
                             $countTemplates++;
                             /** @var TblCertificate $tblCertificate */
                             $tblCertificate = current($certificateList);
@@ -298,6 +374,7 @@ class Service extends AbstractService
                                         .$tblCertificate->getName().($tblCertificate->getDescription()
                                             ? ' '.$tblCertificate->getDescription() : '');
                                 }
+                                $saveCertificatesForStudents[$tblPrepare->getId()][$tblPerson->getId()] = $tblCertificate;
                             }
                         } else {
                             continue;
@@ -305,8 +382,6 @@ class Service extends AbstractService
                         // Standard Vorlagen
                     } elseif (($certificateList = $this->getPossibleCertificates($tblPrepare, $tblPerson))) {
                         if (count($certificateList) == 1) {
-                            // Aus Performance gründen Speicherung beim Aufruf in der Zeugnisvorbereitung
-//                            Prepare::useService()->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, current($certificateList));
                             $countTemplates++;
                             /** @var TblCertificate $tblCertificate */
                             $tblCertificate = current($certificateList);
