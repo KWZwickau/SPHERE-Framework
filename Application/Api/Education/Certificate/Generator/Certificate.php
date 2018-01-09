@@ -1674,9 +1674,18 @@ abstract class Certificate extends Extension
                     && $tblConsumer->getAcronym() == 'ESZC'
                 ) {
                     if (strpos(strtolower($tblSubject->getName()), 'naturwissen') !== false
-                    && $this->getTblDivision()
-                    && $this->getTblDivision()->getTblLevel()
-                    && !preg_match('!(0?(8))!is', $this->getTblDivision()->getTblLevel()->getName())) {
+                        && $this->getTblDivision()
+                        && $this->getTblDivision()->getTblLevel()
+                        && !preg_match('!(0?(8))!is', $this->getTblDivision()->getTblLevel()->getName())
+                    ) {
+                        $profileAppendText = 'Profil mit informatischer Bildung';
+                    }
+                // Bei Tarandt für alle Profilfe
+                } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'CSW') {
+                    if ($this->getTblDivision()
+                        && $this->getTblDivision()->getTblLevel()
+                        && !preg_match('!(0?(8))!is', $this->getTblDivision()->getTblLevel()->getName())
+                    ) {
                         $profileAppendText = 'Profil mit informatischer Bildung';
                     }
                 } elseif (strpos(strtolower($tblSubject->getName()), 'wissen') !== false
