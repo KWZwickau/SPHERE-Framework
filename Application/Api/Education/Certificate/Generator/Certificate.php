@@ -2270,7 +2270,7 @@ abstract class Certificate extends Extension
         $fontFamily = 'MetaPro'
     ) {
 
-        $tblPerson = Person::useService()->getPersonById($personId);
+//        $tblPerson = Person::useService()->getPersonById($personId);
 
         $widthText = (50 - $GradeFieldWidth - 4) . '%';
         $widthGrade = $GradeFieldWidth . '%';
@@ -2301,24 +2301,24 @@ abstract class Certificate extends Extension
                         $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
                             = $tblSubject->getName();
 
-                        // Liberation?
-                        if (
-                            $tblPerson
-                            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
-                            && ($tblStudentLiberationCategory = $tblCertificateSubject->getServiceTblStudentLiberationCategory())
-                        ) {
-                            $tblStudentLiberationAll = Student::useService()->getStudentLiberationAllByStudent($tblStudent);
-                            if ($tblStudentLiberationAll) {
-                                foreach ($tblStudentLiberationAll as $tblStudentLiberation) {
-                                    if (($tblStudentLiberationType = $tblStudentLiberation->getTblStudentLiberationType())) {
-                                        $tblStudentLiberationType->getTblStudentLiberationCategory();
-                                        if ($tblStudentLiberationCategory->getId() == $tblStudentLiberationType->getTblStudentLiberationCategory()->getId()) {
-                                            $this->Grade['Data'][$tblSubject->getAcronym()] = $tblStudentLiberationType->getName();
-                                        }
-                                    }
-                                }
-                            }
-                        }
+//                        // Liberation?
+//                        if (
+//                            $tblPerson
+//                            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+//                            && ($tblStudentLiberationCategory = $tblCertificateSubject->getServiceTblStudentLiberationCategory())
+//                        ) {
+//                            $tblStudentLiberationAll = Student::useService()->getStudentLiberationAllByStudent($tblStudent);
+//                            if ($tblStudentLiberationAll) {
+//                                foreach ($tblStudentLiberationAll as $tblStudentLiberation) {
+//                                    if (($tblStudentLiberationType = $tblStudentLiberation->getTblStudentLiberationType())) {
+//                                        $tblStudentLiberationType->getTblStudentLiberationCategory();
+//                                        if ($tblStudentLiberationCategory->getId() == $tblStudentLiberationType->getTblStudentLiberationCategory()->getId()) {
+//                                            $this->Grade['Data'][$tblSubject->getAcronym()] = $tblStudentLiberationType->getName();
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
                     }
                 }
             }

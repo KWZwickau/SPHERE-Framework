@@ -13,7 +13,6 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeTyp
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
@@ -207,27 +206,27 @@ class Service extends AbstractService
                         // Update
                         (new Data($this->getBinding()))->updateCertificateSubject($tblCertificateSubject,
                             $tblSubject,
-                            ((isset($Field['IsEssential']) && $Field['IsEssential']) ? true : false),
-                            ((isset($Field['Liberation']) && $Field['Liberation'])
-                                ? (Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
-                                    ? Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
-                                    : null
-                                )
-                                : null
-                            )
+                            ((isset($Field['IsEssential']) && $Field['IsEssential']) ? true : false)
+//                            , ((isset($Field['Liberation']) && $Field['Liberation'])
+//                                ? (Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
+//                                    ? Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
+//                                    : null
+//                                )
+//                                : null
+//                            )
                         );
                     } else {
                         // Create
                         (new Data($this->getBinding()))->createCertificateSubject($tblCertificate,
                             $LaneIndex, $LaneRanking, $tblSubject,
-                            ((isset($Field['IsEssential']) && $Field['IsEssential']) ? true : false),
-                            ((isset($Field['Liberation']) && $Field['Liberation'])
-                                ? (Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
-                                    ? Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
-                                    : null
-                                )
-                                : null
-                            )
+                            ((isset($Field['IsEssential']) && $Field['IsEssential']) ? true : false)
+//                            , ((isset($Field['Liberation']) && $Field['Liberation'])
+//                                ? (Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
+//                                    ? Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
+//                                    : null
+//                                )
+//                                : null
+//                            )
                         );
                     }
                 } else {
