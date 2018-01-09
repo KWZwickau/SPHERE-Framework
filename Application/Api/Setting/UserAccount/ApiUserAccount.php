@@ -97,6 +97,9 @@ class ApiUserAccount extends Extension implements IApiInterface
         return $Pipeline;
     }
 
+    /**
+     * @return Layout
+     */
     public function openAccountModal()
     {
 
@@ -115,19 +118,28 @@ class ApiUserAccount extends Extension implements IApiInterface
         );
     }
 
+    /**
+     * @param array $PersonIdArray
+     * @param       $Type
+     *
+     * @return Pipeline
+     */
     public function serviceAccount($PersonIdArray = array(), $Type)
     {
 
         $result = Account::useService()->createAccount($PersonIdArray, $Type);
-        return self::pipelineSaveAccountResult($result);
+        return self::pipelineSaveAccountResult($result, $Type);
     }
 
     /**
-     * @var array $result
+     *
+     * @var array    $result
+     *
+     * @param string $Type
      *
      * @return Pipeline
      */
-    public static function pipelineSaveAccountResult($result = array())
+    public static function pipelineSaveAccountResult($result = array(), $Type = 'S')
     {
         $Pipeline = new Pipeline();
         $Emitter = new ServerEmitter(self::receiverAccountModal(), self::getEndpoint());
@@ -135,14 +147,21 @@ class ApiUserAccount extends Extension implements IApiInterface
             self::API_TARGET => 'openAccountModalResult'
         ));
         $Emitter->setPostPayload(array(
-            'result' => $result
+            'result' => $result,
+            'Type'   => $Type
         ));
         $Pipeline->appendEmitter($Emitter);
 
         return $Pipeline;
     }
 
-    public function openAccountModalResult($result = array())
+    /**
+     * @param array  $result
+     * @param string $Type
+     *
+     * @return string
+     */
+    public function openAccountModalResult($result = array(), $Type = 'S')
     {
 
         $Content = '';
@@ -160,12 +179,18 @@ class ApiUserAccount extends Extension implements IApiInterface
         if (isset($result['SuccessCount']) && $result['SuccessCount'] > 0) {
             $Content .= new SuccessMessage($result['SuccessCount'].' Benutzer wurden erfolgreich angelegt.');
         }
+
+        $BackwardRoute = '/Setting/User/Account/Student/Add';
+        if ($Type == 'C') {
+            $BackwardRoute = '/Setting/User/Account/Custody/Add';
+        }
+
         if ($Content == '') {
             $Content = new DangerMessage('Es wurden keine Benutzer angelegt')
                 .new Container(new Layout(
                     new LayoutGroup(
                         new LayoutRow(
-                            new LayoutColumn(new Center(new Standard('Zurück', '/Setting/User/Account/Student/Add')))
+                            new LayoutColumn(new Center(new Standard('Zurück', $BackwardRoute)))
                         )
                     )
                 ));
@@ -173,7 +198,7 @@ class ApiUserAccount extends Extension implements IApiInterface
             $Content .= new Container(new Layout(
                 new LayoutGroup(
                     new LayoutRow(
-                        new LayoutColumn(new Center(new Standard('Zurück', '/Setting/User/Account/Student/Add')
+                        new LayoutColumn(new Center(new Standard('Zurück', $BackwardRoute)
                             .new Standard('Export', '/Setting/User/Account/Export', null, array('Time' => $Time))))
                     )
                 )

@@ -16,7 +16,6 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Relationship\Relationship;
-use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson;
 use SPHERE\Application\Setting\Authorization\Account\Account as AccountAuthorization;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -54,6 +53,7 @@ use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
 use SPHERE\Common\Frontend\Message\Repository\Danger as DangerMessage;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success as SuccessMessage;
 use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Table\Repository\Title;
@@ -138,7 +138,8 @@ class Frontend extends Extension implements IFrontendInterface
         $form = $this->getStudentFilterForm();
 
         $Result = $this->getStudentFilterResult($Person, $Year, $Division);
-        $TableContent = $this->getStudentTableContent($Result);
+        $MaxResult = 800;
+        $TableContent = $this->getStudentTableContent($Result, $MaxResult);
 
         $Table = new TableData($TableContent, null, array(
             'Check'         => 'Auswahl',
@@ -193,6 +194,15 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(new Well(
                             $form
                         ))
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            (count($TableContent) >= $MaxResult
+                                ? new WarningMessage(new WarningIcon().' Maximalanzahl der Personen erreicht.
+                                Die Filterung ist nicht komplett!')
+                                : ''
+                            )
+                        )
                     ),
                     new LayoutRow(
                         new LayoutColumn(
@@ -257,6 +267,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Klasse: Gruppe', array('Name' => Division::useService()->getDivisionAll()))
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
+
+                    new FormColumn(
+                        new Panel('Filter-Information', new Info('Das Filterlimit beträgt 800 Personen')
+                            .new Info('Es werden nur Personen ohne Account abgebildet')
+                            , Panel::PANEL_TYPE_INFO)
+                        , 4),
                 )),
                 new FormRow(
                     new FormColumn(
@@ -269,9 +285,9 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Person
-     * @param $Year
-     * @param $Division
+     * @param array $Person
+     * @param array $Year
+     * @param array $Division
      *
      * @return array
      */
@@ -354,14 +370,16 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param array $Result
+     * @param int   $MaxResult
      *
      * @return array
      */
-    public function getStudentTableContent($Result)
+    public function getStudentTableContent($Result, $MaxResult = 500)
     {
 
         $SearchResult = array();
         if (!empty($Result)) {
+            $countRow = 0;
             /**
              * @var int                                $Index
              * @var ViewPerson[]|ViewDivisionStudent[] $Row
@@ -424,6 +442,10 @@ class Frontend extends Extension implements IFrontendInterface
                     // ignore duplicated Person
                     if ($DataPerson['Name']) {
                         if (!array_key_exists($DataPerson['TblPerson_Id'], $SearchResult)) {
+                            if ($countRow >= $MaxResult) {
+                                break;
+                            }
+                            $countRow++;
                             $SearchResult[$DataPerson['TblPerson_Id']] = $DataPerson;
                         }
                     }
@@ -498,7 +520,8 @@ class Frontend extends Extension implements IFrontendInterface
         $form = $this->getCustodyFilterForm();
 
         $Result = $this->getStudentFilterResult($Person, $Year, $Division);
-        $TableContent = $this->getCustodyTableContent($Result);
+        $MaxResult = 800;
+        $TableContent = $this->getCustodyTableContent($Result, $MaxResult);
 
         $Table = new TableData($TableContent, null, array(
             'Check'   => 'Auswahl',
@@ -550,6 +573,15 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(new Well(
                             $form
                         ))
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            (count($TableContent) >= $MaxResult
+                                ? new WarningMessage(new WarningIcon().' Maximalanzahl der Personen erreicht.
+                                Die Filterung ist nicht komplett!')
+                                : ''
+                            )
+                        )
                     ),
                     new LayoutRow(
                         new LayoutColumn(
@@ -611,6 +643,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Klasse: Gruppe', array('Name' => Division::useService()->getDivisionAll()))
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
+                    new FormColumn(
+                        new Panel('Filter-Information', new Info('Das Filterlimit beträgt 800 Personen')
+                            .new Info('Es werden nur Personen ohne Account abgebildet')
+                            , Panel::PANEL_TYPE_INFO)
+                        , 4),
                 )),
                 new FormRow(
                     new FormColumn(
@@ -624,20 +661,21 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param array $Result
+     * @param int   $MaxResult
      *
      * @return array
      */
-    public function getCustodyTableContent($Result)
+    public function getCustodyTableContent($Result, $MaxResult = 500)
     {
 
         $SearchResult = array();
         if (!empty($Result)) {
+            $countRow = 0;
             /**
              * @var int                                $Index
              * @var ViewPerson[]|ViewDivisionStudent[] $Row
              */
             foreach ($Result as $Index => $Row) {
-
                 /** @var ViewPerson $DataPerson */
                 $DataPerson = $Row[1]->__toArray();
 //                /** @var ViewDivisionStudent $DivisionStudent */
@@ -645,7 +683,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblPersonStudent = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
                 $tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPersonStudent);
                 if ($tblToPersonList) {
-                    array_walk($tblToPersonList, function (TblToPerson $tblToPerson) use (&$SearchResult) {
+                    foreach ($tblToPersonList as $tblToPerson) {
                         $tblType = Relationship::useService()->getTypeByName('Sorgeberechtigt');
                         $tblPerson = $tblToPerson->getServiceTblPersonFrom();
                         if ($tblToPerson->getTblType() && $tblToPerson->getTblType()->getId() == $tblType->getId()) {
@@ -668,11 +706,18 @@ class Frontend extends Extension implements IFrontendInterface
                             if (!AccountAuthorization::useService()->getAccountAllByPerson($tblPerson)) {
                                 // ignore duplicated Person
                                 if (!array_key_exists($tblPerson->getId(), $SearchResult)) {
+                                    if ($countRow >= $MaxResult) {
+                                        break;
+                                    }
+                                    $countRow++;
                                     $SearchResult[$tblPerson->getId()] = $DataPerson;
                                 }
                             }
                         }
-                    });
+                    }
+                    if ($countRow >= $MaxResult) {
+                        break;
+                    }
                 }
             }
         }
