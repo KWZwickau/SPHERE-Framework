@@ -2442,7 +2442,7 @@ class Frontend extends FrontendScoreRule
 
                                                 if ($tblGradeList) {
                                                     // Sortieren der Zensuren
-                                                    $gradeListSorted = Gradebook::useService()->getSortedGradeList($tblGradeList);
+                                                    $gradeListSorted = $this->getSorter($tblGradeList)->sortObjectBy('DateForSorter', new DateTimeSorter());
 
                                                     /**@var TblGrade $tblGrade **/
                                                     foreach ($gradeListSorted as $tblGrade) {
