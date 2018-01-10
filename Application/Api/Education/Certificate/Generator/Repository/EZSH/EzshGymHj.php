@@ -69,8 +69,8 @@ class EzshGymHj extends EzshStyle
                     ->addSectionList(
                         self::getEZSHGradeInfo(false)
                     )
-                    ->addElement((new Element())
-                        ->styleMarginTop('70px')
+                    ->addSectionList(
+                        self::getEZSHArrangement($personId)
                     )
                     ->addSectionList(
                         self::getEZSHMissing($personId)

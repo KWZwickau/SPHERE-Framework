@@ -2775,7 +2775,7 @@ class Data extends AbstractData
                             $this->createCertificateField($tblCertificate, $FieldName, 2500);
                         }
                         // Begrenzung Bemerkungsfeld
-                        $FieldName = 'Remark';
+                        $FieldName = 'RemarkWithoutTeam';
                         if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
                             $this->createCertificateField($tblCertificate, $FieldName, 1000);
                         }
@@ -2827,7 +2827,7 @@ class Data extends AbstractData
                             $this->createCertificateField($tblCertificate, $FieldName, 2500);
                         }
                         // Begrenzung Bemerkungsfeld
-                        $FieldName = 'Remark';
+                        $FieldName = 'RemarkWithoutTeam';
                         if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
                             $this->createCertificateField($tblCertificate, $FieldName, 1000);
                         }
@@ -2870,7 +2870,7 @@ class Data extends AbstractData
                             $this->createCertificateField($tblCertificate, $FieldName, 2500);
                         }
                         // Begrenzung Bemerkungsfeld
-                        $FieldName = 'Remark';
+                        $FieldName = 'RemarkWithoutTeam';
                         if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
                             $this->createCertificateField($tblCertificate, $FieldName, 1000);
                         }

@@ -389,6 +389,7 @@ class Service extends AbstractService
         return array(
             'Content.Input.Remark'             => 'TextArea',
             'Content.Input.SecondRemark'       => 'TextArea',
+            'Content.Input.RemarkWithoutTeam'  => 'TextArea',
             'Content.Input.Rating'             => 'TextArea',
             'Content.Input.TechnicalRating'    => 'TextArea',
             'Content.Input.Survey'             => 'TextArea',
@@ -402,7 +403,8 @@ class Service extends AbstractService
             'Content.Input.IndividualTransfer' => 'TextField',
             'Content.Input.TeamExtra'          => 'TextField',
             'Content.Input.BellSubject'        => 'TextField',
-            'Content.Input.PerformanceGroup'   => 'TextField'
+            'Content.Input.PerformanceGroup'   => 'TextField',
+            'Content.Input.Arrangement'        => 'TextArea'
         );
     }
 
@@ -415,6 +417,7 @@ class Service extends AbstractService
         return array(
             'Content.Input.Remark'             => 'Bemerkungen',
             'Content.Input.SecondRemark'       => 'Bemerkung Seite 2',
+            'Content.Input.RemarkWithoutTeam'  => 'Bemerkungen',
             'Content.Input.Rating'             => 'Einschätzung',
             'Content.Input.TechnicalRating'    => 'Fachliche Einschätzung',
             'Content.Input.Survey'             => 'Gutachten',
@@ -428,7 +431,8 @@ class Service extends AbstractService
             'Content.Input.IndividualTransfer' => 'Versetzungsvermerk',
             'Content.Input.TeamExtra'          => 'Arbeitsgemeinschaften',
             'Content.Input.BellSubject'        => 'Thema BELL',
-            'Content.Input.PerformanceGroup'   => 'Leistungsgruppe'
+            'Content.Input.PerformanceGroup'   => 'Leistungsgruppe',
+            'Content.Input.Arrangement'        => 'Besonderes Arrangement'
         );
     }
 

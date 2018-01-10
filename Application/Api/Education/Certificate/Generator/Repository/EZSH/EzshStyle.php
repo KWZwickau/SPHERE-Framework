@@ -262,6 +262,7 @@ abstract class EzshStyle extends Certificate
      * @param bool|true $isSlice
      * @param array $languagesWithStartLevel
      * @param bool $isTitle
+     * @param bool $showThirdForeignLanguage
      *
      * @return Section[]|Slice
      */
@@ -269,7 +270,8 @@ abstract class EzshStyle extends Certificate
         $personId,
         $isSlice = true,
         $languagesWithStartLevel = array(),
-        $isTitle = true
+        $isTitle = true,
+        $showThirdForeignLanguage = false
     ) {
 
         $tblPerson = Person::useService()->getPersonById($personId);
@@ -306,6 +308,7 @@ abstract class EzshStyle extends Certificate
 
             // add SecondLanguageField, Fach wird aus der Schüleraktte des Schülers ermittelt
             $tblSecondForeignLanguage = false;
+            $tblThirdForeignLanguage = false;
             if (!empty($languagesWithStartLevel)) {
                 if (isset($languagesWithStartLevel['Lane']) && isset($languagesWithStartLevel['Rank'])) {
                     $SubjectStructure[$languagesWithStartLevel['Rank']]
@@ -319,18 +322,28 @@ abstract class EzshStyle extends Certificate
                             && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
                                 $tblStudentSubjectType))
                         ) {
+
                             /** @var TblStudentSubject $tblStudentSubject */
                             foreach ($tblStudentSubjectList as $tblStudentSubject) {
                                 if ($tblStudentSubject->getTblStudentSubjectRanking()
-                                    && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
                                     && ($tblSubjectForeignLanguage = $tblStudentSubject->getServiceTblSubject())
                                 ) {
-                                    $tblSecondForeignLanguage = $tblSubjectForeignLanguage;
-                                    $SubjectStructure[$languagesWithStartLevel['Rank']]
-                                    [$languagesWithStartLevel['Lane']]['SubjectAcronym'] = $tblSubjectForeignLanguage->getAcronym();
-                                    $SubjectStructure[$languagesWithStartLevel['Rank']]
-                                    [$languagesWithStartLevel['Lane']]['SubjectName'] = $tblSubjectForeignLanguage->getName();
+                                    if ($tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2') {
+                                        $tblSecondForeignLanguage = $tblSubjectForeignLanguage;
+                                    } elseif ($tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '3') {
+                                        $tblThirdForeignLanguage = $tblSubjectForeignLanguage;
+                                    }
                                 }
+                            }
+
+                            if ($tblThirdForeignLanguage && $showThirdForeignLanguage) {
+                                $tblSecondForeignLanguage = $tblThirdForeignLanguage;
+                            }
+                            if ($tblSecondForeignLanguage) {
+                                $SubjectStructure[$languagesWithStartLevel['Rank']]
+                                [$languagesWithStartLevel['Lane']]['SubjectAcronym'] = $tblSecondForeignLanguage->getAcronym();
+                                $SubjectStructure[$languagesWithStartLevel['Rank']]
+                                [$languagesWithStartLevel['Lane']]['SubjectName'] = $tblSecondForeignLanguage->getName();
                             }
                         }
                     }
@@ -1107,8 +1120,8 @@ abstract class EzshStyle extends Certificate
         $SectionList[] = $Section;
         $Section = new Section();
         $Section->addElementColumn((new Element())
-            ->setContent('{% if(Content.P'.$personId.'.Input.Remark is not empty) %}
-                    {{ Content.P'.$personId.'.Input.Remark|nl2br }}
+            ->setContent('{% if(Content.P'.$personId.'.Input.RemarkWithoutTeam is not empty) %}
+                    {{ Content.P'.$personId.'.Input.RemarkWithoutTeam|nl2br }}
                 {% else %}
                     &nbsp;
                 {% endif %}')
@@ -1303,6 +1316,38 @@ abstract class EzshStyle extends Certificate
             );
             $SectionList[] = $Section;
         }
+        return $SectionList;
+    }
+
+    /**
+     * @param int    $personId
+     * @param string $Height
+     *
+     * @return Section[]
+     */
+    public function getEZSHArrangement($personId, $Height = '100px')
+    {
+        $SectionList = array();
+        $Section = new Section();
+        $Section->addElementColumn(((new Element())
+            ->setContent('Besonderes Arragement an den Zinzendorf Schulen')
+            ->styleTextSize('14px')
+            ->styleMarginTop('20px')
+            ->styleTextBold()
+            ->stylePaddingBottom('4px')
+        )
+        );
+        $SectionList[] = $Section;
+        $Section = new Section();
+        $Section->addElementColumn((new Element())
+            ->setContent('{% if(Content.P'.$personId.'.Input.Arrangement is not empty) %}
+                    {{ Content.P'.$personId.'.Input.Arrangement|nl2br }}
+                {% else %}
+                    &nbsp;
+                {% endif %}')
+            ->styleHeight($Height)
+        );
+        $SectionList[] = $Section;
         return $SectionList;
     }
 }

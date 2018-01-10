@@ -74,8 +74,8 @@ class EzshMsHj extends EzshStyle
                     ->addSectionList(
                         self::getEZSHGradeInfo()
                     )
-                    ->addElement((new Element())
-                        ->styleMarginTop('45px')
+                    ->addSectionList(
+                        self::getEZSHArrangement($personId, '90px')
                     )
                     ->addSectionList(
                         self::getEZSHMissing($personId)
