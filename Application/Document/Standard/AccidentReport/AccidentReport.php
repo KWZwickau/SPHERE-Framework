@@ -685,9 +685,9 @@ class AccidentReport extends Extension
                                                         new Bold('War diese Person Augenzeuge?')
                                                         .new PullClear(
                                                             new PullLeft(new CheckBox('Data[EyeWitnessYes]',
-                                                                'nein &nbsp;&nbsp;&nbsp;&nbsp;', true))
-                                                            .new PullLeft(new CheckBox('Data[EyeWitnessNo]',
                                                                 'ja &nbsp;&nbsp;&nbsp;&nbsp;', true))
+                                                            .new PullLeft(new CheckBox('Data[EyeWitnessNo]',
+                                                                'nein &nbsp;&nbsp;&nbsp;&nbsp;', true))
                                                         )
                                                         , 3),
                                                 )),
