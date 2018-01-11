@@ -1093,7 +1093,7 @@ abstract class EzshStyle extends Certificate
             ->setContent('{% if(Content.P'.$personId.'.Input.Rating is not empty) %}
                     {{ Content.P'.$personId.'.Input.Rating|nl2br }}
                 {% else %}
-                    &nbsp;
+                    ---
                 {% endif %}')
             ->styleHeight($Height)
         );
@@ -1123,7 +1123,7 @@ abstract class EzshStyle extends Certificate
             ->setContent('{% if(Content.P'.$personId.'.Input.RemarkWithoutTeam is not empty) %}
                     {{ Content.P'.$personId.'.Input.RemarkWithoutTeam|nl2br }}
                 {% else %}
-                    &nbsp;
+                    ---
                 {% endif %}')
 //            ->styleAlignJustify()
             ->styleHeight($Height)
@@ -1330,7 +1330,7 @@ abstract class EzshStyle extends Certificate
         $SectionList = array();
         $Section = new Section();
         $Section->addElementColumn(((new Element())
-            ->setContent('Besonderes Arragement an den Zinzendorf Schulen')
+            ->setContent('Besonderes Arragement an den Zinzendorfschulen')
             ->styleTextSize('14px')
             ->styleMarginTop('20px')
             ->styleTextBold()
@@ -1343,7 +1343,7 @@ abstract class EzshStyle extends Certificate
             ->setContent('{% if(Content.P'.$personId.'.Input.Arrangement is not empty) %}
                     {{ Content.P'.$personId.'.Input.Arrangement|nl2br }}
                 {% else %}
-                    &nbsp;
+                    ---
                 {% endif %}')
             ->styleHeight($Height)
         );
