@@ -463,4 +463,27 @@ class TblGrade extends Element
 
         return '';
     }
+
+    /**
+     * @return bool|\DateTime
+     */
+    public function getDateForSorter()
+    {
+
+        if (($tblTest = $this->getServiceTblTest())) {
+            if ($tblTest->isContinues()) {
+                if ($this->getDate()) {
+                    $date = $this->getDate();
+                } else {
+                    $date = $tblTest->getFinishDate();
+                }
+            } else {
+                $date = $tblTest->getDate();
+            }
+
+            return  new \DateTime($date);
+        }
+
+        return false;
+    }
 }

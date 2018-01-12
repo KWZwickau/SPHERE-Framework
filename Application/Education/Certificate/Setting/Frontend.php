@@ -8,7 +8,6 @@ use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -151,11 +150,11 @@ class Frontend extends Extension implements IFrontendInterface
                         ? $tblCertificateSubject->getServiceTblSubject()->getId()
                         : 0
                     );
-                $Global->POST[$FieldName][$LaneIndex][$LaneRanking]['Liberation'] =
-                    ( $tblCertificateSubject->getServiceTblStudentLiberationCategory()
-                        ? $tblCertificateSubject->getServiceTblStudentLiberationCategory()->getId()
-                        : 0
-                    );
+//                $Global->POST[$FieldName][$LaneIndex][$LaneRanking]['Liberation'] =
+//                    ( $tblCertificateSubject->getServiceTblStudentLiberationCategory()
+//                        ? $tblCertificateSubject->getServiceTblStudentLiberationCategory()->getId()
+//                        : 0
+//                    );
                 $Global->POST[$FieldName][$LaneIndex][$LaneRanking]['IsEssential'] =
                     ( $tblCertificateSubject->isEssential()
                         ? 1
@@ -165,7 +164,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->savePost();
         }
 
-        $tblStudentLiberationCategoryAll = Student::useService()->getStudentLiberationCategoryAll();
+//        $tblStudentLiberationCategoryAll = Student::useService()->getStudentLiberationCategoryAll();
 
         return new Panel($LaneTitle, array(
             new SelectBox($FieldName.'['.$LaneIndex.']['.$LaneRanking.'][Subject]', 'Fach',
@@ -173,9 +172,9 @@ class Frontend extends Extension implements IFrontendInterface
             ),
             new CheckBox($FieldName.'['.$LaneIndex.']['.$LaneRanking.'][IsEssential]',
                 'Muss immer ausgewiesen werden', 1),
-            new SelectBox($FieldName.'['.$LaneIndex.']['.$LaneRanking.'][Liberation]', 'Befreiung',
-                array('{{ Name }}' => $tblStudentLiberationCategoryAll)
-            ),
+//            new SelectBox($FieldName.'['.$LaneIndex.']['.$LaneRanking.'][Liberation]', 'Befreiung',
+//                array('{{ Name }}' => $tblStudentLiberationCategoryAll)
+//            ),
         ));
     }
 

@@ -989,7 +989,11 @@ class Frontend extends Extension implements IFrontendInterface
             /** @var TblTest $testItem */
             foreach ($tblTestAllByDivision as $testItem) {
                 $testArrayTemp[$testItem->getId()] = $testItem;
-                if (($linkedTestList = $testItem->getLinkedTestAll())) {
+                if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())
+                    && ($tblSubjectLinked = $testItem->getServiceTblSubject())
+                    && $tblSubject->getId() == $tblSubjectLinked->getId()
+                    && ($linkedTestList = $testItem->getLinkedTestAll())
+                ) {
                     foreach ($linkedTestList as $linkedTest) {
                         if (($linkedDivision = $linkedTest->getServiceTblDivision())
                             && $linkedDivision->getId() != $tblDivision->getId()

@@ -204,7 +204,7 @@ class GradebookOverview extends AbstractDocument
                                             if ($tblGradeList) {
                                                 $hasGrades = true;
                                                 // Sortieren der Zensuren
-                                                $gradeListSorted = Gradebook::useService()->getSortedGradeList($tblGradeList);
+                                                $gradeListSorted = $this->getSorter($tblGradeList)->sortObjectBy('DateForSorter', new Sorter\DateTimeSorter());
 
                                                 /**@var TblGrade $tblGrade * */
                                                 foreach ($gradeListSorted as $tblGrade) {
