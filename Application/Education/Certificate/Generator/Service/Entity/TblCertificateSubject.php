@@ -128,6 +128,7 @@ class TblCertificateSubject extends Element
     }
 
     /**
+     * @deprecated
      * @return bool|TblStudentLiberationCategory
      */
     public function getServiceTblStudentLiberationCategory()

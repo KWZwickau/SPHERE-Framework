@@ -1,4 +1,23 @@
 @font-face {
+    font-family: 'CalluaSans';
+    font-style: normal;
+    font-weight: normal;
+    src: url("{{ UriPath }}/Common/Style/Font/CalluaSans-Regular.ttf") format('truetype');
+}
+@font-face {
+    font-family: 'CalluaSans';
+    font-style: normal;
+    font-weight: bold;
+    src: url("{{ UriPath }}/Common/Style/Font/CalluaSans-Bold.ttf") format('truetype');
+}
+@font-face {
+    font-family: 'CalluaSans';
+    font-style: italic;
+    font-weight: normal;
+    src: url("{{ UriPath }}/Common/Style/Font/CalluaSans-Italic.ttf") format('truetype');
+}
+
+@font-face {
     font-family: 'MetaPro';
     font-style: normal;
     font-weight: normal;

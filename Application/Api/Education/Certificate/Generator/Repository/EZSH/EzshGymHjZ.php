@@ -51,7 +51,7 @@ class EzshGymHjZ extends EzshStyle
                     )
                     ->addSection((new Section())
                         ->addSliceColumn(
-                            self::getEZSHSubjectLanes($personId, true, array('Lane' => 1, 'Rank' => 3), false)
+                            self::getEZSHSubjectLanes($personId, true, array('Lane' => 1, 'Rank' => 3), false, true)
                                 ->styleHeight('360px')
                         )
                     )
@@ -60,7 +60,7 @@ class EzshGymHjZ extends EzshStyle
                     )
                     ->addSection((new Section())
                         ->addSliceColumn(
-                            self::getEZSHOrientationStandard($personId, '14px', true)
+                            self::getEZSHObligation($personId, '14px', true)
                         )
                     )
                     ->addElement((new Element())
@@ -69,8 +69,8 @@ class EzshGymHjZ extends EzshStyle
                     ->addSectionList(
                         self::getEZSHGradeInfo(false)
                     )
-                    ->addElement((new Element())
-                        ->styleMarginTop('70px')
+                    ->addSectionList(
+                        self::getEZSHArrangement($personId)
                     )
                     ->addSectionList(
                         self::getEZSHMissing($personId)
