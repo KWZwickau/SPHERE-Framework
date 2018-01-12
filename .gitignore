@@ -3,3 +3,5 @@
 .project
 /Common/Style/Resource/*.lesscache
 
+/Common/Style/Font/CallunaSans-Bold.ttf
+/Common/Style/Font/CallunaSans-Italic.ttf
