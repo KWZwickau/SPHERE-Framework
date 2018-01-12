@@ -58,7 +58,6 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
-use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -2368,10 +2367,11 @@ class Service extends AbstractService
     /**
      * @param TblPrepareCertificate $tblPrepare
      * @param array $certificateNameList
+     * @param bool $hasMissingLanguage
      *
      * @return array
      */
-    public function checkCertificateSubjectsForDivision(TblPrepareCertificate $tblPrepare, $certificateNameList)
+    public function checkCertificateSubjectsForDivision(TblPrepareCertificate $tblPrepare, $certificateNameList, &$hasMissingLanguage)
     {
 
         if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
@@ -2430,21 +2430,23 @@ class Service extends AbstractService
                         continue;
                     }
 
-                    // todo bei Fremdsprache I-Icon mit ToolTip
+                    // bei Fremdsprache I-Icon mit ToolTip
                     if ($hasForeignLanguages && isset($tblForeignLanguagesAll[$tblSubject->getId()])) {
-                        $isForeignLanguage = true;
+//                        $isForeignLanguage = true;
+                        $hasMissingLanguage = true;
                     } else {
-                        $isForeignLanguage = false;
+//                        $isForeignLanguage = false;
                     }
 
                     foreach ($certificateNameList as $certificateId => $name) {
                         if (($tblCertificate = Setting::useService()->getCertificateById($certificateId))
                             && !Setting::useService()->getCertificateSubjectBySubject($tblCertificate, $tblSubject)
                         ) {
-                            $subjectList[$tblSubject->getAcronym()] = $tblSubject->getAcronym() .($isForeignLanguage
-                                    ? ' ' . new ToolTip(new \SPHERE\Common\Frontend\Icon\Repository\Info(),
-                                        'Bei Fremdsprachen kann die Warnung unter Umständen ignoriert werden,
-                                         bitte prüfen Sie die Detailansicht unter Bearbeiten.') : '');
+                            $subjectList[$tblSubject->getAcronym()] = $tblSubject->getAcronym();
+//                                .($isForeignLanguage
+//                                    ? ' ' . new ToolTip(new \SPHERE\Common\Frontend\Icon\Repository\Info(),
+//                                        'Bei Fremdsprachen kann die Warnung unter Umständen ignoriert werden,
+//                                         bitte prüfen Sie die Detailansicht unter Bearbeiten.') : '');
                         }
                     }
                 }

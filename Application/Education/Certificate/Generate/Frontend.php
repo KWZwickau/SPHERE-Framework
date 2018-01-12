@@ -59,6 +59,7 @@ use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -589,14 +590,19 @@ class Frontend extends Extension
                             }
                         }
 
+                        $hasMissingForeignLanguage = false;
                         // check missing subjects on certificates
-                        if (($missingSubjects = Prepare::useService()->checkCertificateSubjectsForDivision($tblPrepare, $certificateNameList))) {
+                        if (($missingSubjects = Prepare::useService()->checkCertificateSubjectsForDivision($tblPrepare, $certificateNameList, $hasMissingForeignLanguage))) {
                             ksort($missingSubjects);
                         }
                         if ($missingSubjects) {
                             $missingSubjectsString = new Warning(new Ban() .  ' ' . implode(', ',
                                 $missingSubjects) . (count($missingSubjects) > 1 ? ' fehlen' : ' fehlt')
-                                . ' auf Zeugnisvorlage(n)');
+                                . ' auf Zeugnisvorlage(n)'
+                                .($hasMissingForeignLanguage
+                                    ? ' ' . new ToolTip(new \SPHERE\Common\Frontend\Icon\Repository\Info(),
+                                        'Bei Fremdsprachen kann die Warnung unter Umständen ignoriert werden,
+                                         bitte prüfen Sie die Detailansicht unter Bearbeiten.') : ''));
                         } else {
                             $missingSubjectsString = new Success(
                                 new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Alle Fächer sind zugeordnet.'
