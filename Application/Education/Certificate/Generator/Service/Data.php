@@ -17,8 +17,6 @@ use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationCategory;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -128,8 +126,7 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'MU', 1, 5);
 
             $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-            $this->setCertificateSubject($tblCertificate, 'SPO', 2, 2, true,
-                Student::useService()->getStudentLiberationCategoryById(1));
+            $this->setCertificateSubject($tblCertificate, 'SPO', 2, 2, true);
             $this->setCertificateSubject($tblCertificate, 'RELI', 2, 3);
             $this->setCertificateSubject($tblCertificate, 'WK', 2, 4);
         }
@@ -188,8 +185,7 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'MU', 1, 5);
 
             $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-            $this->setCertificateSubject($tblCertificate, 'SPO', 2, 2, true,
-                Student::useService()->getStudentLiberationCategoryById(1));
+            $this->setCertificateSubject($tblCertificate, 'SPO', 2, 2, true);
             $this->setCertificateSubject($tblCertificate, 'RELI', 2, 3);
             $this->setCertificateSubject($tblCertificate, 'WK', 2, 4);
         }
@@ -3008,7 +3004,6 @@ class Data extends AbstractData
      * @param int $LaneRanking
      * @param TblSubject $tblSubject
      * @param bool $IsEssential
-     * @param null|TblStudentLiberationCategory $tblStudentLiberationCategory
      *
      * @return TblCertificateSubject
      */
@@ -3017,8 +3012,7 @@ class Data extends AbstractData
         $LaneIndex,
         $LaneRanking,
         TblSubject $tblSubject,
-        $IsEssential = false,
-        TblStudentLiberationCategory $tblStudentLiberationCategory = null
+        $IsEssential = false
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -3033,7 +3027,6 @@ class Data extends AbstractData
             $Entity->setLane($LaneIndex);
             $Entity->setRanking($LaneRanking);
             $Entity->setServiceTblSubject($tblSubject);
-            $Entity->setServiceTblStudentLiberationCategory($tblStudentLiberationCategory);
             $Entity->setEssential($IsEssential);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -3045,15 +3038,13 @@ class Data extends AbstractData
      * @param TblCertificateSubject $tblCertificateSubject
      * @param TblSubject $tblSubject
      * @param bool $IsEssential
-     * @param null|TblStudentLiberationCategory $tblStudentLiberationCategory
      *
      * @return bool
      */
     public function updateCertificateSubject(
         TblCertificateSubject $tblCertificateSubject,
         TblSubject $tblSubject,
-        $IsEssential = false,
-        TblStudentLiberationCategory $tblStudentLiberationCategory = null
+        $IsEssential = false
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -3062,7 +3053,6 @@ class Data extends AbstractData
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setServiceTblSubject($tblSubject);
-            $Entity->setServiceTblStudentLiberationCategory($tblStudentLiberationCategory);
             $Entity->setEssential($IsEssential);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -3315,15 +3305,13 @@ class Data extends AbstractData
      * @param $LaneIndex
      * @param $LaneRanking
      * @param bool|true $IsEssential
-     * @param TblStudentLiberationCategory|null $tblStudentLiberationCategory
      */
     private function setCertificateSubject(
         TblCertificate $tblCertificate,
         $SubjectAcronym,
         $LaneIndex,
         $LaneRanking,
-        $IsEssential = true,
-        TblStudentLiberationCategory $tblStudentLiberationCategory = null
+        $IsEssential = true
     ) {
 
         // Chemnitz abweichende Fächer
@@ -3356,7 +3344,7 @@ class Data extends AbstractData
 
         if ($tblSubject){
             $this->createCertificateSubject($tblCertificate, $LaneIndex, $LaneRanking, $tblSubject,
-                $IsEssential, $tblStudentLiberationCategory);
+                $IsEssential);
         }
     }
 
