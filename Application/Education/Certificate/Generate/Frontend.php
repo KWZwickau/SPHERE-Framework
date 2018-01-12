@@ -590,18 +590,10 @@ class Frontend extends Extension
                         }
 
                         // check missing subjects on certificates
-                        $missingSubjects = array();
-                        if (($checkSubjectList = Prepare::useService()->checkCertificateSubjectsForStudents($tblPrepare))) {
-                            foreach ($checkSubjectList as $subjects) {
-                                if (is_array($subjects)) {
-                                    foreach ($subjects as $acronym) {
-                                        $missingSubjects[$acronym] = $acronym;
-                                    }
-                                }
-                            }
+                        if (($missingSubjects = Prepare::useService()->checkCertificateSubjectsForDivision($tblPrepare, $certificateNameList))) {
                             ksort($missingSubjects);
                         }
-                        if (!empty($missingSubjects)) {
+                        if ($missingSubjects) {
                             $missingSubjectsString = new Warning(new Ban() .  ' ' . implode(', ',
                                 $missingSubjects) . (count($missingSubjects) > 1 ? ' fehlen' : ' fehlt')
                                 . ' auf Zeugnisvorlage(n)');
