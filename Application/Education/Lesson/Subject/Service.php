@@ -174,9 +174,9 @@ class Service extends AbstractService
             if ($tblCategory) {
                 $tblSubjectAll = $tblCategory->getTblSubjectAll();
                 if ($tblSubjectAll) {
-                    array_walk_recursive($tblSubjectAll, function ($tblSubject) use (&$tblSubjectList) {
+                    array_walk_recursive($tblSubjectAll, function (TblSubject $tblSubject) use (&$tblSubjectList) {
 
-                        $tblSubjectList[] = $tblSubject;
+                        $tblSubjectList[$tblSubject->getId()] = $tblSubject;
                     });
                 }
             }
