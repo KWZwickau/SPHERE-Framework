@@ -64,13 +64,14 @@ class Service extends AbstractService
             $tblCategory = $tblCategory->getTblCategoryAll();
             if ($tblCategory) {
                 array_walk($tblCategory, function (TblCategory &$tblCategory) {
-
-                    $tblCategory = $tblCategory->getTblSubjectAll();
+                    $tblSubjects = $tblCategory->getTblSubjectAll();
+                    $tblCategory = $tblSubjects ? $tblSubjects : null;
                 });
                 if ($tblCategory) {
-                    array_walk_recursive($tblCategory, function (TblSubject $tblSubject) use (&$tblSubjectList) {
-
-                        $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+                    array_walk_recursive($tblCategory, function (TblSubject $tblSubject = null) use (&$tblSubjectList) {
+                        if ($tblSubject) {
+                            $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+                        }
                     });
                 }
             }
