@@ -431,7 +431,7 @@ class Service extends AbstractService
             'Content.Input.TeamExtra'          => 'Arbeitsgemeinschaften',
             'Content.Input.BellSubject'        => 'Thema BELL',
             'Content.Input.PerformanceGroup'   => 'Leistungsgruppe',
-            'Content.Input.Arrangement'        => 'Besonderes Arrangement'
+            'Content.Input.Arrangement'        => 'Besonderes Engagement'
         );
     }
 
