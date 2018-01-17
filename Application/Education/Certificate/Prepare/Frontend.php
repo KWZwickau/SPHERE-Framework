@@ -1257,7 +1257,7 @@ class Frontend extends Extension implements IFrontendInterface
                                      * Fehlzeiten
                                      */
                                     // Post setzen von Fehlzeiten und Fehlzeiten aus dem Klassenbuch voreintragen
-                                    if ($Data === null) {
+                                    if ($Data === null && $tblPrepareStudent) {
                                         $Global = $this->getGlobal();
                                         if ($Global) {
                                             $Global->POST['Data'][$tblPrepareStudent->getId()]['ExcusedDays'] =
