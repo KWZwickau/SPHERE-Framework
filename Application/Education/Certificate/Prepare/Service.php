@@ -628,6 +628,7 @@ class Service extends AbstractService
         $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
         $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson);
         $tblDivision = $tblPrepare->getServiceTblDivision();
+        $tblLevel = $tblDivision->getTblLevel();
         $personId = $tblPerson->getId();
 
         // Person data
@@ -686,10 +687,12 @@ class Service extends AbstractService
                 // Abschluss (Bildungsgang)
                 $tblCourse = $tblStudentTransfer->getServiceTblCourse();
                 if ($tblCourse) {
-                    if ($tblCourse->getName() == 'Hauptschule') {
-                        $Content['P' . $personId]['Student']['Course']['Degree'] = 'Hauptschulabschlusses';
-                    } elseif ($tblCourse->getName() == 'Realschule') {
-                        $Content['P' . $personId]['Student']['Course']['Degree'] = 'Realschulabschlusses';
+                    if ($tblLevel && (intval($tblLevel->getName()) > 6)) {
+                        if ($tblCourse->getName() == 'Hauptschule') {
+                            $Content['P' . $personId]['Student']['Course']['Degree'] = 'Hauptschulabschlusses';
+                        } elseif ($tblCourse->getName() == 'Realschule') {
+                            $Content['P' . $personId]['Student']['Course']['Degree'] = 'Realschulabschlusses';
+                        }
                     }
                 }
             }
@@ -747,7 +750,7 @@ class Service extends AbstractService
             $Content['P' . $personId]['Division']['Data']['Year'] = $tblYear->getName();
         }
         // Division
-        if ($tblDivision && ($tblLevel = $tblDivision->getTblLevel())) {
+        if ($tblDivision && $tblLevel) {
             $Content['P' . $personId]['Division']['Id'] = $tblDivision->getId();
             $Content['P' . $personId]['Division']['Data']['Level']['Name'] = $tblLevel->getName();
             $Content['P' . $personId]['Division']['Data']['Name'] = $tblDivision->getName();
