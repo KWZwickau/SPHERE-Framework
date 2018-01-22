@@ -71,6 +71,9 @@ class CmsMsJExt extends CmsStyle
                 ->addSection(
                     self::getCMSName($personId)
                 )
+                ->addSection(
+                    self::getCMSCourse($personId)
+                )
                 ->addElement((new Element())
                     ->styleMarginTop('10px')
                 )
@@ -99,7 +102,7 @@ class CmsMsJExt extends CmsStyle
                     ->styleMarginTop('10px')
                 )
                 ->addSectionList(
-                    self::getCMSRemark($personId, '190px', true)
+                    self::getCMSRemark($personId, '250px', true)
                 )
             );
         $PageList[] = (new Page())

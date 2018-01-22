@@ -628,6 +628,7 @@ class Service extends AbstractService
         $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
         $tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson);
         $tblDivision = $tblPrepare->getServiceTblDivision();
+        $tblLevel = $tblDivision->getTblLevel();
         $personId = $tblPerson->getId();
 
         // Person data
@@ -686,10 +687,12 @@ class Service extends AbstractService
                 // Abschluss (Bildungsgang)
                 $tblCourse = $tblStudentTransfer->getServiceTblCourse();
                 if ($tblCourse) {
-                    if ($tblCourse->getName() == 'Hauptschule') {
-                        $Content['P' . $personId]['Student']['Course']['Degree'] = 'Hauptschulabschlusses';
-                    } elseif ($tblCourse->getName() == 'Realschule') {
-                        $Content['P' . $personId]['Student']['Course']['Degree'] = 'Realschulabschlusses';
+                    if ($tblLevel && (intval($tblLevel->getName()) > 6)) {
+                        if ($tblCourse->getName() == 'Hauptschule') {
+                            $Content['P' . $personId]['Student']['Course']['Degree'] = 'Hauptschulabschlusses';
+                        } elseif ($tblCourse->getName() == 'Realschule') {
+                            $Content['P' . $personId]['Student']['Course']['Degree'] = 'Realschulabschlusses';
+                        }
                     }
                 }
             }
@@ -747,7 +750,7 @@ class Service extends AbstractService
             $Content['P' . $personId]['Division']['Data']['Year'] = $tblYear->getName();
         }
         // Division
-        if ($tblDivision && ($tblLevel = $tblDivision->getTblLevel())) {
+        if ($tblDivision && $tblLevel) {
             $Content['P' . $personId]['Division']['Id'] = $tblDivision->getId();
             $Content['P' . $personId]['Division']['Data']['Level']['Name'] = $tblLevel->getName();
             $Content['P' . $personId]['Division']['Data']['Name'] = $tblDivision->getName();
@@ -2371,10 +2374,11 @@ class Service extends AbstractService
     /**
      * @param TblPrepareCertificate $tblPrepare
      * @param array $certificateNameList
+     * @param bool $hasMissingLanguage
      *
      * @return array
      */
-    public function checkCertificateSubjectsForDivision(TblPrepareCertificate $tblPrepare, $certificateNameList)
+    public function checkCertificateSubjectsForDivision(TblPrepareCertificate $tblPrepare, $certificateNameList, &$hasMissingLanguage)
     {
 
         if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
@@ -2408,6 +2412,11 @@ class Service extends AbstractService
             } else {
                 $hasOrientations = false;
             }
+            if (($tblForeignLanguagesAll = Subject::useService()->getSubjectForeignLanguageAll())) {
+                $hasForeignLanguages = true;
+            } else {
+                $hasForeignLanguages = false;
+            }
             foreach ($tblTestList as $tblTest) {
                 if (($tblSubject = $tblTest->getServiceTblSubject())) {
                     // Profile ignorieren
@@ -2428,11 +2437,23 @@ class Service extends AbstractService
                         continue;
                     }
 
+                    // bei Fremdsprache I-Icon mit ToolTip
+                    if ($hasForeignLanguages && isset($tblForeignLanguagesAll[$tblSubject->getId()])) {
+//                        $isForeignLanguage = true;
+                        $hasMissingLanguage = true;
+                    } else {
+//                        $isForeignLanguage = false;
+                    }
+
                     foreach ($certificateNameList as $certificateId => $name) {
                         if (($tblCertificate = Setting::useService()->getCertificateById($certificateId))
                             && !Setting::useService()->getCertificateSubjectBySubject($tblCertificate, $tblSubject)
                         ) {
                             $subjectList[$tblSubject->getAcronym()] = $tblSubject->getAcronym();
+//                                .($isForeignLanguage
+//                                    ? ' ' . new ToolTip(new \SPHERE\Common\Frontend\Icon\Repository\Info(),
+//                                        'Bei Fremdsprachen kann die Warnung unter Umständen ignoriert werden,
+//                                         bitte prüfen Sie die Detailansicht unter Bearbeiten.') : '');
                         }
                     }
                 }
@@ -2545,27 +2566,33 @@ class Service extends AbstractService
                             }
                         }
 
-                        // nicht für alle Zeugnisse sinnvoll, z.B. Kurshalbjahreszeugnis
-                        // 2. Fremdsprache ignorieren
-//                        if (($tblStudent = $tblPerson->getStudent())
-//                            && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
-//                            && ($tblForeignLanguageList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-//                                $tblStudentSubjectType))
-//                        ) {
-//                            $isIgnore = false;
-//                            foreach ($tblForeignLanguageList as $tblForeignLanguage) {
-//                                if ($tblForeignLanguage->getServiceTblSubject() && $tblForeignLanguage->getServiceTblSubject()->getId() == $tblSubject->getId()) {
-//                                    $isIgnore = true;
-//                                }
-//                            }
-//                            if ($isIgnore) {
-//                                continue;
-//                            }
-//                        }
-//
-//                        if (!Setting::useService()->getCertificateSubjectBySubject($tblCertificate, $tblSubject)) {
-//                            $resultList[$tblPerson->getId()][$tblSubject->getAcronym()] = $tblSubject->getAcronym();
-//                        }
+                        // ab 2. Fremdsprache ignorieren
+                        if (($tblStudent = $tblPerson->getStudent())
+                            // nicht für alle Zeugnisse sinnvoll, z.B. Kurshalbjahreszeugnis
+                            && $tblCertificate->getName() !== 'Gymnasium Kurshalbjahreszeugnis'
+                            && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+                            && ($tblForeignLanguageList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                                $tblStudentSubjectType))
+                        ) {
+                            $isIgnore = false;
+                            foreach ($tblForeignLanguageList as $tblForeignLanguage) {
+                                if ($tblForeignLanguage->getServiceTblSubject()
+                                    && $tblForeignLanguage->getTblStudentSubjectRanking()
+                                    && $tblForeignLanguage->getTblStudentSubjectRanking()->getName() != '1'
+                                    && $tblForeignLanguage->getServiceTblSubject()->getId() == $tblSubject->getId()
+                                ) {
+                                    $isIgnore = true;
+                                }
+                            }
+                            if ($isIgnore) {
+                                continue;
+                            }
+                        }
+
+
+                        if (!Setting::useService()->getCertificateSubjectBySubject($tblCertificate, $tblSubject)) {
+                            $resultList[$tblPerson->getId()][$tblSubject->getAcronym()] = $tblSubject->getAcronym();
+                        }
                     }
                 }
             }

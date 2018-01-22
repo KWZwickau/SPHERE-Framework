@@ -619,7 +619,7 @@ abstract class CmsStyle extends Certificate
                 ->addElementColumn((new Element())
                     ->setContent('Wahlpflichtbereich:')
                     ->styleTextBold()
-                    ->styleMarginTop('10px')
+                    ->styleMarginTop('10pt')
                     ->styleTextSize($TextSize)
                 );
             $sectionList[] = $section;
@@ -1061,12 +1061,12 @@ abstract class CmsStyle extends Certificate
         $SectionList = array();
         $SectionList[] = (new Section())->addElementColumn((new Element())
             ->setContent('&nbsp;')
-            ->styleTextSize('5px')
+            ->styleTextSize('2px')
             ->styleBorderBottom()
             , '25%')
             ->addElementColumn((new Element())
                 ->setContent('&nbsp;')
-                ->styleTextSize('5px')
+                ->styleTextSize('2px')
                 , '75%'
             );
         $SectionList[] = (new Section())->addElementColumn((new Element())
@@ -1079,5 +1079,28 @@ abstract class CmsStyle extends Certificate
             ->stylePaddingTop()
         );
         return $SectionList;
+    }
+
+    /**
+     * @param $personId
+     *
+     * @return Section
+     */
+    public function getCMSCourse($personId)
+    {
+
+        $Section = (new Section())
+            ->addElementColumn((new Element())
+                ->setContent('
+                    {% if(Content.P' . $personId . '.Student.Course.Degree is not empty) %}
+                        nahm am Unterricht der Schulart Mittelschule mit dem Ziel des
+                        {{ Content.P' . $personId . '.Student.Course.Degree }} teil.
+                    {% else %}
+                        nahm am Unterricht der Schulart Mittelschule teil.
+                    {% endif %}'
+                )
+                ->styleMarginTop('15px')
+            );
+        return $Section;
     }
 }
