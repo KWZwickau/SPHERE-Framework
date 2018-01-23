@@ -31,6 +31,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
@@ -59,7 +60,6 @@ use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
@@ -124,13 +124,14 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param null  $Person
-     * @param null  $Year
-     * @param null  $Division
+     * @param null $Person
+     * @param null $Year
+     * @param null $Division
      *
      * @return Stage
+     * @throws \Exception
      */
-    public function frontendStudentAdd($Person = null, $Year = null, $Division = null/*, $PersonIdArray = array()*/)
+    public function frontendStudentAdd($Person = null, $Year = null, $Division = null)
     {
 
         $Stage = new Stage('Schüler-Accounts', 'Erstellen');
@@ -194,6 +195,11 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(new Well(
                             $form
                         ))
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ApiContactAddress::receiverModal()
+                        )
                     ),
                     new LayoutRow(
                         new LayoutColumn(
@@ -290,6 +296,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param array $Division
      *
      * @return array
+     * @throws \Exception
      */
     private function getStudentFilterResult($Person, $Year, $Division)
     {
@@ -373,8 +380,9 @@ class Frontend extends Extension implements IFrontendInterface
      * @param int   $MaxResult
      *
      * @return array
+     * @throws \Exception
      */
-    public function getStudentTableContent($Result, $MaxResult = 500)
+    public function getStudentTableContent($Result, $MaxResult = 800)
     {
 
         $SearchResult = array();
@@ -459,31 +467,6 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param TblPerson $tblPerson
      *
-     * @return Layout
-     */
-    public function apiChangeMainAddress(TblPerson $tblPerson)
-    {
-        $Button = (new Standard('', ApiContactAddress::getEndpoint(), new Edit(), array(),
-            'Bearbeiten der Hauptadresse'))
-            ->ajaxPipelineOnClick(ApiContactAddress::pipelineOpen($tblPerson->getId()));
-        $Layout = new Layout(
-            new LayoutGroup(
-                new LayoutRow(array(
-                    new LayoutColumn(
-                        ApiContactAddress::receiverColumn($tblPerson->getId())
-                        , 11),
-                    new LayoutColumn(
-                        new Center($Button).ApiContactAddress::receiverModal($tblPerson->getId())
-                        , 1),
-                ))
-            )
-        );
-        return $Layout;
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     *
      * @return \SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver
      */
     public function apiChangeMainAddressField(TblPerson $tblPerson)
@@ -503,17 +486,18 @@ class Frontend extends Extension implements IFrontendInterface
             'Bearbeiten der Hauptadresse'))
             ->ajaxPipelineOnClick(ApiContactAddress::pipelineOpen($tblPerson->getId()));
 
-        return ApiContactAddress::receiverModal($tblPerson->getId()).$Button;
+        return $Button;
     }
 
     /**
-     * @param null  $Person
-     * @param null  $Year
-     * @param null  $Division
+     * @param null $Person
+     * @param null $Year
+     * @param null $Division
      *
      * @return Stage
+     * @throws \Exception
      */
-    public function frontendCustodyAdd($Person = null, $Year = null, $Division = null/*, $PersonIdArray = array()*/)
+    public function frontendCustodyAdd($Person = null, $Year = null, $Division = null)
     {
         $Stage = new Stage('Sorgeberechtigten-Accounts', 'Erstellen');
 
@@ -562,7 +546,6 @@ class Frontend extends Extension implements IFrontendInterface
                     ))
                 )
             ))
-//                ->appendFormButton((new Primary('Speichern', new Save())))
                 ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
         }
 
@@ -573,6 +556,11 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(new Well(
                             $form
                         ))
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ApiContactAddress::receiverModal()
+                        )
                     ),
                     new LayoutRow(
                         new LayoutColumn(
@@ -589,7 +577,6 @@ class Frontend extends Extension implements IFrontendInterface
                             .new Panel('Filterung', array(
                                 (!empty($TableContent) ? new ToggleCheckbox('Alle wählen/abwählen', $Table) : ''),
                                 $formResult
-//                                Account::useService()->createAccount($formResult, $PersonIdArray, 'C')
                             ))
                         )
                     )
@@ -655,7 +642,6 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 )
             ))
-//            , new Primary('Filtern')
         );
     }
 
@@ -664,8 +650,9 @@ class Frontend extends Extension implements IFrontendInterface
      * @param int   $MaxResult
      *
      * @return array
+     * @throws \Exception
      */
-    public function getCustodyTableContent($Result, $MaxResult = 500)
+    public function getCustodyTableContent($Result, $MaxResult = 800)
     {
 
         $SearchResult = array();
@@ -784,18 +771,6 @@ class Frontend extends Extension implements IFrontendInterface
                     if (!empty($CustodyList)) {
                         $Item['PersonListCustody'] = implode($CustodyList);
                     }
-
-//                    //remove all Accounts (local Test) //ToDO Stelle finden
-//                    $tblUserAccount = Account::useService()->getUserAccountByPerson($tblPerson);
-//                    if ($tblUserAccount) {
-//                        $tblAccount = $tblUserAccount->getServiceTblAccount();
-//                        if ($tblAccount) {
-//                            // remove tblAccount
-//                            AccountAuthorization::useService()->destroyAccount($tblAccount);
-//                        }
-//                        // remove tblUserAccount
-//                        Account::useService()->removeUserAccount($tblUserAccount);
-//                    }
                 }
                 array_push($TableContent, $Item);
             });
@@ -804,7 +779,10 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
-                    new LayoutRow(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            ApiContactAddress::receiverModal()
+                        ),
                         new LayoutColumn(
                             (!empty($TableContent)
                                 ? new TableData($TableContent, new Title('Übersicht', 'Benutzer'),
@@ -823,7 +801,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 : new WarningMessage('Keine Benutzerzugänge vorhanden.')
                             )
                         )
-                    )
+                    ))
                 )
             )
         );
@@ -869,7 +847,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblPerson = $tblUserAccount->getServiceTblPerson();
                 if ($tblPerson) {
                     $Item['Address'] = $this->apiChangeMainAddressField($tblPerson);
-                    $Item['Option'] .= $this->apiChangeMainAddressButton($tblPerson);
+                    $Item['Option'] = $this->apiChangeMainAddressButton($tblPerson).$Item['Option'];
 
                     if ($tblPerson->getSalutation() != '') {
                         $Item['Salutation'] = $tblPerson->getSalutation();
@@ -893,18 +871,6 @@ class Frontend extends Extension implements IFrontendInterface
                     if (!empty($StudentList)) {
                         $Item['PersonListStudent'] = implode($StudentList);
                     }
-
-//                    //remove all Accounts (local Test) //ToDO Stelle finden
-//                    $tblUserAccount = Account::useService()->getUserAccountByPerson($tblPerson);
-//                    if ($tblUserAccount) {
-//                        $tblAccount = $tblUserAccount->getServiceTblAccount();
-//                        if ($tblAccount) {
-//                            // remove tblAccount
-//                            AccountAuthorization::useService()->destroyAccount($tblAccount);
-//                        }
-//                        // remove tblUserAccount
-//                        Account::useService()->removeUserAccount($tblUserAccount);
-//                    }
                 }
                 array_push($TableContent, $Item);
             });
@@ -913,7 +879,10 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
-                    new LayoutRow(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            ApiContactAddress::receiverModal()
+                        ),
                         new LayoutColumn(
                             (!empty($TableContent)
                                 ? new TableData($TableContent, new Title('Übersicht', 'Benutzer'),
@@ -932,7 +901,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 : new WarningMessage('Keine Benutzerzugänge vorhanden.')
                             )
                         )
-                    )
+                    ))
                 )
             )
         );
@@ -948,6 +917,10 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendAccountExport($Time = null)
     {
         $Stage = new Stage('Account', 'Serienbrief Export');
+        $Stage->setMessage('Neu erstellte Benutzerzugänge können auf dieser Seite als Excel-Datei für den 
+            Serienbriefdruck heruntergeladen werden.'
+            .new Container('Dabei enthalten sind Benutzername, das automatisch generierte Passwort, Name und 
+            Adressdaten.'));
 
         $tblUserAccountAll = Account::useService()->getUserAccountAll();
         $tblUserAccountList = Account::useService()->getGroupOfUserAccountList($tblUserAccountAll);
@@ -957,7 +930,6 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblUserAccountList, function ($tblUserAccountList, $GroupByTime) use (&$TableContent, $Time) {
                 /** @var TblUserAccount $tblUserAccountTarget */
                 if (($tblUserAccountTarget = current($tblUserAccountList)) && $tblUserAccountTarget->getUserPassword()) {
-//                    Debugger::screenDump($GroupByTime.' -> '.count($tblUserAccountList));
                     // Success Entry if linked
                     if ($Time && $Time == $GroupByTime) {
                         $item['GroupByTime'] = new SuccessMessage(new Bold($GroupByTime).' Aktuell erstellte Benutzer');
@@ -1000,7 +972,11 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $Stage->setContent(new Layout(
             new LayoutGroup(
-                new LayoutRow(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new DangerMessage(new InfoIcon().' Bitte löschen Sie nach der Erstellung bzw. Versand des Serienbriefes die Excel-Datei 
+                        auf Ihrem PC und auch den Excel-Download auf dieser Seite in der Schulsoftware.')
+                    ),
                     new LayoutColumn(
                         new TableData($TableContent, null
                             , array(
@@ -1017,7 +993,7 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     )
-                )
+                ))
             )
         ));
 
@@ -1051,20 +1027,20 @@ class Frontend extends Extension implements IFrontendInterface
                 return $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
                         new Panel('Person', new WarningMessage('Person wurde nicht gefunden')),
-                        new Panel(new Question().' Diesen Benutzer wirklich Zurücksetzen?', '',
+                        new Panel(new Question().' Das Passwort dieses Benutzers wirklich Zurücksetzen?', '',
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
                                 'Ja', '/Setting/User/Account/Reset', new Ok(),
-                                array('Id' => $Id, 'Confirm' => true)
+                                array('Id' => $Id, 'Confirm' => true, 'Path' => $Path)
                             )
-                            .new Standard('Nein', '/Setting/User', new Disable())
+                            .new Standard('Nein', $Path, new Disable())
                         )
                     )
                 )))));
             }
 
             $Stage->addButton(
-                new Standard('Zurück', '/Setting/User', new ChevronLeft())
+                new Standard('Zurück', $Path, new ChevronLeft())
             );
             if (!$Confirm) {
                 $Stage->setContent(
@@ -1076,7 +1052,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ),
                             Panel::PANEL_TYPE_SUCCESS
                         ),
-                        new Panel(new Question().' Diesen Benutzer wirklich Zurücksetzen?', '',
+                        new Panel(new Question().' Das Passwort dieses Benutzers wirklich Zurücksetzen?', '',
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
                                 'Ja', '/Setting/User/Account/Reset', new Ok(),
