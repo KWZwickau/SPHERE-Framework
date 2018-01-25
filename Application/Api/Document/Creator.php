@@ -15,6 +15,7 @@ use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Document\Standard\Repository\AccidentReport\AccidentReport;
 use SPHERE\Application\Api\Document\Standard\Repository\EnrollmentDocument;
 use SPHERE\Application\Api\Document\Standard\Repository\GradebookOverview;
+use SPHERE\Application\Api\Document\Standard\Repository\PasswordChange\PasswordChange;
 use SPHERE\Application\Api\Document\Standard\Repository\SignOutCertificate\SignOutCertificate;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\AbstractStudentCard;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\GrammarSchool;
@@ -260,6 +261,9 @@ class Creator extends Extension
             }
             if ($DocumentName == 'AccidentReport') {
                 $Document = new AccidentReport($Data);
+            }
+            if ($DocumentName == 'PasswordChange') {
+                $Document = new PasswordChange($Data);
             }
 
             if ($Document) {

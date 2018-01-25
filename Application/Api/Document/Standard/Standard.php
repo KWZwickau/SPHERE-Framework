@@ -40,6 +40,9 @@ class Standard extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/AccidentReport/Create', __CLASS__.'::createAccidentReportPdf'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/PasswordChange/Create', __CLASS__.'::createPasswordChangePdf'
+        ));
 
 //        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
 //            __NAMESPACE__.'/StudentCard/Download', __NAMESPACE__.'\Repository\StudentCardTwig::downloadStudentCard')
@@ -115,6 +118,17 @@ class Standard extends Extension implements IModuleInterface
     {
 
         return Creator::createDataPdf($Data, 'AccidentReport', Creator::PAPERORIENTATION_PORTRAIT);
+    }
+
+    /**
+     * @param array $Data
+     *
+     * @return \SPHERE\Common\Window\Stage|string
+     */
+    public static function createPasswordChangePdf($Data = array())
+    {
+
+        return Creator::createDataPdf($Data, 'PasswordChange', Creator::PAPERORIENTATION_PORTRAIT);
     }
 
     /**

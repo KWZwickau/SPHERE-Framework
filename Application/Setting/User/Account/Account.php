@@ -38,6 +38,11 @@ class Account implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Person',
                 __NAMESPACE__.'\Frontend::frontendPreparePersonList')
         );
+        //change Password
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Password/Generation',
+                __NAMESPACE__.'\Frontend::frontendPasswordGeneration')
+        );
         //remove from Reset Password
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Reset',

@@ -207,6 +207,34 @@ class Data extends AbstractData
     }
 
     /**
+     * @param string $tblUserAccount
+     * @param string $Password
+     *
+     * @return bool
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     */
+    public function updateUserAccountChangePassword(TblUserAccount $tblUserAccount, $Password)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblUserAccount $Entity */
+        $Entity = $Manager->getEntityById('TblUserAccount', $tblUserAccount->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            // update if clear PW exist
+            if($Entity->getUserPassword() != ''){
+                $Entity->setUserPassword($Password);
+            }
+            $Entity->setAccountPassword(hash('sha256', $Password));
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+        }
+        return true;
+    }
+
+    /**
      * @param TblUserAccount $tblUserAccount
      *
      * @return bool

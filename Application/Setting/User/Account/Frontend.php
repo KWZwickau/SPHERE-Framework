@@ -32,6 +32,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
+use SPHERE\Common\Frontend\Icon\Repository\Mail;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
@@ -732,7 +733,14 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Address'] = '';
                 $Item['PersonListCustody'] = '';
                 $Item['PersonListStudent'] = '';
-                $Item['Option'] = new Standard('', '/Setting/User/Account/Reset', new Repeat(),
+                $Item['Option'] =
+                    new Standard('', '/Setting/User/Account/Password/Generation', new Mail(),
+                        array(
+                            'Id'   => $tblUserAccount->getId(),
+                            'Path' => '/Setting/User/Account/Student/Show'
+                        )
+                        , 'Passwort neu erzeugen')
+                    .new Standard('', '/Setting/User/Account/Reset', new Repeat(),
                         array(
                             'Id'   => $tblUserAccount->getId(),
                             'Path' => '/Setting/User/Account/Student/Show'
@@ -831,7 +839,13 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['PersonListCustody'] = '';
                 $Item['PersonListStudent'] = '';
                 $Item['Option'] =
-                    new Standard('', '/Setting/User/Account/Reset', new Repeat(),
+                    new Standard('', '/Setting/User/Account/Password/Generation', new Mail(),
+                        array(
+                            'Id'   => $tblUserAccount->getId(),
+                            'Path' => '/Setting/User/Account/Custody/Show'
+                        )
+                        , 'Passwort neu erzeugen')
+                    .new Standard('', '/Setting/User/Account/Reset', new Repeat(),
                         array(
                             'Id'   => $tblUserAccount->getId(),
                             'Path' => '/Setting/User/Account/Custody/Show'
@@ -1000,6 +1014,67 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    public function frontendPasswordGeneration($Id = null, $Path = '/Setting/User')
+    {
+
+        $Stage = new Stage('Benutzer Passwort', 'neu Erzeugen');
+        if ($Id) {
+            $tblUserAccount = Account::useService()->getUserAccountById($Id);
+            if (!$tblUserAccount) {
+                return $Stage.new DangerMessage('Benutzeraccount nicht gefunden', new Ban())
+                    .new Redirect($Path, Redirect::TIMEOUT_ERROR);
+            }
+            $tblAccount = $tblUserAccount->getServiceTblAccount();
+            if (!$tblAccount) {
+                return $Stage->setContent(new WarningMessage('Account nicht vorhanden')
+                    .new Redirect($Path, Redirect::TIMEOUT_ERROR));
+            }
+            $tblPerson = $tblUserAccount->getServiceTblPerson();
+            if (!$tblPerson) {
+                return $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new Panel('Person', new WarningMessage('Person wurde nicht gefunden')
+                        . new DangerMessage('Account ohne Person kann nicht gangeschrieben werden.'))
+                        .new Redirect($Path, Redirect::TIMEOUT_ERROR)
+                    )
+                )))));
+            }
+
+            $Stage->addButton(
+                new Standard('Zurück', $Path, new ChevronLeft())
+            );
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                        new Panel(new PersonIcon().' Benutzerdaten',
+                            array(
+                                'Person: '.new Bold($tblPerson->getFullName()),
+                                'Benutzer: '.new Bold($tblAccount->getUserName())
+                            ),
+                            Panel::PANEL_TYPE_SUCCESS
+                        ),
+                        new Panel(new Question().' Das Passwort dieses Benutzers wirklich neu Erzeugen?', '',
+                            Panel::PANEL_TYPE_DANGER,
+                            (new External(
+                                'Ja', 'SPHERE\Application\Api\Document\Standard\PasswordChange\Create', new Ok(),
+                                array('Data' => array('PersonId' => $tblPerson->getId()))
+                            , false))->setRedirect($Path, 1)
+                            .new Standard('Nein', $Path, new Disable())
+                        )
+                    )))))
+                );
+        } else {
+            $Stage->setContent(
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(new LayoutColumn(array(
+                        new DangerMessage(new Ban().' Der Benutzer konnte nicht gefunden werden'),
+                        new Redirect($Path, Redirect::TIMEOUT_ERROR)
+                    )))
+                )))
+            );
+        }
+        return $Stage;
+    }
+
     /**
      * @param null   $Id
      * @param bool   $Confirm
@@ -1015,12 +1090,12 @@ class Frontend extends Extension implements IFrontendInterface
             $tblUserAccount = Account::useService()->getUserAccountById($Id);
             if (!$tblUserAccount) {
                 return $Stage.new DangerMessage('Benutzeraccount nicht gefunden', new Ban())
-                    .new Redirect('/Setting/User', Redirect::TIMEOUT_ERROR);
+                    .new Redirect($Path, Redirect::TIMEOUT_ERROR);
             }
             $tblAccount = $tblUserAccount->getServiceTblAccount();
             if (!$tblAccount) {
                 return $Stage->setContent(new WarningMessage('Account nicht vorhanden')
-                    .new Redirect('/Setting/User', Redirect::TIMEOUT_ERROR));
+                    .new Redirect($Path, Redirect::TIMEOUT_ERROR));
             }
             $tblPerson = $tblUserAccount->getServiceTblPerson();
             if (!$tblPerson) {

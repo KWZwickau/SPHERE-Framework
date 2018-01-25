@@ -612,7 +612,7 @@ class Service extends AbstractService
      *
      * @return string
      */
-    private function generatePassword($completeLength = 8, $specialLength = 0, $numberLength = 0, $capitalLetter = 0)
+    public function generatePassword($completeLength = 8, $specialLength = 0, $numberLength = 2, $capitalLetter = 1)
     {
 
         $numberChars = '123456789';
@@ -761,6 +761,25 @@ class Service extends AbstractService
         $tblUserAccountList = $this->getUserAccountByTimeGroup($GroupByTime);
         if ($tblUserAccountList) {
             return (new Data($this->getBinding()))->updateUserAccountClearPassword($tblUserAccountList);
+        }
+        return false;
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param string     $Password
+     *
+     * @return bool
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     */
+    public function ChangePassword(TblAccount $tblAccount, $Password)
+    {
+
+        $tblUserAccount = $this->getUserAccountByAccount($tblAccount);
+        if ($tblUserAccount) {
+            return (new Data($this->getBinding()))->updateUserAccountChangePassword($tblUserAccount, $Password);
         }
         return false;
     }
