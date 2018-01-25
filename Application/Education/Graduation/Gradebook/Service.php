@@ -586,29 +586,34 @@ class Service extends ServiceScoreRule
                             }
                         }
                     } elseif ($tblGrade) {
-
-                        if (isset($value['Attendance'])) {
-                            (new Data($this->getBinding()))->updateGrade(
-                                $tblGrade,
-                                null,
-                                trim($value['Comment']),
-                                0,
-                                null,
-                                isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
-                                    ? $tblGradeText : null,
-                                $tblPersonTeacher
-                            );
-                        } else {
-                            (new Data($this->getBinding()))->updateGrade(
-                                $tblGrade,
-                                $grade == -1 ? '': $grade,
-                                trim($value['Comment']),
-                                $trend,
-                                isset($value['Date']) ? $value['Date'] : null,
-                                isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
-                                    ? $tblGradeText : null,
-                                $tblPersonTeacher
-                            );
+                        if($this->isEditGrade($tblGrade, trim($value['Comment']), $grade, $trend,
+                            isset($value['Date']) ? $value['Date'] : null,
+                            isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
+                                ? $tblGradeText : null
+                        )){
+                            if (isset($value['Attendance'])) {
+                                (new Data($this->getBinding()))->updateGrade(
+                                    $tblGrade,
+                                    null,
+                                    trim($value['Comment']),
+                                    0,
+                                    null,
+                                    isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
+                                        ? $tblGradeText : null,
+                                    $tblPersonTeacher
+                                );
+                            } else {
+                                (new Data($this->getBinding()))->updateGrade(
+                                    $tblGrade,
+                                    $grade == -1 ? '': $grade,
+                                    trim($value['Comment']),
+                                    $trend,
+                                    isset($value['Date']) ? $value['Date'] : null,
+                                    isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
+                                        ? $tblGradeText : null,
+                                    $tblPersonTeacher
+                                );
+                            }
                         }
                     }
                 }
@@ -620,6 +625,34 @@ class Service extends ServiceScoreRule
                 , new \SPHERE\Common\Frontend\Icon\Repository\Success())
             . new Redirect($BasicRoute . '/Grade/Edit', Redirect::TIMEOUT_SUCCESS,
                 array('Id' => $tblNextTest ? $tblNextTest->getId() : $tblTest->getId()));
+    }
+
+    /**
+     * @param TblGrade $tblGrade
+     * @param          $Comment
+     * @param          $grade
+     * @param          $trend
+     * @param          $date
+     * @param          $text
+     *
+     * @return bool
+     */
+    private function isEditGrade(TblGrade $tblGrade, $Comment, $grade, $trend, $date, $text)
+    {
+        $isChange = false;
+        if($tblGrade->getComment() != $Comment){
+            $isChange = true;
+        } elseif($tblGrade->getGrade() != $grade){
+            $isChange = true;
+        } elseif($tblGrade->getTrend() != $trend){
+            $isChange = true;
+        } elseif($tblGrade->getDate() != $date){
+            $isChange = true;
+        } elseif($tblGrade->getTblGradeText() != $text){
+            $isChange = true;
+        }
+
+        return $isChange;
     }
 
     /**
