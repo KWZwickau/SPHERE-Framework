@@ -1456,13 +1456,20 @@ class Frontend extends Extension implements IFrontendInterface
             $panel = false;
             if (($tblTestLinkList = $tblTest->getLinkedTestAll())) {
                 $panelContent = array();
+                $panelContent[] = 'Klasse ' . $tblDivision->getDisplayName() . ' - ' .
+                    ($tblTest->getServiceTblSubject() ? $tblTest->getServiceTblSubject()->getAcronym() . ' '
+                        . $tblTest->getServiceTblSubject()->getName() : '') .
+                    ($tblTest->getServiceTblSubjectGroup() ? new Small(
+                        ' (Gruppe: ' . $tblTest->getServiceTblSubjectGroup()->getName() . ')') : '');
                 foreach ($tblTestLinkList as $tblTestItem) {
                     $division = $tblTestItem->getServiceTblDivision();
                     $subject = $tblTestItem->getServiceTblSubject();
                     $group = $tblTestItem->getServiceTblSubjectGroup();
                     if ($division && $subject) {
-                        $panelContent[] = $division->getDisplayName() . ' - ' . $subject->getAcronym()
-                            . ($group ? ' - ' . $group->getName() : '');
+                        $panelContent[] = 'Klasse ' . $division->getDisplayName()
+                            . ' - ' . $subject->getAcronym() . ' ' . $subject->getName()
+                            . ($group ? new Small(
+                                ' (Gruppe: ' . $group->getName() . ')') : '');
                     }
                 }
                 if (!empty($panelContent)) {
@@ -1867,8 +1874,13 @@ class Frontend extends Extension implements IFrontendInterface
 
         $hasPreviewGrades = false;
 
+        $displayDivisionSubjectList = array();
+        $displayDivisionSubjectList[] = 'Klasse ' . $tblDivision->getDisplayName() . ' - ' .
+            ($tblTest->getServiceTblSubject() ? $tblTest->getServiceTblSubject()->getAcronym() . ' '
+                . $tblTest->getServiceTblSubject()->getName() : '') .
+            ($tblTest->getServiceTblSubjectGroup() ? new Small(
+                ' (Gruppe: ' . $tblTest->getServiceTblSubjectGroup()->getName() . ')') : '');
         if ($tblTestLinkedList) {
-            $displayDivisionSubjectList = array();
             $studentList = $this->setStudentList($tblDivisionSubject, $tblTest, $studentList, $studentTestList, true);
             foreach ($tblTestLinkedList as $tblTestLinked) {
                 if ($tblTestLinked->getServiceTblDivision()
@@ -1891,13 +1903,9 @@ class Frontend extends Extension implements IFrontendInterface
                             : '');
                 }
             }
-            ksort($displayDivisionSubjectList);
+            sort($displayDivisionSubjectList);
         } else {
             $studentList = $this->setStudentList($tblDivisionSubject, $tblTest, $studentList, $studentTestList);
-            $displayDivisionSubjectList[] = 'Klasse ' . $tblDivision->getDisplayName() . ' - ' .
-                ($tblTest->getServiceTblSubject() ? $tblTest->getServiceTblSubject()->getName() : '') .
-                ($tblTest->getServiceTblSubjectGroup() ? new Small(
-                    ' (Gruppe: ' . $tblTest->getServiceTblSubjectGroup()->getName() . ')') : '');
         }
 
         if ($tblTask) {

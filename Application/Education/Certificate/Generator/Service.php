@@ -206,7 +206,7 @@ class Service extends AbstractService
                         // Update
                         (new Data($this->getBinding()))->updateCertificateSubject($tblCertificateSubject,
                             $tblSubject,
-                            ((isset($Field['IsEssential']) && $Field['IsEssential']) ? true : false)
+                            isset($Field['IsEssential'])
 //                            , ((isset($Field['Liberation']) && $Field['Liberation'])
 //                                ? (Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
 //                                    ? Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
@@ -219,7 +219,7 @@ class Service extends AbstractService
                         // Create
                         (new Data($this->getBinding()))->createCertificateSubject($tblCertificate,
                             $LaneIndex, $LaneRanking, $tblSubject,
-                            ((isset($Field['IsEssential']) && $Field['IsEssential']) ? true : false)
+                            isset($Field['IsEssential'])
 //                            , ((isset($Field['Liberation']) && $Field['Liberation'])
 //                                ? (Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
 //                                    ? Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
@@ -431,7 +431,7 @@ class Service extends AbstractService
             'Content.Input.TeamExtra'          => 'Arbeitsgemeinschaften',
             'Content.Input.BellSubject'        => 'Thema BELL',
             'Content.Input.PerformanceGroup'   => 'Leistungsgruppe',
-            'Content.Input.Arrangement'        => 'Besonderes Arrangement'
+            'Content.Input.Arrangement'        => 'Besonderes Engagement'
         );
     }
 
