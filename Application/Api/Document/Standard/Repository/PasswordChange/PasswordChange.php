@@ -18,12 +18,21 @@ use SPHERE\Application\Setting\User\Account\Account;
 class PasswordChange extends AbstractDocument
 {
     /**
-     * StudentTransfer constructor.
+     * PasswordChange constructor.
      *
      * @param array $Data
+     *
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
      */
     function __construct($Data)
     {
+
+//        echo '<pre>';
+//        print_r($Data);
+//        echo '</pre>';
+//        exit;
 
         $this->setFieldValue($Data);
     }
@@ -48,6 +57,8 @@ class PasswordChange extends AbstractDocument
         $tblAccount = false;
         // PersonGender
         $this->FieldValue['PersonName'] = '';
+        $this->FieldValue['Street'] = '';
+        $this->FieldValue['City'] = '';
         $this->FieldValue['PersonId'] = (isset($DataPost['PersonId']) && $DataPost['PersonId'] != '' ? $DataPost['PersonId'] : false);
         if ($this->FieldValue['PersonId'] && ($tblPerson = Person::useService()->getPersonById($this->FieldValue['PersonId']))) {
             $this->FieldValue['PersonName'] = $tblPerson->getFullName();
