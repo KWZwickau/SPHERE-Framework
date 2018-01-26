@@ -358,8 +358,8 @@ class EnrollmentDocument extends Extension implements IModuleInterface
                                                             'Besucht zur Zeit die Klasse')
                                                         , 6),
                                                     new LayoutColumn(
-                                                        new TextField('Data[LeaveDate]', 'Vorraussichtlich bis',
-                                                            'Vorraussichtlich bis')
+                                                        new TextField('Data[LeaveDate]', 'Voraussichtlich bis',
+                                                            'Voraussichtlich bis')
                                                         , 6)
                                                 )),
                                             ))
