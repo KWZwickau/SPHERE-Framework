@@ -175,6 +175,7 @@ class EnrollmentDocument extends Extension implements IModuleInterface
                             $Global->POST['Data']['SchoolAddressStreet'] = $tblAddressSchool->getStreetName().' '.$tblAddressSchool->getStreetNumber();
                             $tblCitySchool = $tblAddressSchool->getTblCity();
                             if ($tblCitySchool) {
+                                $Global->POST['Data']['SchoolAddressDistrict'] = $tblCitySchool->getDistrict();
                                 $Global->POST['Data']['SchoolAddressCity'] = $tblCitySchool->getCode().' '.$tblCitySchool->getName();
                                 $Global->POST['Data']['Place'] = $tblCitySchool->getName();
                             }
@@ -220,7 +221,8 @@ class EnrollmentDocument extends Extension implements IModuleInterface
                 $tblCity = $tblAddress->getTblCity();
                 if ($tblCity) {
                     $Global->POST['Data']['AddressPLZ'] = $tblCity->getCode();
-                    $Global->POST['Data']['AddressCity'] = $tblCity->getDisplayName();
+                    $Global->POST['Data']['AddressCity'] = $tblCity->getName();
+                    $Global->POST['Data']['AddressDistrict'] = $tblCity->getDistrict();
                 }
             }
         }
@@ -299,13 +301,17 @@ class EnrollmentDocument extends Extension implements IModuleInterface
                                                 )),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
+                                                        new TextField('Data[SchoolAddressDistrict]', 'Ortsteil',
+                                                            'Ortsteil')
+                                                        , 4),
+                                                    new LayoutColumn(
                                                         new TextField('Data[SchoolAddressStreet]', 'Straße Nr.',
                                                             'Straße Hausnummer')
-                                                        , 6),
+                                                        , 4),
                                                     new LayoutColumn(
                                                         new TextField('Data[SchoolAddressCity]', 'PLZ Ort',
                                                             'PLZ Ort')
-                                                        , 6)
+                                                        , 4)
                                                 ))
                                             ))
                                         )
@@ -340,13 +346,17 @@ class EnrollmentDocument extends Extension implements IModuleInterface
                                                 )),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
+                                                        new TextField('Data[AddressDistrict]', 'Ortsteil',
+                                                            'Ortsteil')
+                                                        , 3),
+                                                    new LayoutColumn(
                                                         new TextField('Data[AddressStreet]', 'Straße, Hausnummer',
                                                             'Straße, Hausnummer')
-                                                        , 6),
+                                                        , 4),
                                                     new LayoutColumn(
                                                         new TextField('Data[AddressPLZ]', 'Postleitzahl',
                                                             'Postleitzahl')
-                                                        , 3),
+                                                        , 2),
                                                     new LayoutColumn(
                                                         new TextField('Data[AddressCity]', 'Ort',
                                                             'Ort')
