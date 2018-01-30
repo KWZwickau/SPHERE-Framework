@@ -2057,7 +2057,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                 || ($tblTestTemp->isContinues() && !$tblGrade->getDate() // Test-Enddatum
                                                     && $tblTestTemp->getFinishDate() && $tblTask->getDate()
                                                     && ($taskDate = new \DateTime($tblTask->getDate()))
-                                                    && ($finishDate = new \DateTime($tblTest->getFinishDate()))
+                                                    && ($finishDate = new \DateTime($tblTestTemp->getFinishDate()))
                                                     && ($taskDate->format('Y-m-d') >= $finishDate->format('Y-m-d')))
                                             ) {
                                                 if ($tblGrade->getGrade() !== null && $tblGrade->getGrade() !== '') {
