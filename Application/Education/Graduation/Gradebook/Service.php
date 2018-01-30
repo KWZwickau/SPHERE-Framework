@@ -740,6 +740,15 @@ class Service extends ServiceScoreRule
                 }
             }
             $tblGradeList = empty($tempGradeList) ? false : $tempGradeList;
+        } elseif ($tblGradeList) {
+            $tempGradeList = array();
+            // gelöschte Tests ignorieren
+            foreach ($tblGradeList as $item) {
+                if ($item->getServiceTblTest()) {
+                    $tempGradeList[] = $item;
+                }
+            }
+            $tblGradeList = empty($tempGradeList) ? false : $tempGradeList;
         }
 
         // filter by Test Return for StudentView
