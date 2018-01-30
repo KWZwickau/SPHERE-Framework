@@ -2885,7 +2885,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblTask->getTblTestType()->getName(),
                                 $tblTask->getName() . ' ' . $tblTask->getDate()
                                 . '&nbsp;&nbsp;' . new Muted(new Small(new Small(
-                                    $tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
+                                    'Bearbeitungszeitraum '.$tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
                                 Panel::PANEL_TYPE_INFO
                             ),
                             $tblDivisionAllByTask ? null : new WarningMessage(
@@ -3413,7 +3413,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblTask->getTblTestType()->getName(),
                                 $tblTask->getName() . ' ' . $tblTask->getDate()
                                 . '&nbsp;&nbsp;' . new Muted(new Small(new Small(
-                                    $tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
+                                    'Bearbeitungszeitraum '.$tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
                                 Panel::PANEL_TYPE_INFO
                             )
                         ),
