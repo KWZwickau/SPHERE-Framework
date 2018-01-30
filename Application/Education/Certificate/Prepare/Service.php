@@ -832,7 +832,8 @@ class Service extends AbstractService
         if ($tblPersonSigner) {
             $divisionTeacherDescription = 'Klassenlehrer';
 
-            if (($tblConsumer = Consumer::useService()->getConsumerBySession())
+            $tblConsumer = Consumer::useService()->getConsumerBySession();
+            if ($tblConsumer
                 && $tblConsumer->getAcronym() == 'EVSR'
                 && $tblGenerateCertificate->isDivisionTeacherAvailable()
             ) {
@@ -842,20 +843,58 @@ class Service extends AbstractService
                 }
                 $Content['P' . $personId]['DivisionTeacher']['Name'] = $firstName . ' '
                     . $tblPersonSigner->getLastName();
-            } elseif (($tblConsumer = Consumer::useService()->getConsumerBySession())
+            } elseif ($tblConsumer
                 && $tblConsumer->getAcronym() == 'ESZC'
                 && $tblGenerateCertificate->isDivisionTeacherAvailable()
             ) {
                 $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getSalutation()
                     . " " . $tblPersonSigner->getLastName());
-            } elseif (($tblConsumer = Consumer::useService()->getConsumerBySession())
+            } elseif ($tblConsumer
                 && $tblConsumer->getAcronym() == 'EVSC'
                 && $tblGenerateCertificate->isDivisionTeacherAvailable()
             ) {
                 $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getFirstName()
                     . " " . $tblPersonSigner->getLastName());
                 $divisionTeacherDescription = 'Klassenleiter';
-            } else {
+            } elseif ($tblConsumer
+                && $tblConsumer->getAcronym() == 'EGE'
+                && $tblGenerateCertificate->isDivisionTeacherAvailable()
+            ) {
+                $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
+                if ($tblLevel
+                    && ($tblSchoolType = $tblLevel->getServiceTblType())
+                    && $tblSchoolType->getName() == 'Mittelschule / Oberschule'
+                    && ($level = intval($tblLevel->getName()))
+                    && $level < 9
+                ) {
+                    $divisionTeacherDescription = 'Gruppenleiter';
+                }
+            } elseif ($tblConsumer
+                && $tblConsumer->getAcronym() == 'EVAMTL'
+                && $tblGenerateCertificate->isDivisionTeacherAvailable()
+            ) {
+                $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
+                if ($tblLevel
+                    && ($tblSchoolType = $tblLevel->getServiceTblType())
+                    && $tblSchoolType->getName() != 'Grundschule'
+                ){
+                    $divisionTeacherDescription = 'Mentor';
+                }
+            } elseif ($tblConsumer
+                && $tblConsumer->getAcronym() == 'CSW'
+                && $tblGenerateCertificate->isDivisionTeacherAvailable()
+            ) {
+                if ($tblLevel
+                    && ($tblSchoolType = $tblLevel->getServiceTblType())
+                    && $tblSchoolType->getName() == 'Mittelschule / Oberschule'
+                ) {
+                    $Content['P' . $personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFirstSecondName()
+                        . ' ' . $tblPersonSigner->getLastName();
+                } else {
+                    $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
+                }
+            }
+            else {
                 if ($tblGenerateCertificate->isDivisionTeacherAvailable()) {
                     $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
                 }
