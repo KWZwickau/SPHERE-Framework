@@ -15,7 +15,6 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectStudent;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
@@ -2727,8 +2726,9 @@ class Frontend extends FrontendScoreRule
                             $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivisionLoop,
                                 $isWithSubjectGroup);
                             if ($tblDivisionSubjectList) {
-                                $tblSubjectStudentList = Division::useService()->getSubjectStudentByPersonAndDivision($tblPerson,
-                                    $tblDivisionLoop);
+                                // deactivated: value in ToolTip is not sortable
+//                                $tblSubjectStudentList = Division::useService()->getSubjectStudentByPersonAndDivision($tblPerson,
+//                                    $tblDivisionLoop);
                                 foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
                                     $tblSubject = $tblDivisionSubject->getServiceTblSubject();
                                     if ($tblSubject) {
@@ -2763,24 +2763,25 @@ class Frontend extends FrontendScoreRule
                                             $averageString = ($average != '' ? '&empty; ' . $average : '');
                                         }
                                         $data[$tblSubject->getId() . 'Id'] = $averageString;
-                                        // add ToolTip if Student is in Group
-                                        if ($tblSubjectStudentList) {
-                                            /** @var TblSubjectStudent $tblSubjectStudent */
-                                            foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                                                if ($tblSubjectStudent) {
-                                                    if (($tblDivisionSubjectStudent = $tblSubjectStudent->getTblDivisionSubject())) {
-                                                        if (($tblSubjectFromStudent = $tblDivisionSubjectStudent->getServiceTblSubject())) {
-                                                            if ($tblSubjectFromStudent->getId() == $tblSubject->getId()) {
-                                                                if (($tblSubjectGroup = $tblDivisionSubjectStudent->getTblSubjectGroup())) {
-                                                                    $data[$tblSubject->getId() . 'Id'] = (new ToolTip($averageString
-                                                                        , htmlspecialchars($tblSubjectGroup->getName())))->enableHtml();
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
+                                        // deactivated: value in ToolTip is not sortable
+//                                        // add ToolTip if Student is in Group
+//                                        if ($tblSubjectStudentList) {
+//                                            /** @var TblSubjectStudent $tblSubjectStudent */
+//                                            foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+//                                                if ($tblSubjectStudent) {
+//                                                    if (($tblDivisionSubjectStudent = $tblSubjectStudent->getTblDivisionSubject())) {
+//                                                        if (($tblSubjectFromStudent = $tblDivisionSubjectStudent->getServiceTblSubject())) {
+//                                                            if ($tblSubjectFromStudent->getId() == $tblSubject->getId()) {
+//                                                                if (($tblSubjectGroup = $tblDivisionSubjectStudent->getTblSubjectGroup())) {
+//                                                                    $data[$tblSubject->getId() . 'Id'] = (new ToolTip($averageString
+//                                                                        , htmlspecialchars($tblSubjectGroup->getName())))->enableHtml();
+//                                                                }
+//                                                            }
+//                                                        }
+//                                                    }
+//                                                }
+//                                            }
+//                                        }
                                     }
                                 }
                             }
