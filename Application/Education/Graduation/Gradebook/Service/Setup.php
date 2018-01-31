@@ -141,7 +141,35 @@ class Setup extends AbstractSetup
         $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
         $this->createForeignKey($Table, $tblGradeText, true);
 
-        $this->createIndex($Table, array('serviceTblPerson', 'serviceTblTest'), false);
+//        $this->createIndex($Table, array('serviceTblPerson', 'serviceTblTest'), false);
+        $this->createIndex($Table, array('serviceTblPerson', 'serviceTblTest'), true);
+
+//        // alten nicht unique index entfernen
+//        if (($indexList = $Table->getIndexes())) {
+//            foreach ($indexList as $index) {
+//                if (!$index->isUnique()) {
+//                    $hasPersonColumn = false;
+//                    $hasTestColumn = false;
+//                    if (($columns = $index->getColumns())) {
+//                        foreach ($columns as $column) {
+//                            if ($column == 'serviceTblPerson') {
+//                                $hasPersonColumn = true;
+//                            }
+//                            if ($column == 'serviceTblTest') {
+//                                $hasTestColumn = true;
+//                            }
+//                        }
+//
+//                        if ($hasPersonColumn && $hasTestColumn) {
+//                            $Table->dropIndex($index->getName());
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        $Table->addUniqueIndex(array('serviceTblPerson', 'serviceTblTest'), 'UNIQ_TblGradeServiceTblPersonServiceTblTest');
+
+
         $this->createIndex($Table, array('serviceTblDivision', 'serviceTblSubject'), false);
 
         return $Table;
