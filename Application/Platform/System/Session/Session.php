@@ -16,7 +16,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger;
-use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -76,8 +75,9 @@ class Session extends Extension implements IModuleInterface
     public function frontendSession($Id = null)
     {
 
-        $Stage = new Stage('Session History', 'der letzten 250 Benutzer');
-        $Stage->addButton(new External('Login History', __NAMESPACE__.'/History', null, array(), false));
+        $Stage = new Stage('Active Session', 'der aktuell angemeldete Benutzer');
+//        $Stage->addButton(new External('Login History', __NAMESPACE__.'/History', null, array(), false));
+        $Stage->addButton(new Standard('Login History', __NAMESPACE__.'/History'));
 
         if ($Id) {
             $tblSessionAll = Account::useService()->getSessionAll();
@@ -96,6 +96,24 @@ class Session extends Extension implements IModuleInterface
             array_walk($tblSessionAll, function (TblSession $tblSession) use (&$Result) {
 
                 $tblAccount = $tblSession->getTblAccount();
+                $tblIdentification = $tblAccount->getServiceTblIdentification();
+                $loginTime = 60 * 10;
+                switch ($tblIdentification->getName()) {
+                    case 'System':
+                        $loginTime = ( 60 * 60 * 4 );
+                        break;
+                    case 'Token':
+                        $loginTime = ( 60 * 60 );
+                        break;
+                    case 'Credential':
+                        $loginTime = ( 60 * 30 );
+                        break;
+                    case 'UserCredential':
+                        $loginTime = ( 60 * 30 );
+                        break;
+                }
+
+                $Activity = gmdate("H:i:s", $loginTime - ($tblSession->getTimeout() - time()));
 
                 if ($tblSession->getEntityUpdate() && $tblSession->getEntityCreate()) {
                     $Interval = $tblSession->getEntityUpdate()->getTimestamp() - $tblSession->getEntityCreate()->getTimestamp();
@@ -107,12 +125,12 @@ class Session extends Extension implements IModuleInterface
                     }
                 }
 
-                if (($Activity = Protocol::useService()->getProtocolLastActivity($tblAccount))) {
-                    $Activity = current($Activity)->getEntityCreate();
-                } else {
-                    $Activity = '-NA-';
-                }
-
+                // need to much time and info is not necessary
+//                if (($Activity = Protocol::useService()->getProtocolLastActivity($tblAccount))) {
+//                    $Activity = current($Activity)->getEntityCreate();
+//                } else {
+//                    $Activity = '-NA-';
+//                }
 
                 array_push($Result, array(
                     'Id' => $tblSession->getId(),
@@ -144,8 +162,8 @@ class Session extends Extension implements IModuleInterface
                                 'Consumer' => 'Mandant',
                                 'Account' => 'Benutzer',
                                 'LoginTime' => 'Anmeldung',
-                                'LastAction' => 'Aktivität',
                                 'ActiveTime' => 'Dauer',
+                                'LastAction' => 'letzte Aktivität',
                                 'TTL' => 'Timeout',
                                 'Identifier' => 'Session',
                                 'Option' => ''
@@ -172,7 +190,7 @@ class Session extends Extension implements IModuleInterface
      */
     public function frontendSessionHistory()
     {
-        $Stage = new Stage('Aktive Sessions', 'der aktuell angemeldete Benutzer');
+        $Stage = new Stage('Session History', 'der letzten 250 Benutzer');
         $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
         $History = array();
 

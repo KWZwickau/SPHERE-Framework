@@ -825,10 +825,10 @@ class Data extends AbstractData
                         $Timeout = ( 60 * 60 );
                         break;
                     case 'CREDENTIAL':
-                        $Timeout = ( 60 * 15 );
+                        $Timeout = ( 60 * 30 );
                         break;
                     case 'USERCREDENTIAL':
-                        $Timeout = (60 * 15);
+                        $Timeout = ( 60 * 30 );
                         break;
                     default:
                         $Timeout = ( 60 * 10 );
