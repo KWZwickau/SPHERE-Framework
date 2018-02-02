@@ -20,7 +20,9 @@ abstract class EzshStyle extends Certificate
 {
 
     const TEXT_SIZE = '10pt';
-    const FONT_FAMILY = 'Calluna Sans Regular';
+    const FONT_FAMILY = 'Calluna Sans';
+    const FONT_FAMILY_BOLD = 'Calluna Sans Bold';
+    const LINE_HEIGHT = '85%';
 
     /**
      * @return Slice
@@ -61,14 +63,16 @@ abstract class EzshStyle extends Certificate
             ->setContent($ContentHead)
             ->styleTextSize('21pt')
             ->styleTextBold()
-            ->styleFontFamily(self::FONT_FAMILY)
+            ->styleFontFamily(self::FONT_FAMILY_BOLD)
+            ->styleLineHeight(self::LINE_HEIGHT)
         );
         $SectionList[] = (new Section())->addElementColumn((new Element())
             ->setContent($ContentSchool)
             ->styleTextSize('12pt')
             ->styleTextBold()
             ->stylePaddingTop()
-            ->styleFontFamily(self::FONT_FAMILY)
+            ->styleFontFamily(self::FONT_FAMILY_BOLD)
+            ->styleLineHeight(self::LINE_HEIGHT)
         );
 
         return $SectionList;
@@ -86,6 +90,7 @@ abstract class EzshStyle extends Certificate
         $Section->addElementColumn((new Element())
             ->setContent('Name')
             ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
             , '15%')
             ->addElementColumn((new Element())
                 ->setContent('{{ Content.P'.$personId.'.Person.Data.Name.First }}
@@ -93,6 +98,7 @@ abstract class EzshStyle extends Certificate
                 ->styleBorderBottom('1px', '#BBB')
                 ->stylePaddingLeft('7px')
                 ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '66%')
             ->addElementColumn((new Element())
                 , '19%');
@@ -113,24 +119,28 @@ abstract class EzshStyle extends Certificate
             ->addElementColumn((new Element())
                 ->setContent($YearString)
                 ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '15%')
             ->addElementColumn((new Element())
                 ->setContent('{{ Content.P'.$personId.'.Division.Data.Year }}')
                 ->styleBorderBottom('1px', '#BBB')
                 ->styleAlignCenter()
                 ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '12%')
             ->addElementColumn((new Element())
                 , '25%')
             ->addElementColumn((new Element())
                 ->setContent('Klasse')
                 ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '8%')
             ->addElementColumn((new Element())
                 ->setContent('{{ Content.P'.$personId.'.Division.Data.Level.Name }}')
                 ->styleBorderBottom('1px', '#BBB')
                 ->styleAlignCenter()
                 ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '21%')
             ->addElementColumn((new Element())
                 , '19%');
@@ -150,6 +160,7 @@ abstract class EzshStyle extends Certificate
         $Section->addElementColumn((new Element())
             ->setContent('Beiblatt zum Zeugnis für:')
             ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
             , '24%')
             ->addElementColumn((new Element())
                 ->setContent('{{ Content.P'.$personId.'.Person.Data.Name.First }}
@@ -159,6 +170,7 @@ abstract class EzshStyle extends Certificate
                 ->stylePaddingRight('120px')
                 ->stylePaddingLeft('7px')
                 ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '76%');
         return $Section;
     }
@@ -175,6 +187,7 @@ abstract class EzshStyle extends Certificate
         $Section->addElementColumn((new Element())
             ->setContent('Beiblatt zum Zeugnis für:')
             ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
             , '21%')
             ->addElementColumn((new Element())
                 ->setContent('{{ Content.P'.$personId.'.Person.Data.Name.First }}
@@ -182,6 +195,7 @@ abstract class EzshStyle extends Certificate
                 ->styleBorderBottom()
                 ->styleAlignCenter()
                 ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '79%');
         return $Section;
     }
@@ -245,6 +259,7 @@ abstract class EzshStyle extends Certificate
                         ->stylePaddingTop()
                         ->styleMarginTop('10px')
                         ->styleFontFamily(self::FONT_FAMILY)
+                        ->styleLineHeight(self::LINE_HEIGHT)
                         , '39%');
                     $GradeSection->addElementColumn((new Element())
                         ->setContent('{% if(Content.P'.$personId.'.Input["'.$Grade['GradeAcronym'].'"] is not empty) %}
@@ -258,6 +273,7 @@ abstract class EzshStyle extends Certificate
                         ->stylePaddingBottom()
                         ->styleMarginTop('10px')
                         ->styleFontFamily(self::FONT_FAMILY)
+                        ->styleLineHeight(self::LINE_HEIGHT)
                         , '9%');
                 }
 
@@ -386,7 +402,8 @@ abstract class EzshStyle extends Certificate
                 ->styleTextBold()
                 ->stylePaddingTop('10px')
                 ->stylePaddingBottom(($isTitle ? '0px': '26px'))
-                ->styleFontFamily(self::FONT_FAMILY)
+                ->styleFontFamily(self::FONT_FAMILY_BOLD)
+                ->styleLineHeight(self::LINE_HEIGHT)
             );
             $SectionList[] = $HeaderSection;
             $SubjectSlice->addSection($HeaderSection);
@@ -397,7 +414,8 @@ abstract class EzshStyle extends Certificate
                     ->styleTextSize('10pt')
                     ->styleTextBold()
                     ->stylePaddingTop('10px')
-                    ->styleFontFamily(self::FONT_FAMILY)
+                    ->styleFontFamily(self::FONT_FAMILY_BOLD)
+                    ->styleLineHeight(self::LINE_HEIGHT)
                 );
                 $SectionList[] = $HeaderSectionTwo;
                 $SubjectSlice->addSection($HeaderSectionTwo);
@@ -450,6 +468,7 @@ abstract class EzshStyle extends Certificate
                             ->styleMarginTop('10px')
                             ->styleTextSize($TextSize)
                             ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT)
                             , (string)($subjectWidth - 2) . '%');
                         $SubjectSection->addElementColumn((new Element()), '2%');
                     } elseif (strlen($Subject['SubjectName']) > 27) {
@@ -459,6 +478,7 @@ abstract class EzshStyle extends Certificate
                             ->styleMarginTop('5px')
                             ->styleTextSize($TextSize)
                             ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT)
                             , (string)$subjectWidth . '%');
                     }elseif ($isShrinkMarginTop) {
                         $SubjectSection->addElementColumn((new Element())
@@ -467,6 +487,7 @@ abstract class EzshStyle extends Certificate
                             ->styleMarginTop('0px')
                             ->styleTextSize($TextSize)
                             ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT)
                             , (string)$subjectWidth . '%');
                     } else {
                         $SubjectSection->addElementColumn((new Element())
@@ -475,6 +496,7 @@ abstract class EzshStyle extends Certificate
                             ->styleMarginTop('10px')
                             ->styleTextSize($TextSize)
                             ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT)
                             , (string)$subjectWidth . '%');
                     }
 
@@ -516,6 +538,7 @@ abstract class EzshStyle extends Certificate
                              {% endif %}'
                         )
                         ->styleFontFamily(self::FONT_FAMILY)
+                        ->styleLineHeight(self::LINE_HEIGHT)
                         , (string)$gradeWidth . '%');
 
                     if ($isShrinkMarginTop && $Lane == 2) {
@@ -551,6 +574,7 @@ abstract class EzshStyle extends Certificate
                         ->styleMarginBottom('0px')
                         ->styleTextSize('9px')
                         ->styleFontFamily(self::FONT_FAMILY)
+                        ->styleLineHeight(self::LINE_HEIGHT)
                         , (string)$subjectWidth . '%');
 
                     if ($hasAdditionalLine['Lane'] == 1) {
@@ -651,7 +675,8 @@ abstract class EzshStyle extends Certificate
                             ->stylePaddingBottom('0px')
                             ->styleMarginTop('7px')
                             ->styleTextSize($TextSize)
-                            ->styleFontFamily(self::FONT_FAMILY);
+                            ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT);
 
                         $elementObligationGrade = new Element();
                         $elementObligationGrade
@@ -685,7 +710,8 @@ abstract class EzshStyle extends Certificate
                              {% endif %}'
                             )
                             ->styleMarginTop($marginTop)
-                            ->styleFontFamily(self::FONT_FAMILY);
+                            ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT);
                     }
                 }
             } else {
@@ -719,7 +745,8 @@ abstract class EzshStyle extends Certificate
                             ->stylePaddingBottom('0px')
                             ->styleMarginTop('7px')
                             ->styleTextSize($TextSize)
-                            ->styleFontFamily(self::FONT_FAMILY);
+                            ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT);
 
                         $elementObligationGrade = new Element();
                         $elementObligationGrade
@@ -753,7 +780,8 @@ abstract class EzshStyle extends Certificate
                              {% endif %}'
                             )
                             ->styleMarginTop($marginTop)
-                            ->styleFontFamily(self::FONT_FAMILY);
+                            ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT);
                     }
                 }
 
@@ -788,7 +816,8 @@ abstract class EzshStyle extends Certificate
                                 ->stylePaddingBottom('0px')
                                 ->styleMarginTop('7px')
                                 ->styleTextSize($TextSize)
-                                ->styleFontFamily(self::FONT_FAMILY);
+                                ->styleFontFamily(self::FONT_FAMILY)
+                                ->styleLineHeight(self::LINE_HEIGHT);
 
                             $elementForeignLanguageGrade = new Element();
                             $elementForeignLanguageGrade
@@ -822,7 +851,8 @@ abstract class EzshStyle extends Certificate
                              {% endif %}'
                                 )
                                 ->styleMarginTop($marginTop)
-                                ->styleFontFamily(self::FONT_FAMILY);
+                                ->styleFontFamily(self::FONT_FAMILY)
+                                ->styleLineHeight(self::LINE_HEIGHT);
                         }
                     }
                 }
@@ -838,7 +868,8 @@ abstract class EzshStyle extends Certificate
                         ->styleTextBold()
                         ->styleMarginTop('10px')
                         ->styleTextSize($TextSize)
-                        ->styleFontFamily(self::FONT_FAMILY)
+                        ->styleFontFamily(self::FONT_FAMILY_BOLD)
+                        ->styleLineHeight(self::LINE_HEIGHT)
                     );
             } else {
                 $section
@@ -847,7 +878,8 @@ abstract class EzshStyle extends Certificate
                         ->styleTextBold()
                         ->styleMarginTop('10px')
                         ->styleTextSize($TextSize)
-                        ->styleFontFamily(self::FONT_FAMILY)
+                        ->styleFontFamily(self::FONT_FAMILY_BOLD)
+                        ->styleLineHeight(self::LINE_HEIGHT)
                     );
             }
 
@@ -869,6 +901,7 @@ abstract class EzshStyle extends Certificate
                             ->stylePaddingTop()
                             ->stylePaddingBottom('10px')
                             ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT)
                             , (string)($subjectWidth - 2) . '%')
                         ->addElementColumn((new Element()), (string)($gradeWidth + 2) . '%');
                     $sectionList[] = $section;
@@ -881,6 +914,7 @@ abstract class EzshStyle extends Certificate
                             ->stylePaddingTop()
                             ->styleTextSize('13px')
                             ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT)
                             , (string)($subjectWidth - 2) . '%')
                         ->addElementColumn((new Element()), (string)($gradeWidth + 2) . '%');
                     $sectionList[] = $section;
@@ -902,6 +936,7 @@ abstract class EzshStyle extends Certificate
                             ->stylePaddingTop()
                             ->stylePaddingBottom('10px')
                             ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT)
                             , (string)($subjectWidth - 2) . '%')
                         ->addElementColumn((new Element()), (string)($gradeWidth + 2) . '%');
                     $sectionList[] = $section;
@@ -919,6 +954,7 @@ abstract class EzshStyle extends Certificate
                             ->stylePaddingTop()
                             ->styleTextSize('13px')
                             ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT)
                             , (string)($subjectWidth - 2) . '%')
                         ->addElementColumn((new Element()), (string)($gradeWidth + 2) . '%');
                     $sectionList[] = $section;
@@ -928,7 +964,8 @@ abstract class EzshStyle extends Certificate
                     ->setContent('---')
                     ->styleMarginTop($marginTop)
                     ->styleTextSize($TextSize)
-                    ->styleFontFamily(self::FONT_FAMILY);
+                    ->styleFontFamily(self::FONT_FAMILY)
+                    ->styleLineHeight(self::LINE_HEIGHT);
 
                 $elementGrade = (new Element())
                     ->setContent('&ndash;')
@@ -938,7 +975,8 @@ abstract class EzshStyle extends Certificate
                     ->stylePaddingBottom('4px')
                     ->styleTextSize($TextSize)
                     ->styleMarginTop($marginTop)
-                    ->styleFontFamily(self::FONT_FAMILY);
+                    ->styleFontFamily(self::FONT_FAMILY)
+                    ->styleLineHeight(self::LINE_HEIGHT);
 
                 $section = new Section();
                 $section
@@ -969,11 +1007,12 @@ abstract class EzshStyle extends Certificate
                         {% else %}
                             ' . $Level . '
                         {% endif %}'
-                                . '/ Neigungskurs ab Klasse 7 test 2')
+                                . '/ Neigungskurs ab Klasse 7')
                             ->styleBorderTop('1px', '#BBB')
                             ->stylePaddingTop()
                             ->styleTextSize('13px')
                             ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT)
                             , '80%')
                         ->addElementColumn((new Element())
                             , '20%');
@@ -990,7 +1029,8 @@ abstract class EzshStyle extends Certificate
                         ->styleTextBold()
                         ->styleMarginTop('10px')
                         ->styleTextSize($TextSize)
-                        ->styleFontFamily(self::FONT_FAMILY)
+                        ->styleFontFamily(self::FONT_FAMILY_BOLD)
+                        ->styleLineHeight(self::LINE_HEIGHT)
                     );
             } else {
                 $section
@@ -999,7 +1039,8 @@ abstract class EzshStyle extends Certificate
                         ->styleTextBold()
                         ->styleMarginTop('10px')
                         ->styleTextSize($TextSize)
-                        ->styleFontFamily(self::FONT_FAMILY)
+                        ->styleFontFamily(self::FONT_FAMILY_BOLD)
+                        ->styleLineHeight(self::LINE_HEIGHT)
                     );
             }
             $sectionList[] = $section;
@@ -1008,7 +1049,8 @@ abstract class EzshStyle extends Certificate
                 ->setContent('---')
                 ->styleMarginTop($marginTop)
                 ->styleTextSize($TextSize)
-                ->styleFontFamily(self::FONT_FAMILY);
+                ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT);
 
             $elementGrade = (new Element())
                 ->setContent('&ndash;')
@@ -1018,7 +1060,8 @@ abstract class EzshStyle extends Certificate
                 ->stylePaddingBottom('4px')
                 ->styleTextSize($TextSize)
                 ->styleMarginTop($marginTop)
-                ->styleFontFamily(self::FONT_FAMILY);
+                ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT);
 
             $section = new Section();
             $section
@@ -1049,6 +1092,7 @@ abstract class EzshStyle extends Certificate
                         ->stylePaddingTop()
                         ->styleTextSize('13px')
                         ->styleFontFamily(self::FONT_FAMILY)
+                        ->styleLineHeight(self::LINE_HEIGHT)
                         , '80%')
                     ->addElementColumn((new Element())
                         , '20%');
@@ -1077,6 +1121,7 @@ abstract class EzshStyle extends Certificate
                 {% endif %}')
             ->styleBorderBottom('1px', '#BBB')
             ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
             , '46%')
             ->addSliceColumn(
                 $this->setCheckBox('{% if(Content.P'.$personId.'.Input.PerformanceGroup is not empty) %}
@@ -1090,6 +1135,7 @@ abstract class EzshStyle extends Certificate
             ->addElementColumn((new Element())
                 ->setContent('teilgenommen')
                 ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '22%'
             )
             ->addSliceColumn(
@@ -1104,6 +1150,7 @@ abstract class EzshStyle extends Certificate
             ->addElementColumn((new Element())
                 ->setContent('nicht teilgenommen')
                 ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '22%'
             );
         $SectionList[] = $Section;
@@ -1111,6 +1158,7 @@ abstract class EzshStyle extends Certificate
         $Section->addElementColumn((new Element())
             ->setContent('Leistungsgruppe')
             ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
         );
         $SectionList[] = $Section;
 
@@ -1123,7 +1171,7 @@ abstract class EzshStyle extends Certificate
      *
      * @return Section[]
      */
-    public function getEZSHRating($personId, $Height = '575px')
+    public function getEZSHRating($personId, $Height = '570px')
     {
         $SectionList = array();
         $Section = new Section();
@@ -1132,7 +1180,8 @@ abstract class EzshStyle extends Certificate
             ->styleTextSize('10pt')
             ->styleTextBold()
             ->stylePaddingBottom('4px')
-            ->styleFontFamily(self::FONT_FAMILY)
+            ->styleFontFamily(self::FONT_FAMILY_BOLD)
+            ->styleLineHeight(self::LINE_HEIGHT)
         )
         );
         $SectionList[] = $Section;
@@ -1145,6 +1194,7 @@ abstract class EzshStyle extends Certificate
                 {% endif %}')
             ->styleHeight($Height)
             ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
         );
         $SectionList[] = $Section;
         return $SectionList;
@@ -1165,7 +1215,8 @@ abstract class EzshStyle extends Certificate
             ->styleTextSize('10pt')
             ->styleTextBold()
             ->stylePaddingBottom('4px')
-            ->styleFontFamily(self::FONT_FAMILY)
+            ->styleFontFamily(self::FONT_FAMILY_BOLD)
+            ->styleLineHeight(self::LINE_HEIGHT)
         );
         $SectionList[] = $Section;
         $Section = new Section();
@@ -1178,6 +1229,7 @@ abstract class EzshStyle extends Certificate
 //            ->styleAlignJustify()
             ->styleHeight($Height)
             ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
         );
         $SectionList[] = $Section;
         return $SectionList;
@@ -1197,7 +1249,8 @@ abstract class EzshStyle extends Certificate
             ->setContent('FEHLTAGE')
             ->styleTextBold()
             ->stylePaddingBottom('5px')
-            ->styleFontFamily(self::FONT_FAMILY)
+            ->styleFontFamily(self::FONT_FAMILY_BOLD)
+            ->styleLineHeight(self::LINE_HEIGHT)
         );
         $SectionList[] = $Section;
 
@@ -1205,6 +1258,7 @@ abstract class EzshStyle extends Certificate
         $Section->addElementColumn((new Element())
             ->setContent('entschuldigt')
             ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
             , '16%')
             ->addElementColumn((new Element())
                 ->setContent('{% if(Content.P'.$personId.'.Input.Missing is not empty) %}
@@ -1215,12 +1269,14 @@ abstract class EzshStyle extends Certificate
                 ->styleAlignCenter()
                 ->styleBorderBottom('1px', '#BBB')
                 ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '18%')
             ->addElementColumn((new Element())
                 , '15%')
             ->addElementColumn((new Element())
                 ->setContent('unentschuldigt')
                 ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '18%')
             ->addElementColumn((new Element())
                 ->setContent('{% if(Content.P'.$personId.'.Input.Bad.Missing is not empty) %}
@@ -1231,6 +1287,7 @@ abstract class EzshStyle extends Certificate
                 ->styleAlignCenter()
                 ->styleBorderBottom('1px', '#BBB')
                 ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '18%')
             ->addElementColumn((new Element())
                 , '15%');
@@ -1249,6 +1306,7 @@ abstract class EzshStyle extends Certificate
         $Section->addElementColumn((new Element())
             ->setContent('Versetzungsvermerk:')
             ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
             , '21%')
             ->addElementColumn((new Element())
                 ->setContent('{% if(Content.P'.$personId.'.Input.Transfer) %}
@@ -1259,6 +1317,7 @@ abstract class EzshStyle extends Certificate
                 ->styleBorderBottom('1px')
                 ->stylePaddingLeft('7px')
                 ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '58%')
             ->addElementColumn((new Element())
                 , '20%');
@@ -1284,6 +1343,7 @@ abstract class EzshStyle extends Certificate
             ->styleBorderBottom('1px', '#BBB')
             ->styleAlignCenter()
             ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
             , '15%')
             ->addElementColumn((new Element())
                 , '10%')
@@ -1291,6 +1351,7 @@ abstract class EzshStyle extends Certificate
                 ->setContent('&nbsp;')
                 ->styleBorderBottom('1px', '#BBB')
                 ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '30%')
             ->addElementColumn((new Element())
                 , '10%')
@@ -1298,6 +1359,7 @@ abstract class EzshStyle extends Certificate
                 ->setContent('&nbsp;')
                 ->styleBorderBottom('1px', '#BBB')
                 ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '30%')
             ->addElementColumn((new Element())
                 , '5%');
@@ -1306,6 +1368,7 @@ abstract class EzshStyle extends Certificate
         $Section->addElementColumn((new Element())
             ->setContent('Datum')
             ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
             , '25%'
         );
         $Section->addElementColumn((new Element())
@@ -1315,11 +1378,13 @@ abstract class EzshStyle extends Certificate
                     Klassenlehrer(in)
                 {% endif %}')
             ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
             , '40%'
         );
         $Section->addElementColumn((new Element())
             ->setContent('Für den Schulträger')
             ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
             , '35%'
         );
         $SectionList[] = $Section;
@@ -1336,15 +1401,18 @@ abstract class EzshStyle extends Certificate
         $SectionList[] = (new Section())->addElementColumn((new Element())
             ->setContent('Zur Kenntnis genommen:')
             ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
             , '30%')
             ->addElementColumn((new Element())
                 ->setContent('&nbsp;')
                 ->styleBorderBottom('1px', '#BBB')
                 ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '65%')
             ->addElementColumn((new Element())
                 ->setContent('&nbsp;')
                 ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '5%');
 
         $SectionList[] = (new Section())
@@ -1354,6 +1422,7 @@ abstract class EzshStyle extends Certificate
             ->addElementColumn((new Element())
                 ->setContent('Personensorgeberechtigte(r) ')
                 ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '70%'
             );
 
@@ -1374,6 +1443,7 @@ abstract class EzshStyle extends Certificate
             ->styleTextSize('8pt')
             ->stylePaddingBottom(($isExtend ? '0px' : '12px' ))
             ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
         );
         $SectionList[] = $Section;
         if($isExtend){
@@ -1383,6 +1453,7 @@ abstract class EzshStyle extends Certificate
                 ->styleTextSize('8pt')
                 ->stylePaddingTop()
                 ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
             );
             $SectionList[] = $Section;
         }
@@ -1405,7 +1476,8 @@ abstract class EzshStyle extends Certificate
             ->styleMarginTop('20px')
             ->styleTextBold()
             ->stylePaddingBottom('4px')
-            ->styleFontFamily(self::FONT_FAMILY)
+            ->styleFontFamily(self::FONT_FAMILY_BOLD)
+            ->styleLineHeight(self::LINE_HEIGHT)
         )
         );
         $SectionList[] = $Section;
@@ -1418,6 +1490,7 @@ abstract class EzshStyle extends Certificate
                 {% endif %}')
             ->styleHeight($Height)
             ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
         );
         $SectionList[] = $Section;
         return $SectionList;
