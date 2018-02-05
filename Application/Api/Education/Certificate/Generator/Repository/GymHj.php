@@ -47,7 +47,7 @@ class GymHj extends Certificate
                     ->styleHeight('270px'))
                 ->addSlice($this->getProfileStandard($personId))
                 ->addSlice($this->getDescriptionHead($personId, true))
-                ->addSlice($this->getDescriptionContent('80px', '15px'))
+                ->addSlice($this->getDescriptionContent($personId, '80px', '15px'))
                 ->addSlice($this->getDateLine($personId))
                 ->addSlice($this->getSignPart($personId, true))
                 ->addSlice($this->getParentSign())
