@@ -33,6 +33,7 @@ class CswMsHalbjahresinformation extends Certificate
     {
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
+        $pictureHeight = '90px';
 
         if ($this->isSample()) {
             $Header = (new Slice())
@@ -44,7 +45,7 @@ class CswMsHalbjahresinformation extends Certificate
                         ->styleTextSize('30px')
                     )
                     ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/CSW_Logo_EOK_100x100.png',
-                        'auto', '50px'))->styleAlignRight()
+                        'auto', $pictureHeight))->styleAlignRight()
                         , '25%')
                 );
         } else {
@@ -52,10 +53,11 @@ class CswMsHalbjahresinformation extends Certificate
                 ->addSection((new Section())
                     ->addElementColumn((new Element()), '75%')
                     ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/CSW_Logo_EOK_100x100.png',
-                        '100%', '50px'))
+                        'auto', $pictureHeight))->styleAlignRight()
                         , '25%')
                 );
         }
+        $Header->styleHeight('50px');
 
         return (new Page())
             ->addSlice(
@@ -110,7 +112,7 @@ class CswMsHalbjahresinformation extends Certificate
                 ->addElementColumn((new Element())
                     ->setContent('
                         {% if(Content.P'.$personId.'.Company.Data.Name) %}
-                            {{ Content.P'.$personId.'.Company.Data.Name }} 
+                            <strong> {{ Content.P'.$personId.'.Company.Data.Name }} </strong>
                             {% if(Content.P'.$personId.'.Company.Data.ExtendedName) %}
                                 <br>
                                 - {{ Content.P'.$personId.'.Company.Data.ExtendedName }} -

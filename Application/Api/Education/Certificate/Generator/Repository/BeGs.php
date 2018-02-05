@@ -35,7 +35,7 @@ class BeGs extends Certificate
     {
         return array(
             1 => "am Gymnasium",
-            2 => "an der Mittelschule"
+            2 => "an der Oberschule"
         );
     }
 

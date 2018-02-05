@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 09.09.2016
- * Time: 10:54
- */
-
 namespace SPHERE\Application\Api\Document;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
@@ -884,8 +877,7 @@ abstract class AbstractDocument
         $picturePath = $this->getEnrollmentDocumentUsedPicture();
         if ($picturePath != '') {
             $height = $this->getEnrollmentDocumentPictureHeight();
-            $column = (new Element\Image($picturePath, $with, $height))->stylePaddingTop(
-                (($this->tblAdressRowCount * 8 + 32) - (substr($height, 0, strlen($height) - 2) / 2)) . 'px');
+            $column = (new Element\Image($picturePath, $with, $height));
         } else {
             $column = (new Element())
                 ->setContent('&nbsp;');

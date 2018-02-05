@@ -2057,7 +2057,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                 || ($tblTestTemp->isContinues() && !$tblGrade->getDate() // Test-Enddatum
                                                     && $tblTestTemp->getFinishDate() && $tblTask->getDate()
                                                     && ($taskDate = new \DateTime($tblTask->getDate()))
-                                                    && ($finishDate = new \DateTime($tblTest->getFinishDate()))
+                                                    && ($finishDate = new \DateTime($tblTestTemp->getFinishDate()))
                                                     && ($taskDate->format('Y-m-d') >= $finishDate->format('Y-m-d')))
                                             ) {
                                                 if ($tblGrade->getGrade() !== null && $tblGrade->getGrade() !== '') {
@@ -2885,7 +2885,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblTask->getTblTestType()->getName(),
                                 $tblTask->getName() . ' ' . $tblTask->getDate()
                                 . '&nbsp;&nbsp;' . new Muted(new Small(new Small(
-                                    $tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
+                                    'Bearbeitungszeitraum '.$tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
                                 Panel::PANEL_TYPE_INFO
                             ),
                             $tblDivisionAllByTask ? null : new WarningMessage(
@@ -3413,7 +3413,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblTask->getTblTestType()->getName(),
                                 $tblTask->getName() . ' ' . $tblTask->getDate()
                                 . '&nbsp;&nbsp;' . new Muted(new Small(new Small(
-                                    $tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
+                                    'Bearbeitungszeitraum '.$tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
                                 Panel::PANEL_TYPE_INFO
                             )
                         ),

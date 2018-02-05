@@ -176,24 +176,32 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
 
         $Manager = $this->getConnection()->getEntityManager();
 
-        $Entity = new TblGrade();
-        $Entity->setServiceTblPerson($tblPerson);
-        $Entity->setServiceTblPersonTeacher($tblPersonTeacher);
-        $Entity->setServiceTblDivision($tblDivision);
-        $Entity->setServiceTblSubject($tblSubject);
-        $Entity->setServiceTblSubjectGroup($tblSubjectGroup);
-        $Entity->setServiceTblPeriod($tblPeriod);
-        $Entity->setTblGradeType($tblGradeType);
-        $Entity->setServiceTblTest($tblTest);
-        $Entity->setServiceTblTestType($tblTestType);
-        $Entity->setGrade($Grade);
-        $Entity->setComment($Comment);
-        $Entity->setTrend($Trend);
-        $Entity->setDate($Date ? new \DateTime($Date) : null);
-        $Entity->setTblGradeText($tblGradeText);
+        $Entity = $Manager->getEntity('TblGrade')
+            ->findOneBy(array(
+                TblGrade::ATTR_SERVICE_TBL_TEST => $tblTest->getId(),
+                TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            ));
 
-        $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        if (null === $Entity) {
+            $Entity = new TblGrade();
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setServiceTblPersonTeacher($tblPersonTeacher);
+            $Entity->setServiceTblDivision($tblDivision);
+            $Entity->setServiceTblSubject($tblSubject);
+            $Entity->setServiceTblSubjectGroup($tblSubjectGroup);
+            $Entity->setServiceTblPeriod($tblPeriod);
+            $Entity->setTblGradeType($tblGradeType);
+            $Entity->setServiceTblTest($tblTest);
+            $Entity->setServiceTblTestType($tblTestType);
+            $Entity->setGrade($Grade);
+            $Entity->setComment($Comment);
+            $Entity->setTrend($Trend);
+            $Entity->setDate($Date ? new \DateTime($Date) : null);
+            $Entity->setTblGradeText($tblGradeText);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
 
         return $Entity;
     }
@@ -465,61 +473,29 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
     /**
      * @param TblTest $tblTest
      * @param TblPerson $tblPerson
+     * @param bool $IsForced
      *
      * @return bool|TblGrade
      */
     public function getGradeByTestAndStudent(
         TblTest $tblTest,
-        TblPerson $tblPerson
-    ) {
-
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade',
-            array(
-                TblGrade::ATTR_SERVICE_TBL_TEST => $tblTest->getId(),
-                TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
-            ));
-    }
-
-    /**
-     * @param \SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest $tblTest
-     * @param TblPerson $tblPerson
-     * @param string $Grade
-     * @param string $Comment
-     *
-     * @return null|TblGrade
-     */
-    public function createGradeToTest(
-        TblTest $tblTest,
         TblPerson $tblPerson,
-        $Grade = '',
-        $Comment = ''
+        $IsForced = false
     ) {
 
-        $Manager = $this->getConnection()->getEntityManager();
-
-        $Entity = $Manager->getEntity('TblGrade')
-            ->findOneBy(array(
-                TblGrade::ATTR_SERVICE_TBL_TEST => $tblTest->getId(),
-                TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-            ));
-
-        if (null === $Entity) {
-            $Entity = new TblGrade();
-            $Entity->setServiceTblTest($tblTest);
-            $Entity->setServiceTblPerson($tblPerson);
-            $Entity->setServiceTblDivision($tblTest->getServiceTblDivision());
-            $Entity->setServiceTblSubject($tblTest->getServiceTblSubject());
-            $Entity->setServiceTblPeriod($tblTest->getServiceTblPeriod());
-            $Entity->setTblGradeType($tblTest->getServiceTblGradeType());
-            $Entity->setServiceTblTestType(Evaluation::useService()->getTestTypeByIdentifier('TEST'));
-            $Entity->setGrade($Grade);
-            $Entity->setComment($Comment);
-
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        if ($IsForced) {
+            return $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade',
+                array(
+                    TblGrade::ATTR_SERVICE_TBL_TEST => $tblTest->getId(),
+                    TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+                ));
+        } else {
+            return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade',
+                array(
+                    TblGrade::ATTR_SERVICE_TBL_TEST => $tblTest->getId(),
+                    TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+                ));
         }
-
-        return $Entity;
     }
 
     /**

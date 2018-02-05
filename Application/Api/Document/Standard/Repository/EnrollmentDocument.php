@@ -62,16 +62,30 @@ class EnrollmentDocument extends AbstractDocument
         // school
         $this->FieldValue['School'] = (isset($DataPost['School']) && $DataPost['School'] != '' ? $DataPost['School'] : '&nbsp;');
         $this->FieldValue['SchoolExtended'] = (isset($DataPost['SchoolExtended']) && $DataPost['SchoolExtended'] != '' ? $DataPost['SchoolExtended'] : '&nbsp;');
+        $this->FieldValue['SchoolAddressDistrict'] = (isset($DataPost['SchoolAddressDistrict']) && $DataPost['SchoolAddressDistrict'] != '' ? $DataPost['SchoolAddressDistrict'] : '&nbsp;');
         $this->FieldValue['SchoolAddressStreet'] = (isset($DataPost['SchoolAddressStreet']) && $DataPost['SchoolAddressStreet'] != '' ? $DataPost['SchoolAddressStreet'] : '&nbsp;');
         $this->FieldValue['SchoolAddressCity'] = (isset($DataPost['SchoolAddressCity']) && $DataPost['SchoolAddressCity'] != '' ? $DataPost['SchoolAddressCity'] : '&nbsp;');
+
         // student
         $this->FieldValue['FirstLastName'] = (isset($DataPost['FirstLastName']) && $DataPost['FirstLastName'] != '' ? $DataPost['FirstLastName'] : '&nbsp;');
         $this->FieldValue['Birthday'] = (isset($DataPost['Birthday']) && $DataPost['Birthday'] != '' ? $DataPost['Birthday'] : '&nbsp;');
+        $this->FieldValue['AddressDistrict'] = (isset($DataPost['AddressDistrict']) && $DataPost['AddressDistrict'] != '' ? $DataPost['AddressDistrict'] : '&nbsp;');
         $this->FieldValue['AddressStreet'] = (isset($DataPost['AddressStreet']) && $DataPost['AddressStreet'] != '' ? $DataPost['AddressStreet'] : '&nbsp;');
         $this->FieldValue['AddressPLZ'] = (isset($DataPost['AddressPLZ']) && $DataPost['AddressPLZ'] != '' ? $DataPost['AddressPLZ'] : '&nbsp;');
         $this->FieldValue['AddressCity'] = (isset($DataPost['AddressCity']) && $DataPost['AddressCity'] != '' ? $DataPost['AddressCity'] : '&nbsp;');
         $this->FieldValue['Birthday'] = (isset($DataPost['Birthday']) && $DataPost['Birthday'] != '' ? $DataPost['Birthday'] : '&nbsp;');
         $this->FieldValue['Birthplace'] = (isset($DataPost['Birthplace']) && $DataPost['Birthplace'] != '' ? $DataPost['Birthplace'] : '&nbsp;');
+
+        // set position for address
+        if($this->FieldValue['AddressDistrict'] != '&nbsp;'){
+            $this->FieldValue['AddressFirstLine'] = $this->FieldValue['AddressDistrict'];
+            $this->FieldValue['AddressSecondLine'] = $this->FieldValue['AddressStreet'];
+            $this->FieldValue['AddressThirdLine'] = $this->FieldValue['AddressPLZ'].' '.$this->FieldValue['AddressCity'];
+        } else {
+            $this->FieldValue['AddressFirstLine'] = $this->FieldValue['AddressStreet'];
+            $this->FieldValue['AddressSecondLine'] = $this->FieldValue['AddressPLZ'].' '.$this->FieldValue['AddressCity'];
+            $this->FieldValue['AddressThirdLine'] = '&nbsp;';
+        }
 
         $this->FieldValue['Division'] = (isset($DataPost['Division']) && $DataPost['Division'] != '' ? $DataPost['Division'] : '&nbsp;');
         $this->FieldValue['LeaveDate'] = (isset($DataPost['LeaveDate']) && $DataPost['LeaveDate'] != '' ? $DataPost['LeaveDate'] : '&nbsp;');
@@ -134,6 +148,7 @@ class EnrollmentDocument extends AbstractDocument
                                         ->addElementColumn((new Element())
                                             ->setContent($this->FieldValue['School']
                                                 .($this->FieldValue['SchoolExtended'] != '&nbsp;' ? '<br/>'.$this->FieldValue['SchoolExtended'] : '')
+                                                .($this->FieldValue['SchoolAddressDistrict'] != '&nbsp;' ? '<br/>'.$this->FieldValue['SchoolAddressDistrict'] : '')
                                                 .($this->FieldValue['SchoolAddressStreet'] != '&nbsp;' ? '<br/>'.$this->FieldValue['SchoolAddressStreet'] : '')
                                                 .($this->FieldValue['SchoolAddressCity'] != '&nbsp;' ? '<br/>'.$this->FieldValue['SchoolAddressCity'] : '')
                                             )
@@ -142,7 +157,8 @@ class EnrollmentDocument extends AbstractDocument
                                     ), '60%'
                                 )
                                 ->addElementColumn($this->getPictureEnrollmentDocument()
-                                    ->styleAlignRight(),'40%'
+                                    ->styleAlignRight()
+                                    ,'40%'
                                 )
                             )
                             ->addSection((new Section())
@@ -202,7 +218,7 @@ class EnrollmentDocument extends AbstractDocument
                                     ->stylePaddingTop('30px')
                                     , '35%')
                                 ->addElementColumn((new Element())
-                                    ->setContent($this->FieldValue['AddressStreet'])
+                                    ->setContent($this->FieldValue['AddressFirstLine'])
                                     ->stylePaddingTop('30px')
                                     ->styleBorderBottom()
                                     , '65%')
@@ -213,7 +229,18 @@ class EnrollmentDocument extends AbstractDocument
                                     ->stylePaddingTop('30px')
                                     , '35%')
                                 ->addElementColumn((new Element())
-                                    ->setContent($this->FieldValue['AddressPLZ'].' '.$this->FieldValue['AddressCity'])
+                                    ->setContent($this->FieldValue['AddressSecondLine'])
+                                    ->stylePaddingTop('30px')
+                                    ->styleBorderBottom()
+                                    , '65%')
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('&nbsp;')
+                                    ->stylePaddingTop('30px')
+                                    , '35%')
+                                ->addElementColumn((new Element())
+                                    ->setContent($this->FieldValue['AddressThirdLine'])
                                     ->stylePaddingTop('30px')
                                     ->styleBorderBottom()
                                     , '65%')

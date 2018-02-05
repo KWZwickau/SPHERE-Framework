@@ -71,9 +71,12 @@ class Data extends AbstractData
     public function getTestById($Id)
     {
 
-        /** @var TblTest $Entity */
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblTest', $Id);
-        return (null === $Entity ? false : $Entity);
+//        /** @var TblTest $Entity */
+//        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblTest', $Id);
+//        return (null === $Entity ? false : $Entity);
+
+        // gelöschte Tests ignorieren
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblTest', $Id);
     }
 
     /**

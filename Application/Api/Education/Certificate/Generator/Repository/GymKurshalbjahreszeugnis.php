@@ -423,7 +423,7 @@ class GymKurshalbjahreszeugnis extends Certificate
             $section
                 ->addElementColumn((new Element())
                     ->setContent($tblSubject->getName() == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft'
-                        ? 'Gemeinschaftskunde/Rechtserziehung/ Wirtschaft' : $tblSubject->getName())
+                        ? 'Gemeinschaftskunde/ Rechtserziehung/Wirtschaft' : $tblSubject->getName())
                     ->styleBorderBottom($isSubjectUnderlined || $isLanguage ? '1px' : '0px')
                     ->styleMarginTop($marginTop)
                     , '33%');

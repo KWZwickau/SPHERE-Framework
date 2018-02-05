@@ -1,20 +1,21 @@
 @font-face {
-    font-family: 'CalluaSans';
+    font-family: 'Calluna Sans';
     font-style: normal;
     font-weight: normal;
-    src: url("{{ UriPath }}/Common/Style/Font/CalluaSans-Regular.ttf") format('truetype');
+    src: url("{{ UriPath }}/Common/Style/Font/CallunaSans-Regular.ttf") format('truetype');
 }
+/* Bold funktioniert nicht wenn es den gleichen Namen hat und lediglich über ->styleTextBold() aufgerufen wird */
 @font-face {
-    font-family: 'CalluaSans';
+    font-family: 'Calluna Sans Bold';
     font-style: normal;
     font-weight: bold;
-    src: url("{{ UriPath }}/Common/Style/Font/CalluaSans-Bold.ttf") format('truetype');
+    src: url("{{ UriPath }}/Common/Style/Font/CallunaSans-Bold.ttf") format('truetype');
 }
 @font-face {
-    font-family: 'CalluaSans';
+    font-family: 'Calluna Sans Italic';
     font-style: italic;
     font-weight: normal;
-    src: url("{{ UriPath }}/Common/Style/Font/CalluaSans-Italic.ttf") format('truetype');
+    src: url("{{ UriPath }}/Common/Style/Font/CallunaSans-Italic.ttf") format('truetype');
 }
 
 @font-face {

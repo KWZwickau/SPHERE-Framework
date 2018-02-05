@@ -423,17 +423,17 @@ class Service extends ServiceScoreRule
                     } else {
                         $tblTestOfPerson = $tblTest;
                     }
-                    $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTestOfPerson, $tblPerson);
-                    if ($tblGrade && empty($value['Comment']) && !isset($value['Attendance'])
-                        && (($gradeValue != $tblGrade->getGrade()
+                    $tblGradeItem = Gradebook::useService()->getGradeByTestAndStudent($tblTestOfPerson, $tblPerson, true);
+                    if ($tblGradeItem && empty($value['Comment']) && !isset($value['Attendance'])
+                        && (($gradeValue != $tblGradeItem->getGrade()
 //                            || (isset($value['Trend']) && $value['Trend'] != $tblGrade->getTrend())))
-                        || ($trend != $tblGrade->getTrend())))
+                        || ($trend != $tblGradeItem->getTrend())))
                     ) {
                         $errorEdit[] = new Container(new Bold($tblPerson->getLastFirstName()));
                     }
                     // nicht bei Notenaufträgen #SSW-1085
                     if (!$tblTest->getTblTask()) {
-                        if ($tblGrade && $gradeValue === ''
+                        if ($tblGradeItem && $gradeValue === ''
                             && !isset($value['Attendance'])
                             && (!isset($value['Text']) || (isset($value['Text']) && !$this->getGradeTextById($value['Text'])))
                         ) {
@@ -519,7 +519,7 @@ class Service extends ServiceScoreRule
                     }
 
                     if (!($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTestByPerson,
-                        $tblPerson))
+                        $tblPerson, true))
                     ) {
                         $hasCreatedGrade = false;
                         if (isset($value['Attendance'])) {
@@ -658,15 +658,17 @@ class Service extends ServiceScoreRule
     /**
      * @param TblTest $tblTest
      * @param TblPerson $tblPerson
+     * @param bool $IsForced
      *
      * @return bool|TblGrade
      */
     public function getGradeByTestAndStudent(
         TblTest $tblTest,
-        TblPerson $tblPerson
+        TblPerson $tblPerson,
+        $IsForced = false
     ) {
 
-        return (new Data($this->getBinding()))->getGradeByTestAndStudent($tblTest, $tblPerson);
+        return (new Data($this->getBinding()))->getGradeByTestAndStudent($tblTest, $tblPerson, $IsForced);
     }
 
     /**
@@ -737,6 +739,15 @@ class Service extends ServiceScoreRule
                             $tempGradeList[] = $item;
                         }
                     }
+                }
+            }
+            $tblGradeList = empty($tempGradeList) ? false : $tempGradeList;
+        } elseif ($tblGradeList) {
+            $tempGradeList = array();
+            // gelöschte Tests ignorieren
+            foreach ($tblGradeList as $item) {
+                if ($item->getServiceTblTest()) {
+                    $tempGradeList[] = $item;
                 }
             }
             $tblGradeList = empty($tempGradeList) ? false : $tempGradeList;
