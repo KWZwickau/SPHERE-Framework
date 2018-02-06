@@ -26,6 +26,7 @@ use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -72,7 +73,6 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -1029,21 +1029,19 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendPasswordGeneration($Id = null, $Path = '/Setting/User', $Data = null)
     {
 
-        Debugger::screenDump($Data);
-
-        if($Data !== null){
-            //ToDO test for link-button reaction
-            $Error = false;
-//            if(!isset($Data['Company']) || $Data['Company'] == ''){
-//                $Error = true;
-//            }
-
-            if(!$Error){
-                return (new Redirect('/Api/Document/Standard/PasswordChange/Create', Redirect::TIMEOUT_SUCCESS, array('Data' => $Data)));
-            }
-        }
-
         $Stage = new Stage('Benutzer Passwort', 'neu Erzeugen');
+//        if($Data !== null){
+////            Debugger::screenDump($Data);
+//            //ToDO test for link-button reaction
+//            $Error = false;
+////            if(!isset($Data['Company']) || $Data['Company'] == ''){
+////                $Error = true;
+////            }
+//
+//            if(!$Error){
+//                return $Stage; //(new Redirect('/Api/Document/Standard/PasswordChange/Create', Redirect::TIMEOUT_SUCCESS, array('Data' => $Data)));
+//            }
+//        }
         if ($Id) {
             $tblUserAccount = Account::useService()->getUserAccountById($Id);
             if (!$tblUserAccount) {
@@ -1079,7 +1077,8 @@ class Frontend extends Extension implements IFrontendInterface
                             Panel::PANEL_TYPE_SUCCESS
                         ),
                         new Panel(new Question().' Das Passwort dieses Benutzers wirklich neu Erzeugen?',
-                            $this->getPdfForm($tblPerson, $tblUserAccount),
+                            Account::useService()->generatePdfControl(
+                            $this->getPdfForm($tblPerson), $Data),
                             Panel::PANEL_TYPE_DANGER)
                         )
                     ))))
@@ -1099,16 +1098,11 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblPerson $tblPerson
-     * @param null      $UserAccountId
      *
      * @return Form|Redirect
      */
-    private function getPdfForm(TblPerson $tblPerson, $UserAccountId = null)
+    private function getPdfForm(TblPerson $tblPerson)
     {
-
-        $Global = $this->getGlobal();
-        $Global->POST['Data']['PersonId'] = $tblPerson->getId();
-        $Global->savePost();
 
         $SelectBoxList = array();
         $tblSchoolAll = School::useService()->getSchoolAll();
@@ -1118,59 +1112,79 @@ class Frontend extends Extension implements IFrontendInterface
                 if($tblCompany){
                     $tblCompanyAddress = Address::useService()->getAddressByCompany($tblCompany);
                     $SelectBoxList[] = new FormColumn(
-                        (new RadioBox('Data[Company]',
-                            $tblCompany->getName()
+                        new Panel('Schule',
+                            (new RadioBox('Data[Company]',
+                                $tblCompany->getName()
                                 .( $tblCompany->getExtendedName() != '' ?
                                     new Container($tblCompany->getExtendedName()) : null )
                                 .( $tblCompanyAddress ?
                                     new Container($tblCompanyAddress->getGuiTwoRowString()) : null )
-                                , $tblCompany->getId()))->setRequired()
+                                , $tblCompany->getId()))
+                            , Panel::PANEL_TYPE_INFO)
                     , 4);
                 }
             }
         }
+        if(count($SelectBoxList) == 1){
+            $tblSchoolAll[0]->getId();
+        }
+
+        $Global = $this->getGlobal();
+        $Global->POST['Data']['PersonId'] = $tblPerson->getId();
+        $Global->POST['Data']['IsParent'] = false;
+        $Global->POST['Data']['Company'] = $tblSchoolAll[0]->getId();
+        $Global->POST['Data']['FirstName'] = $tblPerson->getFirstName();
+        $Global->POST['Data']['SecondName'] = $tblPerson->getSecondName();
+        $Global->POST['Data']['LastName'] = $tblPerson->getLastName();
+        $Global->savePost();
 
         return new Form(
             new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(
-                        new HiddenField('Data[PersonId]')
-                    )
-                )),
                 new FormRow(
                     $SelectBoxList
                 ),
-//                new FormRow(array(
-//                    new FormColumn(
-//                        new TextField('Data[School]', '', 'Schule')
-//                        , 4
-//                    ),
-//                    new FormColumn(
-//                        new TextField('Data[SchoolStreet]', '', 'Straße')
-//                        , 4
-//                    ),
-//                    new FormColumn(
-//                        new TextField('Data[SchoolCity]', '', 'Ort')
-//                        , 4
-//                    ),
-//                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new HiddenField('Data[PersonId]')
+                    ),
+                    new FormColumn(
+                        new HiddenField('Data[IsParent]')
+                    ),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new TextField('Data[FirstName]', '', 'Vorname')
+                        , 3
+                    ),
+                    new FormColumn(
+                        new TextField('Data[SecondName]', '', 'Zweiter Vorname')
+                        , 3
+                    ),
+                    new FormColumn(
+                        new TextField('Data[LastName]', '', 'Nachname')
+                        , 3
+                    ),
+                )),
                 new FormRow(array(
                     // ToDO choose one of this different workflows:
+//                    new FormColumn(
+//                        (new Primary('Ja & PDF', new Download(), true))
+//                    ),
                     new FormColumn(
-                        (new Primary('Ja & PDF', new Download(), true))
+                        new Primary('Ja & Service & PDF', new Download())
                     ),
-                    new FormColumn(
-                        (new External(
-                            'Ja', 'SPHERE\Application\Api\Document\Standard\PasswordChange\Create', new Ok()
-                                    , array('Data' => array('PersonId' => $tblPerson->getId()))
-                                    , false
-                        )) // ->setRedirect('/Setting/User/Account/Student/Show', 1)
-                    ),
-                    new FormColumn(
-                        new Standard('Test2', __NAMESPACE__.'/Password/Generation', null, array('Id' => $UserAccountId, 'Path' => '/Setting/User/Account/Student/Show', 'Data' => array('PersonId' => $tblPerson->getId())))
-                    )
+//                    new FormColumn(
+//                        (new External(
+//                            'Ja', 'SPHERE\Application\Api\Document\Standard\PasswordChange\Create', new Ok()
+//                                    , array('Data' => array('PersonId' => $tblPerson->getId()))
+//                                    , false
+//                        )) // ->setRedirect('/Setting/User/Account/Student/Show', 1)
+//                    ),
+//                    new FormColumn(
+//                        new Standard('Test2', __NAMESPACE__.'/Password/Generation', null, array('Id' => $UserAccountId, 'Path' => '/Setting/User/Account/Student/Show', 'Data' => array('PersonId' => $tblPerson->getId())))
+//                    )
                 )),
-            )), null, '\Api\Document\Standard\PasswordChange\Create'
+            )) // , null, '\Api\Document\Standard\PasswordChange\Create'
         );
     }
 

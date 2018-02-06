@@ -56,12 +56,24 @@ class PasswordChange extends AbstractDocument
 
         $tblAccount = false;
         // PersonGender
-        $this->FieldValue['PersonName'] = '';
+
         $this->FieldValue['Street'] = '';
         $this->FieldValue['City'] = '';
+
+        $this->FieldValue['IsParent'] = (isset($DataPost['IsParent']) ? $DataPost['IsParent'] : false);
+        $Salutation = (isset($DataPost['Salutation']) && $DataPost['Salutation'] != '' ? $DataPost['Salutation'] : '&nbsp;');
+        $FirstName = (isset($DataPost['FirstName']) && $DataPost['FirstName'] != '' ? $DataPost['FirstName'] : '&nbsp;');
+        $SecondName = (isset($DataPost['SecondName']) && $DataPost['SecondName'] != '' ? $DataPost['SecondName'] : '&nbsp;');
+        $LastName = (isset($DataPost['LastName']) && $DataPost['LastName'] != '' ? $DataPost['LastName'] : '&nbsp;');
+
+        $this->FieldValue['PersonName'] = ($Salutation != '&nbsp;' ? $Salutation.' ' : '')
+            .$FirstName.' '
+            .($SecondName != '&nbsp;' ? $SecondName.' ' : '')
+            .$LastName;
+
         $this->FieldValue['PersonId'] = (isset($DataPost['PersonId']) && $DataPost['PersonId'] != '' ? $DataPost['PersonId'] : false);
         if ($this->FieldValue['PersonId'] && ($tblPerson = Person::useService()->getPersonById($this->FieldValue['PersonId']))) {
-            $this->FieldValue['PersonName'] = $tblPerson->getFullName();
+//            $this->FieldValue['PersonName'] = $tblPerson->getFullName();
             if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
                 if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
                     if (($tblGender = $tblCommonBirthDates->getTblCommonGender())) {
@@ -290,11 +302,11 @@ class PasswordChange extends AbstractDocument
         return $Slice;
     }
 
-    private function getLetterContent($IsParrent = true, $Height = '500px')
+    private function getLetterContent($Height = '500px')
     {
 
         $Slice = new Slice();
-        if ($IsParrent) {
+        if ($this->FieldValue['IsParent']) {
             $Slice->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')

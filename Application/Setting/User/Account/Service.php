@@ -24,6 +24,10 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity
 use SPHERE\Application\Setting\User\Account\Service\Data;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Application\Setting\User\Account\Service\Setup;
+use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Link\Repository\External;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Filter\Link\Pile;
 
@@ -125,6 +129,32 @@ class Service extends AbstractService
             }
         }
         return !empty($result) ? $result : false;
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param array|null     $Data
+     *
+     * @return string|Form
+     */
+    public function generatePdfControl(IFormInterface $Form, $Data = null)
+    {
+
+        if($Data === null){
+            return $Form;
+        }
+
+        $Error = false;
+        if(!isset($Data['Company']) || isset($Data['Company']) && $Data['Company'] == ''){
+            $Form->setError('Data[PersonId]', 'Bitte geben Sie eine Schule an');
+            $Error = true;
+        }
+        if(!$Error){
+            return 'DownloadLink'.
+                (new External('Download PDF', '\Api\Document\Standard\PasswordChange\Create', null, array('Data' => $Data), false))
+                    ->setRedirect('/Setting/User/Account/Student/Show', Redirect::TIMEOUT_SUCCESS);
+        }
+        return $Form;
     }
 
     /**
