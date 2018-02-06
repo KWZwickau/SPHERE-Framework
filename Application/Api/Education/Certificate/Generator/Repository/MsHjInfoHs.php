@@ -56,7 +56,7 @@ class MsHjInfoHs extends Certificate
             ->addSlice($this->getDescriptionHead($personId, true))
             ->addSlice($this->getDescriptionContent($personId, '85px', '15px'))
             ->addSlice($this->getDateLine($personId))
-            ->addSlice($this->getSignPart(false))
+            ->addSlice($this->getSignPart($personId, false))
             ->addSlice($this->getParentSign())
             ->addSlice($this->getInfo('25px',
                 'Notenerläuterung:',
