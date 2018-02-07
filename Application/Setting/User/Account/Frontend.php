@@ -26,7 +26,6 @@ use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
-use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -847,7 +846,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new Standard('', '/Setting/User/Account/Password/Generation', new Mail(),
                         array(
                             'Id'   => $tblUserAccount->getId(),
-                            'Path' => '/Setting/User/Account/Custody/Show'
+                            'Path' => '/Setting/User/Account/Custody/Show',
+                            'IsParent' => true
                         )
                         , 'Passwort neu erzeugen')
                     .new Standard('', '/Setting/User/Account/Reset', new Repeat(),
@@ -1022,11 +1022,12 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null   $Id
      * @param string $Path
+     * @param bool   $IsParent
      * @param null   $Data
      *
      * @return Stage|string
      */
-    public function frontendPasswordGeneration($Id = null, $Path = '/Setting/User', $Data = null)
+    public function frontendPasswordGeneration($Id = null, $Path = '/Setting/User', $IsParent = false, $Data = null)
     {
 
         $Stage = new Stage('Benutzer Passwort', 'neu Erzeugen');
@@ -1067,22 +1068,22 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->addButton(
                 new Standard('Zurück', $Path, new ChevronLeft())
             );
-                $Stage->setContent(
-                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
-                        new Panel(new PersonIcon().' Benutzerdaten',
-                            array(
-                                'Person: '.new Bold($tblPerson->getFullName()),
-                                'Benutzer: '.new Bold($tblAccount->getUserName())
-                            ),
-                            Panel::PANEL_TYPE_SUCCESS
+            $Stage->setContent(
+                new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                    new Panel(new PersonIcon().' Benutzerdaten',
+                        array(
+                            'Person: '.new Bold($tblPerson->getFullName()),
+                            'Benutzer: '.new Bold($tblAccount->getUserName())
                         ),
-                        new Panel(new Question().' Das Passwort dieses Benutzers wirklich neu Erzeugen?',
-                            Account::useService()->generatePdfControl(
-                            $this->getPdfForm($tblPerson), $Data),
-                            Panel::PANEL_TYPE_DANGER)
-                        )
-                    ))))
-                );
+                        Panel::PANEL_TYPE_SUCCESS
+                    ),
+                    new Panel(new Question().' Das Passwort dieses Benutzers wirklich neu Erzeugen?',
+                        Account::useService()->generatePdfControl(
+                        $this->getPdfForm($tblPerson, $tblUserAccount, $IsParent), $Data),
+                        Panel::PANEL_TYPE_DANGER)
+                    )
+                ))))
+            );
         } else {
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(
@@ -1097,11 +1098,13 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param TblPerson $tblPerson
+     * @param TblPerson      $tblPerson
+     * @param TblUserAccount $tblUserAccount
+     * @param bool           $IsParent
      *
      * @return Form|Redirect
      */
-    private function getPdfForm(TblPerson $tblPerson)
+    private function getPdfForm(TblPerson $tblPerson, TblUserAccount $tblUserAccount, $IsParent = false)
     {
 
         $SelectBoxList = array();
@@ -1131,11 +1134,9 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Global = $this->getGlobal();
         $Global->POST['Data']['PersonId'] = $tblPerson->getId();
-        $Global->POST['Data']['IsParent'] = false;
+        $Global->POST['Data']['UserAccountId'] = $tblUserAccount->getId();
+        $Global->POST['Data']['IsParent'] = $IsParent;
         $Global->POST['Data']['Company'] = $tblSchoolAll[0]->getId();
-        $Global->POST['Data']['FirstName'] = $tblPerson->getFirstName();
-        $Global->POST['Data']['SecondName'] = $tblPerson->getSecondName();
-        $Global->POST['Data']['LastName'] = $tblPerson->getLastName();
         $Global->savePost();
 
         return new Form(
@@ -1146,25 +1147,28 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(
                         new HiddenField('Data[PersonId]')
-                    ),
+                    , 4),
+                    new FormColumn(
+                        new HiddenField('Data[UserAccountId]')
+                    , 1),
                     new FormColumn(
                         new HiddenField('Data[IsParent]')
-                    ),
+                    , 1),
                 )),
-                new FormRow(array(
-                    new FormColumn(
-                        new TextField('Data[FirstName]', '', 'Vorname')
-                        , 3
-                    ),
-                    new FormColumn(
-                        new TextField('Data[SecondName]', '', 'Zweiter Vorname')
-                        , 3
-                    ),
-                    new FormColumn(
-                        new TextField('Data[LastName]', '', 'Nachname')
-                        , 3
-                    ),
-                )),
+//                new FormRow(array(
+//                    new FormColumn(
+//                        new TextField('Data[FirstName]', '', 'Vorname')
+//                        , 3
+//                    ),
+//                    new FormColumn(
+//                        new TextField('Data[SecondName]', '', 'Zweiter Vorname')
+//                        , 3
+//                    ),
+//                    new FormColumn(
+//                        new TextField('Data[LastName]', '', 'Nachname')
+//                        , 3
+//                    ),
+//                )),
                 new FormRow(array(
                     // ToDO choose one of this different workflows:
 //                    new FormColumn(
