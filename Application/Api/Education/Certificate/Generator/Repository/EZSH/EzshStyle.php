@@ -908,7 +908,7 @@ abstract class EzshStyle extends Certificate
                 } else {
                     $section
                         ->addElementColumn((new Element())
-                            ->setContent('2. Fremdsprache ab Klasse 6 / <u>Neigungskurs ab Klasse 7</u>')
+                            ->setContent('2. Fremdsprache ab Klasse 6 / Neigungskurs ab Klasse 7')
                             ->styleBorderTop('1px', '#BBB')
                             ->styleMarginTop('0px')
                             ->stylePaddingTop()
@@ -917,6 +917,20 @@ abstract class EzshStyle extends Certificate
                             ->styleLineHeight(self::LINE_HEIGHT)
                             , (string)($subjectWidth - 2) . '%')
                         ->addElementColumn((new Element()), (string)($gradeWidth + 2) . '%');
+                    $sectionList[] = $section;
+
+                    // Unterstreichung NK
+                    $section = new Section();
+                    $section
+                        ->addElementColumn((new Element()), '27%')
+                        ->addElementColumn((new Element())
+                            ->setContent('&nbsp;')
+                            ->stylePaddingTop('0px')
+                            ->stylePaddingBottom('0px')
+                            ->styleTextSize('1px')
+                            ->styleBorderTop('0.5px')
+                            , '23%')
+                        ->addElementColumn((new Element()));
                     $sectionList[] = $section;
                 }
             } elseif ($elementForeignLanguageName) {
@@ -943,13 +957,13 @@ abstract class EzshStyle extends Certificate
                 } else {
                     $section
                         ->addElementColumn((new Element())
-                            ->setContent(' <u>2. Fremdsprache ab Klasse 
+                            ->setContent('2. Fremdsprache ab Klasse
                         {% if ' . $Level . ' == false %}
                             6
                         {% else %}
                             ' . $Level . '
                         {% endif %}
-                        </u> / Neigungskurs ab Klasse 7')
+                        / Neigungskurs ab Klasse 7')
                             ->styleBorderTop('1px', '#BBB')
                             ->stylePaddingTop()
                             ->styleTextSize('13px')
@@ -957,6 +971,19 @@ abstract class EzshStyle extends Certificate
                             ->styleLineHeight(self::LINE_HEIGHT)
                             , (string)($subjectWidth - 2) . '%')
                         ->addElementColumn((new Element()), (string)($gradeWidth + 2) . '%');
+                    $sectionList[] = $section;
+
+                    // Unterstreichung 2. FS
+                    $section = new Section();
+                    $section
+                        ->addElementColumn((new Element())
+                            ->setContent('&nbsp;')
+                            ->stylePaddingTop('0px')
+                            ->stylePaddingBottom('0px')
+                            ->styleTextSize('1px')
+                            ->styleBorderTop('0.5px')
+                            , '25%')
+                        ->addElementColumn((new Element()));
                     $sectionList[] = $section;
                 }
             } else {
