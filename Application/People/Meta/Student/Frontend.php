@@ -178,7 +178,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $this->formGroupGeneral($tblPerson),
                                     $this->formGroupSubject($tblPerson, $Year, $Division),
                                     $this->formGroupIntegration($tblPerson),
-                                ), new Primary('Speichern', new Save()))
+                                ), (new Primary('Speichern', new Save()))->disableOnLoad())
                                 )->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.')
                                 , $tblPerson, $Meta, $Group
                             )
