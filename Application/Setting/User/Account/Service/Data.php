@@ -118,6 +118,7 @@ class Data extends AbstractData
      * @param \DateTime  $TimeStamp
      * @param string     $userPassword
      * @param string     $Type STUDENT|CUSTODY
+     * @param int        $GroupByCount
      *
      * @return TblUserAccount
      */
@@ -126,7 +127,8 @@ class Data extends AbstractData
         TblPerson $tblPerson,
         \DateTime $TimeStamp,
         $userPassword,
-        $Type = 'STUDENT'
+        $Type = 'STUDENT',
+        $GroupByCount
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -146,6 +148,7 @@ class Data extends AbstractData
 //            $Entity->setExportDate(null);
             $Entity->setLastDownloadAccount('');
             $Entity->setGroupByTime($TimeStamp);
+            $Entity->setGroupByCount($GroupByCount);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
             return $Entity;

@@ -7,6 +7,7 @@ use SPHERE\Application\IApiInterface;
 use SPHERE\Application\Setting\User\Account\Account;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
+use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -48,6 +49,8 @@ class ApiUserAccount extends Extension implements IApiInterface
         $Dispatcher->registerMethod('serviceAccount');
         $Dispatcher->registerMethod('openAccountModalResult');
 
+        $Dispatcher->registerMethod('openFilter');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -69,6 +72,18 @@ class ApiUserAccount extends Extension implements IApiInterface
 
         return (new InlineReceiver(''))
             ->setIdentifier('AccountService');
+    }
+
+    /**
+     * @param string $Content
+     *
+     * @return BlockReceiver
+     */
+    public static function receiverFilter($Content = '')
+    {
+
+        return (new BlockReceiver($Content))
+            ->setIdentifier('Filter');
     }
 
     /**
@@ -95,6 +110,43 @@ class ApiUserAccount extends Extension implements IApiInterface
         $Pipeline->appendEmitter($Emitter);
 
         return $Pipeline;
+    }
+
+    /**
+     * @param string $Type (S = Student; C = Custody)
+     *
+     * @return Pipeline
+     */
+    public static function pipelineShowFilter()
+    {
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter(self::receiverFilter(), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'openFilter'
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return Layout|string
+     */
+    public function openFilter()
+    {
+
+        return new Layout(
+            new LayoutGroup(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new InfoMessage('Dieser Vorgang kann einige Zeit in Anspruch nehmen'
+                            .new Container((new ProgressBar(0, 100, 0, 10))
+                                ->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS))
+                        )
+                    ),
+                ))
+            )
+        );
     }
 
     /**

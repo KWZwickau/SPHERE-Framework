@@ -18,6 +18,9 @@ use SPHERE\Application\Setting\User\Account\Account;
 
 class PasswordChange extends AbstractDocument
 {
+
+    const BLOCK_SPACE = '10px';
+
     /**
      * PasswordChange constructor.
      *
@@ -56,13 +59,27 @@ class PasswordChange extends AbstractDocument
     {
 
         $tblAccount = false;
-        // PersonGender
-
-        $this->FieldValue['UserAccount'] = '';
-        $this->FieldValue['IsParent'] = (isset($DataPost['IsParent']) ? $DataPost['IsParent'] : false);
+        // Common
         $this->FieldValue['PersonName'] = '';
+        $this->FieldValue['UserAccount'] = '';
+        // Text choose decision
+        $this->FieldValue['IsParent'] = (isset($DataPost['IsParent']) ? $DataPost['IsParent'] : false);
+        // School
         $this->FieldValue['CompanyDisplay'] = '';
-        $this->FieldValue['PlaceDate'] = (new \DateTime('now'))->format('d.m.Y');
+        $this->FieldValue['Street'] = '';
+        $this->FieldValue['District'] = '';
+        $this->FieldValue['City'] = '';
+        // Contact
+        $this->FieldValue['ContactPerson'] = (isset($DataPost['ContactPerson']) && $DataPost['ContactPerson'] != '' ? $DataPost['ContactPerson'] : '&nbsp;');
+        $this->FieldValue['Phone'] = (isset($DataPost['Phone']) && $DataPost['Phone'] != '' ? $DataPost['Phone'] : '&nbsp;');
+        $this->FieldValue['Fax'] = (isset($DataPost['Fax']) && $DataPost['Fax'] != '' ? $DataPost['Fax'] : '&nbsp;');
+        $this->FieldValue['Mail'] = (isset($DataPost['Mail']) && $DataPost['Mail'] != '' ? $DataPost['Mail'] : '&nbsp;');
+        $this->FieldValue['Web'] = (isset($DataPost['Web']) && $DataPost['Web'] != '' ? $DataPost['Web'] : '&nbsp;');
+        //Signer
+        $this->FieldValue['SignerName'] = (isset($DataPost['SignerName']) && $DataPost['SignerName'] != '' ? $DataPost['SignerName'] : '&nbsp;');
+        $this->FieldValue['SignerType'] = (isset($DataPost['SignerType']) && $DataPost['SignerType'] != '' ? $DataPost['SignerType'] : '&nbsp;');
+        $this->FieldValue['Place'] = (isset($DataPost['Place']) && $DataPost['Place'] != '' ? $DataPost['Place'].', den ' : '');
+        $this->FieldValue['Date'] = (isset($DataPost['Date']) && $DataPost['Date'] != '' ? $DataPost['Date'] : '&nbsp;');
 
         //Account
         $UserAccountId = (isset($DataPost['UserAccountId']) && $DataPost['UserAccountId'] != '' ? $DataPost['UserAccountId'] : false);
@@ -74,7 +91,7 @@ class PasswordChange extends AbstractDocument
             }
         }
 
-        // Schüler/Eltern
+        // Student/Custody
         $this->FieldValue['PersonId'] = (isset($DataPost['PersonId']) && $DataPost['PersonId'] != '' ? $DataPost['PersonId'] : false);
         if ($this->FieldValue['PersonId'] && ($tblPerson = Person::useService()->getPersonById($this->FieldValue['PersonId']))) {
             $this->FieldValue['PersonName'] = $tblPerson->getFullName();
@@ -90,27 +107,29 @@ class PasswordChange extends AbstractDocument
                 $this->FieldValue['Street'] = $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber();
                 $tblCity = $tblAddress->getTblCity();
                 if($tblCity){
-                    $this->FieldValue['City'] = $tblCity->getCode().' '.$tblCity->getDisplayName();
+                    $this->FieldValue['District'] = $tblCity->getDistrict();
+                    $this->FieldValue['City'] = $tblCity->getCode().' '.$tblCity->getName();
                 }
             }
         }
 
-        //Schule
+        //School
         $CompanyId = (isset($DataPost['CompanyId']) && $DataPost['CompanyId'] != '' ? $DataPost['CompanyId'] : false);
         if($CompanyId){
             $tblCompany = Company::useService()->getCompanyById($CompanyId);
             if($tblCompany){
                 $this->FieldValue['CompanyDisplay'] = $tblCompany->getDisplayName();
                 $tblAddress = Address::useService()->getAddressByCompany($tblCompany);
-                if($tblAddress){
+                if($tblAddress && !$this->FieldValue['Place']){
                     $tblCity = $tblAddress->getTblCity();
                     if($tblCity){
-                        $this->FieldValue['PlaceDate'] = $tblCity->getName().', den '.(new \DateTime('now'))->format('d.m.Y');
+                        $this->FieldValue['Place'] = $tblCity->getName().', den ';
                     }
                 }
             }
         }
 
+        //generate new Password
         $this->FieldValue['Password'] = $Password = Account::useService()->generatePassword();
         // remove tblAccount
         if ($tblAccount && $Password) {
@@ -158,6 +177,11 @@ class PasswordChange extends AbstractDocument
         $Slice->addElement((new Element())
             ->setContent($this->FieldValue['PersonName'])
         );
+        if($this->FieldValue['District']){
+            $Slice->addElement((new Element())
+                ->setContent($this->FieldValue['District'])
+            );
+        }
         $Slice->addElement((new Element())
             ->setContent($this->FieldValue['Street'])
         );
@@ -181,7 +205,7 @@ class PasswordChange extends AbstractDocument
                 ->styleTextSize('8pt')
             , '20%')
             ->addElementColumn((new Element())
-                ->setContent('')  //ToDO
+                ->setContent($this->FieldValue['ContactPerson'])
                 ->styleTextSize('8pt')
             , '80%')
         );
@@ -191,7 +215,7 @@ class PasswordChange extends AbstractDocument
                 ->styleTextSize('8pt')
                 , '20%')
             ->addElementColumn((new Element())
-                ->setContent('')
+                ->setContent($this->FieldValue['Phone'])
                 ->styleTextSize('8pt')
                 , '80%')
         );
@@ -201,7 +225,7 @@ class PasswordChange extends AbstractDocument
                 ->styleTextSize('8pt')
                 , '20%')
             ->addElementColumn((new Element())
-                ->setContent('')
+                ->setContent($this->FieldValue['Fax'])
                 ->styleTextSize('8pt')
                 , '80%')
         );
@@ -211,7 +235,7 @@ class PasswordChange extends AbstractDocument
                 ->styleTextSize('8pt')
                 , '20%')
             ->addElementColumn((new Element())
-                ->setContent('')
+                ->setContent($this->FieldValue['Mail'])
                 ->styleTextSize('8pt')
                 , '80%')
         );
@@ -222,13 +246,13 @@ class PasswordChange extends AbstractDocument
                 ->stylePaddingTop('10px')
                 , '20%')
             ->addElementColumn((new Element())
-                ->setContent('')
+                ->setContent($this->FieldValue['Web'])
                 ->styleTextSize('8pt')
                 ->stylePaddingTop('10px')
                 , '80%')
         );
         $Slice->addElement((new Element())
-                ->setContent('Ort, den Datum')
+                ->setContent($this->FieldValue['Place'].$this->FieldValue['Date'])
 //                ->styleTextSize('8pt')
                 ->stylePaddingTop('10px')
         );
@@ -350,7 +374,7 @@ class PasswordChange extends AbstractDocument
                         ->setContent('Die Schulstiftung der Ev.-Luth. Landeskirche Sachsens hat eine neue Schulsoftware 
                         entwickeln lassen, die für alle evangelischen Schulen in Sachsen nutzbar ist. Auch wir als 
                         >>Schule<< nutzen diese im Alltag.')
-                        ->stylePaddingTop('6px')
+                        ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
                     ->addElementColumn((new Element())
@@ -367,7 +391,7 @@ class PasswordChange extends AbstractDocument
                         ->setContent('Die neue Schulsoftware bietet eine elektronische Notenübersicht für alle Schüler 
                         und deren Sorgeberechtigte, zu deren Nutzung Sie hiermit die notwendigen 
                         Sicherheitsinformationen und Zugangsdaten erhalten.')
-                        ->stylePaddingTop('6px')
+                        ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
                     ->addElementColumn((new Element())
@@ -385,7 +409,7 @@ class PasswordChange extends AbstractDocument
                         Datenschutzbeauftragten der Ev.-Luth. Landeskirche. Er hat die elektronische Notenübersicht 
                         datenschutzrechtlich überprüft und zur Nutzung freigegeben. Die Kommunikation zwischen Ihrem 
                         Internetbrowser und der Schulsoftware erfolgt ausschließlich über eine verschlüsselte HTTPS-Verbindung ')
-                        ->stylePaddingTop('6px')
+                        ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
                     ->addElementColumn((new Element())
@@ -408,7 +432,7 @@ class PasswordChange extends AbstractDocument
                         entsprechenden Zugriffsberechtigungen verfügen und sich per Zweifaktor-Authentifizierung 
                         (Name, Passwort und Security-Token) anmelden müssen. Für die elektronische Notenübersicht 
                         reicht hingegen die Anmeldung mit Name und Passwort aus')
-                        ->stylePaddingTop('6px')
+                        ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
                     ->addElementColumn((new Element())
@@ -457,7 +481,7 @@ class PasswordChange extends AbstractDocument
                         ->setContent('Die Schulstiftung der Ev.-Luth. Landeskirche Sachsens hat eine neue Schulsoftware 
                         entwickeln lassen, die für alle evangelischen Schulen in Sachsen nutzbar ist. Mit diesem Brief 
                         möchten wir Euch über Eure Zugangsdaten und einige Sicherheitshinweise informieren.')
-                        ->stylePaddingTop('6px')
+                        ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
                     ->addElementColumn((new Element())
@@ -477,7 +501,7 @@ class PasswordChange extends AbstractDocument
                         Softwarelösung erfolgt in einem zertifizierten deutschen Rechenzentrum und wird durch die 
                         dortigen Mitarbeiter sowie durch die mit der Entwicklung beauftragte Firma permanent überwacht 
                         und gewartet, um sie vor Cyberangriffen zu schützen.')
-                        ->stylePaddingTop('6px')
+                        ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
                     ->addElementColumn((new Element())
@@ -493,7 +517,7 @@ class PasswordChange extends AbstractDocument
                     ->addElementColumn((new Element())
                         ->setContent('Die Kommunikation zwischen Eurem Internetbrowser und der Schulsoftware erfolgt 
                         ausschließlich über eine verschlüsselte HTTPs-Verbindung.')
-                        ->stylePaddingTop('6px')
+                        ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
                     ->addElementColumn((new Element())
@@ -512,7 +536,7 @@ class PasswordChange extends AbstractDocument
                         Kleinbuchstaben, Ziffern und evtl. auch noch Sonderzeichen zu verwenden. <u>Bitte gebt Eure 
                         Zugangsdaten nicht weiter, denn es erhält jeder sorgeberechtigte Elternteil und jeder Schüler 
                         einen eigenen personengebundenen Nutzerzugang.</u>')
-                        ->stylePaddingTop('6px')
+                        ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
                     ->addElementColumn((new Element())
@@ -668,19 +692,19 @@ class PasswordChange extends AbstractDocument
                 )
                 ->addElementColumn((new Element())
                     ->setContent('Adresse: https://schulsoftware.schule')
-                    ->stylePaddingTop('6px')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
                     , '45%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('Benutzername:')
-                    ->stylePaddingTop('6px')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
                     ->stylePaddingRight('25px')
                     ->styleAlignRight()
                     , '17%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent($this->FieldValue['UserAccount'])
-                    ->stylePaddingTop('6px')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
                     ->stylePaddingLeft('10px')
                     , '30%'
                 )
@@ -719,7 +743,7 @@ class PasswordChange extends AbstractDocument
                     ->setContent('Lesen Sie sich die Datenschutzbestimmungen und Nutzungsbedingungen genau durch. Wenn 
                     Sie einverstanden sind und die elektronische Notenübersicht nutzen möchten, so vergeben Sie bitte 
                     Ihr zukünftiges Passwort für den Zugang und bestätigen Sie Ihre Eingaben.')
-                    ->stylePaddingTop('6px')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
                     ->styleAlignJustify()
                 )
                 ->addElementColumn((new Element())
@@ -734,12 +758,12 @@ class PasswordChange extends AbstractDocument
                 )
                 ->addElementColumn((new Element())
                     ->setContent('Notieren Sie sich bitte sofort Ihr vergebenes Passwort:')
-                    ->stylePaddingTop('6px')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
                     , '49%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
-                    ->stylePaddingTop('6px')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
                     ->styleBorderBottom()
                     , '43%'
                 )
@@ -758,7 +782,7 @@ class PasswordChange extends AbstractDocument
                     damit ihre Zugangsdaten verfügbar bleiben! Sie ersparen uns damit unnötige Arbeit, denn das 
                     Zurücksetzen vergessener Passwörter und die Zusendung neuer Passwortbriefe verursachen nicht 
                     unerhebliche Aufwände und Kosten.')
-                    ->stylePaddingTop('6px')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
                     ->styleAlignJustify()
                 )
                 ->addElementColumn((new Element())
@@ -776,7 +800,7 @@ class PasswordChange extends AbstractDocument
                     Schule angezeigt werden. Sofern Sie sich gegen die Nutzung der elektronischen Notenübersicht 
                     entscheiden, bleibt Ihr Zugang deaktiviert. Falls Sie noch Rückfragen oder Probleme mit der 
                     Anwendung haben, so können Sie uns gerne kontaktieren.')
-                    ->stylePaddingTop('6px')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
                     ->styleAlignJustify()
                 )
                 ->addElementColumn((new Element())
@@ -819,8 +843,21 @@ class PasswordChange extends AbstractDocument
                     , '4%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Geschäftsführer ')
+                    ->setContent($this->FieldValue['SignerName'])
                     ->stylePaddingTop('35px')
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent($this->FieldValue['SignerType'])
                 )
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
@@ -851,19 +888,19 @@ class PasswordChange extends AbstractDocument
                     )
                     ->addElementColumn((new Element())
                         ->setContent('Adresse: https://schulsoftware.schule')
-                        ->stylePaddingTop('6px')
+                        ->stylePaddingTop(self::BLOCK_SPACE)
                         , '45%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('Benutzername:')
-                        ->stylePaddingTop('6px')
+                        ->stylePaddingTop(self::BLOCK_SPACE)
                         ->stylePaddingRight('25px')
                         ->styleAlignRight()
                         , '17%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent($this->FieldValue['UserAccount'])
-                        ->stylePaddingTop('6px')
+                        ->stylePaddingTop(self::BLOCK_SPACE)
                         ->stylePaddingLeft('10px')
                         , '30%'
                     )
@@ -903,7 +940,7 @@ class PasswordChange extends AbstractDocument
                         ->setContent('Lies Dir bitte die Datenschutzbestimmungen und Nutzungsbedingungen genau durch. 
                         Wenn Du einverstanden bist und die elektronische Notenübersicht nutzen möchtest, so gib Dein 
                         zukünftiges Passwort für den Zugang ein und bestätige Deine Eingaben.')
-                        ->stylePaddingTop('6px')
+                        ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
                     ->addElementColumn((new Element())
@@ -918,12 +955,12 @@ class PasswordChange extends AbstractDocument
                     )
                     ->addElementColumn((new Element())
                         ->setContent('Notieren Dir bitte sofort das vergebene Passwort:')
-                        ->stylePaddingTop('6px')
+                        ->stylePaddingTop(self::BLOCK_SPACE)
                         , '49%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
-                        ->stylePaddingTop('6px')
+                        ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleBorderBottom()
                         , '43%'
                     )
@@ -941,7 +978,7 @@ class PasswordChange extends AbstractDocument
                         ->setContent('und <b>bewahre den Brief an sicherer Stelle und leicht zu finden auf</b>, 
                     damit Deine Zugangsdaten verfügbar bleiben! Das Zurücksetzen vergessener Passwörter und die 
                     Zusendung neuer Passwortbriefe verursachen nicht unerhebliche Aufwände und Kosten für die Schule.')
-                        ->stylePaddingTop('6px')
+                        ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
                     ->addElementColumn((new Element())
@@ -959,7 +996,7 @@ class PasswordChange extends AbstractDocument
                         angezeigt. Alternativ kann man auch die Menüleiste nutzen. Falls Du Dich gegen die Nutzung der 
                         elektronischen Notenübersicht entscheidest, bleibt Dein Zugang deaktiviert. Falls Du Rückfragen 
                         oder Probleme mit der Anwendung hast, so wende Dich bitte an unser Sekretariat.')
-                        ->stylePaddingTop('6px')
+                        ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
                     ->addElementColumn((new Element())
@@ -1003,8 +1040,21 @@ class PasswordChange extends AbstractDocument
                         , '4%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Geschäftsführer ')
+                        ->setContent($this->FieldValue['SignerName'])
                         ->stylePaddingTop('35px')
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '4%'
+                    )
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '4%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent($this->FieldValue['SignerType'])
                     )
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
@@ -1025,7 +1075,7 @@ class PasswordChange extends AbstractDocument
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('&nbsp;')
-                    ->styleHeight('40px')
+                    ->styleHeight('250px')
                 )
             )
             ->addSlice($this->getSecondLetterContent());

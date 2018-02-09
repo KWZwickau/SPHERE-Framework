@@ -4,6 +4,7 @@ namespace SPHERE\Application\Setting\User\Account;
 use SPHERE\Application\Api\Contact\ApiContactAddress;
 use SPHERE\Application\Api\Setting\UserAccount\ApiUserAccount;
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
@@ -12,6 +13,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -26,6 +28,7 @@ use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -44,6 +47,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
+use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -72,6 +76,7 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -935,6 +940,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendAccountExport($Time = null)
     {
+
         $Stage = new Stage('Account', 'Serienbrief Export');
         $Stage->setMessage('Neu erstellte Benutzerzugänge können auf dieser Seite als Excel-Datei für den 
             Serienbriefdruck heruntergeladen werden.'
@@ -959,7 +965,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 .' ('.$tblUserAccountTarget->getExportDate().')');
                         }
 
-
                         if ($tblUserAccountTarget->getType() == TblUserAccount::VALUE_TYPE_STUDENT) {
                             $item['AccountType'] = new SuccessMessage('Schüler-Accounts');
                         } elseif ($tblUserAccountTarget->getType() == TblUserAccount::VALUE_TYPE_CUSTODY) {
@@ -979,8 +984,16 @@ class Frontend extends Extension implements IFrontendInterface
                             $item['AccountType'] = 'Sorgeberechtigten-Accounts';
                         }
                     }
+
+                    $PdfButton = '';
+                    if($tblUserAccountTarget->getGroupByCount()){
+                        $PdfButton = (new Standard('', ApiUserAccount::getEndpoint(), new Mail()
+                            ))->ajaxPipelineOnClick(ApiUserAccount::pipelineShowFilter());
+                    }
+
                     $item['Option'] = new External('', '/Api/Setting/UserAccount/Download', new Download()
                             , array('GroupByTime' => $GroupByTime))
+                        .$PdfButton
                         .new Standard('', '/Setting/User/Account/Clear', new Remove(),
                             array('GroupByTime' => $GroupByTime),
                             'Entfernen der Klartext Passwörter und des damit verbundenem verfügbaren Download');
@@ -1011,6 +1024,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             )
                         )
+                    ),
+                    new LayoutColumn(
+                        ApiUserAccount::receiverFilter()
                     )
                 ))
             )
@@ -1031,18 +1047,6 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Benutzer Passwort', 'neu Erzeugen');
-//        if($Data !== null){
-////            Debugger::screenDump($Data);
-//            //ToDO test for link-button reaction
-//            $Error = false;
-////            if(!isset($Data['Company']) || $Data['Company'] == ''){
-////                $Error = true;
-////            }
-//
-//            if(!$Error){
-//                return $Stage; //(new Redirect('/Api/Document/Standard/PasswordChange/Create', Redirect::TIMEOUT_SUCCESS, array('Data' => $Data)));
-//            }
-//        }
         if ($Id) {
             $tblUserAccount = Account::useService()->getUserAccountById($Id);
             if (!$tblUserAccount) {
@@ -1073,14 +1077,16 @@ class Frontend extends Extension implements IFrontendInterface
                     new Panel(new PersonIcon().' Benutzerdaten',
                         array(
                             'Person: '.new Bold($tblPerson->getFullName()),
-                            'Benutzer: '.new Bold($tblAccount->getUserName())
+                            'Account: '.new Bold($tblAccount->getUserName())
                         ),
                         Panel::PANEL_TYPE_SUCCESS
                     ),
-                    new Panel(new Question().' Das Passwort dieses Benutzers wirklich neu Erzeugen?',
-                        Account::useService()->generatePdfControl(
-                        $this->getPdfForm($tblPerson, $tblUserAccount, $IsParent), $Data),
-                        Panel::PANEL_TYPE_DANGER)
+//                    new Panel(new Question().' Das Passwort dieses Benutzers wirklich neu Erzeugen?',
+                        new Well(
+                            Account::useService()->generatePdfControl(
+                            $this->getPdfForm($tblPerson, $tblUserAccount, $IsParent), $tblUserAccount, $Data, $Path)
+                        ),
+//                        Panel::PANEL_TYPE_DANGER)
                     )
                 ))))
             );
@@ -1107,37 +1113,82 @@ class Frontend extends Extension implements IFrontendInterface
     private function getPdfForm(TblPerson $tblPerson, TblUserAccount $tblUserAccount, $IsParent = false)
     {
 
-        $SelectBoxList = array();
+        $tblStudentCompanyId = false;
         $tblSchoolAll = School::useService()->getSchoolAll();
-        if($tblSchoolAll){
+//        $tblSchoolAll = false;
+        // use school if only one exist
+        if($tblSchoolAll && count($tblSchoolAll) == 1){
+            $tblStudentCompanyId = $tblSchoolAll[0]->getId();
+            $tblCompany = Company::useService()->getCompanyById($tblStudentCompanyId);
+            if($tblCompany){
+                $tblCompanyAddress = Address::useService()->getAddressByCompany($tblCompany);
+            }
+        // get school from student
+        } elseif($tblSchoolAll && count($tblSchoolAll) > 1) {
+            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+            if($tblStudent){
+                $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::PROCESS);
+                if(($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType))){
+                    if(($tblTransferCompany = $tblStudentTransfer->getServiceTblCompany())){
+                        $tblStudentCompanyId = $tblTransferCompany->getId();
+                        $tblCompany = Company::useService()->getCompanyById($tblStudentCompanyId);
+                        if($tblCompany){
+                            $tblCompanyAddress = Address::useService()->getAddressByCompany($tblCompany);
+                        }
+                    }
+                }
+            }
+        // display error if no option exist
+        } elseif(!$tblSchoolAll){
+            $Warning = new WarningMessage('Es sind keine Schulen in den Mandanteneinstellungen hinterlegt.
+            Um diese Funktionalität nutzen zu können ist dies zwingend erforderlich.');
+        }
+
+        $CompanyPlace = '';
+        if(isset($tblCompanyAddress) && ($tblCity = $tblCompanyAddress->getTblCity())){
+            if($tblCity){
+                $CompanyPlace = $tblCity->getName();
+            }
+        }
+
+        if(!isset($Data)){
+            $Global = $this->getGlobal();
+            $Global->POST['Data']['PersonId'] = $tblPerson->getId();
+            $Global->POST['Data']['UserAccountId'] = $tblUserAccount->getId();
+            $Global->POST['Data']['IsParent'] = $IsParent;
+            $Global->POST['Data']['Company'] = $tblStudentCompanyId;
+            $Global->POST['Data']['SignerType'] = 'Geschäftsführer';
+            $Global->POST['Data']['Date'] = (new \DateTime())->format('d.m.Y');
+            $Global->POST['Data']['Place'] = $CompanyPlace;
+            $Global->savePost();
+            Debugger::screenDump($Global->POST);
+        }
+
+        $SelectBoxList = array();
+        $SelectBoxList[] = new FormColumn(
+            new \SPHERE\Common\Frontend\Form\Repository\Title(new TileBig().' Auswahl Schule')
+        );
+        if(isset($Warning)){
+            $SelectBoxList[] = new FormColumn($Warning);
+        } else {
             foreach($tblSchoolAll as $tblSchool){
                 $tblCompany = $tblSchool->getServiceTblCompany();
                 if($tblCompany){
                     $tblCompanyAddress = Address::useService()->getAddressByCompany($tblCompany);
                     $SelectBoxList[] = new FormColumn(
                         new Panel('Schule',
-                            (new RadioBox('Data[Company]',
+                            new RadioBox('Data[Company]',
                                 $tblCompany->getName()
                                 .( $tblCompany->getExtendedName() != '' ?
                                     new Container($tblCompany->getExtendedName()) : null )
                                 .( $tblCompanyAddress ?
                                     new Container($tblCompanyAddress->getGuiTwoRowString()) : null )
-                                , $tblCompany->getId()))
+                                , $tblCompany->getId())
                             , Panel::PANEL_TYPE_INFO)
                     , 4);
                 }
             }
         }
-        if(count($SelectBoxList) == 1){
-            $tblSchoolAll[0]->getId();
-        }
-
-        $Global = $this->getGlobal();
-        $Global->POST['Data']['PersonId'] = $tblPerson->getId();
-        $Global->POST['Data']['UserAccountId'] = $tblUserAccount->getId();
-        $Global->POST['Data']['IsParent'] = $IsParent;
-        $Global->POST['Data']['Company'] = $tblSchoolAll[0]->getId();
-        $Global->savePost();
 
         return new Form(
             new FormGroup(array(
@@ -1155,39 +1206,55 @@ class Frontend extends Extension implements IFrontendInterface
                         new HiddenField('Data[IsParent]')
                     , 1),
                 )),
-//                new FormRow(array(
-//                    new FormColumn(
-//                        new TextField('Data[FirstName]', '', 'Vorname')
-//                        , 3
-//                    ),
-//                    new FormColumn(
-//                        new TextField('Data[SecondName]', '', 'Zweiter Vorname')
-//                        , 3
-//                    ),
-//                    new FormColumn(
-//                        new TextField('Data[LastName]', '', 'Nachname')
-//                        , 3
-//                    ),
-//                )),
                 new FormRow(array(
-                    // ToDO choose one of this different workflows:
-//                    new FormColumn(
-//                        (new Primary('Ja & PDF', new Download(), true))
-//                    ),
                     new FormColumn(
-                        new Primary('Ja & Service & PDF', new Download())
+                        new \SPHERE\Common\Frontend\Form\Repository\Title(new TileBig().' Informationen Ansprechpartner')
                     ),
-//                    new FormColumn(
-//                        (new External(
-//                            'Ja', 'SPHERE\Application\Api\Document\Standard\PasswordChange\Create', new Ok()
-//                                    , array('Data' => array('PersonId' => $tblPerson->getId()))
-//                                    , false
-//                        )) // ->setRedirect('/Setting/User/Account/Student/Show', 1)
-//                    ),
-//                    new FormColumn(
-//                        new Standard('Test2', __NAMESPACE__.'/Password/Generation', null, array('Id' => $UserAccountId, 'Path' => '/Setting/User/Account/Student/Show', 'Data' => array('PersonId' => $tblPerson->getId())))
-//                    )
+                    new FormColumn(
+                        new Panel('Person',
+                            new TextField('Data[ContactPerson]', '', 'Name')
+                            ,Panel::PANEL_TYPE_INFO)
+                        , 4
+                    ),
+                    new FormColumn(
+                        new Panel('Kontaktinformation',array(
+                            new TextField('Data[Phone]', '', 'Telefon'),
+                            new TextField('Data[Fax]', '', 'Fax'),
+                            ),Panel::PANEL_TYPE_INFO)
+                        , 4
+                    ),
+                    new FormColumn(
+                        new Panel('Internet Präsenz',array(
+                            new TextField('Data[Mail]', '', 'E-Mail'),
+                            new TextField('Data[Web]', '', 'Internet')
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 4
+                    ),
                 )),
+                new FormRow(array(
+                    new FormColumn(
+                        new \SPHERE\Common\Frontend\Form\Repository\Title(new TileBig().' Informationen Unterzeichner')
+                    ),
+                    new FormColumn(
+                        new Panel('Unterzeichner', array(
+                            new TextField('Data[SignerName]', '', 'Name'),
+                            new TextField('Data[SignerType]', '', 'Funktion'),
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 4
+                    ),
+                    new FormColumn(
+                        new Panel('Ort, Datum', array(
+                            new TextField('Data[Place]', '', 'Ort'),
+                            new TextField('Data[Date]', '', 'Datum')
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 4
+                    ),
+                )),
+                new FormRow(
+                    new FormColumn(
+                        new Primary('Überprüfen & Weiter')
+                    )
+                ),
             )) // , null, '\Api\Document\Standard\PasswordChange\Create'
         );
     }

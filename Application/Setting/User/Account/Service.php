@@ -6,6 +6,8 @@ use MOC\V\Component\Document\Component\Exception\Repository\TypeFileException;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use MOC\V\Component\Document\Exception\DocumentTypeException;
+use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
@@ -26,7 +28,16 @@ use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Application\Setting\User\Account\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Filter\Link\Pile;
@@ -133,11 +144,13 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
+     * @param TblUserAccount $tblUserAccount
      * @param array|null     $Data
+     * @param string         $Path
      *
      * @return string|Form
      */
-    public function generatePdfControl(IFormInterface $Form, $Data = null)
+    public function generatePdfControl(IFormInterface $Form, TblUserAccount $tblUserAccount, $Data = null, $Path = '/Setting/User')
     {
 
         if($Data === null){
@@ -150,9 +163,89 @@ class Service extends AbstractService
             $Error = true;
         }
         if(!$Error){
-            return 'DownloadLink'.
-                (new External('Download PDF', '\Api\Document\Standard\PasswordChange\Create', null, array('Data' => $Data), false))
-                    ->setRedirect('/Setting/User/Account/Student/Show', Redirect::TIMEOUT_SUCCESS);
+            $changePath = '/Setting/User/Account/Password/Generation';
+            $tblCompany = Company::useService()->getCompanyById($Data['Company']);
+            $tblCompanyAddress = Address::useService()->getAddressByCompany($tblCompany);
+            $CityString = '';
+            $SchoolPanel = new Panel('Schule', new Warning('Schule nicht gefunden'));
+            if($tblCompany){
+                $SchoolPanel = new Panel('Schule',
+                    $tblCompany->getName()
+                    .( $tblCompany->getExtendedName() != '' ?
+                        new Container($tblCompany->getExtendedName()) : null )
+                    .( $tblCompanyAddress ?
+                        new Container($tblCompanyAddress->getGuiTwoRowString()) : null )
+                    );
+                if(($tblCity = $tblCompanyAddress->getTblCity())){
+                    $CityString = $tblCity->getName();
+                }
+            }
+            $ContactPersonPanel = new Panel('Ansprechparter', array(
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Ansprechpartner: ', 4),
+                    new LayoutColumn($Data['ContactPerson'], 8),
+                )))),
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Telefon: ', 4),
+                    new LayoutColumn($Data['Phone'], 8),
+                )))),
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Fax: ', 4),
+                    new LayoutColumn($Data['Fax'], 8),
+                )))),
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('E-Mail: ', 4),
+                    new LayoutColumn($Data['Mail'], 8),
+                )))),
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Internet: ', 4),
+                    new LayoutColumn($Data['Web'], 8),
+                )))),
+            ));
+            $SignerPanel = new Panel('Unterzeichner', array(
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Name: ', 4),
+                    new LayoutColumn($Data['SignerName'], 8),
+                )))),
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Funktion: ', 4),
+                    new LayoutColumn($Data['SignerType'], 8),
+                )))),
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Ort: ', 4),
+                    new LayoutColumn(($Data['Place'] ? $Data['Place'] : $CityString), 8),
+                )))),
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Datum: ', 4),
+                    new LayoutColumn(($Data['Date'] ? $Data['Date'] : (new \DateTime())->format('d.m.Y')), 8),
+                )))),
+            ));
+
+            return
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            $SchoolPanel
+                        , 4),
+                        new LayoutColumn(
+                            $ContactPersonPanel
+                        , 4),
+                        new LayoutColumn(
+                            $SignerPanel
+                        , 4),
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            (new External('Passwort generieren & herunterladen', '\Api\Document\Standard\PasswordChange\Create'
+                                , null, array('Data' => $Data), false, External::STYLE_BUTTON_PRIMARY))
+                                ->setRedirect($Path, Redirect::TIMEOUT_SUCCESS),
+                            new Standard('Nein', $changePath, new Disable(), array('Id' => $tblUserAccount->getId(), 'Path' => $Path))
+                            )
+                        )
+                    )
+                ))
+            );
         }
         return $Form;
     }
@@ -524,7 +617,14 @@ class Service extends AbstractService
         $addressMissCount = 0;
         $accountExistCount = 0;
 
+        $GroupByCount = 1;
+        $CountAccount = 0;
+
         foreach ($PersonIdArray as $PersonId) {
+            $CountAccount++;
+            if(!($CountAccount % 30)){
+                $GroupByCount++;
+            }
             $tblPerson = Person::useService()->getPersonById($PersonId);
             if ($tblPerson) {
                 // ignore Person with Account
@@ -588,7 +688,7 @@ class Service extends AbstractService
                     }
                     // add tblUserAccount
                     $this->createUserAccount($tblAccount, $tblPerson, $TimeStamp, $password,
-                        $Type);
+                        $Type, $GroupByCount);
                 }
             }
         }
@@ -684,6 +784,7 @@ class Service extends AbstractService
      * @param \DateTime  $TimeStamp
      * @param string     $userPassword
      * @param string     $Type STUDENT|CUSTODY
+     * @param int        $GroupByCount
      *
      * @return false|TblUserAccount
      */
@@ -692,7 +793,8 @@ class Service extends AbstractService
         TblPerson $tblPerson,
         \DateTime $TimeStamp,
         $userPassword,
-        $Type
+        $Type,
+        $GroupByCount
     ) {
 
         return ( new Data($this->getBinding()) )->createUserAccount(
@@ -700,7 +802,8 @@ class Service extends AbstractService
             $tblPerson,
             $TimeStamp,
             $userPassword,
-            $Type);
+            $Type,
+            $GroupByCount);
     }
 
     /**
