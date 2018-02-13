@@ -40,6 +40,7 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 /**
  * Class Service
@@ -1471,5 +1472,61 @@ class Service extends AbstractService
         }
 
         return $taskList;
+    }
+
+    /**
+     * @param $tblTestList
+     *
+     * @return array
+     */
+    public function sortTestList($tblTestList)
+    {
+
+        if (($tblSetting = Consumer::useService()->getSetting(
+                'Education', 'Graduation', 'Gradebook', 'SortHighlighted'
+            ))
+            && $tblSetting->getValue()
+        ) {
+            // Sortierung nach Großen (fettmarkiert) und Klein Noten
+            $highlightedTests = array();
+            $notHighlightedTests = array();
+            $countTests = 1;
+            $isHighlightedSortedRight = true;
+            if (($tblSettingSortedRight = Consumer::useService()->getSetting(
+                'Education', 'Graduation', 'Gradebook', 'IsHighlightedSortedRight'
+            ))
+            ) {
+                $isHighlightedSortedRight = $tblSettingSortedRight->getValue();
+            }
+            /** @var TblTest $tblTestItem */
+            foreach ($tblTestList as $tblTestItem) {
+                if (($tblGradeType = $tblTestItem->getServiceTblGradeType())) {
+                    if ($tblGradeType->isHighlighted()) {
+                        $highlightedTests[$countTests++] = $tblTestItem;
+                    } else {
+                        $notHighlightedTests[$countTests++] = $tblTestItem;
+                    }
+                }
+            }
+
+            $tblTestList = array();
+            if (!empty($notHighlightedTests)) {
+                $tblTestList = $this->getSorter($notHighlightedTests)->sortObjectBy('Date', new DateTimeSorter());
+            }
+            if (!empty($highlightedTests)) {
+                $highlightedTests = $this->getSorter($highlightedTests)->sortObjectBy('Date', new DateTimeSorter());
+
+                if ($isHighlightedSortedRight) {
+                    $tblTestList = array_merge($tblTestList, $highlightedTests);
+                } else {
+                    $tblTestList = array_merge($highlightedTests, $tblTestList);
+                }
+            }
+        } else {
+            // Sortierung der Tests nach Datum
+            $tblTestList = $this->getSorter($tblTestList)->sortObjectBy('Date', new DateTimeSorter());
+        }
+
+        return $tblTestList;
     }
 }

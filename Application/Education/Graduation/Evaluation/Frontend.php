@@ -1965,9 +1965,7 @@ class Frontend extends Extension implements IFrontendInterface
                             );
                             if ($tblTestList) {
 
-                                // Sortierung der Tests nach Datum
-                                $tblTestList = $this->getSorter($tblTestList)->sortObjectBy('Date',
-                                    new DateTimeSorter());
+                                $tblTestList = Evaluation::useService()->sortTestList($tblTestList);
 
                                 /** @var TblTest $tblTestTemp */
                                 foreach ($tblTestList as $tblTestTemp) {
