@@ -426,6 +426,26 @@ class StudentFilter extends Extension
                                     $DataPerson['Edit'] = new Muted('('.$tblSubject->getAcronym().') ').$tblSubject->getName();
                                 }
                             }
+                            if ($Label == new Muted(new Small($i . '. Fremdsprache von Klasse'))){
+                                $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE');
+                                $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i);
+                                $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
+                                    $tblStudentSubjectType, $tblStudentSubjectRanking);
+                                if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                                    $DataPerson['Edit'] = ($tblStudentSubject->getServiceTblLevelFrom() ? $tblStudentSubject->getServiceTblLevelFrom()->getName() . ' ' : '')
+                                        . new Muted('('.$tblSubject->getAcronym().') ');
+                                }
+                            }
+                            if ($Label == new Muted(new Small($i . '. Fremdsprache bis Klasse'))){
+                                $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE');
+                                $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i);
+                                $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
+                                    $tblStudentSubjectType, $tblStudentSubjectRanking);
+                                if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                                    $DataPerson['Edit'] = ($tblStudentSubject->getServiceTblLevelTill() ? $tblStudentSubject->getServiceTblLevelTill()->getName() . ' ' : '')
+                                        . new Muted('('.$tblSubject->getAcronym().') ');
+                                }
+                            }
                         }
                     }
                 }
