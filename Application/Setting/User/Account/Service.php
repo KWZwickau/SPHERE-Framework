@@ -118,10 +118,41 @@ class Service extends AbstractService
      *
      * @return false|TblUserAccount[]
      */
-    public function getUserAccountByTimeGroup(\DateTime $dateTime)
+    public function getUserAccountByTime(\DateTime $dateTime)
     {
 
-        return (new Data($this->getBinding()))->getUserAccountByTimeGroup($dateTime);
+        return (new Data($this->getBinding()))->getUserAccountByTime($dateTime);
+    }
+
+    /**
+     * @param \DateTime $dateTime
+     *
+     * @return false|array(TblUserAccount[])
+     */
+    public function getUserAccountByTimeGroupLimitList(\DateTime $dateTime)
+    {
+
+        $tblUserAccountList = (new Data($this->getBinding()))->getUserAccountByTime($dateTime);
+        $UserAccountArray = false;
+        if($tblUserAccountList){
+            foreach($tblUserAccountList as $tblUserAccount){
+                $UserAccountArray[$tblUserAccount->getGroupByCount()][] = $tblUserAccount;
+            }
+        }
+        return $UserAccountArray;
+
+    }
+
+    /**
+     * @param \DateTime $dateTime
+     * @param int       $groupCount
+     *
+     * @return false|TblUserAccount[]
+     */
+    public function getUserAccountByTimeAndCount(\DateTime $dateTime, $groupCount)
+    {
+
+        return (new Data($this->getBinding()))->getUserAccountByTimeAndCount($dateTime, $groupCount);
     }
 
     /**
@@ -621,10 +652,10 @@ class Service extends AbstractService
         $CountAccount = 0;
 
         foreach ($PersonIdArray as $PersonId) {
-            $CountAccount++;
             if(!($CountAccount % 30)){
                 $GroupByCount++;
             }
+            $CountAccount++;
             $tblPerson = Person::useService()->getPersonById($PersonId);
             if ($tblPerson) {
                 // ignore Person with Account
@@ -891,7 +922,7 @@ class Service extends AbstractService
     public function clearPassword(\DateTime $GroupByTime)
     {
 
-        $tblUserAccountList = $this->getUserAccountByTimeGroup($GroupByTime);
+        $tblUserAccountList = $this->getUserAccountByTime($GroupByTime);
         if ($tblUserAccountList) {
             return (new Data($this->getBinding()))->updateUserAccountClearPassword($tblUserAccountList);
         }
@@ -907,7 +938,7 @@ class Service extends AbstractService
      * @throws \Doctrine\ORM\OptimisticLockException
      * @throws \Doctrine\ORM\TransactionRequiredException
      */
-    public function ChangePassword(TblAccount $tblAccount, $Password)
+    public function changePassword(TblAccount $tblAccount, $Password)
     {
 
         $tblUserAccount = $this->getUserAccountByAccount($tblAccount);

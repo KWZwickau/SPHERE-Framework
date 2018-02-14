@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 09.09.2016
- * Time: 10:35
- */
-
 namespace SPHERE\Application\Api\Document;
 
 use MOC\V\Component\Document\Component\Parameter\Repository\PaperOrientationParameter;
@@ -15,6 +8,7 @@ use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Document\Standard\Repository\AccidentReport\AccidentReport;
 use SPHERE\Application\Api\Document\Standard\Repository\EnrollmentDocument;
 use SPHERE\Application\Api\Document\Standard\Repository\GradebookOverview;
+use SPHERE\Application\Api\Document\Standard\Repository\MultiPassword\MultiPassword;
 use SPHERE\Application\Api\Document\Standard\Repository\PasswordChange\PasswordChange;
 use SPHERE\Application\Api\Document\Standard\Repository\SignOutCertificate\SignOutCertificate;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\AbstractStudentCard;
@@ -264,6 +258,9 @@ class Creator extends Extension
             }
             if ($DocumentName == 'PasswordChange') {
                 $Document = new PasswordChange($Data);
+            }
+            if ($DocumentName == 'MultiPassword') {
+                $Document = new MultiPassword($Data);
             }
 
             if ($Document) {

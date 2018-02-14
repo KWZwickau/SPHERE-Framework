@@ -76,7 +76,6 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -988,7 +987,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $PdfButton = '';
                     if($tblUserAccountTarget->getGroupByCount()){
                         $PdfButton = (new Standard('', ApiUserAccount::getEndpoint(), new Mail()
-                            ))->ajaxPipelineOnClick(ApiUserAccount::pipelineShowFilter());
+                            ))->ajaxPipelineOnClick(ApiUserAccount::pipelineShowLoad($GroupByTime));
                     }
 
                     $item['Option'] = new External('', '/Api/Setting/UserAccount/Download', new Download()
@@ -1161,7 +1160,6 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->POST['Data']['Date'] = (new \DateTime())->format('d.m.Y');
             $Global->POST['Data']['Place'] = $CompanyPlace;
             $Global->savePost();
-            Debugger::screenDump($Global->POST);
         }
 
         $SelectBoxList = array();
@@ -1171,9 +1169,35 @@ class Frontend extends Extension implements IFrontendInterface
         if(isset($Warning)){
             $SelectBoxList[] = new FormColumn($Warning);
         } else {
+            $CompanyStudentList = array();
+            if($IsParent){
+                $tblRelationshipType = Relationship::useService()->getTypeByName('Sorgeberechtigt');
+                $tblPersonRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType);
+                if($tblPersonRelationshipList){
+                    foreach($tblPersonRelationshipList as $tblPersonRelationship){
+                        if(($tblStudentPerson = $tblPersonRelationship->getServiceTblPersonTo())){
+                            if(($tblStudentByCustody = Student::useService()->getStudentByPerson($tblStudentPerson))){
+                                $tblStudentByCustodyTransferType =
+                                    Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::PROCESS);
+                                if(($tblStudentByCustodyTransfer =
+                                    Student::useService()->getStudentTransferByType($tblStudentByCustody, $tblStudentByCustodyTransferType))){
+                                    if(($TblCompanyByStudentCustody = $tblStudentByCustodyTransfer->getServiceTblCompany())){
+                                        $CompanyStudentList[$TblCompanyByStudentCustody->getId()][] = $tblStudentPerson->getFullName();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             foreach($tblSchoolAll as $tblSchool){
                 $tblCompany = $tblSchool->getServiceTblCompany();
                 if($tblCompany){
+                    $StudentString = '';
+                    if(isset($CompanyStudentList[$tblCompany->getId()])){
+                        $StudentString = new Bold(implode('<br/>', $CompanyStudentList[$tblCompany->getId()]));
+                    }
+
                     $tblCompanyAddress = Address::useService()->getAddressByCompany($tblCompany);
                     $SelectBoxList[] = new FormColumn(
                         new Panel('Schule',
@@ -1183,6 +1207,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Container($tblCompany->getExtendedName()) : null )
                                 .( $tblCompanyAddress ?
                                     new Container($tblCompanyAddress->getGuiTwoRowString()) : null )
+                                .$StudentString
                                 , $tblCompany->getId())
                             , Panel::PANEL_TYPE_INFO)
                     , 4);
@@ -1471,7 +1496,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Benutzer', 'Klartext Passwörter');
         if ($GroupByTime) {
             $GroupByTime = new \DateTime($GroupByTime);
-            $tblUserAccountList = Account::useService()->getUserAccountByTimeGroup($GroupByTime);
+            $tblUserAccountList = Account::useService()->getUserAccountByTime($GroupByTime);
             if (!$tblUserAccountList) {
                 return $Stage.new DangerMessage('Export nicht gefunden', new Ban())
                     .new Redirect('/Setting/User/Account/Export', Redirect::TIMEOUT_ERROR);

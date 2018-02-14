@@ -89,12 +89,28 @@ class Data extends AbstractData
      *
      * @return false|TblUserAccount[]
      */
-    public function getUserAccountByTimeGroup(\DateTime $dateTime)
+    public function getUserAccountByTime(\DateTime $dateTime)
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUserAccount',
             array(
                 TblUserAccount::ATTR_GROUP_BY_TIME => $dateTime
+            ));
+    }
+
+    /**
+     * @param \DateTime $dateTime
+     * @param int       $groupCount
+     *
+     * @return false|TblUserAccount[]
+     */
+    public function getUserAccountByTimeAndCount(\DateTime $dateTime, $groupCount)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUserAccount',
+            array(
+                TblUserAccount::ATTR_GROUP_BY_TIME => $dateTime,
+                TblUserAccount::ATTR_GROUP_BY_COUNT => $groupCount
             ));
     }
 

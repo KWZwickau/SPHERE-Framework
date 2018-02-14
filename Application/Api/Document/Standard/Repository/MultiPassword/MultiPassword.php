@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\Api\Document\Standard\Repository\PasswordChange;
+namespace SPHERE\Application\Api\Document\Standard\Repository\MultiPassword;
 
 use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Contact\Address\Address;
@@ -10,13 +10,11 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
-use SPHERE\Application\People\Meta\Common\Common;
-use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\Setting\Authorization\Account\Account as AccountAuthorization;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\User\Account\Account;
 
-class PasswordChange extends AbstractDocument
+class MultiPassword extends AbstractDocument
 {
 
     const BLOCK_SPACE = '10px';
@@ -33,12 +31,12 @@ class PasswordChange extends AbstractDocument
     function __construct($Data)
     {
 
+        $this->setFieldValue($Data);
+
 //        echo '<pre>';
-//        print_r($Data);
+//        print_r($this->FieldValue);
 //        echo '</pre>';
 //        exit;
-
-        $this->setFieldValue($Data);
     }
 
     /**
@@ -58,17 +56,12 @@ class PasswordChange extends AbstractDocument
     private function setFieldValue($DataPost)
     {
 
-        $tblAccount = false;
-        // Common
-        $this->FieldValue['PersonName'] = '';
-        $this->FieldValue['UserAccount'] = '';
         // Text choose decision
+        $this->FieldValue['GroupByTime'] = (isset($DataPost['GroupByTime']) ? $DataPost['GroupByTime'] : false);
+        $this->FieldValue['GroupByCount'] = (isset($DataPost['GroupByCount']) ? $DataPost['GroupByCount'] : false);
         $this->FieldValue['IsParent'] = (isset($DataPost['IsParent']) ? $DataPost['IsParent'] : false);
         // School
         $this->FieldValue['CompanyDisplay'] = '';
-        $this->FieldValue['Street'] = '';
-        $this->FieldValue['District'] = '';
-        $this->FieldValue['City'] = '';
         // Contact
         $this->FieldValue['ContactPerson'] = (isset($DataPost['ContactPerson']) && $DataPost['ContactPerson'] != '' ? $DataPost['ContactPerson'] : '&nbsp;');
         $this->FieldValue['Phone'] = (isset($DataPost['Phone']) && $DataPost['Phone'] != '' ? $DataPost['Phone'] : '&nbsp;');
@@ -81,34 +74,52 @@ class PasswordChange extends AbstractDocument
         $this->FieldValue['Place'] = (isset($DataPost['Place']) && $DataPost['Place'] != '' ? $DataPost['Place'].', den ' : '');
         $this->FieldValue['Date'] = (isset($DataPost['Date']) && $DataPost['Date'] != '' ? $DataPost['Date'] : '&nbsp;');
 
-        //Account
-        $UserAccountId = (isset($DataPost['UserAccountId']) && $DataPost['UserAccountId'] != '' ? $DataPost['UserAccountId'] : false);
-        if($UserAccountId){
-            $tblUserAccount = Account::useService()->getUserAccountById($UserAccountId);
-            $tblAccount = $tblUserAccount->getServiceTblAccount();
-            if($tblAccount){
-                $this->FieldValue['UserAccount'] = $tblAccount->getUsername();
-            }
-        }
+//        // Common
+//        $this->FieldValue['PersonNameList'] = '';
+//        $this->FieldValue['UserAccountList'] = '';
 
-        // Student/Custody
-        $this->FieldValue['PersonId'] = (isset($DataPost['PersonId']) && $DataPost['PersonId'] != '' ? $DataPost['PersonId'] : false);
-        if ($this->FieldValue['PersonId'] && ($tblPerson = Person::useService()->getPersonById($this->FieldValue['PersonId']))) {
-            $this->FieldValue['PersonName'] = $tblPerson->getFullName();
-            if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
-                if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
-                    if (($tblGender = $tblCommonBirthDates->getTblCommonGender())) {
-                        $this->FieldValue['Gender'] = $tblGender->getName();
+//        $this->FieldValue['PersonName'] = '';
+//        $this->FieldValue['UserAccountNameList'] = '';
+//        $this->FieldValue['Street'] = '';
+//        $this->FieldValue['District'] = '';
+//        $this->FieldValue['City'] = '';
+
+        if($this->FieldValue['GroupByTime'] && $this->FieldValue['GroupByCount']){
+
+            if(($tblUserAccountList = Account::useService()->getUserAccountByTimeAndCount(
+                new \DateTime($this->FieldValue['GroupByTime']), $this->FieldValue['GroupByCount']))){
+
+                foreach($tblUserAccountList as $tblUserAccount){
+
+                    /** @var TblAccount $tblAccount */
+                    if(($tblAccount = $tblUserAccount->getServiceTblAccount())){
+
+                        // default value
+
+                        $this->FieldValue['PersonName'][$tblAccount->getId()] = '';
+                        $this->FieldValue['Street'][$tblAccount->getId()] = '';
+                        $this->FieldValue['District'][$tblAccount->getId()] = '';
+                        $this->FieldValue['City'][$tblAccount->getId()] = '';
+
+                        $this->FieldValue['tblAccountList'][] = $tblAccount->getId();
+                        $this->FieldValue['UserAccountNameList'][$tblAccount->getId()] = $tblAccount->getUsername();
+                        $this->FieldValue['Password'][$tblAccount->getId()] = $tblUserAccount->getUserPassword();
+
+                        if(($tblPerson = $tblUserAccount->getServiceTblPerson())){
+
+                            $this->FieldValue['PersonName'][$tblAccount->getId()] = $tblPerson->getFullName();
+                            //Address
+                            $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+                            if($tblAddress){
+                                $this->FieldValue['Street'][$tblAccount->getId()] = $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber();
+                                $tblCity = $tblAddress->getTblCity();
+                                if($tblCity){
+                                    $this->FieldValue['District'][$tblAccount->getId()] = $tblCity->getDistrict();
+                                    $this->FieldValue['City'][$tblAccount->getId()] = $tblCity->getCode().' '.$tblCity->getName();
+                                }
+                            }
+                        }
                     }
-                }
-            }
-            $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
-            if($tblAddress){
-                $this->FieldValue['Street'] = $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber();
-                $tblCity = $tblAddress->getTblCity();
-                if($tblCity){
-                    $this->FieldValue['District'] = $tblCity->getDistrict();
-                    $this->FieldValue['City'] = $tblCity->getCode().' '.$tblCity->getName();
                 }
             }
         }
@@ -129,16 +140,6 @@ class PasswordChange extends AbstractDocument
             }
         }
 
-        //generate new Password
-        $this->FieldValue['Password'] = $Password = Account::useService()->generatePassword();
-        // remove tblAccount
-        if ($tblAccount && $Password) {
-            AccountAuthorization::useService()->changePassword($Password, $tblAccount);
-            Account::useService()->changePassword($tblAccount, $Password);
-        };
-
-
-
         return $this;
     }
 
@@ -148,26 +149,35 @@ class PasswordChange extends AbstractDocument
     public function getName()
     {
 
-        return 'PasswortÄnderungPDF';
+        return 'PasswortPDF';
     }
 
     /**
      * @param array $pageList
      *
-     * @return Frame
+     * @return $this|Frame
      */
     public function buildDocument($pageList = array())
     {
-        return (new Frame())->addDocument((new Document())
-            ->addPage($this->buildPageOne())
-            ->addPage($this->buildPageTwo())
-        );
+
+        $Document = new Document();
+        if(!empty($this->FieldValue['tblAccountList'])){
+            /** @var TblAccount $tblAccount */
+            foreach($this->FieldValue['tblAccountList'] as $AccountId){
+                $Document->addPage($this->buildPageOne($AccountId));
+                $Document->addPage($this->buildPageTwo($AccountId));
+            }
+        }
+
+        return (new Frame())->addDocument($Document);
     }
 
     /**
+     * @param int $AccountId
+     *
      * @return Slice
      */
-    private function getAddressHead()
+    private function getAddressHead($AccountId)
     {
         $Slice = new Slice();
         $Slice->addElement((new Element())
@@ -175,18 +185,18 @@ class PasswordChange extends AbstractDocument
             ->styleTextSize('8pt')
         );
         $Slice->addElement((new Element())
-            ->setContent($this->FieldValue['PersonName'])
+            ->setContent($this->FieldValue['PersonName'][$AccountId])
         );
         if($this->FieldValue['District']){
             $Slice->addElement((new Element())
-                ->setContent($this->FieldValue['District'])
+                ->setContent($this->FieldValue['District'][$AccountId])
             );
         }
         $Slice->addElement((new Element())
-            ->setContent($this->FieldValue['Street'])
+            ->setContent($this->FieldValue['Street'][$AccountId])
         );
         $Slice->addElement((new Element())
-            ->setContent($this->FieldValue['City'])
+            ->setContent($this->FieldValue['City'][$AccountId])
         );
 
         return $Slice;
@@ -552,7 +562,7 @@ class PasswordChange extends AbstractDocument
     /**
      * @return Page
      */
-    private function buildPageOne()
+    private function buildPageOne($AccountId)
     {
 
         return (new Page())
@@ -576,7 +586,7 @@ class PasswordChange extends AbstractDocument
                         , '4%'
                     )
                     ->addSliceColumn(
-                        $this->getAddressHead()
+                        $this->getAddressHead($AccountId)
                     , '52%')
                     ->addSliceColumn(
                         $this->getContactData()
@@ -648,7 +658,7 @@ class PasswordChange extends AbstractDocument
             );
     }
 
-    private function getSecondLetterContent()
+    private function getSecondLetterContent($AccountId)
     {
 
         $Slice = new Slice();
@@ -703,7 +713,7 @@ class PasswordChange extends AbstractDocument
                     , '17%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent($this->FieldValue['UserAccount'])
+                    ->setContent($this->FieldValue['UserAccountNameList'][$AccountId])
                     ->stylePaddingTop(self::BLOCK_SPACE)
                     ->stylePaddingLeft('10px')
                     , '30%'
@@ -713,27 +723,27 @@ class PasswordChange extends AbstractDocument
                     , '4%'
                 )
             )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Für das erstmalige Login verwenden Sie bitte folgendes Passwort:')
-                        ->stylePaddingTop()
-                        , '62%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent($this->FieldValue['Password'])
-                        ->stylePaddingTop()
-                        ->stylePaddingLeft('10px')
-                        , '30%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
                 )
+                ->addElementColumn((new Element())
+                    ->setContent('Für das erstmalige Login verwenden Sie bitte folgendes Passwort:')
+                    ->stylePaddingTop()
+                    , '62%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent($this->FieldValue['Password'][$AccountId])
+                    ->stylePaddingTop()
+                    ->stylePaddingLeft('10px')
+                    , '30%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
@@ -899,7 +909,7 @@ class PasswordChange extends AbstractDocument
                         , '17%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent($this->FieldValue['UserAccount'])
+                        ->setContent($this->FieldValue['UserAccountNameList'][$AccountId])
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         ->stylePaddingLeft('10px')
                         , '30%'
@@ -921,7 +931,7 @@ class PasswordChange extends AbstractDocument
                         , '62%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent($this->FieldValue['Password'])
+                        ->setContent($this->FieldValue['Password'][$AccountId])
                         ->stylePaddingTop()
                         ->stylePaddingLeft('10px')
                         , '30%'
@@ -1066,9 +1076,11 @@ class PasswordChange extends AbstractDocument
     }
 
     /**
+     * @param int $AccountId
+     *
      * @return Page
      */
-    private function buildPageTwo()
+    private function buildPageTwo($AccountId)
     {
 
         return (new Page())
@@ -1078,7 +1090,7 @@ class PasswordChange extends AbstractDocument
                     ->styleHeight('250px')
                 )
             )
-            ->addSlice($this->getSecondLetterContent());
+            ->addSlice($this->getSecondLetterContent($AccountId));
     }
 
     /**
