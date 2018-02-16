@@ -4,14 +4,20 @@ namespace SPHERE\Application\Api\Document\Standard\Repository\MultiPassword;
 use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Document\Generator\Repository\Document;
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Application\Setting\User\Account\Account;
 
 class MultiPassword extends AbstractDocument
@@ -20,23 +26,14 @@ class MultiPassword extends AbstractDocument
     const BLOCK_SPACE = '10px';
 
     /**
-     * PasswordChange constructor.
+     * MultiPassword constructor.
      *
-     * @param array $Data
-     *
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
-     * @throws \Doctrine\ORM\TransactionRequiredException
+     * @param $Data
      */
     function __construct($Data)
     {
 
         $this->setFieldValue($Data);
-
-//        echo '<pre>';
-//        print_r($this->FieldValue);
-//        echo '</pre>';
-//        exit;
     }
 
     /**
@@ -49,9 +46,6 @@ class MultiPassword extends AbstractDocument
      * @param array $DataPost
      *
      * @return $this
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
-     * @throws \Doctrine\ORM\TransactionRequiredException
      */
     private function setFieldValue($DataPost)
     {
@@ -59,9 +53,7 @@ class MultiPassword extends AbstractDocument
         // Text choose decision
         $this->FieldValue['GroupByTime'] = (isset($DataPost['GroupByTime']) ? $DataPost['GroupByTime'] : false);
         $this->FieldValue['GroupByCount'] = (isset($DataPost['GroupByCount']) ? $DataPost['GroupByCount'] : false);
-        $this->FieldValue['IsParent'] = (isset($DataPost['IsParent']) ? $DataPost['IsParent'] : false);
-        // School
-        $this->FieldValue['CompanyDisplay'] = '';
+//        $this->FieldValue['IsParent'] = (isset($DataPost['IsParent']) ? $DataPost['IsParent'] : false);
         // Contact
         $this->FieldValue['ContactPerson'] = (isset($DataPost['ContactPerson']) && $DataPost['ContactPerson'] != '' ? $DataPost['ContactPerson'] : '&nbsp;');
         $this->FieldValue['Phone'] = (isset($DataPost['Phone']) && $DataPost['Phone'] != '' ? $DataPost['Phone'] : '&nbsp;');
@@ -74,25 +66,17 @@ class MultiPassword extends AbstractDocument
         $this->FieldValue['Place'] = (isset($DataPost['Place']) && $DataPost['Place'] != '' ? $DataPost['Place'].', den ' : '');
         $this->FieldValue['Date'] = (isset($DataPost['Date']) && $DataPost['Date'] != '' ? $DataPost['Date'] : '&nbsp;');
 
-//        // Common
-//        $this->FieldValue['PersonNameList'] = '';
-//        $this->FieldValue['UserAccountList'] = '';
-
-//        $this->FieldValue['PersonName'] = '';
-//        $this->FieldValue['UserAccountNameList'] = '';
-//        $this->FieldValue['Street'] = '';
-//        $this->FieldValue['District'] = '';
-//        $this->FieldValue['City'] = '';
-
         if($this->FieldValue['GroupByTime'] && $this->FieldValue['GroupByCount']){
 
             if(($tblUserAccountList = Account::useService()->getUserAccountByTimeAndCount(
                 new \DateTime($this->FieldValue['GroupByTime']), $this->FieldValue['GroupByCount']))){
 
                 foreach($tblUserAccountList as $tblUserAccount){
-
                     /** @var TblAccount $tblAccount */
                     if(($tblAccount = $tblUserAccount->getServiceTblAccount())){
+                        if(!isset($this->FieldValue['IsParent'])){
+                            $this->FieldValue['IsParent'] = ($tblUserAccount->getType() == 'CUSTODY' ? true : false);
+                        }
 
                         // default value
 
@@ -105,7 +89,66 @@ class MultiPassword extends AbstractDocument
                         $this->FieldValue['UserAccountNameList'][$tblAccount->getId()] = $tblAccount->getUsername();
                         $this->FieldValue['Password'][$tblAccount->getId()] = $tblUserAccount->getUserPassword();
 
+                        // School
+                        $this->FieldValue['CompanyDisplay'][$tblAccount->getId()] = '';
+                        $this->FieldValue['CompanyDistrict'][$tblAccount->getId()] = '';
+                        $this->FieldValue['CompanyStreet'][$tblAccount->getId()] = '';
+                        $this->FieldValue['CompanyCity'][$tblAccount->getId()] = '';
+
+                        // School choose
                         if(($tblPerson = $tblUserAccount->getServiceTblPerson())){
+                            if(!isset($DataPost['CompanyId'])){
+                                if($this->FieldValue['IsParent']){
+                                    $tblRelationshipType = Relationship::useService()->getTypeByName( TblType::IDENTIFIER_GUARDIAN );
+                                    if(($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType))){
+                                        foreach($tblRelationshipList as $tblRelationship){  //ToDO Mehrer Schüler auswahl nach "höherer Bildungsgang"
+                                            if(($tblPersonStudent = $tblRelationship->getServiceTblPersonTo())){
+                                                if(($tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPersonStudent))){
+                                                    if(($tblSchoolType = Type::useService()->getTypeByName($tblDivision->getTypeName()))){
+                                                        if(($tblSchoolCompany = School::useService()->getSchoolByType($tblSchoolType))){
+                                                            $tblCompany = $tblSchoolCompany->getServiceTblCompany();
+                                                            $DataPost['tblCompany'][$tblAccount->getId()] = $tblCompany;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    if(($tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPerson))){
+                                        if(($tblSchoolType = Type::useService()->getTypeByName($tblDivision->getTypeName()))){
+                                            if(($tblSchoolCompany = School::useService()->getSchoolByType($tblSchoolType))){
+                                                $tblCompany = $tblSchoolCompany->getServiceTblCompany();
+                                                $DataPost['tblCompany'][$tblAccount->getId()] = $tblCompany;
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                if(($tblCompany = Company::useService()->getCompanyById($DataPost['CompanyId']))){
+                                    $DataPost['tblCompany'][$tblAccount->getId()] = $tblCompany;
+                                }
+                            }
+
+                            //School information
+                            /** @var TblCompany $tblCompany */
+                            if(isset($DataPost['tblCompany'][$tblAccount->getId()])
+                                && ($tblCompany = $DataPost['tblCompany'][$tblAccount->getId()])){
+                                $this->FieldValue['CompanyDisplay'][$tblAccount->getId()] = $tblCompany->getName().
+                                    ($tblCompany->getExtendedName() ? '</br>'.$tblCompany->getExtendedName() : '');
+                                $tblAddress = Address::useService()->getAddressByCompany($tblCompany);
+                                if($tblAddress){
+                                    $this->FieldValue['CompanyStreet'][$tblAccount->getId()] = $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber();
+                                    $tblCity = $tblAddress->getTblCity();
+                                    if($tblCity){
+                                        if(!isset($this->FieldValue['Place'])){
+                                            $this->FieldValue['Place'] = $tblCity->getName().', den ';
+                                        }
+                                        $this->FieldValue['CompanyDistrict'][$tblAccount->getId()] = $tblCity->getDistrict();
+                                        $this->FieldValue['CompanyCity'][$tblAccount->getId()] = $tblCity->getName().' '.$tblCity->getCode();
+                                    }
+                                }
+                            }
 
                             $this->FieldValue['PersonName'][$tblAccount->getId()] = $tblPerson->getFullName();
                             //Address
@@ -121,22 +164,8 @@ class MultiPassword extends AbstractDocument
                         }
                     }
                 }
-            }
-        }
-
-        //School
-        $CompanyId = (isset($DataPost['CompanyId']) && $DataPost['CompanyId'] != '' ? $DataPost['CompanyId'] : false);
-        if($CompanyId){
-            $tblCompany = Company::useService()->getCompanyById($CompanyId);
-            if($tblCompany){
-                $this->FieldValue['CompanyDisplay'] = $tblCompany->getDisplayName();
-                $tblAddress = Address::useService()->getAddressByCompany($tblCompany);
-                if($tblAddress && !$this->FieldValue['Place']){
-                    $tblCity = $tblAddress->getTblCity();
-                    if($tblCity){
-                        $this->FieldValue['Place'] = $tblCity->getName().', den ';
-                    }
-                }
+                // set flag IsExport
+                Account::useService()->updateDownloadBulk($tblUserAccountList);
             }
         }
 
@@ -149,7 +178,13 @@ class MultiPassword extends AbstractDocument
     public function getName()
     {
 
-        return 'PasswortPDF';
+        $UserAccountList = Account::useService()->getUserAccountByTime(new \DateTime($this->FieldValue['GroupByTime']));
+        if($UserAccountList){
+            $ListIdentifierString = $UserAccountList[0]->getId();
+        } else {
+            $ListIdentifierString = $this->FieldValue['tblAccountList'][0];
+        }
+        return 'PasswortPDF-'.$ListIdentifierString.'-Liste_'.$this->FieldValue['GroupByCount'];
     }
 
     /**
@@ -273,16 +308,18 @@ class MultiPassword extends AbstractDocument
     }
 
     /**
+     * @param int $AccountId
+     *
      * @return Slice
      */
-    private function getPasswordFooter()
+    private function getPasswordFooter($AccountId)
     {
 
         $Slice = new Slice();
         $Slice->addSection((new Section())
             ->addSliceColumn((new Slice())
                 ->addElement((new Element())
-                    ->setContent('Name Schule')
+                    ->setContent($this->FieldValue['CompanyDisplay'][$AccountId])
                     ->styleTextSize('7pt')
                 )
                 ->addElement((new Element())
@@ -314,11 +351,15 @@ class MultiPassword extends AbstractDocument
                     ->styleTextSize('7pt')
                 )
                 ->addElement((new Element())
-                    ->setContent('Straße Schule')
+                    ->setContent($this->FieldValue['CompanyDistrict'][$AccountId])
                     ->styleTextSize('7pt')
                 )
                 ->addElement((new Element())
-                    ->setContent('Ort Schule')
+                    ->setContent($this->FieldValue['CompanyStreet'][$AccountId])
+                    ->styleTextSize('7pt')
+                )
+                ->addElement((new Element())
+                    ->setContent($this->FieldValue['CompanyCity'][$AccountId])
                     ->styleTextSize('7pt')
                 )
                 ->addElement((new Element())
@@ -560,6 +601,8 @@ class MultiPassword extends AbstractDocument
     }
 
     /**
+     * @param int $AccountId
+     *
      * @return Page
      */
     private function buildPageOne($AccountId)
@@ -597,7 +640,6 @@ class MultiPassword extends AbstractDocument
                     )
                 )
                 ->styleHeight('160px')
-//                ->styleBorderAll()
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
@@ -629,7 +671,6 @@ class MultiPassword extends AbstractDocument
                         , '4%'
                     )
                 )
-//                ->styleBorderAll()
             )
             ->addSlice((new Slice())
                 ->addElement((new Element())
@@ -646,7 +687,7 @@ class MultiPassword extends AbstractDocument
                         , '4%'
                     )
                     ->addSliceColumn(
-                        $this->getPasswordFooter()
+                        $this->getPasswordFooter($AccountId)
                         , '92%'
                     )
                     ->addElementColumn((new Element())
@@ -654,7 +695,6 @@ class MultiPassword extends AbstractDocument
                         , '4%'
                     )
                 )
-//                ->styleBorderAll()
             );
     }
 

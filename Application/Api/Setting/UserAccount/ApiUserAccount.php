@@ -3,9 +3,7 @@ namespace SPHERE\Application\Api\Setting\UserAccount;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
-use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\IApiInterface;
-use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Application\Setting\User\Account\Account;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -14,7 +12,6 @@ use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
-use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Repository\Title;
@@ -237,9 +234,6 @@ class ApiUserAccount extends Extension implements IApiInterface
     private function formFilterPdf($GroupByTime, $IsParent = false, $Data = null)
     {
 
-//        $Global = $this->getGlobal();
-//        $Global->POST['Data']['ContactPerson'] = 'Test';
-//        $Global->savePost();
         $SelectBoxContent = array();
         if($GroupByTime){
             $tblUserAccountGroup = Account::useService()->getUserAccountByTimeGroupLimitList(new \DateTime($GroupByTime));
@@ -251,12 +245,11 @@ class ApiUserAccount extends Extension implements IApiInterface
         }
 
 
-        /////
-        $tblSchoolAll = School::useService()->getSchoolAll();
-        if(!$tblSchoolAll){
-            $Warning = new WarningMessage('Es sind keine Schulen in den Mandanteneinstellungen hinterlegt.
-            Um diese Funktionalität nutzen zu können ist dies zwingend erforderlich.');
-        }
+//        $tblSchoolAll = School::useService()->getSchoolAll();
+//        if(!$tblSchoolAll){
+//            $Warning = new WarningMessage('Es sind keine Schulen in den Mandanteneinstellungen hinterlegt.
+//            Um diese Funktionalität nutzen zu können ist dies zwingend erforderlich.');
+//        }
 
         $CompanyPlace = '';
 
@@ -271,48 +264,48 @@ class ApiUserAccount extends Extension implements IApiInterface
             $Global->savePost();
         }
 
-        $SelectBoxList = array();
-        $SelectBoxList[] = new FormColumn(
-            new Title(new TileBig().' Auswahl Schule')
-        );
-        if(isset($Warning)){
-            $SelectBoxList[] = new FormColumn($Warning);
-        } else {
-            foreach($tblSchoolAll as $tblSchool){
-                $tblCompany = $tblSchool->getServiceTblCompany();
-                if($tblCompany){
-
-                    $tblCompanyAddress = Address::useService()->getAddressByCompany($tblCompany);
-                    if(count($SelectBoxList) == 1){
-                        $Global->POST['Data']['Company'] = $tblCompany->getId();
-                        $Global->savePost();
-                        $SelectBoxList[] = new FormColumn(
-                            new Panel('Schule',
-                                (new RadioBox('Data[Company]',
-                                    $tblCompany->getName()
-                                    .( $tblCompany->getExtendedName() != '' ?
-                                        new Container($tblCompany->getExtendedName()) : null )
-                                    .( $tblCompanyAddress ?
-                                        new Container($tblCompanyAddress->getGuiTwoRowString()) : null )
-                                    , $tblCompany->getId()))
-                                , Panel::PANEL_TYPE_INFO)
-                            , 4);
-                    } else {
-                        $SelectBoxList[] = new FormColumn(
-                            new Panel('Schule',
-                                new RadioBox('Data[Company]',
-                                    $tblCompany->getName()
-                                    .( $tblCompany->getExtendedName() != '' ?
-                                        new Container($tblCompany->getExtendedName()) : null )
-                                    .( $tblCompanyAddress ?
-                                        new Container($tblCompanyAddress->getGuiTwoRowString()) : null )
-                                    , $tblCompany->getId())
-                                , Panel::PANEL_TYPE_INFO)
-                            , 4);
-                    }
-                }
-            }
-        }
+//        $SelectBoxList = array();
+//        $SelectBoxList[] = new FormColumn(
+//            new Title(new TileBig().' Auswahl Schule')
+//        );
+//        if(isset($Warning)){
+//            $SelectBoxList[] = new FormColumn($Warning);
+//        } else {
+//            foreach($tblSchoolAll as $tblSchool){
+//                $tblCompany = $tblSchool->getServiceTblCompany();
+//                if($tblCompany){
+//
+//                    $tblCompanyAddress = Address::useService()->getAddressByCompany($tblCompany);
+//                    if(count($SelectBoxList) == 1){
+//                        $Global->POST['Data']['Company'] = $tblCompany->getId();
+//                        $Global->savePost();
+//                        $SelectBoxList[] = new FormColumn(
+//                            new Panel('Schule',
+//                                (new RadioBox('Data[Company]',
+//                                    $tblCompany->getName()
+//                                    .( $tblCompany->getExtendedName() != '' ?
+//                                        new Container($tblCompany->getExtendedName()) : null )
+//                                    .( $tblCompanyAddress ?
+//                                        new Container($tblCompanyAddress->getGuiTwoRowString()) : null )
+//                                    , $tblCompany->getId()))
+//                                , Panel::PANEL_TYPE_INFO)
+//                            , 4);
+//                    } else {
+//                        $SelectBoxList[] = new FormColumn(
+//                            new Panel('Schule',
+//                                new RadioBox('Data[Company]',
+//                                    $tblCompany->getName()
+//                                    .( $tblCompany->getExtendedName() != '' ?
+//                                        new Container($tblCompany->getExtendedName()) : null )
+//                                    .( $tblCompanyAddress ?
+//                                        new Container($tblCompanyAddress->getGuiTwoRowString()) : null )
+//                                    , $tblCompany->getId())
+//                                , Panel::PANEL_TYPE_INFO)
+//                            , 4);
+//                    }
+//                }
+//            }
+//        }
 
         return new Form(
             new FormGroup(array(
@@ -321,9 +314,9 @@ class ApiUserAccount extends Extension implements IApiInterface
                         new SelectBox('Data[GroupByCount]', 'Listenauswahl für den Download', $SelectBoxContent)
                     )
                 ),
-                new FormRow(
-                    $SelectBoxList
-                ),
+//                new FormRow(
+//                    $SelectBoxList
+//                ),
                 new FormRow(array(
                     new FormColumn(
                         new HiddenField('Data[GroupByTime]')

@@ -99,6 +99,22 @@ class Data extends AbstractData
     }
 
     /**
+     * @param \DateTime $groupByTime
+     * @param \DateTime $exportDate
+     *
+     * @return false|TblUserAccount[]
+     */
+    public function getUserAccountByLastExport(\DateTime $groupByTime, \DateTime $exportDate)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUserAccount',
+            array(
+                TblUserAccount::ATTR_GROUP_BY_TIME => $groupByTime,
+                TblUserAccount::ATTR_EXPORT_DATE => $exportDate
+            ));
+    }
+
+    /**
      * @param \DateTime $dateTime
      * @param int       $groupCount
      *

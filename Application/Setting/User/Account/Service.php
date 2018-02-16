@@ -7,22 +7,26 @@ use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use MOC\V\Component\Document\Exception\DocumentTypeException;
 use SPHERE\Application\Contact\Address\Address;
-use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
+use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as AccountGatekeeper;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Application\Setting\User\Account\Service\Data;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Application\Setting\User\Account\Service\Setup;
@@ -125,6 +129,18 @@ class Service extends AbstractService
     }
 
     /**
+     * @param \DateTime $groupByTime
+     * @param \DateTime $exportDate
+     *
+     * @return false|TblUserAccount[]
+     */
+    public function getUserAccountByLastExport(\DateTime $groupByTime, \DateTime $exportDate)
+    {
+
+        return (new Data($this->getBinding()))->getUserAccountByLastExport($groupByTime, $exportDate);
+    }
+
+    /**
      * @param \DateTime $dateTime
      *
      * @return false|array(TblUserAccount[])
@@ -188,97 +204,130 @@ class Service extends AbstractService
             return $Form;
         }
 
-        $Error = false;
-        if(!isset($Data['Company']) || isset($Data['Company']) && $Data['Company'] == ''){
-            $Form->setError('Data[PersonId]', 'Bitte geben Sie eine Schule an');
-            $Error = true;
-        }
-        if(!$Error){
-            $changePath = '/Setting/User/Account/Password/Generation';
-            $tblCompany = Company::useService()->getCompanyById($Data['Company']);
-            $tblCompanyAddress = Address::useService()->getAddressByCompany($tblCompany);
-            $CityString = '';
-            $SchoolPanel = new Panel('Schule', new Warning('Schule nicht gefunden'));
-            if($tblCompany){
-                $SchoolPanel = new Panel('Schule',
-                    $tblCompany->getName()
-                    .( $tblCompany->getExtendedName() != '' ?
-                        new Container($tblCompany->getExtendedName()) : null )
-                    .( $tblCompanyAddress ?
-                        new Container($tblCompanyAddress->getGuiTwoRowString()) : null )
-                    );
-                if(($tblCity = $tblCompanyAddress->getTblCity())){
-                    $CityString = $tblCity->getName();
-                }
-            }
-            $ContactPersonPanel = new Panel('Ansprechparter', array(
-                new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('Ansprechpartner: ', 4),
-                    new LayoutColumn($Data['ContactPerson'], 8),
-                )))),
-                new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('Telefon: ', 4),
-                    new LayoutColumn($Data['Phone'], 8),
-                )))),
-                new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('Fax: ', 4),
-                    new LayoutColumn($Data['Fax'], 8),
-                )))),
-                new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('E-Mail: ', 4),
-                    new LayoutColumn($Data['Mail'], 8),
-                )))),
-                new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('Internet: ', 4),
-                    new LayoutColumn($Data['Web'], 8),
-                )))),
-            ));
-            $SignerPanel = new Panel('Unterzeichner', array(
-                new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('Name: ', 4),
-                    new LayoutColumn($Data['SignerName'], 8),
-                )))),
-                new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('Funktion: ', 4),
-                    new LayoutColumn($Data['SignerType'], 8),
-                )))),
-                new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('Ort: ', 4),
-                    new LayoutColumn(($Data['Place'] ? $Data['Place'] : $CityString), 8),
-                )))),
-                new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('Datum: ', 4),
-                    new LayoutColumn(($Data['Date'] ? $Data['Date'] : (new \DateTime())->format('d.m.Y')), 8),
-                )))),
-            ));
+        $changePath = '/Setting/User/Account/Password/Generation';
 
-            return
-            new Layout(
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            $SchoolPanel
-                        , 4),
-                        new LayoutColumn(
-                            $ContactPersonPanel
-                        , 4),
-                        new LayoutColumn(
-                            $SignerPanel
-                        , 4),
-                    )),
-                    new LayoutRow(
-                        new LayoutColumn(array(
-                            (new External('Passwort generieren & herunterladen', '\Api\Document\Standard\PasswordChange\Create'
-                                , null, array('Data' => $Data), false, External::STYLE_BUTTON_PRIMARY))
-                                ->setRedirect($Path, Redirect::TIMEOUT_SUCCESS),
-                            new Standard('Nein', $changePath, new Disable(), array('Id' => $tblUserAccount->getId(), 'Path' => $Path))
-                            )
+        $tblCompany = false;
+        if(($tblPerson = Person::useService()->getPersonById($Data['PersonId']))){
+            $tblCompany = $this->getCompanySchoolByPerson($tblPerson, $Data['IsParent']);
+        }
+        $CityString = '';
+        $SchoolPanel = new Panel('Schule', new Warning('Schule nicht gefunden'));
+        $tblCompanyAddress = Address::useService()->getAddressByCompany($tblCompany);
+        if($tblCompany){
+            $SchoolPanel = new Panel('Schule',
+                $tblCompany->getName()
+                .( $tblCompany->getExtendedName() != '' ?
+                    new Container($tblCompany->getExtendedName()) : null )
+                .( $tblCompanyAddress ?
+                    new Container($tblCompanyAddress->getGuiTwoRowString()) : null )
+                );
+            if(($tblCity = $tblCompanyAddress->getTblCity())){
+                $CityString = $tblCity->getName();
+            }
+        }
+        $ContactPersonPanel = new Panel('Ansprechparter', array(
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Ansprechpartner: ', 4),
+                new LayoutColumn($Data['ContactPerson'], 8),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Telefon: ', 4),
+                new LayoutColumn($Data['Phone'], 8),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Fax: ', 4),
+                new LayoutColumn($Data['Fax'], 8),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('E-Mail: ', 4),
+                new LayoutColumn($Data['Mail'], 8),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Internet: ', 4),
+                new LayoutColumn($Data['Web'], 8),
+            )))),
+        ));
+        $SignerPanel = new Panel('Unterzeichner', array(
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Name: ', 4),
+                new LayoutColumn($Data['SignerName'], 8),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Funktion: ', 4),
+                new LayoutColumn($Data['SignerType'], 8),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Ort: ', 4),
+                new LayoutColumn(($Data['Place'] ? $Data['Place'] : $CityString), 8),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Datum: ', 4),
+                new LayoutColumn(($Data['Date'] ? $Data['Date'] : (new \DateTime())->format('d.m.Y')), 8),
+            )))),
+        ));
+
+        return
+        new Layout(
+            new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        $SchoolPanel
+                    , 4),
+                    new LayoutColumn(
+                        $ContactPersonPanel
+                    , 4),
+                    new LayoutColumn(
+                        $SignerPanel
+                    , 4),
+                )),
+                new LayoutRow(
+                    new LayoutColumn(array(
+                        (new External('Passwort generieren & herunterladen', '\Api\Document\Standard\PasswordChange\Create'
+                            , null, array('Data' => $Data), false, External::STYLE_BUTTON_PRIMARY))
+                            ->setRedirect($Path, Redirect::TIMEOUT_SUCCESS),
+                        new Standard('Nein', $changePath, new Disable(), array('Id' => $tblUserAccount->getId(), 'Path' => $Path))
                         )
                     )
-                ))
-            );
+                )
+            ))
+        );
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param bool      $IsParent
+     *
+     * @return mixed
+     */
+    public function getCompanySchoolByPerson(TblPerson $tblPerson, $IsParent = false)
+    {
+
+        $tblCompany = false;
+        if($IsParent){
+            $tblRelationshipType = Relationship::useService()->getTypeByName( TblType::IDENTIFIER_GUARDIAN );
+            if(($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType))){
+                foreach($tblRelationshipList as $tblRelationship){  //ToDO Mehrer Schüler auswahl nach "höherer Bildungsgang"
+                    if(($tblPersonStudent = $tblRelationship->getServiceTblPersonTo())){
+                        if(($tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPersonStudent))){
+                            if(($tblSchoolType = Type::useService()->getTypeByName($tblDivision->getTypeName()))){
+                                if(($tblSchoolCompany = School::useService()->getSchoolByType($tblSchoolType))){
+                                    $tblCompany = $tblSchoolCompany->getServiceTblCompany();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            if(($tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPerson))){
+                if(($tblSchoolType = Type::useService()->getTypeByName($tblDivision->getTypeName()))){
+                    if(($tblSchoolCompany = School::useService()->getSchoolByType($tblSchoolType))){
+                        $tblCompany = $tblSchoolCompany->getServiceTblCompany();
+                    }
+                }
+            }
         }
-        return $Form;
+        return $tblCompany;
     }
 
     /**
@@ -475,6 +524,27 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblUserAccount[] $tblUserAccountList
+     *
+     * @return bool|\DateTime
+     */
+    public function getLastExport($tblUserAccountList)
+    {
+        $BiggestDate = false;
+        if(is_array($tblUserAccountList)){
+            /** @var TblUserAccount $tblUserAccount */
+            foreach($tblUserAccountList as $tblUserAccount){
+                if(($Date = $tblUserAccount->getExportDate())) {
+                    if(!$BiggestDate || $BiggestDate <= $Date){
+                        $BiggestDate = $Date;
+                    }
+                }
+            }
+        }
+        return $BiggestDate;
+    }
+
+    /**
      * @param array $tblUserAccountList
      *
      * @return array
@@ -648,7 +718,7 @@ class Service extends AbstractService
         $addressMissCount = 0;
         $accountExistCount = 0;
 
-        $GroupByCount = 1;
+        $GroupByCount = 0;
         $CountAccount = 0;
 
         foreach ($PersonIdArray as $PersonId) {

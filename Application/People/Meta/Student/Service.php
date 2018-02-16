@@ -955,6 +955,25 @@ class Service extends Integration
     }
 
     /**
+     * @param TblPerson $tblPerson
+     *
+     * @return TblDivision|bool
+     */
+    public function getCurrentDivisionByPerson(TblPerson $tblPerson)
+    {
+
+        $tblDivisionList = $this->getCurrentDivisionListByPerson($tblPerson);
+        if ($tblDivisionList) {
+            foreach ($tblDivisionList as $tblDivision) {
+                if (($tblLevel = $tblDivision->getTblLevel()) && !$tblLevel->getIsChecked()) {
+                    return $tblDivision;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * @param TblStudentSubject $tblStudentSubject
      */
     public function removeStudentSubject(TblStudentSubject $tblStudentSubject)

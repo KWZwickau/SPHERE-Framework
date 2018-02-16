@@ -4,16 +4,21 @@ namespace SPHERE\Application\Api\Document\Standard\Repository\PasswordChange;
 use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Document\Generator\Repository\Document;
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
-use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Application\Setting\Authorization\Account\Account as AccountAuthorization;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Application\Setting\User\Account\Account;
 
 class PasswordChange extends AbstractDocument
@@ -62,13 +67,16 @@ class PasswordChange extends AbstractDocument
         // Common
         $this->FieldValue['PersonName'] = '';
         $this->FieldValue['UserAccount'] = '';
+        $this->FieldValue['Street'] = '';
+        $this->FieldValue['District'] = '';
+        $this->FieldValue['City'] = '';
         // Text choose decision
         $this->FieldValue['IsParent'] = (isset($DataPost['IsParent']) ? $DataPost['IsParent'] : false);
         // School
         $this->FieldValue['CompanyDisplay'] = '';
-        $this->FieldValue['Street'] = '';
-        $this->FieldValue['District'] = '';
-        $this->FieldValue['City'] = '';
+        $this->FieldValue['CompanyStreet'] = '';
+        $this->FieldValue['CompanyDistrict'] = '';
+        $this->FieldValue['CompanyCity'] = '';
         // Contact
         $this->FieldValue['ContactPerson'] = (isset($DataPost['ContactPerson']) && $DataPost['ContactPerson'] != '' ? $DataPost['ContactPerson'] : '&nbsp;');
         $this->FieldValue['Phone'] = (isset($DataPost['Phone']) && $DataPost['Phone'] != '' ? $DataPost['Phone'] : '&nbsp;');
@@ -94,14 +102,41 @@ class PasswordChange extends AbstractDocument
         // Student/Custody
         $this->FieldValue['PersonId'] = (isset($DataPost['PersonId']) && $DataPost['PersonId'] != '' ? $DataPost['PersonId'] : false);
         if ($this->FieldValue['PersonId'] && ($tblPerson = Person::useService()->getPersonById($this->FieldValue['PersonId']))) {
-            $this->FieldValue['PersonName'] = $tblPerson->getFullName();
-            if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
-                if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
-                    if (($tblGender = $tblCommonBirthDates->getTblCommonGender())) {
-                        $this->FieldValue['Gender'] = $tblGender->getName();
+
+            if(!isset($DataPost['CompanyId'])){
+                if($this->FieldValue['IsParent']){
+                    $tblRelationshipType = Relationship::useService()->getTypeByName( TblType::IDENTIFIER_GUARDIAN );
+                    if(($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType))){
+                        foreach($tblRelationshipList as $tblRelationship){  //ToDO Mehrer Schüler auswahl nach "höherer Bildungsgang"
+                            if(($tblPersonStudent = $tblRelationship->getServiceTblPersonTo())){
+                                if(($tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPersonStudent))){
+                                    if(($tblSchoolType = Type::useService()->getTypeByName($tblDivision->getTypeName()))){
+                                        if(($tblSchoolCompany = School::useService()->getSchoolByType($tblSchoolType))){
+                                            $tblCompany = $tblSchoolCompany->getServiceTblCompany();
+                                            $DataPost['tblCompany'] = $tblCompany;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    if(($tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPerson))){
+                        if(($tblSchoolType = Type::useService()->getTypeByName($tblDivision->getTypeName()))){
+                            if(($tblSchoolCompany = School::useService()->getSchoolByType($tblSchoolType))){
+                                $tblCompany = $tblSchoolCompany->getServiceTblCompany();
+                                $DataPost['tblCompany'] = $tblCompany;
+                            }
+                        }
                     }
                 }
+            } else {
+                if(($tblCompany = Company::useService()->getCompanyById($DataPost['CompanyId']))){
+                    $DataPost['tblCompany'] = $tblCompany;
+                }
             }
+
+            $this->FieldValue['PersonName'] = $tblPerson->getFullName();
             $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
             if($tblAddress){
                 $this->FieldValue['Street'] = $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber();
@@ -113,18 +148,22 @@ class PasswordChange extends AbstractDocument
             }
         }
 
-        //School
-        $CompanyId = (isset($DataPost['CompanyId']) && $DataPost['CompanyId'] != '' ? $DataPost['CompanyId'] : false);
-        if($CompanyId){
-            $tblCompany = Company::useService()->getCompanyById($CompanyId);
-            if($tblCompany){
-                $this->FieldValue['CompanyDisplay'] = $tblCompany->getDisplayName();
-                $tblAddress = Address::useService()->getAddressByCompany($tblCompany);
-                if($tblAddress && !$this->FieldValue['Place']){
-                    $tblCity = $tblAddress->getTblCity();
-                    if($tblCity){
-                        $this->FieldValue['Place'] = $tblCity->getName().', den ';
-                    }
+        //School information
+        /** @var TblCompany $tblCompany */
+        if(isset($DataPost['tblCompany'])
+            && ($tblCompany = $DataPost['tblCompany'])){
+            $this->FieldValue['CompanyDisplay'] = $tblCompany->getName().
+                ($tblCompany->getExtendedName() ? '</br>'.$tblCompany->getExtendedName() : '');
+            $tblAddress = Address::useService()->getAddressByCompany($tblCompany);
+            if($tblAddress){
+                $this->FieldValue['CompanyStreet'] = $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber();
+                $tblCity = $tblAddress->getTblCity();
+                if($tblCity){
+//                    if(!isset($this->FieldValue['Place'])){
+//                        $this->FieldValue['Place'] = $tblCity->getName().', den ';
+//                    }
+                    $this->FieldValue['CompanyDistrict'] = $tblCity->getDistrict();
+                    $this->FieldValue['CompanyCity'] = $tblCity->getName().' '.$tblCity->getCode();
                 }
             }
         }
@@ -272,7 +311,7 @@ class PasswordChange extends AbstractDocument
         $Slice->addSection((new Section())
             ->addSliceColumn((new Slice())
                 ->addElement((new Element())
-                    ->setContent('Name Schule')
+                    ->setContent($this->FieldValue['CompanyDisplay'])
                     ->styleTextSize('7pt')
                 )
                 ->addElement((new Element())
@@ -304,11 +343,15 @@ class PasswordChange extends AbstractDocument
                     ->styleTextSize('7pt')
                 )
                 ->addElement((new Element())
-                    ->setContent('Straße Schule')
+                    ->setContent($this->FieldValue['CompanyDistrict'])
                     ->styleTextSize('7pt')
                 )
                 ->addElement((new Element())
-                    ->setContent('Ort Schule')
+                    ->setContent($this->FieldValue['CompanyStreet'])
+                    ->styleTextSize('7pt')
+                )
+                ->addElement((new Element())
+                    ->setContent($this->FieldValue['CompanyCity'])
                     ->styleTextSize('7pt')
                 )
                 ->addElement((new Element())
