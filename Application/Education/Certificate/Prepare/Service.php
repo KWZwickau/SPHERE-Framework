@@ -1135,7 +1135,8 @@ class Service extends AbstractService
         ) {
             $average = $this->calcSubjectGradesAverage($tblPrepareStudent);
             if ($average) {
-                $Content['P' . $personId]['Grade']['Data']['Average'] = str_replace('.', ',', $average);
+                $Content['P' . $personId]['Grade']['Data']['Average'] = number_format($average, 1, ',', '.');
+                    //str_replace('.', ',', $average);
             }
         }
 
@@ -1145,7 +1146,7 @@ class Service extends AbstractService
         ) {
             $average = $this->calcSubjectGradesAverageOthers($tblPrepareStudent);
             if ($average) {
-                $Content['P' . $personId]['Grade']['Data']['AverageOthers'] = str_replace('.', ',', $average);
+                $Content['P' . $personId]['Grade']['Data']['AverageOthers'] = number_format($average, 1, ',', '.');
             }
         }
 
