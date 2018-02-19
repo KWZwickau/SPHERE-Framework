@@ -38,6 +38,7 @@ class Setup extends AbstractSetup
         $this->setTablePrepareStudent($Schema, $tblPrepare);
         $this->setTablePrepareInformation($Schema, $tblPrepare);
         $this->setTablePrepareAdditionalGrade($Schema, $tblPrepare, $tblPrepareAdditionalGradeType);
+        $this->setTableLeaveStudent($Schema);
 
         /**
          * Migration & Protocol
@@ -220,6 +221,26 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Identifier', self::FIELD_TYPE_STRING);
         $this->createIndex($Table, array('Identifier'));
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableLeaveStudent(Schema &$Schema)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblLeaveStudent');
+        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'serviceTblDivision', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'serviceTblCertificate', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'IsApproved', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($Table, 'IsPrinted', self::FIELD_TYPE_BOOLEAN);
+
+        $this->createIndex($Table, array('serviceTblPerson' , 'serviceTblDivision'));
 
         return $Table;
     }

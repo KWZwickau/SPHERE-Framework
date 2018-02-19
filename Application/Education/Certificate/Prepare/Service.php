@@ -14,6 +14,7 @@ use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerate
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Data;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGradeType;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
@@ -2701,5 +2702,17 @@ class Service extends AbstractService
         }
 
         return $buttonList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
+     *
+     * @return false|TblLeaveStudent
+     */
+    public  function getLeaveStudentBy(TblPerson $tblPerson, TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->getLeaveStudentBy($tblPerson, $tblDivision);
     }
 }
