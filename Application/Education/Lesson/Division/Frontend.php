@@ -1214,6 +1214,10 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
             array('Id' => $tblDivision->getId())));
         $Stage->setDescription('Klasse '.new Bold($tblDivision->getDisplayName()));
+        $Stage->setMessage(new Warning('Fachgruppen können nur gelöscht werden, solange noch keine Leistungsüberprüfung 
+            (bzw. Zensur) für diese Fachgruppe angelegt wurde. Ist das Löschen der Fachgruppe dennoch erwünscht, wenden Sie sich bitte
+            an den Support.', new Exclamation()));
+
         $tblDivisionSubjectList = Division::useService()->getDivisionSubjectBySubjectAndDivision($tblSubject,
             $tblDivision);
         $TableContent = array();

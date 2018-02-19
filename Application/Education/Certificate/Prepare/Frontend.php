@@ -1682,10 +1682,29 @@ class Frontend extends Extension implements IFrontendInterface
 
         $countBehavior = 0;
         if (($tblPrepareCertificate = Prepare::useService()->getPrepareById($PrepareId))) {
+            $tblBehaviorTask = false;
+            if ($tblPrepareCertificate->getServiceTblBehaviorTask()) {
+                $tblBehaviorTask = $tblPrepareCertificate->getServiceTblBehaviorTask();
+            } else {
+                $tblTestTypeBehaviorTask = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK');
+                if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                        'Education', 'Certificate', 'Prepare', 'UseMultipleBehaviorTasks'))
+                    && $tblSetting->getValue()
+                    && $tblPrepareCertificate->getServiceTblDivision()
+                    && $tblTestTypeBehaviorTask
+                ) {
+                    if (($tblTaskList = Evaluation::useService()->getTaskAllByDivision($tblPrepareCertificate->getServiceTblDivision(),
+                        $tblTestTypeBehaviorTask))
+                    ) {
+                        $tblBehaviorTask = end($tblTaskList);
+                    }
+                }
+            }
+
             $tblPersonSigner = $tblPrepareCertificate->getServiceTblPersonSigner();
             $tblGradeTypeList = array();
-            if ($tblPrepareCertificate->getServiceTblBehaviorTask()) {
-                $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblPrepareCertificate->getServiceTblBehaviorTask(),
+            if ($tblBehaviorTask) {
+                $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblBehaviorTask,
                     $tblDivision = $tblPrepareCertificate->getServiceTblDivision() ? $tblPrepareCertificate->getServiceTblDivision() : null);
                 if ($tblTestAllByTask) {
                     foreach ($tblTestAllByTask as $tblTest) {
@@ -1700,6 +1719,7 @@ class Frontend extends Extension implements IFrontendInterface
             $countBehavior = count($tblGradeTypeList);
         } else {
             $tblPersonSigner = false;
+            $tblBehaviorTask = false;
         }
 
         $description = '';
@@ -1854,9 +1874,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 }
                             }
 
-                            if ($tblPrepare->getServiceTblBehaviorTask()) {
+                            if ($tblBehaviorTask) {
                                 $tblPrepareGradeBehaviorList = Prepare::useService()->getPrepareGradeAllByPerson(
-                                    $tblPrepare, $tblPerson, $tblPrepare->getServiceTblBehaviorTask()->getTblTestType()
+                                    $tblPrepare, $tblPerson, $tblBehaviorTask->getTblTestType()
                                 );
                             } else {
                                 $tblPrepareGradeBehaviorList = false;
@@ -1873,7 +1893,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $subjectGradesText = 'Kein Stichtagsnotenauftrag ausgewählt';
                             }
 
-                            if ($tblPrepare->getServiceTblBehaviorTask()) {
+                            if ($tblBehaviorTask) {
                                 $behaviorGradesText = $countBehaviorGrades . ' von ' . $countBehavior; // . ' Zensuren&nbsp;';
                             } else {
                                 $behaviorGradesText = 'Kein Kopfnoten ausgewählt';
@@ -1926,7 +1946,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     : new Success(new Enable() . ' ' . $subjectGradesText))
                                 : '';
                             $behaviorGradesDisplayText = ($tblPrepareStudent && $tblPrepareStudent->getServiceTblCertificate())
-                                ? ($countBehaviorGrades < $countBehavior || !$tblPrepare->getServiceTblBehaviorTask()
+                                ? ($countBehaviorGrades < $countBehavior || !$tblBehaviorTask
                                     ? new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation() . ' ' . $behaviorGradesText)
                                     : new Success(new Enable() . ' ' . $behaviorGradesText))
                                 : '';

@@ -365,7 +365,7 @@ class SignOutCertificate extends Extension
                                                         new TextField('Data[SchoolEntry]', 'Datum', 'Schulbesuch von')
                                                         , 6),
                                                     new LayoutColumn(
-                                                        new TextField('Data[SchoolUntil]', 'Datum', 'Schulbesucht bis')
+                                                        new TextField('Data[SchoolUntil]', 'Datum', 'Schulbesuch bis')
                                                         , 6)
                                                 )),
                                                 new LayoutRow(

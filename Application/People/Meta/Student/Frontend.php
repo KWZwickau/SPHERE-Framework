@@ -178,7 +178,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $this->formGroupGeneral($tblPerson),
                                     $this->formGroupSubject($tblPerson, $Year, $Division),
                                     $this->formGroupIntegration($tblPerson),
-                                ), new Primary('Speichern', new Save()))
+                                ), (new Primary('Speichern', new Save()))->disableOnLoad())
                                 )->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.')
                                 , $tblPerson, $Meta, $Group
                             )
@@ -486,7 +486,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ApiMassReplace::receiverField((
                         $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeEnrollment->getId().'][School]',
                             'Schule', array(
-                                '{{ Name }} {{ Description }}' => $useCompanyAllSchoolEnrollment
+                                '{{ Name }} {{ ExtendedName }} {{ Description }}' => $useCompanyAllSchoolEnrollment
                             ), new Education())
                         ))
                         .ApiMassReplace::receiverModal($Field, $NodeEnrollment)
@@ -577,7 +577,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ApiMassReplace::receiverField((
                         $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][School]',
                             'Abgebende Schule / Kita', array(
-                                '{{ Name }} {{ Description }}' => $useCompanyAllSchoolArrive
+                                '{{ Name }} {{ ExtendedName }} {{ Description }}' => $useCompanyAllSchoolArrive
                             ), new Education())
                         ))
                         .ApiMassReplace::receiverModal($Field, $NodeArrive)
@@ -663,7 +663,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ApiMassReplace::receiverField((
                         $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][School]',
                             'Aufnehmende Schule', array(
-                                '{{ Name }} {{ Description }}' => $useCompanyAllSchoolLeave
+                                '{{ Name }} {{ ExtendedName }} {{ Description }}' => $useCompanyAllSchoolLeave
                             ), new Education())
                         ))
                         .ApiMassReplace::receiverModal($Field, $NodeLeave)
@@ -752,7 +752,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ApiMassReplace::receiverField((
                         $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]',
                             'Aktuelle Schule', array(
-                                '{{ Name }} {{ Description }}' => $useCompanyAllSchoolProcess
+                                '{{ Name }} {{ ExtendedName }} {{ Description }}' => $useCompanyAllSchoolProcess
                             ), new Education())
                         ))
                         .ApiMassReplace::receiverModal($Field, $NodeProcess)

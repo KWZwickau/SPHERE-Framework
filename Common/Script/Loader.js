@@ -163,6 +163,7 @@ var Client = (function ()
                 useIndicator();
             } else {
                 jQuery('span.loading-indicator').hide();
+                jQuery('form button.disableOnLoad:disabled').removeAttr('disabled').removeClass('disableOnLoad');
             }
         }, useDelay);
     };

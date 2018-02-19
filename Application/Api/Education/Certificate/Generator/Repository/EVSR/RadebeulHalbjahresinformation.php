@@ -384,6 +384,34 @@ class RadebeulHalbjahresinformation extends Certificate
                         )
                         ->addSection((new Section())
                             ->addElementColumn((new Element())
+                                ->setContent('
+                                {% if(Content.P' . $personId . '.Headmaster.Description is not empty) %}
+                                    {{ Content.P' . $personId . '.Headmaster.Description }}
+                                {% else %}
+                                    Schulleiter(in)
+                                {% endif %}'
+                                )
+                                ->styleFontFamily($fontFamily)
+                                ->styleTextColor($textColorBlue)
+                                ->styleTextSize('10px')
+                                , '30%')
+                            ->addElementColumn((new Element())
+                                , '40%')
+                            ->addElementColumn((new Element())
+                                ->setContent('
+                                {% if(Content.P' . $personId . '.DivisionTeacher.Description is not empty) %}
+                                    {{ Content.P' . $personId . '.DivisionTeacher.Description }}
+                                {% else %}
+                                    Klassenlehrer(in)
+                                {% endif %}'
+                                )
+                                ->styleFontFamily($fontFamily)
+                                ->styleTextColor($textColorBlue)
+                                ->styleTextSize('10px')
+                                , '30%')
+                        )
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element())
                                 ->setContent(
                                     '{% if(Content.P' . $personId . '.Headmaster.Name is not empty) %}
                                             {{ Content.P' . $personId . '.Headmaster.Name }}

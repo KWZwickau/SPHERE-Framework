@@ -63,4 +63,13 @@ class Primary extends Extension implements IButtonInterface
 
         return $this->Template->getContent();
     }
+
+    /**
+     * @return $this
+     */
+    public function disableOnLoad()
+    {
+        $this->Template->setVariable('disableOnLoad', 'disableOnLoad');
+        return $this;
+    }
 }
