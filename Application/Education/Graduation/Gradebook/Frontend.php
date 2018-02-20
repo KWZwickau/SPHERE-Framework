@@ -873,8 +873,7 @@ class Frontend extends FrontendScoreRule
                     );
                     if ($tblTestList) {
 
-                        // Sortierung der Tests nach Datum
-                        $tblTestList = $this->getSorter($tblTestList)->sortObjectBy('Date', new DateTimeSorter());
+                        $tblTestList = Evaluation::useService()->sortTestList($tblTestList);
 
                         /** @var TblTest $tblTest */
                         foreach ($tblTestList as $tblTest) {
