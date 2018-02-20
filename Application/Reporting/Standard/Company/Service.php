@@ -12,6 +12,7 @@ use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Corporation\Search\Group\Group;
 use SPHERE\Application\Document\Storage\Storage;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Extension\Extension;
@@ -56,43 +57,46 @@ class Service extends Extension
     /**
      * @param TblGroup $tblGroup
      *
-     * @return bool|TblCompany[]
+     * @return array
      */
     public function createGroupList(TblGroup $tblGroup)
     {
 
-        $groupList = Group::useService()->getCompanyAllByGroup($tblGroup);
+        $tblCompanyList = Group::useService()->getCompanyAllByGroup($tblGroup);
         $count = 0;
-        if ($groupList) {
+        $TableContent = array();
+        if ($tblCompanyList) {
+            $tblCompanyList = $this->getSorter($tblCompanyList)->sortObjectBy('DisplayName', new StringGermanOrderSorter());
 
-            $groupList = $this->getSorter($groupList)->sortObjectBy('DisplayName', new StringGermanOrderSorter());
-
-            /** @var TblCompany $tblCompany */
-            foreach ($groupList as $tblCompany) {
-
+            array_walk($tblCompanyList, function (TblCompany $tblCompany) use (&$TableContent, &$count) {
                 $count++;
-                $tblCompany->Number = $count;
-                if (($tblToCompanyAddressList = Address::useService()->getAddressAllByCompany($tblCompany))) {
-                    $tblToCompanyAddress = $tblToCompanyAddressList[0];
-                } else {
-                    $tblToCompanyAddress = false;
+                $Item['Number'] = $count;
+                $Item['Name'] = $tblCompany->getName();
+                $Item['ExtendedName'] = $tblCompany->getExtendedName();
+                $Item['Description'] = $tblCompany->getDescription();
+                $Item['ContactPerson'] = '';
+                $Item['StreetName'] = '';
+                $Item['StreetNumber'] = '';
+                $Item['Code'] = '';
+                $Item['City'] = '';
+                $Item['District'] = '';
+                $Item['Address'] = '';
+                $Item['PhoneNumber'] = '';
+                $Item['MobilPhoneNumber'] = '';
+                $Item['Mail'] = '';
+
+                // address
+                if (($tblAddress = Address::useService()->getAddressByCompany($tblCompany))) {
+                    $Item['StreetName'] = $tblAddress->getStreetName();
+                    $Item['StreetNumber'] = $tblAddress->getStreetNumber();
+                    $Item['Code'] = $tblAddress->getTblCity()->getCode();
+                    $Item['City'] = $tblAddress->getTblCity()->getName();
+                    $Item['District'] = $tblAddress->getTblCity()->getDistrict();
+                    $Item['Address'] = $tblAddress->getGuiString();
                 }
-                if ($tblToCompanyAddress && ($tblAddress = $tblToCompanyAddress->getTblAddress())) {
 
-                    $tblCompany->StreetName = $tblAddress->getStreetName();
-                    $tblCompany->StreetNumber = $tblAddress->getStreetNumber();
-                    $tblCompany->Code = $tblAddress->getTblCity()->getCode();
-                    $tblCompany->City = $tblAddress->getTblCity()->getName();
-                    $tblCompany->District = $tblAddress->getTblCity()->getDistrict();
-
-                    $tblCompany->Address = $tblAddress->getGuiString();
-                } else {
-                    $tblCompany->StreetName = $tblCompany->StreetNumber = $tblCompany->Code = $tblCompany->City = $tblCompany->District = '';
-                    $tblCompany->Address = '';
-                }
-
+                // phone
                 $phoneList = Phone::useService()->getPhoneAllByCompany($tblCompany);
-
                 $phoneArray = array();
                 $mobilePhoneArray = array();
                 if ($phoneList) {
@@ -106,72 +110,87 @@ class Service extends Extension
                     }
                 }
                 if (count($phoneArray) >= 1) {
-                    $tblCompany->PhoneNumber = implode(', ', $phoneArray);
-                } else {
-                    $tblCompany->PhoneNumber = '';
+                    $Item['PhoneNumber'] = implode(', ', $phoneArray);
                 }
                 if (count($mobilePhoneArray) >= 1) {
-                    $tblCompany->MobilPhoneNumber = implode(', ', $mobilePhoneArray);
-                } else {
-                    $tblCompany->MobilPhoneNumber = '';
+                    $Item['MobilPhoneNumber'] = implode(', ', $mobilePhoneArray);
                 }
+                // mails
                 $mailAddressList = Mail::useService()->getMailAllByCompany($tblCompany);
-                $mailList = array();
                 if ($mailAddressList) {
                     foreach ($mailAddressList as $mailAddress) {
-                        $mailList[] = $mailAddress->getTblMail()->getAddress();
+                        $Item['Mail'] = $mailAddress->getTblMail()->getAddress();
+                        break;
                     }
                 }
 
-                if (count($mailList) >= 1) {
-                    $tblCompany->Mail = $mailList[0];
-                } else {
-                    $tblCompany->Mail = '';
+                // contactPerson
+                $PersonList = array();
+                $tblRelationshipList = Relationship::useService()->getCompanyRelationshipAllByCompany($tblCompany);
+                if($tblRelationshipList){
+                    foreach($tblRelationshipList as$tblRelationship){
+                        if(($tblPerson = $tblRelationship->getServiceTblPerson())){
+                            $PersonList[] = $tblPerson->getSalutation().' '.$tblPerson->getLastName();
+                        }
+                    }
                 }
-            }
+                if(!empty($PersonList)){
+                    $Item['ContactPerson'] = implode(', ', $PersonList);
+                }
+
+                array_push($TableContent, $Item);
+            });
         }
 
-        return $groupList;
+        return $TableContent;
     }
 
     /**
-     * @param $groupList
+     * @param $companyList
      *
-     * @return bool|\SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
-     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
+     * @return bool|\SPHERE\Application\Document\Storage\FilePointer
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
-    public function createGroupListExcel($groupList)
+    public function createGroupListExcel($companyList)
     {
 
-        if (!empty( $groupList )) {
+        if (!empty( $companyList )) {
 
             $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
+            $column = 0;
             $export = Document::getDocument($fileLocation->getFileLocation());
-            $export->setValue($export->getCell("0", "0"), "lfd. Nr.");
-            $export->setValue($export->getCell("1", "0"), "Name");
-            $export->setValue($export->getCell("2", "0"), "Zusatz");
-            $export->setValue($export->getCell("3", "0"), "Beschreibung");
-            $export->setValue($export->getCell("4", "0"), "Anschrift");
-            $export->setValue($export->getCell("5", "0"), "Telefon Festnetz");
-            $export->setValue($export->getCell("6", "0"), "Telefon Mobil");
-            $export->setValue($export->getCell("7", "0"), "E-mail");
+            $export->setValue($export->getCell($column++, "0"), "lfd. Nr.");
+            $export->setValue($export->getCell($column++, "0"), "Name");
+            $export->setValue($export->getCell($column++, "0"), "Zusatz");
+            $export->setValue($export->getCell($column++, "0"), "Beschreibung");
+            $export->setValue($export->getCell($column++, "0"), "Ansprechpartner");
+            $export->setValue($export->getCell($column++, "0"), "Straße");
+            $export->setValue($export->getCell($column++, "0"), "Str. Nr");
+            $export->setValue($export->getCell($column++, "0"), "PLZ");
+            $export->setValue($export->getCell($column++, "0"), "Ort");
+            $export->setValue($export->getCell($column++, "0"), "Ortsteil");
+            $export->setValue($export->getCell($column++, "0"), "Telefon Festnetz");
+            $export->setValue($export->getCell($column++, "0"), "Telefon Mobil");
+            $export->setValue($export->getCell($column, "0"), "E-mail");
 
             $Row = 1;
 
-            foreach ($groupList as $tblCompany) {
-
-                $export->setValue($export->getCell("0", $Row), $tblCompany->Number);
-                /** @var TblCompany $tblCompany */
-                $export->setValue($export->getCell("1", $Row), $tblCompany->getName());
-                $export->setValue($export->getCell("2", $Row), $tblCompany->getExtendedName());
-                $export->setValue($export->getCell("3", $Row), $tblCompany->getDescription());
-                /** @var $tblCompany */
-                $export->setValue($export->getCell("4", $Row), $tblCompany->Address);
-                $export->setValue($export->getCell("5", $Row), $tblCompany->PhoneNumber);
-                $export->setValue($export->getCell("6", $Row), $tblCompany->MobilPhoneNumber);
-                $export->setValue($export->getCell("7", $Row), $tblCompany->Mail);
+            foreach ($companyList as $Item) {
+                $column = 0;
+                $export->setValue($export->getCell($column++, $Row), $Item['Number']);
+                $export->setValue($export->getCell($column++, $Row), $Item['Name']);
+                $export->setValue($export->getCell($column++, $Row), $Item['ExtendedName']);
+                $export->setValue($export->getCell($column++, $Row), $Item['Description']);
+                $export->setValue($export->getCell($column++, $Row), $Item['ContactPerson']);
+                $export->setValue($export->getCell($column++, $Row), $Item['StreetName']);
+                $export->setValue($export->getCell($column++, $Row), $Item['StreetNumber']);
+                $export->setValue($export->getCell($column++, $Row), $Item['Code']);
+                $export->setValue($export->getCell($column++, $Row), $Item['City']);
+                $export->setValue($export->getCell($column++, $Row), $Item['District']);
+                $export->setValue($export->getCell($column++, $Row), $Item['PhoneNumber']);
+                $export->setValue($export->getCell($column++, $Row), $Item['MobilPhoneNumber']);
+                $export->setValue($export->getCell($column, $Row), $Item['Mail']);
 
                 $Row++;
             }
