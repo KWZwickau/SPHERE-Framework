@@ -93,12 +93,12 @@ class Service
                  * Header -> Location
                  */
                 $Location = array(
-                    'Schüler - ID' => null,
                     'Schuljahr' => null,
                     'Klassenstufe' => null,
                     'Klassengruppe' => null,
                     'Schulart' => null,
                     'Bildungsgang' => null,
+                    'Schüler - ID' => null,
                     'Name' => null,
                     'Vorname' => null,
                     'Vorname 2' => null,
@@ -198,7 +198,7 @@ class Service
                                         if (count($dateString) == 3) {
                                             $birthday = $dateString[1] . '.' . $dateString[0] . '.' . $dateString[2];
                                         } else {
-                                            $birthday == '';
+                                            $birthday = '';
                                         }
                                     } else {
                                         $birthday = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($birthday));
