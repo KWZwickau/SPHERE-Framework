@@ -3,6 +3,7 @@ namespace SPHERE\Application\Reporting\SerialLetter\Service;
 
 use SPHERE\Application\Contact\Address\Service\Entity\TblToCompany;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
+use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -10,6 +11,7 @@ use SPHERE\Application\Reporting\SerialLetter\SerialLetter;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblAddressPerson;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblFilterCategory;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblFilterField;
+use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialCompany;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialLetter;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialPerson;
 use SPHERE\System\Database\Binding\AbstractData;
@@ -27,13 +29,14 @@ class Data extends AbstractData
         $this->createFilterCategory(TblFilterCategory::IDENTIFIER_PERSON_GROUP);
         $this->createFilterCategory(TblFilterCategory::IDENTIFIER_PERSON_GROUP_STUDENT);
         $this->createFilterCategory(TblFilterCategory::IDENTIFIER_PERSON_GROUP_PROSPECT);
-        if ($this->getFilterCategoryByName('Institutionengruppe')) {
-            // no Update required
-        } elseif (( $tblFilterCategory = $this->getFilterCategoryByName('Firmengruppe') )) {
-            $this->updateFilterCategory($tblFilterCategory, TblFilterCategory::IDENTIFIER_COMPANY_GROUP);
-        } else {
-            $this->createFilterCategory(TblFilterCategory::IDENTIFIER_COMPANY_GROUP);
-        }
+//        if ($this->getFilterCategoryByName('Institutionengruppe')) {
+//            // no Update required
+//        } elseif (( $tblFilterCategory = $this->getFilterCategoryByName('Firmengruppe') )) {
+//            $this->updateFilterCategory($tblFilterCategory, TblFilterCategory::IDENTIFIER_COMPANY_GROUP);
+//        } else {
+//            $this->createFilterCategory(TblFilterCategory::IDENTIFIER_COMPANY_GROUP);
+//        }
+        $this->createFilterCategory(TblFilterCategory::IDENTIFIER_COMPANY);
     }
 
     /**
@@ -428,6 +431,59 @@ class Data extends AbstractData
 
     /**
      * @param TblSerialLetter $tblSerialLetter
+     * @param array           $tblCompanyList
+     */
+    public function addSerialCompanyBulk(TblSerialLetter $tblSerialLetter, $tblCompanyList)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($tblCompanyList as $CompanyId => $PersonIdList) {
+            $tblCompany = Company::useService()->getCompanyById($CompanyId);
+            if($tblCompany){
+                if(!empty($PersonIdList)){
+                    foreach($PersonIdList as $PersonId){
+                        $tblPerson = Person::useService()->getPersonById($PersonId);
+                        if($tblPerson){
+                            $Entity = $Manager->getEntity('TblSerialCompany')
+                                ->findOneBy(array(
+                                    TblSerialCompany::ATTR_TBL_SERIAL_LETTER  => $tblSerialLetter->getId(),
+                                    TblSerialCompany::ATTR_SERVICE_TBL_COMPANY  => $tblCompany->getId(),
+                                    TblSerialCompany::ATTR_SERVICE_TBL_PERSON  => $tblPerson->getId(),
+                                ));
+                            if (null === $Entity) {
+                                $Entity = new TblSerialCompany();
+                                $Entity->setTblSerialLetter($tblSerialLetter);
+                                $Entity->setServiceTblCompany($tblCompany);
+                                $Entity->setServiceTblPerson($tblPerson);
+
+                                $Manager->bulkSaveEntity($Entity);
+                                Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+                            }
+                        }
+                    }
+                } else {
+                    $Entity = $Manager->getEntity('TblSerialCompany')
+                        ->findOneBy(array(
+                            TblSerialCompany::ATTR_TBL_SERIAL_LETTER  => $tblSerialLetter->getId(),
+                            TblSerialCompany::ATTR_SERVICE_TBL_COMPANY  => $tblCompany->getId(),
+                        ));
+                    if (null === $Entity) {
+                        $Entity = new TblSerialCompany();
+                        $Entity->setTblSerialLetter($tblSerialLetter);
+                        $Entity->setServiceTblCompany($tblCompany);
+
+                        $Manager->bulkSaveEntity($Entity);
+                        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+                    }
+                }
+            }
+        }
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
      * @param string          $Name
      * @param string          $Description
      *
@@ -779,6 +835,27 @@ class Data extends AbstractData
         $EntityList = $Manager->getEntity('TblSerialPerson')
             ->findBy(array(
                 TblSerialPerson::ATTR_TBL_SERIAL_LETTER => $tblSerialLetter->getId(),
+            ));
+        if ($EntityList) {
+            foreach ($EntityList as $Entity) {
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+                $Manager->bulkKillEntity($Entity);
+            }
+        }
+        $Manager->flushCache();
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     */
+    public function destroySerialCompany(TblSerialLetter $tblSerialLetter)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $EntityList = $Manager->getEntity('TblSerialCompany')
+            ->findBy(array(
+                TblSerialCompany::ATTR_TBL_SERIAL_LETTER => $tblSerialLetter->getId(),
             ));
         if ($EntityList) {
             foreach ($EntityList as $Entity) {

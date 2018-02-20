@@ -3,16 +3,12 @@ namespace SPHERE\Application\Reporting\SerialLetter;
 
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToCompany;
-use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
-use SPHERE\Application\Corporation\Company\Service\Entity\ViewCompany;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
@@ -72,7 +68,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutTabs;
 use SPHERE\Common\Frontend\Link\Repository\Exchange;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Info as InfoMessage;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -84,7 +79,6 @@ use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Database\Binding\AbstractView;
 use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
@@ -124,15 +118,24 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Adresslisten für Serienbriefe', 'Übersicht');
         $tblSerialLetterAll = SerialLetter::useService()->getSerialLetterAll();
 
+//        $tblSerialLetter = SerialLetter::useService()->getSerialLetterById(37);
+//        $Result = (new SerialLetterFilter())->getCompanyFilterResultListBySerialLetter($tblSerialLetter);
+//        $tblCompanySearchList = (new SerialLetterFilter())->getCompanyListByResult($Result);
+//        SerialLetter::useService()->updateDynamicSerialCompany($tblSerialLetter, $tblCompanySearchList);
+//        Debugger::screenDump($tblCompanySearchList);
+//        return $Stage;
+
         // create Tabs
         $LayoutTabs[] = new LayoutTab('Statisch', 'STATIC');
         if (!empty($LayoutTabs) && $TabActive === 'PERSON') {
+            /** @var LayoutTab[] $LayoutTabs */
             $LayoutTabs[0]->setActive();
         }
         $LayoutTabs[] = new LayoutTab('Dynamisch ('.TblFilterCategory::IDENTIFIER_PERSON_GROUP.')', 'PERSONGROUP');
         $LayoutTabs[] = new LayoutTab('Dynamisch ('.TblFilterCategory::IDENTIFIER_PERSON_GROUP_STUDENT.')', 'STUDENT');
         $LayoutTabs[] = new LayoutTab('Dynamisch ('.TblFilterCategory::IDENTIFIER_PERSON_GROUP_PROSPECT.')', 'PROSPECT');
-        $LayoutTabs[] = new LayoutTab('Dynamisch ('.TblFilterCategory::IDENTIFIER_COMPANY_GROUP.')', 'COMPANY');
+//        $LayoutTabs[] = new LayoutTab('Dynamisch ('.TblFilterCategory::IDENTIFIER_COMPANY_GROUP.')', 'COMPANY');
+        $LayoutTabs[] = new LayoutTab('Dynamisch ('.TblFilterCategory::IDENTIFIER_COMPANY.')', 'COMPANY');
 
         $TableContent = array();
         if ($tblSerialLetterAll) {
@@ -179,7 +182,7 @@ class Frontend extends Extension implements IFrontendInterface
             });
         }
 
-        $FormSerialLetter = $this->formSerialLetter()
+        $FormSerialLetter = (new SerialLetterForm())->formSerialLetter()
             ->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
@@ -196,22 +199,7 @@ class Frontend extends Extension implements IFrontendInterface
             case 'PERSONGROUP':
                 $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName(TblFilterCategory::IDENTIFIER_PERSON_GROUP);
 
-//                // Filter Group
-//                if (isset( $FilterGroup['TblGroup_Id'] ) && !empty( $FilterGroup['TblGroup_Id'] )
-//                ) {
-////                    $Result = SerialLetter::useService()->getGroupFilterResultListBySerialLetter(null, $FilterGroup, $Timeout);
-////                    if ($Result) {
-////                        $TableSearch = $this->getGroupTableByResult($Result);
-////                    }
-//                }
-
-//                if (isset( $FilterGroup['TblGroup_Id'] ) && !empty( $FilterGroup['TblGroup_Id'] )) {
-//                    if (is_array($FilterGroup['TblGroup_Id'])) {
-//                        $FilterGroup['TblGroup_Id'] = implode(' ', $FilterGroup['TblGroup_Id']);
-//                    }
-//                }
-
-                $FormSerialLetterDynamic = $this->formFilterPersonGroup();
+                $FormSerialLetterDynamic = (new SerialLetterForm())->formFilterPersonGroup();
                 $FormSerialLetterDynamic
                     ->appendFormButton(new Primary('Speichern', new Save()))
                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
@@ -232,7 +220,7 @@ class Frontend extends Extension implements IFrontendInterface
             case 'STUDENT':
                 $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName(TblFilterCategory::IDENTIFIER_PERSON_GROUP_STUDENT);
 
-                $FormSerialLetterDynamic = $this->formFilterStudent();
+                $FormSerialLetterDynamic = (new SerialLetterForm())->formFilterStudent();
                 $FormSerialLetterDynamic
                     ->appendFormButton(new Primary('Speichern', new Save()))
                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
@@ -253,7 +241,7 @@ class Frontend extends Extension implements IFrontendInterface
             case 'PROSPECT':
                 $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName(TblFilterCategory::IDENTIFIER_PERSON_GROUP_PROSPECT);
 
-                $FormSerialLetterDynamic = $this->formFilterProspect();
+                $FormSerialLetterDynamic = (new SerialLetterForm())->formFilterProspect();
                 $FormSerialLetterDynamic
                     ->appendFormButton(new Primary('Speichern', new Save()))
                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
@@ -272,9 +260,10 @@ class Frontend extends Extension implements IFrontendInterface
                 );
                 break;
             case 'COMPANY':
-                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName(TblFilterCategory::IDENTIFIER_COMPANY_GROUP);
 
-                $FormSerialLetterDynamic = $this->formFilterCompany();
+                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName(TblFilterCategory::IDENTIFIER_COMPANY);
+
+                $FormSerialLetterDynamic = (new SerialLetterForm())->formFilterCompany();
                 $FormSerialLetterDynamic
                     ->appendFormButton(new Primary('Speichern', new Save()))
                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
@@ -333,673 +322,6 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Result
-     *
-     * @return array
-     */
-    private function getGroupTableByResult($Result)
-    {
-        $TableSearch = array();
-        if (!empty($Result)) {
-            /** @var AbstractView[]|ViewPerson[] $Row */
-            foreach ($Result as $Index => $Row) {
-                $DataPerson = $Row[1]->__toArray();
-
-                $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
-                /** @noinspection PhpUndefinedFieldInspection */
-                $DataPerson['Name'] = false;
-                $DataPerson['Salutation'] = new Small(new Muted('-NA-'));
-
-                if ($tblPerson) {
-                    $DataPerson['Name'] = $tblPerson->getLastFirstName();
-                    $DataPerson['Salutation'] = ( $tblPerson->getSalutation() !== ''
-                        ? $tblPerson->getSalutation()
-                        : new Small(new Muted('-NA-')) );
-                    $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
-                }
-                /** @noinspection PhpUndefinedFieldInspection */
-                $DataPerson['Address'] = (string)new WarningMessage('Keine Adresse hinterlegt!');
-                if (isset($tblAddress) && $tblAddress && $DataPerson['Name']) {
-                    /** @noinspection PhpUndefinedFieldInspection */
-                    $DataPerson['Address'] = $tblAddress->getGuiString();
-                }
-
-                // ignore duplicated Person
-                if ($DataPerson['Name']) {
-                    if (!array_key_exists($DataPerson['TblPerson_Id'], $TableSearch)) {
-                        $TableSearch[$DataPerson['TblPerson_Id']] = $DataPerson;
-                    }
-                }
-            }
-        }
-        return $TableSearch;
-    }
-
-    /**
-     * @param $Result
-     *
-     * @return array
-     */
-    private function getStudentTableByResult($Result)
-    {
-        $TableSearch = array();
-        if (!empty($Result)) {
-            /** @var AbstractView[]|ViewDivisionStudent[] $Row */
-            foreach ($Result as $Index => $Row) {
-                $DataPerson = $Row[1]->__toArray();
-                $tblDivisionStudent = $Row[2]->getTblDivisionStudent();
-
-                $DataPerson['DivisionYear'] = new Small(new Muted('Gefiltertes Jahr:')).new Container('-NA-');
-                $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container('-NA-');
-                /** @var TblDivisionStudent $tblDivisionStudent */
-                if ($tblDivisionStudent) {
-                    $tblDivision = $tblDivisionStudent->getTblDivision();
-                    if ($tblDivision) {
-                        if (( $tblYear = $tblDivision->getServiceTblYear() )) {
-                            $DataPerson['DivisionYear'] = new Small(new Muted('Gefiltertes Jahr:')).new Container($tblYear->getName());
-                        }
-                        $DataPerson['Division'] = new Small(new Muted('Gefilterte Klasse:')).new Container($tblDivision->getDisplayName());
-                    }
-                }
-
-                $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
-                /** @noinspection PhpUndefinedFieldInspection */
-                $DataPerson['Name'] = false;
-                $DataPerson['Salutation'] = new Small(new Muted('-NA-'));
-
-                if ($tblPerson) {
-                    $DataPerson['Name'] = $tblPerson->getLastFirstName();
-                    $DataPerson['Salutation'] = ( $tblPerson->getSalutation() !== ''
-                        ? $tblPerson->getSalutation()
-                        : new Small(new Muted('-NA-')) );
-                    $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
-                    $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                }
-                /** @noinspection PhpUndefinedFieldInspection */
-                $DataPerson['Address'] = (string)new WarningMessage('Keine Adresse hinterlegt!');
-                if (isset($tblAddress) && $tblAddress && $DataPerson['Name']) {
-                    /** @noinspection PhpUndefinedFieldInspection */
-                    $DataPerson['Address'] = $tblAddress->getGuiString();
-                }
-                $DataPerson['StudentNumber'] = new Small(new Muted('-NA-'));
-                if (isset($tblStudent) && $tblStudent && $DataPerson['Name']) {
-                    $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
-                }
-
-                // ignore duplicated Person
-                if ($DataPerson['Name']) {
-                    if (!array_key_exists($DataPerson['TblPerson_Id'], $TableSearch)) {
-                        $TableSearch[$DataPerson['TblPerson_Id']] = $DataPerson;
-                    }
-                }
-            }
-        }
-        return $TableSearch;
-    }
-
-    /**
-     * @param $Result
-     *
-     * @return array
-     */
-    private function getProspectTableByResult($Result)
-    {
-
-        $TableSearch = array();
-        if (!empty($Result)) {
-            /** @var AbstractView[]|ViewPerson[] $Row */
-            foreach ($Result as $Index => $Row) {
-                $DataPerson = $Row[1]->__toArray();
-
-                $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
-                /** @noinspection PhpUndefinedFieldInspection */
-                $DataPerson['Name'] = false;
-                $DataPerson['Salutation'] = new Small(new Muted('-NA-'));
-                $DataPerson['ReservationDate'] = '';
-                $DataPerson['InterviewDate'] = '';
-                $DataPerson['TrialDate'] = '';
-                $DataPerson['ReservationYear'] = '';
-                $DataPerson['ReservationDivision'] = '';
-                $DataPerson['ReservationOptionA'] = '';
-                $DataPerson['ReservationOptionB'] = '';
-
-                if ($tblPerson) {
-                    $DataPerson['Name'] = $tblPerson->getLastFirstName();
-                    $DataPerson['Salutation'] = ( $tblPerson->getSalutation() !== ''
-                        ? $tblPerson->getSalutation()
-                        : new Small(new Muted('-NA-')) );
-                    $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
-
-                    $tblProspect = Prospect::useService()->getProspectByPerson($tblPerson);
-                    if ($tblProspect) {
-                        $tblProspectAppointment = $tblProspect->getTblProspectAppointment();
-                        if ($tblProspectAppointment) {
-                            $DataPerson['ReservationDate'] = $tblProspectAppointment->getReservationDate();
-                            $DataPerson['InterviewDate'] = $tblProspectAppointment->getInterviewDate();
-                            $DataPerson['TrialDate'] = $tblProspectAppointment->getTrialDate();
-                        }
-                        $tblProspectReservation = $tblProspect->getTblProspectReservation();
-                        if ($tblProspectReservation) {
-                            $DataPerson['ReservationYear'] = $tblProspectReservation->getReservationYear();
-                            $DataPerson['ReservationDivision'] = $tblProspectReservation->getReservationDivision();
-                            if ($tblProspectReservation->getServiceTblTypeOptionA()) {
-                                $DataPerson['ReservationOptionA'] = $tblProspectReservation->getServiceTblTypeOptionA()->getName();
-                            }
-                            if ($tblProspectReservation->getServiceTblTypeOptionB()) {
-                                $DataPerson['ReservationOptionB'] = $tblProspectReservation->getServiceTblTypeOptionB()->getName();
-                            }
-                        }
-                    }
-                }
-                /** @noinspection PhpUndefinedFieldInspection */
-                $DataPerson['Address'] = (string)new WarningMessage('Keine Adresse hinterlegt!');
-                if (isset($tblAddress) && $tblAddress && $DataPerson['Name']) {
-                    /** @noinspection PhpUndefinedFieldInspection */
-                    $DataPerson['Address'] = $tblAddress->getGuiString();
-                }
-
-                // ignore duplicated Person
-                if ($DataPerson['Name']) {
-                    if (!array_key_exists($DataPerson['TblPerson_Id'], $TableSearch)) {
-                        $TableSearch[$DataPerson['TblPerson_Id']] = $DataPerson;
-                    }
-                }
-            }
-        }
-        return $TableSearch;
-    }
-
-    /**
-     * @param $Result
-     *
-     * @return array
-     */
-    private function getCompanyTableByResult($Result)
-    {
-
-        $TableSearch = array();
-        if (!empty($Result)) {
-            /** @var AbstractView[]|ViewCompany[] $Row */
-            foreach ($Result as $Index => $Row) {
-                $DataCompany = $Row[1]->__toArray();
-                $DataPerson = $Row[3]->__toArray();
-
-                $tblCompany = Company::useService()->getCompanyById($DataCompany['TblCompany_Id']);
-                $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
-                /** @noinspection PhpUndefinedFieldInspection */
-                $DataPerson['Name'] = false;
-                $DataPerson['Salutation'] = new Small(new Muted('-NA-'));
-
-                if ($tblPerson) {
-                    $DataPerson['Name'] = $tblPerson->getLastFirstName();
-                    $DataPerson['Salutation'] = ( $tblPerson->getSalutation() !== ''
-                        ? $tblPerson->getSalutation()
-                        : new Small(new Muted('-NA-')) );
-                    $tblAddress = Address::useService()->getAddressByCompany($tblCompany);
-                }
-                /** @noinspection PhpUndefinedFieldInspection */
-                $DataPerson['Address'] = (string)new WarningMessage('Keine Adresse hinterlegt!');
-                if (isset($tblAddress) && $tblAddress && $DataPerson['Name']) {
-                    /** @noinspection PhpUndefinedFieldInspection */
-                    $DataPerson['Address'] = $tblAddress->getGuiString();
-                }
-
-                $DataPerson['CompanyName'] = '';
-                $DataPerson['CompanyExtendedName'] = '';
-                $DataPerson['Type'] = '';
-                if ($tblCompany) {
-                    $DataPerson['CompanyName'] = $tblCompany->getName();
-                    $DataPerson['CompanyExtendedName'] = $tblCompany->getExtendedName();
-                    $tblRelationshipList = Relationship::useService()->getCompanyRelationshipAllByCompany($tblCompany);
-                    if ($tblRelationshipList) {
-                        /** @var \SPHERE\Application\People\Relationship\Service\Entity\TblToCompany $tblRelationship */
-                        foreach ($tblRelationshipList as $tblRelationship) {
-                            if ($tblRelationship->getServiceTblPerson()->getId() === $tblPerson->getId()) {
-                                if ($tblRelationship->getTblType()) {
-                                    $DataPerson['Type'] = $tblRelationship->getTblType()->getName();
-                                }
-                            }
-                        }
-                    }
-                }
-
-
-                // ignore duplicated Person
-                if ($DataPerson['Name']) {
-                    if (!array_key_exists($DataPerson['TblPerson_Id'], $TableSearch)) {
-                        $TableSearch[$DataPerson['TblPerson_Id']] = $DataPerson;
-                    }
-                }
-            }
-        }
-        return $TableSearch;
-    }
-
-    private function formSerialLetterStandardGroup()
-    {
-
-        return new FormGroup(array(
-            new FormRow(array(
-                new FormColumn(
-                    new TextField('SerialLetter[Name]', 'Name', 'Name'), 4
-                ),
-                new FormColumn(
-                    new TextField('SerialLetter[Description]', 'Beschreibung', 'Beschreibung'), 8
-                )
-            )),
-        ));
-    }
-
-    /**
-     * @return Form
-     */
-    private function formSerialLetter()
-    {
-
-        return new Form($this->formSerialLetterStandardGroup());
-    }
-
-    /**
-     * @param TblSerialLetter $tblSerialLetter
-     *
-     * @return Form
-     */
-    private function formFilterPersonGroup(TblSerialLetter $tblSerialLetter = null)
-    {
-        $FormGroup = array();
-        $FormGroup[] = $this->formSerialLetterStandardGroup();
-
-        if ($tblSerialLetter != null) {
-            $FormGroup[] = new FormGroup(new FormRow(new FormColumn(
-                new InfoMessage('Filter können über das leeren der Gruppe entfernt werden "-[Nicht ausgewählt]-"')
-            )));
-            $tblFilterFieldList = SerialLetter::useService()->getFilterFieldAllBySerialLetter($tblSerialLetter);
-            if ($tblFilterFieldList) {
-                $FilterCount = 1;
-                foreach ($tblFilterFieldList as $tblFilterField) {
-                    // found Filter
-                    $FormGroup[] = new FormGroup(new FormRow(array(
-                            new FormColumn(
-                                new SelectBox('FilterGroup['.$tblFilterField->getField().']['.$tblFilterField->getFilterNumber().']',
-                                    'Gruppe: Name', array('Name' => Group::useService()->getGroupAll()))
-                                , 3),
-                        ))
-//                        , new TitleForm('Aktiver Filter '.$FilterCount)
-                    );
-                    $FilterCount++;
-                }
-            }
-            // new Filter
-            $FormGroup[] = new FormGroup(new FormRow(array(
-                new FormColumn(
-                    new SelectBox('FilterGroup[TblGroup_Id][]',
-                        'Gruppe: Name', array('Name' => Group::useService()->getGroupAll()))
-                    , 3),
-            )));
-        } else {
-            // first Filter
-            $FormGroup[] = new FormGroup(new FormRow(array(
-                new FormColumn(
-                    new SelectBox('FilterGroup[TblGroup_Id][0]',
-                        'Gruppe: Name', array('Name' => Group::useService()->getGroupAll()))
-                    , 3),
-            )));
-        }
-
-        return new Form(
-            $FormGroup
-        );
-    }
-
-    /**
-     * @param TblSerialLetter $tblSerialLetter
-     *
-     * @return Form
-     */
-    private function formFilterStudent(TblSerialLetter $tblSerialLetter = null)
-    {
-
-        $GroupList = array();
-        $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
-        if ($tblGroup) {
-            $GroupList[] = $tblGroup;
-        }
-        $LevelList = array();
-        $tblLevelList = Division::useService()->getLevelAll();
-        if ($tblLevelList) {
-            foreach ($tblLevelList as $tblLevel) {
-                if ($tblLevel->getName() !== '') {
-                    $LevelList[] = $tblLevel;
-                }
-            }
-        }
-
-        $FormGroup = array();
-        $FormGroup[] = $this->formSerialLetterStandardGroup();
-        if ($tblSerialLetter != null) {
-            $FormGroup[] = new FormGroup(new FormRow(new FormColumn(
-                new InfoMessage('Filter ohne Gruppe werden ignoriert! Filter können über das leeren aller Informationen entfernt werden "-[Nicht ausgewählt]-"')
-            )));
-            $tblFilterFieldList = SerialLetter::useService()->getFilterFieldAllBySerialLetter($tblSerialLetter);
-            if ($tblFilterFieldList) {
-                $FilterArray = array();
-                foreach ($tblFilterFieldList as $tblFilterField) {
-                    $FilterArray[$tblFilterField->getFilterNumber()][] = $tblFilterField;
-                }
-                if (!empty($FilterArray)) {
-                    foreach ($FilterArray as $FilterNumber => $FilterFieldList) {
-                        // found Filter
-                        $FormGroup[] = new FormGroup(array(
-                            new FormRow(array(
-                                new FormColumn(
-                                    new SelectBox('FilterGroup[TblGroup_Id]['.$FilterNumber.']', 'Gruppe: Name', array('Name' => $GroupList))
-                                    , 3),
-                                new FormColumn(
-                                    new SelectBox('FilterYear[TblYear_Id]['.$FilterNumber.']', 'Bildung: Schuljahr',
-                                        array('{{Name}} {{Description}}' => Term::useService()->getYearAll()))
-                                    , 3),
-                                new FormColumn(
-                                    new SelectBox('FilterStudent[TblLevel_Id]['.$FilterNumber.']', 'Klasse: Stufe',
-                                        array('{{ Name }} {{ serviceTblType.Name }}' => $LevelList))
-                                    , 3),
-                                new FormColumn(
-                                    new AutoCompleter('FilterStudent[TblDivision_Name]['.$FilterNumber.']', 'Klasse: Gruppe', '',
-                                        array('Name' => Division::useService()->getDivisionAll()))
-                                    , 3),
-                            ))
-                        ));
-//                        /** @var TblFilterField $tblFilterField */
-//                        foreach($FilterFieldList as $tblFilterField){
-//                            if($tblFilterField->getField() === 'TblGroup_Id'){
-//                                $Global->POST['FilterGroup'][$FilterNumber][$tblFilterField->getField()] = $tblFilterField->getValue();
-//                            }
-//                            if($tblFilterField->getField() === 'TblYear_Id'){
-//                                $Global->POST['FilterYear'][$FilterNumber][$tblFilterField->getField()] = $tblFilterField->getValue();
-//                            }
-//                            if($tblFilterField->getField() === 'TblLevel_Id'){
-//                                $Global->POST['FilterLevel'][$FilterNumber][$tblFilterField->getField()] = $tblFilterField->getValue();
-//                            }
-//                            if($tblFilterField->getField() === 'TblDivision_Name'){
-//                                $Global->POST['FilterDivision'][$FilterNumber][$tblFilterField->getField()] = $tblFilterField->getValue();
-//                            }
-//                        }
-                    }
-                }
-            }
-            // new Filter
-            $FormGroup[] = new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(
-                        new SelectBox('FilterGroup[TblGroup_Id][]', 'Gruppe: Name', array('Name' => $GroupList))
-                        , 3),
-                    new FormColumn(
-                        new SelectBox('FilterYear[TblYear_Id][]', 'Bildung: Schuljahr',
-                            array('{{Name}} {{Description}}' => Term::useService()->getYearAll()))
-                        , 3),
-                    new FormColumn(
-                        new SelectBox('FilterStudent[TblLevel_Id][]', 'Klasse: Stufe',
-                            array('{{ Name }} {{ serviceTblType.Name }}' => $LevelList))
-                        , 3),
-                    new FormColumn(
-                        new AutoCompleter('FilterStudent[TblDivision_Name][]', 'Klasse: Gruppe', '',
-                            array('Name' => Division::useService()->getDivisionAll()))
-                        , 3),
-                ))
-            ));
-        } else {
-            // first Filter
-            $FormGroup[] = new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(
-                        new SelectBox('FilterGroup[TblGroup_Id][0]', 'Gruppe: Name', array('Name' => $GroupList))
-                        , 3),
-                    new FormColumn(
-                        new SelectBox('FilterYear[TblYear_Id][0]', 'Bildung: Schuljahr',
-                            array('{{Name}} {{Description}}' => Term::useService()->getYearAll()))
-                        , 3),
-                    new FormColumn(
-                        new SelectBox('FilterStudent[TblLevel_Id][0]', 'Klasse: Stufe',
-                            array('{{ Name }} {{ serviceTblType.Name }}' => $LevelList))
-                        , 3),
-                    new FormColumn(
-                        new AutoCompleter('FilterStudent[TblDivision_Name][0]', 'Klasse: Gruppe', '',
-                            array('Name' => Division::useService()->getDivisionAll()))
-                        , 3),
-                ))
-            ));
-            // POST StandardGroup (first Visit)
-            $Global = $this->getGlobal();
-            if (!isset($Global->POST['FilterGroup']['TblGroup_Id'][0])) {
-                if (!isset($Global->POST['FilterGroup']['TblGroup_Id'][0])) {
-                    $Global->POST['FilterGroup']['TblGroup_Id'][0] = $tblGroup->getId();
-                }
-                $Global->savePost();
-            }
-        }
-
-        return new Form(
-            $FormGroup
-        );
-    }
-
-    /**
-     * @param TblSerialLetter $tblSerialLetter
-     *
-     * @return Form
-     */
-    private function formFilterProspect(TblSerialLetter $tblSerialLetter = null)
-    {
-
-        $GroupList = array();
-        $tblGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
-        if ($tblGroup) {
-//            $GroupList[] = '';
-            $GroupList[] = $tblGroup;
-        }
-
-        $FormGroup = array();
-        $FormGroup[] = $this->formSerialLetterStandardGroup();
-        if ($tblSerialLetter != null) {
-            $FormGroup[] = new FormGroup(new FormRow(new FormColumn(
-                new InfoMessage('Filter ohne Gruppe werden ignoriert! Filter können über das leeren aller Informationen entfernt werden "-[Nicht ausgewählt]-"')
-            )));
-            $tblFilterFieldList = SerialLetter::useService()->getFilterFieldAllBySerialLetter($tblSerialLetter);
-            if ($tblFilterFieldList) {
-                $FilterArray = array();
-                foreach ($tblFilterFieldList as $tblFilterField) {
-                    $FilterArray[$tblFilterField->getFilterNumber()][] = $tblFilterField;
-                }
-                if (!empty($FilterArray)) {
-                    foreach ($FilterArray as $FilterNumber => $FilterFieldList) {
-                        // found Filter
-                        $FormGroup[] = new FormGroup(array(
-                            new FormRow(array(
-                                new FormColumn(
-                                    new SelectBox('FilterGroup[TblGroup_Id]['.$FilterNumber.']', 'Gruppe: Name', array('Name' => $GroupList))
-                                    , 3),
-                                new FormColumn(
-                                    new AutoCompleter('FilterProspect[TblProspectReservation_ReservationYear]['.$FilterNumber.']', 'Interessent: Schuljahr',
-                                        '', array('ReservationYear' => Prospect::useService()->getProspectReservationAll()))
-                                    , 3),
-                                new FormColumn(
-                                    new AutoCompleter('FilterProspect[TblProspectReservation_ReservationDivision]['.$FilterNumber.']', 'Interessent: Stufe',
-                                        '', array('ReservationDivision' => Prospect::useService()->getProspectReservationAll()))
-                                    , 3),
-                                new FormColumn(
-                                    new SelectBox('FilterProspect[TblProspectReservation_serviceTblTypeOptionA]['.$FilterNumber.']', 'Schulart:'
-                                        , array('Name' => Type::useService()->getTypeAll()))
-                                    , 3),
-                            ))
-                        ));
-//                        /** @var TblFilterField $tblFilterField */
-//                        foreach($FilterFieldList as $tblFilterField){
-//                            if($tblFilterField->getField() === 'TblGroup_Id'){
-//                                $Global->POST['FilterGroup'][$FilterNumber][$tblFilterField->getField()] = $tblFilterField->getValue();
-//                            } elseif($tblFilterField->getField() === 'TblProspectReservation_ReservationYear'
-//                            ||$tblFilterField->getField() === 'TblProspectReservation_ReservationDivision'
-//                            ||$tblFilterField->getField() === 'TblProspectReservation_serviceTblTypeOptionA'){
-//                                $Global->POST['FilterProspect'][$tblFilterField->getField()][$FilterNumber] = $tblFilterField->getValue();
-//                            }
-//                        }
-                    }
-                }
-            }
-            // new Filter
-            $FormGroup[] = new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(
-                        new SelectBox('FilterGroup[TblGroup_Id][]', 'Gruppe: Name', array('Name' => $GroupList))
-                        , 3),
-                    new FormColumn(
-                        new AutoCompleter('FilterProspect[TblProspectReservation_ReservationYear][]', 'Interessent: Schuljahr',
-                            '', array('ReservationYear' => Prospect::useService()->getProspectReservationAll()))
-                        , 3),
-                    new FormColumn(
-                        new AutoCompleter('FilterProspect[TblProspectReservation_ReservationDivision][]', 'Interessent: Stufe',
-                            '', array('ReservationDivision' => Prospect::useService()->getProspectReservationAll()))
-                        , 3),
-                    new FormColumn(
-                        new SelectBox('FilterProspect[TblProspectReservation_serviceTblTypeOptionA][]', 'Schulart:'
-                            , array('Name' => Type::useService()->getTypeAll()))
-                        , 3),
-                ))
-            ));
-        } else {
-            // first Filter
-            $FormGroup[] = new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(
-                        new SelectBox('FilterGroup[TblGroup_Id][0]', 'Gruppe: Name', array('Name' => $GroupList))
-                        , 3),
-                    new FormColumn(
-                        new AutoCompleter('FilterProspect[TblProspectReservation_ReservationYear][0]', 'Interessent: Schuljahr',
-                            '', array('ReservationYear' => Prospect::useService()->getProspectReservationAll()))
-                        , 3),
-                    new FormColumn(
-                        new AutoCompleter('FilterProspect[TblProspectReservation_ReservationDivision][0]', 'Interessent: Stufe',
-                            '', array('ReservationDivision' => Prospect::useService()->getProspectReservationAll()))
-                        , 3),
-                    new FormColumn(
-                        new SelectBox('FilterProspect[TblProspectReservation_serviceTblTypeOptionA][0]', 'Schulart:'
-                            , array('Name' => Type::useService()->getTypeAll()))
-                        , 3),
-                ))
-            ));
-            // POST StandardGroup (first Visit)
-            $Global = $this->getGlobal();
-            if (!isset($Global->POST['FilterGroup']['TblGroup_Id'][0])) {
-                $Global->POST['FilterGroup']['TblGroup_Id'][0] = $tblGroup->getId();
-                $Global->savePost();
-            }
-        }
-
-        return new Form(
-            $FormGroup
-        );
-    }
-
-    /**
-     * @param null $tblSerialLetter
-     *
-     * @return Form
-     */
-    private function formFilterCompany($tblSerialLetter = null)
-    {
-
-        $tblGroupList = \SPHERE\Application\Corporation\Group\Group::useService()->getGroupAll();
-        $tblGroup = \SPHERE\Application\Corporation\Group\Group::useService()->getGroupByMetaTable('COMMON');
-        $tblCompanyGroup = Relationship::useService()->getGroupByIdentifier('COMPANY');
-        $TypeList = Relationship::useService()->getTypeAllByGroup($tblCompanyGroup);
-
-        $FormGroup = array();
-        $FormGroup[] = $this->formSerialLetterStandardGroup();
-        if ($tblSerialLetter != null) {
-            $FormGroup[] = new FormGroup(new FormRow(new FormColumn(
-                new InfoMessage('Filter ohne Gruppe werden ignoriert! Filter können über das leeren aller Informationen entfernt werden "-[Nicht ausgewählt]-"')
-            )));
-            $tblFilterFieldList = SerialLetter::useService()->getFilterFieldAllBySerialLetter($tblSerialLetter);
-            if ($tblFilterFieldList) {
-                $FilterArray = array();
-                foreach ($tblFilterFieldList as $tblFilterField) {
-                    $FilterArray[$tblFilterField->getFilterNumber()][] = $tblFilterField;
-                }
-                if (!empty($FilterArray)) {
-                    foreach ($FilterArray as $FilterNumber => $FilterFieldList) {
-                        // found Filter
-                        $FormGroup[] = new FormGroup(array(
-                            new FormRow(array(
-                                new FormColumn(
-                                    new SelectBox('FilterGroup[TblGroup_Id]['.$FilterNumber.']', 'Gruppe: Name', array('Name' => $tblGroupList))
-                                    , 3),
-                                new FormColumn(
-                                    new AutoCompleter('FilterCompany[TblCompany_Name]['.$FilterNumber.']', 'Institution: Name', '',
-                                        array('Name' => Company::useService()->getCompanyAll()))
-                                    , 3),
-                                new FormColumn(
-                                    new AutoCompleter('FilterCompany[TblCompany_ExtendedName]['.$FilterNumber.']', 'Institution: Zusatz', '',
-                                        array('ExtendedName' => Company::useService()->getCompanyAll()))
-                                    , 3),
-                                new FormColumn(
-                                    new SelectBox('FilterRelationship[TblType_Id]['.$FilterNumber.']', 'Beziehung: Typ', array('Name' => $TypeList))
-                                    , 3),
-                            ))
-                        ));
-                    }
-                }
-            }
-            // new Filter
-            $FormGroup[] = new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(
-                        new SelectBox('FilterGroup[TblGroup_Id][]', 'Gruppe: Name', array('Name' => $tblGroupList))
-                        , 3),
-                    new FormColumn(
-                        new AutoCompleter('FilterCompany[TblCompany_Name][]', 'Institution: Name', '',
-                            array('Name' => Company::useService()->getCompanyAll()))
-                        , 3),
-                    new FormColumn(
-                        new AutoCompleter('FilterCompany[TblCompany_ExtendedName][]', 'Institution: Zusatz', '',
-                            array('ExtendedName' => Company::useService()->getCompanyAll()))
-                        , 3),
-                    new FormColumn(
-                        new SelectBox('FilterRelationship[TblType_Id][]', 'Beziehung: Typ', array('Name' => $TypeList))
-                        , 3),
-                ))
-            ));
-        } else {
-            // First Filter
-            $FormGroup[] = new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(
-                        new SelectBox('FilterGroup[TblGroup_Id][0]', 'Gruppe: Name', array('Name' => $tblGroupList))
-                        , 3),
-                    new FormColumn(
-                        new AutoCompleter('FilterCompany[TblCompany_Name][0]', 'Institution: Name', '',
-                            array('Name' => Company::useService()->getCompanyAll()))
-                        , 3),
-                    new FormColumn(
-                        new AutoCompleter('FilterCompany[TblCompany_ExtendedName][0]', 'Institution: Zusatz', '',
-                            array('ExtendedName' => Company::useService()->getCompanyAll()))
-                        , 3),
-                    new FormColumn(
-                        new SelectBox('FilterRelationship[TblType_Id][0]', 'Beziehung: Typ', array('Name' => $TypeList))
-                        , 3),
-                ))
-            ));
-            // POST StandardGroup (first Visit)
-            $Global = $this->getGlobal();
-            if (!isset($Global->POST['FilterGroup']['TblGroup_Id'][0])) {
-                $Global->POST['FilterGroup']['TblGroup_Id'][0] = $tblGroup->getId();
-            }
-            $Global->savePost();
-        }
-
-        return new Form(
-            $FormGroup
-        );
-    }
-
-    /**
      * @param null   $Id
      * @param bool   $Control
      * @param null   $SerialLetter
@@ -1054,6 +376,9 @@ class Frontend extends Extension implements IFrontendInterface
                     $TabActive = 'PROSPECT';
                 }
                 if ($tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
+                    $TabActive = 'COMPANY_OLD';
+                }
+                if ($tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_COMPANY) {
                     $TabActive = 'COMPANY';
                 }
             }
@@ -1071,7 +396,7 @@ class Frontend extends Extension implements IFrontendInterface
             array('Id' => $tblSerialLetter->getId()),
             'Addressliste für Serienbriefe anzeigen und herunterladen'));
 
-        $FormSerialLetter = $this->formSerialLetter()
+        $FormSerialLetter = (new SerialLetterForm())->formSerialLetter()
             ->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
@@ -1137,11 +462,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         switch ($TabActive) {
-//            case 'STATIC':
-//                $MetaTable = new Panel(new Edit().' Serienbrief'
-//                    , array(new Well(SerialLetter::useService()->updateSerialLetter($FormSerialLetter, $tblSerialLetter
-//                        , $SerialLetter))), Panel::PANEL_TYPE_INFO);
-//                break;
             case 'PERSONGROUP':
 
                 $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName(TblFilterCategory::IDENTIFIER_PERSON_GROUP);
@@ -1151,45 +471,12 @@ class Frontend extends Extension implements IFrontendInterface
                     $CategoryName = '';
                 }
                 if (!$IsPost) {
-                    $Result = SerialLetter::useService()->getGroupFilterResultListBySerialLetter($tblSerialLetter, null, $Timeout);
+                    $Result = (new SerialLetterFilter())->getGroupFilterResultListBySerialLetter($tblSerialLetter, null, $Timeout);
                     if ($Result) {
-                        $SearchTable = $this->getGroupTableByResult($Result);
+                        $SearchTable = (new SerialLetterFilter())->getGroupTableByResult($Result);
                     }
                 }
-
-
-//                // Filter Group
-//                if (isset( $FilterGroup['TblGroup_Id'] ) && !empty( $FilterGroup['TblGroup_Id'] )
-//                ) {
-//                    $Result = SerialLetter::useService()->getGroupFilterResultListBySerialLetter(null, $FilterGroup, $Timeout);
-//                    if ($Result) {
-//                        $SearchTable = $this->getGroupTableByResult($Result);
-//                    }
-//                }
-
-//                if (isset( $FilterGroup['TblGroup_Id'] ) && !empty( $FilterGroup['TblGroup_Id'] )) {
-//                    if (is_array($FilterGroup['TblGroup_Id'])) {
-//                        $FilterGroup['TblGroup_Id'] = implode(' ', $FilterGroup['TblGroup_Id']);
-//                    }
-//                }
-
-//                $FormSerialLetterDynamic =
-//                    new Form(new FormGroup(array(
-//                        new FormRow(array(
-//                            new FormColumn(
-//                                new TextField('SerialLetter[Name]', 'Name', 'Name'), 4
-//                            ),
-//                            new FormColumn(
-//                                new TextField('SerialLetter[Description]', 'Beschreibung', 'Beschreibung'), 8
-//                            )
-//                        )),
-//                    )), null, new Route(__NAMESPACE__.'/Edit'),
-//                        array('Id'          => $tblSerialLetter->getId(),
-//                              'TabActive'   => 'PERSONGROUP',
-//                              'FilterGroup' => $FilterGroup,
-//                        )
-//                    );
-                $FormSerialLetterDynamic = $this->formFilterPersonGroup($tblSerialLetter);
+                $FormSerialLetterDynamic = (new SerialLetterForm())->formFilterPersonGroup($tblSerialLetter);
                 $FormSerialLetterDynamic
                     ->appendFormButton(new Primary('Speichern', new Save()))
                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
@@ -1247,13 +534,13 @@ class Frontend extends Extension implements IFrontendInterface
                     $CategoryName = '';
                 }
                 if (!$IsPost) {
-                    $Result = SerialLetter::useService()->getStudentFilterResultListBySerialLetter($tblSerialLetter, null, null, null, $Timeout);
+                    $Result = (new SerialLetterFilter())->getStudentFilterResultListBySerialLetter($tblSerialLetter, null, null, null, $Timeout);
                     if ($Result) {
-                        $SearchTable = $this->getStudentTableByResult($Result);
+                        $SearchTable = (new SerialLetterFilter())->getStudentTableByResult($Result);
                     }
                 }
 
-                $FormSerialLetterDynamic = $this->formFilterStudent($tblSerialLetter);
+                $FormSerialLetterDynamic = (new SerialLetterForm())->formFilterStudent($tblSerialLetter);
                 $FormSerialLetterDynamic
                     ->appendFormButton(new Primary('Speichern', new Save()))
                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
@@ -1315,13 +602,13 @@ class Frontend extends Extension implements IFrontendInterface
                     $CategoryName = '';
                 }
                 if (!$IsPost) {
-                    $Result = SerialLetter::useService()->getProspectFilterResultListBySerialLetter($tblSerialLetter, null, null, $Timeout);
+                    $Result = (new SerialLetterFilter())->getProspectFilterResultListBySerialLetter($tblSerialLetter, null, null, $Timeout);
                     if ($Result) {
-                        $SearchTable = $this->getProspectTableByResult($Result);
+                        $SearchTable = (new SerialLetterFilter())->getProspectTableByResult($Result);
                     }
                 }
 
-                $FormSerialLetterDynamic = $this->formFilterProspect($tblSerialLetter);
+                $FormSerialLetterDynamic = (new SerialLetterForm())->formFilterProspect($tblSerialLetter);
                 $FormSerialLetterDynamic
                     ->appendFormButton(new Primary('Speichern', new Save()))
                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
@@ -1380,7 +667,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                         : '' );
                 break;
-            case 'COMPANY':
+            case 'COMPANY_OLD':
                 $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName(TblFilterCategory::IDENTIFIER_COMPANY_GROUP);
 
                 if ($tblFilterCategory) {
@@ -1389,13 +676,79 @@ class Frontend extends Extension implements IFrontendInterface
                     $CategoryName = '';
                 }
                 if (!$IsPost) {
-                    $Result = SerialLetter::useService()->getCompanyFilterResultListBySerialLetter($tblSerialLetter, null, null, null, $Timeout);
+                    $Result = (new SerialLetterFilter())->getCompanyFilterResultListBySerialLetter($tblSerialLetter, null, null, null, $Timeout);
                     if ($Result) {
-                        $SearchTable = $this->getCompanyTableByResult($Result);
+                        $SearchTable = (new SerialLetterFilter())->getCompanyTableByResult($Result);
                     }
                 }
 
-                $FormSerialLetterDynamic = $this->formFilterCompany($tblSerialLetter);
+                $FormSerialLetterDynamic = (new SerialLetterForm())->formFilterCompany($tblSerialLetter);
+                $FormSerialLetterDynamic
+                    ->appendFormButton(new Primary('Speichern', new Save()))
+                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+                $MetaTable = new Layout(
+                        new LayoutGroup(
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    new Panel(new Edit().' Serienbrief '.new Bold($CategoryName)
+                                        , array(new Well(SerialLetter::useService()->updateSerialLetter($FormSerialLetterDynamic, $tblSerialLetter
+                                            , $SerialLetter, $FilterGroup, null, null, null, $FilterCompany, $FilterRelationship)))
+                                        , Panel::PANEL_TYPE_INFO)
+                                )
+                            )
+                        )
+                    )
+                    .( !$IsPost
+                        ? new Layout(
+                            new LayoutGroup(array(
+                                new LayoutRow(
+                                    new LayoutColumn(
+                                        ( $Timeout === true
+                                            ? new WarningMessage('Die Tabelle enthält nur einen Teil der Suchergebnisse!')
+                                            : ''
+                                        )
+                                    )
+                                ),
+                                new LayoutRow(
+                                    new LayoutColumn(
+                                        new TableData($SearchTable, new \SPHERE\Common\Frontend\Table\Repository\Title('Ansicht der gespeicherten Filterung'),
+                                            array('Salutation'          => 'Anrede',
+                                                  'Name'                => 'Name',
+                                                  'Address'             => 'Adresse',
+                                                  'CompanyName'         => 'Name der Institution',
+                                                  'CompanyExtendedName' => 'Zusatz',
+                                                  'Type'                => 'Typ'
+                                            ),
+                                            array(
+                                                'order'      => array(array(1, 'asc')),
+                                                'columnDefs' => array(
+                                                    array('orderable' => false, 'width' => '3%', 'targets' => 0)
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            ))
+                        )
+                        : '' );
+                break;
+                case 'COMPANY':
+                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName(TblFilterCategory::IDENTIFIER_COMPANY);
+
+                if ($tblFilterCategory) {
+                    $CategoryName = $tblFilterCategory->getName();
+                } else {
+                    $CategoryName = '';
+                }
+                if (!$IsPost) {
+                    $Result = (new SerialLetterFilter())->getCompanyFilterResultListBySerialLetter($tblSerialLetter, null, null, null, $Timeout);
+                    if ($Result) {
+                        $SearchTable = (new SerialLetterFilter())->getCompanyTableByResult($Result);
+                    }
+                }
+
+                $FormSerialLetterDynamic = (new SerialLetterForm())->formFilterCompany($tblSerialLetter);
                 $FormSerialLetterDynamic
                     ->appendFormButton(new Primary('Speichern', new Save()))
                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
@@ -1924,10 +1277,6 @@ class Frontend extends Extension implements IFrontendInterface
         $FormProspect = new Form(
             new FormGroup(array(
                 new FormRow(array(
-//                    new FormColumn(
-//                        ( new RadioBox('FilterGroup[TblGroup_Id]', 'Gruppe: '.$ProspectGroup->getName(),
-//                            $ProspectGroup->getId()) )->setDefaultValue($ProspectGroup->getId(), true)
-//                        , 4),
                     new FormColumn(
                         new AutoCompleter('FilterProspect[TblProspectReservation_ReservationYear]', 'Interessent: Schuljahr', 'Interessent: Schuljahr',
                             array('ReservationYear' => $ProspectReservationList))
@@ -2019,6 +1368,7 @@ class Frontend extends Extension implements IFrontendInterface
         $LayoutTabs[] = new LayoutTab('Schüler in Klassen suchen', 'DIVISION', array('Id' => $tblSerialLetter->getId()));
         $LayoutTabs[] = new LayoutTab('Interessenten suchen', 'PROSPECT', array('Id' => $tblSerialLetter->getId()));
         if (!empty($LayoutTabs) && $TabActive === 'PERSON') {
+            /** @var LayoutTab[] $LayoutTabs */
             $LayoutTabs[0]->setActive();
         }
 
@@ -3202,20 +2552,22 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblFilterCategory = $tblSerialLetter->getFilterCategory();
                         array_walk($tblAddressPersonAllByPerson, function (TblAddressPerson $tblAddressPerson) use (&$AddressList, $tblPerson, $Id, $tblSerialLetter, $tblFilterCategory) {
                             if ($tblFilterCategory && TblFilterCategory::IDENTIFIER_COMPANY_GROUP == $tblFilterCategory->getName()) {
-                                if (( $serviceTblCompanyToAddress = $tblAddressPerson->getServiceTblToPerson($tblFilterCategory) )) {
-//                                        $tblAddress = $serviceTblCompanyToAddress->getTblAddress();
+                                if (( $tblToCompany = $tblAddressPerson->getServiceTblToPerson($tblFilterCategory) )) {
                                     $AddressList[$tblAddressPerson->getId()]['Person'] =
                                         $tblPerson->getLastFirstName();
                                     $AddressList[$tblAddressPerson->getId()]['PersonToAddress'] =
                                         $tblPerson->getLastFirstName();
-                                    if (( $tblToCompany = $tblAddressPerson->getServiceTblToPerson($tblFilterCategory) )) {
-                                        $AddressList[$tblAddressPerson->getId()]['Address'] = $tblToCompany->getTblAddress()->getGuiString();
-                                        $AddressList[$tblAddressPerson->getId()]['Company'] =
-                                            ( $tblToCompany->getServiceTblCompany()->getExtendedName() !== ''
-                                                ? $tblToCompany->getServiceTblCompany()->getName().'<br/>'.
-                                                $tblToCompany->getServiceTblCompany()->getExtendedName()
-                                                : $tblToCompany->getServiceTblCompany()->getName() );
-                                    }
+                                    $AddressList[$tblAddressPerson->getId()]['Address'] =
+                                        ( ($tblAddressCompany = $tblToCompany->getTblAddress())
+                                            ? $tblAddressCompany->getGuiString()
+                                            : ''
+                                        )
+                                    ;
+                                    $AddressList[$tblAddressPerson->getId()]['Company'] =
+                                        ( $tblToCompany->getServiceTblCompany()->getExtendedName() !== ''
+                                            ? $tblToCompany->getServiceTblCompany()->getName().'<br/>'.
+                                            $tblToCompany->getServiceTblCompany()->getExtendedName()
+                                            : $tblToCompany->getServiceTblCompany()->getName() );
 
                                     $AddressList[$tblAddressPerson->getId()]['Salutation'] =
                                         $tblPerson->getSalutation() !== ''
