@@ -38,7 +38,9 @@ class Setup extends AbstractSetup
         $this->setTablePrepareStudent($Schema, $tblPrepare);
         $this->setTablePrepareInformation($Schema, $tblPrepare);
         $this->setTablePrepareAdditionalGrade($Schema, $tblPrepare, $tblPrepareAdditionalGradeType);
-        $this->setTableLeaveStudent($Schema);
+        $tblLeaveStudent = $this->setTableLeaveStudent($Schema);
+        $this->setTableLeaveGrade($Schema,$tblLeaveStudent);
+        $this->setTableLeaveInformation($Schema,$tblLeaveStudent);
 
         /**
          * Migration & Protocol
@@ -241,6 +243,44 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'IsPrinted', self::FIELD_TYPE_BOOLEAN);
 
         $this->createIndex($Table, array('serviceTblPerson' , 'serviceTblDivision'));
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblLeaveStudent
+     *
+     * @return Table
+     */
+    private function setTableLeaveGrade(Schema &$Schema, Table $tblLeaveStudent)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblLeaveGrade');
+        $this->createColumn($Table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'Grade', self::FIELD_TYPE_STRING);
+
+        $this->getConnection()->addForeignKey($Table, $tblLeaveStudent);
+        $this->createIndex($Table, array('serviceTblSubject' , 'tblLeaveStudent'));
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblLeaveStudent
+     *
+     * @return Table
+     */
+    private function setTableLeaveInformation(Schema &$Schema, Table $tblLeaveStudent)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblLeaveInformation');
+        $this->createColumn($Table, 'Field', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Value', self::FIELD_TYPE_TEXT);
+
+        $this->getConnection()->addForeignKey($Table, $tblLeaveStudent);
+        $this->createIndex($Table, array('Field' , 'tblLeaveStudent'));
 
         return $Table;
     }

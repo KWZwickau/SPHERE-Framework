@@ -14,6 +14,7 @@ use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerate
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Data;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGradeType;
@@ -2714,5 +2715,123 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getLeaveStudentBy($tblPerson, $tblDivision);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblLeaveStudent
+     */
+    public function getLeaveStudentById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getLeaveStudentById($Id);
+    }
+
+    /**
+     * @param TblLeaveStudent $tblLeaveStudent
+     * @param TblSubject $tblSubject
+     *
+     * @return false|TblLeaveGrade
+     */
+    public function  getLeaveGradeBy(TblLeaveStudent $tblLeaveStudent, TblSubject $tblSubject)
+    {
+
+        return (new Data($this->getBinding()))->getLeaveGradeBy($tblLeaveStudent, $tblSubject);
+    }
+
+    /**
+     * @param TblLeaveStudent $tblLeaveStudent
+     *
+     * @return false|TblLeaveGrade[]
+     */
+    public function getLeaveGradeAllByLeaveStudent(TblLeaveStudent $tblLeaveStudent)
+    {
+
+        return (new Data($this->getBinding()))->getLeaveGradeAllByLeaveStudent($tblLeaveStudent);
+    }
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
+     * @param TblCertificate $tblCertificate
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function updateLeaveContent(
+        IFormInterface $Form = null,
+        TblPerson $tblPerson,
+        TblDivision $tblDivision,
+        TblCertificate $tblCertificate,
+        $Data
+    ) {
+
+        if ($Data === null) {
+            return $Form;
+        }
+
+        $error = false;
+
+        // todo Wertebereich
+//        if (!empty($Grade)
+//            && $tblScoreType
+//            && $tblScoreType->getPattern() !== ''
+//        ) {
+//            foreach ($Grade as $personId => $value) {
+//                $tblPerson = Person::useService()->getPersonById($personId);
+//                $gradeValue = str_replace(',', '.', trim($value['Grade']));
+//                if (!isset($value['Attendance']) && $gradeValue !== '' && $gradeValue !== '-1') {
+//                    if (!preg_match('!' . $tblScoreType->getPattern() . '!is', $gradeValue)) {
+//                        if ($tblPerson) {
+//                            $errorRange[] = new Container(new Bold($tblPerson->getLastFirstName()));
+//                        }
+//                    }
+//                }
+//            }
+//        }
+
+//        Debugger::screenDump($Data);
+
+        if ($error) {
+            $Form->prependGridGroup(
+                new FormGroup(new FormRow(new FormColumn(new Danger(
+                        'Nicht alle eingebenen Zensuren befinden sich im Wertebereich (1-5).
+                        Die Daten wurden nicht gespeichert.', new Exclamation())
+                ))));
+
+            return $Form;
+        }
+
+        if ((!$tblLeaveStudent = $this->getLeaveStudentBy($tblPerson, $tblDivision))) {
+            $tblLeaveStudent = (new Data($this->getBinding()))->createLeaveStudent($tblPerson, $tblDivision, $tblCertificate);
+        }
+        if ($tblLeaveStudent) {
+            if (isset($Data['Grades'])) {
+                foreach ($Data['Grades'] as $subjectId => $array){
+                    if (($tblSubject = Subject::useService()->getSubjectById($subjectId))) {
+                        if (isset($array['Grade']) && isset($array['GradeText'])){
+                            if (($tblGradeText = Gradebook::useService()->getGradeTextById($array['GradeText']))) {
+                                $value = $tblGradeText->getName();
+                            } else {
+                                $value = $array['Grade'];
+                            }
+
+                            if (($tblLeaveGrade = $this->getLeaveGradeBy($tblLeaveStudent, $tblSubject))) {
+                                (new Data($this->getBinding()))->updateLeaveGrade($tblLeaveGrade, $value);
+                            } else {
+                                (new Data($this->getBinding()))->createLeaveGrade($tblLeaveStudent, $tblSubject, $value);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Informationen wurden erfolgreich gespeichert.')
+            . new Redirect('/Education/Certificate/Prepare/Leave/Student', Redirect::TIMEOUT_SUCCESS, array(
+                'PersonId' => $tblPerson->getId(),
+            ));
     }
 }

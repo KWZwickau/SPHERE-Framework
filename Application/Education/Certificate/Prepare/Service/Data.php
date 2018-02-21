@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareAdditionalGradeType;
@@ -409,7 +410,7 @@ class Data extends AbstractData
         ));
         if ($Entity === null) {
             $Entity = new TblPrepareGrade();
-            $Entity->settblPrepareCertificate($tblPrepare);
+            $Entity->setTblPrepareCertificate($tblPrepare);
             $Entity->setServiceTblPerson($tblPerson);
             $Entity->setServiceTblDivision($tblDivision);
             $Entity->setServiceTblTestType($tblTestType);
@@ -1380,7 +1381,7 @@ class Data extends AbstractData
      *
      * @return false|TblLeaveStudent
      */
-    public  function getLeaveStudentBy(TblPerson $tblPerson, TblDivision $tblDivision)
+    public function getLeaveStudentBy(TblPerson $tblPerson, TblDivision $tblDivision)
     {
 
         return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblLeaveStudent',
@@ -1389,5 +1390,143 @@ class Data extends AbstractData
                 TblLeaveStudent::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
             )
         );
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblLeaveStudent
+     */
+    public function getLeaveStudentById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblLeaveStudent', $Id);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
+     * @param TblCertificate $tblCertificate
+     * @param bool $IsApproved
+     * @param bool $IsPrinted
+     *
+     * @return null|TblLeaveStudent
+     */
+    public function createLeaveStudent(
+        TblPerson $tblPerson,
+        TblDivision $tblDivision,
+        TblCertificate $tblCertificate,
+        $IsApproved = false,
+        $IsPrinted = false
+    ) {
+
+        $Manager = $this->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblLeaveStudent')
+            ->findOneBy(array(
+                TblLeaveStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                TblLeaveStudent::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblLeaveStudent();
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setServiceTblDivision($tblDivision);
+            $Entity->setServiceTblCertificate($tblCertificate);
+            $Entity->setApproved($IsApproved);
+            $Entity->setPrinted($IsPrinted);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblLeaveStudent $tblLeaveStudent
+     * @param TblSubject $tblSubject
+     *
+     * @return false|TblLeaveGrade
+     */
+    public function  getLeaveGradeBy(TblLeaveStudent $tblLeaveStudent, TblSubject $tblSubject)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblLeaveGrade', array(
+            TblLeaveGrade::ATTR_TBL_LEAVE_STUDENT => $tblLeaveStudent->getId(),
+            TblLeaveGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+        ));
+    }
+
+    /**
+     * @param TblLeaveStudent $tblLeaveStudent
+     *
+     * @return false|TblLeaveGrade[]
+     */
+    public function getLeaveGradeAllByLeaveStudent(TblLeaveStudent $tblLeaveStudent)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblLeaveGrade', array(
+            TblLeaveGrade::ATTR_TBL_LEAVE_STUDENT => $tblLeaveStudent->getId()
+        ));
+    }
+
+    /**
+     * @param TblLeaveStudent $tblLeaveStudent
+     * @param TblSubject $tblSubject
+     * @param $Grade
+     *
+     * @return TblLeaveGrade
+     */
+    public function createLeaveGrade(TblLeaveStudent $tblLeaveStudent, TblSubject $tblSubject, $Grade)
+    {
+
+        $Manager = $this->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblLeaveGrade')
+            ->findOneBy(array(
+                TblLeaveGrade::ATTR_TBL_LEAVE_STUDENT => $tblLeaveStudent->getId(),
+                TblLeaveGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblLeaveGrade();
+            $Entity->setTblLeaveStudent($tblLeaveStudent);
+            $Entity->setServiceTblSubject($tblSubject);
+            $Entity->setGrade($Grade);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblLeaveGrade $tblLeaveGrade
+     * @param $Grade
+     *
+     * @return bool
+     */
+    public function updateLeaveGrade(
+        TblLeaveGrade $tblLeaveGrade,
+        $Grade
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblLeaveGrade $Entity */
+        $Entity = $Manager->getEntityById('TblLeaveGrade', $tblLeaveGrade->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setGrade($Grade);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
     }
 }
