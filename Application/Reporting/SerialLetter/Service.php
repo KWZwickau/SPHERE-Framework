@@ -7,14 +7,18 @@ use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToCompany;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
+use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Reporting\SerialLetter\Service\Data;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblAddressPerson;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblFilterCategory;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblFilterField;
+use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialCompany;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialLetter;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialPerson;
 use SPHERE\Application\Reporting\SerialLetter\Service\Setup;
@@ -135,6 +139,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param int $Id
+     *
+     * @return bool|TblSerialCompany
+     */
+    public function getSerialCompanyById($Id)
+    {
+
+        return ( new Data($this->getBinding()) )->getSerialCompanyById($Id);
+    }
+
+    /**
      * @return bool|TblSerialLetter[]
      */
     public function getSerialLetterAll()
@@ -145,46 +160,52 @@ class Service extends AbstractService
 
     /**
      * @param TblSerialLetter $tblSerialLetter
-     * @param bool            $isCompany
      *
      * @return int
      */
-    public function getSerialLetterCount(TblSerialLetter $tblSerialLetter, $isCompany = false)
+    public function getSerialLetterCount(TblSerialLetter $tblSerialLetter)
     {
 
         $result = 0;
         $tblSerialLetterPersonList = SerialLetter::useService()->getPersonAllBySerialLetter($tblSerialLetter);
 
-        if ($isCompany) {
-//            return ( new Data($this->getBinding()) )->getSerialLetterCount($tblSerialLetter);
-
-            if ($tblSerialLetterPersonList) {
-                foreach ($tblSerialLetterPersonList as $tblPerson) {
-                    $tblAddressPersonList = SerialLetter::useService()->getAddressPersonAllByPerson($tblSerialLetter, $tblPerson);
-                    if ($tblAddressPersonList) {
-                        $result = $result + count($tblAddressPersonList);
-                    }
-                }
-            }
-        } else {
-            if ($tblSerialLetterPersonList) {
-                foreach ($tblSerialLetterPersonList as $tblPerson) {
-                    $tblAddressPersonList = SerialLetter::useService()->getAddressPersonAllByPerson($tblSerialLetter, $tblPerson);
-                    if ($tblAddressPersonList) {
-                        $Address = array();
-                        foreach ($tblAddressPersonList as $tblAddressPerson) {
-                            $tblToPerson = $tblAddressPerson->getServiceTblToPerson();
-                            if ($tblToPerson) {
-                                $tblAddress = $tblToPerson->getTblAddress();
-                                if ($tblAddress) {
-                                    if (!in_array($tblAddress->getId(), $Address)) {
-                                        $result++;
-                                    }
-                                    $Address[] = $tblAddress->getId();
+        if ($tblSerialLetterPersonList) {
+            foreach ($tblSerialLetterPersonList as $tblPerson) {
+                $tblAddressPersonList = SerialLetter::useService()->getAddressPersonAllByPerson($tblSerialLetter, $tblPerson);
+                if ($tblAddressPersonList) {
+                    $Address = array();
+                    foreach ($tblAddressPersonList as $tblAddressPerson) {
+                        $tblToPerson = $tblAddressPerson->getServiceTblToPerson();
+                        if ($tblToPerson) {
+                            $tblAddress = $tblToPerson->getTblAddress();
+                            if ($tblAddress) {
+                                if (!in_array($tblAddress->getId(), $Address)) {
+                                    $result++;
                                 }
+                                $Address[] = $tblAddress->getId();
                             }
                         }
                     }
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     *
+     * @return int
+     */
+    public function getSerialLetterCompanyCount(TblSerialLetter $tblSerialLetter)
+    {
+
+        $result = 0;
+        if(($tblSerialCompanyList = SerialLetter::useService()->getSerialCompanyBySerialLetter($tblSerialLetter))){
+            foreach($tblSerialCompanyList as $tblSerialCompany){
+                if(!$tblSerialCompany->getisIgnore()){
+                    $result++;
                 }
             }
         }
@@ -201,6 +222,45 @@ class Service extends AbstractService
     {
 
         return ( new Data($this->getBinding()) )->getSerialPersonBySerialLetter($tblSerialLetter);
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     * @param null|bool       $isIgnore
+     *
+     * @return false|TblSerialCompany[]
+     */
+    public function getSerialCompanyBySerialLetter(TblSerialLetter $tblSerialLetter, $isIgnore = null)
+    {
+
+        return ( new Data($this->getBinding()) )->getSerialCompanyBySerialLetter($tblSerialLetter, $isIgnore);
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     * @param TblCompany      $tblCompany
+     * @param bool|null       $isIgnore (true or false if necessary)
+     *
+     * @return TblSerialCompany[]|bool
+     */
+    public function getSerialCompanyByCompany(TblSerialLetter $tblSerialLetter, TblCompany $tblCompany, $isIgnore = null)
+    {
+
+        return ( new Data($this->getBinding()) )->getSerialCompanyByCompany($tblSerialLetter, $tblCompany, $isIgnore);
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     * @param TblCompany      $tblCompany
+     * @param TblPerson|null  $tblPerson
+     *
+     * @return false|TblSerialCompany
+     */
+    public function getSerialCompanyBySerialLetterAndCompanyAndPerson(TblSerialLetter $tblSerialLetter, TblCompany $tblCompany
+        , TblPerson $tblPerson = null)
+    {
+
+        return ( new Data($this->getBinding()) )->getSerialCompanyBySerialLetterAndCompanyAndPerson($tblSerialLetter, $tblCompany, $tblPerson);
     }
 
     /** @deprecated
@@ -357,7 +417,7 @@ class Service extends AbstractService
                     $Error = true;
                 }
             }
-            if ($tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
+            if ($tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_COMPANY) {
                 if (isset($FilterGroup['TblGroup_Id'][0]) && $FilterGroup['TblGroup_Id'][0] == 0) {
                     $Stage->setError('FilterGroup[TblGroup_Id][0]', 'Bitte geben Sie eine Gruppe an');
                     $Error = true;
@@ -794,10 +854,6 @@ class Service extends AbstractService
         $ExportData = array();
         $AddressPersonCount = 1;
         $tblFilterCategory = $tblSerialLetter->getFilterCategory();
-        $isCompany = false;
-        if ($tblFilterCategory && $tblFilterCategory->getName() == TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
-            $isCompany = true;
-        }
         if ($tblPersonList) {
             $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy('LastFirstName', new StringGermanOrderSorter());
             /** @var TblPerson $tblPerson */
@@ -809,102 +865,55 @@ class Service extends AbstractService
                     $AddressList = array();
                     array_walk($tblAddressPersonAllByPerson, function (TblAddressPerson $tblAddressPerson)
                     use (&$AddressList, $tblPerson, &$AddressPersonCount, $tblFilterCategory) {
+                        if (( $serviceTblPersonToAddress = $tblAddressPerson->getServiceTblToPerson() )) {
+                            if (( $tblToPerson = $tblAddressPerson->getServiceTblToPerson() )) {
+                                if (( $PersonToAddress = $tblToPerson->getServiceTblPerson() )) {
+                                    if (( $tblAddress = $serviceTblPersonToAddress->getTblAddress() )) {
+                                        //Person SerialLetter
+                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['Salutation'] =
+                                            $tblPerson->getSalutation();
+                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['FirstName'] =
+                                            $tblPerson->getFirstName();
+                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['LastName'] =
+                                            $tblPerson->getLastName();
 
-                        if ($tblFilterCategory
-                            && TblFilterCategory::IDENTIFIER_COMPANY_GROUP == $tblFilterCategory->getName()
-                        ) {
-                            $tblToCompany = $tblAddressPerson->getServiceTblToPerson($tblFilterCategory);
-                            $tblCompany = $tblToCompany->getServiceTblCompany();
-                            $tblAddress = $tblToCompany->getTblAddress();
-                            if ($tblAddress) {
-                                if ($tblCompany) {
-                                    // getCompanyName
-                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['CompanyName'] =
-                                        $tblCompany->getName();
-                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['CompanyExtendedName'] =
-                                        $tblCompany->getExtendedName();
-                                }
+                                        //Person Address
+                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonSalutation'][] =
+                                            $PersonToAddress->getSalutation();
+                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonFirstName'][] =
+                                            $PersonToAddress->getFirstName();
+                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonLastName'][] =
+                                            $PersonToAddress->getLastName();
 
-                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['Salutation'] =
-                                    $tblPerson->getSalutation();
-                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['FirstName'] =
-                                    $tblPerson->getFirstName();
-                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['LastName'] =
-                                    $tblPerson->getLastName();
-
-                                // choose Person
-                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonSalutation'][] =
-                                    $tblPerson->getSalutation();
-                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonFirstName'][] =
-                                    $tblPerson->getFirstName();
-                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonLastName'][] =
-                                    $tblPerson->getLastName();
-                                // Address
-                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['StreetName'] =
-                                    $tblAddress->getStreetName();
-                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['StreetNumber'] =
-                                    $tblAddress->getStreetNumber();;
-                                if (( $tblCity = $tblAddress->getTblCity() )) {
-                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['District'] =
-                                        $tblCity->getDistrict();
-                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['Code'] =
-                                        $tblCity->getCode();
-                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['City'] =
-                                        $tblCity->getName();
-                                }
-                            }
-
-                        } else {
-                            if (( $serviceTblPersonToAddress = $tblAddressPerson->getServiceTblToPerson() )) {
-                                if (( $tblToPerson = $tblAddressPerson->getServiceTblToPerson() )) {
-                                    if (( $PersonToAddress = $tblToPerson->getServiceTblPerson() )) {
-                                        if (( $tblAddress = $serviceTblPersonToAddress->getTblAddress() )) {
-                                            //Person SerialLetter
-                                            $AddressList[$tblPerson->getId().$tblAddress->getId()]['Salutation'] =
-                                                $tblPerson->getSalutation();
-                                            $AddressList[$tblPerson->getId().$tblAddress->getId()]['FirstName'] =
-                                                $tblPerson->getFirstName();
-                                            $AddressList[$tblPerson->getId().$tblAddress->getId()]['LastName'] =
-                                                $tblPerson->getLastName();
-
-                                            //Person Address
-                                            $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonSalutation'][] =
-                                                $PersonToAddress->getSalutation();
-                                            $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonFirstName'][] =
-                                                $PersonToAddress->getFirstName();
-                                            $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonLastName'][] =
-                                                $PersonToAddress->getLastName();
-
-                                            if (isset($AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonFirstName'])) {
-                                                if ($AddressPersonCount < count($AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonFirstName'])) {
-                                                    $AddressPersonCount = count($AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonFirstName']);
-                                                }
+                                        if (isset($AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonFirstName'])) {
+                                            if ($AddressPersonCount < count($AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonFirstName'])) {
+                                                $AddressPersonCount = count($AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonFirstName']);
                                             }
-
-                                            if (( $tblAddress = $tblAddressPerson->getServiceTblToPerson()->getTblAddress() )) {
-                                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['StreetName'] =
-                                                    $tblAddress->getStreetName();
-                                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['StreetNumber'] =
-                                                    $tblAddress->getStreetNumber();;
-                                                if (( $tblCity = $tblAddress->getTblCity() )) {
-                                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['District'] =
-                                                        $tblCity->getDistrict();
-                                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['Code'] =
-                                                        $tblCity->getCode();
-                                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['City'] =
-                                                        $tblCity->getName();
-                                                }
-                                            }
-                                            $AddressList[$tblPerson->getId().$tblAddress->getId()]['Division'] =
-                                                Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, '');
-                                            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                                            if ($tblStudent) {
-                                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['StudentNumber'] = $tblStudent->getIdentifier();
-                                            } else {
-                                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['StudentNumber'] = '';
-                                            }
-
                                         }
+
+                                        if (( $tblAddress = $tblAddressPerson->getServiceTblToPerson()->getTblAddress() )) {
+                                            $AddressList[$tblPerson->getId().$tblAddress->getId()]['StreetName'] =
+                                                $tblAddress->getStreetName();
+                                            $AddressList[$tblPerson->getId().$tblAddress->getId()]['StreetNumber'] =
+                                                $tblAddress->getStreetNumber();;
+                                            if (( $tblCity = $tblAddress->getTblCity() )) {
+                                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['District'] =
+                                                    $tblCity->getDistrict();
+                                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['Code'] =
+                                                    $tblCity->getCode();
+                                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['City'] =
+                                                    $tblCity->getName();
+                                            }
+                                        }
+                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['Division'] =
+                                            Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, '');
+                                        $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                                        if ($tblStudent) {
+                                            $AddressList[$tblPerson->getId().$tblAddress->getId()]['StudentNumber'] = $tblStudent->getIdentifier();
+                                        } else {
+                                            $AddressList[$tblPerson->getId().$tblAddress->getId()]['StudentNumber'] = '';
+                                        }
+
                                     }
                                 }
                             }
@@ -1079,8 +1088,6 @@ class Service extends AbstractService
                                 'LastName'            => ( isset($Address['LastName']) ? $Address['LastName'] : '' ),
                                 'StudentNumber'       => ( isset($Address['StudentNumber']) ? $Address['StudentNumber'] : '' ),
                                 'Division'            => ( isset($Address['Division']) ? $Address['Division'] : '' ),
-                                'CompanyName'         => ( isset($Address['CompanyName']) ? $Address['CompanyName'] : '' ),
-                                'CompanyExtendedName' => ( isset($Address['CompanyExtendedName']) ? $Address['CompanyExtendedName'] : '' ),
                             );
                         }
                     }
@@ -1117,13 +1124,7 @@ class Service extends AbstractService
             $export->setValue($export->getCell($column++, $row), "Person_Vorname");
             $export->setValue($export->getCell($column++, $row), "Person_Nachname");
             $export->setValue($export->getCell($column++, $row), "Person_Schüler-Nr.");
-            if ($isCompany) {
-                $export->setValue($export->getCell($column++, $row), "Person_Aktuelle Klasse(n)");
-                $export->setValue($export->getCell($column++, $row), "Institution");
-                $export->setValue($export->getCell($column, $row), "Institution Zusatz");
-            } else {
-                $export->setValue($export->getCell($column, $row), "Person_Aktuelle Klasse(n)");
-            }
+            $export->setValue($export->getCell($column, $row), "Person_Aktuelle Klasse(n)");
 
             $row = 1;
             /** @var TblAddressPerson $tblAddressPerson */
@@ -1161,14 +1162,172 @@ class Service extends AbstractService
                 $export->setValue($export->getCell($column++, $row), $Export['FirstName']);
                 $export->setValue($export->getCell($column++, $row), $Export['LastName']);
                 $export->setValue($export->getCell($column++, $row), $Export['StudentNumber']);
-                if ($isCompany) {
-                    $export->setValue($export->getCell($column++, $row), $Export['Division']);
-                    $export->setValue($export->getCell($column++, $row), $Export['CompanyName']);
-                    $export->setValue($export->getCell($column, $row), $Export['CompanyExtendedName']);
-                } else {
-                    $export->setValue($export->getCell($column, $row), $Export['Division']);
+                $export->setValue($export->getCell($column, $row), $Export['Division']);
+
+                $row++;
+            }
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     *
+     * @return bool|\SPHERE\Application\Document\Storage\FilePointer
+     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @throws \PHPExcel_Reader_Exception
+     */
+    public function createSerialLetterCompanyExcel(TblSerialLetter $tblSerialLetter)
+    {
+
+        $ExportData = array();
+        $tblSerialCompanyList = $this->getSerialCompanyBySerialLetter($tblSerialLetter, false);
+
+        // sort company by name
+        $Company = array();
+        foreach ($tblSerialCompanyList as $key => $row) {
+            $Company[$key] = ($row->getServiceTblCompany() ? $row->getServiceTblCompany()->getName() : '');
+        }
+        array_multisort($Company, SORT_ASC, $tblSerialCompanyList);
+
+        if ($tblSerialCompanyList) {
+            array_walk($tblSerialCompanyList, function (TblSerialCompany $tblSerialCompany) use(&$ExportData) {
+
+                // person defaults
+                $Item['Salutation'] = '';
+                $Item['Title'] = '';
+                $Item['FirstName'] = '';
+//                $Item['SecondName'] = '';
+                $Item['LastName'] = '';
+
+                if(($tblPerson = $tblSerialCompany->getServiceTblPerson())) {
+                    $Item['Salutation'] = $tblPerson->getSalutation();
+                    $Item['Title'] = $tblPerson->getTitle();
+                    $Item['FirstName'] = $tblPerson->getFirstName();
+//                    $Item['SecondName'] = $tblPerson->getSecondName();
+                    $Item['LastName'] = $tblPerson->getLastName();
                 }
 
+                // company values
+                $Item['CompanyName'] = '';
+                $Item['CompanyExtendedName'] = '';
+                $Item['Description'] = '';
+                $Item['Street'] = '';
+                $Item['Code'] = '';
+                $Item['City'] = '';
+                $Item['CodeCity'] = '';
+                $Item['District'] = '';
+                if(($tblCompany = $tblSerialCompany->getServiceTblCompany())){
+                    $Item['CompanyName'] = $tblCompany->getName();
+                    $Item['CompanyExtendedName'] = $tblCompany->getExtendedName();
+                    $Item['CompanyDescription'] = $tblCompany->getDescription();
+                    if(($tblAddress = Address::useService()->getAddressByCompany($tblCompany))){
+                        $Item['Street'] = $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber();
+                        if(($tblCity = $tblAddress->getTblCity())){
+                            $Item['Code'] = $tblCity->getCode();
+                            $Item['City'] = $tblCity->getName();
+                            $Item['CodeCity'] = $tblCity->getCode().' '.$tblCity->getName();
+                            $Item['District'] = $tblCity->getDistrict();
+                        }
+                    }
+                }
+
+                // calculate extra columns
+                // default extra columns
+                $Item['AddressSalutation'] = '';
+                $Item['AddressName'] = '';
+                $Item['FirstLetter'] = 'Sehr geehrte Damen und Herren';
+                $Item['SecondLetter'] = 'Liebe Damen und Herren';
+
+                // first column
+                if($Item['Salutation']){
+                    if($Item['Salutation'] == 'Herr'){
+                        $Item['AddressSalutation'] = 'Herrn';
+                    } elseif($Item['Salutation'] == 'Frau'){
+                        $Item['AddressSalutation'] = 'Frau';
+                    }
+                }
+                // second column
+                if($Item['FirstName'] && $Item['LastName']){
+                    $Item['AddressName'] = $Item['FirstName'].' '.$Item['LastName'];
+                }
+                // third column
+                if($Item['Salutation']){
+                    if($Item['Salutation'] == 'Herr'){
+                        $Item['FirstLetter'] = 'Sehr geehrter '.$Item['Salutation'].' '.$Item['LastName'];
+                    } elseif($Item['Salutation'] == 'Frau'){
+                        $Item['FirstLetter'] = 'Sehr geehrte '.$Item['Salutation'].' '.$Item['LastName'];
+                    }
+                }
+                // fourth column
+                if($Item['Salutation']){
+                    if($Item['Salutation'] == 'Herr'){
+                        $Item['SecondLetter'] = 'Lieber '.$Item['Salutation'].' '.$Item['LastName'];
+                    } elseif($Item['Salutation'] == 'Frau'){
+                        $Item['SecondLetter'] = 'Liebe '.$Item['Salutation'].' '.$Item['LastName'];
+                    }
+                }
+                array_push($ExportData, $Item);
+            });
+        }
+
+        if (!empty($ExportData)) {
+
+            $row = 0;
+            $column = 0;
+            $fileLocation = Storage::createFilePointer('xlsx');
+            /** @var PhpExcel $export */
+            $export = Document::getDocument($fileLocation->getFileLocation());
+
+            $export->setValue($export->getCell($column++, $row), "Adressanrede");
+            $export->setValue($export->getCell($column++, $row), "Adressname");
+            $export->setValue($export->getCell($column++, $row), "Briefanrede 1 (Sehr geehrter/geehrte)");
+            $export->setValue($export->getCell($column++, $row), "Briefanrede 2 (Lieber/Liebe)");
+
+            $export->setValue($export->getCell($column++, $row), "Anrede");
+            $export->setValue($export->getCell($column++, $row), "Titel");
+            $export->setValue($export->getCell($column++, $row), "Vorname");
+//            $export->setValue($export->getCell($column++, $row), "Zweiter Vorname");
+            $export->setValue($export->getCell($column++, $row), "Nachname");
+
+            $export->setValue($export->getCell($column++, $row), "Ortsteil");
+            $export->setValue($export->getCell($column++, $row), "Straße");
+            $export->setValue($export->getCell($column++, $row), "PLZ");
+            $export->setValue($export->getCell($column++, $row), "Ort");
+            $export->setValue($export->getCell($column++, $row), "PLZ/Ort");
+            $export->setValue($export->getCell($column++, $row), "Institution");
+            $export->setValue($export->getCell($column++, $row), "Institution Zusatz");
+            $export->setValue($export->getCell($column, $row), "Institution Beschreibung");
+
+            $row = 1;
+            /** @var TblAddressPerson $tblAddressPerson */
+            foreach ($ExportData as $Export) {
+                $column = 0;
+                // letter columns
+                $export->setValue($export->getCell($column++, $row), $Export['AddressSalutation']);
+                $export->setValue($export->getCell($column++, $row), $Export['AddressName']);
+                $export->setValue($export->getCell($column++, $row), $Export['FirstLetter']);
+                $export->setValue($export->getCell($column++, $row), $Export['SecondLetter']);
+                // person columns
+                $export->setValue($export->getCell($column++, $row), $Export['Salutation']);
+                $export->setValue($export->getCell($column++, $row), $Export['Title']);
+                $export->setValue($export->getCell($column++, $row), $Export['FirstName']);
+//                $export->setValue($export->getCell($column++, $row), $Export['SecondName']);
+                $export->setValue($export->getCell($column++, $row), $Export['LastName']);
+                // company columns
+                $export->setValue($export->getCell($column++, $row), $Export['District']);
+                $export->setValue($export->getCell($column++, $row), $Export['Street']);
+                $export->setValue($export->getCell($column++, $row), $Export['Code']);
+                $export->setValue($export->getCell($column++, $row), $Export['City']);
+                $export->setValue($export->getCell($column++, $row), $Export['CodeCity']);
+                $export->setValue($export->getCell($column++, $row), $Export['CompanyName']);
+                $export->setValue($export->getCell($column++, $row), $Export['CompanyExtendedName']);
+                $export->setValue($export->getCell($column, $row), $Export['CompanyDescription']);
 
                 $row++;
             }
@@ -1358,7 +1517,7 @@ class Service extends AbstractService
                         SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
                     }
 
-                    if ($tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
+                    if ($tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_COMPANY) {
                         if (!empty($FilterGroup)) {
                             foreach ($FilterGroup as $FieldName => $FilterList) {
                                 foreach ($FilterList as $FilterNumber => $FieldValue) {
@@ -1389,10 +1548,10 @@ class Service extends AbstractService
                                 }
                             }
                         }
-                        // update PersonList
+                        // update CompanyList
                         $Result = (new SerialLetterFilter())->getCompanyFilterResultListBySerialLetter($tblSerialLetter);
-                        $tblPersonSearchList = (new SerialLetterFilter())->getPersonListByResult($tblSerialLetter, $Result);
-                        SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
+                        $tblCompanySearchList = (new SerialLetterFilter())->getCompanyListByResult($Result);
+                        SerialLetter::useService()->updateDynamicSerialCompany($tblSerialLetter, $tblCompanySearchList);
                     }
                 }
             }
@@ -1410,6 +1569,7 @@ class Service extends AbstractService
      */
     public function updateSerialPerson(TblSerialLetter $tblSerialLetter, TblFilterCategory $tblFilterCategory)
     {
+
         if ($tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_PERSON_GROUP) {
             $Result = (new SerialLetterFilter())->getGroupFilterResultListBySerialLetter($tblSerialLetter);
             $tblPersonSearchList = (new SerialLetterFilter())->getPersonListByResult($tblSerialLetter, $Result);
@@ -1425,16 +1585,29 @@ class Service extends AbstractService
             $tblPersonSearchList = (new SerialLetterFilter())->getPersonListByResult($tblSerialLetter, $Result);
             SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
         }
-        if ($tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
-            $Result = (new SerialLetterFilter())->getCompanyFilterResultListBySerialLetter($tblSerialLetter);
-            $tblPersonSearchList = (new SerialLetterFilter())->getPersonListByResult($tblSerialLetter, $Result);
-            SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblPersonSearchList);
-        }
-        if ($tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_COMPANY) {
-            $Result = (new SerialLetterFilter())->getCompanyFilterResultListBySerialLetter($tblSerialLetter);
-            $tblCompanySearchList = (new SerialLetterFilter())->getCompanyListByResult($Result);
-            SerialLetter::useService()->updateDynamicSerialPerson($tblSerialLetter, $tblCompanySearchList);
-        }
+    }
+
+    /**
+     * @param TblSerialLetter   $tblSerialLetter
+     */
+    public function updateSerialCompany(TblSerialLetter $tblSerialLetter)
+    {
+
+        $Result = (new SerialLetterFilter())->getCompanyFilterResultListBySerialLetter($tblSerialLetter);
+        $tblCompanySearchList = (new SerialLetterFilter())->getCompanyListByResult($Result);
+        SerialLetter::useService()->updateDynamicSerialCompany($tblSerialLetter, $tblCompanySearchList);
+    }
+
+    /**
+     * @param TblSerialCompany $tblSerialCompany
+     * @param                  $IsIgnore
+     *
+     * @return bool
+     */
+    public function changeSerialCompanyStatus(TblSerialCompany $tblSerialCompany, $IsIgnore)
+    {
+
+        return ( new Data($this->getBinding()) )->changeSerialCompanyStatus($tblSerialCompany, $IsIgnore);
     }
 
     /**
@@ -1481,20 +1654,57 @@ class Service extends AbstractService
 
         if (!empty($tblCompanySearchList)) {
 
-//            // existing SerialPersonList
-//            $tblSerialPersonList = SerialLetter::useService()->getSerialPersonBySerialLetter($tblSerialLetter);
-//            $tblPersonList = array();
-//            if ($tblSerialPersonList) {
-//                foreach ($tblSerialPersonList as $tblSerialPerson) {
-//                    $tblPersonList[] = $tblSerialPerson->getServiceTblPerson();
-//                }
-//            }
-//            // remove Person on SerialPerson without matching Filter
-//            $PersonRemoveList = array_diff($tblPersonList, $tblPersonSearchList);
-//            $PersonRemoveList = array_filter($PersonRemoveList);
-//            if (!empty($PersonRemoveList)) {
-//                $this->removeSerialPersonBulk($tblSerialLetter, $PersonRemoveList);
-//            }
+            // existing SerialPersonList
+            $tblCompanyFilterList = array();
+
+            foreach ($tblCompanySearchList as $CompanyId => $PersonList) {
+                $tblCompany = Company::useService()->getCompanyById($CompanyId);
+                $tblSerialCompanyList = array();
+                if($tblCompany && !empty($PersonList)){
+                    foreach($PersonList as $PersonId){
+                        if($PersonId){
+                            if(($tblPerson = Person::useService()->getPersonById($PersonId))){
+                                // with person
+                                $tblSerialCompanyList[] = SerialLetter::useService()->getSerialCompanyBySerialLetterAndCompanyAndPerson(
+                                    $tblSerialLetter, $tblCompany, $tblPerson);
+                            }
+                        } else {
+                            // without person
+                            $tblSerialCompany = SerialLetter::useService()->getSerialCompanyBySerialLetterAndCompanyAndPerson(
+                                $tblSerialLetter, $tblCompany, null);
+                        }
+                    }
+                }
+
+                // add company with person (more than on is possible)
+                if(!empty($tblSerialCompanyList)) {
+                    $tblSerialCompanyList = array_filter($tblSerialCompanyList);
+                    /** @var TblSerialCompany $tblSerialCompany */
+                    array_walk($tblSerialCompanyList, function(TblSerialCompany $tblSerialCompany) use(&$tblCompanyFilterList) {
+                        $tblCompanyFilterList[$tblSerialCompany->getId()] = $tblSerialCompany->getId();
+                    });
+                }
+                // add company without person
+                if(isset($tblSerialCompany) && $tblSerialCompany){
+                    $tblCompanyFilterList[$tblSerialCompany->getId()] = $tblSerialCompany->getServiceTblPerson();
+                }
+            }
+
+            //find Entry that miss in filter
+            $SerialCompanyDivList = array();
+            if (($tblSerialCompanyList = SerialLetter::useService()->getSerialCompanyBySerialLetter($tblSerialLetter))) {
+
+                $tblSerialCompanyIdList = array();
+                array_walk($tblSerialCompanyList, function(TblSerialCompany $tblSerialCompany) use (&$tblSerialCompanyIdList){
+                    $tblSerialCompanyIdList[$tblSerialCompany->getId()] = $tblSerialCompany->getId();
+                });
+                $SerialCompanyDivList = array_diff($tblSerialCompanyIdList, $tblCompanyFilterList);
+            }
+
+            // remove Person on SerialPerson without matching Filter
+            if (!empty($SerialCompanyDivList)) {
+                $this->removeSerialCompanyBulk($SerialCompanyDivList);
+            }
             // add Company and Person with matching Filter that not exist on SerialCompany
 
 //            $PersonAddList = array_diff($tblPersonSearchList, $tblPersonList);
@@ -1537,6 +1747,19 @@ class Service extends AbstractService
     {
 
         return ( new Data($this->getBinding()) )->removeSerialPersonBulk($tblSerialLetter, $tblPersonList);
+    }
+
+    /**
+     * @param array $SerialCompanyDivList
+     *
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     */
+    public function removeSerialCompanyBulk($SerialCompanyDivList)
+    {
+
+        return ( new Data($this->getBinding()) )->removeSerialCompanyBulk($SerialCompanyDivList);
     }
 
     /**

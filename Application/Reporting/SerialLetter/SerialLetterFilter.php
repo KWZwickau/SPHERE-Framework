@@ -585,58 +585,11 @@ class SerialLetterFilter
                     $IsSave = true;
                 }
                 if($IsSave){
-                    $DataList[$DataCompany['TblCompany_Id']][] = ($DataPerson['TblPerson_Id'] ? $DataPerson['TblPerson_Id'] : '');
+                    $DataList[$DataCompany['TblCompany_Id']][] = ($DataPerson['TblPerson_Id'] ? $DataPerson['TblPerson_Id'] : null);
                 }
             }
         }
         return ( !empty($DataList) ? $DataList : false );
-    }
-
-    /**
-     * @param TblSerialLetter|null $tblSerialLetter
-     * @param                      $Result
-     *
-     * @return array|bool TblPerson[]
-     */
-    public function getCompanyPersonListByResult(TblSerialLetter $tblSerialLetter = null, $Result)
-    {
-        $tblCategory = false;
-        if ($tblSerialLetter !== null) {
-            $tblCategory = $tblSerialLetter->getFilterCategory();
-        }
-
-        $PersonList = array();
-        $PersonIdList = array();
-        if ($Result && !empty($Result)) {
-            if (!$tblCategory
-                || $tblCategory->getName() == TblFilterCategory::IDENTIFIER_PERSON_GROUP
-                || $tblCategory->getName() == TblFilterCategory::IDENTIFIER_PERSON_GROUP_STUDENT
-                || $tblCategory->getName() == TblFilterCategory::IDENTIFIER_PERSON_GROUP_PROSPECT
-            ) {
-                /** @var AbstractView[]|ViewPerson[] $Row */
-                foreach ($Result as $Index => $Row) {
-                    $DataPerson = $Row[1]->__toArray();
-                    if (!array_key_exists($DataPerson['TblPerson_Id'], $PersonIdList)) {
-                        $PersonIdList[$DataPerson['TblPerson_Id']] = $DataPerson['TblPerson_Id'];
-                    }
-                }
-            } elseif ($tblCategory->getName() == TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
-                /** @var AbstractView[]|ViewPerson[] $Row */
-                foreach ($Result as $Index => $Row) {
-                    $DataPerson = $Row[3]->__toArray();
-                    if (!array_key_exists($DataPerson['TblPerson_Id'], $PersonIdList)) {
-                        $PersonIdList[$DataPerson['TblPerson_Id']] = $DataPerson['TblPerson_Id'];
-                    }
-                }
-            }
-
-            if (!empty($PersonIdList)) {
-                foreach ($PersonIdList as $PersonId) {
-                    $PersonList[] = Person::useService()->getPersonById($PersonId);
-                }
-            }
-        }
-        return ( !empty($PersonList) ? $PersonList : false );
     }
 
     /**
@@ -780,36 +733,38 @@ class SerialLetterFilter
                 $tblCompany = Company::useService()->getCompanyById($DataCompany['TblCompany_Id']);
                 $tblPerson = Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
                 /** @noinspection PhpUndefinedFieldInspection */
-                $DataPerson['Name'] = false;
-                $DataPerson['Salutation'] = new Small(new Muted('-NA-'));
+                $Data['Name'] = false;
+                $Data['Salutation'] = new Small(new Muted('-NA-'));
 
                 if ($tblPerson) {
-                    $DataPerson['Name'] = $tblPerson->getLastFirstName();
-                    $DataPerson['Salutation'] = ( $tblPerson->getSalutation() !== ''
+                    $Data['PersonId'] = $DataPerson['TblPerson_Id'];
+                    $Data['Name'] = $tblPerson->getLastFirstName();
+                    $Data['Salutation'] = ($tblPerson->getSalutation() !== ''
                         ? $tblPerson->getSalutation()
-                        : new Small(new Muted('-NA-')) );
-                    $tblAddress = Address::useService()->getAddressByCompany($tblCompany);
+                        : new Small(new Muted('-NA-')));
                 }
                 /** @noinspection PhpUndefinedFieldInspection */
-                $DataPerson['Address'] = (string)new WarningMessage('Keine Adresse hinterlegt!');
-                if (isset($tblAddress) && $tblAddress && $DataPerson['Name']) {
-                    /** @noinspection PhpUndefinedFieldInspection */
-                    $DataPerson['Address'] = $tblAddress->getGuiString();
+                $Data['Address'] = (string)new WarningMessage('Keine Adresse hinterlegt!');
+                if ($tblCompany) {
+                    $Data['CompanyId'] = $DataCompany['TblCompany_Id'];
+                    if (($tblAddress = Address::useService()->getAddressByCompany($tblCompany))) {
+                        $Data['Address'] = $tblAddress->getGuiString();
+                    }
                 }
 
-                $DataPerson['CompanyName'] = '';
-                $DataPerson['CompanyExtendedName'] = '';
-                $DataPerson['Type'] = '';
+                $Data['CompanyName'] = '';
+                $Data['CompanyExtendedName'] = '';
+                $Data['Type'] = '';
                 if ($tblCompany) {
-                    $DataPerson['CompanyName'] = $tblCompany->getName();
-                    $DataPerson['CompanyExtendedName'] = $tblCompany->getExtendedName();
+                    $Data['CompanyName'] = $tblCompany->getName();
+                    $Data['CompanyExtendedName'] = $tblCompany->getExtendedName();
                     $tblRelationshipList = Relationship::useService()->getCompanyRelationshipAllByCompany($tblCompany);
                     if ($tblRelationshipList) {
                         /** @var \SPHERE\Application\People\Relationship\Service\Entity\TblToCompany $tblRelationship */
                         foreach ($tblRelationshipList as $tblRelationship) {
                             if ($tblRelationship->getServiceTblPerson()->getId() === $tblPerson->getId()) {
                                 if ($tblRelationship->getTblType()) {
-                                    $DataPerson['Type'] = $tblRelationship->getTblType()->getName();
+                                    $Data['Type'] = $tblRelationship->getTblType()->getName();
                                 }
                             }
                         }
@@ -817,10 +772,13 @@ class SerialLetterFilter
                 }
 
 
-                // ignore duplicated Person
-                if ($DataPerson['Name']) {
-                    if (!array_key_exists($DataPerson['TblPerson_Id'], $TableSearch)) {
-                        $TableSearch[$DataPerson['TblPerson_Id']] = $DataPerson;
+                // ignore duplicated Entry
+                if ($DataCompany['TblCompany_Id']) {
+                    $separate = '9999';
+                    $KeyString = $DataCompany['TblCompany_Id'].$separate.$DataPerson['TblPerson_Id'];
+
+                    if (!isset($TableSearch[$KeyString])) {
+                        $TableSearch[$KeyString] = $Data;
                     }
                 }
             }

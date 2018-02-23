@@ -148,6 +148,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
             $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
         }
+        if (!$this->getConnection()->hasColumn('tblSerialCompany', 'isIgnore')) {
+            $Table->addColumn('isIgnore', 'boolean');
+        }
         $this->getConnection()->addForeignKey($Table, $tblSerialLetter, true);
 
         return $Table;

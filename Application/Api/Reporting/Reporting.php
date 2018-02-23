@@ -5,6 +5,7 @@ use SPHERE\Application\Api\Reporting\CheckList\CheckList;
 use SPHERE\Application\Api\Reporting\Custom\Custom;
 use SPHERE\Application\Api\Reporting\Individual\ApiIndividual;
 use SPHERE\Application\Api\Reporting\DeclarationBasis\DeclarationBasis;
+use SPHERE\Application\Api\Reporting\SerialLetter\ApiSerialLetter;
 use SPHERE\Application\Api\Reporting\SerialLetter\SerialLetter;
 use SPHERE\Application\Api\Reporting\Standard\Standard;
 use SPHERE\Application\IApplicationInterface;
@@ -23,6 +24,7 @@ class Reporting implements IApplicationInterface
         Custom::registerModule();
         Standard::registerModule();
         CheckList::registerModule();
+        ApiSerialLetter::registerApi();
         SerialLetter::registerModule();
         ApiIndividual::registerApi();
         ApiIndividual::registerModule();

@@ -24,6 +24,7 @@ class TblSerialCompany extends Element
     const ATTR_TBL_SERIAL_LETTER = 'tblSerialLetter';
     const ATTR_SERVICE_TBL_COMPANY = 'serviceTblCompany';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const ATTR_IS_IGNORE = 'isIgnore';
 
 
     /**
@@ -39,6 +40,10 @@ class TblSerialCompany extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblPerson;
+    /**
+     * @Column(type="boolean")
+     */
+    protected $isIgnore;
 
 
     /**
@@ -105,5 +110,21 @@ class TblSerialCompany extends Element
     {
 
         $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
+    }
+
+    /**
+     * @return bool
+     */
+    public function getisIgnore()
+    {
+        return $this->isIgnore;
+    }
+
+    /**
+     * @param bool $isIgnore
+     */
+    public function setIsIgnore($isIgnore)
+    {
+        $this->isIgnore = $isIgnore;
     }
 }

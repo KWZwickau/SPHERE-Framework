@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Reporting\SerialLetter;
 
+use SPHERE\Application\Api\Reporting\SerialLetter\ApiSerialLetter;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToCompany;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
@@ -21,6 +22,7 @@ use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblAddressPerson;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblFilterCategory;
+use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialCompany;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialLetter;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -51,6 +53,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\Icon\Repository\Setup;
+use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
 use SPHERE\Common\Frontend\Icon\Repository\View;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -72,10 +75,13 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Center;
+use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -122,7 +128,6 @@ class Frontend extends Extension implements IFrontendInterface
 //        $Result = (new SerialLetterFilter())->getCompanyFilterResultListBySerialLetter($tblSerialLetter);
 //        $tblCompanySearchList = (new SerialLetterFilter())->getCompanyListByResult($Result);
 //        SerialLetter::useService()->updateDynamicSerialCompany($tblSerialLetter, $tblCompanySearchList);
-//        Debugger::screenDump($tblCompanySearchList);
 //        return $Stage;
 
         // create Tabs
@@ -148,36 +153,42 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Category'] = ( $tblSerialLetter->getFilterCategory()
                     ? new Info('Serienbrief dynamisch ').new Bold($tblSerialLetter->getFilterCategory()->getName())
                     : new Info('Serienbrief statisch') );
-                $Item['Option'] =
-                    ( $tblFilterCategory
-                        ? ( new Standard('', '/Reporting/SerialLetter/Edit', new Edit(),
-                            array('Id' => $tblSerialLetter->getId(), 'Control' => true), 'Bearbeiten') )
-                        : ( new Standard('', '/Reporting/SerialLetter/Edit', new Edit(),
-                            array('Id' => $tblSerialLetter->getId()), 'Bearbeiten') )
-                    )
-                    .( new Standard('', '/Reporting/SerialLetter/Destroy', new Remove(),
-                        array('Id' => $tblSerialLetter->getId()), 'Löschen') )
-                    .
-                    ( $tblFilterCategory
-                        ? ''
-                        : new Standard('', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
-                            array('Id' => $tblSerialLetter->getId()), 'Personen auswählen')
-                    )
-                    .
-                    ( $tblFilterCategory
-                        ? ( new Standard('', '/Reporting/SerialLetter/Address', new Setup(),
-                            array('Id' => $tblSerialLetter->getId(), 'Control' => true), 'Addressen auswählen') )
-                        : ( new Standard('', '/Reporting/SerialLetter/Address', new Setup(),
-                            array('Id' => $tblSerialLetter->getId()), 'Addressen auswählen') )
-                    )
-                    .( $tblFilterCategory
-                        ? ( new Standard('', '/Reporting/SerialLetter/Export', new View(),
-                            array('Id' => $tblSerialLetter->getId(), 'Control' => true),
-                            'Addressliste für Serienbriefe anzeigen und herunterladen') )
-                        : ( new Standard('', '/Reporting/SerialLetter/Export', new View(),
-                            array('Id' => $tblSerialLetter->getId()),
-                            'Addressliste für Serienbriefe anzeigen und herunterladen') )
-                    );
+                if($tblFilterCategory && $tblFilterCategory->getName() == TblFilterCategory::IDENTIFIER_COMPANY_GROUP){
+                    $Item['Option'] = ( new Standard('', '/Reporting/SerialLetter/Destroy', new Remove(),
+                        array('Id' => $tblSerialLetter->getId()), 'Löschen') );
+                } else {
+                    $Item['Option'] =
+                        ( $tblFilterCategory
+                            ? ( new Standard('', '/Reporting/SerialLetter/Edit', new Edit(),
+                                array('Id' => $tblSerialLetter->getId(), 'Control' => true), 'Bearbeiten') )
+                            : ( new Standard('', '/Reporting/SerialLetter/Edit', new Edit(),
+                                array('Id' => $tblSerialLetter->getId()), 'Bearbeiten') )
+                        )
+                        .( new Standard('', '/Reporting/SerialLetter/Destroy', new Remove(),
+                            array('Id' => $tblSerialLetter->getId()), 'Löschen') )
+                        .
+                        ( $tblFilterCategory
+                            ? ''
+                            : new Standard('', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
+                                array('Id' => $tblSerialLetter->getId()), 'Personen auswählen')
+                        )
+                        .
+                        ( $tblFilterCategory
+                            ? ( new Standard('', '/Reporting/SerialLetter/Address', new Setup(),
+                                array('Id' => $tblSerialLetter->getId(), 'Control' => true), 'Addressen auswählen') )
+                            : ( new Standard('', '/Reporting/SerialLetter/Address', new Setup(),
+                                array('Id' => $tblSerialLetter->getId()), 'Addressen auswählen') )
+                        )
+                        .( $tblFilterCategory
+                            ? ( new Standard('', '/Reporting/SerialLetter/Export', new View(),
+                                array('Id' => $tblSerialLetter->getId(), 'Control' => true),
+                                'Addressliste für Serienbriefe anzeigen und herunterladen') )
+                            : ( new Standard('', '/Reporting/SerialLetter/Export', new View(),
+                                array('Id' => $tblSerialLetter->getId()),
+                                'Addressliste für Serienbriefe anzeigen und herunterladen') )
+                        );
+                }
+
                 array_push($TableContent, $Item);
             });
         }
@@ -361,7 +372,11 @@ class Frontend extends Extension implements IFrontendInterface
         $tblFilterCategory = $tblSerialLetter->getFilterCategory();
         if ($tblFilterCategory) {
             if ($Control) {
-                SerialLetter::useService()->updateSerialPerson($tblSerialLetter, $tblFilterCategory);
+                if($tblFilterCategory->getName() == TblFilterCategory::IDENTIFIER_COMPANY){
+                    SerialLetter::useService()->updateSerialCompany($tblSerialLetter);
+                } else {
+                    SerialLetter::useService()->updateSerialPerson($tblSerialLetter, $tblFilterCategory);
+                }
             }
         }
         if ($TabActive === null) {
@@ -374,9 +389,6 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 if ($tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_PERSON_GROUP_PROSPECT) {
                     $TabActive = 'PROSPECT';
-                }
-                if ($tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
-                    $TabActive = 'COMPANY_OLD';
                 }
                 if ($tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_COMPANY) {
                     $TabActive = 'COMPANY';
@@ -667,73 +679,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                         : '' );
                 break;
-            case 'COMPANY_OLD':
-                $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName(TblFilterCategory::IDENTIFIER_COMPANY_GROUP);
-
-                if ($tblFilterCategory) {
-                    $CategoryName = $tblFilterCategory->getName();
-                } else {
-                    $CategoryName = '';
-                }
-                if (!$IsPost) {
-                    $Result = (new SerialLetterFilter())->getCompanyFilterResultListBySerialLetter($tblSerialLetter, null, null, null, $Timeout);
-                    if ($Result) {
-                        $SearchTable = (new SerialLetterFilter())->getCompanyTableByResult($Result);
-                    }
-                }
-
-                $FormSerialLetterDynamic = (new SerialLetterForm())->formFilterCompany($tblSerialLetter);
-                $FormSerialLetterDynamic
-                    ->appendFormButton(new Primary('Speichern', new Save()))
-                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
-
-                $MetaTable = new Layout(
-                        new LayoutGroup(
-                            new LayoutRow(
-                                new LayoutColumn(
-                                    new Panel(new Edit().' Serienbrief '.new Bold($CategoryName)
-                                        , array(new Well(SerialLetter::useService()->updateSerialLetter($FormSerialLetterDynamic, $tblSerialLetter
-                                            , $SerialLetter, $FilterGroup, null, null, null, $FilterCompany, $FilterRelationship)))
-                                        , Panel::PANEL_TYPE_INFO)
-                                )
-                            )
-                        )
-                    )
-                    .( !$IsPost
-                        ? new Layout(
-                            new LayoutGroup(array(
-                                new LayoutRow(
-                                    new LayoutColumn(
-                                        ( $Timeout === true
-                                            ? new WarningMessage('Die Tabelle enthält nur einen Teil der Suchergebnisse!')
-                                            : ''
-                                        )
-                                    )
-                                ),
-                                new LayoutRow(
-                                    new LayoutColumn(
-                                        new TableData($SearchTable, new \SPHERE\Common\Frontend\Table\Repository\Title('Ansicht der gespeicherten Filterung'),
-                                            array('Salutation'          => 'Anrede',
-                                                  'Name'                => 'Name',
-                                                  'Address'             => 'Adresse',
-                                                  'CompanyName'         => 'Name der Institution',
-                                                  'CompanyExtendedName' => 'Zusatz',
-                                                  'Type'                => 'Typ'
-                                            ),
-                                            array(
-                                                'order'      => array(array(1, 'asc')),
-                                                'columnDefs' => array(
-                                                    array('orderable' => false, 'width' => '3%', 'targets' => 0)
-                                                )
-                                            )
-                                        )
-                                    )
-                                )
-                            ))
-                        )
-                        : '' );
-                break;
-                case 'COMPANY':
+            case 'COMPANY':
                 $tblFilterCategory = SerialLetter::useService()->getFilterCategoryByName(TblFilterCategory::IDENTIFIER_COMPANY);
 
                 if ($tblFilterCategory) {
@@ -1611,22 +1557,209 @@ class Frontend extends Extension implements IFrontendInterface
         $Id = null,
         $Control = false
     ) {
-        $Stage = new Stage('Adresslisten für Serienbriefe', 'Person mit Adressen auswählen');
+        $Stage = new Stage('Adresslisten für Serienbriefe', 'Adressen auswählen');
         $Stage->addButton(new Standard('Zurück', '/Reporting/SerialLetter', new ChevronLeft()));
         $tblSerialLetter = SerialLetter::useService()->getSerialLetterById($Id);
         if (!$tblSerialLetter) {
             return $Stage.new Danger('Adressliste für Serienbrief nicht gefunden', new Exclamation());
         }
 
-        $tblFilterCategory = $tblSerialLetter->getFilterCategory();
-
         $isCompany = false;
-        if ($tblSerialLetter->getFilterCategory()
-            && $tblSerialLetter->getFilterCategory()->getName() === TblFilterCategory::IDENTIFIER_COMPANY_GROUP
+        if ($tblSerialLetter && $tblSerialLetter->getFilterCategory()
+            && $tblSerialLetter->getFilterCategory()->getName() === TblFilterCategory::IDENTIFIER_COMPANY
         ) {
             $isCompany = true;
         }
 
+        if($isCompany){
+            $tblCompanyList = SerialLetter::useService()->getSerialCompanyBySerialLetter($tblSerialLetter);
+            if (!$tblCompanyList) {
+                return $Stage.new Danger('Es sind keine Institutionen dem Serienbrief zugeordnet', new Exclamation());
+            }
+            return $this->frontendCompanyAddressContent($Id, $Control);
+        } else {
+            $tblPersonList = SerialLetter::useService()->getPersonAllBySerialLetter($tblSerialLetter);
+            if (!$tblPersonList) {
+                return $Stage.new Danger('Es sind keine Personen dem Serienbrief zugeordnet', new Exclamation());
+            }
+            return $this->frontendPersonAddressContent($Id, $Control);
+        }
+    }
+
+    /**
+     * @param null $Id
+     * @param bool $Control
+     *
+     * @return Stage
+     */
+    private function frontendCompanyAddressContent($Id = null, $Control = false)
+    {
+
+        $Stage = new Stage('Adresslisten für Serienbriefe', 'Person mit Adressen auswählen');
+        $Stage->addButton(new Standard('Zurück', '/Reporting/SerialLetter', new ChevronLeft()));
+        $tblSerialLetter = SerialLetter::useService()->getSerialLetterById($Id);
+        if (!$tblSerialLetter) {
+            return $Stage->setContent(new Danger('Adressliste für Serienbrief nicht gefunden', new Exclamation()));
+        }
+
+        $tblFilterCategory = $tblSerialLetter->getFilterCategory();
+        // update SerialPerson
+        if ($tblFilterCategory) {
+            if ($Control) {
+                SerialLetter::useService()->updateSerialCompany($tblSerialLetter);
+            }
+        }
+
+        $Stage->addButton(new Standard('Bearbeiten', '/Reporting/SerialLetter/Edit', new Edit(),
+            array('Id' => $tblSerialLetter->getId()), 'Aktuelle Filterung anzeigen'));
+        if (!$tblFilterCategory) {
+            $Stage->addButton(new Standard('Personen Auswahl', '/Reporting/SerialLetter/Person/Select', new PersonGroup(),
+                array('Id' => $tblSerialLetter->getId()), 'Personen auswählen'));
+        }
+        $Stage->addButton(new Standard(new Bold(new Info('Adressen Auswahl')), '/Reporting/SerialLetter/Address', new Setup(),
+            array('Id' => $tblSerialLetter->getId()), 'Adressen auswählen'));
+        $Stage->addButton(new Standard('Addressliste', '/Reporting/SerialLetter/Export', new View(),
+            array('Id' => $tblSerialLetter->getId()),
+            'Addressliste für Serienbriefe anzeigen und herunterladen'));
+
+        $TableContent = array();
+        $tblSerialCompanyList = SerialLetter::useService()->getSerialCompanyBySerialLetter($tblSerialLetter);
+        array_walk($tblSerialCompanyList, function (TblSerialCompany $tblSerialCompany) use (&$TableContent, $tblSerialLetter, $tblFilterCategory) {
+
+
+            $StatusDisplay = ($tblSerialCompany->getisIgnore()
+                ? new Center(new DangerText(new ToolTip(new Disable(), 'Wird nicht Exportiert')))
+                : new Center(new SuccessText(new ToolTip(new SuccessIcon(), 'Wird Exportiert'))));
+            $Item['IsIgnore'] = ApiSerialLetter::receiverCompanyStatus($StatusDisplay, $tblSerialCompany->getId().'Display');
+            // default value Company
+            $Item['CompanyName'] = '';
+            $Item['CompanyRelationship'] = '';
+            $Item['Address'] = '';
+            // default value Person
+            $Item['Name'] = '';
+            $Item['Salutation'] = '';
+
+            $tblCompany = $tblSerialCompany->getServiceTblCompany();
+            $tblAddress = false;
+            if($tblCompany){
+                $Item['CompanyName'] = $tblCompany->getDisplayName();
+                if(($tblAddress = Address::useService()->getAddressByCompany($tblCompany))){
+                    $Item['Address'] = $tblAddress->getGuiTwoRowString();
+                }
+            }
+
+            // show button if Address is OK
+            $Content = '';
+            if($tblAddress){
+                if($tblSerialCompany->getisIgnore()){
+                    $Content = (new Standard('', ApiSerialLetter::getEndpoint(), new SuccessIcon(), array(), 'Exportieren'))
+                        ->ajaxPipelineOnClick(ApiSerialLetter::pipelineCompanyChangeStatus($tblSerialCompany->getId()));
+                } else {
+                    $Content = (new Standard('', ApiSerialLetter::getEndpoint(), new Disable(), array(), 'Nicht Exportieren'))
+                        ->ajaxPipelineOnClick(ApiSerialLetter::pipelineCompanyChangeStatus($tblSerialCompany->getId()));
+                }
+            }
+
+            $Item['Option'] = $Receiver = ApiSerialLetter::receiverCompanyStatus($Content, $tblSerialCompany->getId());
+
+            $tblPerson = $tblSerialCompany->getServiceTblPerson();
+            if($tblPerson){
+                $Item['Salutation'] = $tblPerson->getSalutation();
+                $Item['Name'] = $tblPerson->getLastFirstName();
+//                $Item['Option'] = new Standard('', '/Reporting/SerialLetter/Address/Edit', new Edit(),
+//                    array('Id'       => $tblSerialLetter->getId(),
+//                          'PersonId' => $tblPerson->getId(),
+//                          'Route'    => '/Reporting/SerialLetter/Address'));
+            }
+
+            if($tblPerson && $tblCompany){
+                $tblCompanyRelationshipList = Relationship::useService()->getCompanyRelationshipAllByPerson($tblPerson);
+                if($tblCompanyRelationshipList){
+                    foreach($tblCompanyRelationshipList as $tblCompanyRelationship){
+                        if($tblCompanyRelationship->getServiceTblCompany()
+                            && $tblCompanyRelationship->getServiceTblCompany()->getId() == $tblCompany->getId()){
+                            $Item['CompanyRelationship'] = $tblCompanyRelationship->getTblType()->getName();
+                        }
+                    }
+                }
+            }
+
+            if (empty($Item['Address'])) {
+                $Item['Address'] = '<div class="alert alert-warning" style="Margin-Bottom:2px">Keine Adressen hinterlegt!</div>';
+//                $Item['Address'] = new WarningMessage('Keine Adressen hinterlegt!');
+                $Item['IsIgnore'] = new Center(new DangerText(new ToolTip(new Disable(), 'Wird nicht Exportiert (Keine Adresse)')));
+            }
+
+            array_push($TableContent, $Item);
+        });
+
+        $SerialLetterCount = SerialLetter::useService()->getSerialLetterCompanyCount($tblSerialLetter);
+        $PanelContent = array('Name: '.$tblSerialLetter->getName().' '.new Small(new Muted($tblSerialLetter->getDescription())));
+        $PanelFooter = new PullRight(new Label('Enthält '.$SerialLetterCount
+            .' Anschreiben', Label::LABEL_TYPE_INFO));
+
+        $TableShow =
+            new TableData($TableContent, null, array(
+                    'CompanyName'         => 'Institution',
+                    'Address'             => 'Serienbrief Adresse',
+                    'CompanyRelationship' => 'Beziehungstyp',
+                    'Salutation'          => 'Anrede',
+                    'Name'                => 'Name',
+                    'IsIgnore'            => 'Status',
+                    'Option'              => '')
+                , array(
+                    'columnDefs' => array(
+                        array('orderable' => false, 'width' => '1%', 'targets' => -1),
+                        array('orderable' => false, 'width' => '1%', 'targets' => -2),
+                        array('width' => '15%', 'targets' => 0),
+                        array('width' => '10%', 'targets' => 1)
+                    )
+                ));
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new Layout(
+                                new LayoutGroup(
+                                    new LayoutRow(array(
+                                        new LayoutColumn(array(
+                                            new Title(new Setup().' Adressen', 'Zuweisung'),
+                                            new Panel('Serienbrief', $PanelContent, Panel::PANEL_TYPE_SUCCESS, $PanelFooter)
+                                        ), 6),
+                                    ))
+                                )
+                            )
+                        ), 12),
+                        new LayoutColumn(
+                            $TableShow
+                        )
+                    ))
+                )
+            )
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param null $Id
+     * @param bool $Control
+     *
+     * @return Stage
+     */
+    private function frontendPersonAddressContent($Id = null, $Control = false)
+    {
+
+        $Stage = new Stage('Adresslisten für Serienbriefe', 'Person mit Adressen auswählen');
+        $Stage->addButton(new Standard('Zurück', '/Reporting/SerialLetter', new ChevronLeft()));
+        $tblSerialLetter = SerialLetter::useService()->getSerialLetterById($Id);
+        if (!$tblSerialLetter) {
+            return $Stage->setContent(new Danger('Adressliste für Serienbrief nicht gefunden', new Exclamation()));
+        }
+
+        $tblFilterCategory = $tblSerialLetter->getFilterCategory();
         // update SerialPerson
         if ($tblFilterCategory) {
             if ($Control) {
@@ -1646,19 +1779,17 @@ class Frontend extends Extension implements IFrontendInterface
             array('Id' => $tblSerialLetter->getId()),
             'Addressliste für Serienbriefe anzeigen und herunterladen'));
 
-        $tblPersonList = SerialLetter::useService()->getPersonAllBySerialLetter($tblSerialLetter);
-        if (!$tblPersonList) {
-            return $Stage.new Danger('Es sind keine Personen dem Serienbrief zugeordnet', new Exclamation());
-        }
+        $tblFilterCategory = $tblSerialLetter->getFilterCategory();
 
         $TableContent = array();
-        array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $Id, $tblSerialLetter, $tblFilterCategory) {
+        $tblPersonList = SerialLetter::useService()->getPersonAllBySerialLetter($tblSerialLetter);
+        array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblSerialLetter, $tblFilterCategory) {
             $Item['Name'] = $tblPerson->getLastFirstName();
             $Item['StudentNumber'] = new Small(new Muted('-NA-'));
             $Item['CompanyRelationship'] = '';
             $Item['Address'] = array();
             $Item['Option'] = new Standard('', '/Reporting/SerialLetter/Address/Edit', new Edit(),
-                array('Id'       => $Id,
+                array('Id'       => $tblSerialLetter->getId(),
                       'PersonId' => $tblPerson->getId(),
                       'Route'    => '/Reporting/SerialLetter/Address'));
             $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
@@ -1771,6 +1902,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $WarningList = array_unique($WarningList);
                     foreach ($WarningList as $Warning) {
                         $Item['Address'][] = new LayoutColumn(
+//                            '<div class="alert alert-warning" style="Margin-Bottom:2px">'.new Exclamation().' Fehlende Anrede ('.$Warning.')</div>'
                             new WarningMessage(new Exclamation().' Fehlende Anrede ('.$Warning.')')
                             , 4);
                     }
@@ -1808,13 +1940,14 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             if (empty($Item['Address'])) {
+//                $Item['Address'] = '<div class="alert alert-warning" style="Margin-Bottom:2px">Keine Adressen ausgewählt!</div>';
                 $Item['Address'] = new WarningMessage('Keine Adressen ausgewählt!');
             }
 
             array_push($TableContent, $Item);
         });
 
-        $SerialLetterCount = SerialLetter::useService()->getSerialLetterCount($tblSerialLetter, $isCompany);
+        $SerialLetterCount = SerialLetter::useService()->getSerialLetterCount($tblSerialLetter);
         $PanelContent = array('Name: '.$tblSerialLetter->getName().' '.new Small(new Muted($tblSerialLetter->getDescription())),
             'Anzahl Anschreiben: '.$SerialLetterCount,);
         $PanelFooter = new PullRight(new Label('Enthält '.( $tblPersonList === false ? 0 : count($tblPersonList) )
@@ -1850,24 +1983,7 @@ class Frontend extends Extension implements IFrontendInterface
                         array('width' => '10%', 'targets' => 1)
                     )
                 ));
-        if ($tblFilterCategory && $tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
-            $TableShow =
-                new TableData($TableContent, null, array(
-                        'Name'                => 'Name',
-                        'CompanyRelationship' => 'Beziehungstyp',
-                        'Address'             => 'Serienbrief Adresse',
-                        'Option'              => '')
-                    , array(
-                        'order'      => array(array(2, 'asc')
-                        , array(0, 'asc')
-                        ),
-                        'columnDefs' => array(
-                            array('orderable' => false, 'width' => '1%', 'targets' => -1),
-                            array('width' => '15%', 'targets' => 0),
-                            array('width' => '10%', 'targets' => 1)
-                        )
-                    ));
-        } elseif ($tblFilterCategory && $tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_PERSON_GROUP_PROSPECT) {
+        if ($tblFilterCategory && $tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_PERSON_GROUP_PROSPECT) {
             $TableShow =
                 new TableData($TableContent, null, array(
                         'Name'    => 'Name',
@@ -1963,29 +2079,6 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param null $Id
-     *
-     * @return Stage|string
-     */
-    public function frontendSetAddressByCompany($Id = null)
-    {
-
-        $Stage = new Stage('Befüllen der Adressen', 'aus Institutionen');
-        $tblSerialLetter = ( !$Id ? false : SerialLetter::useService()->getSerialLetterById($Id) );
-        if (!$tblSerialLetter) {
-            return $Stage->setContent(new WarningMessage('Kein Serienbrief ausgewählt'))
-                .new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_ERROR);
-        }
-        $Stage->addButton(new Standard('Zurück', '/Reporting/SerialLetter/Address', new ChevronLeft(), array('Id' => $Id)));
-
-        $Stage->setContent(
-            SerialLetter::useService()->createAddressPersonCompany($tblSerialLetter)
-        );
-
-        return $Stage;
-    }
-
-    /**
      * @param            $Id
      * @param bool|false $Confirm
      *
@@ -2054,7 +2147,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new Layout(new LayoutGroup(array(
                             new LayoutRow(new LayoutColumn(array(
                                 ( SerialLetter::useService()->destroyAddressPersonAllBySerialLetter($tblSerialLetter)
-                                    ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Zuweisungen für Adressen des Serienbriefs wurde gelöscht')
+                                    ? new Success(new SuccessIcon().' Die Zuweisungen für Adressen des Serienbriefs wurde gelöscht')
                                     : new Danger(new Ban().' Die Adressliste für Serienbriefe konnte nicht gelöscht werden')
                                 ),
                                 new Redirect('/Reporting/SerialLetter/Address', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblSerialLetter->getId()))
@@ -2129,11 +2222,6 @@ class Frontend extends Extension implements IFrontendInterface
                         [$tblAddressPerson->getServiceTblPerson()->getId()]
                         [$tblAddressPerson->getServiceTblToPerson($FilterCategory)->getId()]
                         ['Address'] = 1;
-
-//                        $Global->POST['Check']
-//                        [$tblAddressPerson->getServiceTblPerson()->getId()]
-//                        [$tblAddressPerson->getServiceTblToPerson()->getId()]
-//                        ['Salutation'] = $tblAddressPerson->getServiceTblSalutation() ? $tblAddressPerson->getServiceTblSalutation()->getId() : 0;
                     }
                 }
             }
@@ -2424,11 +2512,23 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Reporting/SerialLetter', new ChevronLeft()));
         if (( $tblSerialLetter = SerialLetter::useService()->getSerialLetterById($Id) )) {
             $tblFilterCategory = $tblSerialLetter->getFilterCategory();
+            $isCompany = false;
             // update SerialPerson
             if ($tblFilterCategory) {
-                if ($Control) {
-                    SerialLetter::useService()->updateSerialPerson($tblSerialLetter, $tblFilterCategory);
+                if($tblFilterCategory->getName() == TblFilterCategory::IDENTIFIER_COMPANY){
+                    $isCompany = true;
                 }
+                if ($Control) {
+                    if($tblFilterCategory->getName() == TblFilterCategory::IDENTIFIER_COMPANY){
+                        SerialLetter::useService()->updateSerialCompany($tblSerialLetter);
+                    } else {
+                        SerialLetter::useService()->updateSerialPerson($tblSerialLetter, $tblFilterCategory);
+                    }
+                }
+            }
+
+            if($isCompany){
+                return $this->frontendCompanyExport($tblSerialLetter);
             }
 
             $Stage->addButton(new Standard('Bearbeiten', '/Reporting/SerialLetter/Edit', new Edit(),
@@ -2517,12 +2617,6 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblPersonList[] = $tbSerialPerson->getServiceTblPerson();
                     }
                 }
-            }
-            $isCompany = false;
-            if ($tblSerialLetter->getFilterCategory()
-                && $tblSerialLetter->getFilterCategory()->getName() === TblFilterCategory::IDENTIFIER_COMPANY_GROUP
-            ) {
-                $isCompany = true;
             }
 
             if ($tblPersonList) {
@@ -2748,7 +2842,7 @@ class Frontend extends Extension implements IFrontendInterface
                 );
             }
 
-            $SerialLetterCount = SerialLetter::useService()->getSerialLetterCount($tblSerialLetter, $isCompany);
+            $SerialLetterCount = SerialLetter::useService()->getSerialLetterCount($tblSerialLetter);
 
             $PanelContent = array('Name: '.$tblSerialLetter->getName().' '.new Small(new Muted($tblSerialLetter->getDescription())),
                 'Anzahl Anschreiben: '.$SerialLetterCount,);
@@ -2786,6 +2880,102 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             return $Stage.new Danger('Adressliste für Serienbrief nicht gefunden', new Exclamation());
         }
+    }
+
+    public function frontendCompanyExport(TblSerialLetter $tblSerialLetter)
+    {
+        $Stage = new Stage('Adresslisten für Serienbriefe', 'Institutionen mit Adressen uns Ansprechpartner herunterladen');
+        $Stage->addButton(new Standard('Zurück', '/Reporting/SerialLetter', new ChevronLeft()));
+        $Stage->addButton(new Standard('Bearbeiten', '/Reporting/SerialLetter/Edit', new Edit(),
+            array('Id' => $tblSerialLetter->getId()), 'Aktuelle Filterung anzeigen'));
+        $Stage->addButton(new Standard('Adressen Auswahl', '/Reporting/SerialLetter/Address', new Setup(),
+            array('Id' => $tblSerialLetter->getId()), 'Adressen auswählen'));
+        $Stage->addButton(new Standard(new Bold(new Info('Addressliste')), '/Reporting/SerialLetter/Export', new View(),
+            array('Id' => $tblSerialLetter->getId()),
+            'Addressliste für Serienbriefe anzeigen und herunterladen'));
+
+        $TableContent = array();
+        $columnList = array(
+            'Number'     => 'Nr.',
+            'Company'    => 'Institution',
+            'Address'    => 'Adresse',
+            'Salutation' => 'Anrede',
+            'Person'     => 'Person'
+        );
+        $Interactive = array(
+            'order'      => array(array(0, 'asc')),
+        );
+        $tblSerialCompanyList = SerialLetter::useService()->getSerialCompanyBySerialLetter($tblSerialLetter, false);
+
+        // sort company by name
+        $Company = array();
+        foreach ($tblSerialCompanyList as $key => $row) {
+            $Company[$key] = ($row->getServiceTblCompany() ? $row->getServiceTblCompany()->getName() : '');
+        }
+        array_multisort($Company, SORT_ASC, $tblSerialCompanyList);
+
+        if($tblSerialCompanyList){
+            $count = 1;
+            array_walk($tblSerialCompanyList, function(TblSerialCompany $tblSerialCompany) use (&$TableContent, &$count, $tblSerialLetter) {
+                $Item['Number'] = $count++;
+                $Item['Person'] = '';
+                $Item['Salutation'] = '';
+                if(($tblPerson = $tblSerialCompany->getServiceTblPerson())){
+                    $Item['Salutation'] = $tblPerson->getSalutation();
+                    $Item['Person'] = $tblPerson->getLastFirstName();
+                }
+
+                $Item['Company'] = '';
+                $Item['Address'] = '';
+                if(($tblCompany = $tblSerialCompany->getServiceTblCompany())){
+                    $Item['Company'] = $tblCompany->getDisplayName();
+
+                    if(($tblAddress = Address::useService()->getAddressByCompany($tblCompany))){
+                        $Item['Address'] = $tblAddress->getGuiString();
+                    }
+                }
+
+                array_push($TableContent, $Item);
+            });
+        }
+
+
+        if (true) {
+            $Stage->addButton(
+                new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen',
+                    '/Api/Reporting/SerialLetter/Company/Download', new Download(),
+                    array('Id' => $tblSerialLetter->getId()))
+            );
+        }
+
+        $SerialLetterCount = SerialLetter::useService()->getSerialLetterCompanyCount($tblSerialLetter);
+
+        $PanelContent = array('Name: '.$tblSerialLetter->getName().' '.new Small(new Muted($tblSerialLetter->getDescription())));
+        $PanelFooter = new PullRight(new Label('Enthält '.$SerialLetterCount
+                .' Anschreiben', Label::LABEL_TYPE_INFO)
+        );
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Title(new EyeOpen().' Adressen', 'Übersicht')
+                        ),
+                        new LayoutColumn(
+                            new Panel('Serienbrief', $PanelContent, Panel::PANEL_TYPE_SUCCESS, $PanelFooter),
+                            6),
+                        new LayoutColumn(
+                            new TableData(
+                                $TableContent, null, $columnList, $Interactive
+                            )
+                        )
+                    ))
+                )
+            )
+        );
+
+        return $Stage;
     }
 
     /**
@@ -2839,7 +3029,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new Layout(new LayoutGroup(array(
                             new LayoutRow(new LayoutColumn(array(
                                 ( SerialLetter::useService()->destroySerialLetter($tblSerialLetter)
-                                    ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Adressliste für Serienbriefe wurde gelöscht')
+                                    ? new Success(new SuccessIcon().' Die Adressliste für Serienbriefe wurde gelöscht')
                                     : new Danger(new Ban().' Die Adressliste für Serienbriefe konnte nicht gelöscht werden')
                                 ),
                                 new Redirect('/Reporting/SerialLetter', Redirect::TIMEOUT_SUCCESS)
