@@ -1296,46 +1296,48 @@ class Service extends AbstractService
                             && TblFilterCategory::IDENTIFIER_COMPANY_GROUP == $tblFilterCategory->getName()
                         ) {
                             $tblToCompany = $tblAddressPerson->getServiceTblToPerson($tblFilterCategory);
-                            $tblCompany = $tblToCompany->getServiceTblCompany();
-                            $tblAddress = $tblToCompany->getTblAddress();
-                            if ($tblAddress) {
-                                if ($tblCompany) {
-                                    // getCompanyName
-                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['CompanyName'] =
-                                        $tblCompany->getName();
-                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['CompanyExtendedName'] =
-                                        $tblCompany->getExtendedName();
-                                }
+                            // remove exist row how is deleted
+                            if($tblToCompany && $tblToCompany->getServiceTblCompany()){
+                                $tblCompany = $tblToCompany->getServiceTblCompany();
+                                $tblAddress = $tblToCompany->getTblAddress();
+                                if ($tblAddress) {
+                                    if ($tblCompany) {
+                                        // getCompanyName
+                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['CompanyName'] =
+                                            $tblCompany->getName();
+                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['CompanyExtendedName'] =
+                                            $tblCompany->getExtendedName();
+                                    }
 
-                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['Salutation'] =
-                                    $tblPerson->getSalutation();
-                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['FirstName'] =
-                                    $tblPerson->getFirstName();
-                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['LastName'] =
-                                    $tblPerson->getLastName();
+                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['Salutation'] =
+                                        $tblPerson->getSalutation();
+                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['FirstName'] =
+                                        $tblPerson->getFirstName();
+                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['LastName'] =
+                                        $tblPerson->getLastName();
 
-                                // choose Person
-                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonSalutation'][] =
-                                    $tblPerson->getSalutation();
-                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonFirstName'][] =
-                                    $tblPerson->getFirstName();
-                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonLastName'][] =
-                                    $tblPerson->getLastName();
-                                // Address
-                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['StreetName'] =
-                                    $tblAddress->getStreetName();
-                                $AddressList[$tblPerson->getId().$tblAddress->getId()]['StreetNumber'] =
-                                    $tblAddress->getStreetNumber();;
-                                if (( $tblCity = $tblAddress->getTblCity() )) {
-                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['District'] =
-                                        $tblCity->getDistrict();
-                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['Code'] =
-                                        $tblCity->getCode();
-                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['City'] =
-                                        $tblCity->getName();
+                                    // choose Person
+                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonSalutation'][] =
+                                        $tblPerson->getSalutation();
+                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonFirstName'][] =
+                                        $tblPerson->getFirstName();
+                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['PersonLastName'][] =
+                                        $tblPerson->getLastName();
+                                    // Address
+                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['StreetName'] =
+                                        $tblAddress->getStreetName();
+                                    $AddressList[$tblPerson->getId().$tblAddress->getId()]['StreetNumber'] =
+                                        $tblAddress->getStreetNumber();;
+                                    if (( $tblCity = $tblAddress->getTblCity() )) {
+                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['District'] =
+                                            $tblCity->getDistrict();
+                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['Code'] =
+                                            $tblCity->getCode();
+                                        $AddressList[$tblPerson->getId().$tblAddress->getId()]['City'] =
+                                            $tblCity->getName();
+                                    }
                                 }
                             }
-
                         } else {
                             if (( $serviceTblPersonToAddress = $tblAddressPerson->getServiceTblToPerson() )) {
                                 if (( $tblToPerson = $tblAddressPerson->getServiceTblToPerson() )) {
