@@ -1,4 +1,5 @@
 <?php
+
 namespace SPHERE\Application\Api\Education\Certificate\Generator;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\DomPdf;
@@ -24,6 +25,7 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\RedirectScript;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Creator
@@ -142,7 +144,7 @@ class Creator extends Extension
     public function previewPdf($PrepareId = null, $PersonId = null, $Name = 'Zeugnis Muster', $Redirect = true)
     {
 
-        if( $Redirect ) {
+        if ($Redirect) {
             return self::displayWaitingPage('/Api/Education/Certificate/Generator/Preview', array(
                 'PrepareId' => $PrepareId,
                 'PersonId' => $PersonId,
@@ -183,6 +185,55 @@ class Creator extends Extension
                 }
             }
 
+        }
+
+        return new Stage($Name, 'Nicht gefunden');
+    }
+
+    /**
+     * @param null $LeaveStudentId
+     * @param string $Name
+     * @param bool $Redirect
+     *
+     * @return Display|Stage|string
+     */
+    public function previewLeavePdf($LeaveStudentId = null, $Name = 'Zeugnis Muster', $Redirect = true)
+    {
+
+        if ($Redirect) {
+            return self::displayWaitingPage('/Api/Education/Certificate/Generator/PreviewLeave', array(
+                'LeaveStudentId' => $LeaveStudentId,
+                'Name' => $Name,
+                'Redirect' => 0
+            ));
+        }
+
+        if (($tblLeaveStudent = Prepare::useService()->getLeaveStudentById($LeaveStudentId))) {
+            if (($tblCertificate = $tblLeaveStudent->getServiceTblCertificate())) {
+                $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
+
+                Debugger::screenDump($CertificateClass);
+                if (class_exists($CertificateClass)) {
+                    Debugger::screenDump('Hallo');
+                    $tblDivision = $tblLeaveStudent->getServiceTblDivision();
+                    /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
+                    $Certificate = new $CertificateClass($tblDivision ? $tblDivision : null);
+
+                    // get Content
+                    $Content = Prepare::useService()->getLeaveCertificateContent($tblLeaveStudent);
+                    $tblPerson = $tblLeaveStudent->getServiceTblPerson();
+                    $personId = $tblPerson ? $tblPerson->getId() : 0;
+                    if (isset($Content['P' . $personId]['Grade'])) {
+                        $Certificate->setGrade($Content['P' . $personId]['Grade']);
+                    }
+
+                    $File = $this->buildDummyFile($Certificate, $tblPerson, $Content);
+
+                    $FileName = $Name . " " . $tblPerson->getLastFirstName() . ' ' . date("Y-m-d H:i:s") . ".pdf";
+
+                    return $this->buildDownloadFile($File, $FileName);
+                }
+            }
         }
 
         return new Stage($Name, 'Nicht gefunden');
@@ -474,7 +525,7 @@ class Creator extends Extension
     public static function previewMultiPdf($PrepareId = null, $GroupId = null, $Name = 'Zeugnis', $Redirect = true)
     {
 
-        if( $Redirect ) {
+        if ($Redirect) {
             return self::displayWaitingPage('/Api/Education/Certificate/Generator/PreviewMultiPdf', array(
                 'PrepareId' => $PrepareId,
                 'GroupId' => $GroupId,
@@ -522,7 +573,8 @@ class Creator extends Extension
                                     $Certificate = new $CertificateClass($tblDivision);
 
                                     // get Content
-                                    $Content = Prepare::useService()->getCertificateContent($tblPrepareItem, $tblPerson);
+                                    $Content = Prepare::useService()->getCertificateContent($tblPrepareItem,
+                                        $tblPerson);
                                     $personId = $tblPerson->getId();
                                     if (isset($Content['P' . $personId]['Grade'])) {
                                         $Certificate->setGrade($Content['P' . $personId]['Grade']);
@@ -562,7 +614,7 @@ class Creator extends Extension
     public static function downloadMultiPdf($PrepareId = null, $Name = 'Zeugnis', $Redirect = true)
     {
 
-        if( $Redirect ) {
+        if ($Redirect) {
             return self::displayWaitingPage('/Api/Education/Certificate/Generator/DownLoadMultiPdf', array(
                 'PrepareId' => $PrepareId,
                 'Name' => $Name,
@@ -676,7 +728,8 @@ class Creator extends Extension
                     new LayoutColumn(array(
                         new Paragraph('Dieser Vorgang kann längere Zeit in Anspruch nehmen.'),
                         (new ProgressBar(0, 100, 0, 10))->setColor(
-                            ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_STRIPED
+                            ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS,
+                            ProgressBar::BAR_COLOR_STRIPED
                         ),
                         new Paragraph('Bitte warten ..'),
                         "<button type=\"button\" class=\"btn btn-default\" onclick=\"window.open('', '_self', ''); window.close();\">Abbrechen</button>"

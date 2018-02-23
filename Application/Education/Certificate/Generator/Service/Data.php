@@ -892,7 +892,33 @@ class Data extends AbstractData
             $this->destroyCertificate($tblCertificate);
         }
         // create Abgangzeugnisse
-        $this->createCertificate('Mittelschule Abgangszeugnis', '', 'MsAbg', null, false, false, false, $tblCertificateTypeLeave, $tblSchoolTypeSecondary);
+        $tblCertificate = $this->createCertificate('Mittelschule Abgangszeugnis', '', 'MsAbg', null, false, false, false, $tblCertificateTypeLeave, $tblSchoolTypeSecondary);
+        if ($tblCertificate) {
+            if (!$this->getCertificateSubjectAll($tblCertificate)) {
+                $row = 1;
+                $column = 1;
+                $this->setCertificateSubject($tblCertificate, 'DE', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'EN', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'KU', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'MU', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GE', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GK', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GEO', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'WTH', $row, $column);
+
+                $row = 2;
+                $column = 1;
+                $this->setCertificateSubject($tblCertificate, 'MA', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'BIO', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'CH', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'PH', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'SPO', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'REE', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'REK', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'ETH', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'IN', $row, $column);
+            }
+        }
         // todo gym sekI + sekII
 
 
@@ -3378,8 +3404,11 @@ class Data extends AbstractData
             if (!$tblSubject) {
                 $tblSubject = Subject::useService()->getSubjectByAcronym('REE');
             }
-        } elseif ($SubjectAcronym == 'IN' || $SubjectAcronym == 'INFO') {
-            $tblSubject = Subject::useService()->getSubjectByAcronym('IN');
+        } elseif ($SubjectAcronym == 'IN' || $SubjectAcronym == 'INFO' || $SubjectAcronym == 'INF') {
+            $tblSubject = Subject::useService()->getSubjectByAcronym('INF');
+            if (!$tblSubject) {
+                $tblSubject = Subject::useService()->getSubjectByAcronym('IN');
+            }
             if (!$tblSubject) {
                 $tblSubject = Subject::useService()->getSubjectByAcronym('INFO');
             }

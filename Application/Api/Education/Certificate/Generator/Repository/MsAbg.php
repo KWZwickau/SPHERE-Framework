@@ -36,6 +36,9 @@ class MsAbg extends Certificate
 
         $Header = $this->getHead($this->isSample(), true, 'auto', '50px');
 
+        // leere Seite
+        $pageList[] = new Page();
+
         $pageList[] = (new Page())
             ->addSlice($Header)
             ->addSlice((new Slice())
@@ -46,14 +49,6 @@ class MsAbg extends Certificate
                     ->styleMarginTop('32%')
                     ->styleTextBold()
                 )
-//                ->addSlice((new Slice())
-//                    ->addElement((new Element())
-//                        ->setContent('der Mittelschule')
-//                        ->styleTextSize('22px')
-//                        ->styleAlignCenter()
-//                        ->styleMarginTop('15px')
-//                    )
-//                )
             );
 
         $pageList[] = (new Page())
@@ -116,84 +111,18 @@ class MsAbg extends Certificate
                     )
                 )->styleMarginTop('10px')
             )
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('hat')
-                        , '5%')
-                    ->addElementColumn((new Element())
-                        ->setContent('{% if(Content.P' . $personId . '.Company.Data.Name) %}
-                                    {{ Content.P' . $personId . '.Company.Data.Name }}
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}')
-                        ->styleBorderBottom('1px')
-                        ->styleAlignCenter()
-                    )
-                    ->addElementColumn((new Element())
-                        ->styleBorderBottom('1px')
-                        ->setContent('&nbsp;')
-                        , '5%')
-                )
-                ->styleMarginTop('20px')
-            )
-            ->addSlice(
-                (new Slice())
-                    ->addElement(
-                        (new Element())
-                            ->setContent('{% if(Content.P' . $personId . '.Company.Address.Street.Name) %}
-                                    {{ Content.P' . $personId . '.Company.Address.Street.Name }}
-                                    {{ Content.P' . $personId . '.Company.Address.Street.Number }},
-                                {% else %}
-                                      &nbsp;
-                                {% endif %}')
-                            ->styleBorderBottom('1px')
-                            ->styleAlignCenter()
-                    )
-                    ->styleMarginTop('10px')
-            )
-            ->addSlice(
-                (new Slice())
-                    ->addSection(
-                        (new Section())
-                            ->addElementColumn(
-                                (new Element())
-                                    ->setContent('&nbsp;')
-                                    ->styleBorderBottom('1px')
-                                , '10%')
-                            ->addElementColumn(
-                                (new Element())
-                                    ->setContent('{% if(Content.P' . $personId . '.Company.Address.City.Name) %}
-                                            {{ Content.P' . $personId . '.Company.Address.City.Code }}
-                                            {{ Content.P' . $personId . '.Company.Address.City.Name }}
-                                        {% else %}
-                                              &nbsp;
-                                        {% endif %}')
-                                    ->styleBorderBottom('1px')
-                                    ->styleAlignCenter()
-                            )
-                            ->addElementColumn(
-                                (new Element())
-                                    ->setContent('besucht')
-                                    ->styleAlignRight()
-                                , '10%')
-                    )
-                    ->styleMarginTop('10px')
-            )
-            ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('Name und Anschrift der Schule')
-                    ->styleTextSize('9px')
-                    ->styleTextColor('#999')
-                    ->styleAlignCenter()
-                    ->styleMarginTop('5px')
-                    ->styleMarginBottom('5px')
-                )
-            )
+            ->addSliceArray(MsAbsRs::getSchoolPart($personId))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('und verlässt nach Erfüllung der Vollzeitschulpflicht gemäß § 28 Abs. 1 Nr. 1 SchulG'
-                        . new Container('die Schulart Mittelschule - Hauptschulbildungsgang.')
+                        . new Container('die Schulart Mittelschule - ')
+                        . new Container('
+                            {% if(Content.P' . $personId . '.Student.Course.Name) %}
+                                {{ Content.P' . $personId . '.Student.Course.Name }}
+                            {% else %}
+                                Hauptschulbildungsgang/Realschulbildungsgang
+                            {% endif %}
+                        ')
                     )
                     ->styleMarginTop('8px')
                     ->styleAlignCenter()
@@ -208,7 +137,6 @@ class MsAbg extends Certificate
                         , '25%')
                     ->addElementColumn((new Element())
                         ->setContent('
-                                {{ Content.P' . $personId . '.Person.Data.Name.Salutation }}
                                 {{ Content.P' . $personId . '.Person.Data.Name.First }}
                                 {{ Content.P' . $personId . '.Person.Data.Name.Last }}
                             ')
@@ -244,9 +172,6 @@ class MsAbg extends Certificate
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend')
             );
-
-        // leere Seite
-        $pageList[] = new Page();
 
         return $pageList;
     }

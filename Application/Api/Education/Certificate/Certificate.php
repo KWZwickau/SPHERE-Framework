@@ -18,6 +18,9 @@ class Certificate extends Extension implements IModuleInterface
             __NAMESPACE__ . '/Generator/Preview', __NAMESPACE__ . '\Generator\Creator::previewPdf'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Generator/PreviewLeave', __NAMESPACE__ . '\Generator\Creator::previewLeavePdf'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Generator/Download', __NAMESPACE__ . '\Generator\Creator::downloadPdf'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(

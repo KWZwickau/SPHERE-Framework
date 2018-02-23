@@ -27,6 +27,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -34,7 +35,9 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
+use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
@@ -44,6 +47,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
+use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\CommodityItem;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
@@ -4298,18 +4302,36 @@ class Frontend extends Extension implements IFrontendInterface
                 }
 
                 if ($tblCertificate) {
+                    if ($tblLeaveStudent) {
+                        $stage->addButton(new External(
+                            'Zeugnis als Muster herunterladen',
+                            '/Api/Education/Certificate/Generator/PreviewLeave',
+                            new Download(),
+                            array(
+                                'LeaveStudentId' => $tblLeaveStudent->getId(),
+                                'Name' => 'Zeugnismuster'
+                            ),
+                            'Zeugnis als Muster herunterladen'));
+                    }
+
                     // Post setzen
-                    if ($tblLeaveStudent
-                        && ($tblLeaveGradeList = Prepare::useService()->getLeaveGradeAllByLeaveStudent($tblLeaveStudent))
-                    ) {
+                    if ($tblLeaveStudent) {
                         $Global = $this->getGlobal();
-                        foreach ($tblLeaveGradeList as $tblLeaveGrade) {
-                            if (($tblSubject = $tblLeaveGrade->getServiceTblSubject())) {
-                                if (($tblGradeText = Gradebook::useService()->getGradeTextByName($tblLeaveGrade->getGrade()))) {
-                                    $Global->POST['Data']['Grades'][$tblSubject->getId()]['GradeText'] = $tblGradeText->getId();
-                                } else {
-                                    $Global->POST['Data']['Grades'][$tblSubject->getId()]['Grade'] = $tblLeaveGrade->getGrade();
+
+                        if (($tblLeaveGradeList = Prepare::useService()->getLeaveGradeAllByLeaveStudent($tblLeaveStudent))) {
+                            foreach ($tblLeaveGradeList as $tblLeaveGrade) {
+                                if (($tblSubject = $tblLeaveGrade->getServiceTblSubject())) {
+                                    if (($tblGradeText = Gradebook::useService()->getGradeTextByName($tblLeaveGrade->getGrade()))) {
+                                        $Global->POST['Data']['Grades'][$tblSubject->getId()]['GradeText'] = $tblGradeText->getId();
+                                    } else {
+                                        $Global->POST['Data']['Grades'][$tblSubject->getId()]['Grade'] = $tblLeaveGrade->getGrade();
+                                    }
                                 }
+                            }
+                        }
+                        if (($tblLeaveInformationList = Prepare::useService()->getLeaveInformationAllByLeaveStudent($tblLeaveStudent))) {
+                            foreach ($tblLeaveInformationList as $tblLeaveInformation) {
+                                $Global->POST['Data']['InformationList'][$tblLeaveInformation->getField()] = $tblLeaveInformation->getValue();
                             }
                         }
 
@@ -4424,7 +4446,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $gradeText = '';
                                 }
 
-                                $subjectData[] = array(
+                                $subjectData[$tblSubjectItem->getAcronym()] = array(
                                     'SubjectName' => $tblSubjectItem->getName(),
                                     'GradeList' => implode(' | ', $gradeList),
                                     'Average' => $average,
@@ -4486,6 +4508,15 @@ class Frontend extends Extension implements IFrontendInterface
             ));
 
             if ($tblCertificate) {
+                // DivisionTeacher
+                $divisionTeacherList = array();
+                if (($tblPersonList = Division::useService()->getTeacherAllByDivision($tblDivision))) {
+                    foreach ($tblPersonList as $tblPersonTeacher) {
+                        $divisionTeacherList[$tblPersonTeacher->getId()] = $tblPersonTeacher->getFullName();
+                    }
+                }
+
+                ksort($subjectData);
                 $subjectTable = new TableData(
                     $subjectData,
                     null,
@@ -4499,11 +4530,57 @@ class Frontend extends Extension implements IFrontendInterface
                     null
                 );
 
-                $form = new Form(new FormGroup(new FormRow(new FormColumn($subjectTable))));
+                $form = new Form(new FormGroup(array(
+                    new FormRow(new FormColumn(
+                        $subjectTable
+                    )),
+                    new FormRow(new FormColumn(
+                        new Panel(
+                            'Sonstige Informationen',
+                            array(
+                                new DatePicker('Data[InformationList][CertificateDate]', '', 'Zeugnisdatum', new Calendar()),
+                                new TextArea('Data[InformationList][Remark]', '', 'Bemerkungen')
+                            ),
+                            Panel::PANEL_TYPE_INFO
+                        )
+                    )),
+                    new FormRow(array(
+                        new FormColumn(
+                            new Panel(
+                                'Unterzeichner - Schulleiter',
+                                array(
+                                    new TextField('Data[InformationList][HeadmasterName]', '', 'Name des/der Schulleiters/in'),
+                                    new Panel(
+                                        new Small(new Bold('Geschlecht des/der Schulleiters/in')),
+                                        array(
+                                            (new RadioBox('Data[InformationList][HeadmasterGender]', 'Männlich',
+                                                ($tblCommonGender = Common::useService()->getCommonGenderByName('Männlich'))
+                                                    ? $tblCommonGender->getId() : 0)),
+                                            (new RadioBox('Data[InformationList][HeadmasterGender]', 'Weiblich',
+                                                ($tblCommonGender = Common::useService()->getCommonGenderByName('Weiblich'))
+                                                    ? $tblCommonGender->getId() : 0))
+                                        ),
+                                        Panel::PANEL_TYPE_DEFAULT
+                                    )
+                                ),
+                                Panel::PANEL_TYPE_INFO
+                            )
+                        , 6),
+                        new FormColumn(
+                            new Panel(
+                                'Unterzeichner - Klassenlehrer',
+                                new SelectBox('Data[InformationList][DivisionTeacher]', 'Klassenlehrer(in):', $divisionTeacherList),
+                                Panel::PANEL_TYPE_INFO
+                            )
+                        , 6)
+                    )),
+                )));
                 $form->appendFormButton(new Primary('Speichern', new Save()));
 
                 $layoutGroups[] = new LayoutGroup(new LayoutRow(new LayoutColumn(
-                    Prepare::useService()->updateLeaveContent($form, $tblPerson, $tblDivision, $tblCertificate, $Data)
+                    new Well(
+                        Prepare::useService()->updateLeaveContent($form, $tblPerson, $tblDivision, $tblCertificate, $Data)
+                    )
                 )));
             }
 
