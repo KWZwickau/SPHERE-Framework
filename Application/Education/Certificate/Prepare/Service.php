@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Education\Certificate\Prepare;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
+use SPHERE\Application\Api\Education\Certificate\Generator\Repository\GymAbgSekI;
 use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
@@ -1284,10 +1285,19 @@ class Service extends AbstractService
                 }
             }
 
+            // Gleichgestellter Schulabschluss - nur GymAbgSekI
+            if (($tblLeaveInformationEqualGraduation = $this->getLeaveInformationBy($tblLeaveStudent, 'EqualGraduation'))) {
+                if ($tblLeaveInformationEqualGraduation->getValue() == GymAbgSekI::COURSE_RS) {
+                    $Content['P' . $personId]['Input']['EqualGraduation']['RS'] = true;
+                } elseif ($tblLeaveInformationEqualGraduation->getValue() == GymAbgSekI::COURSE_HS) {
+                    $Content['P' . $personId]['Input']['EqualGraduation']['HS'] = true;
+                }
+            }
+
             // Bemerkungen
             $remark = '---';
             if (($tblLeaveInformationRemark = $this->getLeaveInformationBy($tblLeaveStudent, 'Remark'))) {
-                $remark = $tblLeaveInformationRemark->getValue();
+                $remark = $tblLeaveInformationRemark->getValue() ? $tblLeaveInformationRemark->getValue() : $remark;
             }
             $Content['P' . $personId]['Input']['Remark'] = $remark;
 

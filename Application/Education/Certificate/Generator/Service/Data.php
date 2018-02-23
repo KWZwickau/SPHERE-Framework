@@ -892,7 +892,8 @@ class Data extends AbstractData
             $this->destroyCertificate($tblCertificate);
         }
         // create Abgangzeugnisse
-        $tblCertificate = $this->createCertificate('Mittelschule Abgangszeugnis', '', 'MsAbg', null, false, false, false, $tblCertificateTypeLeave, $tblSchoolTypeSecondary);
+        $tblCertificate = $this->createCertificate('Mittelschule Abgangszeugnis', '', 'MsAbg',
+            null, false, false, false, $tblCertificateTypeLeave, $tblSchoolTypeSecondary);
         if ($tblCertificate) {
             if (!$this->getCertificateSubjectAll($tblCertificate)) {
                 $row = 1;
@@ -919,7 +920,36 @@ class Data extends AbstractData
                 $this->setCertificateSubject($tblCertificate, 'IN', $row, $column);
             }
         }
-        // todo gym sekI + sekII
+        $tblCertificate = $this->createCertificate('Gymnasium Abgangszeugnis', 'Sekundarstufe I', 'GymAbgSekI',
+            null, false, false, false, $tblCertificateTypeLeave, $tblSchoolTypeGym);
+        if ($tblCertificate) {
+            if (!$this->getCertificateSubjectAll($tblCertificate)) {
+                $row = 1;
+                $column = 1;
+                $this->setCertificateSubject($tblCertificate, 'DE', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'EN', $row, $column++);
+                $column++;
+                $this->setCertificateSubject($tblCertificate, 'KU', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'MU', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GE', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GRW', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GEO', $row, $column);
+
+                $row = 2;
+                $column = 1;
+                $this->setCertificateSubject($tblCertificate, 'MA', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'BIO', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'CH', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'PH', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'SPO', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'REE', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'REK', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'ETH', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'TC', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'IN', $row, $column);
+            }
+        }
+        // todo gym sekII
 
 
         $tblConsumer = Consumer::useService()->getConsumerBySession();

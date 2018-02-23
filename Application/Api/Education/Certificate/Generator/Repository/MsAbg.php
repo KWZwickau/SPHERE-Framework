@@ -46,7 +46,7 @@ class MsAbg extends Certificate
                     ->setContent('ABGANGSZEUGNIS')
                     ->styleTextSize('27px')
                     ->styleAlignCenter()
-                    ->styleMarginTop('32%')
+                    ->styleMarginTop('20%')
                     ->styleTextBold()
                 )
             );

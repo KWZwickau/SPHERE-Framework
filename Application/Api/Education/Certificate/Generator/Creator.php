@@ -25,7 +25,6 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\RedirectScript;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Creator
@@ -212,9 +211,7 @@ class Creator extends Extension
             if (($tblCertificate = $tblLeaveStudent->getServiceTblCertificate())) {
                 $CertificateClass = '\SPHERE\Application\Api\Education\Certificate\Generator\Repository\\' . $tblCertificate->getCertificate();
 
-                Debugger::screenDump($CertificateClass);
                 if (class_exists($CertificateClass)) {
-                    Debugger::screenDump('Hallo');
                     $tblDivision = $tblLeaveStudent->getServiceTblDivision();
                     /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
                     $Certificate = new $CertificateClass($tblDivision ? $tblDivision : null);

@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Education\Certificate\Prepare;
 
+use SPHERE\Application\Api\Education\Certificate\Generator\Repository\GymAbgSekI;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
@@ -4267,6 +4268,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $PersonId
+     * @param null $Data
      *
      * @return Stage|string
      */
@@ -4297,6 +4299,15 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($tblType) {
                         if ($tblType->getName() == 'Mittelschule / Oberschule') {
                             $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('MsAbg');
+                        } elseif ($tblType->getName() == 'Gymnasium') {
+                            if ($tblLevel) {
+                                if (intval($tblLevel->getName()) <= 10) {
+                                    $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GymAbgSekI');
+                                } else {
+                                    // todo GymAbgSekII
+                                    $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GymAbgSekII');
+                                }
+                            }
                         }
                     }
                 }
@@ -4493,6 +4504,8 @@ class Frontend extends Extension implements IFrontendInterface
                             'Zeugnisvorlage',
                             $tblCertificate
                                 ? $tblCertificate->getName()
+                                . ($tblCertificate->getDescription()
+                                    ? new Muted(' - ' . $tblCertificate->getDescription()) : '')
                                 : new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation()
                                 . ' Keine Zeugnisvorlage verfügbar!'),
                             $tblCertificate ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_WARNING
@@ -4530,6 +4543,31 @@ class Frontend extends Extension implements IFrontendInterface
                     null
                 );
 
+                $otherInformationList = array(
+                    new DatePicker('Data[InformationList][CertificateDate]', '', 'Zeugnisdatum', new Calendar()),
+                    new TextArea('Data[InformationList][Remark]', '', 'Bemerkungen')
+                );
+                if ($tblCertificate->getCertificate() == 'GymAbgSekI') {
+                    $otherInformationList[] = new Panel(
+                        'Gleichgestellter Schulabschluss',
+                        array(
+                            (new RadioBox(
+                                'Data[InformationList][EqualGraduation]',
+                                'gemäß § 7 Abs. 7 SchulG, mit der Versetzung von Klassenstufe 10 nach Jahrgangsstufe
+                                11 des Gymnasiums einen dem Realschulabschluss gleichgestellten mittleren Schulabschluss erworben',
+                                GymAbgSekI::COURSE_RS
+                            )),
+                            (new RadioBox(
+                                'Data[InformationList][EqualGraduation]',
+                                'gemäß § 30 Abs. 7 Satz 2 SOGYA, mit der Versetzung von Klassenstufe 9 nach Klassenstufe
+                                10 des Gymnasiums einen dem Hauptschulabschluss gleichgestellten Schulabschluss erworben',
+                                GymAbgSekI::COURSE_HS
+                            ))
+                        ),
+                        Panel::PANEL_TYPE_DEFAULT
+                    );
+                }
+
                 $form = new Form(new FormGroup(array(
                     new FormRow(new FormColumn(
                         $subjectTable
@@ -4537,10 +4575,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormRow(new FormColumn(
                         new Panel(
                             'Sonstige Informationen',
-                            array(
-                                new DatePicker('Data[InformationList][CertificateDate]', '', 'Zeugnisdatum', new Calendar()),
-                                new TextArea('Data[InformationList][Remark]', '', 'Bemerkungen')
-                            ),
+                            $otherInformationList,
                             Panel::PANEL_TYPE_INFO
                         )
                     )),
