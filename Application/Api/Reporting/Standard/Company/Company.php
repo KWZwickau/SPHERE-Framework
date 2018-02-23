@@ -22,9 +22,9 @@ class Company
 
         $tblGroup = Group::useService()->getGroupById($GroupId);
         if ($tblGroup) {
-            $groupList = \SPHERE\Application\Reporting\Standard\Company\Company::useService()->createGroupList($tblGroup);
-            if ($groupList) {
-                $fileLocation = \SPHERE\Application\Reporting\Standard\Company\Company::useService()->createGroupListExcel($groupList);
+            $companyList = \SPHERE\Application\Reporting\Standard\Company\Company::useService()->createGroupList($tblGroup);
+            if ($companyList) {
+                $fileLocation = \SPHERE\Application\Reporting\Standard\Company\Company::useService()->createGroupListExcel($companyList);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
                     "Institutionengruppenliste ".$tblGroup->getName()
