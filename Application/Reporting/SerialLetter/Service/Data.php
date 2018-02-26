@@ -810,6 +810,31 @@ class Data extends AbstractData
      *
      * @return bool
      */
+    public function destroySerialCompanyBySerialLetter(TblSerialLetter $tblSerialLetter)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $EntityList = $Manager->getEntity('TblSerialCompany')
+            ->findBy(array(TblAddressPerson::ATTR_TBL_SERIAL_LETTER => $tblSerialLetter->getId()));
+        if (null !== $EntityList) {
+            foreach ($EntityList as $Entity) {
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                    $Entity, true);
+                $Manager->bulkKillEntity($Entity);
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
+        }
+
+        return true;
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     *
+     * @return bool
+     */
     public function destroyFilterFiledAllBySerialLetter(TblSerialLetter $tblSerialLetter)
     {
 

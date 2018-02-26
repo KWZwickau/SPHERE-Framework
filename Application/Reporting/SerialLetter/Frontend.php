@@ -1572,27 +1572,37 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         if($isCompany){
+            // update SerialCompany
+            if ($Control) {
+                SerialLetter::useService()->updateSerialCompany($tblSerialLetter);
+            }
             $tblCompanyList = SerialLetter::useService()->getSerialCompanyBySerialLetter($tblSerialLetter);
             if (!$tblCompanyList) {
                 return $Stage.new Danger('Es sind keine Institutionen dem Serienbrief zugeordnet', new Exclamation());
             }
-            return $this->frontendCompanyAddressContent($Id, $Control);
+            return $this->frontendCompanyAddressContent($Id);
         } else {
+            $tblFilterCategory = $tblSerialLetter->getFilterCategory();
+            // update SerialPerson
+            if($tblFilterCategory){
+                if ($Control) {
+                    SerialLetter::useService()->updateSerialPerson($tblSerialLetter, $tblFilterCategory);
+                }
+            }
             $tblPersonList = SerialLetter::useService()->getPersonAllBySerialLetter($tblSerialLetter);
             if (!$tblPersonList) {
                 return $Stage.new Danger('Es sind keine Personen dem Serienbrief zugeordnet', new Exclamation());
             }
-            return $this->frontendPersonAddressContent($Id, $Control);
+            return $this->frontendPersonAddressContent($Id);
         }
     }
 
     /**
      * @param null $Id
-     * @param bool $Control
      *
      * @return Stage
      */
-    private function frontendCompanyAddressContent($Id = null, $Control = false)
+    private function frontendCompanyAddressContent($Id = null)
     {
 
         $Stage = new Stage('Adresslisten für Serienbriefe', 'Person mit Adressen auswählen');
@@ -1603,12 +1613,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tblFilterCategory = $tblSerialLetter->getFilterCategory();
-        // update SerialPerson
-        if ($tblFilterCategory) {
-            if ($Control) {
-                SerialLetter::useService()->updateSerialCompany($tblSerialLetter);
-            }
-        }
 
         $Stage->addButton(new Standard('Bearbeiten', '/Reporting/SerialLetter/Edit', new Edit(),
             array('Id' => $tblSerialLetter->getId()), 'Aktuelle Filterung anzeigen'));
@@ -1745,11 +1749,10 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Id
-     * @param bool $Control
      *
      * @return Stage
      */
-    private function frontendPersonAddressContent($Id = null, $Control = false)
+    private function frontendPersonAddressContent($Id = null)
     {
 
         $Stage = new Stage('Adresslisten für Serienbriefe', 'Person mit Adressen auswählen');
@@ -1760,12 +1763,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tblFilterCategory = $tblSerialLetter->getFilterCategory();
-        // update SerialPerson
-        if ($tblFilterCategory) {
-            if ($Control) {
-                SerialLetter::useService()->updateSerialPerson($tblSerialLetter, $tblFilterCategory);
-            }
-        }
 
         $Stage->addButton(new Standard('Bearbeiten', '/Reporting/SerialLetter/Edit', new Edit(),
             array('Id' => $tblSerialLetter->getId()), 'Aktuelle Filterung anzeigen'));
@@ -2906,13 +2903,14 @@ class Frontend extends Extension implements IFrontendInterface
             'order'      => array(array(0, 'asc')),
         );
         $tblSerialCompanyList = SerialLetter::useService()->getSerialCompanyBySerialLetter($tblSerialLetter, false);
-
-        // sort company by name
-        $Company = array();
-        foreach ($tblSerialCompanyList as $key => $row) {
-            $Company[$key] = ($row->getServiceTblCompany() ? $row->getServiceTblCompany()->getName() : '');
+        if($tblSerialCompanyList){
+            // sort company by name
+            $Company = array();
+            foreach ($tblSerialCompanyList as $key => $row) {
+                $Company[$key] = ($row->getServiceTblCompany() ? $row->getServiceTblCompany()->getName() : '');
+            }
+            array_multisort($Company, SORT_ASC, $tblSerialCompanyList);
         }
-        array_multisort($Company, SORT_ASC, $tblSerialCompanyList);
 
         if($tblSerialCompanyList){
             $count = 1;

@@ -1798,19 +1798,7 @@ class Service extends AbstractService
     public function destroySerialLetter(TblSerialLetter $tblSerialLetter)
     {
 
-//        $tblSerialPersonList = SerialLetter::useService()->getSerialPersonBySerialLetter($tblSerialLetter);
-//        if ($tblSerialPersonList) {
-//            foreach ($tblSerialPersonList as $tblSerialPerson) {
-//                $PersonList = array()
-//                $tblPerson = $tblSerialPerson->getServiceTblPerson();
-//                if ($tblPerson) {
-//                    // Destroy Address
-//                    SerialLetter::useService()->destroyAddressPersonAllBySerialLetterAndPerson($tblSerialLetter, $tblPerson);
-//                }
-//                // Destroy SerialPerson
-//                SerialLetter::useService()->destroySerialPerson($tblSerialPerson);
-//            }
-//        }
+        $this->destroySerialCompanyBySerialLetter($tblSerialLetter);
         $this->destroyAddressPersonAllBySerialLetter($tblSerialLetter);
         $this->destroyFilterFiledAllBySerialLetter($tblSerialLetter);
         $this->destroySerialPerson($tblSerialLetter);
@@ -1840,6 +1828,17 @@ class Service extends AbstractService
     {
 
         return ( new Data($this->getBinding()) )->destroyAddressPersonAllBySerialLetter($tblSerialLetter);
+    }
+
+    /**
+     * @param TblSerialLetter $tblSerialLetter
+     *
+     * @return bool
+     */
+    public function destroySerialCompanyBySerialLetter(TblSerialLetter $tblSerialLetter)
+    {
+
+        return ( new Data($this->getBinding()) )->destroySerialCompanyBySerialLetter($tblSerialLetter);
     }
 
     /**
