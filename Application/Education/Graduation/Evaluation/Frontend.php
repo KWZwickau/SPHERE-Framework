@@ -989,7 +989,11 @@ class Frontend extends Extension implements IFrontendInterface
             /** @var TblTest $testItem */
             foreach ($tblTestAllByDivision as $testItem) {
                 $testArrayTemp[$testItem->getId()] = $testItem;
-                if (($linkedTestList = $testItem->getLinkedTestAll())) {
+                if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())
+                    && ($tblSubjectLinked = $testItem->getServiceTblSubject())
+                    && $tblSubject->getId() == $tblSubjectLinked->getId()
+                    && ($linkedTestList = $testItem->getLinkedTestAll())
+                ) {
                     foreach ($linkedTestList as $linkedTest) {
                         if (($linkedDivision = $linkedTest->getServiceTblDivision())
                             && $linkedDivision->getId() != $tblDivision->getId()
@@ -1452,13 +1456,20 @@ class Frontend extends Extension implements IFrontendInterface
             $panel = false;
             if (($tblTestLinkList = $tblTest->getLinkedTestAll())) {
                 $panelContent = array();
+                $panelContent[] = 'Klasse ' . $tblDivision->getDisplayName() . ' - ' .
+                    ($tblTest->getServiceTblSubject() ? $tblTest->getServiceTblSubject()->getAcronym() . ' '
+                        . $tblTest->getServiceTblSubject()->getName() : '') .
+                    ($tblTest->getServiceTblSubjectGroup() ? new Small(
+                        ' (Gruppe: ' . $tblTest->getServiceTblSubjectGroup()->getName() . ')') : '');
                 foreach ($tblTestLinkList as $tblTestItem) {
                     $division = $tblTestItem->getServiceTblDivision();
                     $subject = $tblTestItem->getServiceTblSubject();
                     $group = $tblTestItem->getServiceTblSubjectGroup();
                     if ($division && $subject) {
-                        $panelContent[] = $division->getDisplayName() . ' - ' . $subject->getAcronym()
-                            . ($group ? ' - ' . $group->getName() : '');
+                        $panelContent[] = 'Klasse ' . $division->getDisplayName()
+                            . ' - ' . $subject->getAcronym() . ' ' . $subject->getName()
+                            . ($group ? new Small(
+                                ' (Gruppe: ' . $group->getName() . ')') : '');
                     }
                 }
                 if (!empty($panelContent)) {
@@ -1863,8 +1874,13 @@ class Frontend extends Extension implements IFrontendInterface
 
         $hasPreviewGrades = false;
 
+        $displayDivisionSubjectList = array();
+        $displayDivisionSubjectList[] = 'Klasse ' . $tblDivision->getDisplayName() . ' - ' .
+            ($tblTest->getServiceTblSubject() ? $tblTest->getServiceTblSubject()->getAcronym() . ' '
+                . $tblTest->getServiceTblSubject()->getName() : '') .
+            ($tblTest->getServiceTblSubjectGroup() ? new Small(
+                ' (Gruppe: ' . $tblTest->getServiceTblSubjectGroup()->getName() . ')') : '');
         if ($tblTestLinkedList) {
-            $displayDivisionSubjectList = array();
             $studentList = $this->setStudentList($tblDivisionSubject, $tblTest, $studentList, $studentTestList, true);
             foreach ($tblTestLinkedList as $tblTestLinked) {
                 if ($tblTestLinked->getServiceTblDivision()
@@ -1887,13 +1903,9 @@ class Frontend extends Extension implements IFrontendInterface
                             : '');
                 }
             }
-            ksort($displayDivisionSubjectList);
+            sort($displayDivisionSubjectList);
         } else {
             $studentList = $this->setStudentList($tblDivisionSubject, $tblTest, $studentList, $studentTestList);
-            $displayDivisionSubjectList[] = 'Klasse ' . $tblDivision->getDisplayName() . ' - ' .
-                ($tblTest->getServiceTblSubject() ? $tblTest->getServiceTblSubject()->getName() : '') .
-                ($tblTest->getServiceTblSubjectGroup() ? new Small(
-                    ' (Gruppe: ' . $tblTest->getServiceTblSubjectGroup()->getName() . ')') : '');
         }
 
         if ($tblTask) {
@@ -1953,9 +1965,7 @@ class Frontend extends Extension implements IFrontendInterface
                             );
                             if ($tblTestList) {
 
-                                // Sortierung der Tests nach Datum
-                                $tblTestList = $this->getSorter($tblTestList)->sortObjectBy('Date',
-                                    new DateTimeSorter());
+                                $tblTestList = Evaluation::useService()->sortTestList($tblTestList);
 
                                 /** @var TblTest $tblTestTemp */
                                 foreach ($tblTestList as $tblTestTemp) {
@@ -2045,7 +2055,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                 || ($tblTestTemp->isContinues() && !$tblGrade->getDate() // Test-Enddatum
                                                     && $tblTestTemp->getFinishDate() && $tblTask->getDate()
                                                     && ($taskDate = new \DateTime($tblTask->getDate()))
-                                                    && ($finishDate = new \DateTime($tblTest->getFinishDate()))
+                                                    && ($finishDate = new \DateTime($tblTestTemp->getFinishDate()))
                                                     && ($taskDate->format('Y-m-d') >= $finishDate->format('Y-m-d')))
                                             ) {
                                                 if ($tblGrade->getGrade() !== null && $tblGrade->getGrade() !== '') {
@@ -2873,7 +2883,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblTask->getTblTestType()->getName(),
                                 $tblTask->getName() . ' ' . $tblTask->getDate()
                                 . '&nbsp;&nbsp;' . new Muted(new Small(new Small(
-                                    $tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
+                                    'Bearbeitungszeitraum '.$tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
                                 Panel::PANEL_TYPE_INFO
                             ),
                             $tblDivisionAllByTask ? null : new WarningMessage(
@@ -2912,6 +2922,15 @@ class Frontend extends Extension implements IFrontendInterface
         foreach ($divisionList as $divisionId => $testList) {
             $tblDivision = Division::useService()->getDivisionById($divisionId);
             if ($tblDivision) {
+                if (($tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision))) {
+                    $count = 1;
+                    foreach ($tblDivisionStudentAll as $tblPerson) {
+                        $studentList[$tblDivision->getId()][$tblPerson->getId()]['Number'] = $count++;
+                        $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
+                            $tblPerson->getLastFirstName();
+                    }
+                }
+
                 // Stichtagsnote
                 if ($tblTask->getTblTestType()->getId() == Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')) {
                     if (!empty($testList)) {
@@ -2945,11 +2964,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         }
                                     }
                                 } else {
-                                    $tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision);
                                     if ($tblDivisionStudentAll) {
-                                        $count = 1;
                                         foreach ($tblDivisionStudentAll as $tblPerson) {
-                                            $studentList[$tblDivision->getId()][$tblPerson->getId()]['Number'] = $count++;
                                             $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
                                                 $tblTest, $tblSubject, $tblPerson, $studentList, null, $gradeList);
                                         }
@@ -3033,7 +3049,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                 $tblPerson = $tblSubjectStudent->getServiceTblPerson();
                                                 if ($tblPerson) {
                                                     list($studentList, $grades) = $this->setTableContentForBehaviourTask($tblDivision,
-                                                        $tblTest, $tblPerson, $studentList, $grades, $count);
+                                                        $tblTest, $tblPerson, $studentList, $grades);
                                                 }
                                             }
                                         }
@@ -3042,7 +3058,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         if ($tblDivisionStudentAll) {
                                             foreach ($tblDivisionStudentAll as $tblPerson) {
                                                 list($studentList, $grades) = $this->setTableContentForBehaviourTask($tblDivision,
-                                                    $tblTest, $tblPerson, $studentList, $grades, $count);
+                                                    $tblTest, $tblPerson, $studentList, $grades);
                                             }
                                         }
                                     }
@@ -3125,8 +3141,7 @@ class Frontend extends Extension implements IFrontendInterface
         TblSubjectGroup $tblSubjectGroup = null,
         &$gradeList = array()
     ) {
-        $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
-            $tblPerson->getLastFirstName();
+
         $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
             $tblPerson);
 
@@ -3218,7 +3233,6 @@ class Frontend extends Extension implements IFrontendInterface
      * @param TblPerson $tblPerson
      * @param $studentList
      * @param $grades
-     * @param $count
      *
      * @return array
      */
@@ -3227,15 +3241,9 @@ class Frontend extends Extension implements IFrontendInterface
         TblTest $tblTest,
         TblPerson $tblPerson,
         $studentList,
-        $grades,
-        &$count
+        $grades
     ) {
 
-        if (!isset($studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'])) {
-            $studentList[$tblDivision->getId()][$tblPerson->getId()]['Number'] = $count++;
-            $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
-                $tblPerson->getLastFirstName();
-        }
         $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
             $tblPerson);
 
@@ -3401,7 +3409,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblTask->getTblTestType()->getName(),
                                 $tblTask->getName() . ' ' . $tblTask->getDate()
                                 . '&nbsp;&nbsp;' . new Muted(new Small(new Small(
-                                    $tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
+                                    'Bearbeitungszeitraum '.$tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
                                 Panel::PANEL_TYPE_INFO
                             )
                         ),

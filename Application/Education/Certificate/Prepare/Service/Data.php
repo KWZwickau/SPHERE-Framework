@@ -27,6 +27,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -512,6 +513,45 @@ class Data extends AbstractData
         }
 
         return false;
+    }
+
+
+    /**
+     * @param array $Data
+     */
+    public function createPrepareStudentSetBulkTemplates(
+        $Data
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($Data as $prepareId => $personList) {
+            if (($tblPrepare = $this->getPrepareById($prepareId) )) {
+                foreach ($personList as $personId => $tblCertificate) {
+                    if (($tblPerson = Person::useService()->getPersonById($personId))) {
+                        $Entity = $Manager->getEntity('TblPrepareStudent')->findOneBy(array(
+                            TblPrepareStudent::ATTR_TBL_PREPARE_CERTIFICATE => $prepareId,
+                            TblPrepareStudent::ATTR_SERVICE_TBL_PERSON => $personId,
+                        ));
+
+                        if ($Entity === null) {
+                            $Entity = new TblPrepareStudent();
+                            $Entity->setTblPrepareCertificate($tblPrepare);
+                            $Entity->setServiceTblPerson($tblPerson);
+                            $Entity->setServiceTblCertificate($tblCertificate);
+                            $Entity->setApproved(false);
+                            $Entity->setPrinted(false);
+
+                            $Manager->bulkSaveEntity($Entity);
+                            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+                        }
+                    }
+                }
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
     }
 
     /**

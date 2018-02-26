@@ -112,7 +112,11 @@ class Frontend extends Extension implements IFrontendInterface
         if ($hasApiRight && $tblPerson != null) {
             $Info = new External(
                 'Herunterladen der Schülerkartei', 'SPHERE\Application\Api\Document\Standard\StudentCard\Create',
-                new Download(), array('PersonId' => $tblPerson->getId()), 'Schülerkartei herunterladen');
+                    new Download(), array('PersonId' => $tblPerson->getId()), 'Schülerkartei herunterladen')
+                .new External(
+                    'Erstellen der Schulbescheinigung', '\Document\Standard\EnrollmentDocument\Fill',
+                    new Download(), array('PersonId' => $tblPerson->getId()),
+                    'Erstellen und Herunterladen einer Schulbescheinigung');
         }
 
         $this->setYearAndDivisionForMassReplace($tblPerson, $Year, $Division);
@@ -174,7 +178,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $this->formGroupGeneral($tblPerson),
                                     $this->formGroupSubject($tblPerson, $Year, $Division),
                                     $this->formGroupIntegration($tblPerson),
-                                ), new Primary('Speichern', new Save()))
+                                ), (new Primary('Speichern', new Save()))->disableOnLoad())
                                 )->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.')
                                 , $tblPerson, $Meta, $Group
                             )
@@ -482,7 +486,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ApiMassReplace::receiverField((
                         $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeEnrollment->getId().'][School]',
                             'Schule', array(
-                                '{{ Name }} {{ Description }}' => $useCompanyAllSchoolEnrollment
+                                '{{ Name }} {{ ExtendedName }} {{ Description }}' => $useCompanyAllSchoolEnrollment
                             ), new Education())
                         ))
                         .ApiMassReplace::receiverModal($Field, $NodeEnrollment)
@@ -573,7 +577,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ApiMassReplace::receiverField((
                         $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][School]',
                             'Abgebende Schule / Kita', array(
-                                '{{ Name }} {{ Description }}' => $useCompanyAllSchoolArrive
+                                '{{ Name }} {{ ExtendedName }} {{ Description }}' => $useCompanyAllSchoolArrive
                             ), new Education())
                         ))
                         .ApiMassReplace::receiverModal($Field, $NodeArrive)
@@ -659,7 +663,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ApiMassReplace::receiverField((
                         $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][School]',
                             'Aufnehmende Schule', array(
-                                '{{ Name }} {{ Description }}' => $useCompanyAllSchoolLeave
+                                '{{ Name }} {{ ExtendedName }} {{ Description }}' => $useCompanyAllSchoolLeave
                             ), new Education())
                         ))
                         .ApiMassReplace::receiverModal($Field, $NodeLeave)
@@ -748,7 +752,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ApiMassReplace::receiverField((
                         $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]',
                             'Aktuelle Schule', array(
-                                '{{ Name }} {{ Description }}' => $useCompanyAllSchoolProcess
+                                '{{ Name }} {{ ExtendedName }} {{ Description }}' => $useCompanyAllSchoolProcess
                             ), new Education())
                         ))
                         .ApiMassReplace::receiverModal($Field, $NodeProcess)
@@ -1199,6 +1203,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
+            $Node = 'Unterrichtsfächer';
             // activate MassReplace
             if ($Identifier == 'PROFILE'
                 || $Identifier == 'RELIGION'
@@ -1207,7 +1212,6 @@ class Frontend extends Extension implements IFrontendInterface
                 || $Identifier == 'ELECTIVE'
                 || $Identifier == 'TEAM'
             ) {
-                $Node = 'Unterrichtsfächer';
                 array_push($Panel,
                     ApiMassReplace::receiverField((
                     $Field = new SelectBox('Meta[Subject]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
@@ -1285,20 +1289,54 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
                 array_push($Panel,
-                    new SelectBox(
-                        'Meta[SubjectLevelFrom]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
-                        new Muted(new Small('von Klasse')),
-                        array('{{ Name }} {{ ServiceTblType.Name }}' => $useLevelFromList),
-                        new Time()
-                    )
+                    ApiMassReplace::receiverField((
+                    $Field = new SelectBox(
+                            'Meta[SubjectLevelFrom]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
+                            new Muted(new Small($tblStudentSubjectRanking->getName() . ' Fremdsprache von Klasse')),
+                            array('{{ Name }} {{ ServiceTblType.Name }}' => $useLevelFromList),
+                            new Time())))
+                    .ApiMassReplace::receiverModal($Field, $Node)
+                    .new PullRight((new Link('Massen-Änderung',
+                        ApiMassReplace::getEndpoint(), null, array(
+                            ApiMassReplace::SERVICE_CLASS                                   => MassReplaceSubject::CLASS_MASS_REPLACE_SUBJECT,
+                            ApiMassReplace::SERVICE_METHOD                                  => MassReplaceSubject::METHOD_REPLACE_LEVEL_FROM,
+                            ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                            MassReplaceSubject::ATTR_TYPE                                   => $tblStudentSubjectType->getId(),
+                            MassReplaceSubject::ATTR_RANKING                                => $tblStudentSubjectRanking->getId(),
+                            'Id'                                                            => $PersonId,
+                            'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                            'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                            'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                            'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                            'Node'                                                          => $Node,
+                        )))->ajaxPipelineOnClick(
+                        ApiMassReplace::pipelineOpen($Field, $Node)
+                    ))
                 );
                 array_push($Panel,
-                    new SelectBox(
+                    ApiMassReplace::receiverField((
+                    $Field = new SelectBox(
                         'Meta[SubjectLevelTill]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
-                        new Muted(new Small('bis Klasse')),
+                        new Muted(new Small($tblStudentSubjectRanking->getName() . ' Fremdsprache bis Klasse')),
                         array('{{ Name }} {{ ServiceTblType.Name }}' => $useLevelTillList),
-                        new Time()
-                    )
+                        new Time())))
+                    .ApiMassReplace::receiverModal($Field, $Node)
+                    .new PullRight((new Link('Massen-Änderung',
+                        ApiMassReplace::getEndpoint(), null, array(
+                            ApiMassReplace::SERVICE_CLASS                                   => MassReplaceSubject::CLASS_MASS_REPLACE_SUBJECT,
+                            ApiMassReplace::SERVICE_METHOD                                  => MassReplaceSubject::METHOD_REPLACE_LEVEL_TILL,
+                            ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                            MassReplaceSubject::ATTR_TYPE                                   => $tblStudentSubjectType->getId(),
+                            MassReplaceSubject::ATTR_RANKING                                => $tblStudentSubjectRanking->getId(),
+                            'Id'                                                            => $PersonId,
+                            'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                            'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                            'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                            'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                            'Node'                                                          => $Node,
+                        )))->ajaxPipelineOnClick(
+                        ApiMassReplace::pipelineOpen($Field, $Node)
+                    ))
                 );
             }
         }

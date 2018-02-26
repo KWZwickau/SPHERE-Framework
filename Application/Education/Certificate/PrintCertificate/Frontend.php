@@ -66,7 +66,6 @@ class Frontend extends Extension implements IFrontendInterface
                 ) {
                     if (!isset($prepareList[$tblPrepare->getId()])) {
                         $prepareList[$tblPrepare->getId()] = $tblPrepare;
-                        break;
                     }
                 }
             }

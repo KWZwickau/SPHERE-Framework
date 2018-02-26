@@ -130,6 +130,7 @@ abstract class EsrlStyle extends Certificate
                                       {{ Content.P'.$personId.'.Person.Data.Name.Last }}')
                 ->styleTextSize(self::TEXT_SIZE)
                 ->stylePaddingLeft('5px')
+                ->styleAlignCenter()
                 ->styleBorderBottom('1px', '#999')
                 , '76%');
         return $Section;
@@ -605,7 +606,7 @@ abstract class EsrlStyle extends Certificate
             ->addElementColumn((new Element())
                 , '70%');
         $SectionList[] = (new Section())->addElementColumn((new Element())
-            ->setContent('Notenerleuterungen: 1 = sehr gut, 2 = gut, 3 = befriedigend, 4 = ausreichend, 5 = mangelhaft,
+            ->setContent('Notenerläuterungen: 1 = sehr gut, 2 = gut, 3 = befriedigend, 4 = ausreichend, 5 = mangelhaft,
             6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)')
             ->styleTextSize('8.5px')
             ->stylePaddingTop());

@@ -842,21 +842,22 @@ abstract class Certificate extends Extension
             $SubjectStructure = array();
             foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
                 $tblSubject = $tblCertificateSubject->getServiceTblSubject();
-
-                // Grade Exists? => Add Subject to Certificate
-                if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
-                    $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
-                        = $tblSubject->getAcronym();
-                    $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
-                        = $tblSubject->getName();
-                } else {
-                    // Grade Missing, But Subject Essential => Add Subject to Certificate
-                    if ($tblCertificateSubject->isEssential()) {
+                if($tblSubject){
+                    // Grade Exists? => Add Subject to Certificate
+                    if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
                         $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
                             = $tblSubject->getAcronym();
                         $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
                             = $tblSubject->getName();
+                    } else {
+                        // Grade Missing, But Subject Essential => Add Subject to Certificate
+                        if ($tblCertificateSubject->isEssential()) {
+                            $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
+                                = $tblSubject->getAcronym();
+                            $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
+                                = $tblSubject->getName();
 
+                        }
                     }
                 }
             }
@@ -1674,9 +1675,18 @@ abstract class Certificate extends Extension
                     && $tblConsumer->getAcronym() == 'ESZC'
                 ) {
                     if (strpos(strtolower($tblSubject->getName()), 'naturwissen') !== false
-                    && $this->getTblDivision()
-                    && $this->getTblDivision()->getTblLevel()
-                    && !preg_match('!(0?(8))!is', $this->getTblDivision()->getTblLevel()->getName())) {
+                        && $this->getTblDivision()
+                        && $this->getTblDivision()->getTblLevel()
+                        && !preg_match('!(0?(8))!is', $this->getTblDivision()->getTblLevel()->getName())
+                    ) {
+                        $profileAppendText = 'Profil mit informatischer Bildung';
+                    }
+                // Bei Tarandt für alle Profilfe
+                } elseif ($tblConsumer && $tblConsumer->getAcronym() == 'CSW') {
+                    if ($this->getTblDivision()
+                        && $this->getTblDivision()->getTblLevel()
+                        && !preg_match('!(0?(8))!is', $this->getTblDivision()->getTblLevel()->getName())
+                    ) {
                         $profileAppendText = 'Profil mit informatischer Bildung';
                     }
                 } elseif (strpos(strtolower($tblSubject->getName()), 'wissen') !== false
@@ -2270,7 +2280,7 @@ abstract class Certificate extends Extension
         $fontFamily = 'MetaPro'
     ) {
 
-        $tblPerson = Person::useService()->getPersonById($personId);
+//        $tblPerson = Person::useService()->getPersonById($personId);
 
         $widthText = (50 - $GradeFieldWidth - 4) . '%';
         $widthGrade = $GradeFieldWidth . '%';
@@ -2286,38 +2296,39 @@ abstract class Certificate extends Extension
             $SubjectStructure = array();
             foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
                 $tblSubject = $tblCertificateSubject->getServiceTblSubject();
-
-                // Grade Exists? => Add Subject to Certificate
-                if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
-                    $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
-                        = $tblSubject->getAcronym();
-                    $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
-                        = $tblSubject->getName();
-                } else {
-                    // Grade Missing, But Subject Essential => Add Subject to Certificate
-                    if ($tblCertificateSubject->isEssential()) {
+                if($tblSubject){
+                    // Grade Exists? => Add Subject to Certificate
+                    if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
                         $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
                             = $tblSubject->getAcronym();
                         $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
                             = $tblSubject->getName();
+                    } else {
+                        // Grade Missing, But Subject Essential => Add Subject to Certificate
+                        if ($tblCertificateSubject->isEssential()) {
+                            $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
+                                = $tblSubject->getAcronym();
+                            $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
+                                = $tblSubject->getName();
 
-                        // Liberation?
-                        if (
-                            $tblPerson
-                            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
-                            && ($tblStudentLiberationCategory = $tblCertificateSubject->getServiceTblStudentLiberationCategory())
-                        ) {
-                            $tblStudentLiberationAll = Student::useService()->getStudentLiberationAllByStudent($tblStudent);
-                            if ($tblStudentLiberationAll) {
-                                foreach ($tblStudentLiberationAll as $tblStudentLiberation) {
-                                    if (($tblStudentLiberationType = $tblStudentLiberation->getTblStudentLiberationType())) {
-                                        $tblStudentLiberationType->getTblStudentLiberationCategory();
-                                        if ($tblStudentLiberationCategory->getId() == $tblStudentLiberationType->getTblStudentLiberationCategory()->getId()) {
-                                            $this->Grade['Data'][$tblSubject->getAcronym()] = $tblStudentLiberationType->getName();
-                                        }
-                                    }
-                                }
-                            }
+//                        // Liberation?
+//                        if (
+//                            $tblPerson
+//                            && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
+//                            && ($tblStudentLiberationCategory = $tblCertificateSubject->getServiceTblStudentLiberationCategory())
+//                        ) {
+//                            $tblStudentLiberationAll = Student::useService()->getStudentLiberationAllByStudent($tblStudent);
+//                            if ($tblStudentLiberationAll) {
+//                                foreach ($tblStudentLiberationAll as $tblStudentLiberation) {
+//                                    if (($tblStudentLiberationType = $tblStudentLiberation->getTblStudentLiberationType())) {
+//                                        $tblStudentLiberationType->getTblStudentLiberationCategory();
+//                                        if ($tblStudentLiberationCategory->getId() == $tblStudentLiberationType->getTblStudentLiberationCategory()->getId()) {
+//                                            $this->Grade['Data'][$tblSubject->getAcronym()] = $tblStudentLiberationType->getName();
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
                         }
                     }
                 }
@@ -2560,20 +2571,21 @@ abstract class Certificate extends Extension
             $SubjectStructure = array();
             foreach ($tblCertificateSubjectAll as $tblCertificateSubject) {
                 $tblSubject = $tblCertificateSubject->getServiceTblSubject();
-
-                // Grade Exists? => Add Subject to Certificate
-                if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
-                    $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
-                        = $tblSubject->getAcronym();
-                    $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
-                        = $tblSubject->getName();
-                } else {
-                    // Grade Missing, But Subject Essential => Add Subject to Certificate
-                    if ($tblCertificateSubject->isEssential()) {
+                if($tblSubject){
+                    // Grade Exists? => Add Subject to Certificate
+                    if (isset($tblGradeList['Data'][$tblSubject->getAcronym()])) {
                         $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
                             = $tblSubject->getAcronym();
                         $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
                             = $tblSubject->getName();
+                    } else {
+                        // Grade Missing, But Subject Essential => Add Subject to Certificate
+                        if ($tblCertificateSubject->isEssential()) {
+                            $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectAcronym']
+                                = $tblSubject->getAcronym();
+                            $SubjectStructure[$tblCertificateSubject->getRanking()][$tblCertificateSubject->getLane()]['SubjectName']
+                                = $tblSubject->getName();
+                        }
                     }
                 }
             }

@@ -423,17 +423,17 @@ class Service extends ServiceScoreRule
                     } else {
                         $tblTestOfPerson = $tblTest;
                     }
-                    $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTestOfPerson, $tblPerson);
-                    if ($tblGrade && empty($value['Comment']) && !isset($value['Attendance'])
-                        && (($gradeValue != $tblGrade->getGrade()
+                    $tblGradeItem = Gradebook::useService()->getGradeByTestAndStudent($tblTestOfPerson, $tblPerson, true);
+                    if ($tblGradeItem && empty($value['Comment']) && !isset($value['Attendance'])
+                        && (($gradeValue != $tblGradeItem->getGrade()
 //                            || (isset($value['Trend']) && $value['Trend'] != $tblGrade->getTrend())))
-                        || ($trend != $tblGrade->getTrend())))
+                        || ($trend != $tblGradeItem->getTrend())))
                     ) {
                         $errorEdit[] = new Container(new Bold($tblPerson->getLastFirstName()));
                     }
                     // nicht bei Notenaufträgen #SSW-1085
                     if (!$tblTest->getTblTask()) {
-                        if ($tblGrade && $gradeValue === ''
+                        if ($tblGradeItem && $gradeValue === ''
                             && !isset($value['Attendance'])
                             && (!isset($value['Text']) || (isset($value['Text']) && !$this->getGradeTextById($value['Text'])))
                         ) {
@@ -519,7 +519,7 @@ class Service extends ServiceScoreRule
                     }
 
                     if (!($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTestByPerson,
-                        $tblPerson))
+                        $tblPerson, true))
                     ) {
                         $hasCreatedGrade = false;
                         if (isset($value['Attendance'])) {
@@ -586,29 +586,34 @@ class Service extends ServiceScoreRule
                             }
                         }
                     } elseif ($tblGrade) {
-
-                        if (isset($value['Attendance'])) {
-                            (new Data($this->getBinding()))->updateGrade(
-                                $tblGrade,
-                                null,
-                                trim($value['Comment']),
-                                0,
-                                null,
-                                isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
-                                    ? $tblGradeText : null,
-                                $tblPersonTeacher
-                            );
-                        } else {
-                            (new Data($this->getBinding()))->updateGrade(
-                                $tblGrade,
-                                $grade == -1 ? '': $grade,
-                                trim($value['Comment']),
-                                $trend,
-                                isset($value['Date']) ? $value['Date'] : null,
-                                isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
-                                    ? $tblGradeText : null,
-                                $tblPersonTeacher
-                            );
+                        if($this->isEditGrade($tblGrade, trim($value['Comment']), $grade, $trend,
+                            isset($value['Date']) ? $value['Date'] : null,
+                            isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
+                                ? $tblGradeText : null
+                        )){
+                            if (isset($value['Attendance'])) {
+                                (new Data($this->getBinding()))->updateGrade(
+                                    $tblGrade,
+                                    null,
+                                    trim($value['Comment']),
+                                    0,
+                                    null,
+                                    isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
+                                        ? $tblGradeText : null,
+                                    $tblPersonTeacher
+                                );
+                            } else {
+                                (new Data($this->getBinding()))->updateGrade(
+                                    $tblGrade,
+                                    $grade == -1 ? '': $grade,
+                                    trim($value['Comment']),
+                                    $trend,
+                                    isset($value['Date']) ? $value['Date'] : null,
+                                    isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
+                                        ? $tblGradeText : null,
+                                    $tblPersonTeacher
+                                );
+                            }
                         }
                     }
                 }
@@ -623,17 +628,47 @@ class Service extends ServiceScoreRule
     }
 
     /**
+     * @param TblGrade $tblGrade
+     * @param          $Comment
+     * @param          $grade
+     * @param          $trend
+     * @param          $date
+     * @param          $text
+     *
+     * @return bool
+     */
+    private function isEditGrade(TblGrade $tblGrade, $Comment, $grade, $trend, $date, $text)
+    {
+        $isChange = false;
+        if($tblGrade->getComment() != $Comment){
+            $isChange = true;
+        } elseif($tblGrade->getGrade() != $grade){
+            $isChange = true;
+        } elseif($tblGrade->getTrend() != $trend){
+            $isChange = true;
+        } elseif($tblGrade->getDate() != $date){
+            $isChange = true;
+        } elseif($tblGrade->getTblGradeText() != $text){
+            $isChange = true;
+        }
+
+        return $isChange;
+    }
+
+    /**
      * @param TblTest $tblTest
      * @param TblPerson $tblPerson
+     * @param bool $IsForced
      *
      * @return bool|TblGrade
      */
     public function getGradeByTestAndStudent(
         TblTest $tblTest,
-        TblPerson $tblPerson
+        TblPerson $tblPerson,
+        $IsForced = false
     ) {
 
-        return (new Data($this->getBinding()))->getGradeByTestAndStudent($tblTest, $tblPerson);
+        return (new Data($this->getBinding()))->getGradeByTestAndStudent($tblTest, $tblPerson, $IsForced);
     }
 
     /**
@@ -704,6 +739,15 @@ class Service extends ServiceScoreRule
                             $tempGradeList[] = $item;
                         }
                     }
+                }
+            }
+            $tblGradeList = empty($tempGradeList) ? false : $tempGradeList;
+        } elseif ($tblGradeList) {
+            $tempGradeList = array();
+            // gelöschte Tests ignorieren
+            foreach ($tblGradeList as $item) {
+                if ($item->getServiceTblTest()) {
+                    $tempGradeList[] = $item;
                 }
             }
             $tblGradeList = empty($tempGradeList) ? false : $tempGradeList;
@@ -1452,53 +1496,5 @@ class Service extends ServiceScoreRule
             }
         }
         return $Form;
-    }
-
-    /**
-     * Sorts Grades by Date asc
-     * @param $tblGradeList
-     *
-     * @return array
-     */
-    public function getSortedGradeList($tblGradeList) {
-
-        $gradeListSorted = array();
-        $count = 0;
-        /** @var TblGrade $tblGrade */
-        foreach ($tblGradeList as $tblGrade) {
-            if (($tblTest = $tblGrade->getServiceTblTest())) {
-                if ($tblTest->isContinues()) {
-                    if ($tblGrade->getDate()) {
-                        $date = $tblGrade->getDate();
-                    } else {
-                        $date = $tblTest->getFinishDate();
-                    }
-                } else {
-                    $date = $tblTest->getDate();
-                }
-
-                if ($date) {
-                    $date = new \DateTime($date);
-                    $date = $date->format('Ymd');
-                } else {
-                    $date = $count++;
-                }
-
-                if (isset($gradeListSorted[$date])) {
-                    $date .= 'a';
-                    if (isset($gradeListSorted[$date])) {
-                        $date .= 'b';
-                        if (isset($gradeListSorted[$date])) {
-                            $date .= 'c';
-                        }
-                    }
-                }
-                $gradeListSorted[$date] = $tblGrade;
-            }
-        }
-
-        ksort($gradeListSorted);
-
-        return $gradeListSorted;
     }
 }

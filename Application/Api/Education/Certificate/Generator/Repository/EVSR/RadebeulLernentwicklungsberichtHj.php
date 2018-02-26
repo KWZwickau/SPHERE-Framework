@@ -150,21 +150,19 @@ class RadebeulLernentwicklungsberichtHj extends Certificate
                 )
             )
             ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('
-                            {% if(Content.P' . $personId . '.Input.Rating is not empty) %}
-                                {{ Content.P' . $personId . '.Input.Rating|nl2br }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}
-                        ')
-                        ->styleAlignJustify()
-                        ->styleFontFamily($fontFamily)
-                        ->styleTextSize($textSize)
-                        ->styleLineHeight('80%')
-                        ->styleMarginTop('30px')
-                    )
+                ->addElement((new Element())
+                    ->setContent('
+                        {% if(Content.P' . $personId . '.Input.Rating is not empty) %}
+                            {{ Content.P' . $personId . '.Input.Rating|nl2br }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleAlignJustify()
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextSize($textSize)
+                    ->styleLineHeight('80%')
+                    ->styleMarginTop('30px')
                 )
             )
             ->addSlice((new Slice())

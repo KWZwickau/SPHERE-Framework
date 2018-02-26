@@ -20,6 +20,9 @@ abstract class EzshStyle extends Certificate
 {
 
     const TEXT_SIZE = '10pt';
+    const FONT_FAMILY = 'Calluna Sans';
+    const FONT_FAMILY_BOLD = 'Calluna Sans Bold';
+    const LINE_HEIGHT = '85%';
 
     /**
      * @return Slice
@@ -60,12 +63,16 @@ abstract class EzshStyle extends Certificate
             ->setContent($ContentHead)
             ->styleTextSize('21pt')
             ->styleTextBold()
+            ->styleFontFamily(self::FONT_FAMILY_BOLD)
+            ->styleLineHeight(self::LINE_HEIGHT)
         );
         $SectionList[] = (new Section())->addElementColumn((new Element())
             ->setContent($ContentSchool)
             ->styleTextSize('12pt')
             ->styleTextBold()
             ->stylePaddingTop()
+            ->styleFontFamily(self::FONT_FAMILY_BOLD)
+            ->styleLineHeight(self::LINE_HEIGHT)
         );
 
         return $SectionList;
@@ -82,12 +89,16 @@ abstract class EzshStyle extends Certificate
         $Section = new Section();
         $Section->addElementColumn((new Element())
             ->setContent('Name')
+            ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
             , '15%')
             ->addElementColumn((new Element())
                 ->setContent('{{ Content.P'.$personId.'.Person.Data.Name.First }}
                               {{ Content.P'.$personId.'.Person.Data.Name.Last }}')
                 ->styleBorderBottom('1px', '#BBB')
                 ->stylePaddingLeft('7px')
+                ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '66%')
             ->addElementColumn((new Element())
                 , '19%');
@@ -107,21 +118,29 @@ abstract class EzshStyle extends Certificate
         $Section
             ->addElementColumn((new Element())
                 ->setContent($YearString)
+                ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '15%')
             ->addElementColumn((new Element())
                 ->setContent('{{ Content.P'.$personId.'.Division.Data.Year }}')
                 ->styleBorderBottom('1px', '#BBB')
                 ->styleAlignCenter()
+                ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '12%')
             ->addElementColumn((new Element())
                 , '25%')
             ->addElementColumn((new Element())
                 ->setContent('Klasse')
+                ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '8%')
             ->addElementColumn((new Element())
-                ->setContent('{{ Content.P'.$personId.'.Division.Data.Level.Name }}{{ Content.P'.$personId.'.Division.Data.Name }}')
+                ->setContent('{{ Content.P'.$personId.'.Division.Data.Level.Name }}')
                 ->styleBorderBottom('1px', '#BBB')
                 ->styleAlignCenter()
+                ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '21%')
             ->addElementColumn((new Element())
                 , '19%');
@@ -140,6 +159,8 @@ abstract class EzshStyle extends Certificate
         $Section = new Section();
         $Section->addElementColumn((new Element())
             ->setContent('Beiblatt zum Zeugnis für:')
+            ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
             , '24%')
             ->addElementColumn((new Element())
                 ->setContent('{{ Content.P'.$personId.'.Person.Data.Name.First }}
@@ -148,6 +169,8 @@ abstract class EzshStyle extends Certificate
                 ->styleBorderBottom()
                 ->stylePaddingRight('120px')
                 ->stylePaddingLeft('7px')
+                ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '76%');
         return $Section;
     }
@@ -163,12 +186,16 @@ abstract class EzshStyle extends Certificate
         $Section = new Section();
         $Section->addElementColumn((new Element())
             ->setContent('Beiblatt zum Zeugnis für:')
+            ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
             , '21%')
             ->addElementColumn((new Element())
                 ->setContent('{{ Content.P'.$personId.'.Person.Data.Name.First }}
                               {{ Content.P'.$personId.'.Person.Data.Name.Last }}')
                 ->styleBorderBottom()
                 ->styleAlignCenter()
+                ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '79%');
         return $Section;
     }
@@ -231,6 +258,8 @@ abstract class EzshStyle extends Certificate
                         ->setContent($Grade['GradeName'])
                         ->stylePaddingTop()
                         ->styleMarginTop('10px')
+                        ->styleFontFamily(self::FONT_FAMILY)
+                        ->styleLineHeight(self::LINE_HEIGHT)
                         , '39%');
                     $GradeSection->addElementColumn((new Element())
                         ->setContent('{% if(Content.P'.$personId.'.Input["'.$Grade['GradeAcronym'].'"] is not empty) %}
@@ -243,6 +272,8 @@ abstract class EzshStyle extends Certificate
                         ->stylePaddingTop()
                         ->stylePaddingBottom()
                         ->styleMarginTop('10px')
+                        ->styleFontFamily(self::FONT_FAMILY)
+                        ->styleLineHeight(self::LINE_HEIGHT)
                         , '9%');
                 }
 
@@ -262,6 +293,7 @@ abstract class EzshStyle extends Certificate
      * @param bool|true $isSlice
      * @param array $languagesWithStartLevel
      * @param bool $isTitle
+     * @param bool $showThirdForeignLanguage
      *
      * @return Section[]|Slice
      */
@@ -269,7 +301,8 @@ abstract class EzshStyle extends Certificate
         $personId,
         $isSlice = true,
         $languagesWithStartLevel = array(),
-        $isTitle = true
+        $isTitle = true,
+        $showThirdForeignLanguage = false
     ) {
 
         $tblPerson = Person::useService()->getPersonById($personId);
@@ -306,6 +339,7 @@ abstract class EzshStyle extends Certificate
 
             // add SecondLanguageField, Fach wird aus der Schüleraktte des Schülers ermittelt
             $tblSecondForeignLanguage = false;
+            $tblThirdForeignLanguage = false;
             if (!empty($languagesWithStartLevel)) {
                 if (isset($languagesWithStartLevel['Lane']) && isset($languagesWithStartLevel['Rank'])) {
                     $SubjectStructure[$languagesWithStartLevel['Rank']]
@@ -319,18 +353,28 @@ abstract class EzshStyle extends Certificate
                             && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
                                 $tblStudentSubjectType))
                         ) {
+
                             /** @var TblStudentSubject $tblStudentSubject */
                             foreach ($tblStudentSubjectList as $tblStudentSubject) {
                                 if ($tblStudentSubject->getTblStudentSubjectRanking()
-                                    && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
                                     && ($tblSubjectForeignLanguage = $tblStudentSubject->getServiceTblSubject())
                                 ) {
-                                    $tblSecondForeignLanguage = $tblSubjectForeignLanguage;
-                                    $SubjectStructure[$languagesWithStartLevel['Rank']]
-                                    [$languagesWithStartLevel['Lane']]['SubjectAcronym'] = $tblSubjectForeignLanguage->getAcronym();
-                                    $SubjectStructure[$languagesWithStartLevel['Rank']]
-                                    [$languagesWithStartLevel['Lane']]['SubjectName'] = $tblSubjectForeignLanguage->getName();
+                                    if ($tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2') {
+                                        $tblSecondForeignLanguage = $tblSubjectForeignLanguage;
+                                    } elseif ($tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '3') {
+                                        $tblThirdForeignLanguage = $tblSubjectForeignLanguage;
+                                    }
                                 }
+                            }
+
+                            if ($tblThirdForeignLanguage && $showThirdForeignLanguage) {
+                                $tblSecondForeignLanguage = $tblThirdForeignLanguage;
+                            }
+                            if ($tblSecondForeignLanguage) {
+                                $SubjectStructure[$languagesWithStartLevel['Rank']]
+                                [$languagesWithStartLevel['Lane']]['SubjectAcronym'] = $tblSecondForeignLanguage->getAcronym();
+                                $SubjectStructure[$languagesWithStartLevel['Rank']]
+                                [$languagesWithStartLevel['Lane']]['SubjectName'] = $tblSecondForeignLanguage->getName();
                             }
                         }
                     }
@@ -358,6 +402,8 @@ abstract class EzshStyle extends Certificate
                 ->styleTextBold()
                 ->stylePaddingTop('10px')
                 ->stylePaddingBottom(($isTitle ? '0px': '26px'))
+                ->styleFontFamily(self::FONT_FAMILY_BOLD)
+                ->styleLineHeight(self::LINE_HEIGHT)
             );
             $SectionList[] = $HeaderSection;
             $SubjectSlice->addSection($HeaderSection);
@@ -368,6 +414,8 @@ abstract class EzshStyle extends Certificate
                     ->styleTextSize('10pt')
                     ->styleTextBold()
                     ->stylePaddingTop('10px')
+                    ->styleFontFamily(self::FONT_FAMILY_BOLD)
+                    ->styleLineHeight(self::LINE_HEIGHT)
                 );
                 $SectionList[] = $HeaderSectionTwo;
                 $SubjectSlice->addSection($HeaderSectionTwo);
@@ -419,6 +467,8 @@ abstract class EzshStyle extends Certificate
                             ->styleBorderBottom('1px', '#BBB')
                             ->styleMarginTop('10px')
                             ->styleTextSize($TextSize)
+                            ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT)
                             , (string)($subjectWidth - 2) . '%');
                         $SubjectSection->addElementColumn((new Element()), '2%');
                     } elseif (strlen($Subject['SubjectName']) > 27) {
@@ -427,6 +477,8 @@ abstract class EzshStyle extends Certificate
                             ->stylePaddingTop()
                             ->styleMarginTop('5px')
                             ->styleTextSize($TextSize)
+                            ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT)
                             , (string)$subjectWidth . '%');
                     }elseif ($isShrinkMarginTop) {
                         $SubjectSection->addElementColumn((new Element())
@@ -434,6 +486,8 @@ abstract class EzshStyle extends Certificate
                             ->stylePaddingTop()
                             ->styleMarginTop('0px')
                             ->styleTextSize($TextSize)
+                            ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT)
                             , (string)$subjectWidth . '%');
                     } else {
                         $SubjectSection->addElementColumn((new Element())
@@ -441,6 +495,8 @@ abstract class EzshStyle extends Certificate
                             ->stylePaddingTop()
                             ->styleMarginTop('10px')
                             ->styleTextSize($TextSize)
+                            ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT)
                             , (string)$subjectWidth . '%');
                     }
 
@@ -481,6 +537,8 @@ abstract class EzshStyle extends Certificate
                                  ' . $TextSize . '
                              {% endif %}'
                         )
+                        ->styleFontFamily(self::FONT_FAMILY)
+                        ->styleLineHeight(self::LINE_HEIGHT)
                         , (string)$gradeWidth . '%');
 
                     if ($isShrinkMarginTop && $Lane == 2) {
@@ -505,16 +563,18 @@ abstract class EzshStyle extends Certificate
                     $SubjectSection->addElementColumn((new Element())
                         ->setContent($hasAdditionalLine['Ranking'] . '. Fremdsprache (ab Klassenstufe ' .
                             '{% if(Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] is not empty) %}
-                                     {{ Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] }}
+                                     {{ Content.P' . $personId . '.Subject.Level["' . $hasAdditionalLine['SubjectAcronym'] . '"] }})
                                  {% else %}
-                                    &nbsp;
+                                    &nbsp;)
                                  {% endif %}'
-                            . ')')
+                            )
                         ->stylePaddingTop('0px')
                         ->stylePaddingBottom('0px')
                         ->styleMarginTop('-6px')
                         ->styleMarginBottom('0px')
                         ->styleTextSize('9px')
+                        ->styleFontFamily(self::FONT_FAMILY)
+                        ->styleLineHeight(self::LINE_HEIGHT)
                         , (string)$subjectWidth . '%');
 
                     if ($hasAdditionalLine['Lane'] == 1) {
@@ -543,11 +603,11 @@ abstract class EzshStyle extends Certificate
     /**
      * @param $personId
      * @param string $TextSize
-     * @param bool $isInformatics
+     * @param bool $isProfile
      *
      * @return Slice
      */
-    public function getEZSHOrientationStandard($personId, $TextSize = '14px', $isInformatics = false)
+    public function getEZSHObligation($personId, $TextSize = '14px', $isProfile = false)
     {
 
         $tblPerson = Person::useService()->getPersonById($personId);
@@ -557,8 +617,8 @@ abstract class EzshStyle extends Certificate
         $slice = new Slice();
         $sectionList = array();
 
-        $elementOrientationName = false;
-        $elementOrientationGrade = false;
+        $elementObligationName = false;
+        $elementObligationGrade = false;
         $elementForeignLanguageName = false;
         $elementForeignLanguageGrade = false;
 
@@ -583,140 +643,217 @@ abstract class EzshStyle extends Certificate
         if ($tblPerson
             && ($tblStudent = Student::useService()->getStudentByPerson($tblPerson))
         ) {
-
-            // Neigungskurs
-            if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))
-                && ($tblSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                    $tblStudentSubjectType))
-            ) {
-                /** @var TblStudentSubject $tblStudentSubject */
-                $tblStudentSubject = current($tblSubjectList);
-                if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
-
-                    if (($tblSetting = Consumer::useService()->getSetting('Api', 'Education', 'Certificate',
-                            'OrientationAcronym'))
-                        && ($value = $tblSetting->getValue())
-                    ) {
-                        $subjectAcronymForGrade = $value;
-                    } else {
-                        $subjectAcronymForGrade = $tblSubject->getAcronym();
-                    }
-
-                    $elementOrientationName = new Element();
-                    $elementOrientationName
-                        ->setContent('
-                            {% if(Content.P'.$personId.'.Student.Orientation["'.$tblSubject->getAcronym().'"] is not empty) %}
-                                 {{ Content.P'.$personId.'.Student.Orientation["'.$tblSubject->getAcronym().'"].Name'.' }}
-                            {% else %}
-                                 &nbsp;
-                            {% endif %}')
-                        ->stylePaddingTop('0px')
-                        ->stylePaddingBottom('0px')
-                        ->styleMarginTop('7px')
-                        ->styleTextSize($TextSize);
-
-                    $elementOrientationGrade = new Element();
-                    $elementOrientationGrade
-                        ->setContent('
-                            {% if(Content.P'.$personId.'.Grade.Data["'.$subjectAcronymForGrade.'"] is not empty) %}
-                                {{ Content.P'.$personId.'.Grade.Data["'.$subjectAcronymForGrade.'"] }}
-                            {% else %}
-                                &ndash;
-                            {% endif %}')
-                        ->styleAlignCenter()
-                        ->styleBackgroundColor('#E6E6E6')
-                        ->stylePaddingTop(
-                            '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$subjectAcronymForGrade.'"] is not empty) %}
-                                 '.$paddingTopShrinking.' 
-                             {% else %}
-                                 4px
-                             {% endif %}'
-                        )
-                        ->stylePaddingBottom(
-                            '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$subjectAcronymForGrade.'"] is not empty) %}
-                                  '.$paddingBottomShrinking.' 
-                             {% else %}
-                                 4px
-                             {% endif %}'
-                        )
-                        ->styleTextSize(
-                            '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$subjectAcronymForGrade.'"] is not empty) %}
-                                 '.$TextSizeSmall.'
-                             {% else %}
-                                 '.$TextSize.'
-                             {% endif %}'
-                        )
-                        ->styleMarginTop($marginTop);
-                }
-            }
-
             $Level = 'false';
+            if ($isProfile) {
+                // Profil
+                if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE'))
+                    && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                        $tblStudentSubjectType))
+                ) {
+                    /** @var TblStudentSubject $tblStudentSubject */
+                    $tblStudentSubject = current($tblStudentSubjectList);
+                    if (($tblSubjectProfile = $tblStudentSubject->getServiceTblSubject())) {
+                        $tblSubject = $tblSubjectProfile;
 
-            // 2. Fremdsprache
-            if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
-                && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
-                    $tblStudentSubjectType))
-                && !$isInformatics
-            ) {
-                /** @var TblStudentSubject $tblStudentSubject */
-                foreach ($tblStudentSubjectList as $tblStudentSubject) {
-                    if ($tblStudentSubject->getTblStudentSubjectRanking()
-                        && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
-                        && ($tblSubject = $tblStudentSubject->getServiceTblSubject())
-                    ) {
-
-                        if (($tblLevelFrom = $tblStudentSubject->getServiceTblLevelFrom())) {
-                            $Level = $tblLevelFrom->getName();
-                            if (!$Level) {
-                                $Level = 'false';
-                            }
+                        if (($tblSetting = Consumer::useService()->getSetting('Api', 'Education', 'Certificate', 'ProfileAcronym'))
+                            && ($value = $tblSetting->getValue())
+                        ) {
+                            $subjectAcronymForGrade = $value;
+                        } else {
+                            $subjectAcronymForGrade = $tblSubject->getAcronym();
                         }
 
-                        $elementForeignLanguageName = new Element();
-                        $elementForeignLanguageName
+                        $elementObligationName = new Element();
+                        $elementObligationName
                             ->setContent('
-                            {% if(Content.P'.$personId.'.Student.ForeignLanguage["'.$tblSubject->getAcronym().'"] is not empty) %}
-                                 {{ Content.P'.$personId.'.Student.ForeignLanguage["'.$tblSubject->getAcronym().'"].Name'.' }}
+                            {% if(Content.P' . $personId . '.Student.ProfileEZSH["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                 {{ Content.P' . $personId . '.Student.ProfileEZSH["' . $tblSubject->getAcronym() . '"].Name' . ' }}
                             {% else %}
                                  &nbsp;
                             {% endif %}')
                             ->stylePaddingTop('0px')
                             ->stylePaddingBottom('0px')
                             ->styleMarginTop('7px')
-                            ->styleTextSize($TextSize);
+                            ->styleTextSize($TextSize)
+                            ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT);
 
-                        $elementForeignLanguageGrade = new Element();
-                        $elementForeignLanguageGrade
+                        $elementObligationGrade = new Element();
+                        $elementObligationGrade
                             ->setContent('
-                            {% if(Content.P'.$personId.'.Grade.Data["'.$tblSubject->getAcronym().'"] is not empty) %}
-                                {{ Content.P'.$personId.'.Grade.Data["'.$tblSubject->getAcronym().'"] }}
+                            {% if(Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] is not empty) %}
+                                {{ Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] }}
                             {% else %}
                                 &ndash;
                             {% endif %}')
                             ->styleAlignCenter()
                             ->styleBackgroundColor('#E6E6E6')
                             ->stylePaddingTop(
-                                '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$tblSubject->getAcronym().'"] is not empty) %}
-                                 '.$paddingTopShrinking.' 
+                                '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronymForGrade . '"] is not empty) %}
+                                 ' . $paddingTopShrinking . ' 
                              {% else %}
                                  4px
                              {% endif %}'
                             )
                             ->stylePaddingBottom(
-                                '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$tblSubject->getAcronym().'"] is not empty) %}
-                                  '.$paddingBottomShrinking.' 
+                                '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronymForGrade . '"] is not empty) %}
+                                  ' . $paddingBottomShrinking . ' 
                              {% else %}
                                  4px
                              {% endif %}'
                             )
                             ->styleTextSize(
-                                '{% if(Content.P'.$personId.'.Grade.Data.IsShrinkSize["'.$tblSubject->getAcronym().'"] is not empty) %}
-                                 '.$TextSizeSmall.'
+                                '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronymForGrade . '"] is not empty) %}
+                                 ' . $TextSizeSmall . '
                              {% else %}
-                                 '.$TextSize.'
+                                 ' . $TextSize . '
                              {% endif %}'
                             )
-                            ->styleMarginTop($marginTop);
+                            ->styleMarginTop($marginTop)
+                            ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT);
+                    }
+                }
+            } else {
+                // Neigungskurs
+                if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))
+                    && ($tblSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                        $tblStudentSubjectType))
+                ) {
+                    /** @var TblStudentSubject $tblStudentSubject */
+                    $tblStudentSubject = current($tblSubjectList);
+                    if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+
+                        if (($tblSetting = Consumer::useService()->getSetting('Api', 'Education', 'Certificate',
+                                'OrientationAcronym'))
+                            && ($value = $tblSetting->getValue())
+                        ) {
+                            $subjectAcronymForGrade = $value;
+                        } else {
+                            $subjectAcronymForGrade = $tblSubject->getAcronym();
+                        }
+
+                        $elementObligationName = new Element();
+                        $elementObligationName
+                            ->setContent('
+                            {% if(Content.P' . $personId . '.Student.Orientation["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                 {{ Content.P' . $personId . '.Student.Orientation["' . $tblSubject->getAcronym() . '"].Name' . ' }}
+                            {% else %}
+                                 &nbsp;
+                            {% endif %}')
+                            ->stylePaddingTop('0px')
+                            ->stylePaddingBottom('0px')
+                            ->styleMarginTop('7px')
+                            ->styleTextSize($TextSize)
+                            ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT);
+
+                        $elementObligationGrade = new Element();
+                        $elementObligationGrade
+                            ->setContent('
+                            {% if(Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] is not empty) %}
+                                {{ Content.P' . $personId . '.Grade.Data["' . $subjectAcronymForGrade . '"] }}
+                            {% else %}
+                                &ndash;
+                            {% endif %}')
+                            ->styleAlignCenter()
+                            ->styleBackgroundColor('#E6E6E6')
+                            ->stylePaddingTop(
+                                '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronymForGrade . '"] is not empty) %}
+                                 ' . $paddingTopShrinking . ' 
+                             {% else %}
+                                 4px
+                             {% endif %}'
+                            )
+                            ->stylePaddingBottom(
+                                '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronymForGrade . '"] is not empty) %}
+                                  ' . $paddingBottomShrinking . ' 
+                             {% else %}
+                                 4px
+                             {% endif %}'
+                            )
+                            ->styleTextSize(
+                                '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $subjectAcronymForGrade . '"] is not empty) %}
+                                 ' . $TextSizeSmall . '
+                             {% else %}
+                                 ' . $TextSize . '
+                             {% endif %}'
+                            )
+                            ->styleMarginTop($marginTop)
+                            ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT);
+                    }
+                }
+
+                // 2. Fremdsprache
+                if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+                    && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                        $tblStudentSubjectType))
+                ) {
+                    /** @var TblStudentSubject $tblStudentSubject */
+                    foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                        if ($tblStudentSubject->getTblStudentSubjectRanking()
+                            && $tblStudentSubject->getTblStudentSubjectRanking()->getIdentifier() == '2'
+                            && ($tblSubject = $tblStudentSubject->getServiceTblSubject())
+                        ) {
+
+                            if (($tblLevelFrom = $tblStudentSubject->getServiceTblLevelFrom())) {
+                                $Level = $tblLevelFrom->getName();
+                                if (!$Level) {
+                                    $Level = 'false';
+                                }
+                            }
+
+                            $elementForeignLanguageName = new Element();
+                            $elementForeignLanguageName
+                                ->setContent('
+                            {% if(Content.P' . $personId . '.Student.ForeignLanguage["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                 {{ Content.P' . $personId . '.Student.ForeignLanguage["' . $tblSubject->getAcronym() . '"].Name' . ' }}
+                            {% else %}
+                                 &nbsp;
+                            {% endif %}')
+                                ->stylePaddingTop('0px')
+                                ->stylePaddingBottom('0px')
+                                ->styleMarginTop('7px')
+                                ->styleTextSize($TextSize)
+                                ->styleFontFamily(self::FONT_FAMILY)
+                                ->styleLineHeight(self::LINE_HEIGHT);
+
+                            $elementForeignLanguageGrade = new Element();
+                            $elementForeignLanguageGrade
+                                ->setContent('
+                            {% if(Content.P' . $personId . '.Grade.Data["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                {{ Content.P' . $personId . '.Grade.Data["' . $tblSubject->getAcronym() . '"] }}
+                            {% else %}
+                                &ndash;
+                            {% endif %}')
+                                ->styleAlignCenter()
+                                ->styleBackgroundColor('#E6E6E6')
+                                ->stylePaddingTop(
+                                    '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                 ' . $paddingTopShrinking . ' 
+                             {% else %}
+                                 4px
+                             {% endif %}'
+                                )
+                                ->stylePaddingBottom(
+                                    '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                  ' . $paddingBottomShrinking . ' 
+                             {% else %}
+                                 4px
+                             {% endif %}'
+                                )
+                                ->styleTextSize(
+                                    '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $tblSubject->getAcronym() . '"] is not empty) %}
+                                 ' . $TextSizeSmall . '
+                             {% else %}
+                                 ' . $TextSize . '
+                             {% endif %}'
+                                )
+                                ->styleMarginTop($marginTop)
+                                ->styleFontFamily(self::FONT_FAMILY)
+                                ->styleLineHeight(self::LINE_HEIGHT);
+                        }
                     }
                 }
             }
@@ -724,13 +861,15 @@ abstract class EzshStyle extends Certificate
             // aktuell immer anzeigen
 //            if ($elementOrientationName || $elementForeignLanguageName) {
             $section = new Section();
-            if($isInformatics){
+            if($isProfile){
                 $section
                     ->addElementColumn((new Element())
                         ->setContent('Wahlpflichtbereich mit informatorischer Bildung ab Klasse 8:')
                         ->styleTextBold()
                         ->styleMarginTop('10px')
                         ->styleTextSize($TextSize)
+                        ->styleFontFamily(self::FONT_FAMILY_BOLD)
+                        ->styleLineHeight(self::LINE_HEIGHT)
                     );
             } else {
                 $section
@@ -739,39 +878,59 @@ abstract class EzshStyle extends Certificate
                         ->styleTextBold()
                         ->styleMarginTop('10px')
                         ->styleTextSize($TextSize)
+                        ->styleFontFamily(self::FONT_FAMILY_BOLD)
+                        ->styleLineHeight(self::LINE_HEIGHT)
                     );
             }
 
             $sectionList[] = $section;
 //            }
 
-            if ($elementOrientationName) {
+            if ($elementObligationName) {
                 $section = new Section();
                 $section
-                    ->addElementColumn($elementOrientationName, (string)$subjectWidth.'%')
-                    ->addElementColumn($elementOrientationGrade, (string)$gradeWidth.'%');
+                    ->addElementColumn($elementObligationName, (string)$subjectWidth.'%')
+                    ->addElementColumn($elementObligationGrade, (string)$gradeWidth.'%');
                 $sectionList[] = $section;
 
                 $section = new Section();
-                if($isInformatics) {
+                if($isProfile) {
                     $section
                         ->addElementColumn((new Element())
                             ->styleBorderTop('1px', '#BBB')
                             ->stylePaddingTop()
                             ->stylePaddingBottom('10px')
+                            ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT)
                             , (string)($subjectWidth - 2) . '%')
                         ->addElementColumn((new Element()), (string)($gradeWidth + 2) . '%');
                     $sectionList[] = $section;
                 } else {
                     $section
                         ->addElementColumn((new Element())
-                            ->setContent('2. Fremdsprache ab Klasse 6 / <u>Neigungskurs ab Klasse 7</u>')
+                            ->setContent('2. Fremdsprache ab Klasse 6 / Neigungskurs ab Klasse 7')
                             ->styleBorderTop('1px', '#BBB')
                             ->styleMarginTop('0px')
                             ->stylePaddingTop()
                             ->styleTextSize('13px')
+                            ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT)
                             , (string)($subjectWidth - 2) . '%')
                         ->addElementColumn((new Element()), (string)($gradeWidth + 2) . '%');
+                    $sectionList[] = $section;
+
+                    // Unterstreichung NK
+                    $section = new Section();
+                    $section
+                        ->addElementColumn((new Element()), '27%')
+                        ->addElementColumn((new Element())
+                            ->setContent('&nbsp;')
+                            ->stylePaddingTop('0px')
+                            ->stylePaddingBottom('0px')
+                            ->styleTextSize('1px')
+                            ->styleBorderTop('0.5px')
+                            , '23%')
+                        ->addElementColumn((new Element()));
                     $sectionList[] = $section;
                 }
             } elseif ($elementForeignLanguageName) {
@@ -784,37 +943,56 @@ abstract class EzshStyle extends Certificate
 
                 $section = new Section();
                 //Wahlfach Fremdsprache finden
-                if($isInformatics) {
+                if($isProfile) {
                     $section
                         ->addElementColumn((new Element())
                             ->styleBorderTop('1px', '#BBB')
                             ->stylePaddingTop()
                             ->stylePaddingBottom('10px')
+                            ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT)
                             , (string)($subjectWidth - 2) . '%')
                         ->addElementColumn((new Element()), (string)($gradeWidth + 2) . '%');
                     $sectionList[] = $section;
                 } else {
                     $section
                         ->addElementColumn((new Element())
-                            ->setContent(' <u>2. Fremdsprache ab Klasse 
+                            ->setContent('2. Fremdsprache ab Klasse
                         {% if ' . $Level . ' == false %}
                             6
                         {% else %}
                             ' . $Level . '
                         {% endif %}
-                        </u> / Neigungskurs ab Klasse 7')
+                        / Neigungskurs ab Klasse 7')
                             ->styleBorderTop('1px', '#BBB')
                             ->stylePaddingTop()
                             ->styleTextSize('13px')
+                            ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT)
                             , (string)($subjectWidth - 2) . '%')
                         ->addElementColumn((new Element()), (string)($gradeWidth + 2) . '%');
+                    $sectionList[] = $section;
+
+                    // Unterstreichung 2. FS
+                    $section = new Section();
+                    $section
+                        ->addElementColumn((new Element())
+                            ->setContent('&nbsp;')
+                            ->stylePaddingTop('0px')
+                            ->stylePaddingBottom('0px')
+                            ->styleTextSize('1px')
+                            ->styleBorderTop('0.5px')
+                            , '25%')
+                        ->addElementColumn((new Element()));
                     $sectionList[] = $section;
                 }
             } else {
                 $elementName = (new Element())
                     ->setContent('---')
                     ->styleMarginTop($marginTop)
-                    ->styleTextSize($TextSize);
+                    ->styleTextSize($TextSize)
+                    ->styleFontFamily(self::FONT_FAMILY)
+                    ->styleLineHeight(self::LINE_HEIGHT);
 
                 $elementGrade = (new Element())
                     ->setContent('&ndash;')
@@ -823,7 +1001,9 @@ abstract class EzshStyle extends Certificate
                     ->stylePaddingTop('4px')
                     ->stylePaddingBottom('4px')
                     ->styleTextSize($TextSize)
-                    ->styleMarginTop($marginTop);
+                    ->styleMarginTop($marginTop)
+                    ->styleFontFamily(self::FONT_FAMILY)
+                    ->styleLineHeight(self::LINE_HEIGHT);
 
                 $section = new Section();
                 $section
@@ -835,7 +1015,7 @@ abstract class EzshStyle extends Certificate
                         , '17%');
                 $sectionList[] = $section;
                 $section = new Section();
-                if($isInformatics) {
+                if($isProfile) {
                     $section
                         ->addElementColumn((new Element())
                             ->styleBorderTop('1px', '#BBB')
@@ -854,10 +1034,12 @@ abstract class EzshStyle extends Certificate
                         {% else %}
                             ' . $Level . '
                         {% endif %}'
-                                . '/ Neigungskurs ab Klasse 7 test 2')
+                                . '/ Neigungskurs ab Klasse 7')
                             ->styleBorderTop('1px', '#BBB')
                             ->stylePaddingTop()
                             ->styleTextSize('13px')
+                            ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT)
                             , '80%')
                         ->addElementColumn((new Element())
                             , '20%');
@@ -867,13 +1049,15 @@ abstract class EzshStyle extends Certificate
         } else {
 
             $section = new Section();
-            if($isInformatics){
+            if($isProfile){
                 $section
                     ->addElementColumn((new Element())
                         ->setContent('Wahlpflichtbereich mit informatorischer Bildung ab Klasse 8:')
                         ->styleTextBold()
                         ->styleMarginTop('10px')
                         ->styleTextSize($TextSize)
+                        ->styleFontFamily(self::FONT_FAMILY_BOLD)
+                        ->styleLineHeight(self::LINE_HEIGHT)
                     );
             } else {
                 $section
@@ -882,6 +1066,8 @@ abstract class EzshStyle extends Certificate
                         ->styleTextBold()
                         ->styleMarginTop('10px')
                         ->styleTextSize($TextSize)
+                        ->styleFontFamily(self::FONT_FAMILY_BOLD)
+                        ->styleLineHeight(self::LINE_HEIGHT)
                     );
             }
             $sectionList[] = $section;
@@ -889,7 +1075,9 @@ abstract class EzshStyle extends Certificate
             $elementName = (new Element())
                 ->setContent('---')
                 ->styleMarginTop($marginTop)
-                ->styleTextSize($TextSize);
+                ->styleTextSize($TextSize)
+                ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT);
 
             $elementGrade = (new Element())
                 ->setContent('&ndash;')
@@ -898,7 +1086,9 @@ abstract class EzshStyle extends Certificate
                 ->stylePaddingTop('4px')
                 ->stylePaddingBottom('4px')
                 ->styleTextSize($TextSize)
-                ->styleMarginTop($marginTop);
+                ->styleMarginTop($marginTop)
+                ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT);
 
             $section = new Section();
             $section
@@ -910,7 +1100,7 @@ abstract class EzshStyle extends Certificate
                     , '17%');
             $sectionList[] = $section;
             $section = new Section();
-            if($isInformatics){
+            if($isProfile){
                 $section
                     ->addElementColumn((new Element())
                         ->styleBorderTop('1px', '#BBB')
@@ -928,6 +1118,8 @@ abstract class EzshStyle extends Certificate
                         ->styleBorderTop('1px', '#BBB')
                         ->stylePaddingTop()
                         ->styleTextSize('13px')
+                        ->styleFontFamily(self::FONT_FAMILY)
+                        ->styleLineHeight(self::LINE_HEIGHT)
                         , '80%')
                     ->addElementColumn((new Element())
                         , '20%');
@@ -955,6 +1147,8 @@ abstract class EzshStyle extends Certificate
                     &nbsp;
                 {% endif %}')
             ->styleBorderBottom('1px', '#BBB')
+            ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
             , '46%')
             ->addSliceColumn(
                 $this->setCheckBox('{% if(Content.P'.$personId.'.Input.PerformanceGroup is not empty) %}
@@ -967,6 +1161,8 @@ abstract class EzshStyle extends Certificate
             )
             ->addElementColumn((new Element())
                 ->setContent('teilgenommen')
+                ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '22%'
             )
             ->addSliceColumn(
@@ -980,12 +1176,16 @@ abstract class EzshStyle extends Certificate
             )
             ->addElementColumn((new Element())
                 ->setContent('nicht teilgenommen')
+                ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '22%'
             );
         $SectionList[] = $Section;
         $Section = new Section();
         $Section->addElementColumn((new Element())
             ->setContent('Leistungsgruppe')
+            ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
         );
         $SectionList[] = $Section;
 
@@ -998,7 +1198,7 @@ abstract class EzshStyle extends Certificate
      *
      * @return Section[]
      */
-    public function getEZSHRating($personId, $Height = '575px')
+    public function getEZSHRating($personId, $Height = '570px')
     {
         $SectionList = array();
         $Section = new Section();
@@ -1007,6 +1207,8 @@ abstract class EzshStyle extends Certificate
             ->styleTextSize('10pt')
             ->styleTextBold()
             ->stylePaddingBottom('4px')
+            ->styleFontFamily(self::FONT_FAMILY_BOLD)
+            ->styleLineHeight(self::LINE_HEIGHT)
         )
         );
         $SectionList[] = $Section;
@@ -1015,9 +1217,11 @@ abstract class EzshStyle extends Certificate
             ->setContent('{% if(Content.P'.$personId.'.Input.Rating is not empty) %}
                     {{ Content.P'.$personId.'.Input.Rating|nl2br }}
                 {% else %}
-                    &nbsp;
+                    ---
                 {% endif %}')
             ->styleHeight($Height)
+            ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
         );
         $SectionList[] = $Section;
         return $SectionList;
@@ -1038,17 +1242,21 @@ abstract class EzshStyle extends Certificate
             ->styleTextSize('10pt')
             ->styleTextBold()
             ->stylePaddingBottom('4px')
+            ->styleFontFamily(self::FONT_FAMILY_BOLD)
+            ->styleLineHeight(self::LINE_HEIGHT)
         );
         $SectionList[] = $Section;
         $Section = new Section();
         $Section->addElementColumn((new Element())
-            ->setContent('{% if(Content.P'.$personId.'.Input.Remark is not empty) %}
-                    {{ Content.P'.$personId.'.Input.Remark|nl2br }}
+            ->setContent('{% if(Content.P'.$personId.'.Input.RemarkWithoutTeam is not empty) %}
+                    {{ Content.P'.$personId.'.Input.RemarkWithoutTeam|nl2br }}
                 {% else %}
-                    &nbsp;
+                    ---
                 {% endif %}')
 //            ->styleAlignJustify()
             ->styleHeight($Height)
+            ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
         );
         $SectionList[] = $Section;
         return $SectionList;
@@ -1068,12 +1276,16 @@ abstract class EzshStyle extends Certificate
             ->setContent('FEHLTAGE')
             ->styleTextBold()
             ->stylePaddingBottom('5px')
+            ->styleFontFamily(self::FONT_FAMILY_BOLD)
+            ->styleLineHeight(self::LINE_HEIGHT)
         );
         $SectionList[] = $Section;
 
         $Section = new Section();
         $Section->addElementColumn((new Element())
             ->setContent('entschuldigt')
+            ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
             , '16%')
             ->addElementColumn((new Element())
                 ->setContent('{% if(Content.P'.$personId.'.Input.Missing is not empty) %}
@@ -1083,11 +1295,15 @@ abstract class EzshStyle extends Certificate
             {% endif %}')
                 ->styleAlignCenter()
                 ->styleBorderBottom('1px', '#BBB')
+                ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '18%')
             ->addElementColumn((new Element())
                 , '15%')
             ->addElementColumn((new Element())
                 ->setContent('unentschuldigt')
+                ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '18%')
             ->addElementColumn((new Element())
                 ->setContent('{% if(Content.P'.$personId.'.Input.Bad.Missing is not empty) %}
@@ -1097,6 +1313,8 @@ abstract class EzshStyle extends Certificate
             {% endif %}')
                 ->styleAlignCenter()
                 ->styleBorderBottom('1px', '#BBB')
+                ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '18%')
             ->addElementColumn((new Element())
                 , '15%');
@@ -1114,6 +1332,8 @@ abstract class EzshStyle extends Certificate
         $Section = new Section();
         $Section->addElementColumn((new Element())
             ->setContent('Versetzungsvermerk:')
+            ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
             , '21%')
             ->addElementColumn((new Element())
                 ->setContent('{% if(Content.P'.$personId.'.Input.Transfer) %}
@@ -1123,6 +1343,8 @@ abstract class EzshStyle extends Certificate
                                     {% endif %}')
                 ->styleBorderBottom('1px')
                 ->stylePaddingLeft('7px')
+                ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '58%')
             ->addElementColumn((new Element())
                 , '20%');
@@ -1147,18 +1369,24 @@ abstract class EzshStyle extends Certificate
                 {% endif %}')
             ->styleBorderBottom('1px', '#BBB')
             ->styleAlignCenter()
+            ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
             , '15%')
             ->addElementColumn((new Element())
                 , '10%')
             ->addElementColumn((new Element())
                 ->setContent('&nbsp;')
                 ->styleBorderBottom('1px', '#BBB')
+                ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '30%')
             ->addElementColumn((new Element())
                 , '10%')
             ->addElementColumn((new Element())
                 ->setContent('&nbsp;')
                 ->styleBorderBottom('1px', '#BBB')
+                ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '30%')
             ->addElementColumn((new Element())
                 , '5%');
@@ -1166,6 +1394,8 @@ abstract class EzshStyle extends Certificate
         $Section = new Section();
         $Section->addElementColumn((new Element())
             ->setContent('Datum')
+            ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
             , '25%'
         );
         $Section->addElementColumn((new Element())
@@ -1174,10 +1404,14 @@ abstract class EzshStyle extends Certificate
                 {% else %}
                     Klassenlehrer(in)
                 {% endif %}')
+            ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
             , '40%'
         );
         $Section->addElementColumn((new Element())
             ->setContent('Für den Schulträger')
+            ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
             , '35%'
         );
         $SectionList[] = $Section;
@@ -1193,13 +1427,19 @@ abstract class EzshStyle extends Certificate
         $SectionList = array();
         $SectionList[] = (new Section())->addElementColumn((new Element())
             ->setContent('Zur Kenntnis genommen:')
+            ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
             , '30%')
             ->addElementColumn((new Element())
                 ->setContent('&nbsp;')
                 ->styleBorderBottom('1px', '#BBB')
+                ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '65%')
             ->addElementColumn((new Element())
                 ->setContent('&nbsp;')
+                ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '5%');
 
         $SectionList[] = (new Section())
@@ -1208,6 +1448,8 @@ abstract class EzshStyle extends Certificate
             )
             ->addElementColumn((new Element())
                 ->setContent('Personensorgeberechtigte(r) ')
+                ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
                 , '70%'
             );
 
@@ -1227,6 +1469,8 @@ abstract class EzshStyle extends Certificate
             ->setContent('Noten: 1 = sehr gut, 2 = gut, 3 = befriedigend, 4 = ausreichend, 5 = mangelhalft, 6 = ungenügend')
             ->styleTextSize('8pt')
             ->stylePaddingBottom(($isExtend ? '0px' : '12px' ))
+            ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
         );
         $SectionList[] = $Section;
         if($isExtend){
@@ -1235,9 +1479,47 @@ abstract class EzshStyle extends Certificate
                 ->setContent('* Bei Belegung der zweiten abschlussorientierten Fremdsprache entfällt der Neigungskurs (§ 18 SOMIA)')
                 ->styleTextSize('8pt')
                 ->stylePaddingTop()
+                ->styleFontFamily(self::FONT_FAMILY)
+                ->styleLineHeight(self::LINE_HEIGHT)
             );
             $SectionList[] = $Section;
         }
+        return $SectionList;
+    }
+
+    /**
+     * @param int    $personId
+     * @param string $Height
+     *
+     * @return Section[]
+     */
+    public function getEZSHArrangement($personId, $Height = '100px')
+    {
+        $SectionList = array();
+        $Section = new Section();
+        $Section->addElementColumn(((new Element())
+            ->setContent('Besonderes Engagement an den Zinzendorfschulen')
+            ->styleTextSize('14px')
+            ->styleMarginTop('20px')
+            ->styleTextBold()
+            ->stylePaddingBottom('4px')
+            ->styleFontFamily(self::FONT_FAMILY_BOLD)
+            ->styleLineHeight(self::LINE_HEIGHT)
+        )
+        );
+        $SectionList[] = $Section;
+        $Section = new Section();
+        $Section->addElementColumn((new Element())
+            ->setContent('{% if(Content.P'.$personId.'.Input.Arrangement is not empty) %}
+                    {{ Content.P'.$personId.'.Input.Arrangement|nl2br }}
+                {% else %}
+                    ---
+                {% endif %}')
+            ->styleHeight($Height)
+            ->styleFontFamily(self::FONT_FAMILY)
+            ->styleLineHeight(self::LINE_HEIGHT)
+        );
+        $SectionList[] = $Section;
         return $SectionList;
     }
 }

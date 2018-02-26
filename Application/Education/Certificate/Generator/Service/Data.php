@@ -17,8 +17,6 @@ use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationCategory;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -65,22 +63,9 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
         }
 
-        $tblCertificate = $this->createCertificate('Bildungsempfehlung', 'Mittelschule Klasse 5-6', 'BeMi');
-        if ($tblCertificate) {
-            if ($tblSchoolTypeSecondary) {
-                $this->updateCertificate($tblCertificate, $tblCertificateTypeRecommendation, $tblSchoolTypeSecondary);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-            }
-        }
-        if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-            $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
-            $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
-            $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+        // SSW-1981 Deaktivierung Bildungsempfehlung Klasse 5/6
+        if (($tblCertificate = $this->getCertificateByCertificateClassName('BeMi'))) {
+            $this->destroyCertificate($tblCertificate);
         }
 
         $tblCertificate = $this->createCertificate('Bildungsempfehlung', '§ 34 Abs. 3 SOFS', 'BeSOFS');
@@ -141,8 +126,7 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'MU', 1, 5);
 
             $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-            $this->setCertificateSubject($tblCertificate, 'SPO', 2, 2, true,
-                Student::useService()->getStudentLiberationCategoryById(1));
+            $this->setCertificateSubject($tblCertificate, 'SPO', 2, 2, true);
             $this->setCertificateSubject($tblCertificate, 'RELI', 2, 3);
             $this->setCertificateSubject($tblCertificate, 'WK', 2, 4);
         }
@@ -201,8 +185,7 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'MU', 1, 5);
 
             $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-            $this->setCertificateSubject($tblCertificate, 'SPO', 2, 2, true,
-                Student::useService()->getStudentLiberationCategoryById(1));
+            $this->setCertificateSubject($tblCertificate, 'SPO', 2, 2, true);
             $this->setCertificateSubject($tblCertificate, 'RELI', 2, 3);
             $this->setCertificateSubject($tblCertificate, 'WK', 2, 4);
         }
@@ -2788,7 +2771,7 @@ class Data extends AbstractData
                             $this->createCertificateField($tblCertificate, $FieldName, 2500);
                         }
                         // Begrenzung Bemerkungsfeld
-                        $FieldName = 'Remark';
+                        $FieldName = 'RemarkWithoutTeam';
                         if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
                             $this->createCertificateField($tblCertificate, $FieldName, 1000);
                         }
@@ -2840,7 +2823,7 @@ class Data extends AbstractData
                             $this->createCertificateField($tblCertificate, $FieldName, 2500);
                         }
                         // Begrenzung Bemerkungsfeld
-                        $FieldName = 'Remark';
+                        $FieldName = 'RemarkWithoutTeam';
                         if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
                             $this->createCertificateField($tblCertificate, $FieldName, 1000);
                         }
@@ -2883,7 +2866,7 @@ class Data extends AbstractData
                             $this->createCertificateField($tblCertificate, $FieldName, 2500);
                         }
                         // Begrenzung Bemerkungsfeld
-                        $FieldName = 'Remark';
+                        $FieldName = 'RemarkWithoutTeam';
                         if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
                             $this->createCertificateField($tblCertificate, $FieldName, 1000);
                         }
@@ -2910,6 +2893,54 @@ class Data extends AbstractData
                         }
                     }
                     // weitere Zeugnisse EZSH
+                }
+            }
+
+            if ($tblConsumer->getAcronym() == 'CSW' || $tblConsumer->getAcronym() == 'DEMO') {
+                // declare active Consumer
+                $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('CSW');
+                if ($tblConsumerCertificate) {
+                    $tblCertificate = $this->createCertificate('Mittelschule Halbjahresinformation', 'Klasse 5-6',
+                        'CSW\CswMsHalbjahresinformation', $tblConsumerCertificate);
+                    if ($tblCertificate) {
+                        if ($tblSchoolTypeSecondary) {
+                            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear,
+                                $tblSchoolTypeSecondary, null, true);
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                        }
+                        // Begrenzung des Bemerkungsfeld
+                        $FieldName = 'Remark';
+                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                            $this->createCertificateField($tblCertificate, $FieldName, 600);
+                        }
+                    }
+                    if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+                        $this->setCertificateGradeAllStandard($tblCertificate);
+                    }
+                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+                        $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
+                        $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
+                        $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+                        $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
+                        $this->setCertificateSubject($tblCertificate, 'GK', 1, 6);
+                        $this->setCertificateSubject($tblCertificate, 'GEO', 1, 7);
+                        $this->setCertificateSubject($tblCertificate, 'WTH', 1, 8);
+
+                        $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                        $this->setCertificateSubject($tblCertificate, 'BIO', 2, 2);
+                        $this->setCertificateSubject($tblCertificate, 'CH', 2, 3);
+                        $this->setCertificateSubject($tblCertificate, 'PH', 2, 4);
+                        $this->setCertificateSubject($tblCertificate, 'SPO', 2, 5);
+                        $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6);
+                        $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
+                        $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
+                    }
                 }
             }
         }
@@ -3021,7 +3052,6 @@ class Data extends AbstractData
      * @param int $LaneRanking
      * @param TblSubject $tblSubject
      * @param bool $IsEssential
-     * @param null|TblStudentLiberationCategory $tblStudentLiberationCategory
      *
      * @return TblCertificateSubject
      */
@@ -3030,8 +3060,7 @@ class Data extends AbstractData
         $LaneIndex,
         $LaneRanking,
         TblSubject $tblSubject,
-        $IsEssential = false,
-        TblStudentLiberationCategory $tblStudentLiberationCategory = null
+        $IsEssential = false
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -3046,7 +3075,6 @@ class Data extends AbstractData
             $Entity->setLane($LaneIndex);
             $Entity->setRanking($LaneRanking);
             $Entity->setServiceTblSubject($tblSubject);
-            $Entity->setServiceTblStudentLiberationCategory($tblStudentLiberationCategory);
             $Entity->setEssential($IsEssential);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -3058,15 +3086,13 @@ class Data extends AbstractData
      * @param TblCertificateSubject $tblCertificateSubject
      * @param TblSubject $tblSubject
      * @param bool $IsEssential
-     * @param null|TblStudentLiberationCategory $tblStudentLiberationCategory
      *
      * @return bool
      */
     public function updateCertificateSubject(
         TblCertificateSubject $tblCertificateSubject,
         TblSubject $tblSubject,
-        $IsEssential = false,
-        TblStudentLiberationCategory $tblStudentLiberationCategory = null
+        $IsEssential = false
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -3075,7 +3101,6 @@ class Data extends AbstractData
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setServiceTblSubject($tblSubject);
-            $Entity->setServiceTblStudentLiberationCategory($tblStudentLiberationCategory);
             $Entity->setEssential($IsEssential);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -3328,15 +3353,13 @@ class Data extends AbstractData
      * @param $LaneIndex
      * @param $LaneRanking
      * @param bool|true $IsEssential
-     * @param TblStudentLiberationCategory|null $tblStudentLiberationCategory
      */
     private function setCertificateSubject(
         TblCertificate $tblCertificate,
         $SubjectAcronym,
         $LaneIndex,
         $LaneRanking,
-        $IsEssential = true,
-        TblStudentLiberationCategory $tblStudentLiberationCategory = null
+        $IsEssential = true
     ) {
 
         // Chemnitz abweichende Fächer
@@ -3369,7 +3392,7 @@ class Data extends AbstractData
 
         if ($tblSubject){
             $this->createCertificateSubject($tblCertificate, $LaneIndex, $LaneRanking, $tblSubject,
-                $IsEssential, $tblStudentLiberationCategory);
+                $IsEssential);
         }
     }
 

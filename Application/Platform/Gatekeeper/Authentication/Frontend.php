@@ -31,6 +31,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Off;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\Picture;
+use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\Icon\Repository\YubiKey;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -49,6 +50,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Danger as DangerMessage;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\ITextInterface;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -76,6 +78,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Willkommen', '', '');
+        $IsMaintenance = false;
         $content = false;
         $IsEqual = false;
         $IsNavigationAssistance = false;
@@ -111,14 +114,33 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
-
+        $maintenanceMessage = '';
+        if ($IsMaintenance) {
+            $now = new \DateTime();
+            if ($now >= new \DateTime('22:00')) {
+                $maintenanceMessage = new DangerMessage(new WarningIcon().' Achtung heute ('.$now->format('d.m.Y').') ab 22:00 Wartungsarbeiten ');
+            } elseif ($now >= new \DateTime('20:00')) {
+                $maintenanceMessage = new Warning(new WarningIcon().' Achtung heute ('.$now->format('d.m.Y').') ab 22:00 Wartungsarbeiten ');
+            }
+        }
         $Stage->setContent(
-            ($IsEqual
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ($IsMaintenance
+                                ? $maintenanceMessage
+                                : ''
+                            )
+                        )
+                    )
+                )
+            )
+            .($IsEqual
                 ? $this->layoutPasswordChange()
                 : ''
             )
-            .
-            ($IsNavigationAssistance
+            .($IsNavigationAssistance
                 ? $this->layoutNavigationAssistance()
                 : ''
             )

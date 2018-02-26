@@ -59,6 +59,7 @@ use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -530,6 +531,19 @@ class Frontend extends Extension
         $Stage = new Stage('Zeugnis generieren', 'Klassenübersicht');
         $Stage->addButton(new Standard('Zurück', '/Education/Certificate/Generate', new ChevronLeft()));
 
+        $Stage->setMessage(
+            new Warning(new Bold('Hinweis: ')
+                . new Container('Für die automatischen Zuordnungen der Zeugnisvorlagen zu den Schülern werden
+                    die folgenden Daten herangezogen:')
+                . new Container('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&ndash; Die Schulart wird über Klasse ermittelt 
+                    (Bildung -> Unterricht).')
+                . new Container('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&ndash; Bei Zeugnisvorlagen der Mittelschule ab 
+                    Klasse 7 ist der Bildungsgang erforderlich (Schülerakte -> Schulverlauf -> Aktueller Bildungsgang).')
+                . new Container('Bei staatlichen Zeugnisvorlagen ist zusätzlich die aktuelle Schule erforderlich 
+                    (Schülerakte -> Schulverlauf -> Aktuelle Schule).')
+            )
+        );
+
         if (($tblGenerateCertificate = Generate::useService()->getGenerateCertificateById($GenerateCertificateId))) {
             $tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType();
             $tableData = array();
@@ -589,22 +603,19 @@ class Frontend extends Extension
                             }
                         }
 
+                        $hasMissingForeignLanguage = false;
                         // check missing subjects on certificates
-                        $missingSubjects = array();
-                        if (($checkSubjectList = Prepare::useService()->checkCertificateSubjectsForStudents($tblPrepare))) {
-                            foreach ($checkSubjectList as $subjects) {
-                                if (is_array($subjects)) {
-                                    foreach ($subjects as $acronym) {
-                                        $missingSubjects[$acronym] = $acronym;
-                                    }
-                                }
-                            }
+                        if (($missingSubjects = Prepare::useService()->checkCertificateSubjectsForDivision($tblPrepare, $certificateNameList, $hasMissingForeignLanguage))) {
                             ksort($missingSubjects);
                         }
-                        if (!empty($missingSubjects)) {
+                        if ($missingSubjects) {
                             $missingSubjectsString = new Warning(new Ban() .  ' ' . implode(', ',
                                 $missingSubjects) . (count($missingSubjects) > 1 ? ' fehlen' : ' fehlt')
-                                . ' auf Zeugnisvorlage(n)');
+                                . ' auf Zeugnisvorlage(n)'
+                                .($hasMissingForeignLanguage
+                                    ? ' ' . new ToolTip(new \SPHERE\Common\Frontend\Icon\Repository\Info(),
+                                        'Bei Fremdsprachen kann die Warnung unter Umständen ignoriert werden,
+                                         bitte prüfen Sie die Detailansicht unter Bearbeiten.') : ''));
                         } else {
                             $missingSubjectsString = new Success(
                                 new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Alle Fächer sind zugeordnet.'
