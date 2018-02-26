@@ -2844,6 +2844,26 @@ class Service extends AbstractService
     }
 
     /**
+     * @return false|TblLeaveStudent[]
+     */
+    public function  getLeaveStudentAll()
+    {
+
+        return (new Data($this->getBinding()))->getLeaveStudentAll();
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return false|TblLeaveStudent[]
+     */
+    public function  getLeaveStudentAllByDivision(TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->getLeaveStudentAllByDivision($tblDivision);
+    }
+
+    /**
      * @param TblLeaveStudent $tblLeaveStudent
      * @param TblSubject $tblSubject
      *
@@ -2962,5 +2982,21 @@ class Service extends AbstractService
             . new Redirect('/Education/Certificate/Prepare/Leave/Student', Redirect::TIMEOUT_SUCCESS, array(
                 'PersonId' => $tblPerson->getId(),
             ));
+    }
+
+    /**
+     * @param TblLeaveStudent $tblLeaveStudent
+     * @param bool $IsApproved
+     * @param bool $IsPrinted
+     *
+     * @return bool
+     */
+    public function updateLeaveStudent(
+        TblLeaveStudent $tblLeaveStudent,
+        $IsApproved = false,
+        $IsPrinted = false
+    ) {
+
+        return (new Data($this->getBinding()))->updateLeaveStudent($tblLeaveStudent, $IsApproved, $IsPrinted);
     }
 }

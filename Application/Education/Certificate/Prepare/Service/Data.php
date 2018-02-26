@@ -1405,6 +1405,27 @@ class Data extends AbstractData
     }
 
     /**
+     * @return false|TblLeaveStudent[]
+     */
+    public function  getLeaveStudentAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblLeaveStudent');
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return false|TblLeaveStudent[]
+     */
+    public function  getLeaveStudentAllByDivision(TblDivision $tblDivision)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblLeaveStudent',
+            array(TblLeaveStudent::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()));
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param TblDivision $tblDivision
      * @param TblCertificate $tblCertificate
@@ -1442,6 +1463,37 @@ class Data extends AbstractData
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param TblLeaveStudent $tblLeaveStudent
+     * @param bool $IsApproved
+     * @param bool $IsPrinted
+     *
+     * @return bool
+     */
+    public function updateLeaveStudent(
+        TblLeaveStudent $tblLeaveStudent,
+        $IsApproved = false,
+        $IsPrinted = false
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblLeaveStudent $Entity */
+        $Entity = $Manager->getEntityById('TblLeaveStudent', $tblLeaveStudent->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setApproved($IsApproved);
+            $Entity->setPrinted($IsPrinted);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
