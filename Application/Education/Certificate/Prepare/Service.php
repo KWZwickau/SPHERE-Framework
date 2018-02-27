@@ -1368,6 +1368,25 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblDivision $tblDivision
+     *
+     * @return array
+     */
+    public function getCertificateMultiLeaveContent(TblDivision $tblDivision) {
+        $Content = array();
+
+        if (($tblLeaveStudentList = $this->getLeaveStudentAllByDivision($tblDivision))) {
+            foreach ($tblLeaveStudentList as $tblLeaveStudent) {
+                if (($tblPerson = $tblLeaveStudent->getServiceTblPerson())) {
+                    $Content = $this->createCertificateContent(null, $tblLeaveStudent, $tblPerson, $Content);
+                }
+            }
+        }
+
+        return $Content;
+    }
+
+    /**
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      *
@@ -2850,6 +2869,18 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getLeaveStudentAll();
+    }
+
+    /**
+     * @param bool $IsApproved
+     * @param bool $IsPrinted
+     *
+     * @return false|TblLeaveStudent[]
+     */
+    public function getLeaveStudentAllBy($IsApproved = false, $IsPrinted = false)
+    {
+
+        return (new Data($this->getBinding()))->getLeaveStudentAllBy($IsApproved, $IsPrinted);
     }
 
     /**

@@ -1426,6 +1426,23 @@ class Data extends AbstractData
     }
 
     /**
+     * @param bool $IsApproved
+     * @param bool $IsPrinted
+     *
+     * @return false|TblLeaveStudent[]
+     */
+    public function getLeaveStudentAllBy($IsApproved = false, $IsPrinted = false)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblLeaveStudent',
+            array(
+                TblLeaveStudent::ATTR_IS_APPROVED => $IsApproved,
+                TblLeaveStudent::ATTR_IS_PRINTED => $IsPrinted
+            )
+        );
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param TblDivision $tblDivision
      * @param TblCertificate $tblCertificate
