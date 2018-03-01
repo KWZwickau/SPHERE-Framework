@@ -84,6 +84,7 @@ use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Sorter;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 /**
@@ -894,8 +895,22 @@ class Frontend extends Extension implements IFrontendInterface
 
         $contentTable = array();
         if ($tblTestList) {
-            array_walk($tblTestList, function (TblTest &$tblTest) use (&$BasicRoute, &$contentTable) {
-
+            if (($tblSetting = Consumer::useService()->getSetting(
+                'Education', 'Graduation', 'Evaluation', 'AutoPublicationOfTestsAfterXDays'))
+            ) {
+                $days = intval($tblSetting->getValue());
+            } else {
+                $days = false;
+            }
+            if (($tblTestTypeAppointedDateTask = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK'))) {
+                $tblTaskList = Evaluation::useService()->getTaskAllByDivision($tblDivision, $tblTestTypeAppointedDateTask);
+                if ($tblTaskList) {
+                    $tblTaskList = $this->getSorter($tblTaskList)->sortObjectBy('Date', new DateTimeSorter(), Sorter::ORDER_DESC);
+                }
+            } else {
+                $tblTaskList = false;
+            }
+            array_walk($tblTestList, function (TblTest &$tblTest) use (&$BasicRoute, &$contentTable, $days, $tblTaskList) {
                 $tblTask = $tblTest->getTblTask();
 
                 if ($tblTest->getServiceTblGradeType()) {
@@ -931,6 +946,75 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblTest->getFinishDate()) {
                     $stringDate = $tblTest->getFinishDate();
                     $stringReturnDate = $tblTest->getFinishDate();
+                }
+
+                // show autoReturnDate
+                if ($stringReturnDate == ''
+                    && $tblTest->getTblTestType()
+                    && $tblTest->getTblTestType()->getIdentifier() == 'TEST'
+                ){
+                    $autoReturnDateAppointedTask = false;
+                    // durch Stichtagsnotenauftrag
+                    $appointedDateTask = false;
+                    if ($tblTaskList) {
+                        /** @var TblTask $tblTask */
+                        foreach ($tblTaskList as $tblTask) {
+                            if (($date = $tblTask->getDate())
+                                && ($tblPeriod = $tblTest->getServiceTblPeriod())
+                                && ($toDatePeriod = $tblPeriod->getToDate())
+                                && ($dateTimeTask = new \DateTime($date))
+                                && ($toDateTimePeriod = new \DateTime($toDatePeriod))
+                                && $dateTimeTask < $toDateTimePeriod
+                            ) {
+                                $appointedDateTask = $tblTask;
+                                break;
+                            }
+                        }
+
+                        if ($appointedDateTask) {
+                            if ($tblTest->getDate()
+                                && ($testDate = (new \DateTime($tblTest->getDate())))
+                                && ($toDateTimeTask = new \DateTime($appointedDateTask->getToDate()))
+                                && ($nowDateTime = (new \DateTime('now')))
+                                && $testDate <= $toDateTimeTask
+                                && $toDateTimeTask < $nowDateTime
+                            ) {
+                                $autoReturnDateAppointedTask = $toDateTimeTask->add(new \DateInterval('P1D'));
+                            }
+                        }
+                    }
+
+                    // nach X Tagen
+                    $autoReturnDateDays = false;
+                    if ($days
+                        && $tblTest->getDate()
+                    ) {
+                        $testDate = (new \DateTime($tblTest->getDate()));
+                        $autoReturnDateDays = $testDate->add(
+                            new \DateInterval('P' . $days . 'D')
+                        );
+                    }
+
+                    if ($autoReturnDateAppointedTask && $autoReturnDateDays) {
+                        if ($autoReturnDateAppointedTask < $autoReturnDateDays) {
+                            $autoReturnDate = $autoReturnDateAppointedTask;
+                        } else {
+                            $autoReturnDate = $autoReturnDateDays;
+                        }
+                    } elseif ($autoReturnDateAppointedTask) {
+                        $autoReturnDate = $autoReturnDateAppointedTask;
+                    } else {
+                        $autoReturnDate = $autoReturnDateDays;
+                    }
+
+                    if ($autoReturnDate) {
+                        $stringReturnDate = $autoReturnDate->format('d.m.Y');
+                        $autoReturnDate = $autoReturnDate->format("Y-m-d");
+                        $now = (new \DateTime('now'))->format("Y-m-d");
+                        if ($autoReturnDate <= $now) {
+                            $stringReturnDate = new Success(new Bold($stringReturnDate));
+                        }
+                    }
                 }
 
                 $contentTable[] = array(
@@ -3023,7 +3107,6 @@ class Frontend extends Extension implements IFrontendInterface
                     $tableHeaderList[$tblDivision->getId()]['Name'] = 'Schüler';
                     $grades = array();
 
-                    $count = 1;
                     if (!empty($testList)) {
                         /** @var TblTest $tblTest */
                         foreach ($testList as $tblTest) {
