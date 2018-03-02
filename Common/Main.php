@@ -249,6 +249,9 @@ class Main extends Extension
                     if (!$Error) {
                         return;
                     }
+                    if (preg_match('!apc_store.*?was.*?on.*?gc-list.*?for!is', $Error['message'])) {
+                        return;
+                    }
                     $Display = new Display();
                     $Display->addServiceNavigation(
                         new Link(new Link\Route('/'), new Link\Name('Zurück zur Anwendung'))
