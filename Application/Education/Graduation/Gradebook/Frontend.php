@@ -37,6 +37,7 @@ use SPHERE\Application\Setting\User\Account\Account as UserAccount;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -1432,6 +1433,7 @@ class Frontend extends FrontendScoreRule
                             )
                         )
                     ),
+                    new FormColumn(new HiddenField('ParentAccount[IsSubmit]'))
                 ))
             )
         );
@@ -1833,6 +1835,9 @@ class Frontend extends FrontendScoreRule
                 }
             }
 
+            if (!empty($formGroupList)) {
+                $formGroupList[] = new FormGroup(new FormRow(new FormColumn(new HiddenField('Data[IsSubmit]'))));
+            }
 
             $Stage->setContent(
                 new Layout(array(

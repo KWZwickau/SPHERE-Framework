@@ -169,12 +169,11 @@ class Service extends AbstractService
         /**
          * Skip to Frontend
          */
-        $Global = $this->getGlobal();
-        if (!isset($Global->POST['Button']['Submit'])) {
+        if ($Data === null) {
             return $Form;
         }
 
-        if ($Data !== null && !empty($Data)) {
+        if ($Data !== null && isset($Data['Division'])) {
             $saveCertificatesForStudents = array();
             $tblConsumerBySession = Consumer::useService()->getConsumerBySession();
             foreach ($Data['Division'] as $divisionId => $value) {
@@ -515,8 +514,7 @@ class Service extends AbstractService
         /**
          * Skip to Frontend
          */
-        $Global = $this->getGlobal();
-        if (!isset($Global->POST['Button']['Submit'])) {
+        if ($Data === null) {
             return $Form;
         }
 

@@ -27,6 +27,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -1562,6 +1563,10 @@ class Frontend extends FrontendMinimumGradeCount
                 }
             }
 
+            if (!empty($formGroupList)) {
+                $formGroupList[] = new FormGroup(new FormRow(new FormColumn(new HiddenField('Data[IsSubmit]'))));
+            }
+
             $Stage->setContent(
                 new Layout(array(
                     new LayoutGroup(array(
@@ -1752,6 +1757,10 @@ class Frontend extends FrontendMinimumGradeCount
                         }
                     }
                 }
+            }
+
+            if (!empty($formGroupList)) {
+                $formGroupList[] = new FormGroup(new FormRow(new FormColumn(new HiddenField('Data[IsSubmit]'))));
             }
 
             $Stage->setContent(

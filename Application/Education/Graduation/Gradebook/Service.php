@@ -372,8 +372,7 @@ class Service extends ServiceScoreRule
         if ($TestId === null) {
             return $Stage;
         }
-        $Global = $this->getGlobal();
-        if (!isset($Global->POST['Button']['Submit'])) {
+        if ($Grade === null) {
             return $Stage;
         }
 
@@ -1096,8 +1095,7 @@ class Service extends ServiceScoreRule
         /**
          * Skip to Frontend
          */
-        $Global = $this->getGlobal();
-        if (!isset($Global->POST['Button']['Submit']) || $tblYear == null) {
+        if ($Data === null || $tblYear == null) {
             return $Stage;
         }
 
@@ -1455,9 +1453,12 @@ class Service extends ServiceScoreRule
         /**
          * Skip to Frontend
          */
-        $Global = $this->getGlobal();
-        if (!isset($Global->POST['Button']['Submit'])) {
+        if ($ParentAccount === null) {
             return $Form;
+        }
+
+        if (isset($ParentAccount['IsSubmit'])) {
+            unset($ParentAccount['IsSubmit']);
         }
 
         $Error = false;
