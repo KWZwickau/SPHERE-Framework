@@ -24,6 +24,12 @@ class Individual implements IApplicationInterface, IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __NAMESPACE__.'\Frontend::frontendDashboard'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Student', __NAMESPACE__.'\Frontend::frontendStudent'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Group', __NAMESPACE__.'\Frontend::frontendGroup'
+        ));
     }
 
     public static function registerModule()

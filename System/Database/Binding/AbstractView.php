@@ -392,10 +392,17 @@ abstract class AbstractView extends Element
         }
         // Add "ALL" Option
         if( $PropertyCount == 1 ) {
-            $Data = array_merge(array('' => 'Alle'), $Data);
+            $Data[''] = 'Alle';
         } else {
-            $Data = array_merge(array('' => 'ODER'), $Data);
+            $Data[''] = 'ODER';
         }
+//        following part destroy IdKeys
+//        // Add "ALL" Option
+//        if( $PropertyCount == 1 ) {
+//            $Data = array_merge(array('' => 'Alle'), $Data);
+//        } else {
+//            $Data = array_merge(array('' => 'ODER'), $Data);
+//        }
         return new SelectBox( $PropertyName.'['.$PropertyCount.']',
             $Label, $Data, ($Icon?$Icon:new More()), $doKeyConvertToText ? true : false
         );

@@ -8,13 +8,6 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
-use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Group\Service\Entity\TblGroup;
-use SPHERE\Application\People\Meta\Common\Common;
-use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
-use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
-use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
@@ -32,34 +25,6 @@ class ViewStudent extends AbstractView
 
     // Sortierung beeinflusst die Gruppenreihenfolge im Frontend
     const TBL_PERSON_ID = 'TblPerson_Id';
-
-    const TBL_SALUTATION_SALUTATION = 'TblSalutation_Salutation';
-    const TBL_PERSON_TITLE = 'TblPerson_Title';
-    const TBL_PERSON_FIRST_NAME = 'TblPerson_FirstName';
-    const TBL_PERSON_SECOND_NAME = 'TblPerson_SecondName';
-    const TBL_PERSON_LAST_NAME = 'TblPerson_LastName';
-    const TBL_PERSON_BIRTH_NAME = 'TblPerson_BirthName';
-
-    const TBL_COMMON_BIRTHDATES_BIRTHDAY = 'TblCommonBirthDates_Birthday';
-    const TBL_COMMON_BIRTHDATES_BIRTHPLACE = 'TblCommonBirthDates_Birthplace';
-    const TBL_COMMON_GENDER_NAME = 'TblCommonGender_Name';
-    const TBL_COMMON_INFORMATION_NATIONALITY = 'TblCommonInformation_Nationality';
-    const TBL_COMMON_INFORMATION_DENOMINATION = 'TblCommonInformation_Denomination';
-    const TBL_COMMON_INFORMATION_IS_ASSISTANCE = 'TblCommonInformation_IsAssistance';
-    const TBL_COMMON_INFORMATION_ASSISTANCE_ACTIVITY = 'TblCommonInformation_AssistanceActivity';
-    const TBL_COMMON_REMARK = 'TblCommon_Remark';
-
-    const TBL_ADDRESS_STREET_NAME = 'TblAddress_StreetName';
-    const TBL_ADDRESS_STREET_NUMBER = 'TblAddress_StreetNumber';
-    const TBL_CITY_CODE = 'TblCity_Code';
-    const TBL_CITY_CITY = 'TblCity_City';
-    const TBL_CITY_DISTRICT = 'TblCity_District';
-    const TBL_ADDRESS_COUNTY = 'TblAddress_County';
-    const TBL_ADDRESS_STATE = 'TblState_Name';
-    const TBL_ADDRESS_NATION = 'TblAddress_Nation';
-
-    const TBL_PHONE_NUMBER = 'TblPhone_Number';
-    const TBL_MAIL_ADDRESS = 'TblMail_Address';
 
     const TBL_STUDENT_IDENTIFIER = 'TblStudent_Identifier';
     const SCHULE = 'Schule';
@@ -153,103 +118,6 @@ class ViewStudent extends AbstractView
      * @Column(type="string")
      */
     protected $TblPerson_Id;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCommonGender_Name;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblSalutation_Salutation;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPerson_Title;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPerson_FirstName;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPerson_SecondName;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPerson_LastName;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPerson_BirthName;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCommonInformation_Denomination;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCommonInformation_Nationality;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCommonInformation_IsAssistance;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCommonInformation_AssistanceActivity;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCommon_Remark;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCommonBirthDates_Birthday;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCommonBirthDates_Birthplace;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblAddress_StreetName;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblAddress_StreetNumber;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCity_Code;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCity_City;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCity_District;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblAddress_County;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblAddress_Nation;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblState_Name;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPhone_Number;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblMail_Address;
-
     /**
      * @Column(type="string")
      */
@@ -547,35 +415,7 @@ class ViewStudent extends AbstractView
     public function loadNameDefinition()
     {
 
-        //NameDefinition
-        $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION, 'Schüler: Anrede');
-        $this->setNameDefinition(self::TBL_PERSON_TITLE, 'Schüler: Titel');
-        $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME, 'Schüler: Vorname');
-        $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME, 'Schüler: Zweiter Vorname');
-        $this->setNameDefinition(self::TBL_PERSON_LAST_NAME, 'Schüler: Nachname');
-        $this->setNameDefinition(self::TBL_PERSON_BIRTH_NAME, 'Schüler: Geburtsname');
-
-        $this->setNameDefinition(self::TBL_COMMON_BIRTHDATES_BIRTHDAY, 'Schüler: Geburtstag');
-        $this->setNameDefinition(self::TBL_COMMON_BIRTHDATES_BIRTHPLACE, 'Schüler: Geburtsort');
-        $this->setNameDefinition(self::TBL_COMMON_GENDER_NAME, 'Schüler: Geschlecht');
-        $this->setNameDefinition(self::TBL_COMMON_INFORMATION_NATIONALITY, 'Schüler: Staatsangehörigkeit');
-        $this->setNameDefinition(self::TBL_COMMON_INFORMATION_DENOMINATION, 'Schüler: Konfession');
-        $this->setNameDefinition(self::TBL_COMMON_INFORMATION_IS_ASSISTANCE, 'Schüler: Mitarbeitsbereitschaft');
-        $this->setNameDefinition(self::TBL_COMMON_INFORMATION_ASSISTANCE_ACTIVITY, 'Schüler: Mitarbeit Tätigkeit');
-        $this->setNameDefinition(self::TBL_COMMON_REMARK, 'Schüler: Bemerkung Person');
-
-        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME, 'Schüler: Straße');
-        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER, 'Schüler: Hausnummer');
-        $this->setNameDefinition(self::TBL_CITY_CODE, 'Schüler: Postleitzahl');
-        $this->setNameDefinition(self::TBL_CITY_CITY, 'Schüler: Ort');
-        $this->setNameDefinition(self::TBL_CITY_DISTRICT, 'Schüler: Ortsteil');
-        $this->setNameDefinition(self::TBL_ADDRESS_COUNTY, 'Schüler: Landkreis');
-        $this->setNameDefinition(self::TBL_ADDRESS_STATE, 'Schüler: Bundesland');
-        $this->setNameDefinition(self::TBL_ADDRESS_NATION, 'Schüler: Land');
-
-        $this->setNameDefinition(self::TBL_PHONE_NUMBER, 'Schüler: Telefonnummer');
-        $this->setNameDefinition(self::TBL_MAIL_ADDRESS, 'Schüler: E-Mail');
-
+//        //NameDefinition
         $this->setNameDefinition(self::TBL_STUDENT_IDENTIFIER, 'Schüler: Schülernummer');
         $this->setNameDefinition(self::SCHULE, 'Schüler: Aktuelle Schule');
         $this->setNameDefinition(self::BILDUNGSGANG, 'Schüler: Aktueller Bildungsgang');
@@ -652,41 +492,7 @@ class ViewStudent extends AbstractView
         $this->setNameDefinition(self::TBL_PHONE_NUMBER_S3, 'S3: Telefon');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S3, 'S3: E-Mail');
 
-        //GroupDefinition
-        $this->setGroupDefinition('Grunddaten', array(
-            self::TBL_SALUTATION_SALUTATION,
-            self::TBL_PERSON_TITLE,
-            self::TBL_PERSON_FIRST_NAME,
-            self::TBL_PERSON_SECOND_NAME,
-            self::TBL_PERSON_LAST_NAME,
-//            self::TBL_PERSON_BIRTH_NAME,
-        ));
-        $this->setGroupDefinition('Personendaten', array(
-            self::TBL_COMMON_BIRTHDATES_BIRTHDAY,
-            self::TBL_COMMON_BIRTHDATES_BIRTHPLACE,
-            self::TBL_COMMON_GENDER_NAME,
-            self::TBL_COMMON_INFORMATION_NATIONALITY,
-            self::TBL_COMMON_INFORMATION_DENOMINATION,
-            self::TBL_COMMON_INFORMATION_IS_ASSISTANCE,
-            self::TBL_COMMON_INFORMATION_ASSISTANCE_ACTIVITY,
-            self::TBL_COMMON_REMARK,
-        ));
-
-        $this->setGroupDefinition('Adressdaten', array(
-            self::TBL_ADDRESS_STREET_NAME,
-            self::TBL_ADDRESS_STREET_NUMBER,
-            self::TBL_CITY_CODE,
-            self::TBL_CITY_CITY,
-            self::TBL_CITY_DISTRICT,
-            self::TBL_ADDRESS_COUNTY,
-            self::TBL_ADDRESS_STATE,
-            self::TBL_ADDRESS_NATION,
-        ));
-        $this->setGroupDefinition('Kontaktdaten', array(
-            self::TBL_PHONE_NUMBER,
-            self::TBL_MAIL_ADDRESS,
-        ));
-
+//        //GroupDefinition
         $this->setGroupDefinition('Schülerakte', array(
             self::TBL_STUDENT_IDENTIFIER,
             self::SCHULE,
@@ -856,40 +662,6 @@ class ViewStudent extends AbstractView
                 $Field = new NumberField( $PropertyName.'['.$PropertyCount.']',
                     $Placeholder, $Label, $Icon
                 );
-                break;
-            case self::TBL_CITY_CITY:
-                // Test Address By Student
-                $Data = array();
-                $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
-                $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
-                if ($tblPersonList) {
-                    foreach ($tblPersonList as $tblPerson) {
-                        $tblAddress = $tblPerson->fetchMainAddress();
-                        if ($tblAddress) {
-                            $tblCity = $tblAddress->getTblCity();
-                            if ($tblCity) {
-                                if (!isset($Data[$tblCity->getName()])) {
-                                    $Data[$tblCity->getName()] = $tblCity->getName();
-                                }
-                            }
-                        }
-                    }
-                }
-//                // old version: all name from City
-//                $Data = Address::useService()->getPropertyList( new TblCity(), TblCity::ATTR_NAME );
-                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
-                break;
-            case self::TBL_COMMON_BIRTHDATES_BIRTHPLACE:
-                $Data = Common::useService()->getPropertyList( new TblCommonBirthDates(), TblCommonBirthDates::ATTR_BIRTHPLACE );
-                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
-                break;
-            case self::TBL_COMMON_GENDER_NAME:
-                $Data = Common::useService()->getPropertyList( new TblCommonGender(), TblCommonGender::ATTR_NAME );
-                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount );
-                break;
-            case self::TBL_SALUTATION_SALUTATION:
-                $Data = Person::useService()->getPropertyList( new TblSalutation(''), TblSalutation::ATTR_SALUTATION );
-                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount );
                 break;
             case self::BILDUNGSGANG:
                 $Data = Course::useService()->getPropertyList( new TblCourse(), TblCourse::ATTR_NAME );

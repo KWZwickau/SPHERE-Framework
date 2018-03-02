@@ -20,6 +20,7 @@ class TblPresetSetting extends Element
     const ATTR_TBL_PRESET = 'tblPreset';
     const ATTR_FIELD = 'Field';
     const ATTR_VIEW = 'View';
+    const ATTR_VIEW_TYPE = 'ViewType';
     const ATTR_POSITION = 'Position';
 
     /**
@@ -34,6 +35,10 @@ class TblPresetSetting extends Element
      * @Column(type="string")
      */
     protected $View;
+    /**
+     * @Column(type="string")
+     */
+    protected $ViewType;
     /**
      * @Column(type="integer")
      */
@@ -89,6 +94,22 @@ class TblPresetSetting extends Element
     public function setView($View)
     {
         $this->View = $View;
+    }
+
+    /**
+     * @return string
+     */
+    public function getViewType()
+    {
+        return $this->ViewType;
+    }
+
+    /**
+     * @param string $ViewType
+     */
+    public function setViewType($ViewType)
+    {
+        $this->ViewType = $ViewType;
     }
 
     /**

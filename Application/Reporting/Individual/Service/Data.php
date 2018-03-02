@@ -39,15 +39,17 @@ class Data extends AbstractData
 
     /**
      * @param TblAccount $tblAccount
+     * @param string     $ViewType
      *
      * @return bool|TblWorkSpace[]
      */
-    public function getWorkSpaceAllByAccount(TblAccount $tblAccount)
+    public function getWorkSpaceAllByAccount(TblAccount $tblAccount, $ViewType = TblWorkSpace::VIEW_TYPE_ALL)
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblWorkSpace',
             array(
-                TblWorkSpace::ATTR_SERVICE_TBL_ACCOUNT => $tblAccount->getId()
+                TblWorkSpace::ATTR_SERVICE_TBL_ACCOUNT => $tblAccount->getId(),
+                TblWorkSpace::ATTR_VIEW_TYPE => $ViewType
             ), array(
                 TblWorkSpace::ATTR_POSITION => self::ORDER_ASC
             ));
@@ -102,12 +104,13 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblAccount $tblAccount
-     * @param string $Field
-     * @param string $View
-     * @param int $Position
+     * @param TblAccount     $tblAccount
+     * @param string         $Field
+     * @param string         $View
+     * @param int            $Position
+     * @param string         $ViewType
      * @param TblPreset|null $tblPreset
-     * @param int $FieldCount
+     * @param int            $FieldCount
      *
      * @return TblWorkSpace
      */
@@ -116,6 +119,7 @@ class Data extends AbstractData
         $Field,
         $View,
         $Position,
+        $ViewType,
         TblPreset $tblPreset = null,
         $FieldCount = 1
     )
@@ -126,6 +130,7 @@ class Data extends AbstractData
         $Entity->setServiceTblAccount($tblAccount);
         $Entity->setField($Field);
         $Entity->setView($View);
+        $Entity->setViewType($ViewType);
         $Entity->setPosition($Position);
         $Entity->setFieldCount($FieldCount);
         // TODO: Expanded Parameter
@@ -213,17 +218,19 @@ class Data extends AbstractData
      * @param TblPreset $tblPreset
      * @param string    $Field
      * @param string    $View
+     * @param           $ViewType
      * @param int       $Position
      *
      * @return TblPresetSetting
      */
-    public function createPresetSetting(TblPreset $tblPreset, $Field, $View, $Position)
+    public function createPresetSetting(TblPreset $tblPreset, $Field, $View, $ViewType, $Position)
     {
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = new TblPresetSetting();
         $Entity->setTblPreset($tblPreset);
         $Entity->setField($Field);
         $Entity->setView($View);
+        $Entity->setViewType($ViewType);
         $Entity->setPosition($Position);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
