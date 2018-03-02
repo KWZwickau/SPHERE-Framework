@@ -1193,11 +1193,11 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         }
 
         if (!empty($FormRowList)) {
-            $Form = new Form(
+            $Form = (new Form(
                 new FormGroup(
                     $FormRowList
                 )
-            );
+            ))->disableSubmitAction();
             $Panel = //new Panel(
                 new Title(
                 'Filteroptionen',''.new PullRight(
@@ -1511,9 +1511,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     'responsive' => false
                 )))
 
-                    .$this->getDownloadForm($ViewType) //;
-                    .'DEBUG'
-                    .new Listing( $this->getLogger(new QueryLogger())->getLog() );
+                    .$this->getDownloadForm($ViewType);
+//                    .'DEBUG'
+//                    .new Listing( $this->getLogger(new QueryLogger())->getLog() );
             } elseif( $Error ) {
                 $Result = $Error;
             } else {

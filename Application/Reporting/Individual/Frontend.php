@@ -55,16 +55,16 @@ class Frontend extends Extension implements IFrontendInterface
                                         .'Spezifische Auswertung für Schüler'
                                         . new Container(new Muted('Auswertung über Schüler um speziefischere Informationen zum Schüler zu erhalten.'))
                                     ),
-                                    new PullClear(
-                                        new PullRight(new Standard('', __NAMESPACE__.'/Student', new Listing()))
-                                        .'Spezifische Auswertung für Sorgeberechtigte'
-                                        . new Container(new Muted('Auswertung über Sorgeberechtigte um speziefischere Informationen zum Sorgeberechtigten zu erhalten.'))
-                                    ),
-                                    new PullClear(
-                                        new PullRight(new Standard('', __NAMESPACE__.'/Student', new Listing()))
-                                        .'Spezifische Auswertung für Interessenten'
-                                        . new Container(new Muted('Auswertung über Interessenten um speziefischere Informationen zum Interessenten zu erhalten.'))
-                                    )
+//                                    new PullClear(
+//                                        new PullRight(new Standard('', __NAMESPACE__.'/Student', new Listing()))
+//                                        .'Spezifische Auswertung für Sorgeberechtigte'
+//                                        . new Container(new Muted('Auswertung über Sorgeberechtigte um speziefischere Informationen zum Sorgeberechtigten zu erhalten.'))
+//                                    ),
+//                                    new PullClear(
+//                                        new PullRight(new Standard('', __NAMESPACE__.'/Student', new Listing()))
+//                                        .'Spezifische Auswertung für Interessenten'
+//                                        . new Container(new Muted('Auswertung über Interessenten um speziefischere Informationen zum Interessenten zu erhalten.'))
+//                                    )
                                 )))
                         , 6),
                     ))
