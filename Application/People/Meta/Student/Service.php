@@ -354,6 +354,17 @@ class Service extends Integration
     }
 
     /**
+     * @param TblStudent $tblStudent
+     * @param $Identifier
+     * @return bool|TblStudent
+     */
+    public function updateStudentIdentifier(TblStudent $tblStudent, $Identifier)
+    {
+
+        return (new Data($this->getBinding()))->updateStudentIdentifier($tblStudent,$Identifier);
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param TblPerson      $tblPerson
      * @param array          $Meta
@@ -836,6 +847,25 @@ class Service extends Integration
 
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Daten wurde erfolgreich gespeichert')
         .new Redirect(null, Redirect::TIMEOUT_SUCCESS);
+    }
+
+    /**
+     * @return bool|int
+     */
+    public function getStudentMaxIdentifier()
+    {
+
+        $tblStudentList = (new Data($this->getBinding()))->getStudentAll();
+        $result = 0;
+        if($tblStudentList) {
+            foreach($tblStudentList as $tblStudent){
+                if(is_numeric($tblStudent->getIdentifier()) && $tblStudent->getIdentifier() > $result){
+                    $result = $tblStudent->getIdentifier();
+                }
+            }
+        }
+//        return (new Data($this->getBinding()))->getStudentMaxIdentifier();
+        return $result;
     }
 
     /**

@@ -81,6 +81,30 @@ abstract class Student extends AbstractData
     /**
      * @param TblStudent $tblStudent
      * @param $Identifier
+     * @return bool|TblStudent
+     */
+    public function updateStudentIdentifier(TblStudent $tblStudent, $Identifier)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblStudent')
+            ->findOneBy(array(
+                TblStudent::ENTITY_ID => $tblStudent->getId(),
+            ));
+        /** @var TblStudent $Entity */
+        if($Entity){
+            $Protocol = clone $Entity;
+            $Entity->setIdentifier($Identifier);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+        }
+        return ($Entity ? $Entity : false);
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param $Identifier
      * @param null $tblStudentMedicalRecord
      * @param null $tblStudentTransport
      * @param null $tblStudentBilling

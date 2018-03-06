@@ -11,6 +11,7 @@ use SPHERE\Application\People\Group\Service\Setup;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -347,6 +348,26 @@ class Service extends AbstractService
     public function addGroupPerson(TblGroup $tblGroup, TblPerson $tblPerson)
     {
 
+        // automatic identifier for Student
+        if($tblGroup->getMetaTable() == TblGroup::META_TABLE_STUDENT){
+            // control settings
+            $tblSetting = Consumer::useService()->getSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber');
+            if($tblSetting && $tblSetting->getValue()) {
+                $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                if($tblStudent){
+                    if($tblStudent->getIdentifier() == ''){
+                        $MaxIdentifier = Student::useService()->getStudentMaxIdentifier();
+                        $MaxIdentifier++;
+                        Student::useService()->updateStudentIdentifier($tblStudent, $MaxIdentifier);
+                    }
+
+                } else {
+                    $MaxIdentifier = Student::useService()->getStudentMaxIdentifier();
+                    $MaxIdentifier++;
+                    Student::useService()->createStudent($tblPerson, $MaxIdentifier);
+                }
+            }
+        }
         return (new Data($this->getBinding()))->addGroupPerson($tblGroup, $tblPerson);
     }
 
