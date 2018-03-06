@@ -632,9 +632,6 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
 
-                // Setzen der Zeugnisvorlagen
-                Prepare::useService()->setTemplatesAllByPrepareCertificate($tblPrepareCertificate);
-
                 $tableData[$tblGenerateCertificate ? $tblGenerateCertificate->getId() : 0] = array(
                     'Date' => $tblPrepareCertificate->getDate(),
                     'Type' => $tblCertificateType ? $tblCertificateType->getName()

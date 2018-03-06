@@ -9,7 +9,6 @@
 namespace SPHERE\Application\Education\Certificate\Generate;
 
 use SPHERE\Application\Education\Certificate\Generator\Generator;
-use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -18,7 +17,6 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -792,41 +790,6 @@ class Frontend extends Extension
                             // Noteninformation
                             if ($tblPrepare->isGradeInformation()) {
                                 $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GradeInformation');
-                            } else {
-                                // Mögliche Certificate herausfinden und bei einem eindeutiten Certificate vor auswählen
-                                $tblCertificateListByConsumer = Generate::useService()->getPossibleCertificates($tblPrepare,
-                                    $tblPerson, Consumer::useService()->getConsumerBySession());
-                                $tblCertificateListByStandard = Generate::useService()->getPossibleCertificates($tblPrepare,
-                                    $tblPerson);
-                                if ($tblCertificateListByConsumer && $tblCertificateListByStandard) {
-                                    if (count($tblCertificateListByConsumer) != 1) {
-                                        $certificateList = array_merge($tblCertificateListByConsumer,
-                                            $tblCertificateListByStandard);
-                                    } else {
-                                        $certificateList = $tblCertificateListByConsumer;
-                                    }
-                                } elseif ($tblCertificateListByConsumer) {
-                                    $certificateList = $tblCertificateListByConsumer;
-                                } elseif ($tblCertificateListByStandard) {
-                                    $certificateList = $tblCertificateListByStandard;
-                                } else {
-                                    $certificateList = array();
-                                }
-                                if (count($certificateList) == 1) {
-                                    $tblCertificate = current($certificateList);
-                                } elseif (count($certificateList) > 1) {
-                                    /** @var TblCertificate $certificate */
-                                    $ChosenCertificate = false;
-                                    foreach ($certificateList as $certificate) {
-                                        if ($certificate->isChosenDefault()) {
-                                            $ChosenCertificate = $certificate;
-                                            break;
-                                        }
-                                    }
-                                    if ($ChosenCertificate) {
-                                        $tblCertificate = $ChosenCertificate;
-                                    }
-                                }
                             }
                         }
                         if ($Global && $tblCertificate) {
