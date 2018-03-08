@@ -193,6 +193,15 @@ class Data extends AbstractData
             TblSetting::TYPE_BOOLEAN,
             '0'
         );
+        // Zensuren im Wortlaut auf Abgangszeugnissen
+        $this->createSetting(
+            'Education',
+            'Certificate',
+            'Prepare',
+            'IsGradeVerbalOnLeave',
+            TblSetting::TYPE_BOOLEAN,
+            '0'
+        );
     }
 
     /**
