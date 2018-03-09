@@ -28,7 +28,7 @@
             thisForm.on("submit", function () {
                 thisForm.find('button[type="submit"]:not(.disabled,.ExternalSubmit)').html(
                     '<span class="loading-indicator-animate"></span> Bitte warten'
-                );
+                ).attr('disabled','disabled');
             });
         }
 

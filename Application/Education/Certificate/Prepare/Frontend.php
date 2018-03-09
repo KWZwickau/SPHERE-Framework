@@ -37,6 +37,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -1093,11 +1094,12 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $form = new Form(
                         new FormGroup(array(
-                            new FormRow(
+                            new FormRow(array(
                                 new FormColumn(
                                     $tableData
-                                )
-                            ),
+                                ),
+                                new FormColumn(new HiddenField('Data[IsSubmit]'))
+                            )),
                         ))
                         , new Primary('Speichern', new Save())
                     );
@@ -1353,11 +1355,12 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $form = new Form(
                         new FormGroup(array(
-                            new FormRow(
+                            new FormRow(array(
                                 new FormColumn(
                                     $tableData
-                                )
-                            ),
+                                ),
+                                new FormColumn(new HiddenField('Data[IsSubmit]'))
+                            )),
                         ))
                         , new Primary('Speichern', new Save())
                     );
@@ -3386,11 +3389,12 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $form = new Form(
                     new FormGroup(array(
-                        new FormRow(
+                        new FormRow(array(
                             new FormColumn(
                                 $tableData
-                            )
-                        ),
+                            ),
+                            new FormColumn(new HiddenField('Data[IsSubmit]'))
+                        )),
                     ))
                     , new Primary('Speichern', new Save())
                 );
@@ -3599,11 +3603,12 @@ class Frontend extends Extension implements IFrontendInterface
 
         $form = new Form(
             new FormGroup(array(
-                new FormRow(
+                new FormRow(array(
                     new FormColumn(
                         $tableData
-                    )
-                ),
+                    ),
+                    new FormColumn(new HiddenField('Data[IsSubmit]'))
+                )),
             ))
             , new Primary($textSaveButton, new Save())
         );

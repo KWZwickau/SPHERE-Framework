@@ -920,12 +920,10 @@ class Service extends AbstractService
         $DivisionId
     ) {
 
-        $Global = $this->getGlobal();
-
         /**
          * Skip to Frontend
          */
-        if (!isset($Global->POST['Button']['Submit'])) {
+        if ($Student === null) {
             return $Form;
         }
 
@@ -2573,12 +2571,10 @@ class Service extends AbstractService
         $Data
     ) {
 
-        $Global = $this->getGlobal();
-
         /**
          * Skip to Frontend
          */
-        if (!isset($Global->POST['Button']['Submit'])) {
+        if ($Data === null) {
             return $Form;
         }
 

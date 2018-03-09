@@ -439,8 +439,7 @@ class Service extends AbstractService
         /**
          * Skip to Frontend
          */
-        $Global = $this->getGlobal();
-        if (!isset( $Global->POST['Button']['Submit'] )) {
+        if ($DataAddPerson === null && $DataRemovePerson === null) {
             return $Form;
         }
 

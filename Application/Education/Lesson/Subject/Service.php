@@ -676,8 +676,7 @@ class Service extends AbstractService
         /**
          * Skip to Frontend
          */
-        $Global = $this->getGlobal();
-        if (!isset($Global->POST['Button']['Submit'])) {
+        if ($Category === null) {
             return $Form;
         }
 
@@ -699,8 +698,10 @@ class Service extends AbstractService
                 // Add new Link
                 array_walk($Category, function ($Category) use ($tblGroup, &$Error) {
 
-                    if (!$this->addGroupCategory($tblGroup, $this->getCategoryById($Category))) {
-                        $Error = false;
+                    if (($tblCategory = $this->getCategoryById($Category))) {
+                        if (!$this->addGroupCategory($tblGroup, $this->getCategoryById($Category))) {
+                            $Error = false;
+                        }
                     }
                 });
             }
@@ -741,12 +742,10 @@ class Service extends AbstractService
         $Subject
     ) {
 
-        $Global = $this->getGlobal();
-
         /**
          * Skip to Frontend
          */
-        if (!isset($Global->POST['Button']['Submit'])) {
+        if ($Subject === null) {
             return $Form;
         }
 
@@ -768,8 +767,10 @@ class Service extends AbstractService
             if (is_array($Subject)) {
                 array_walk($Subject, function ($Subject) use ($tblCategory, &$Error) {
 
-                    if (!$this->addCategorySubject($tblCategory, $this->getSubjectById($Subject))) {
-                        $Error = false;
+                    if (($tblSubject = $this->getSubjectById($Subject))) {
+                        if (!$this->addCategorySubject($tblCategory, $tblSubject)) {
+                            $Error = false;
+                        }
                     }
                 });
             }
@@ -859,7 +860,7 @@ class Service extends AbstractService
          * Skip to Frontend
          */
         $Global = $this->getGlobal();
-        if (!isset( $Global->POST['Button']['Submit'] )) {
+        if ($DataAddPerson === null && $DataRemovePerson === null) {
             return $Form;
         }
 
