@@ -129,6 +129,44 @@ class Data extends AbstractData
                     '0'
                 );
             }
+
+            if ($tblConsumer->getAcronym() == 'EVSC') {
+                // Notenbuch: Sortierung nach Großen (fettmarkiert) und Klein Noten
+                $this->createSetting(
+                    'Education',
+                    'Graduation',
+                    'Gradebook',
+                    'SortHighlighted',
+                    TblSetting::TYPE_BOOLEAN,
+                    '1'
+                );
+                // Notenbuch: Große Noten (fettmarkiert) rechts anordnen
+                $this->createSetting(
+                    'Education',
+                    'Graduation',
+                    'Gradebook',
+                    'IsHighlightedSortedRight',
+                    TblSetting::TYPE_BOOLEAN,
+                    '1'
+                );
+            } else {
+                $this->createSetting(
+                    'Education',
+                    'Graduation',
+                    'Gradebook',
+                    'SortHighlighted',
+                    TblSetting::TYPE_BOOLEAN,
+                    '0'
+                );
+                $this->createSetting(
+                    'Education',
+                    'Graduation',
+                    'Gradebook',
+                    'IsHighlightedSortedRight',
+                    TblSetting::TYPE_BOOLEAN,
+                    '1'
+                );
+            }
         }
         $this->createSetting(
             'Education',
