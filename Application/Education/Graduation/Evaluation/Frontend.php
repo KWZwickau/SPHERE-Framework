@@ -958,16 +958,16 @@ class Frontend extends Extension implements IFrontendInterface
                     // durch Stichtagsnotenauftrag
                     $appointedDateTask = false;
                     if ($tblTaskList) {
-                        /** @var TblTask $tblTask */
-                        foreach ($tblTaskList as $tblTask) {
-                            if (($date = $tblTask->getDate())
+                        /** @var TblTask $tblTaskItem */
+                        foreach ($tblTaskList as $tblTaskItem) {
+                            if (($date = $tblTaskItem->getDate())
                                 && ($tblPeriod = $tblTest->getServiceTblPeriod())
                                 && ($toDatePeriod = $tblPeriod->getToDate())
                                 && ($dateTimeTask = new \DateTime($date))
                                 && ($toDateTimePeriod = new \DateTime($toDatePeriod))
                                 && $dateTimeTask < $toDateTimePeriod
                             ) {
-                                $appointedDateTask = $tblTask;
+                                $appointedDateTask = $tblTaskItem;
                                 break;
                             }
                         }
