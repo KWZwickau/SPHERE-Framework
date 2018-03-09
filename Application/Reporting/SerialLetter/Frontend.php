@@ -2897,7 +2897,9 @@ class Frontend extends Extension implements IFrontendInterface
             'Company'    => 'Institution',
             'Address'    => 'Adresse',
             'Salutation' => 'Anrede',
-            'Person'     => 'Person'
+            'Title'      => 'Titel',
+            'FirstName'  => 'Vorname',
+            'LastName'   => 'Name'
         );
         $Interactive = array(
             'order'      => array(array(0, 'asc')),
@@ -2916,11 +2918,18 @@ class Frontend extends Extension implements IFrontendInterface
             $count = 1;
             array_walk($tblSerialCompanyList, function(TblSerialCompany $tblSerialCompany) use (&$TableContent, &$count, $tblSerialLetter) {
                 $Item['Number'] = $count++;
-                $Item['Person'] = '';
                 $Item['Salutation'] = '';
+                $Item['Title'] = '';
+                $Item['FirstName'] = '';
+                $Item['LastName'] = '';
                 if(($tblPerson = $tblSerialCompany->getServiceTblPerson())){
+
+                    //ToDO Punkt entfernen (nur Vorname)
+                    //ToDO Mehr Spalten (Titel, Vorname, Nachname)
                     $Item['Salutation'] = $tblPerson->getSalutation();
-                    $Item['Person'] = $tblPerson->getLastFirstName();
+                    $Item['Title'] = $tblPerson->getTitle();
+                    $Item['FirstName'] = str_replace('.', '', $tblPerson->getFirstName());
+                    $Item['LastName'] = $tblPerson->getLastName();
                 }
 
                 $Item['Company'] = '';

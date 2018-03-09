@@ -1208,7 +1208,7 @@ class Service extends AbstractService
                 if(($tblPerson = $tblSerialCompany->getServiceTblPerson())) {
                     $Item['Salutation'] = $tblPerson->getSalutation();
                     $Item['Title'] = $tblPerson->getTitle();
-                    $Item['FirstName'] = $tblPerson->getFirstName();
+                    $Item['FirstName'] = str_replace('.', '', $tblPerson->getFirstName());
 //                    $Item['SecondName'] = $tblPerson->getSecondName();
                     $Item['LastName'] = $tblPerson->getLastName();
                 }
@@ -1254,22 +1254,22 @@ class Service extends AbstractService
                 }
                 // second column
                 if($Item['FirstName'] && $Item['LastName']){
-                    $Item['AddressName'] = $Item['FirstName'].' '.$Item['LastName'];
+                    $Item['AddressName'] = ($Item['Title'] ? $Item['Title'].' ': '').$Item['FirstName'].' '.$Item['LastName'];
                 }
                 // third column
                 if($Item['Salutation']){
                     if($Item['Salutation'] == 'Herr'){
-                        $Item['FirstLetter'] = 'Sehr geehrter '.$Item['Salutation'].' '.$Item['LastName'];
+                        $Item['FirstLetter'] = 'Sehr geehrter '.$Item['Salutation'].' '.($Item['Title'] ? $Item['Title'].' ': '').$Item['LastName'];
                     } elseif($Item['Salutation'] == 'Frau'){
-                        $Item['FirstLetter'] = 'Sehr geehrte '.$Item['Salutation'].' '.$Item['LastName'];
+                        $Item['FirstLetter'] = 'Sehr geehrte '.$Item['Salutation'].' '.($Item['Title'] ? $Item['Title'].' ': '').$Item['LastName'];
                     }
                 }
                 // fourth column
                 if($Item['Salutation']){
                     if($Item['Salutation'] == 'Herr'){
-                        $Item['SecondLetter'] = 'Lieber '.$Item['Salutation'].' '.$Item['LastName'];
+                        $Item['SecondLetter'] = 'Lieber '.$Item['Salutation'].' '.($Item['Title'] ? $Item['Title'].' ': '').$Item['LastName'];
                     } elseif($Item['Salutation'] == 'Frau'){
-                        $Item['SecondLetter'] = 'Liebe '.$Item['Salutation'].' '.$Item['LastName'];
+                        $Item['SecondLetter'] = 'Liebe '.$Item['Salutation'].' '.($Item['Title'] ? $Item['Title'].' ': '').$Item['LastName'];
                     }
                 }
                 array_push($ExportData, $Item);
