@@ -86,6 +86,7 @@ use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -4284,6 +4285,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblCertificate = false;
             $subjectData = array();
             $hasPreviewGrades = false;
+            $isApproved = false;
 
             if (($tblStudent = $tblPerson->getStudent())
                 && ($tblDivision = $tblStudent->getCurrentMainDivision())
@@ -4314,6 +4316,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                 if ($tblCertificate) {
                     if ($tblLeaveStudent) {
+                        $isApproved = $tblLeaveStudent->isApproved();
+
                         $stage->addButton(new External(
                             'Zeugnis als Muster herunterladen',
                             '/Api/Education/Certificate/Generator/PreviewLeave',
@@ -4398,13 +4402,21 @@ class Frontend extends Extension implements IFrontendInterface
                                     null,
                                     $tblSubjectGroup ? $tblSubjectGroup : null)
                                 )) {
+                                    $tblGradeList = Gradebook::useService()->sortGradeList($tblGradeList);
+                                    /** @var TblGrade $tblGrade */
                                     foreach ($tblGradeList as $tblGrade) {
                                         $gradeValue = $tblGrade->getGrade();
                                         if (($tblGradeType = $tblGrade->getTblGradeType())
                                             && $gradeValue !== null
                                             && $gradeValue !== ''
                                         ) {
-                                            $text = $tblGradeType->getCode() . ':' . $gradeValue;
+                                            $description = '';
+                                            if (($tblTest = $tblGrade->getServiceTblTest())) {
+                                                $description = $tblTest->getDescription();
+                                            }
+
+                                            $text = new ToolTip($tblGradeType->getCode() . ':' . $gradeValue,
+                                                $tblGrade->getDateForSorter()->format('d.m.Y') . ' ' . $description);
                                             $gradeList[] = $tblGradeType->isHighlighted() ? new Bold($text) : $text;
                                         }
                                     }
@@ -4417,7 +4429,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         $tblDivisionItem,
                                         $tblSubjectItem,
                                         $tblTestType,
-                                        $tblScoreRule,
+                                        $tblScoreRule ? $tblScoreRule : null,
                                         null,
                                         $tblSubjectGroup ? $tblSubjectGroup : null
                                     );
@@ -4543,30 +4555,55 @@ class Frontend extends Extension implements IFrontendInterface
                     null
                 );
 
+                $datePicker = (new DatePicker('Data[InformationList][CertificateDate]', '', 'Zeugnisdatum', new Calendar()))->setRequired();
+                $remarkTextArea = new TextArea('Data[InformationList][Remark]', '', 'Bemerkungen');
+                if ($isApproved) {
+                    $datePicker->setDisabled();
+                    $remarkTextArea->setDisabled();
+                }
                 $otherInformationList = array(
-                    new DatePicker('Data[InformationList][CertificateDate]', '', 'Zeugnisdatum', new Calendar()),
-                    new TextArea('Data[InformationList][Remark]', '', 'Bemerkungen')
+                    $datePicker,
+                    $remarkTextArea
                 );
                 if ($tblCertificate->getCertificate() == 'GymAbgSekI') {
+                    $radio1 = (new RadioBox(
+                        'Data[InformationList][EqualGraduation]',
+                        'gemäß § 7 Abs. 7 SchulG, mit der Versetzung von Klassenstufe 10 nach Jahrgangsstufe
+                                11 des Gymnasiums einen dem Realschulabschluss gleichgestellten mittleren Schulabschluss erworben',
+                        GymAbgSekI::COURSE_RS
+                    ));
+                    $radio2 = (new RadioBox(
+                        'Data[InformationList][EqualGraduation]',
+                        'gemäß § 30 Abs. 7 Satz 2 SOGYA, mit der Versetzung von Klassenstufe 9 nach Klassenstufe
+                                10 des Gymnasiums einen dem Hauptschulabschluss gleichgestellten Schulabschluss erworben',
+                        GymAbgSekI::COURSE_HS
+                    ));
+                    if ($isApproved) {
+                        $radio1->setDisabled();
+                        $radio2->setDisabled();
+                    }
                     $otherInformationList[] = new Panel(
                         'Gleichgestellter Schulabschluss',
-                        array(
-                            (new RadioBox(
-                                'Data[InformationList][EqualGraduation]',
-                                'gemäß § 7 Abs. 7 SchulG, mit der Versetzung von Klassenstufe 10 nach Jahrgangsstufe
-                                11 des Gymnasiums einen dem Realschulabschluss gleichgestellten mittleren Schulabschluss erworben',
-                                GymAbgSekI::COURSE_RS
-                            )),
-                            (new RadioBox(
-                                'Data[InformationList][EqualGraduation]',
-                                'gemäß § 30 Abs. 7 Satz 2 SOGYA, mit der Versetzung von Klassenstufe 9 nach Klassenstufe
-                                10 des Gymnasiums einen dem Hauptschulabschluss gleichgestellten Schulabschluss erworben',
-                                GymAbgSekI::COURSE_HS
-                            ))
-                        ),
+                        array($radio1,$radio2),
                         Panel::PANEL_TYPE_DEFAULT
                     );
                 }
+
+                $headmasterNameTextField = new TextField('Data[InformationList][HeadmasterName]', '', 'Name des/der Schulleiters/in');
+                $radioSex1 = (new RadioBox('Data[InformationList][HeadmasterGender]', 'Männlich',
+                    ($tblCommonGender = Common::useService()->getCommonGenderByName('Männlich'))
+                        ? $tblCommonGender->getId() : 0));
+                $radioSex2 = (new RadioBox('Data[InformationList][HeadmasterGender]', 'Weiblich',
+                    ($tblCommonGender = Common::useService()->getCommonGenderByName('Weiblich'))
+                        ? $tblCommonGender->getId() : 0));
+                $teacherSelectBox = new SelectBox('Data[InformationList][DivisionTeacher]', 'Klassenlehrer(in):', $divisionTeacherList);
+                if ($isApproved) {
+                    $headmasterNameTextField->setDisabled();
+                    $radioSex1->setDisabled();
+                    $radioSex2->setDisabled();
+                    $teacherSelectBox->setDisabled();
+                }
+
 
                 $form = new Form(new FormGroup(array(
                     new FormRow(new FormColumn(
@@ -4584,17 +4621,10 @@ class Frontend extends Extension implements IFrontendInterface
                             new Panel(
                                 'Unterzeichner - Schulleiter',
                                 array(
-                                    new TextField('Data[InformationList][HeadmasterName]', '', 'Name des/der Schulleiters/in'),
+                                    $headmasterNameTextField,
                                     new Panel(
                                         new Small(new Bold('Geschlecht des/der Schulleiters/in')),
-                                        array(
-                                            (new RadioBox('Data[InformationList][HeadmasterGender]', 'Männlich',
-                                                ($tblCommonGender = Common::useService()->getCommonGenderByName('Männlich'))
-                                                    ? $tblCommonGender->getId() : 0)),
-                                            (new RadioBox('Data[InformationList][HeadmasterGender]', 'Weiblich',
-                                                ($tblCommonGender = Common::useService()->getCommonGenderByName('Weiblich'))
-                                                    ? $tblCommonGender->getId() : 0))
-                                        ),
+                                        array($radioSex1,$radioSex2),
                                         Panel::PANEL_TYPE_DEFAULT
                                     )
                                 ),
@@ -4604,13 +4634,15 @@ class Frontend extends Extension implements IFrontendInterface
                         new FormColumn(
                             new Panel(
                                 'Unterzeichner - Klassenlehrer',
-                                new SelectBox('Data[InformationList][DivisionTeacher]', 'Klassenlehrer(in):', $divisionTeacherList),
+                                $teacherSelectBox,
                                 Panel::PANEL_TYPE_INFO
                             )
                         , 6)
                     )),
                 )));
-                $form->appendFormButton(new Primary('Speichern', new Save()));
+                if (!$isApproved) {
+                    $form->appendFormButton(new Primary('Speichern', new Save()));
+                }
 
                 $layoutGroups[] = new LayoutGroup(new LayoutRow(new LayoutColumn(
                     new Well(

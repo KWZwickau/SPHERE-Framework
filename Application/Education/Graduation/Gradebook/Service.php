@@ -47,6 +47,7 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Cache\Handler\MemoryHandler;
+use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 /**
  * Class Service
@@ -1496,5 +1497,65 @@ class Service extends ServiceScoreRule
             }
         }
         return $Form;
+    }
+
+    /**
+     * @param $tblGradeList
+     *
+     * @return array
+     */
+    public function sortGradeList($tblGradeList)
+    {
+
+        if (($tblSetting = Consumer::useService()->getSetting(
+                'Education', 'Graduation', 'Gradebook', 'SortHighlighted'
+            ))
+            && $tblSetting->getValue()
+        ) {
+            // Sortierung nach Großen (fettmarkiert) und Klein Noten
+            $highlightedGrades = array();
+            $notHighlightedGrades = array();
+            $countGrades = 1;
+            $isHighlightedSortedRight = true;
+            if (($tblSettingSortedRight = Consumer::useService()->getSetting(
+                'Education', 'Graduation', 'Gradebook', 'IsHighlightedSortedRight'
+            ))
+            ) {
+                $isHighlightedSortedRight = $tblSettingSortedRight->getValue();
+            }
+            /** @var TblGrade $tblGradeItem */
+            foreach ($tblGradeList as $tblGradeItem) {
+                $gradeValue = $tblGradeItem->getGrade();
+                if (($tblGradeType = $tblGradeItem->getTblGradeType())
+                    && $gradeValue !== null
+                    && $gradeValue !== ''
+                ) {
+                    if ($tblGradeType->isHighlighted()) {
+                        $highlightedGrades[$countGrades++] = $tblGradeItem;
+                    } else {
+                        $notHighlightedGrades[$countGrades++] = $tblGradeItem;
+                    }
+                }
+            }
+
+            $tblGradeList = array();
+            if (!empty($notHighlightedGrades)) {
+                $tblGradeList = $this->getSorter($notHighlightedGrades)->sortObjectBy('DateForSorter', new DateTimeSorter());
+            }
+            if (!empty($highlightedGrades)) {
+                $highlightedGrades = $this->getSorter($highlightedGrades)->sortObjectBy('DateForSorter', new DateTimeSorter());
+
+                if ($isHighlightedSortedRight) {
+                    $tblGradeList = array_merge($tblGradeList, $highlightedGrades);
+                } else {
+                    $tblGradeList = array_merge($highlightedGrades, $tblGradeList);
+                }
+            }
+        } else {
+            // Sortierung der Tests nach Datum
+            $tblGradeList = $this->getSorter($tblGradeList)->sortObjectBy('DateForSorter', new DateTimeSorter());
+        }
+
+        return $tblGradeList;
     }
 }

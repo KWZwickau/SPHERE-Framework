@@ -2962,13 +2962,16 @@ class Service extends AbstractService
         }
 
         $error = false;
+        if (isset($Data['InformationList']['CertificateDate']) && empty($Data['InformationList']['CertificateDate'])) {
+            $Form->setError('Data[InformationList][CertificateDate]', new Exclamation() . ' Bitte geben Sie ein Datum ein.');
 
-        // todo Wertebereich
+            $error = true;
+        }
+
         if ($error) {
             $Form->prependGridGroup(
                 new FormGroup(new FormRow(new FormColumn(new Danger(
-                        'Nicht alle eingebenen Zensuren befinden sich im Wertebereich (1-5).
-                        Die Daten wurden nicht gespeichert.', new Exclamation())
+                        'Es wurden nicht alle Pflichtfelder befüllt. Die Daten wurden nicht gespeichert.', new Exclamation())
                 ))));
 
             return $Form;

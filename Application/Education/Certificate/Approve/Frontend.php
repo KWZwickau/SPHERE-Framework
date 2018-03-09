@@ -302,7 +302,7 @@ class Frontend extends Extension implements IFrontendInterface
                     array(
                         'Date' => 'Zeugnisdatum',
                         'Division' => 'Klasse',
-                        'Name' => 'Name',
+                        'Name' => 'Zeugnisauftrag',
                         'CertificateType' => 'Zeugnistyp',
                         'Status' => 'Freigaben',
                         'Option' => ''
