@@ -10,6 +10,7 @@ namespace SPHERE\Application\Education\Certificate\PrintCertificate;
 
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Certificate\Generate\Generate;
+use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -70,28 +71,69 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
+        $leaveDivisionList = array();
+        if (($tblLeaveStudentList = Prepare::useService()->getLeaveStudentAllBy(true, false))) {
+            foreach ($tblLeaveStudentList as $tblLeaveStudent) {
+                if (($tblDivision = $tblLeaveStudent->getServiceTblDivision())
+                    && !isset($leaveDivisionList[$tblDivision->getId()])
+                ) {
+                    if (($tblLeaveInformationCertificateDate = Prepare::useService()->getLeaveInformationBy(
+                        $tblLeaveStudent, 'CertificateDate'))
+                    ) {
+                        $date = $tblLeaveInformationCertificateDate->getValue();
+                    } else {
+                        $date = '';
+                    }
+
+                    $leaveDivisionList[$tblDivision->getId()] = $date;
+                }
+            }
+        }
+
         // alle automatisch freigebenen Zeugnisse
         if ($tblGenerateCertificateList = Generate::useService()->getGenerateCertificateAll()) {
             foreach ($tblGenerateCertificateList as $tblGenerateCertificate) {
                 if (($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
                     && $tblCertificateType->isAutomaticallyApproved()
-                    && ($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))
                 ) {
-                    foreach ($tblPrepareList as $tblPrepareCertificate) {
-                        if (($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPrepare($tblPrepareCertificate))) {
-                            foreach ($tblPrepareStudentList as $tblPrepareStudent) {
-                                if (($tblPerson = $tblPrepareStudent->getServiceTblPerson())
-                                    && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
-                                    && $tblPrepareStudent->getServiceTblCertificate()
-                                    && !$tblPrepareStudent->isPrinted()
-                                ) {
-                                    if (!isset($prepareList[$tblPrepare->getId()])) {
-                                        $prepareList[$tblPrepare->getId()] = $tblPrepare;
-                                        break;
+                    if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
+                        foreach ($tblPrepareList as $tblPrepareCertificate) {
+                            if (($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPrepare($tblPrepareCertificate))) {
+                                foreach ($tblPrepareStudentList as $tblPrepareStudent) {
+                                    if (($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                                        && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
+                                        && $tblPrepareStudent->getServiceTblCertificate()
+                                        && !$tblPrepareStudent->isPrinted()
+                                    ) {
+                                        if (!isset($prepareList[$tblPrepare->getId()])) {
+                                            $prepareList[$tblPrepare->getId()] = $tblPrepare;
+                                            break;
+                                        }
                                     }
                                 }
                             }
                         }
+                    }
+                }
+            }
+        }
+        if (($tblCertificateTypeLeave = Generator::useService()->getCertificateTypeByIdentifier('LEAVE'))
+            && $tblCertificateTypeLeave->isAutomaticallyApproved()
+        ) {
+            if (($tblLeaveStudentList = Prepare::useService()->getLeaveStudentAllBy(false, false))) {
+                foreach ($tblLeaveStudentList as $tblLeaveStudent) {
+                    if (($tblDivision = $tblLeaveStudent->getServiceTblDivision())
+                        && !isset($leaveDivisionList[$tblDivision->getId()])
+                    ) {
+                        if (($tblLeaveInformationCertificateDate = Prepare::useService()->getLeaveInformationBy(
+                            $tblLeaveStudent, 'CertificateDate'))
+                        ) {
+                            $date = $tblLeaveInformationCertificateDate->getValue();
+                        } else {
+                            $date = '';
+                        }
+
+                        $leaveDivisionList[$tblDivision->getId()] = $date;
                     }
                 }
             }
@@ -114,6 +156,26 @@ class Frontend extends Extension implements IFrontendInterface
                         new Download(),
                         array(
                             'PrepareId' => $tblPrepare->getId(),
+                        ))
+                );
+            }
+        }
+        foreach ($leaveDivisionList as $divisionId => $date) {
+            if (($tblDivisionItem = Division::useService()->getDivisionById($divisionId))) {
+                $tableContent[] = array(
+                    'Year' => $tblDivisionItem->getServiceTblYear()
+                        ? $tblDivisionItem->getServiceTblYear()->getDisplayName() : '',
+                    'Date' => $date,
+                    'Division' => $tblDivisionItem->getDisplayName(),
+                    'CertificateType' => 'Abgangszeugnis',
+                    'Name' => '',
+                    'Option' => new Standard(
+                        'Zeugnisse herunterladen und revisionssicher speichern',
+                        '/Education/Certificate/PrintCertificate/Confirm',
+                        new Download(),
+                        array(
+                            'DivisionId' => $tblDivisionItem->getId(),
+                            'IsLeave' => true,
                         ))
                 );
             }
@@ -160,84 +222,158 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $PrepareId
+     * @param null $DivisionId
+     * @param bool $IsLeave
      *
      * @return Stage
      */
-    public function frontendConfirmPrintCertificate($PrepareId = null)
-    {
+    public function frontendConfirmPrintCertificate(
+        $PrepareId = null,
+        $DivisionId = null,
+        $IsLeave = false
+    ) {
 
         $Stage = new Stage('Zeugnis', 'Herunterladen und revisionssicher abspeichern');
 
-        if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
-            && ($tblDivision = $tblPrepare->getServiceTblDivision())
-        ) {
+        if ($IsLeave) {
+            if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
 
-            $Stage->addButton(new Standard(
-                'Zurück', '/Education/Certificate/PrintCertificate', new ChevronLeft()
-            ));
+                $Stage->addButton(new Standard(
+                    'Zurück', '/Education/Certificate/PrintCertificate', new ChevronLeft()
+                ));
 
-            if (($tblCertificateType = $tblPrepare->getCertificateType())
-                && $tblCertificateType->isAutomaticallyApproved()
-            ) {
-                $isAutomaticallyApproved = true;
-            } else {
-                $isAutomaticallyApproved = false;
-            }
+                if (($tblCertificateTypeLeave = Generator::useService()->getCertificateTypeByIdentifier('LEAVE'))
+                    && $tblCertificateTypeLeave->isAutomaticallyApproved()
+                ) {
+                    $isAutomaticallyApproved = true;
+                } else {
+                    $isAutomaticallyApproved = false;
+                }
 
-            $data = array();
-            if (($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))) {
-                foreach ($tblPersonList as $tblPerson) {
-                    if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
-                        && $tblPrepareStudent->getServiceTblCertificate()
-                        && !$tblPrepareStudent->isPrinted()
-                    ) {
-                        if ($tblPrepareStudent->isApproved()
-                            || $isAutomaticallyApproved
+                $data = array();
+                if (($tblLeaveStudentList = Prepare::useService()->getLeaveStudentAllByDivision($tblDivision))) {
+                    foreach ($tblLeaveStudentList as $tblLeaveStudent) {
+                        if (($tblPerson = $tblLeaveStudent->getServiceTblPerson())
+                            && !$tblLeaveStudent->isPrinted()
+                            && ($isAutomaticallyApproved || $tblLeaveStudent->isApproved())
                         ) {
                             $data[] = $tblPerson->getLastFirstName();
                         }
                     }
                 }
+
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                        new Panel(
+                            'Klasse',
+                            $tblDivision->getDisplayName(),
+                            Panel::PANEL_TYPE_INFO
+                        ),
+                        new Panel(
+                            new Question() . ' Dieses Zeugnis wirklich drucken und revisionssicher abspeichern?',
+                            $data,
+                            Panel::PANEL_TYPE_DANGER,
+                            (new External(
+                                'Ja',
+                                '/Api/Education/Certificate/Generator/DownLoadMultiLeavePdf',
+                                new Ok(),
+                                array(
+                                    'DivisionId' => $tblDivision->getId(),
+                                ),
+                                'Zeugnisse herunterladen und revisionssicher abspeichern'))
+                                ->setRedirect('/Education/Certificate/PrintCertificate', 60)
+                            . new Standard(
+                                'Nein', '/Education/Certificate/PrintCertificate', new Disable()
+                            )
+                        ),
+                    )))))
+                );
+
+            } else {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            new Danger(new Ban() . ' Das Zeugnis konnte nicht gefunden werden'),
+                            new Redirect('/Education/Certificate/PrintCertificate', Redirect::TIMEOUT_ERROR)
+                        )))
+                    )))
+                );
             }
 
-            $Stage->setContent(
-                new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
-                    new Panel(
-                        'Klasse',
-                        $tblDivision->getDisplayName(),
-                        Panel::PANEL_TYPE_INFO
-                    ),
-                    new Panel(
-                        new Question() . ' Dieses Zeugnis wirklich drucken und revisionssicher abspeichern?',
-                        $data,
-                        Panel::PANEL_TYPE_DANGER,
-                        (new External(
-                            'Ja',
-                            '/Api/Education/Certificate/Generator/DownLoadMultiPdf',
-                            new Ok(),
-                            array(
-                                'PrepareId' => $tblPrepare->getId(),
-                            ),
-                            'Zeugnisse herunterladen und revisionssicher abspeichern'))
-                            ->setRedirect('/Education/Certificate/PrintCertificate', 60)
-                        . new Standard(
-                            'Nein', '/Education/Certificate/PrintCertificate', new Disable()
-                        )
-                    ),
-                )))))
-            );
-        } else {
-            $Stage->setContent(
-                new Layout(new LayoutGroup(array(
-                    new LayoutRow(new LayoutColumn(array(
-                        new Danger(new Ban() . ' Das Zeugnis konnte nicht gefunden werden'),
-                        new Redirect('/Education/Certificate/PrintCertificate', Redirect::TIMEOUT_ERROR)
-                    )))
-                )))
-            );
-        }
+            return $Stage;
 
-        return $Stage;
+        } else {
+            if (($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
+                && ($tblDivision = $tblPrepare->getServiceTblDivision())
+            ) {
+
+                $Stage->addButton(new Standard(
+                    'Zurück', '/Education/Certificate/PrintCertificate', new ChevronLeft()
+                ));
+
+                if (($tblCertificateType = $tblPrepare->getCertificateType())
+                    && $tblCertificateType->isAutomaticallyApproved()
+                ) {
+                    $isAutomaticallyApproved = true;
+                } else {
+                    $isAutomaticallyApproved = false;
+                }
+
+                $data = array();
+                if (($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))) {
+                    foreach ($tblPersonList as $tblPerson) {
+                        if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+                            && $tblPrepareStudent->getServiceTblCertificate()
+                            && !$tblPrepareStudent->isPrinted()
+                        ) {
+                            if ($tblPrepareStudent->isApproved()
+                                || $isAutomaticallyApproved
+                            ) {
+                                $data[] = $tblPerson->getLastFirstName();
+                            }
+                        }
+                    }
+                }
+
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                        new Panel(
+                            'Klasse',
+                            $tblDivision->getDisplayName(),
+                            Panel::PANEL_TYPE_INFO
+                        ),
+                        new Panel(
+                            new Question() . ' Dieses Zeugnis wirklich drucken und revisionssicher abspeichern?',
+                            $data,
+                            Panel::PANEL_TYPE_DANGER,
+                            (new External(
+                                'Ja',
+                                '/Api/Education/Certificate/Generator/DownLoadMultiPdf',
+                                new Ok(),
+                                array(
+                                    'PrepareId' => $tblPrepare->getId(),
+                                ),
+                                'Zeugnisse herunterladen und revisionssicher abspeichern'))
+                                ->setRedirect('/Education/Certificate/PrintCertificate', 60)
+                            . new Standard(
+                                'Nein', '/Education/Certificate/PrintCertificate', new Disable()
+                            )
+                        ),
+                    )))))
+                );
+            } else {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            new Danger(new Ban() . ' Das Zeugnis konnte nicht gefunden werden'),
+                            new Redirect('/Education/Certificate/PrintCertificate', Redirect::TIMEOUT_ERROR)
+                        )))
+                    )))
+                );
+            }
+
+            return $Stage;
+        }
     }
 
     /**

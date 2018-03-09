@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\Certificate\Generator\Service;
 
+use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateField;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateGrade;
@@ -206,28 +207,6 @@ class Data extends AbstractData
 //            }
         }
 
-        $tblCertificate = $this->createCertificate('Gymnasium Abgangszeugnis', 'Hauptschulabschluss Klasse 9',
-            'GymAbgHs');
-        if ($tblCertificate) {
-            if ($tblSchoolTypeGym) {
-                $this->updateCertificate($tblCertificate, $tblCertificateTypeLeave, $tblSchoolTypeGym);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '9'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-            }
-        }
-
-        $tblCertificate = $this->createCertificate('Gymnasium Abgangszeugnis', 'Realschulabschluss Klasse 10',
-            'GymAbgRs');
-        if ($tblCertificate) {
-            if ($tblSchoolTypeGym) {
-                $this->updateCertificate($tblCertificate, $tblCertificateTypeLeave, $tblSchoolTypeGym);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '10'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-            }
-        }
-
         $tblCertificate = $this->createCertificate('Gymnasium Halbjahresinformation', '', 'GymHjInfo');
         if ($tblCertificate) {
             if ($tblSchoolTypeGym) {
@@ -372,18 +351,6 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'RELI', 2, 6);
             $this->setCertificateSubject($tblCertificate, 'TC', 2, 7);
             $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
-        }
-
-        $tblCertificate = $this->createCertificate('Mittelschule Abgangszeugnis', 'Hauptschule', 'MsAbgHs');
-        if ($tblCertificate && $tblCourseMain) {
-            $this->updateCertificate($tblCertificate, $tblCertificateTypeLeave, $tblSchoolTypeSecondary,
-                $tblCourseMain);
-        }
-
-        $tblCertificate = $this->createCertificate('Mittelschule Abgangszeugnis', 'Realschule', 'MsAbgRs');
-        if ($tblCertificate && $tblCourseReal) {
-            $this->updateCertificate($tblCertificate, $tblCertificateTypeLeave, $tblSchoolTypeSecondary,
-                $tblCourseReal);
         }
 
         $tblCertificate = $this->createCertificate('Mittelschule Abschlusszeugnis', 'Hauptschule', 'MsAbsHs');
@@ -907,6 +874,83 @@ class Data extends AbstractData
         if (($tblCertificate = $this->getCertificateByCertificateClassName('GsJ'))) {
             $this->destroyCertificate($tblCertificate);
         }
+
+        /**
+         * Abgangszeugnisse - Leave
+         */
+        // Alt-Last löschen - Delete alte Abgangszeugnisse
+        if (($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GymAbgHs'))) {
+            $this->destroyCertificate($tblCertificate);
+        }
+        if (($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GymAbgRs'))) {
+            $this->destroyCertificate($tblCertificate);
+        }
+        if (($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('MsAbgHs'))) {
+            $this->destroyCertificate($tblCertificate);
+        }
+        if (($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('MsAbgRs'))) {
+            $this->destroyCertificate($tblCertificate);
+        }
+        // create Abgangzeugnisse
+        $tblCertificate = $this->createCertificate('Mittelschule Abgangszeugnis', '', 'MsAbg',
+            null, false, false, false, $tblCertificateTypeLeave, $tblSchoolTypeSecondary);
+        if ($tblCertificate) {
+            if (!$this->getCertificateSubjectAll($tblCertificate)) {
+                $row = 1;
+                $column = 1;
+                $this->setCertificateSubject($tblCertificate, 'DE', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'EN', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'KU', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'MU', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GE', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GK', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GEO', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'WTH', $row, $column);
+
+                $row = 2;
+                $column = 1;
+                $this->setCertificateSubject($tblCertificate, 'MA', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'BIO', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'CH', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'PH', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'SPO', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'REE', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'REK', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'ETH', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'IN', $row, $column);
+            }
+        }
+        $tblCertificate = $this->createCertificate('Gymnasium Abgangszeugnis', 'Sekundarstufe I', 'GymAbgSekI',
+            null, false, false, false, $tblCertificateTypeLeave, $tblSchoolTypeGym);
+        if ($tblCertificate) {
+            if (!$this->getCertificateSubjectAll($tblCertificate)) {
+                $row = 1;
+                $column = 1;
+                $this->setCertificateSubject($tblCertificate, 'DE', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'EN', $row, $column++);
+                $column++;
+                $this->setCertificateSubject($tblCertificate, 'KU', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'MU', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GE', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GRW', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GEO', $row, $column);
+
+                $row = 2;
+                $column = 1;
+                $this->setCertificateSubject($tblCertificate, 'MA', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'BIO', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'CH', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'PH', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'SPO', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'REE', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'REK', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'ETH', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'TC', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'IN', $row, $column);
+            }
+        }
+        // todo gym sekII
+
 
         $tblConsumer = Consumer::useService()->getConsumerBySession();
         if ($tblConsumer) {
@@ -2947,15 +2991,18 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string           $Name
-     * @param string           $Description
-     * @param string           $Certificate
+     * @param string $Name
+     * @param string $Description
+     * @param string $Certificate
      * @param TblConsumer|null $tblConsumer
-     * @param bool             $IsGradeInformation
-     * @param bool             $IsInformation
-     * @param bool             $IsChosenDefault
+     * @param bool $IsGradeInformation
+     * @param bool $IsInformation
+     * @param bool $IsChosenDefault
+     * @param TblCertificateType|null $tblCertificateType
+     * @param TblType|null $tblSchoolType
+     * @param TblCourse|null $tblCourse
      *
-     * @return null|object|TblCertificate
+     * @return TblCertificate
      */
     public function createCertificate(
         $Name,
@@ -2964,7 +3011,10 @@ class Data extends AbstractData
         TblConsumer $tblConsumer = null,
         $IsGradeInformation = false,
         $IsInformation = false,
-        $IsChosenDefault = false
+        $IsChosenDefault = false,
+        TblCertificateType $tblCertificateType = null,
+        TblType $tblSchoolType = null,
+        TblCourse $tblCourse = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -2982,6 +3032,9 @@ class Data extends AbstractData
             $Entity->setIsGradeInformation($IsGradeInformation);
             $Entity->setIsInformation($IsInformation);
             $Entity->setIsChosenDefault($IsChosenDefault);
+            $Entity->setTblCertificateType($tblCertificateType);
+            $Entity->setServiceTblSchoolType($tblSchoolType);
+            $Entity->setServiceTblCourse($tblCourse);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -3381,8 +3434,11 @@ class Data extends AbstractData
             if (!$tblSubject) {
                 $tblSubject = Subject::useService()->getSubjectByAcronym('REE');
             }
-        } elseif ($SubjectAcronym == 'IN' || $SubjectAcronym == 'INFO') {
-            $tblSubject = Subject::useService()->getSubjectByAcronym('IN');
+        } elseif ($SubjectAcronym == 'IN' || $SubjectAcronym == 'INFO' || $SubjectAcronym == 'INF') {
+            $tblSubject = Subject::useService()->getSubjectByAcronym('INF');
+            if (!$tblSubject) {
+                $tblSubject = Subject::useService()->getSubjectByAcronym('IN');
+            }
             if (!$tblSubject) {
                 $tblSubject = Subject::useService()->getSubjectByAcronym('INFO');
             }

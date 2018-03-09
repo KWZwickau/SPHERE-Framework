@@ -47,6 +47,9 @@ class Prepare implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Diploma', __NAMESPACE__ . '\Frontend::frontendDiplomaSelectDivision')
         );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Leave', __NAMESPACE__ . '\Frontend::frontendLeaveSelectStudent')
+        );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Prepare' , __NAMESPACE__ . '\Frontend::frontendPrepare')
@@ -74,6 +77,9 @@ class Prepare implements IModuleInterface
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\DroppedSubjects\Destroy', __NAMESPACE__ . '\Frontend::frontendDestroyDroppedSubjects')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Leave\Student', __NAMESPACE__ . '\Frontend::frontendLeaveStudentTemplate')
         );
     }
 
