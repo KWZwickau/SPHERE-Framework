@@ -406,11 +406,25 @@ class Frontend extends Extension
                 if ($tblDivisionAllByYear) {
                     foreach ($tblDivisionAllByYear as $tblDivision) {
                         // keine Klassenstufen Übergreifende anzeigen
+                        // auch Klassen ohne Fächer anzeigen, z.B. für 1. Klasse
                         if (!$tblDivision->getTblLevel()->getIsChecked()) {
                             $type = $tblDivision->getTblLevel()->getServiceTblType();
-                            // auch Klassen ohne Fächer anzeigen, z.B. für 1. Klasse
+
+                            // Klassen und Schulart Auswahl nach Typ
                             if ($type) { // && $tblDivisionSubjectList) {
-                                if ($tblCertificateType->getIdentifier() == 'MID_TERM_COURSE') {
+                                if ($tblCertificateType->getIdentifier() == 'DIPLOMA') {
+                                    if ($type->getName() == 'Gymnasium'
+                                        && (($tblLevel = $tblDivision->getTblLevel()))
+                                        && $tblLevel->getName() == '12'
+                                    ) {
+                                        $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
+                                    } elseif ($type->getName() == 'Mittelschule / Oberschule'
+                                        && (($tblLevel = $tblDivision->getTblLevel()))
+                                        && ($tblLevel->getName() == '9' || $tblLevel->getName() == '10')
+                                    ) {
+                                        $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
+                                    }
+                                } elseif ($tblCertificateType->getIdentifier() == 'MID_TERM_COURSE') {
                                     // nur Gymnasium Klasse 11 und 12
                                     if ($type->getName() == 'Gymnasium'
                                         && (($tblLevel = $tblDivision->getTblLevel()))
@@ -419,6 +433,14 @@ class Frontend extends Extension
                                         $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
                                     }
                                 } else {
+                                    if ($tblCertificateType->getIdentifier() != 'GRADE_INFORMATION'
+                                        && $type->getName() == 'Gymnasium'
+                                        && (($tblLevel = $tblDivision->getTblLevel()))
+                                        && ($tblLevel->getName() == '11' || $tblLevel->getName() == '12')
+                                    ) {
+                                        continue;
+                                    }
+
                                     $schoolTypeList[$type->getId()][$tblDivision->getId()] = $tblDivision->getDisplayName();
                                 }
                             }
