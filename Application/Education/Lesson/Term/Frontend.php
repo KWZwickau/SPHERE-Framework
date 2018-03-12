@@ -823,7 +823,7 @@ class Frontend extends Extension implements IFrontendInterface
         $DataRemoveHoliday = null
     ) {
 
-        $Stage = new Stage('Schuljahr', 'Unterrichtsfreie Tagge zuweisen');
+        $Stage = new Stage('Schuljahr', 'Unterrichtsfreie Tage zuweisen');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term', new ChevronLeft()));
 
         if (($tblYear = Term::useService()->getYearById($YearId))) {

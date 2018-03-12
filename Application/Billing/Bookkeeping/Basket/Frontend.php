@@ -22,6 +22,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
@@ -938,6 +939,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(array(
                         $displayAvailablePersons
                     ), 6),
+                    new FormColumn(new HiddenField('DataAddPerson[IsSubmit]')),
+                    new FormColumn(new HiddenField('DataRemovePerson[IsSubmit]')),
                 ))
             ),
         ));

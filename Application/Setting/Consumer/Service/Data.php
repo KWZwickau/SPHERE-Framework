@@ -193,6 +193,15 @@ class Data extends AbstractData
             TblSetting::TYPE_BOOLEAN,
             '0'
         );
+        // automatische Bekanntgabe von Leistungsüberprüfungen nach x Tagen für die Notenübersicht für Schüler
+        $this->createSetting(
+            'Education',
+            'Graduation',
+            'Evaluation',
+            'AutoPublicationOfTestsAfterXDays',
+            TblSetting::TYPE_INTEGER,
+            '28'
+        );
         // Zensuren im Wortlaut auf Abgangszeugnissen
         $this->createSetting(
             'Education',

@@ -160,7 +160,7 @@ abstract class AbstractStudentCard extends AbstractDocument
             $element = (new Element())
                 ->setContent($this->setRotatedContend($text, '-2px', $paddingLeftHeader))
                 ->styleHeight($heightHeader)
-                ->styleTextSize($textSizeSmall)
+                ->styleTextSize(strlen($text) > 30 && $heightHeader <= '150px' ? '6px' : $textSizeSmall)
                 ->styleBorderLeft($i == 1 ? $thicknessOutLines : $thicknessInnerLines);
 
             $section->addElementColumn($element, $widthString);
@@ -247,11 +247,15 @@ abstract class AbstractStudentCard extends AbstractDocument
             for ($i = 1; $i <= $countTotalColumns; $i++) {
                 $content = '&nbsp;';
                 $textSize = $textSizeNormal;
-                $paddingTop = '4px';
                 $paddingLeft = '2px';
                 $thicknessLeft = $thicknessInnerLines;
                 $widthColumn = $widthString;
                 $height = $heightRow;
+                if ($height == '18px') {
+                    $paddingTop = '4px';
+                } else {
+                    $paddingTop = '1px';
+                }
 
                 if ($i  == 1) {
                     $thicknessLeft = $thicknessOutLines;
@@ -294,18 +298,6 @@ abstract class AbstractStudentCard extends AbstractDocument
                 } elseif ($i >= 8 && $i <= (3 + $countGradesTotal)) {
                     $thicknessLeft = $i == 8 ? $thicknessOutLines : $thicknessInnerLines;
                     $widthColumn = $widthString;
-//                    if ($tblDocument
-//                        && ($tblDocumentSubject = Generator::useService()->getDocumentSubjectByDocumentAndRanking($tblDocument, $i - 7))
-//                        && ($tblSubject = $tblDocumentSubject->getServiceTblSubject())
-//                    ) {
-//                        $content = '{% if(Content.Certificate.' . $typeId . '.Data' . $j . '.SubjectGrade["' . $tblSubject->getAcronym() . '"] is not empty) %}
-//                                {{ Content.Certificate.' . $typeId . '.Data' . $j . '.SubjectGrade["' . $tblSubject->getAcronym() . '"] }}
-//                            {% else %}
-//                                 &nbsp;
-//                            {% endif %}';
-//                    } else {
-//                        $content = '&nbsp;';
-//                    }
                     if (isset($subjectPosition[$i - 7])) {
                         $tblSubject = $subjectPosition[$i - 7];
                         $content = '{% if(Content.Certificate.' . $typeId . '.Data' . $j . '.SubjectGrade["' . $tblSubject->getAcronym() . '"] is not empty) %}
@@ -321,8 +313,13 @@ abstract class AbstractStudentCard extends AbstractDocument
                     $widthColumn = $widthLastColumnsString;
                     $textSize = $textSizeSmall;
                     $paddingLeft = '1px';
-                    $paddingTop = '7px';
-                    $height = '15px';
+                    if ($height == '18px') {
+                        $paddingTop = '7px';
+                        $height = '15px';
+                    } else {
+                        $paddingTop = '2px';
+                        $height = '14px';
+                    }
                     $content = '{% if(Content.Certificate.' . $typeId . '.Data' . $j . '.CertificateDate is not empty) %}
                                 {{ Content.Certificate.' . $typeId . '.Data' . $j . '.CertificateDate }}
                             {% else %}
@@ -378,7 +375,7 @@ abstract class AbstractStudentCard extends AbstractDocument
      *
      * @return string
      */
-    private function setRotatedContend($text = '&nbsp;', $paddingTop = '0px', $paddingLeft = '-90px')
+    protected function setRotatedContend($text = '&nbsp;', $paddingTop = '0px', $paddingLeft = '-90px')
     {
 
         return
@@ -501,13 +498,20 @@ abstract class AbstractStudentCard extends AbstractDocument
 
         $tblType ? $typeId = $tblType->getId() : $typeId = 0;
 
-        // Todo unterer Teil
         $sliceList = array();
         if (($tblPrepareStudentList = Generator::useService()->getPrepareStudentListForStudentCard($this->getTblPerson(), $tblType))){
             $count = 0;
             $countList = count($tblPrepareStudentList);
             foreach ($tblPrepareStudentList as $tblPrepareStudent) {
                 $count++;
+                // offset = 100
+                if ($count < 100
+                    && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
+                    && ($tblCertificateType = $tblCertificate->getTblCertificateType())
+                    && $tblCertificateType->getIdentifier() == 'MID_TERM_COURSE'
+                ) {
+                    $count = 101;
+                }
                 $sliceList[] = (new Slice())
                     ->styleBorderLeft($thicknessOuterLines)
                     ->styleBorderRight($thicknessOuterLines)
