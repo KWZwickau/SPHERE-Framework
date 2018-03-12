@@ -1845,69 +1845,6 @@ class Service extends AbstractService
 
     /**
      * @param TblPrepareCertificate $tblPrepare
-     */
-    public function setTemplatesAllByPrepareCertificate(TblPrepareCertificate $tblPrepare)
-    {
-
-        $tblConsumer = Consumer::useService()->getConsumerBySession();
-        if (($tblDivision = $tblPrepare->getServiceTblDivision())
-            && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
-        ) {
-            foreach ($tblPersonList as $tblPerson) {
-                // Template bereits gesetzt
-                if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))) {
-                    if ($tblPrepareStudent->getServiceTblCertificate()) {
-                        continue;
-                    }
-                }
-
-                // Noteninformation
-                if ($tblPrepare->isGradeInformation()) {
-                    $this->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson,
-                        Generator::useService()->getCertificateByCertificateClassName('GradeInformation')
-                    );
-                    continue;
-                }
-
-                if ($tblConsumer) {
-                    // Eigene Vorlage
-                    if (($certificateList = Generate::useService()->getPossibleCertificates($tblPrepare, $tblPerson,
-                        $tblConsumer))
-                    ) {
-                        if (count($certificateList) == 1) {
-                            $this->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, current($certificateList));
-                        } elseif (count($certificateList) > 1) {
-                            /** @var TblCertificate $certificate */
-                            $ChosenCertificate = false;
-                            foreach ($certificateList as $certificate) {
-                                if ($certificate->isChosenDefault()) {
-                                    $ChosenCertificate = $certificate;
-                                    break;
-                                }
-                            }
-                            if ($ChosenCertificate) {
-                                $this->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, $ChosenCertificate);
-                            }
-                        } else {
-                            continue;
-                        }
-                        // Standard Vorlagen
-                    } elseif (($certificateList = Generate::useService()->getPossibleCertificates($tblPrepare,
-                        $tblPerson))
-                    ) {
-                        if (count($certificateList) == 1) {
-                            $this->updatePrepareStudentSetTemplate($tblPrepare, $tblPerson, current($certificateList));
-                        } else {
-                            continue;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * @param TblPrepareCertificate $tblPrepare
      *
      * @return bool
      */
