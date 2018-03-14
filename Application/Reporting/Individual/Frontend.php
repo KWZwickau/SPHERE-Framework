@@ -60,11 +60,11 @@ class Frontend extends Extension implements IFrontendInterface
 //                                        .'Spezifische Auswertung für Sorgeberechtigte'
 //                                        . new Container(new Muted('Auswertung über Sorgeberechtigte um speziefischere Informationen zum Sorgeberechtigten zu erhalten.'))
 //                                    ),
-//                                    new PullClear(
-//                                        new PullRight(new Standard('', __NAMESPACE__.'/Student', new Listing()))
-//                                        .'Spezifische Auswertung für Interessenten'
-//                                        . new Container(new Muted('Auswertung über Interessenten um speziefischere Informationen zum Interessenten zu erhalten.'))
-//                                    )
+                                    new PullClear(
+                                        new PullRight(new Standard('', __NAMESPACE__.'/Prospect', new Listing()))
+                                        .'Spezifische Auswertung für Interessenten'
+                                        . new Container(new Muted('Auswertung über Interessenten um speziefischere Informationen zum Interessenten zu erhalten.'))
+                                    )
                                 )))
                         , 6),
                     ))
@@ -73,6 +73,44 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         // $Content = Individual::useService()->getView();
+
+        return $Stage;
+    }
+
+    public function frontendGroup()
+    {
+
+        $Stage = new Stage('Flexible Auswertung', 'Auswertung von Personen und Gruppen');
+        $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            ApiIndividual::receiverService(),
+                            ApiIndividual::receiverModal(),
+                            ApiIndividual::receiverNavigation(),
+                            ApiIndividual::pipelineNavigation(false, TblWorkSpace::VIEW_TYPE_ALL)
+                        ), 3),
+                        new LayoutColumn(
+                            new Layout(
+                                new LayoutGroup(
+                                    new LayoutRow(array(
+                                        new LayoutColumn(array(
+                                            ApiIndividual::receiverFilter(),
+                                            ApiIndividual::pipelineDisplayFilter(TblWorkSpace::VIEW_TYPE_ALL)
+                                        )),
+                                        new LayoutColumn(new Title('Suchergebnis')),
+                                        new LayoutColumn(ApiIndividual::receiverResult()),
+                                    ))
+                                )
+                            )
+                            , 9)
+                    ))
+                )
+            ))
+        );
 
         return $Stage;
     }
@@ -115,10 +153,10 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
-    public function frontendGroup()
+    public function frontendProspect()
     {
 
-        $Stage = new Stage('Flexible Auswertung', 'Auswertung von Personen und Gruppen');
+        $Stage = new Stage('Flexible Auswertung', 'Auswertung von Interessenten');
         $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
 
         $Stage->setContent(
@@ -129,7 +167,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ApiIndividual::receiverService(),
                             ApiIndividual::receiverModal(),
                             ApiIndividual::receiverNavigation(),
-                            ApiIndividual::pipelineNavigation(false, TblWorkSpace::VIEW_TYPE_ALL)
+                            ApiIndividual::pipelineNavigation(false, TblWorkSpace::VIEW_TYPE_PROSPECT)
                         ), 3),
                         new LayoutColumn(
                             new Layout(
@@ -137,14 +175,14 @@ class Frontend extends Extension implements IFrontendInterface
                                     new LayoutRow(array(
                                         new LayoutColumn(array(
                                             ApiIndividual::receiverFilter(),
-                                            ApiIndividual::pipelineDisplayFilter(TblWorkSpace::VIEW_TYPE_ALL)
+                                            ApiIndividual::pipelineDisplayFilter(TblWorkSpace::VIEW_TYPE_PROSPECT)
                                         )),
                                         new LayoutColumn(new Title('Suchergebnis')),
                                         new LayoutColumn(ApiIndividual::receiverResult()),
                                     ))
                                 )
                             )
-                            , 9)
+                        , 9)
                     ))
                 )
             ))

@@ -21,9 +21,12 @@ use SPHERE\Application\Reporting\Individual\Service\Entity\TblPreset;
 use SPHERE\Application\Reporting\Individual\Service\Entity\TblWorkSpace;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewEducationStudent;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroup;
+use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupProspect;
+use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentTransfer;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewPerson;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewPersonContact;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudent;
+use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudentCustody;
 use SPHERE\Common\Frontend\Ajax\Emitter\ClientEmitter;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -969,12 +972,12 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                         $AccordionList[] = new Dropdown( 'Schüler:', new Scrollable( $Block ) );
                     }
                 }
-                $Block = $this->getPanelList(new ViewPersonContact(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);
+                $Block = $this->getPanelList(new ViewGroupStudentTransfer(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);
                 if( !empty( $Block ) ) {
-                    if( isset($ViewList['ViewPersonContact']) ) {
-                        $AccordionList[] = new Panel( 'Kontakt:', new Scrollable( $Block, 300 ));
+                    if (isset($ViewList['ViewGroupStudentTransfer'])) {
+                        $AccordionList[] = new Panel('Schülertransfer:', new Scrollable($Block, 300));
                     } else {
-                        $AccordionList[] = new Dropdown( 'Kontakt:', new Scrollable( $Block ) );
+                        $AccordionList[] = new Dropdown('Schülertransfer:', new Scrollable($Block));
                     }
                 }
                 $Block = $this->getPanelList(new ViewEducationStudent(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);
@@ -985,12 +988,52 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                         $AccordionList[] = new Dropdown( 'Bildung:', new Scrollable( $Block ) );
                     }
                 }
+                $Block = $this->getPanelList(new ViewPersonContact(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewPersonContact']) ) {
+                        $AccordionList[] = new Panel( 'Kontakt:', new Scrollable( $Block, 300 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Kontakt:', new Scrollable( $Block ) );
+                    }
+                }
+                $Block = $this->getPanelList(new ViewStudentCustody(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewStudentCustody']) ) {
+                        $AccordionList[] = new Panel( 'Sorgeberechtigte:', new Scrollable( $Block, 300 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Sorgeberechtigte:', new Scrollable( $Block ) );
+                    }
+                }
             break;
             case TblWorkSpace::VIEW_TYPE_CUSTODY:
 
             break;
             case TblWorkSpace::VIEW_TYPE_PROSPECT:
-
+                $Block = $this->getPanelList(new ViewGroupProspect(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_PROSPECT);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewGroupProspect']) ) {
+                        $AccordionList[] = new Panel( 'Interessent:', new Scrollable( $Block, 300 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Interessent:', new Scrollable( $Block ) );
+                    }
+                }
+                $Block = $this->getPanelList(new ViewPersonContact(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_PROSPECT);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewPersonContact']) ) {
+                        $AccordionList[] = new Panel( 'Kontakt:', new Scrollable( $Block, 300 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Kontakt:', new Scrollable( $Block ) );
+                    }
+                }
+                // ViewStudentCustody is only for Student's
+//                $Block = $this->getPanelList(new ViewStudentCustody(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_PROSPECT);
+//                if( !empty( $Block ) ) {
+//                    if( isset($ViewList['ViewStudentCustody']) ) {
+//                        $AccordionList[] = new Panel( 'Sorgeberechtigte:', new Scrollable( $Block, 300 ));
+//                    } else {
+//                        $AccordionList[] = new Dropdown( 'Sorgeberechtigte:', new Scrollable( $Block ) );
+//                    }
+//                }
             break;
         }
 

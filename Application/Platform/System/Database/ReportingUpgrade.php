@@ -41,11 +41,13 @@ class ReportingUpgrade
         'viewGroupClub' => 'viewGroupClub.twig',
         'viewGroupCustody' => 'viewGroupCustody.twig',
         'viewGroupProspect' => 'viewGroupProspect.twig',
+        'viewGroupStudentTransfer' => 'viewGroupStudentTransfer.twig',
         'viewGroupStudent' => 'viewGroupStudent.twig',
         'viewGroupTeacher' => 'viewGroupTeacher.twig',
         'viewPerson' => 'viewPerson.twig',
         'viewPersonContact' => 'viewPersonContact.twig',
         'viewRelationshipToPerson' => 'viewRelationshipToPerson.twig',
+        'viewStudentCustody' => 'viewStudentCustody.twig',
         'viewStudent' => 'viewStudent.twig'
     );
 
