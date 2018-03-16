@@ -8,7 +8,6 @@
 
 namespace SPHERE\Application\Education\Certificate\Prepare\Service;
 
-use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
@@ -32,7 +31,6 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 
@@ -677,8 +675,6 @@ class Data extends AbstractData
             }
         }
 
-        $tblConsumer = Consumer::useService()->getConsumerBySession();
-
         if (($tblTask = ($tblPrepare->getServiceTblAppointedDateTask()))
             && ($tblDivision = $tblPrepare->getServiceTblDivision())
             && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
@@ -731,39 +727,6 @@ class Data extends AbstractData
                         $Entity->setServiceTblPerson($tblPerson);
                         $Entity->setApproved(true);
                         $Entity->setPrinted(false);
-
-                        // noch nicht gesetze Zeugnisvorlagen setzen
-                        if ($tblConsumer && !$Entity->getServiceTblCertificate()) {
-                            // Eigene Vorlage
-                            if (($certificateList = Generate::useService()->getPossibleCertificates($tblPrepare,
-                                $tblPerson, $tblConsumer))
-                            ) {
-                                if (count($certificateList) == 1) {
-                                    $Entity->setServiceTblCertificate(current($certificateList));
-                                } elseif (count($certificateList) > 1) {
-                                    /** @var TblCertificate $certificate */
-                                    $ChosenCertificate = false;
-                                    foreach ($certificateList as $certificate) {
-                                        if ($certificate->isChosenDefault()) {
-                                            $ChosenCertificate = $certificate;
-                                            break;
-                                        }
-                                    }
-                                    if ($ChosenCertificate) {
-                                        $Entity->setServiceTblCertificate($ChosenCertificate);
-                                    }
-                                }
-                                // Standard Vorlagen
-                            } elseif (($certificateList = Generate::useService()->getPossibleCertificates($tblPrepare,
-                                $tblPerson))
-                            ) {
-                                if (count($certificateList) == 1) {
-                                    if (count($certificateList) == 1) {
-                                        $Entity->setServiceTblCertificate(current($certificateList));
-                                    }
-                                }
-                            }
-                        }
 
                         $Manager->bulkSaveEntity($Entity);
                         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
@@ -909,8 +872,6 @@ class Data extends AbstractData
             }
         }
 
-        $tblConsumer = Consumer::useService()->getConsumerBySession();
-
         if ($tblTestType
             && ($tblTask = ($tblPrepare->getServiceTblAppointedDateTask()))
             && ($tblDivision = $tblPrepare->getServiceTblDivision())
@@ -954,39 +915,6 @@ class Data extends AbstractData
                     $Entity->setServiceTblPerson($tblPerson);
                     $Entity->setApproved(true);
                     $Entity->setPrinted(false);
-
-                    // noch nicht gesetze Zeugnisvorlagen setzen
-                    if ($tblConsumer && !$Entity->getServiceTblCertificate()) {
-                        // Eigene Vorlage
-                        if (($certificateList = Generate::useService()->getPossibleCertificates($tblPrepare,
-                            $tblPerson, $tblConsumer))
-                        ) {
-                            if (count($certificateList) == 1) {
-                                $Entity->setServiceTblCertificate(current($certificateList));
-                            } elseif (count($certificateList) > 1) {
-                                /** @var TblCertificate $certificate */
-                                $ChosenCertificate = false;
-                                foreach ($certificateList as $certificate) {
-                                    if ($certificate->isChosenDefault()) {
-                                        $ChosenCertificate = $certificate;
-                                        break;
-                                    }
-                                }
-                                if ($ChosenCertificate) {
-                                    $Entity->setServiceTblCertificate($ChosenCertificate);
-                                }
-                            }
-                            // Standard Vorlagen
-                        } elseif (($certificateList = Generate::useService()->getPossibleCertificates($tblPrepare,
-                            $tblPerson))
-                        ) {
-                            if (count($certificateList) == 1) {
-                                if (count($certificateList) == 1) {
-                                    $Entity->setServiceTblCertificate(current($certificateList));
-                                }
-                            }
-                        }
-                    }
 
                     $Manager->bulkSaveEntity($Entity);
                     Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);

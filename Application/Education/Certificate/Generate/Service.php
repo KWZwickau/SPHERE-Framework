@@ -299,7 +299,6 @@ class Service extends AbstractService
         ) {
 
             $countStudents = count($tblPersonList);
-            $tblConsumerBySession = Consumer::useService()->getConsumerBySession();
             foreach ($tblPersonList as $tblPerson) {
                 // Schulnamen
                 $tblCompany = false;
@@ -335,65 +334,6 @@ class Service extends AbstractService
                         }
 
                         continue;
-                    }
-                }
-
-                // todo entfernen nach Februar 2018
-                if ($tblConsumerBySession) {
-                    // Eigene Vorlage
-                    if (($certificateList = $this->getPossibleCertificates($tblPrepare, $tblPerson,
-                        $tblConsumerBySession))
-                    ) {
-                        if (count($certificateList) == 1) {
-                            $countTemplates++;
-                            /** @var TblCertificate $tblCertificate */
-                            $tblCertificate = current($certificateList);
-                            if (!isset($certificateNameList[$tblCertificate->getId()])) {
-                                $tblConsumer = $tblCertificate->getServiceTblConsumer();
-                                $certificateNameList[$tblCertificate->getId()]
-                                    = ($tblConsumer ? $tblConsumer->getAcronym() . ' ' : '')
-                                    . $tblCertificate->getName() . ($tblCertificate->getDescription()
-                                        ? ' ' . $tblCertificate->getDescription() : '');
-                            }
-                        } elseif (count($certificateList) > 1) {
-                            /** @var TblCertificate $certificate */
-                            $ChosenCertificate = false;
-                            foreach ($certificateList as $certificate) {
-                                if ($certificate->isChosenDefault()) {
-                                    $ChosenCertificate = $certificate;
-                                    break;
-                                }
-                            }
-                            if ($ChosenCertificate) {
-                                $tblCertificate = $ChosenCertificate;
-                                if ($tblCertificate && !isset($certificateNameList[$tblCertificate->getId()])) {
-                                    $tblConsumer = $tblCertificate->getServiceTblConsumer();
-                                    $certificateNameList[$tblCertificate->getId()]
-                                        = ($tblConsumer ? $tblConsumer->getAcronym().' ' : '')
-                                        .$tblCertificate->getName().($tblCertificate->getDescription()
-                                            ? ' '.$tblCertificate->getDescription() : '');
-                                }
-                                $saveCertificatesForStudents[$tblPrepare->getId()][$tblPerson->getId()] = $tblCertificate;
-                            }
-                        } else {
-                            continue;
-                        }
-                        // Standard Vorlagen
-                    } elseif (($certificateList = $this->getPossibleCertificates($tblPrepare, $tblPerson))) {
-                        if (count($certificateList) == 1) {
-                            $countTemplates++;
-                            /** @var TblCertificate $tblCertificate */
-                            $tblCertificate = current($certificateList);
-                            if (!isset($certificateNameList[$tblCertificate->getId()])) {
-                                $tblConsumer = $tblCertificate->getServiceTblConsumer();
-                                $certificateNameList[$tblCertificate->getId()]
-                                    = ($tblConsumer ? $tblConsumer->getAcronym() . ' ' : '')
-                                    . $tblCertificate->getName() . ($tblCertificate->getDescription()
-                                        ? ' ' . $tblCertificate->getDescription() : '');
-                            }
-                        } else {
-                            continue;
-                        }
                     }
                 }
             }
