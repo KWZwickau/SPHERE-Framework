@@ -130,7 +130,7 @@ class Service extends Extension
                 if($tblRelationshipList){
                     foreach($tblRelationshipList as$tblRelationship){
                         if(($tblPerson = $tblRelationship->getServiceTblPerson())){
-                            $PersonList[] = $tblPerson->getSalutation().' '.$tblPerson->getLastName();
+                            $PersonList[] = $tblPerson->getFullNameWithoutFirstName();
                         }
                     }
                 }
