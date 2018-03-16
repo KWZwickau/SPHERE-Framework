@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Education\Certificate\Prepare\Abitur;
 
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -17,6 +18,15 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectCompleter;
+use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -26,32 +36,13 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
  *
  * @package SPHERE\Application\Education\Certificate\Prepare\Abitur
  */
-class BlockI
+class BlockI extends AbstractBlock
 {
-    /**
-     * @var TblDivision|null
-     */
-    private $tblDivision = null;
-
-    /**
-     * @var TblPerson|null
-     */
-    private $tblPerson = null;
 
     /**
      * @var BlockIView
      */
     private $View = BlockIView::PREVIEW;
-
-    /**
-     * @var array|false
-     */
-    private $AdvancedCourses = false;
-
-    /**
-     * @var array|false
-     */
-    private $BasicCourses = false;
 
     /**
      * @var TblSubject|null
@@ -87,47 +78,63 @@ class BlockI
         '12-2' => '12/2',
     );
 
-    public function __construct(TblDivision $tblDivision, TblPerson $tblPerson, $view)
+    /**
+     * BlockI constructor.
+     * @param TblDivision $tblDivision
+     * @param TblPerson $tblPerson
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     * @param $view
+     */
+    public function __construct(TblDivision $tblDivision, TblPerson $tblPerson, TblPrepareCertificate $tblPrepareCertificate, $view)
     {
         $this->tblDivision = $tblDivision;
         $this->tblPerson = $tblPerson;
+        $this->tblPrepareCertificate = $tblPrepareCertificate;
         $this->View = $view;
+
+        $this->tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareCertificate, $tblPerson);
 
         $this->setCourses();
         $this->setReligion();
         $this->setPrepareStudentList();
+        $this->setPointList();
     }
 
-    private function setCourses()
+    /**
+     * @return Form
+     */
+    public function getForm()
     {
-        $advancedCourses = array();
-        $basicCourses = array();
-        if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($this->tblDivision))) {
-            foreach ($tblDivisionSubjectList as $tblDivisionSubjectItem) {
-                if (($tblSubjectGroup = $tblDivisionSubjectItem->getTblSubjectGroup())) {
 
-                    if (($tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject(
-                        $tblDivisionSubjectItem))
-                    ) {
-                        foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                            if (($tblSubject = $tblDivisionSubjectItem->getServiceTblSubject())
-                                && ($tblPersonStudent = $tblSubjectStudent->getServiceTblPerson())
-                                && $this->tblPerson->getId() == $tblPersonStudent->getId()
-                            ) {
-                                if ($tblSubjectGroup->isAdvancedCourse()) {
-                                    $advancedCourses[$tblSubject->getId()] = $tblSubject;
-                                } else {
-                                    $basicCourses[$tblSubject->getId()] = $tblSubject;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        $form = new Form(array(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(array(
+                        new Panel(
+                            'Sprachlich-literarisch-künstlerisches Aufgabenfeld',
+                            $this->getLinguisticTable(),
+                            Panel::PANEL_TYPE_PRIMARY
+                        ),
+                        new Panel(
+                            'Gesellschaftswissenschaftliches Aufgabenfeld',
+                            $this->getSocialTable(),
+                            Panel::PANEL_TYPE_PRIMARY
+                        ),
+                        new Panel(
+                            'Mathematisch-naturwissenschaftlich-technisches Aufgabenfeld',
+                            $this->getScientificTable(),
+                            Panel::PANEL_TYPE_PRIMARY
+                        ),
+                    ))
+                ))
+            ))
+        ));
+
+        if ($this->View != BlockIView::PREVIEW && ($this->tblPrepareStudent && !$this->tblPrepareStudent->isApproved())) {
+            $form->appendFormButton(new Primary('Speichern', new Save()));
         }
 
-        $this->AdvancedCourses = $advancedCourses;
-        $this->BasicCourses = $basicCourses;
+        return $form;
     }
 
     private function setReligion()
@@ -185,36 +192,31 @@ class BlockI
         $this->tblPrepareStudentList = $prepareStudentList;
     }
 
-    /**
-     * @param $array
-     * @param $subjectName
-     * @return array
-     * @internal param $advancedCourses
-     * @internal param $basicCourses
-     * @internal param $prepareStudentList
-     * @internal param $view
-     */
     private function setSubjectRow($array, $subjectName)
     {
 
         $course = '';
         $grades = array();
         if (($tblSubject = Subject::useService()->getSubjectByName($subjectName))) {
-
+            $hasSubject = false;
             if (isset($this->AdvancedCourses[$tblSubject->getId()])) {
+                $hasSubject = true;
                 $subjectName = new Bold($subjectName);
                 $course = new Bold('LK');
             }
             if (isset($this->BasicCourses[$tblSubject->getId()])) {
+                $hasSubject = true;
                 $subjectName = new Bold($subjectName);
                 $course = 'GK';
             }
 
             // todo Stichtagsnotenauftrag 12-2
+            // todo nicht eingebrachte Punkte einklammern
             // Zensuren von Zeugnissen
             for ($level = 11; $level < 13; $level++){
                 for ($term = 1; $term < 3; $term++) {
                     $midTerm = $level . '-' . $term;
+
                     if (isset($this->tblPrepareStudentList[$midTerm])) {
                         /** @var TblPrepareStudent $tblPrepareStudent */
                         $tblPrepareStudent = $this->tblPrepareStudentList[$midTerm];
@@ -225,8 +227,31 @@ class BlockI
                             && ($tblPrepareGrade = Prepare::useService()->getPrepareGradeBySubject($tblPrepare, $tblPerson,
                                 $tblDivision, $tblSubject, $tblTestType))
                         ) {
-                            $grades[$midTerm] = $tblPrepareGrade->getGrade();
+                            if ($this->View == BlockIView::CHOOSE_COURSES) {
+                                // todo data, post, tabindex (spaltenweise), noten
+                                $checkBox = new CheckBox('Data[Subject]', $tblPrepareGrade->getGrade(), 1);
+                                if ($this->tblPrepareStudent && $this->tblPrepareStudent->isApproved()) {
+                                    $checkBox->setDisabled();
+                                }
+                                $grades[$midTerm] = $checkBox;
+                            } else {
+                                $grades[$midTerm] = $tblPrepareGrade->getGrade();
+                            }
                         }
+                    } elseif ($hasSubject && $this->View == BlockIView::EDIT_GRADES) {
+                        // todo data, post, tabindex (spaltenweise)
+                        $selectBox = new SelectCompleter('Data[Grade]', '', '', $this->pointsList);
+                        if ($this->tblPrepareStudent && $this->tblPrepareStudent->isApproved()) {
+                            $selectBox->setDisabled();
+                        }
+                        $grades[$midTerm] = $selectBox;
+                    } elseif ($hasSubject && $this->View == BlockIView::CHOOSE_COURSES) {
+                        // todo data, post, tabindex (spaltenweise), noten
+                        $checkBox = new CheckBox('Data[Subject]', '&nbsp;', 1);
+                        if ($this->tblPrepareStudent && $this->tblPrepareStudent->isApproved()) {
+                            $checkBox->setDisabled();
+                        }
+                        $grades[$midTerm] = $checkBox;
                     }
                 }
             }
@@ -251,7 +276,7 @@ class BlockI
      *
      * @return TableData
      */
-    public function getLinguisticTable()
+    private function getLinguisticTable()
     {
         $dataList = array();
         $dataList = $this->setSubjectRow($dataList, 'Deutsch');
@@ -285,13 +310,14 @@ class BlockI
      *
      * @return TableData
      */
-    public function getSocialTable()
+    private function getSocialTable()
     {
 
         $dataList = array();
         $dataList = $this->setSubjectRow($dataList, 'Geschichte');
         $dataList = $this->setSubjectRow($dataList, 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft');
         $dataList = $this->setSubjectRow($dataList, 'Geographie');
+
         $socialTable = new TableData(
             $dataList,
             null,
@@ -308,7 +334,7 @@ class BlockI
      *
      * @return TableData
      */
-    public function getScientificTable()
+    private function getScientificTable()
     {
 
         $dataList = array();
@@ -323,6 +349,7 @@ class BlockI
         $dataList = $this->setSubjectRow($dataList, 'Astronomie');
         $dataList = $this->setSubjectRow($dataList, 'Informatik');
         $dataList = $this->setSubjectRow($dataList, 'Philosophie');
+
         $scientificTable = new TableData(
             $dataList,
             null,
