@@ -1337,6 +1337,16 @@ class Frontend extends FrontendScoreRule
                 $isShownAverage = false;
             }
 
+            if (($tblSetting = Consumer::useService()->getSetting(
+                    'Education', 'Graduation', 'Gradebook', 'IsShownScoreInStudentOverview'
+                ))
+                && $tblSetting->getValue()
+            ) {
+                $hasScore = true;
+            } else {
+                $hasScore = false;
+            }
+
             $tableHeaderList = array();
             $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
             if ($tblPeriodList) {
@@ -1356,7 +1366,7 @@ class Frontend extends FrontendScoreRule
                         $tblPerson = Person::useService()->getPersonById($personId);
                         if ($tblPerson && is_array($divisionList)) {
                             $this->setGradeOverview($tblYear, $tblPerson, $divisionList, $rowList, $tblPeriodList,
-                                $tblTestType, $isShownAverage, $tableHeaderList, true);
+                                $tblTestType, $isShownAverage, $hasScore, $tableHeaderList, true);
                         }
                     }
                 }
@@ -2296,9 +2306,9 @@ class Frontend extends FrontendScoreRule
      * @param TblGrade $tblGrade
      * @param $subTableHeaderList
      * @param $subTableDataList
-     * @param $isShownAverage
+     * @param bool $hasScore
      */
-    private function addTest(TblTest $tblTest,TblGrade $tblGrade, &$subTableHeaderList, &$subTableDataList, $isShownAverage)
+    private function addTest(TblTest $tblTest,TblGrade $tblGrade, &$subTableHeaderList, &$subTableDataList, $hasScore)
     {
         if ($tblTest->isContinues()) {
             if ($tblGrade->getDate()) {
@@ -2323,7 +2333,7 @@ class Frontend extends FrontendScoreRule
 
 
         $toolTip = $description ? 'Thema: ' . $description : '';
-        if ($isShownAverage) {
+        if ($hasScore) {
             if (!empty($gradeMirror)) {
                 $toolTip .= ($toolTip ? '<br />' : '');
                 $line[0] = '';
@@ -2370,6 +2380,7 @@ class Frontend extends FrontendScoreRule
      * @param $tblPeriodList
      * @param $tblTestType
      * @param $isShownAverage
+     * @param $hasScore
      * @param $tableHeaderList
      * @param $isParentView
      */
@@ -2381,6 +2392,7 @@ class Frontend extends FrontendScoreRule
         $tblPeriodList,
         $tblTestType,
         $isShownAverage,
+        $hasScore,
         $tableHeaderList,
         $isParentView
     ) {
@@ -2484,7 +2496,7 @@ class Frontend extends FrontendScoreRule
                                                                     $tblGrade,
                                                                     $subTableHeaderList,
                                                                     $subTableDataList,
-                                                                    $isShownAverage
+                                                                    $hasScore
                                                                 );
                                                             }
                                                         }
@@ -2912,7 +2924,7 @@ class Frontend extends FrontendScoreRule
                         if ($tblPerson && is_array($divisionList)) {
 
                             $this->setGradeOverview($tblYear, $tblPerson, $divisionList, $rowList, $tblPeriodList,
-                                $tblTestType, true, $tableHeaderList, false);
+                                $tblTestType, true, true, $tableHeaderList, false);
                         }
                     }
                 }
