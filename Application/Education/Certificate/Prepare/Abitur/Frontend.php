@@ -12,15 +12,23 @@ use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
+use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
-use SPHERE\Common\Frontend\Icon\Repository\Cog;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -31,6 +39,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
+
 
 /**
  * Class Frontend
@@ -140,7 +149,7 @@ class Frontend
                                     ?
                                     (new Standard(
                                         'Block I', '/Education/Certificate/Prepare/Prepare/Diploma/Abitur/BlockI',
-                                        new Cog(),
+                                        null,
                                         array(
                                             'PrepareId' => $tblPrepare->getId(),
                                             'GroupId' => $tblGroup ? $tblGroup->getId() : null,
@@ -149,13 +158,31 @@ class Frontend
                                         'Block I bearbeiten und anzeigen'))
                                     . (new Standard(
                                         'Block II', '/Education/Certificate/Prepare/Prepare/Diploma/Abitur/BlockII',
-                                        new Cog(),
+                                        null,
                                         array(
                                             'PrepareId' => $tblPrepare->getId(),
                                             'GroupId' => $tblGroup ? $tblGroup->getId() : null,
                                             'PersonId' => $tblPerson->getId(),
                                         ),
                                         'Block II bearbeiten und anzeigen'))
+                                    . (new Standard(
+                                        'Klassenstufe 10', '/Education/Certificate/Prepare/Prepare/Diploma/Abitur/LevelTen',
+                                        null,
+                                        array(
+                                            'PrepareId' => $tblPrepare->getId(),
+                                            'GroupId' => $tblGroup ? $tblGroup->getId() : null,
+                                            'PersonId' => $tblPerson->getId(),
+                                        ),
+                                        'Klassenstufe 10 bearbeiten und anzeigen'))
+                                    . (new Standard(
+                                        'Sonstige Informationen', '/Education/Certificate/Prepare/Prepare/Diploma/Abitur/OtherInformation',
+                                        null,
+                                        array(
+                                            'PrepareId' => $tblPrepare->getId(),
+                                            'GroupId' => $tblGroup ? $tblGroup->getId() : null,
+                                            'PersonId' => $tblPerson->getId(),
+                                        ),
+                                        'Sonstige Informationen'))
                                     // todo remove
                                     . (new Standard(
                                         '', '/Education/Certificate/Prepare/Certificate/Show', new EyeOpen(),
@@ -348,6 +375,122 @@ class Frontend
             $stage->setContent(
                 $blockII->getContent()
             );
+        }
+
+        return $stage;
+    }
+
+    /**
+     * @param null $PrepareId
+     * @param null $GroupId
+     * @param null $PersonId
+     *
+     * @return Stage
+     */
+    public function frontendPrepareDiplomaAbiturLevelTen(
+        $PrepareId = null,
+        $GroupId = null,
+        $PersonId = null
+    ) {
+
+        $stage = new Stage('Abiturzeugnis', 'Ergebnisse der Pflichtfächer, die in Klassenstufe 10 abgeschlossen wurden');
+        $stage->addButton(
+            new Standard('Zurück', '/Education/Certificate/Prepare/Prepare/Diploma/Abitur/Preview', new ChevronLeft(),
+                array(
+                    'PrepareId' => $PrepareId,
+                    'GroupId' => $GroupId,
+                    'Route' => 'Diploma'
+                ))
+        );
+
+        if (($tblPerson = Person::useService()->getPersonById($PersonId))
+            && ($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
+            && ($tblDivision = $tblPrepare->getServiceTblDivision())
+        ) {
+            $levelTen = new LevelTen($tblDivision, $tblPerson, $tblPrepare);
+
+            $stage->setContent(
+                $levelTen->getContent()
+            );
+        }
+
+        return $stage;
+    }
+
+    /**
+     * @param null $PrepareId
+     * @param null $GroupId
+     * @param null $PersonId
+     * @param null $Data
+     *
+     * @return Stage
+     */
+    public function frontendPrepareDiplomaAbiturOtherInformation(
+        $PrepareId = null,
+        $GroupId = null,
+        $PersonId = null,
+        $Data = null
+    ) {
+
+        $stage = new Stage('Abiturzeugnis', 'Sonstige Informationen');
+        $stage->addButton(
+            new Standard('Zurück', '/Education/Certificate/Prepare/Prepare/Diploma/Abitur/Preview', new ChevronLeft(),
+                array(
+                    'PrepareId' => $PrepareId,
+                    'GroupId' => $GroupId,
+                    'Route' => 'Diploma'
+                ))
+        );
+
+        if (($tblPerson = Person::useService()->getPersonById($PersonId))
+            && ($tblPrepare = Prepare::useService()->getPrepareById($PrepareId))
+            && ($tblDivision = $tblPrepare->getServiceTblDivision())
+            && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
+        ) {
+            // todo ort, datum, Vorsitzender, Mitglied, Mitglied für gesamte Klasse bzw. Gruppe setzen
+            $form = new Form(array(
+                new FormGroup(array(
+                    new FormRow(array(
+                        new FormColumn(array(
+                            new Panel(
+                                'Sonstige Informationen',
+                                array(
+                                    new TextArea('Data[Remark]', 'Bemerkungen', 'Bemerkungen'),
+                                    new CheckBox('Data[Latinums]', 'Nachweis des Latinums', 1),
+                                    new CheckBox('Data[Graecums]', 'Nachweis des Graecums', 1),
+                                    new CheckBox('Data[Hebraicums]', 'Nachweis des Hebraicums', 1)
+                                ),
+                                Panel::PANEL_TYPE_PRIMARY
+                            ),
+                        ))
+                    ))
+                ))
+            ));
+
+            if ($tblPrepareStudent && !$tblPrepareStudent->isApproved()) {
+                $content = new Well($form->appendFormButton(new Primary('Speichern', new Save())));
+            } else {
+                $content = $form;
+            }
+
+            $stage->setContent(new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new Panel(
+                                'Schüler',
+                                $tblPerson->getLastFirstName(),
+                                Panel::PANEL_TYPE_INFO
+                            ),
+                        ))
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            $content
+                        ))
+                    ))
+                ))
+            )));
         }
 
         return $stage;
