@@ -34,6 +34,11 @@ class Responsibility implements IModuleInterface
                 ->setParameterDefault('Responsibility', null)
         );
         Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Edit',
+                __NAMESPACE__.'/Frontend::frontendResponsibilityEdit'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Delete',
                 __NAMESPACE__.'/Frontend::frontendResponsibilityDelete'
             )

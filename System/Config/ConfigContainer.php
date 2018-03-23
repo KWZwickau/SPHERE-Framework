@@ -37,14 +37,14 @@ class ConfigContainer implements ConfigInterface
     public function getContainer($Key)
     {
 
-        if (isset( $this->Value[$Key] )) {
+        if (isset($this->Value[$Key])) {
             return $this->Value[$Key];
         }
         return null;
     }
 
     /**
-     * @param string                     $Key
+     * @param string $Key
      * @param null|ConfigContainer|mixed $Value
      *
      * @return ConfigContainer

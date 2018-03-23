@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectTeacher;
 use SPHERE\System\Database\Binding\AbstractSetup;
+use SPHERE\System\Database\Fitting\Element;
 use SPHERE\System\Database\Fitting\View;
 
 /**
@@ -138,6 +139,7 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblDivisionSubject', 'tblSubjectGroup')) {
             $Table->addColumn('tblSubjectGroup', 'bigint', array('notnull' => false));
         }
+        $this->createColumn($Table, 'HasGrading', self::FIELD_TYPE_BOOLEAN, false, true);
         $this->getConnection()->addForeignKey($Table, $tblDivision);
         return $Table;
     }
@@ -176,6 +178,10 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblDivisionTeacher', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
+        $this->getConnection()->removeIndex($Table, array('serviceTblPerson'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
+        }
         if (!$this->getConnection()->hasColumn('tblDivisionTeacher', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
@@ -195,6 +201,10 @@ class Setup extends AbstractSetup
         $Table = $this->getConnection()->createTable($Schema, 'tblDivisionCustody');
         if (!$this->getConnection()->hasColumn('tblDivisionCustody', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
+        }
+        $this->getConnection()->removeIndex($Table, array('serviceTblPerson'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
         }
         if (!$this->getConnection()->hasColumn('tblDivisionCustody', 'Description')) {
             $Table->addColumn('Description', 'string');
@@ -218,6 +228,7 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblSubjectGroup', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
+        $this->createColumn($Table, 'IsAdvancedCourse', self::FIELD_TYPE_BOOLEAN, true, null);
         return $Table;
     }
 
@@ -233,6 +244,10 @@ class Setup extends AbstractSetup
         $Table = $this->getConnection()->createTable($Schema, 'tblSubjectStudent');
         if (!$this->getConnection()->hasColumn('tblSubjectStudent', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
+        }
+        $this->getConnection()->removeIndex($Table, array('serviceTblPerson'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
         }
         $this->getConnection()->addForeignKey($Table, $tblDivisionSubject);
         return $Table;
@@ -250,6 +265,10 @@ class Setup extends AbstractSetup
         $Table = $this->getConnection()->createTable($Schema, 'tblSubjectTeacher');
         if (!$this->getConnection()->hasColumn('tblSubjectTeacher', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
+        }
+        $this->getConnection()->removeIndex($Table, array('serviceTblPerson'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
         }
         $this->getConnection()->addForeignKey($Table, $tblDivisionSubject);
         return $Table;

@@ -3,6 +3,7 @@ namespace SPHERE\Application\Platform\System\Database;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -76,6 +77,11 @@ class Database extends Extension implements IModuleInterface
                 __CLASS__.'::frontendSetupUpgrade'
             )
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Setup/Reporting',
+                __CLASS__.'::frontendSetupReporting'
+            )
+        );
     }
 
     /**
@@ -137,9 +143,9 @@ class Database extends Extension implements IModuleInterface
                                 ( isset( $Service[4] ) ? $Service[4] : null )
                             )
                         );
-                        $Status = new Success('Verbunden', new Ok());
+                        $Status = new Success(new Ok().' Verbunden');
                     } catch (\Exception $E) {
-                        $Status = new Danger('Fehler', new Warning());
+                        $Status = new Danger(new Warning().' Fehler');
                     }
                     $Result[] = $this->statusRow($Status, $Service, $Parameter, $Connection);
                 }
@@ -155,9 +161,9 @@ class Database extends Extension implements IModuleInterface
                             ( isset( $Service[4] ) ? $Service[4] : null )
                         )
                     );
-                    $Status = new Success('Verbunden', new Ok());
+                    $Status = new Success(new Ok().' Verbunden');
                 } catch (\Exception $E) {
-                    $Status = new Danger('Fehler', new Warning());
+                    $Status = new Danger(new Warning().' Fehler');
                 }
                 $Result[] = $this->statusRow($Status, $Service, $Parameter, $Connection);
             }
@@ -203,9 +209,13 @@ class Database extends Extension implements IModuleInterface
         $Stage->addButton(new Standard('Durchführung', new Link\Route(__NAMESPACE__.'/Setup/Execution'), null,
             array(), 'Durchführen von Strukturänderungen und einspielen zugehöriger Daten'
         ));
-        $Stage->addButton(new Standard('Alle Mandanten aktualisieren', new Link\Route(__NAMESPACE__.'/Setup/Upgrade'),
+        $Stage->addButton(new Standard('1. Alle Mandanten aktualisieren', new Link\Route(__NAMESPACE__.'/Setup/Upgrade'),
             new Warning(),
             array(), 'Durchführen von Strukturänderungen und einspielen zugehöriger Daten'
+        ));
+        $Stage->addButton(new Standard('2. Alle Mandanten Flexible Auswertung aktualisieren', new Link\Route(__NAMESPACE__.'/Setup/Reporting'),
+            new Warning(),
+            array(), 'Durchführen von Viewänderungen'
         ));
         $Stage->addButton(new External('phpMyAdmin',
             $this->getRequest()->getPathBase().'/UnitTest/Console/phpMyAdmin-4.6.1'));
@@ -243,10 +253,25 @@ class Database extends Extension implements IModuleInterface
     /**
      * @return Stage
      */
+    public function frontendSetupReporting()
+    {
+        $Stage = new Stage('Database', 'Setup aller Mandanten (Reporting)');
+        $this->menuButton($Stage);
+
+        $ReportingUpgrade = new ReportingUpgrade('127.0.0.1', 'root', 'sphere');
+
+        $Stage->setContent( $ReportingUpgrade->migrateReporting() );
+
+        return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
     public function frontendSetupUpgrade()
     {
 
-        $Stage = new Stage('Database', 'Setup aller Mandanten');
+        $Stage = new Stage('Database', 'Setup aller Mandanten (Struktur)');
         $this->menuButton($Stage);
 
         $tblConsumerAll = Consumer::useService()->getConsumerAll();
@@ -263,7 +288,6 @@ class Database extends Extension implements IModuleInterface
                         .'?'.http_build_query($Authenticator->createSignature(array(
                             'Consumer' => $tblConsumer->getAcronym()
                         ), '/Api/Platform/Database/Upgrade'));
-
                 });
 
             ksort($ConsumerRequestList);
@@ -271,6 +295,18 @@ class Database extends Extension implements IModuleInterface
             $Api = $ConsumerRequestList['DEMO'];
             unset( $ConsumerRequestList['DEMO'] );
             $ConsumerRequestList['DEMO'] = $Api;
+        }
+
+        // prepare: change to first Consumer
+        if (!empty($ConsumerRequestList)) {
+            $tblConsumerOne = false;
+            foreach ($ConsumerRequestList as $key => $val) {
+                $tblConsumerOne = Consumer::useService()->getConsumerByAcronym($key);
+                break;
+            }
+            if ($tblConsumerOne) {
+                Account::useService()->changeConsumer($tblConsumerOne);
+            }
         }
 
         $Stage->setContent(

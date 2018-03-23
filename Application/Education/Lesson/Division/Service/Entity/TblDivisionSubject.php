@@ -39,6 +39,11 @@ class TblDivisionSubject extends Element
     protected $tblSubjectGroup;
 
     /**
+     * @Column(type="boolean")
+     */
+    protected $HasGrading;
+
+    /**
      * @return bool|TblDivision
      */
     public function getTblDivision()
@@ -102,5 +107,21 @@ class TblDivisionSubject extends Element
     {
 
         $this->tblSubjectGroup = ( null === $tblSubjectGroup ? null : $tblSubjectGroup->getId() );
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getHasGrading()
+    {
+        return (boolean) $this->HasGrading;
+    }
+
+    /**
+     * @param mixed $HasGrading
+     */
+    public function setHasGrading($HasGrading)
+    {
+        $this->HasGrading = (boolean) $HasGrading;
     }
 }

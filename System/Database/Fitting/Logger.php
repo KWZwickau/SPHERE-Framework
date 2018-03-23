@@ -15,6 +15,17 @@ class Logger extends Extension implements SQLLogger
 {
 
     private $Data = array();
+    /** @var string $Identifier */
+    private $Identifier;
+
+    /**
+     * Logger constructor.
+     * @param string $Identifier
+     */
+    public function __construct( $Identifier = '-NA-' )
+    {
+        $this->Identifier = $Identifier;
+    }
 
     /**
      * Logs a SQL statement somewhere.
@@ -56,6 +67,8 @@ class Logger extends Extension implements SQLLogger
     {
 
         $this->getLogger(new QueryLogger())->addLog(
+            new Label('@'.$this->Identifier)
+            .' '.
             new Label(
                 number_format(( $this->getDebugger()->getTimeGap() - $this->Data[3] ) * 1000, 3, '.', ',')
                 .'ms'

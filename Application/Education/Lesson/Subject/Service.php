@@ -64,13 +64,14 @@ class Service extends AbstractService
             $tblCategory = $tblCategory->getTblCategoryAll();
             if ($tblCategory) {
                 array_walk($tblCategory, function (TblCategory &$tblCategory) {
-
-                    $tblCategory = $tblCategory->getTblSubjectAll();
+                    $tblSubjects = $tblCategory->getTblSubjectAll();
+                    $tblCategory = $tblSubjects ? $tblSubjects : null;
                 });
                 if ($tblCategory) {
-                    array_walk_recursive($tblCategory, function ($tblSubject) use (&$tblSubjectList) {
-
-                        $tblSubjectList[] = $tblSubject;
+                    array_walk_recursive($tblCategory, function (TblSubject $tblSubject = null) use (&$tblSubjectList) {
+                        if ($tblSubject) {
+                            $tblSubjectList[$tblSubject->getId()] = $tblSubject;
+                        }
                     });
                 }
             }
@@ -128,9 +129,9 @@ class Service extends AbstractService
             if ($tblCategory) {
                 $tblSubjectAll = $tblCategory->getTblSubjectAll();
                 if ($tblSubjectAll) {
-                    array_walk_recursive($tblSubjectAll, function ($tblSubject) use (&$tblSubjectList) {
+                    array_walk_recursive($tblSubjectAll, function (TblSubject $tblSubject) use (&$tblSubjectList) {
 
-                        $tblSubjectList[] = $tblSubject;
+                        $tblSubjectList[$tblSubject->getId()] = $tblSubject;
                     });
                 }
             }
@@ -174,9 +175,9 @@ class Service extends AbstractService
             if ($tblCategory) {
                 $tblSubjectAll = $tblCategory->getTblSubjectAll();
                 if ($tblSubjectAll) {
-                    array_walk_recursive($tblSubjectAll, function ($tblSubject) use (&$tblSubjectList) {
+                    array_walk_recursive($tblSubjectAll, function (TblSubject $tblSubject) use (&$tblSubjectList) {
 
-                        $tblSubjectList[] = $tblSubject;
+                        $tblSubjectList[$tblSubject->getId()] = $tblSubject;
                     });
                 }
             }
@@ -255,6 +256,12 @@ class Service extends AbstractService
         $Error = false;
 
         if (!$Error) {
+            if (($tblSubjectList = $this->getSubjectAllByCategory($tblCategory))) {
+                foreach ($tblSubjectList as $tblSubject) {
+                    (new Data($this->getBinding()))->removeCategorySubject($tblCategory, $tblSubject);
+                }
+            }
+
             if ((new Data($this->getBinding()))->destroyCategory($tblCategory)) {
                 return new Success('Die Kategorie wurde erfolgreich gelöscht')
                 . new Redirect('/Education/Lesson/Subject/Create/Category', Redirect::TIMEOUT_SUCCESS);
@@ -876,8 +883,9 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param                $Id
-     * @param null           $Filter
+     * @param $Id
+     * @param $SubjectId
+     * @param null $Filter
      *
      * @return IFormInterface|string
      */
@@ -963,5 +971,17 @@ class Service extends AbstractService
                 }
             }
         }
+    }
+
+    /**
+     * @param TblCategory $tblCategory
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function existsCategorySubject(TblCategory $tblCategory, TblSubject $tblSubject)
+    {
+
+        return (new Data($this->getBinding()))->existsCategorySubject($tblCategory, $tblSubject);
     }
 }

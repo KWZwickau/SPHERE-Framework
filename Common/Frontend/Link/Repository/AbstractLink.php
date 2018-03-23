@@ -38,17 +38,22 @@ abstract class AbstractLink extends Extension implements ILinkInterface
     protected $Path;
     /** @var string $Link */
     protected $Link;
+    /** @var array $Data */
+    protected $Data;
     /** @var IBridgeInterface $Template */
     protected $Template = null;
-
-    private static $LinkCounter = 0;
+    /** @var string $Hash */
+    protected $Hash = '';
 
     /**
      * @return string
      */
     public function getHash()
     {
-        return 'Link-Hash-'.sha1($this->getName().$this->getPath()).'-'.self::$LinkCounter;
+        if (empty( $this->Hash )) {
+            $this->Hash = 'Link-'.crc32( uniqid(__CLASS__, true) );
+        }
+        return $this->Hash;
     }
 
     /**
@@ -63,13 +68,17 @@ abstract class AbstractLink extends Extension implements ILinkInterface
      */
     public function __construct($Name, $Path, IIconInterface $Icon = null, $Data = array(), $ToolTip = false, $Anchor = null)
     {
-        // Generate Hash
-        self::$LinkCounter++;
 
         if( !empty( $Anchor ) ) {
             $this->setName($Name.' '.new Link() );
         } else {
             $this->setName($Name);
+        }
+
+        if( !empty( $Data ) ) {
+            $this->Data = $Data;
+        } else {
+            $this->Data = array();
         }
 
         if (false !== strpos($Path, '\\')) {
@@ -162,6 +171,8 @@ abstract class AbstractLink extends Extension implements ILinkInterface
     }
 
     /**
+     * If the user has no permission for the path/route the content will be empty
+     *
      * @return string
      */
     public function getContent()
@@ -223,13 +234,21 @@ abstract class AbstractLink extends Extension implements ILinkInterface
         $Script = '';
         if( is_array( $Pipeline ) ) {
             foreach( $Pipeline as $Element ) {
-                $Script .= $Element->parseScript();
+                $Script .= $Element->parseScript($this);
             }
         } else {
-            $Script = $Pipeline->parseScript();
+            $Script = $Pipeline->parseScript($this);
         }
 
         $this->Template->setVariable('AjaxEventClick', $Script);
         return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getData()
+    {
+        return $this->Data;
     }
 }

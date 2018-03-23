@@ -53,7 +53,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Stage->addButton(
                     new Standard(
-                        $tblGroup->getName().'&nbsp;&nbsp;'.new Label(Group::useService()->countCompanyAllByGroup($tblGroup)),
+                        $tblGroup->getName().'&nbsp;&nbsp;'.new Label(Group::useService()->countMemberByGroup($tblGroup)),
                         new Route(__NAMESPACE__), new PersonGroup(),
                         array(
                             'Id' => $tblGroup->getId()
@@ -112,7 +112,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     )),
                     new LayoutRow(new LayoutColumn(array(
-                        new Headline('Verfügbare Firmen', 'in dieser Gruppe'),
+                        new Headline('Verfügbare Institutionen', 'in dieser Gruppe'),
                         new TableData($Result, null,
                             array(
                                 'Name'         => 'Name',

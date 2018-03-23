@@ -5,6 +5,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Child;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
@@ -12,6 +13,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -969,26 +971,166 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
 
+            $tblCustodyList = Division::useService()->getCustodyAllByDivision($tblDivision);
+            $CustodyString = '';
+            /** @var TblPerson $tblCustody */
+            if (!empty($tblCustodyList)) {
+                foreach ($tblCustodyList as $tblCustody) {
+                    if (!empty($CustodyString)) {
+                        $CustodyString .= ', ' . $tblCustody->getFullName();
+                    } else {
+                        $CustodyString .= $tblCustody->getFullName();
+                    }
+                }
+            }
+
+            $IntegrationStudent = false;
+            $CounterDivisionGroup1 = 0;
+            $CounterDivisionGroup2 = 0;
+            $OrientationList = array();
+            $FrenchCounter = 0;
+            $EducationList = array();
+            if ($PersonList) {
+                foreach ($PersonList as $PersonData) {
+                    if (isset($PersonData['Integration']) && $PersonData['Integration'] == 1) {
+                        $IntegrationStudent = true;
+                    }
+                    if (!empty($PersonData['Group'])) {
+                        if ($PersonData['Group1']) {
+                            $CounterDivisionGroup1++;
+                        }
+                        if ($PersonData['Group2']) {
+                            $CounterDivisionGroup2++;
+                        }
+//                        Debugger::screenDump($PersonData['Group1']);
+//                        Debugger::screenDump($PersonData['Group2']);
+                    }
+                    if (!empty($PersonData['Orientation'])) {
+                        if(isset($OrientationList[$PersonData['Orientation']])){
+                            $OrientationList[$PersonData['Orientation']] += 1;
+                        } else {
+                            $OrientationList[$PersonData['Orientation']] = 1;
+                        }
+                    }
+                    if (!empty($PersonData['French'])) {
+                        $FrenchCounter++;
+                    }
+                    if (!empty($PersonData['Education'])) {
+                        if(isset($EducationList[$PersonData['Education']])){
+                            $EducationList[$PersonData['Education']] += 1;
+                        } else {
+                            $EducationList[$PersonData['Education']] = 1;
+                        }
+                    }
+                }
+            }
+
+
+
+            $GroupCountString = '';
+            if (!empty($CounterDivisionGroup1)) {
+                $GroupCountString .= 'Anzahl Gruppe 1: ' . $CounterDivisionGroup1;
+            }
+            if (!empty($CounterDivisionGroup2)) {
+                if (!empty($GroupCountString)) {
+                    $GroupCountString .= '<br/>Anzahl Gruppe 2: ' . $CounterDivisionGroup2;
+                } else {
+                    $GroupCountString .= 'Anzahl Gruppe 2: ' . $CounterDivisionGroup2;
+                }
+            }
+
+            $FrenchCountString = '';
+            if (!empty($FrenchCounter)) {
+                $FrenchCountString = 'Anzahl: ' . $FrenchCounter;
+            }
+
+            $EducationCountString = '';
+            if (!empty($EducationList)) {
+                foreach ($EducationList as $Education => $Count) {
+                    if (!empty($EducationCountString)) {
+                        $EducationCountString .= '<br/>Anzahl ' . $Education . ': ' . $Count;
+                    } else {
+                        $EducationCountString .= 'Anzahl ' . $Education . ': ' . $Count;
+                    }
+                }
+            }
+
+            $OrientationCountString = '';
+            if (!empty($OrientationList)) {
+                foreach ($OrientationList as $Orientation => $Count) {
+                    if (!empty($OrientationCountString)) {
+                        $OrientationCountString .= '<br/>Anzahl ' . $Orientation . ': ' . $Count;
+                    } else {
+                        $OrientationCountString .= 'Anzahl ' . $Orientation . ': ' . $Count;
+                    }
+                }
+            }
+
+
+
+            $LayoutColumnCounterList = array();
+            $LayoutColumnCounterList[] = new LayoutColumn(
+                new Panel('Geschlecht', array(
+                    'Anzahl Weiblich: ' . Person::countFemaleGenderByPersonList($tblPersonList) .
+                    new Container('Anzahl Männlich: ' . Person::countMaleGenderByPersonList($tblPersonList)) .
+                    new Container( 'Anzahl Gesamt: ' . count($tblPersonList)),
+                ), Panel::PANEL_TYPE_INFO)
+                , 3);
+            if (!empty($EducationCountString)) {
+                $LayoutColumnCounterList[] = new LayoutColumn(new Panel('Bildungsgänge', $EducationCountString, Panel::PANEL_TYPE_INFO),3);
+            }
+            if (!empty($OrientationCountString)) {
+                $LayoutColumnCounterList[] = new LayoutColumn(new Panel('Neigungskurse', $OrientationCountString, Panel::PANEL_TYPE_INFO),3);
+            }
+            if (!empty($GroupCountString)) {
+                $LayoutColumnCounterList[] = new LayoutColumn(new Panel('Gruppen', $GroupCountString, Panel::PANEL_TYPE_INFO), 3);
+            }
+            if (!empty($FrenchCountString)) {
+                $LayoutColumnCounterList[] = new LayoutColumn(new Panel('Französisch', $FrenchCountString, Panel::PANEL_TYPE_INFO), 3);
+            }
+
+            $LayoutRowList = array();
+            $LayoutRowCount = 0;
+            $LayoutRow = null;
+            /**
+             * @var LayoutColumn $tblRelationship
+             */
+            foreach ($LayoutColumnCounterList as $Column) {
+                if ($LayoutRowCount % 4 == 0) {
+                    $LayoutRow = new LayoutRow(array());
+                    $LayoutRowList[] = $LayoutRow;
+                }
+                $LayoutRow->addColumn($Column);
+                $LayoutRowCount++;
+            }
+
             $Stage->setContent(
                 new Layout(array(
-                    new LayoutGroup(
+                    new LayoutGroup(array(
                         new LayoutRow(array(
                             ($tblDivision->getServiceTblYear() ?
                                 new LayoutColumn(
                                     new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
-                                        Panel::PANEL_TYPE_SUCCESS), 4
+                                        Panel::PANEL_TYPE_SUCCESS), 3
                                 ) : ''),
                             new LayoutColumn(
                                 new Panel('Klasse', $tblDivision->getDisplayName(),
-                                    Panel::PANEL_TYPE_SUCCESS), 4
+                                    Panel::PANEL_TYPE_SUCCESS), 3
                             ),
                             ($tblDivision->getTypeName() ?
                                 new LayoutColumn(
                                     new Panel('Schulart', $tblDivision->getTypeName(),
-                                        Panel::PANEL_TYPE_SUCCESS), 4
+                                        Panel::PANEL_TYPE_SUCCESS), 3
                                 ) : ''),
-                        ))
-                    ),
+                            new LayoutColumn(new Panel('Elternsprecher',
+                                (!empty($CustodyString) ? $CustodyString : '&nbsp;'),
+                                    Panel::PANEL_TYPE_SUCCESS), 3
+                            )
+                        )),
+                        new LayoutRow(
+                            new LayoutColumn(($IntegrationStudent ? new Warning(new Child().' Schriftart-Fett für Kinder mit Förderbedarf') .'<br/>' : ''))
+                        )
+                    )),
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(
@@ -1000,7 +1142,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Address' => 'Adresse',
                                         'PhoneNumbers' => 'Telefonnummer',
                                         'Group'        => 'Schüler&shy;gruppe',
-                                        'Orientation'  => 'NK/Profil',
+                                        'OrientationAndFrench'  => 'NK/Profil/FRZ',
                                         'Education'    => 'Bildungsgang',
                                         'Elective'     => 'Wahlfach',
                                     ),
@@ -1012,24 +1154,8 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     ),
+                    new LayoutGroup($LayoutRowList),
                     new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                new Panel('Weiblich', array(
-                                    'Anzahl: ' . Person::countFemaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Männlich', array(
-                                    'Anzahl: ' . Person::countMaleGenderByPersonList($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Gesamt', array(
-                                    'Anzahl: ' . count($tblPersonList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4)
-                        )),
                         new LayoutRow(
                             new LayoutColumn(
                                 (Person::countMissingGenderByPersonList($tblPersonList) >= 1 ?

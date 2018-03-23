@@ -16,6 +16,7 @@ class TblIdentification extends Element
 {
 
     const NAME_CREDENTIAL = 'Credential';
+    const NAME_USER_CREDENTIAL = 'UserCredential';
     const NAME_TOKEN = 'Token';
     const NAME_SYSTEM = 'System';
 

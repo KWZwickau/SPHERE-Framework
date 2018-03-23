@@ -2,9 +2,11 @@
 namespace SPHERE\Application\Setting;
 
 use SPHERE\Application\IClusterInterface;
+use SPHERE\Application\Setting\Agb\Agb;
 use SPHERE\Application\Setting\Authorization\Authorization;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\MyAccount\MyAccount;
+use SPHERE\Application\Setting\User\User;
 use SPHERE\Common\Frontend\Icon\Repository\Cog;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -24,6 +26,8 @@ class Setting implements IClusterInterface
         MyAccount::registerApplication();
         Authorization::registerApplication();
         Consumer::registerApplication();
+        User::registerApplication();
+        Agb::registerApplication();
 
         Main::getDisplay()->addServiceNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Einstellungen'), new Link\Icon(new Cog()))

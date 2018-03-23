@@ -7,6 +7,7 @@ use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeText;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRule;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -19,15 +20,18 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
-use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -42,6 +46,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -49,10 +54,10 @@ use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Quote;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
-use SPHERE\Common\Frontend\Icon\Repository\ResizeVertical;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -70,8 +75,10 @@ use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\NotAvailable;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Redirect;
@@ -107,9 +114,12 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param bool $IsAllYears
+     * @param null|integer $YearId
+     *
      * @return Stage
      */
-    public function frontendTestTeacher()
+    public function frontendTestTeacher($IsAllYears = false, $YearId = null)
     {
 
         $Stage = new Stage('Leistungsüberprüfung', 'Auswahl');
@@ -135,6 +145,8 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $buttonList = $this->setYearButtonList('/Education/Graduation/Evaluation/Test/Teacher', $IsAllYears, $YearId, $tblYear, false);
+
         $divisionSubjectTable = array();
         $divisionSubjectList = array();
 
@@ -144,7 +156,20 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblSubjectTeacherAllByTeacher) {
                 foreach ($tblSubjectTeacherAllByTeacher as $tblSubjectTeacher) {
                     $tblDivisionSubject = $tblSubjectTeacher->getTblDivisionSubject();
-                    if ($tblDivisionSubject && $tblDivisionSubject->getTblDivision()) {
+                    // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
+                    /** @var TblYear $tblYear */
+                    if ($tblYear && $tblDivisionSubject && $tblDivisionSubject->getTblDivision()
+                        && $tblDivisionSubject->getTblDivision()->getServiceTblYear()
+                        && $tblDivisionSubject->getTblDivision()->getServiceTblYear()->getId() != $tblYear->getId()
+                    ) {
+                        continue;
+                    }
+                    if ($tblDivisionSubject && $tblDivisionSubject->getTblDivision()
+                        && ($tblDivisionSubject->getHasGrading() || (($tblSetting = Consumer::useService()->getSetting(
+                                    'Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading'
+                                ))
+                                && $tblSetting->getValue()))
+                    ) {
                         if ($tblDivisionSubject->getTblSubjectGroup()) {
                             if ($tblDivisionSubject->getServiceTblSubject()) {
                                 $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
@@ -275,6 +300,9 @@ class Frontend extends Extension implements IFrontendInterface
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
+                        empty($buttonList)
+                            ? null
+                            : new LayoutColumn($buttonList),
                         new LayoutColumn(array(
                             new TableData($divisionSubjectTable, null, array(
                                 'Year' => 'Schuljahr',
@@ -284,11 +312,14 @@ class Frontend extends Extension implements IFrontendInterface
                                 'SubjectGroup' => 'Gruppe',
                                 'Option' => ''
                             ), array(
-                                'order' => array(
+                                'order'      => array(
                                     array('0', 'desc'),
                                     array('2', 'asc'),
                                     array('3', 'asc'),
                                     array('4', 'asc')
+                                ),
+                                'columnDefs' => array(
+                                    array('type' => 'natural', 'targets' => 2)
                                 )
                             ))
                         ))
@@ -301,9 +332,12 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param bool $IsAllYears
+     * @param null $YearId
+     *
      * @return Stage
      */
-    public function frontendHeadmasterTest()
+    public function frontendHeadmasterTest($IsAllYears = false, $YearId = null)
     {
 
         $Stage = new Stage('Leistungsüberprüfung', 'Auswahl');
@@ -321,14 +355,31 @@ class Frontend extends Extension implements IFrontendInterface
         $divisionSubjectTable = array();
         $divisionSubjectList = array();
 
+        $buttonList = $this->setYearButtonList('/Education/Graduation/Evaluation/Test/Headmaster', $IsAllYears,
+            $YearId, $tblYear);
+
         $tblDivisionAll = Division::useService()->getDivisionAll();
         if ($tblDivisionAll) {
             foreach ($tblDivisionAll as $tblDivision) {
+                // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
+                /** @var TblYear $tblYear */
+                if ($tblYear && $tblDivision && $tblDivision->getServiceTblYear()
+                    && $tblDivision->getServiceTblYear()->getId() != $tblYear->getId()
+                ) {
+                    continue;
+                }
+
                 $tblDivisionSubjectAllByDivision = Division::useService()->getDivisionSubjectByDivision($tblDivision);
                 if ($tblDivisionSubjectAllByDivision) {
                     /** @var TblDivisionSubject $tblDivisionSubject */
                     foreach ($tblDivisionSubjectAllByDivision as $tblDivisionSubject) {
-                        if ($tblDivisionSubject && $tblDivisionSubject->getServiceTblSubject() && $tblDivisionSubject->getTblDivision()) {
+                        if ($tblDivisionSubject && $tblDivisionSubject->getServiceTblSubject()
+                            && $tblDivisionSubject->getTblDivision()
+                            && ($tblDivisionSubject->getHasGrading() || (($tblSetting = Consumer::useService()->getSetting(
+                                        'Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading'
+                                    ))
+                                    && $tblSetting->getValue()))
+                        ) {
                             if ($tblDivisionSubject->getTblSubjectGroup()) {
                                 $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
                                 [$tblDivisionSubject->getServiceTblSubject()->getId()]
@@ -411,6 +462,9 @@ class Frontend extends Extension implements IFrontendInterface
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
+                        empty($buttonList)
+                            ? null
+                            : new LayoutColumn($buttonList),
                         new LayoutColumn(array(
                             new TableData($divisionSubjectTable, null, array(
                                 'Year' => 'Schuljahr',
@@ -420,11 +474,14 @@ class Frontend extends Extension implements IFrontendInterface
                                 'SubjectGroup' => 'Gruppe',
                                 'Option' => ''
                             ), array(
-                                'order' => array(
+                                'order'      => array(
                                     array('0', 'desc'),
                                     array('2', 'asc'),
                                     array('3', 'asc'),
                                     array('4', 'asc')
+                                ),
+                                'columnDefs' => array(
+                                    array('type' => 'natural', 'targets' => 2)
                                 )
                             ))
                         ))
@@ -457,9 +514,12 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param $IsAllYears
+     * @param $YearId
+     *
      * @return Stage
      */
-    public function frontendDivisionTeacherTask()
+    public function frontendDivisionTeacherTask($IsAllYears = false, $YearId = null)
     {
 
         $Stage = new Stage('Notenaufträge', 'Übersicht');
@@ -475,6 +535,8 @@ class Frontend extends Extension implements IFrontendInterface
                 new Edit()));
             $Stage->addButton(new Standard('Ansicht: Leitung', '/Education/Graduation/Evaluation/Task/Headmaster'));
         }
+
+        $buttonList = $this->setYearButtonList('/Education/Graduation/Evaluation/Task/Teacher', $IsAllYears, $YearId, $tblYear, true);
 
         $taskList = array();
 
@@ -519,28 +581,36 @@ class Frontend extends Extension implements IFrontendInterface
         $contentTable = array();
         if (!empty($taskList)) {
             /** @var TblTask $tblTask */
+            /** @var TblYear $tblYear */
             foreach ($taskList as $tblTask) {
-                $contentTable[] = array(
-                    'Date' => $tblTask->getDate(),
-                    'Type' => $tblTask->getTblTestType()->getName(),
-                    'Name' => $tblTask->getName(),
-                    'Period' => $tblTask->getServiceTblPeriod()
-                        ? $tblTask->getServiceTblPeriod()->getDisplayName() : 'Gesamtes Schuljahr',
-                    'EditPeriod' => $tblTask->getFromDate() . ' - ' . $tblTask->getToDate(),
-                    'Option' =>
-                        (new Standard('',
-                            '/Education/Graduation/Evaluation/Task/Teacher/Grades',
-                            new Equalizer(),
-                            array('Id' => $tblTask->getId()),
-                            'Zensurenübersicht')
-                        )
-                );
+                if ($IsAllYears || ($tblYear && $tblTask->getServiceTblYear() && $tblTask->getServiceTblYear()->getId() == $tblYear->getId())) {
+                    $contentTable[] = array(
+                        'Date' => $tblTask->getDate(),
+                        'Type' => $tblTask->getTblTestType()->getName(),
+                        'Name' => $tblTask->getName(),
+                        'Period' => $tblTask->getServiceTblPeriod()
+                            ? $tblTask->getServiceTblPeriod()->getDisplayName() : 'Gesamtes Schuljahr',
+                        'EditPeriod' => $tblTask->getFromDate() . ' - ' . $tblTask->getToDate(),
+                        'Option' =>
+                            (new Standard('',
+                                '/Education/Graduation/Evaluation/Task/Teacher/Grades',
+                                new Equalizer(),
+                                array('Id' => $tblTask->getId()),
+                                'Zensurenübersicht')
+                            )
+                    );
+                }
             }
         }
 
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
+                    new LayoutRow(array(
+                        empty($buttonList)
+                            ? null
+                            : new LayoutColumn($buttonList)
+                    )),
                     new LayoutRow(array(
                             new LayoutColumn(
                                 new TableData(
@@ -572,17 +642,17 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Task
-     * @param null $Select
+     * @param bool $IsAllYears
      * @param null $YearId
      *
      * @return Stage
      */
-    public function frontendHeadmasterTask($Task = null, $Select = null, $YearId = null)
+    public function frontendHeadmasterTask($Task = null, $IsAllYears = false, $YearId = null)
     {
 
         $Stage = new Stage('Notenaufträge', 'Übersicht');
         $Stage->setMessage(
-            'Verwaltung aller Kopfnoten- und Stichtagsnotenaufträge (inklusive der Anzeige der vergebener Zensuren).'
+            'Verwaltung aller Kopfnoten- und Stichtagsnotenaufträge (inklusive der Anzeige der vergebenen Zensuren).'
         );
         $hasTeacherRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Task/Teacher');
         $hasHeadmasterRight = Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Task/Headmaster');
@@ -592,64 +662,48 @@ class Frontend extends Extension implements IFrontendInterface
                 '/Education/Graduation/Evaluation/Task/Headmaster', new Edit()));
         }
 
+        $buttonList = $this->setYearButtonList('/Education/Graduation/Evaluation/Task/Headmaster', $IsAllYears, $YearId, $tblYear, true);
+
         $tblTaskAll = Evaluation::useService()->getTaskAll();
 
         $contentTable = array();
         if ($tblTaskAll) {
             foreach ($tblTaskAll as $tblTask) {
-                $hasEdit = false;
-                $nowDate = (new \DateTime('now'))->format("Y-m-d");
-                $toDate = $tblTask->getToDate();
-                if ($toDate) {
-                    $toDate = new \DateTime($toDate);
-                    $toDate = $toDate->format('Y-m-d');
-                }
-                if ($nowDate && $toDate) {
-                    if ($nowDate < $toDate) {
-                        $hasEdit = true;
-                    }
-                }
+                /** @var TblYear $tblYear */
+                if ($IsAllYears || ($tblYear && $tblTask->getServiceTblYear() && $tblTask->getServiceTblYear()->getId() == $tblYear->getId())) {
+                    $hasEdit = true;
 
-                $contentTable[] = array(
-                    'Date' => $tblTask->getDate(),
-                    'Type' => $tblTask->getTblTestType()->getName(),
-                    'Name' => $tblTask->getName(),
-                    'Period' => $tblTask->getServiceTblPeriod()
-                        ? $tblTask->getServiceTblPeriod()->getDisplayName() : 'Gesamtes Schuljahr',
-                    'EditPeriod' => $tblTask->getFromDate() . ' - ' . $tblTask->getToDate(),
-                    'Option' => ($hasEdit ? (new Standard('',
-                            '/Education/Graduation/Evaluation/Task/Headmaster/Edit',
-                            new Edit(),
-                            array('Id' => $tblTask->getId()),
-                            'Bearbeiten')) : '')
-                        . ($tblTask->isLocked() ? null : new Standard('',
-                            '/Education/Graduation/Evaluation/Task/Headmaster/Destroy', new Remove(),
-                            array('Id' => $tblTask->getId()),
-                            'Löschen'))
-                        . (new Standard('',
-                            '/Education/Graduation/Evaluation/Task/Headmaster/Division',
-                            new Listing(),
-                            array('Id' => $tblTask->getId()),
-                            'Klassen zuordnen')
-                        )
-                        . (new Standard('',
-                            '/Education/Graduation/Evaluation/Task/Headmaster/Grades',
-                            new Equalizer(),
-                            array('Id' => $tblTask->getId()),
-                            'Zensurenübersicht')
-                        ),
-                );
+                    $contentTable[] = array(
+                        'Date' => $tblTask->getDate(),
+                        'Type' => $tblTask->getTblTestType()->getName(),
+                        'Name' => $tblTask->getName(),
+                        'Period' => $tblTask->getServiceTblPeriod()
+                            ? $tblTask->getServiceTblPeriod()->getDisplayName() : 'Gesamtes Schuljahr',
+                        'EditPeriod' => $tblTask->getFromDate() . ' - ' . $tblTask->getToDate(),
+                        'Option' => ($hasEdit ? (new Standard('',
+                                '/Education/Graduation/Evaluation/Task/Headmaster/Edit',
+                                new Edit(),
+                                array('Id' => $tblTask->getId()),
+                                'Bearbeiten')) : '')
+                            . ($tblTask->isLocked() ? null : new Standard('',
+                                '/Education/Graduation/Evaluation/Task/Headmaster/Destroy', new Remove(),
+                                array('Id' => $tblTask->getId()),
+                                'Löschen'))
+                            . (new Standard('',
+                                '/Education/Graduation/Evaluation/Task/Headmaster/Division',
+                                new Listing(),
+                                array('Id' => $tblTask->getId()),
+                                'Klassen zuordnen')
+                            )
+                            . (new Standard('',
+                                '/Education/Graduation/Evaluation/Task/Headmaster/Grades',
+                                new Equalizer(),
+                                array('Id' => $tblTask->getId()),
+                                'Zensurenübersicht')
+                            ),
+                    );
+                }
             }
-        }
-
-        $tblYear = false;
-        if ($YearId === null) {
-            $tblYearList = Term::useService()->getYearByNow();
-            if ($tblYearList) {
-                $tblYear = reset($tblYearList);
-            }
-        } else {
-            $tblYear = Term::useService()->getYearById($YearId);
         }
 
         if ($tblYear) {
@@ -657,7 +711,6 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->POST['Select']['Year'] = $tblYear->getId();
             $Global->savePost();
         }
-
         $Form = ($this->formTask($tblYear ? $tblYear : null));
         $Form
             ->appendFormButton(new Primary('Speichern', new Save()))
@@ -666,6 +719,11 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
+                    new LayoutRow(array(
+                        empty($buttonList)
+                            ? null
+                            : new LayoutColumn($buttonList)
+                    )),
                     new LayoutRow(array(
                             new LayoutColumn(
                                 new TableData(
@@ -689,43 +747,11 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     )
                 ), new Title(new ListingTable() . ' Übersicht')),
-//                new LayoutGroup(array(
-//                    new LayoutRow(array(
-//                        new LayoutColumn(
-//                            new Well(Evaluation::useService()->getYear(
-//                                new Form(
-//                                    new FormGroup(
-//                                        new FormRow(
-//                                            new FormColumn(
-//                                                new SelectBox(
-//                                                    'Select[Year]', 'Schuljahr', array('Name' => Term::useService()->getYearAll()), new Calendar()
-//                                                )
-//                                            )
-//                                        )
-//                                    )
-//                                , new Primary('Auswählen', new Select()))
-//                                , $Select))
-//                        )
-//                    ))
-//                ), new Title(new Select() . ' Schuljahr auswählen')),
-                new LayoutGroup(array(
+                $IsAllYears
+                    ? null
+                    : new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            new Well(Evaluation::useService()->getYear(
-                                new Form(
-                                    new FormGroup(
-                                        new FormRow(
-                                            new FormColumn(
-                                                new SelectBox(
-                                                    'Select[Year]', 'Schuljahr',
-                                                    array('{{Name}} {{Description}}' => Term::useService()->getYearAll()),
-                                                    new Calendar()
-                                                )
-                                            )
-                                        )
-                                    )
-                                    , new Primary('Auswählen', new Select()))
-                                , $Select)),
                             $tblYear ? new Well(Evaluation::useService()->createTask($Form, $Task, $tblYear)) : null
                         ))
                     ))
@@ -891,27 +917,43 @@ class Frontend extends Extension implements IFrontendInterface
                 $grades = ($countGrades == $countStudents ? new Success($countGrades . ' von ' . $countStudents) :
                     new Warning($countGrades . ' von ' . $countStudents));
 
+                // standard
+                $stringDate = $tblTest->getDate();
+                $stringReturnDate = $tblTest->getReturnDate();
+
+//                // modify date if normal test where date is reached
+                if ($tblTest->getReturnDate()
+                    && new \DateTime($tblTest->getReturnDate()) <= new \DateTime()
+                    && $tblTest->getTblTestType()->getIdentifier() == 'TEST') {
+                    $stringReturnDate = new Success(new Bold($tblTest->getReturnDate()));
+                }
+                // modify with continues tests
+                if ($tblTest->getFinishDate()) {
+                    $stringDate = $tblTest->getFinishDate();
+                    $stringReturnDate = $tblTest->getFinishDate();
+                }
+
                 $contentTable[] = array(
-                    'Date' => $tblTest->getDate(),
-                    'Division' => $tblTest->getServiceTblDivision()
+                    'Date'               => $stringDate,
+                    'Division'           => $tblTest->getServiceTblDivision()
                         ? $tblTest->getServiceTblDivision()->getDisplayName() : '',
-                    'Subject' => $tblTest->getServiceTblSubject() ? $tblTest->getServiceTblSubject()->getName() : '',
-                    'DisplayPeriod' => $tblTask
+                    'Subject'            => $tblTest->getServiceTblSubject() ? $tblTest->getServiceTblSubject()->getName() : '',
+                    'DisplayPeriod'      => $tblTask
                         ? $tblTask->getFromDate() . ' - ' . $tblTask->getToDate()
                         : ($tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod()->getDisplayName() : ''),
-                    'GradeType' => $gradeType,
+                    'GradeType'          => $gradeType,
                     'DisplayDescription' => $tblTask ? $tblTask->getName() : $tblTest->getDescription(),
-                    'CorrectionDate' => $tblTest->getCorrectionDate(),
-                    'ReturnDate' => $tblTest->getReturnDate(),
-                    'Grades' => $grades,
-                    'Option' => ($tblTest->getTblTestType()->getId() == Evaluation::useService()->getTestTypeByIdentifier('TEST')->getId()
+                    'CorrectionDate'     => $tblTest->getCorrectionDate(),
+                    'ReturnDate'         => $stringReturnDate,
+                    'Grades'             => new Bold($grades),
+                    'Option'             => ($tblTest->getTblTestType()->getId() == Evaluation::useService()->getTestTypeByIdentifier('TEST')->getId()
                             ? (new Standard('', $BasicRoute . '/Edit', new Edit(),
                                 array('Id' => $tblTest->getId()), 'Bearbeiten'))
                             . (new Standard('', $BasicRoute . '/Destroy', new Remove(),
                                 array('Id' => $tblTest->getId()), 'Löschen'))
                             : '')
                         . (new Standard('', $BasicRoute . '/Grade/Edit', new Listing(),
-                            array('Id' => $tblTest->getId()), 'Zensuren bearbeiten'))
+                            array('Id' => $tblTest->getId()), 'Zensuren eintragen'))
                 );
             });
         }
@@ -937,16 +979,46 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         // Vorschau Test
-        $tblTestAllByDivision = Evaluation::useService()->getTestAllByTestTypeAndDivision(Evaluation::useService()->getTestTypeByIdentifier('TEST'),
-            $tblDivision);
         $testArray = array();
-        if ($tblTestAllByDivision) {
-            $tblTestAllByDivision = $this->getSorter($tblTestAllByDivision)->sortObjectBy('Date', new DateTimeSorter());
+        $testArrayTemp = array();
+        if (($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST'))
+            && ($tblTestAllByDivision = $tblTestAllByDivision = Evaluation::useService()->getTestAllByTestTypeAndDivision($tblTestType,
+            $tblDivision))
+        ) {
+            $linkedDivisions = array();
+            /** @var TblTest $testItem */
+            foreach ($tblTestAllByDivision as $testItem) {
+                $testArrayTemp[$testItem->getId()] = $testItem;
+                if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())
+                    && ($tblSubjectLinked = $testItem->getServiceTblSubject())
+                    && $tblSubject->getId() == $tblSubjectLinked->getId()
+                    && ($linkedTestList = $testItem->getLinkedTestAll())
+                ) {
+                    foreach ($linkedTestList as $linkedTest) {
+                        if (($linkedDivision = $linkedTest->getServiceTblDivision())
+                            && $linkedDivision->getId() != $tblDivision->getId()
+                        ) {
+                            if (!isset($linkedDivisions[$linkedDivision->getId()])) {
+                                $linkedDivisions[$linkedDivision->getId()] = $linkedDivision;
+                            }
+                        }
+                    }
+                }
+            }
+            foreach ($linkedDivisions as $linkedDivisionItem) {
+                if (($linkedTestListByLinkedDivision = Evaluation::useService()->getTestAllByTestTypeAndDivision($tblTestType, $linkedDivisionItem))) {
+                    foreach ($linkedTestListByLinkedDivision as $tblTestItem) {
+                        $testArrayTemp[$tblTestItem->getId()] = $tblTestItem;
+                    }
+                }
+            }
+
+            $testArrayTemp = $this->getSorter($testArrayTemp)->sortObjectBy('Date', new DateTimeSorter());
 
             $nowWeek = date('W');
             $nowYear = (new \DateTime('now'))->format('Y');
             /** @var TblTest $item */
-            foreach ($tblTestAllByDivision as $item) {
+            foreach ($testArrayTemp as $item) {
                 if ($item->getDate()) {
                     $dateWeek = date('W', strtotime($item->getDate()));
                     $dateYear = (new \DateTime($item->getDate()))->format('Y');
@@ -976,14 +1048,66 @@ class Frontend extends Extension implements IFrontendInterface
                 $date = new \DateTime();
                 if (!empty($testList)) {
                     foreach ($testList as $item) {
-                        if ($item->getServiceTblSubject() && $item->getServiceTblGradeType()) {
-                            $content = $item->getServiceTblSubject()->getAcronym() . ' '
+                        if ($item->getServiceTblSubject() && $item->getServiceTblDivision() && $item->getServiceTblGradeType()) {
+                            $tblSubject = $item->getServiceTblSubject();
+                            $tblSubjectGroup = $item->getServiceTblSubjectGroup();
+                            $TeacherAcronymList = array();
+                            $tblDivisionSubjectMain = false;
+                            if (!$tblSubjectGroup) {
+                                $tblSubjectGroup = null;
+                            } else {
+                                $tblDivisionSubjectMain = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivision,
+                                    $tblSubject, null);
+                            }
+                            $tblDivisionSubjectTeacher = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivision,
+                                $tblSubject, $tblSubjectGroup);
+                            if ($tblDivisionSubjectTeacher) {
+                                // Teacher Group (if exist) else Teacher Subject
+                                $tblPersonList = Division::useService()->getTeacherAllByDivisionSubject($tblDivisionSubjectTeacher);
+                                if ($tblPersonList) {
+                                    foreach ($tblPersonList as $tblPerson) {
+                                        $TeacherAcronym = new ToolTip(new Small(new NotAvailable())
+                                            , 'Lehrer '.$tblPerson->getLastFirstName().' besitzt kein Lehrerkürzel');
+                                        $tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson);
+                                        if ($tblTeacher) {
+                                            $TeacherAcronym = $tblTeacher->getAcronym();
+                                        }
+                                        $TeacherAcronymList[] = $TeacherAcronym;
+                                    }
+                                }
+                            }
+                            if ($tblDivisionSubjectMain) {
+                                // Teacher Subject (if Group exist)
+                                $tblPersonListMain = Division::useService()->getTeacherAllByDivisionSubject($tblDivisionSubjectMain);
+                                if ($tblPersonListMain) {
+                                    foreach ($tblPersonListMain as $tblPerson) {
+                                        $TeacherAcronym = new ToolTip(new Small(new NotAvailable())
+                                            , 'Lehrer '.$tblPerson->getLastFirstName().' besitzt kein Lehrerkürzel');
+                                        $tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson);
+                                        if ($tblTeacher) {
+                                            $TeacherAcronym = $tblTeacher->getAcronym();
+                                        }
+                                        $TeacherAcronymList[] = $TeacherAcronym;
+                                    }
+                                }
+                            }
+
+                            // create Teacher string
+                            if (!empty($TeacherAcronymList)) {
+                                $TeacherAcronym = implode(', ', $TeacherAcronymList);
+                            } else {
+                                $TeacherAcronym = new ToolTip(new Small(new NotAvailable())
+                                    , 'Kein Lehrauftrag vorhanden');
+                            }
+
+                            $content =  $item->getServiceTblDivision()->getDisplayName() . ' '
+                                . $item->getServiceTblSubject()->getAcronym() . ' '
                                 . ($item->getServiceTblSubjectGroup()
                                     ? '(' . $item->getServiceTblSubjectGroup()->getName() . ') ' : '')
                                 . $item->getServiceTblGradeType()->getCode() . ' '
                                 . $item->getDescription() . ' ('
                                 . strtr(date('D', strtotime($item->getDate())), $trans) . ' ' . date('d.m.y',
-                                    strtotime($item->getDate())) . ')';
+                                    strtotime($item->getDate())).') - '.$TeacherAcronym;
                             $panelData[] = $item->getServiceTblGradeType()->isHighlighted()
                                 ? new Bold($content) : $content;
                             $date = new \DateTime($item->getDate());
@@ -1034,23 +1158,28 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new TableData($contentTable, null, array(
-                                'Date' => 'Datum',
-                                'Division' => 'Klasse',
-                                'Subject' => 'Fach',
-                                'DisplayPeriod' => 'Zeitraum',
-                                'GradeType' => 'Zensuren-Typ',
+                                'Date'               => 'Datum',
+                                'Division'           => 'Klasse',
+                                'Subject'            => 'Fach',
+                                'DisplayPeriod'      => 'Zeitraum',
+                                'GradeType'          => 'Zensuren-Typ',
                                 'DisplayDescription' => 'Thema',
-                                'CorrectionDate' => 'Korrekturdatum',
-                                'ReturnDate' => 'R&uuml;ckgabedatum',
-                                'Grades' => 'Noten eingetragen',
-                                'Option' => ''
+                                'CorrectionDate'     => 'Korrekturdatum',
+                                'ReturnDate'         => 'Bekanntgabedatum',
+                                'Grades'             => 'Noten eingetragen',
+                                'Option'             => ''
                             ), array(
                                 'order' => array(
                                     array(0, 'desc')
                                 ),
                                 'columnDefs' => array(
-                                    array('type' => 'de_date', 'targets' => 0)
-                                )
+                                    array('type' => 'de_date', 'targets' => 0),
+                                    array('type' => 'de_date', 'targets' => 6),
+                                    array('orderable' => false, 'targets' => 7),
+                                    array('orderable' => false, 'targets' => 8),
+                                    array('orderable' => false, 'targets' => 9),
+                                ),
+                                'responsive' => false,
                             ))
                         ))
                     ))
@@ -1058,16 +1187,19 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            $Form
-                                ? new Well(Evaluation::useService()->createTest($Form, $tblDivisionSubject->getId(),
-                                $Test, $BasicRoute))
-                                : new Danger('Schuljahr nicht gefunden', new Ban())
+                            $tblDivisionSubject->getHasGrading()
+                                ? $Form
+                                    ? new Well(Evaluation::useService()->createTest($Form, $tblDivisionSubject->getId(),
+                                    $Test, $BasicRoute))
+                                    : new Danger('Schuljahr nicht gefunden', new Ban())
+                                : new \SPHERE\Common\Frontend\Message\Repository\Warning('Es können keine Leistungsüberprüfungen angelegt werden, da für dieses 
+                                Fach: wird nicht benotet, eingestellt ist.', new Exclamation())
                         ))
                     ))
                 ), new Title(new PlusSign() . ' Leistungsüberprüfung anlegen')),
-                new LayoutGroup(
-                    $preview
-                    , new Title(new Clock() . ' Planung'))
+                $tblDivisionSubject->getHasGrading()
+                    ? new LayoutGroup($preview, new Title(new Clock() . ' Planung'))
+                    : null
             ))
         );
 
@@ -1115,14 +1247,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->savePost();
         }
 
-        // Tests verknüpfen
-        if ($tblDivisionSubjectSelected) {
-            $panel = Evaluation::useService()->getTestLinkPanel($tblYear, $tblDivisionSubjectSelected);
-        } else {
-            $panel = false;
-        }
-
-        return new Form(new FormGroup(array(
+        $arrayFormRows = array(
             new FormRow(array(
                 new FormColumn(
                     new SelectBox('Test[Period]', 'Zeitraum', array('DisplayName' => $tblPeriodList)), 6
@@ -1138,32 +1263,43 @@ class Frontend extends Extension implements IFrontendInterface
             )),
             new FormRow(array(
                 new FormColumn(
-                    new CheckBox('Test[IsContinues]', new Bold('fortlaufendes Datum (z.B. für Mündliche Noten)'), 1,
+                    new CheckBox('Test[IsContinues]', new Bold('fortlaufendes Datum '.
+                        new ToolTip(new InfoIcon(), "Bei Tests mit 'fortlaufendes Datum' 
+                        erfolgt die Freigabe für die Notenübersicht (Eltern, Schüler) automatisch, sobald das Datum der 
+                        jeweiligen Note (Prio1) oder das optionale Enddatum (Prio2) erreicht ist.")
+                        .'(z.B. für Mündliche Noten)'
+                    ), 1,
                         array(
+                            'Test[FinishDate]',
                             'Test[Date]',
                             'Test[CorrectionDate]',
                             'Test[ReturnDate]'
                         ))
                 ),
                 new FormColumn(
-                    new DatePicker('Test[Date]', '', 'Datum', new Calendar()), 4
+                    (new DatePicker('Test[FinishDate]', '', 'Enddatum (optional für Notendatum)', new Calendar()))->setDisabled(), 3
                 ),
                 new FormColumn(
-                    new DatePicker('Test[CorrectionDate]', '', 'Korrekturdatum', new Calendar()), 4
+                    new DatePicker('Test[Date]', '', 'Datum', new Calendar()), 3
+                ),
+                new FormColumn(
+                    new DatePicker('Test[CorrectionDate]', '', 'Korrekturdatum', new Calendar()), 3
                 ),
                 new FormColumn(
                     new DatePicker('Test[ReturnDate]', '', 'Bekanntgabedatum für Notenübersicht (Eltern, Schüler)',
-                        new Calendar()), 4
+                        new Calendar()), 3
                 ),
-            )),
-            $panel
-                ? new FormRow(array(
-                new FormColumn(
-                    $panel
-                )
             ))
-                : null
-        )));
+        );
+
+        // Tests verknüpfen
+        if ($tblDivisionSubjectSelected && ($panel = Evaluation::useService()->getTestLinkPanel($tblYear, $tblDivisionSubjectSelected))) {
+            $arrayFormRows[] = new FormRow(new FormColumn(
+                $panel
+                ));
+        }
+
+        return new Form(new FormGroup($arrayFormRows));
     }
 
     /**
@@ -1238,10 +1374,13 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblTest) {
             $Global = $this->getGlobal();
             if (!$Global->POST) {
+                $Global->POST['Test']['GradeType'] = ($tblGradeType = $tblTest->getServiceTblGradeType())
+                    ? $tblGradeType->getId() : 0;
                 $Global->POST['Test']['Description'] = $tblTest->getDescription();
                 $Global->POST['Test']['Date'] = $tblTest->getDate();
                 $Global->POST['Test']['CorrectionDate'] = $tblTest->getCorrectionDate();
                 $Global->POST['Test']['ReturnDate'] = $tblTest->getReturnDate();
+                $Global->POST['Test']['FinishDate'] = $tblTest->getFinishDate();
                 $Global->savePost();
             }
 
@@ -1265,14 +1404,39 @@ class Frontend extends Extension implements IFrontendInterface
                     , array('DivisionSubjectId' => $tblDivisionSubject->getId()))
             );
 
+            // nur Zensuren-Typen, welche bei der hinterlegten Berechnungsvorschrift hinterlegt sind
+            $tblScoreRule = false;
+            $tblGradeTypeList = array();
+            if (($tblDivision = $tblTest->getServiceTblDivision())) {
+                $tblScoreRule = Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
+                    $tblDivision,
+                    $tblDivisionSubject->getServiceTblSubject(),
+                    $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
+                );
+            }
+            if ($tblScoreRule) {
+                $tblGradeTypeList = $tblScoreRule->getGradeTypesAll();
+            } else {
+                if (($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST'))) {
+                    $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType);
+                }
+            }
+
             $Form = new Form(new FormGroup(array(
                 new FormRow(array(
+                    new FormColumn(
+                        new SelectBox('Test[GradeType]', 'Zensuren-Typ', array('Name' => $tblGradeTypeList)), 12
+                    ),
                     new FormColumn(
                         new TextField('Test[Description]', '', 'Thema'), 12
                     ),
                 )),
                 $tblTest->isContinues()
-                    ? null
+                    ? new FormRow(array(
+                        new FormColumn(
+                            new DatePicker('Test[FinishDate]', '', 'Enddatum (optional für Notendatum)', new Calendar()), 4
+                        )
+                    ))
                     : new FormRow(array(
                     new FormColumn(
                         new DatePicker('Test[Date]', '', 'Datum', new Calendar()), 4
@@ -1281,7 +1445,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new DatePicker('Test[CorrectionDate]', '', 'Korrekturdatum', new Calendar()), 4
                     ),
                     new FormColumn(
-                        new DatePicker('Test[ReturnDate]', '', 'R&uuml;ckgabedatum', new Calendar()), 4
+                        new DatePicker('Test[ReturnDate]', '', 'Bekanntgabedatum für Notenübersicht (Eltern, Schüler)', new Calendar()), 4
                     ),
                 ))
             )));
@@ -1289,18 +1453,23 @@ class Frontend extends Extension implements IFrontendInterface
                 ->appendFormButton(new Primary('Speichern', new Save()))
                 ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
-            $tblDivision = $tblTest->getServiceTblDivision();
-
             $panel = false;
             if (($tblTestLinkList = $tblTest->getLinkedTestAll())) {
                 $panelContent = array();
+                $panelContent[] = 'Klasse ' . $tblDivision->getDisplayName() . ' - ' .
+                    ($tblTest->getServiceTblSubject() ? $tblTest->getServiceTblSubject()->getAcronym() . ' '
+                        . $tblTest->getServiceTblSubject()->getName() : '') .
+                    ($tblTest->getServiceTblSubjectGroup() ? new Small(
+                        ' (Gruppe: ' . $tblTest->getServiceTblSubjectGroup()->getName() . ')') : '');
                 foreach ($tblTestLinkList as $tblTestItem) {
                     $division = $tblTestItem->getServiceTblDivision();
                     $subject = $tblTestItem->getServiceTblSubject();
                     $group = $tblTestItem->getServiceTblSubjectGroup();
                     if ($division && $subject) {
-                        $panelContent[] = $division->getDisplayName() . ' - ' . $subject->getAcronym()
-                            . ($group ? ' - ' . $group->getName() : '');
+                        $panelContent[] = 'Klasse ' . $division->getDisplayName()
+                            . ' - ' . $subject->getAcronym() . ' ' . $subject->getName()
+                            . ($group ? new Small(
+                                ' (Gruppe: ' . $group->getName() . ')') : '');
                     }
                 }
                 if (!empty($panelContent)) {
@@ -1541,7 +1710,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Grade = null
     ) {
 
-        $Stage = new Stage('Leistungsüberprüfung', 'Zensuren bearbeiten');
+        $Stage = new Stage('Leistungsüberprüfung', 'Zensuren eintragen');
 
         $tblTest = false;
 
@@ -1556,28 +1725,13 @@ class Frontend extends Extension implements IFrontendInterface
             . new Redirect('/Education/Graduation/Evaluation/Test/Teacher', Redirect::TIMEOUT_ERROR);
         }
 
-        $tblPerson = false;
-        $tblAccount = Account::useService()->getAccountBySession();
-        if ($tblAccount) {
-            $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
-            if ($tblPersonAllByAccount) {
-                $tblPerson = $tblPersonAllByAccount[0];
-            }
-        }
-
         if (!$tblTest->getServiceTblDivision()) {
             return new Danger(new Ban() . ' Klasse nicht gefunden')
             . new Redirect('/Education/Graduation/Evaluation/Test/Teacher', Redirect::TIMEOUT_ERROR);
         }
 
-        if (Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblTest->getServiceTblDivision(),
-            $tblPerson)
-        ) {
-            $isEdit = true;
-        } else {
-            $isEdit = false;
-            $Stage->setMessage(new Warning(new Exclamation() . ' Bei einer Notenänderung muss für diese ein Grund angegeben werden.'));
-        }
+        $isEdit = false;
+        $Stage->setMessage(new Warning(new Exclamation() . ' Bei einer Notenänderung muss für diese ein Grund angegeben werden.'));
 
         $this->contentEditTestGrade($Stage, $tblTest, $Grade, '/Education/Graduation/Evaluation/Test/Teacher', $isEdit);
 
@@ -1615,6 +1769,9 @@ class Frontend extends Extension implements IFrontendInterface
             new Standard('Zur&uuml;ck', $BasicRoute . '/Selected', new ChevronLeft()
                 , array('DivisionSubjectId' => $tblDivisionSubject->getId()))
         );
+
+        $buttonList = array();
+        $tblNextTest = null;
 
         $isTestAppointedDateTask = ($tblTest->getTblTestType()->getId()
             == Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')->getId());
@@ -1674,13 +1831,17 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($tblGrade->getGrade() === null) {
                         $Global->POST['Grade'][$tblGrade->getServiceTblPerson()->getId()]['Attendance'] = 1;
                     } else {
-                        $Global->POST['Grade'][$tblGrade->getServiceTblPerson()->getId()]['Grade'] =
-                            str_replace('.', ',', $tblGrade->getGrade());
 
+                        $gradeValue = str_replace('.', ',', $tblGrade->getGrade());
                         $trend = $tblGrade->getTrend();
                         if ($trend !== null) {
-                            $Global->POST['Grade'][$tblGrade->getServiceTblPerson()->getId()]['Trend'] = $trend;
+                            if ($trend == TblGrade::VALUE_TREND_PLUS) {
+                                $gradeValue .= '+';
+                            } elseif ($trend == TblGrade::VALUE_TREND_MINUS) {
+                                $gradeValue .= '-';
+                            }
                         }
+                        $Global->POST['Grade'][$tblGrade->getServiceTblPerson()->getId()]['Grade'] = $gradeValue;
                     }
                     $Global->POST['Grade'][$tblGrade->getServiceTblPerson()->getId()]['Comment'] = $tblGrade->getComment();
                     if ($tblTest->isContinues()) {
@@ -1713,6 +1874,12 @@ class Frontend extends Extension implements IFrontendInterface
 
         $hasPreviewGrades = false;
 
+        $displayDivisionSubjectList = array();
+        $displayDivisionSubjectList[] = 'Klasse ' . $tblDivision->getDisplayName() . ' - ' .
+            ($tblTest->getServiceTblSubject() ? $tblTest->getServiceTblSubject()->getAcronym() . ' '
+                . $tblTest->getServiceTblSubject()->getName() : '') .
+            ($tblTest->getServiceTblSubjectGroup() ? new Small(
+                ' (Gruppe: ' . $tblTest->getServiceTblSubjectGroup()->getName() . ')') : '');
         if ($tblTestLinkedList) {
             $studentList = $this->setStudentList($tblDivisionSubject, $tblTest, $studentList, $studentTestList, true);
             foreach ($tblTestLinkedList as $tblTestLinked) {
@@ -1726,8 +1893,17 @@ class Frontend extends Extension implements IFrontendInterface
                 ) {
                     $studentList = $this->setStudentList($testDivisionSubject, $tblTestLinked, $studentList,
                         $studentTestList, true);
+                    $displayDivisionSubjectList[$tblTestLinked->getServiceTblDivision()->getDisplayName()
+                    . $tblTestLinked->getServiceTblSubject()->getAcronym()]
+                        = 'Klasse ' . $tblTestLinked->getServiceTblDivision()->getDisplayName()
+                        . ' - ' . $tblTestLinked->getServiceTblSubject()->getAcronym() . ' '
+                        . $tblTestLinked->getServiceTblSubject()->getName()
+                        . ($tblTestLinked->getServiceTblSubjectGroup()
+                            ? new Small(' (Gruppe: ' . $tblTestLinked->getServiceTblSubjectGroup()->getName() . ')')
+                            : '');
                 }
             }
+            sort($displayDivisionSubjectList);
         } else {
             $studentList = $this->setStudentList($tblDivisionSubject, $tblTest, $studentList, $studentTestList);
         }
@@ -1736,7 +1912,8 @@ class Frontend extends Extension implements IFrontendInterface
             $period = $tblTask->getFromDate() . ' - ' . $tblTask->getToDate();
             $tableColumns = array(
                 'Number' => '#',
-                'Name' => 'Schüler',
+                'Name'   => 'Schüler',
+                'Course' => 'Bildungsgang',
             );
 
             // Stichtagsnotenauftrag
@@ -1750,6 +1927,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $periodListCount = array();
                 $columnDefinition['Number'] = '#';
                 $columnDefinition['Student'] = "Schüler";
+                $columnDefinition['Course'] = 'Bildungsgang';
 
                 $tblPeriodList = false;
                 // ist Stichtagsnotenauftrag auf eine Periode beschränkt oder wird das gesamte Schuljahr genutzt
@@ -1804,17 +1982,25 @@ class Frontend extends Extension implements IFrontendInterface
                                                 if (strlen($date) > 6) {
                                                     $date = substr($date, 0, 6);
                                                 }
-                                                $columnDefinition['Test' . $tblTestTemp->getId()] = new Small(new Muted($date)) . '<br>'
+                                                $text = new Small(new Muted($date)) . '<br>'
                                                     . ($tblTestTemp->getServiceTblGradeType()->isHighlighted()
                                                         ? $tblTestTemp->getServiceTblGradeType()->getCode()
                                                         : new Muted($tblTestTemp->getServiceTblGradeType()->getCode()));
+                                                $columnDefinition['Test' . $tblTestTemp->getId()]
+                                                    = $tblTestTemp->getDescription()
+                                                        ? new ToolTip($text, $tblTestTemp->getDescription())
+                                                        : $text;
                                             }
                                         } elseif ($tblTestTemp->isContinues()) {
                                             $count++;
-                                            $columnDefinition['Test' . $tblTestTemp->getId()] = new Small('&nbsp;') . '<br>'
+                                            $text = new Small('&nbsp;') . '<br>'
                                                 . ($tblTestTemp->getServiceTblGradeType()->isHighlighted()
                                                     ? $tblTestTemp->getServiceTblGradeType()->getCode()
                                                     : new Muted($tblTestTemp->getServiceTblGradeType()->getCode()));
+                                            $columnDefinition['Test' . $tblTestTemp->getId()]
+                                                = $tblTestTemp->getDescription()
+                                                    ? new ToolTip($text, $tblTestTemp->getDescription())
+                                                    : $text;
                                         }
                                     }
                                 }
@@ -1845,6 +2031,12 @@ class Frontend extends Extension implements IFrontendInterface
                         $count++;
                         $data['Student'] = $tblPerson->getLastFirstName();
 
+                        $data['Course'] = '';
+                        $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
+                        if ($tblCourse) {
+                            $data['Course'] = $tblCourse->getName();
+                        }
+
                         // Zensur des Schülers zum Test zuordnen und Durchschnitte berechnen
                         if (!empty($columnDefinition)) {
                             foreach ($columnDefinition as $column => $value) {
@@ -1856,16 +2048,27 @@ class Frontend extends Extension implements IFrontendInterface
                                         $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTestTemp,
                                             $tblPerson);
                                         if ($tblGrade) {
-                                            if (!$tblTestTemp->isContinues()
-                                                || ($tblTestTemp->isContinues() && $tblGrade->getDate() && $tblTask->getDate()
+                                            if (!$tblTestTemp->isContinues()    // Testdatum
+                                                || ($tblTestTemp->isContinues()   // Notendatum
+                                                    && $tblGrade->getDate() && $tblTask->getDate()
                                                     && ($taskDate = new \DateTime($tblTask->getDate()))
                                                     && ($gradeDate = new \DateTime($tblGrade->getDate()))
                                                     && ($taskDate->format('Y-m-d') >= $gradeDate->format('Y-m-d')))
+                                                || ($tblTestTemp->isContinues() && !$tblGrade->getDate() // Test-Enddatum
+                                                    && $tblTestTemp->getFinishDate() && $tblTask->getDate()
+                                                    && ($taskDate = new \DateTime($tblTask->getDate()))
+                                                    && ($finishDate = new \DateTime($tblTestTemp->getFinishDate()))
+                                                    && ($taskDate->format('Y-m-d') >= $finishDate->format('Y-m-d')))
                                             ) {
+                                                if ($tblGrade->getGrade() !== null && $tblGrade->getGrade() !== '') {
+                                                    $value = ' ' . $tblGrade->getDisplayGrade();
+                                                } else {
+                                                    $value = '&nbsp;';
+                                                }
                                                 $data[$column] = $tblTestTemp->getServiceTblGradeType()
                                                     ? ($tblTestTemp->getServiceTblGradeType()->isHighlighted()
-                                                        ? new Bold($tblGrade->getDisplayGrade()) : $tblGrade->getDisplayGrade())
-                                                    : $tblGrade->getDisplayGrade();
+                                                        ? new Bold($value) : $value)
+                                                    : $value;
                                             }
                                         }
                                     }
@@ -1925,7 +2128,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         }
 
                                         // Zensuren voreintragen bei Stichtagsnotenauftrag, wenn noch keine vergeben ist
-                                        if ($average && !Gradebook::useService()->getGradeByTestAndStudent($tblTest,
+                                        if (($average || $average === (float) 0) && !Gradebook::useService()->getGradeByTestAndStudent($tblTest,
                                                 $tblPerson)
                                         ) {
                                             $hasPreviewGrades = true;
@@ -1950,63 +2153,33 @@ class Frontend extends Extension implements IFrontendInterface
                 $studentList = $dataList;
 
                 $columnDefinition['Grade'] = 'Zensur';
-                if ($tblScoreType && $tblScoreType->getIdentifier() == 'GRADES') {
-                    if (!(!$IsEdit && $tblTask->isAfterEditPeriod())) {
-                        $columnDefinition['Trend'] = 'Tendenz';
-                    }
-                }
                 $columnDefinition['Text'] = 'oder Zeugnistext';
                 $columnDefinition['Comment'] = 'Vermerk Notenänderung';
             } else {
-                // Kopfnote
-                $gradeType = 'Kopfnote: ' . ($tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType()->getName() : '')
-                    . ($tblTask->getServiceTblPeriod()
-                        ? new Small(new Muted(' ' . $tblTask->getServiceTblPeriod()->getDisplayName()))
-                        : new Small(new Muted(' Gesamtes Schuljahr')));
-
-                foreach ($studentList as $personId => $student) {
-                    $tblPerson = Person::useService()->getPersonById($personId);
-                    if ($tblPerson) {
-                        $tblGradeList = Gradebook::useService()->getGradesByGradeType($tblPerson, $tblDivision, $tblSubject,
-                            $tblTest->getServiceTblGradeType());
-
-                        $previewsGrade = '';
-                        if ($tblGradeList) {
-                            $count = count($tblGradeList);
-                            for ($i = 0; $i < $count; $i++) {
-                                /** @var TblGrade $tblGrade */
-                                $tblGrade = array_pop($tblGradeList);
-                                if ($tblTask->getEntityCreate() > $tblGrade->getEntityCreate()) {
-                                    $previewsGrade = $tblGrade->getDisplayGrade();
-                                    break;
-                                }
-                            }
-                        }
-
-                        $studentList[$tblPerson->getId()]['PreviewsGrade'] = $previewsGrade;
-                    }
-                }
-
-                $tableColumns['PreviewsGrade'] = 'Letzte Zensur';
-                $tableColumns['Grade'] = 'Zensur';
-                if ($tblScoreType && $tblScoreType->getIdentifier() == 'GRADES') {
-                    $tableColumns['Trend'] = 'Tendenz';
-                }
-                $tableColumns['Comment'] = 'Vermerk Notenänderung';
+                // Kopfnotenauftrag
+                $gradeType = $this->setContentForBehaviorTask(
+                    $tblTest,
+                    $tblTask ? $tblTask : null,
+                    $tblDivision,
+                    $tblSubject,
+                    $tblNextTest,
+                    $BasicRoute,
+                    $studentList,
+                    $tableColumns,
+                    $buttonList);
             }
         } else {
             $period = $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod()->getDisplayName() : '';
-            $gradeType = $tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType()->getName() : '';
+            $gradeType = ($tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType()->getName() : '')
+                . ($tblTest->getFinishDate() ? ' (Enddatum: ' . $tblTest->getFinishDate() . ')': '');
 
             $tableColumns = array();
             $tableColumns['Number'] = '#';
             $tableColumns['Name'] = 'Schüler';
+            $tableColumns['Course'] = 'Bildungsgang';
             $tableColumns['Grade'] = 'Zensur';
-            if ($tblScoreType && $tblScoreType->getIdentifier() == 'GRADES') {
-                $tableColumns['Trend'] = 'Tendenz';
-            }
             if ($tblTest->isContinues()) {
-                $tableColumns['Date'] = 'Datum';
+                $tableColumns['Date'] = 'Datum' . ($tblTest->getFinishDate() ? ' (' . $tblTest->getFinishDate() . ')' : '');
             }
             $tableColumns['Comment'] = 'Vermerk Notenänderung';
             $tableColumns['Attendance'] = 'Nicht teilgenommen';
@@ -2014,6 +2187,29 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($studentList) {
             $tabIndex = 1;
+            $selectList = array();
+            if ($tblScoreType) {
+                $selectList[-1] = '';
+                if ($tblScoreType->getIdentifier() == 'GRADES') {
+                    for ($i = 1; $i < 6; $i++) {
+                        $selectList[$i . '+'] = (string)($i . '+');
+                        $selectList[$i] = (string)($i);
+                        $selectList[$i . '-'] = (string)($i . '-');
+                    }
+                    $selectList[6] = 6;
+                } elseif ($tblScoreType->getIdentifier() == 'GRADES_BEHAVIOR_TASK') {
+                    for ($i = 1; $i < 5; $i++) {
+                        $selectList[$i . '+'] = (string)($i . '+');
+                        $selectList[$i] = (string)($i);
+                        $selectList[$i . '-'] = (string)($i . '-');
+                    }
+                    $selectList[5] = 5;
+                } elseif ($tblScoreType->getIdentifier() == 'POINTS') {
+                    for ($i = 0; $i < 16; $i++) {
+                        $selectList[$i] = (string)$i;
+                    }
+                }
+            }
             foreach ($studentList as $personId => $value) {
                 $tblPerson = Person::useService()->getPersonById($personId);
                 if ($studentTestList && isset($studentTestList[$personId])) {
@@ -2024,7 +2220,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTestOfPerson,
                     $tblPerson);
                 $studentList = $this->contentEditTestGradeTableRow($tblPerson, $tblGrade, $IsEdit, $studentList,
-                    $tabIndex, $IsTaskAndInPeriod, $tblScoreType ? $tblScoreType : null, $tblTest
+                    $tabIndex, $selectList, $IsTaskAndInPeriod, $tblScoreType ? $tblScoreType : null, $tblTest
                 );
             }
         }
@@ -2043,7 +2239,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             // oberste Tabellen-Kopf-Zeile erstellen
             $headTableColumnList = array();
-            $headTableColumnList[] = new TableColumn('', 2, '20%');
+            $headTableColumnList[] = new TableColumn('', 3, '20%');
             $countHeaderColumns = 2;
             if (!empty($periodListCount)) {
                 foreach ($periodListCount as $periodId => $count) {
@@ -2064,11 +2260,6 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             );
         } else {
-            if ($tblTask && !$IsEdit && $tblTask->isAfterEditPeriod()) {
-                if (isset($tableColumns['Trend'])) {
-                    unset($tableColumns['Trend']);
-                }
-            }
             $tableData = new TableData($studentList, null, $tableColumns, null);
         }
 
@@ -2086,7 +2277,8 @@ class Frontend extends Extension implements IFrontendInterface
                 ))
                 , new Primary('Speichern', new Save()))
             , $tblTest->getId(), $Grade, $BasicRoute, $tblScoreType ? $tblScoreType : null,
-            empty($studentTestList) ? null : $studentTestList
+            empty($studentTestList) ? null : $studentTestList,
+            $tblNextTest ? $tblNextTest : null
         );
         $warningNoScoreType = new WarningMessage('Kein Bewertungssystem hinterlegt.
                                 Zensuren können erst vergeben werden nachdem für diese Fach-Klasse ein Bewertungssystem
@@ -2104,7 +2296,7 @@ class Frontend extends Extension implements IFrontendInterface
                 } else {
                     $content = new WarningMessage(
                             'Zensuren können von Ihnen nur innerhalb des Bearbeitungszeitraums vergeben werden. Zur Nachträglichen Bearbeitung der Zensuren
-                             wenden Sie sich bitte an den Klassenlehrer oder die Schulleitung.',
+                             wenden Sie sich bitte an die Schulleitung.',
                             new Exclamation()
                         )
                         . ($tblScoreType ? '' : $warningNoScoreType)
@@ -2125,10 +2317,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new Panel(
                                 'Fach-Klasse',
-                                'Klasse ' . $tblDivision->getDisplayName() . ' - ' .
-                                ($tblTest->getServiceTblSubject() ? $tblTest->getServiceTblSubject()->getName() : '') .
-                                ($tblTest->getServiceTblSubjectGroup() ? new Small(
-                                    ' (Gruppe: ' . $tblTest->getServiceTblSubjectGroup()->getName() . ')') : ''),
+                                $displayDivisionSubjectList,
                                 Panel::PANEL_TYPE_INFO
                             ), 3
                         ),
@@ -2181,6 +2370,7 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 )),
                 (!empty($errorRowList) ? new LayoutGroup($errorRowList) : null),
+                (!empty($buttonList) ? new LayoutGroup(new LayoutRow(new LayoutColumn($buttonList))) : null),
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
@@ -2200,10 +2390,10 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $IsEdit
      * @param $student
      * @param $tabIndex
+     * @param $selectList
      * @param bool $IsTaskAndInPeriod
      * @param TblScoreType|null $tblScoreType
      * @param TblTest $tblTest
-     *
      * @return array
      */
     private function contentEditTestGradeTableRow(
@@ -2212,6 +2402,7 @@ class Frontend extends Extension implements IFrontendInterface
         $IsEdit,
         $student,
         &$tabIndex,
+        $selectList,
         $IsTaskAndInPeriod = false,
         TblScoreType $tblScoreType = null,
         TblTest $tblTest = null
@@ -2222,38 +2413,37 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         /** @var TblGrade $tblGrade */
-        if ($tblGrade && $tblGrade->getGrade()) {
-            $labelComment = new Warning('Bei Notenänderung bitte einen Grund angeben');
-        } else {
-            $labelComment = '';
-        }
-
         if (!$IsEdit && !$IsTaskAndInPeriod) {
             /** @var TblGrade $tblGrade */
             $student[$tblPerson->getId()]['Grade'] = $tblGrade ? $tblGrade->getDisplayGrade() : '';
             $student[$tblPerson->getId()]['Comment'] = $tblGrade ? $tblGrade->getComment() : '';
-            $student[$tblPerson->getId()]['Text'] = $tblGrade->getTblGradeText() ? $tblGrade->getTblGradeText()->getName() : '';
+            $student[$tblPerson->getId()]['Text'] = ($tblGrade ? ($tblGrade->getTblGradeText() ? $tblGrade->getTblGradeText()->getName() : '') : '');
         } else {
             if ($tblScoreType) {
                 if ($tblScoreType->getIdentifier() == 'VERBAL') {
                     $student[$tblPerson->getId()]['Grade']
                         = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', '',
-                        new Quote()))->setTabIndex(1);
+                        new Quote()))->setTabIndex($tabIndex++);
                 } elseif ($tblScoreType->getIdentifier() == 'GRADES_V1'
                     || $tblScoreType->getIdentifier() == 'GRADES_COMMA'
                 ) {
                     $student[$tblPerson->getId()]['Grade']
                         = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '',
                         ''))->setTabIndex($tabIndex++);
-                } elseif ($tblScoreType->getIdentifier() == 'POINTS') {
-                    $student[$tblPerson->getId()]['Grade']
-                        = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '',
-                        ''))->setTabIndex($tabIndex++);
                 } else {
-                    $student = $this->setFieldsForGradesWithTrend($student, $tblPerson, $tabIndex);
+//                    $selectBox = (new SelectBox('Grade[' . $tblPerson->getId() . '][Grade]', '', $selectList));
+//                    $selectBox->setTabIndex($tabIndex++);
+//                    $selectBox->configureLibrary( SelectBox::LIBRARY_SELECT2 );
+                    $selectComplete = (new SelectCompleter('Grade[' . $tblPerson->getId() . '][Grade]', '', '', $selectList))
+                        ->setTabIndex($tabIndex++);
+
+                    $student[$tblPerson->getId()]['Grade']
+                        = $selectComplete;
                 }
             } else {
-                $student = $this->setFieldsForGradesWithTrend($student, $tblPerson, $tabIndex);
+                $student[$tblPerson->getId()]['Grade']
+                    = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', '',
+                    new Quote()))->setTabIndex($tabIndex++);
             }
 
             if ($tblTest && $tblTest->isContinues()) {
@@ -2262,8 +2452,8 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $student[$tblPerson->getId()]['Comment']
-                = (new TextField('Grade[' . $tblPerson->getId() . '][Comment]', '', $labelComment,
-                new Comment()))->setTabIndex(1000 + $tabIndex);
+                = (new TextField('Grade[' . $tblPerson->getId() . '][Comment]', '', '',
+                new Comment()))->setTabIndex(1000 + $tabIndex)->setPrefixValue($tblGrade ? $tblGrade->getDisplayTeacher() : '');
             $student[$tblPerson->getId()]['Attendance'] =
                 (new CheckBox('Grade[' . $tblPerson->getId() . '][Attendance]', ' ', 1))->setTabIndex(2000 + $tabIndex);
 
@@ -2281,31 +2471,6 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $student
-     * @param TblPerson $tblPerson
-     * @param $tabIndex
-     *
-     * @return array
-     */
-    private function setFieldsForGradesWithTrend($student, TblPerson $tblPerson, &$tabIndex)
-    {
-
-        $selectBoxContent = array(
-            TblGrade::VALUE_TREND_NULL => '',
-            TblGrade::VALUE_TREND_PLUS => 'Plus',
-            TblGrade::VALUE_TREND_MINUS => 'Minus'
-        );
-
-        $student[$tblPerson->getId()]['Grade']
-            = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''))->setTabIndex($tabIndex++);
-        $student[$tblPerson->getId()]['Trend']
-            = (new SelectBox('Grade[' . $tblPerson->getId() . '][Trend]', '', $selectBoxContent,
-            new ResizeVertical()))->setTabIndex($tabIndex++);
-
-        return $student;
-    }
-
-    /**
      * @param $Id
      * @param $Grade
      *
@@ -2316,7 +2481,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Grade = null
     ) {
 
-        $Stage = new Stage('Leistungsüberprüfung', 'Zensuren bearbeiten');
+        $Stage = new Stage('Leistungsüberprüfung', 'Zensuren eintragen');
 
         $tblTest = false;
 
@@ -2463,6 +2628,9 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tblTestAllByTest = Evaluation::useService()->getTestAllByTask($tblTask);
+        $tblGradeTypeList = $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByTestType(
+            Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR')
+        );
         if ($tblTestAllByTest) {
             $Global = $this->getGlobal();
             if (!$Global->POST) {
@@ -2477,6 +2645,14 @@ class Frontend extends Extension implements IFrontendInterface
                             $Global->POST['Data']['GradeType'][$tblGradeType->getId()] = 1;
                         }
                     }
+                }
+                $Global->savePost();
+            }
+        } elseif ($tblGradeTypeList) {
+            $Global = $this->getGlobal();
+            if (!$Global->POST) {
+                foreach ($tblGradeTypeList as $tblGradeTypeItem) {
+                    $Global->POST['Data']['GradeType'][$tblGradeTypeItem->getId()] = 1;
                 }
                 $Global->savePost();
             }
@@ -2516,9 +2692,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $gradeTypeColumnList = array();
         if ($isBehaviorTask) {
-            $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByTestType(
-                Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR')
-            );
             if ($tblGradeTypeList) {
                 foreach ($tblGradeTypeList as $tblGradeType) {
                     if ($hasEdit && !$isLocked) {
@@ -2636,10 +2809,10 @@ class Frontend extends Extension implements IFrontendInterface
             . new Redirect('/Education/Graduation/Evaluation/Task/Headmaster', Redirect::TIMEOUT_ERROR);
         }
 
-
+        $tblYear = $tblTask->getServiceTblYear();
         $Stage->addButton(
             new Standard('Zurück', '/Education/Graduation/Evaluation/Task/Headmaster',
-                new ChevronLeft())
+                new ChevronLeft(), array('YearId' => $tblYear ? $tblYear->getId(): 0))
         );
 
         $tblCurrentDivision = Division::useService()->getDivisionById($DivisionId);
@@ -2712,7 +2885,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblTask->getTblTestType()->getName(),
                                 $tblTask->getName() . ' ' . $tblTask->getDate()
                                 . '&nbsp;&nbsp;' . new Muted(new Small(new Small(
-                                    $tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
+                                    'Bearbeitungszeitraum '.$tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
                                 Panel::PANEL_TYPE_INFO
                             ),
                             $tblDivisionAllByTask ? null : new WarningMessage(
@@ -2747,6 +2920,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tableList
     ) {
 
+        $gradeList = array();
         foreach ($divisionList as $divisionId => $testList) {
             $tblDivision = Division::useService()->getDivisionById($divisionId);
             if ($tblDivision) {
@@ -2775,7 +2949,10 @@ class Frontend extends Extension implements IFrontendInterface
                                             if ($tblPerson) {
                                                 $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
                                                     $tblTest, $tblSubject, $tblPerson, $studentList,
-                                                    $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null);
+                                                    $tblDivisionSubject->getTblSubjectGroup()
+                                                        ? $tblDivisionSubject->getTblSubjectGroup() : null,
+                                                    $gradeList
+                                                );
                                             }
                                         }
                                     }
@@ -2786,7 +2963,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         foreach ($tblDivisionStudentAll as $tblPerson) {
                                             $studentList[$tblDivision->getId()][$tblPerson->getId()]['Number'] = $count++;
                                             $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
-                                                $tblTest, $tblSubject, $tblPerson, $studentList);
+                                                $tblTest, $tblSubject, $tblPerson, $studentList, null, $gradeList);
                                         }
                                     }
                                 }
@@ -2805,16 +2982,33 @@ class Frontend extends Extension implements IFrontendInterface
 
                     // Bug Schüler ist nicht in der Gruppe, wenn nicht alle Schüler in einer Gruppe sind, z.B. bei Ethik
                     if (!empty($studentList)) {
+                        $count = 1;
                         foreach ($studentList as $divisionListId => $students) {
                             if (is_array($students)) {
                                 foreach ($students as $studentId => $student) {
                                     foreach ($tableHeaderList[$divisionListId] as $key => $value) {
-                                        if (!isset($student[$key])) {
+                                        if ($key == 'Number') {
+                                            $studentList[$divisionId][$studentId][$key] = $count++;
+                                        } elseif (!isset($student[$key])) {
                                             $studentList[$divisionId][$studentId][$key] = "";
                                         }
                                     }
                                 }
                             }
+                        }
+                    }
+
+                    // Gesamtdurchschnitt
+                    $tableHeaderList[$tblDivision->getId()]['Average'] = '&#216;';
+                    if (!empty($gradeList)) {
+                        foreach ($gradeList as $personId => $gradeArray) {
+                            $sum = 0;
+                            foreach ($gradeArray as $grade) {
+                                $sum += $grade;
+                            }
+                            $count = count($gradeArray);
+                            $studentList[$divisionId][$personId]['Average'] = $count  > 0
+                                ? round($sum / $count, 2 ) : '';
                         }
                     }
 
@@ -2825,6 +3019,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $tableHeaderList[$tblDivision->getId()]['Name'] = 'Schüler';
                     $grades = array();
 
+                    $count = 1;
                     if (!empty($testList)) {
                         /** @var TblTest $tblTest */
                         foreach ($testList as $tblTest) {
@@ -2850,18 +3045,16 @@ class Frontend extends Extension implements IFrontendInterface
                                                 $tblPerson = $tblSubjectStudent->getServiceTblPerson();
                                                 if ($tblPerson) {
                                                     list($studentList, $grades) = $this->setTableContentForBehaviourTask($tblDivision,
-                                                        $tblTest, $tblPerson, $studentList, $grades);
+                                                        $tblTest, $tblPerson, $studentList, $grades, $count);
                                                 }
                                             }
                                         }
                                     } else {
                                         $tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision);
                                         if ($tblDivisionStudentAll) {
-                                            $count = 1;
                                             foreach ($tblDivisionStudentAll as $tblPerson) {
-                                                $studentList[$tblDivision->getId()][$tblPerson->getId()]['Number'] = $count++;
                                                 list($studentList, $grades) = $this->setTableContentForBehaviourTask($tblDivision,
-                                                    $tblTest, $tblPerson, $studentList, $grades);
+                                                    $tblTest, $tblPerson, $studentList, $grades, $count);
                                             }
                                         }
                                     }
@@ -2906,7 +3099,13 @@ class Frontend extends Extension implements IFrontendInterface
                                         isset($studentList[$tblDivision->getId()]) ? $studentList[$tblDivision->getId()] : array(),
                                         null,
                                         $tableHeader,
-                                        null
+                                        array(
+                                            "paging"         => false, // Deaktivieren Blättern
+                                            "iDisplayLength" => -1,    // Alle Einträge zeigen
+                                            "searching"      => false, // Deaktivieren Suchen
+                                            "info"           => false,  // Deaktivieren Such-Info
+                                            "responsive"   => false
+                                        )
                                     )
                                 ))
                             )
@@ -2925,6 +3124,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param TblPerson $tblPerson
      * @param $studentList
      * @param TblSubjectGroup $tblSubjectGroup
+     * @param array $gradeList
      *
      * @return  $studentList
      */
@@ -2934,7 +3134,8 @@ class Frontend extends Extension implements IFrontendInterface
         TblSubject $tblSubject,
         TblPerson $tblPerson,
         $studentList,
-        TblSubjectGroup $tblSubjectGroup = null
+        TblSubjectGroup $tblSubjectGroup = null,
+        &$gradeList = array()
     ) {
         $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
             $tblPerson->getLastFirstName();
@@ -2982,8 +3183,12 @@ class Frontend extends Extension implements IFrontendInterface
             $gradeValue = $tblGrade->getGrade();
             $trend = $tblGrade->getTrend();
 
+            if ($gradeValue !== null && $gradeValue !== '') {
+                $gradeList[$tblPerson->getId()][] = $gradeValue;
+            }
+
             $isGradeInRange = true;
-            if ($average !== ' ' && $average && $gradeValue !== null) {
+            if ($average !== '' && $average !== null && $gradeValue !== null) {
                 if (is_numeric($gradeValue)) {
                     $gradeFloat = floatval($gradeValue);
                     if (($gradeFloat - 0.5) <= $average && ($gradeFloat + 0.5) >= $average) {
@@ -3008,13 +3213,13 @@ class Frontend extends Extension implements IFrontendInterface
 
             $studentList[$tblDivision->getId()][$tblPerson->getId()]
             ['Subject' . $tblSubject->getId()] = ($tblGrade->getGrade() !== null ?
-                    $gradeValue : '') . (($average !== ' ' && $average) ? new Muted('&nbsp;&nbsp; &#216;' . $average) : '');
+                    $gradeValue : '') . (($average || $average === (float)0) ? new Muted('&nbsp;&nbsp; &#216;' . $average) : '');
             return $studentList;
         } else {
             $studentList[$tblDivision->getId()][$tblPerson->getId()]
             ['Subject' . $tblSubject->getId()] =
                 new Warning('fehlt')
-                . (($average !== ' ' && $average) ? new Muted('&nbsp;&nbsp; &#216;' . $average) : '');
+                . (($average || $average === (float)0) ? new Muted('&nbsp;&nbsp; &#216;' . $average) : '');
             return $studentList;
         }
     }
@@ -3025,6 +3230,8 @@ class Frontend extends Extension implements IFrontendInterface
      * @param TblPerson $tblPerson
      * @param $studentList
      * @param $grades
+     * @param $count
+     *
      * @return array
      */
     private function setTableContentForBehaviourTask(
@@ -3032,11 +3239,15 @@ class Frontend extends Extension implements IFrontendInterface
         TblTest $tblTest,
         TblPerson $tblPerson,
         $studentList,
-        $grades
+        $grades,
+        &$count
     ) {
 
-        $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
-            $tblPerson->getLastFirstName();
+        if (!isset($studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'])) {
+            $studentList[$tblDivision->getId()][$tblPerson->getId()]['Number'] = $count++;
+            $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
+                $tblPerson->getLastFirstName();
+        }
         $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
             $tblPerson);
 
@@ -3045,7 +3256,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblSubject = $tblTest->getServiceTblSubject();
             if ($tblGrade) {
                 $gradeText = $tblSubject->getAcronym() . ': ' . ($tblGrade->getGrade() !== null ?
-                        $tblGrade->getGrade() : '');
+                        $tblGrade->getDisplayGrade() : '');
                 if (is_numeric($tblGrade->getGrade())) {
                     if (isset($grades[$tblPerson->getId()][$gradeTypeId]['Count'])) {
                         $grades[$tblPerson->getId()][$gradeTypeId]['Count']++;
@@ -3101,9 +3312,10 @@ class Frontend extends Extension implements IFrontendInterface
             . new Redirect('/Education/Graduation/Evaluation/Task/Teacher', Redirect::TIMEOUT_ERROR);
         }
 
+        $tblYear = $tblTask->getServiceTblYear();
         $Stage->addButton(
             new Standard('Zurück', '/Education/Graduation/Evaluation/Task/Teacher',
-                new ChevronLeft())
+                new ChevronLeft(), array('YearId' => $tblYear ? $tblYear->getId(): 0))
         );
 
         $tblPerson = false;
@@ -3201,7 +3413,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblTask->getTblTestType()->getName(),
                                 $tblTask->getName() . ' ' . $tblTask->getDate()
                                 . '&nbsp;&nbsp;' . new Muted(new Small(new Small(
-                                    $tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
+                                    'Bearbeitungszeitraum '.$tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
                                 Panel::PANEL_TYPE_INFO
                             )
                         ),
@@ -3250,6 +3462,12 @@ class Frontend extends Extension implements IFrontendInterface
                             . ')')
                         : ''
                     );
+
+                $studentList[$tblPerson->getId()]['Course'] = '';
+                $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
+                if ($tblCourse) {
+                    $studentList[$tblPerson->getId()]['Course'] = $tblCourse->getName();
+                }
             }
         }
 
@@ -3371,7 +3589,8 @@ class Frontend extends Extension implements IFrontendInterface
                     $minRange = 0;
                     $maxRange = 15;
                     $description = 'Punkte ';
-                } elseif ($tblScoreType->getIdentifier() == 'GRADES_V1') {
+                } elseif ($tblScoreType->getIdentifier() == 'GRADES_V1'
+                    || $tblScoreType->getIdentifier() == 'GRADES_BEHAVIOR_TASK') {
                     $minRange = 1;
                     $maxRange = 5;
                     $description = 'Note ';
@@ -3485,5 +3704,170 @@ class Frontend extends Extension implements IFrontendInterface
                 $countStudents += count($tblDivisionStudentAll);
             }
         }
+    }
+
+
+    /**
+     * @param $Route
+     * @param $IsAllYears
+     * @param $YearId
+     * @param $tblYear
+     * @param bool $HasAllYears
+     *
+     * @return array
+     */
+    public function setYearButtonList($Route, $IsAllYears, $YearId, &$tblYear, $HasAllYears = true)
+    {
+
+        $tblYear = false;
+        $tblYearList = Term::useService()->getYearByNow();
+        if ($YearId) {
+            $tblYear = Term::useService()->getYearById($YearId);
+        } elseif (!$IsAllYears && $tblYearList) {
+            $tblYear = end($tblYearList);
+        }
+
+        $buttonList = array();
+        if ($tblYearList) {
+            $tblYearList = $this->getSorter($tblYearList)->sortObjectBy('DisplayName');
+            /** @var TblYear $tblYearItem */
+            foreach ($tblYearList as $tblYearItem) {
+                if ($tblYear && $tblYear->getId() == $tblYearItem->getId()) {
+                    $buttonList[] = (new Standard(new Info(new Bold($tblYearItem->getDisplayName())),
+                        $Route, new Edit(), array('YearId' => $tblYearItem->getId())));
+                } else {
+                    $buttonList[] = (new Standard($tblYearItem->getDisplayName(), $Route,
+                        null, array('YearId' => $tblYearItem->getId())));
+                }
+            }
+
+            // Fachlehrer sollen nur Zugriff auf Leistungsüberprüfungen aller aktuellen Schuljahre haben
+            // #SSW-1169 Anlegen von Leistungsüberprüfung von noch nicht erreichten Schuljahren verhindern
+            if ($HasAllYears) {
+                if ($IsAllYears) {
+                    $buttonList[] = (new Standard(new Info(new Bold('Alle Schuljahre')),
+                        $Route, new Edit(), array('IsAllYears' => true)));
+                } else {
+                    $buttonList[] = (new Standard('Alle Schuljahre', $Route, null,
+                        array('IsAllYears' => true)));
+                }
+            }
+
+            // Abstandszeile
+            $buttonList[] = new Container('&nbsp;');
+        }
+
+        return $buttonList;
+    }
+
+    /**
+     * @param TblTest $tblTest
+     * @param TblTask|null $tblTask
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblTest|null $tblNextTest
+     * @param $BasicRoute
+     * @param $studentList
+     * @param $tableColumns
+     * @param $buttonList
+     *
+     * @return string
+     */
+    private function setContentForBehaviorTask(
+        TblTest $tblTest,
+        TblTask $tblTask = null,
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblTest &$tblNextTest = null,
+        $BasicRoute,
+        &$studentList,
+        &$tableColumns,
+        &$buttonList
+    ) {
+        $gradeType = 'Kopfnote: ' . ($tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType()->getName() : '')
+            . ($tblTask->getServiceTblPeriod()
+                ? new Small(new Muted(' ' . $tblTask->getServiceTblPeriod()->getDisplayName()))
+                : new Small(new Muted(' Gesamtes Schuljahr')));
+
+        // Navigation zwischen den Kopfnotentypen
+        if ($tblTask
+            && ($tblTestList = Evaluation::useService()->getTestAllByTask($tblTask,
+            $tblDivision))) {
+            $tblCurrentGradeType = false;
+            $tblNextGradeType = false;
+//            $tblNextTest = false;
+            $tblGradeTypeList = array();
+            foreach ($tblTestList as $tblTestItem) {
+                if ($tblSubject && $tblTestItem->getServiceTblSubject()
+                    && $tblSubject->getId() == $tblTestItem->getServiceTblSubject()->getId()
+                    && (!$tblTest->getServiceTblSubjectGroup()
+                        || ($tblTest->getServiceTblSubjectGroup() && $tblTestItem->getServiceTblSubjectGroup()
+                            && $tblTest->getServiceTblSubjectGroup()->getId() == $tblTestItem->getServiceTblSubjectGroup()->getId())
+                    )
+                    && ($tblGradeTypeItem = $tblTestItem->getServiceTblGradeType())) {
+                    if (!isset($tblGradeTypeList[$tblGradeTypeItem->getId()])) {
+                        $tblGradeTypeList[$tblTestItem->getId()] = $tblGradeTypeItem;
+                        if ($tblCurrentGradeType && !$tblNextGradeType) {
+                            $tblNextGradeType = $tblGradeTypeItem;
+                            $tblNextTest = $tblTestItem;
+                        }
+                        if ($tblTest->getServiceTblGradeType()
+                            && $tblTest->getServiceTblGradeType()->getId() == $tblGradeTypeItem->getId()) {
+                            $tblCurrentGradeType = $tblGradeTypeItem;
+                        }
+                    }
+                }
+            }
+            /** @var TblGradeType $tblGradeType */
+            foreach ($tblGradeTypeList as $testId => $tblGradeType) {
+                if ($tblCurrentGradeType->getId() == $tblGradeType->getId()) {
+                    $name = new Info(new Bold($tblGradeType->getName()));
+                    $icon = new Edit();
+                } else {
+                    $name = $tblGradeType->getName();
+                    $icon = null;
+                }
+
+                // letzte Kopfnote --> zur ersten springen
+                if (!$tblNextTest){
+                    $tblNextTest = Evaluation::useService()->getTestById($testId);
+                }
+
+                $buttonList[] = new Standard($name,
+                    $BasicRoute . '/Grade/Edit', $icon, array(
+                        'Id' => $testId,
+                    )
+                );
+            }
+        }
+
+        foreach ($studentList as $personId => $student) {
+            $tblPerson = Person::useService()->getPersonById($personId);
+            if ($tblPerson) {
+                $tblGradeList = Gradebook::useService()->getGradesByGradeType($tblPerson, $tblDivision, $tblSubject,
+                    $tblTest->getServiceTblGradeType());
+
+                $previewsGrade = '';
+                if ($tblGradeList) {
+                    $count = count($tblGradeList);
+                    for ($i = 0; $i < $count; $i++) {
+                        /** @var TblGrade $tblGrade */
+                        $tblGrade = array_pop($tblGradeList);
+                        if ($tblTask->getEntityCreate() > $tblGrade->getEntityCreate()) {
+                            $previewsGrade = $tblGrade->getDisplayGrade();
+                            break;
+                        }
+                    }
+                }
+
+                $studentList[$tblPerson->getId()]['PreviewsGrade'] = $previewsGrade;
+            }
+        }
+
+        $tableColumns['PreviewsGrade'] = 'Letzte Zensur';
+        $tableColumns['Grade'] = 'Zensur';
+        $tableColumns['Comment'] = 'Vermerk Notenänderung';
+
+        return $gradeType;
     }
 }

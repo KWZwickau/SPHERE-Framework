@@ -95,17 +95,25 @@ class Data extends AbstractData
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblAbsence')->findOneBy(array(
+            TblAbsence::ATTR_SERVICE_TBL_PERSON => $tblPerson,
+            TblAbsence::ATTR_SERVICE_TBL_DIVISION => $tblDivision,
+            TblAbsence::ATTR_FROM_DATE => $FromDate ? new \DateTime($FromDate) : null,
+            TblAbsence::ATTR_TO_DATE => $ToDate ? new \DateTime($ToDate) : null,
+        ));
 
-        $Entity = new TblAbsence();
-        $Entity->setServiceTblPerson($tblPerson);
-        $Entity->setServiceTblDivision($tblDivision);
-        $Entity->setFromDate($FromDate ? new \DateTime($FromDate) : null);
-        $Entity->setToDate($ToDate ? new \DateTime($ToDate) : null);
-        $Entity->setStatus($Status);
-        $Entity->setRemark($Remark);
+        if (null === $Entity) {
+            $Entity = new TblAbsence();
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setServiceTblDivision($tblDivision);
+            $Entity->setFromDate($FromDate ? new \DateTime($FromDate) : null);
+            $Entity->setToDate($ToDate ? new \DateTime($ToDate) : null);
+            $Entity->setStatus($Status);
+            $Entity->setRemark($Remark);
 
-        $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
 
         return $Entity;
     }

@@ -2,15 +2,15 @@
 namespace MOC\V\Component\Document\Component\Bridge\Repository;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel\Cell;
-use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel\File;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel\Style;
+use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel\Worksheet;
 
 /**
  * Class PhpExcel
  *
  * @package MOC\V\Component\Document\Component\Bridge\Repository
  */
-class PhpExcel extends File
+class PhpExcel extends Worksheet
 {
 
     /**
@@ -42,16 +42,17 @@ class PhpExcel extends File
     }
 
     /**
-     * @param Cell  $Cell
-     * @param mixed $Value
+     * @param Cell   $Cell
+     * @param mixed  $Value
+     * @param string $TypeString
      *
      * @return $this
      */
-    public function setValue(Cell $Cell, $Value)
+    public function setValue(Cell $Cell, $Value, $TypeString = \PHPExcel_Cell_DataType::TYPE_STRING)
     {
 
         $this->Source->getActiveSheet()->setCellValueExplicitByColumnAndRow($Cell->getColumn(), $Cell->getRow(),
-            $Value);
+            $Value, $TypeString);
         return $this;
     }
 

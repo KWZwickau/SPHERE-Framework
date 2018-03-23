@@ -59,7 +59,7 @@ class Data extends AbstractData
     {
 
         $tblGroupPerson = $this->createGroup('PERSON', 'Personenbeziehung', 'Person zu Person');
-        $tblGroupCompany = $this->createGroup('COMPANY', 'Firmenbeziehungen', 'Person zu Firma');
+        $tblGroupCompany = $this->createGroup('COMPANY', 'Institutionenbeziehungen', 'Person zu Institution');
 
         $tblType = $this->createType('Sorgeberechtigt', '', $tblGroupPerson);
         $this->updateType($tblType, false);
@@ -103,6 +103,7 @@ class Data extends AbstractData
         $this->createType('Pfarrer', '', $tblGroupCompany);
         $this->createType('Amtsleiter', '', $tblGroupCompany);
         $this->createType('Mitarbeiter', '', $tblGroupCompany);
+        $this->createType('Leiter', '', $tblGroupCompany);
 
         $this->createSiblingRank('1. Geschwisterkind');
         $this->createSiblingRank('2. Geschwisterkind');
@@ -133,6 +134,30 @@ class Data extends AbstractData
             $Entity->setDescription($Description);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+        return $Entity;
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     * @param string   $Name
+     * @param string   $Description
+     *
+     * @return TblGroup
+     */
+    public function updateGroup(TblGroup $tblGroup, $Name, $Description = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblGroup $Entity */
+        $Entity = $Manager->getEntityById('TblGroup', $tblGroup->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return $Entity;
         }
         return $Entity;
     }
@@ -306,6 +331,7 @@ class Data extends AbstractData
     {
 
         $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblToPerson', $Id);
+        /** @var TblToPerson $Entity */
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -318,22 +344,24 @@ class Data extends AbstractData
     {
 
         $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblToCompany', $Id);
+        /** @var TblToCompany $Entity */
         return ( null === $Entity ? false : $Entity );
     }
 
     /**
      * @param TblPerson $tblPerson
+     * @param TblType|null $tblType
      *
      * @return bool|TblToPerson[]
      */
-    public function getPersonRelationshipAllByPerson(TblPerson $tblPerson)
+    public function getPersonRelationshipAllByPerson(TblPerson $tblPerson, TblType $tblType = null)
     {
 
-        $From = $this->getPersonRelationshipFromByPerson($tblPerson);
+        $From = $this->getPersonRelationshipFromByPerson($tblPerson, $tblType);
         if (!$From) {
             $From = array();
         }
-        $To = $this->getPersonRelationshipToByPerson($tblPerson);
+        $To = $this->getPersonRelationshipToByPerson($tblPerson, $tblType);
         if (!$To) {
             $To = array();
         }
@@ -347,30 +375,40 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
+     * @param TblType|null $tblType
      *
      * @return bool|TblToPerson[]
      */
-    public function getPersonRelationshipFromByPerson(TblPerson $tblPerson)
+    public function getPersonRelationshipFromByPerson(TblPerson $tblPerson, TblType $tblType = null)
     {
+        $Parameter = array(
+            TblToPerson::SERVICE_TBL_PERSON_FROM => $tblPerson->getId()
+        );
+        if( $tblType ) {
+            $Parameter[TblToPerson::ATTR_TBL_TYPE] = $tblType->getId();
+        }
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
-            array(
-                TblToPerson::SERVICE_TBL_PERSON_FROM => $tblPerson->getId()
-            ));
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblToPerson', $Parameter);
     }
 
     /**
      * @param TblPerson $tblPerson
+     * @param TblType|null $tblType
      *
      * @return bool|TblToPerson[]
      */
-    public function getPersonRelationshipToByPerson(TblPerson $tblPerson)
+    public function getPersonRelationshipToByPerson(TblPerson $tblPerson, TblType $tblType = null)
     {
+        $Parameter = array(
+            TblToPerson::SERVICE_TBL_PERSON_TO => $tblPerson->getId()
+        );
+        if( $tblType ) {
+            $Parameter[TblToPerson::ATTR_TBL_TYPE] = $tblType->getId();
+        }
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
-            array(
-                TblToPerson::SERVICE_TBL_PERSON_TO => $tblPerson->getId()
-            ));
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblToPerson', $Parameter );
     }
 
     /**
@@ -519,6 +557,7 @@ class Data extends AbstractData
     {
 
         $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblSiblingRank', $Id);
+        /** @var TblSiblingRank $Entity */
         return ( null === $Entity ? false : $Entity );
     }
 

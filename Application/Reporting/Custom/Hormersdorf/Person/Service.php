@@ -67,12 +67,6 @@ class Service extends Extension
                     }
                 }
 
-                if (( $addressList = Address::useService()->getAddressAllByPerson($tblPerson) )) {
-                    $address = $addressList[0];
-                } else {
-                    $address = null;
-                }
-
                 $Item['FatherName'] = $father ? ( $tblPerson->getLastName() == $father->getLastName()
                     ? $father->getFirstSecondName() : $father->getFirstSecondName().' '.$father->getLastName() ) : '';
                 $Item['MotherName'] = $mother ? ( $tblPerson->getLastName() == $mother->getLastName()
@@ -89,26 +83,19 @@ class Service extends Extension
                         .( $father !== null ? $Item['FatherName'] : '' ).')';
                 }
 
-                if ($address !== null) {
-                    $Item['District'] = $address->getTblAddress()->getTblCity()->getDistrict();
-//                    if ($Item['District'] !== '') {
-//                        $Pre = substr($Item['District'], 0, 2);
-//                        if ($Pre != 'OT') {
-//                            $Item['District'] = 'OT '.$Item['District'];
-//                        }
-//                    }
+                if (($tblToPersonAddressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
+                    $tblToPersonAddress = $tblToPersonAddressList[0];
+                } else {
+                    $tblToPersonAddress = false;
+                }
+                if ($tblToPersonAddress && ($tblAddress = $tblToPersonAddress->getTblAddress())) {
+                    $Item['ExcelAddressRow0'] = $tblAddress->getTblCity()->getDistrict();
+                    $Item['ExcelAddressRow1'] = $tblAddress->getStreetName().' '.
+                        $tblAddress->getStreetNumber();
+                    $Item['ExcelAddressRow2'] = $tblAddress->getTblCity()->getCode().' '.
+                        $tblAddress->getTblCity()->getName();
 
-                    $Item['Address'] =
-                        ( $Item['District'] !== '' ? $Item['District'].' ' : '' ).
-                        $address->getTblAddress()->getStreetName().' '.
-                        $address->getTblAddress()->getStreetNumber().', '.
-                        $address->getTblAddress()->getTblCity()->getCode().' '.
-                        $address->getTblAddress()->getTblCity()->getName();
-                    $Item['ExcelAddressRow0'] = $Item['District'];
-                    $Item['ExcelAddressRow1'] = $address->getTblAddress()->getStreetName().' '.
-                        $address->getTblAddress()->getStreetNumber();
-                    $Item['ExcelAddressRow2'] = $address->getTblAddress()->getTblCity()->getCode().' '.
-                        $address->getTblAddress()->getTblCity()->getName();
+                    $Item['Address'] = $tblAddress->getGuiString();
                 }
 
                 $common = Common::useService()->getCommonByPerson($tblPerson);

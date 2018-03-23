@@ -3,7 +3,6 @@ namespace SPHERE\Common\Frontend\Link\Repository;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
-use SPHERE\Common\Frontend\Icon\Repository\Extern;
 use SPHERE\Common\Frontend\Link\ILinkInterface;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
@@ -31,14 +30,20 @@ class External extends Extension implements ILinkInterface
     /** @var int $RedirectTimeout */
     private $RedirectTimeout = -1;
 
+    const STYLE_BUTTON = 'btn btn-default';
+    const STYLE_LINK = '';
+
     /**
-     * @param string         $Name
-     * @param                $Path
+     * @param string $Name
+     * @param string $Path
      * @param IIconInterface $Icon
-     * @param array          $Data
-     * @param bool|string    $ToolTip
+     * @param array $Data
+     * @param bool|string $ToolTip
+     * @param string $Style
      */
-    public function __construct($Name, $Path, IIconInterface $Icon = null, $Data = array(), $ToolTip = true)
+    public function __construct(
+        $Name, $Path, IIconInterface $Icon = null, $Data = array(), $ToolTip = true, $Style = self::STYLE_BUTTON
+    )
     {
 
         $this->Name = $Name;
@@ -47,10 +52,7 @@ class External extends Extension implements ILinkInterface
         }
         $this->Template = $this->getTemplate(__DIR__.'/External.twig');
         $this->Template->setVariable('ElementName', $Name);
-        $this->Template->setVariable('ElementType', 'btn btn-default');
-        if (null === $Icon) {
-            $Icon = new Extern();
-        }
+        $this->Template->setVariable('ElementType', $Style);
         $this->Template->setVariable('ElementIcon', $Icon);
         if (!empty( $Data )) {
             $Signature = (new Authenticator(new Get()))->getAuthenticator();
@@ -121,7 +123,7 @@ class External extends Extension implements ILinkInterface
     {
 
         if (empty( $this->Hash )) {
-            $this->Hash = md5( uniqid( __CLASS__, true ) );
+            $this->Hash = 'External-'.crc32( uniqid(__CLASS__, true) );
         }
         return $this->Hash;
     }

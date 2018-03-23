@@ -51,7 +51,7 @@ class ViewCompany extends AbstractView
     public function getViewGuiName()
     {
 
-        return 'Firmendaten';
+        return 'Institutionendaten';
     }
 
     /**
@@ -62,9 +62,9 @@ class ViewCompany extends AbstractView
     public function loadNameDefinition()
     {
 
-        $this->setNameDefinition(self::TBL_COMPANY_NAME, 'Firma: Name');
-        $this->setNameDefinition(self::TBL_COMPANY_EXTENDED_NAME, 'Firma: Zusatz');
-        $this->setNameDefinition(self::TBL_COMPANY_DESCRIPTION, 'Firma: Beschreibung');
+        $this->setNameDefinition(self::TBL_COMPANY_NAME, 'Institution: Name');
+        $this->setNameDefinition(self::TBL_COMPANY_EXTENDED_NAME, 'Institution: Zusatz');
+        $this->setNameDefinition(self::TBL_COMPANY_DESCRIPTION, 'Institution: Beschreibung');
     }
 
     /**

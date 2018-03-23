@@ -3,6 +3,7 @@ namespace SPHERE\Application\Education\Graduation\Gradebook\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
+use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\System\Database\Binding\AbstractSetup;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -80,6 +81,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblGradeType', 'serviceTblTestType')) {
             $Table->addColumn('serviceTblTestType', 'bigint', array('notnull' => false));
         }
+        if (!$this->getConnection()->hasColumn('tblGradeType', 'IsActive')) {
+            $Table->addColumn('IsActive', 'boolean', array('default' => true));
+        }
 
         return $Table;
     }
@@ -107,6 +111,10 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblGrade', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
+        $this->getConnection()->removeIndex($Table, array('serviceTblPerson'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
+        }
         if (!$this->getConnection()->hasColumn('tblGrade', 'serviceTblSubject')) {
             $Table->addColumn('serviceTblSubject', 'bigint', array('notnull' => false));
         }
@@ -128,11 +136,40 @@ class Setup extends AbstractSetup
         if (!$Table->hasColumn('Date')) {
             $Table->addColumn('Date', 'datetime', array('notnull' => false));
         }
+        $this->createColumn($Table, 'serviceTblPersonTeacher', self::FIELD_TYPE_BIGINT, true);
 
         $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
         $this->createForeignKey($Table, $tblGradeText, true);
 
-        $this->createIndex($Table, array('serviceTblPerson', 'serviceTblTest'), false);
+//        $this->createIndex($Table, array('serviceTblPerson', 'serviceTblTest'), false);
+        $this->createIndex($Table, array('serviceTblPerson', 'serviceTblTest'), true);
+
+//        // alten nicht unique index entfernen
+//        if (($indexList = $Table->getIndexes())) {
+//            foreach ($indexList as $index) {
+//                if (!$index->isUnique()) {
+//                    $hasPersonColumn = false;
+//                    $hasTestColumn = false;
+//                    if (($columns = $index->getColumns())) {
+//                        foreach ($columns as $column) {
+//                            if ($column == 'serviceTblPerson') {
+//                                $hasPersonColumn = true;
+//                            }
+//                            if ($column == 'serviceTblTest') {
+//                                $hasTestColumn = true;
+//                            }
+//                        }
+//
+//                        if ($hasPersonColumn && $hasTestColumn) {
+//                            $Table->dropIndex($index->getName());
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        $Table->addUniqueIndex(array('serviceTblPerson', 'serviceTblTest'), 'UNIQ_TblGradeServiceTblPersonServiceTblTest');
+
+
         $this->createIndex($Table, array('serviceTblDivision', 'serviceTblSubject'), false);
 
         return $Table;
@@ -152,6 +189,9 @@ class Setup extends AbstractSetup
         }
         if (!$this->getConnection()->hasColumn('tblScoreRule', 'Description')) {
             $Table->addColumn('Description', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblScoreRule', 'IsActive')) {
+            $Table->addColumn('IsActive', 'boolean', array('default' => true));
         }
 
         return $Table;
@@ -174,6 +214,9 @@ class Setup extends AbstractSetup
         }
         if (!$this->getConnection()->hasColumn('tblScoreCondition', 'Priority')) {
             $Table->addColumn('Priority', 'integer');
+        }
+        if (!$this->getConnection()->hasColumn('tblScoreCondition', 'IsActive')) {
+            $Table->addColumn('IsActive', 'boolean', array('default' => true));
         }
 
         return $Table;
@@ -199,6 +242,9 @@ class Setup extends AbstractSetup
         }
         if (!$Table->hasColumn('IsEveryGradeASingleGroup')) {
             $Table->addColumn('IsEveryGradeASingleGroup', 'boolean');
+        }
+        if (!$this->getConnection()->hasColumn('tblScoreGroup', 'IsActive')) {
+            $Table->addColumn('IsActive', 'boolean', array('default' => true));
         }
 
         return $Table;
@@ -375,6 +421,8 @@ class Setup extends AbstractSetup
         if (!$Table->hasColumn('Count')) {
             $Table->addColumn('Count', 'integer');
         }
+        $this->createColumn($Table, 'Period', self::FIELD_TYPE_INTEGER, false, SelectBoxItem::PERIOD_FULL_YEAR);
+        $this->createColumn($Table, 'Highlighted', self::FIELD_TYPE_INTEGER, false, 1);
 
         $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
 

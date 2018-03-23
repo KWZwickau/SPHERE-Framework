@@ -2,6 +2,7 @@
 namespace SPHERE\Common\Frontend\Ajax\Receiver;
 
 use SPHERE\Common\Frontend\Ajax\IReceiverInterface;
+use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -9,8 +10,10 @@ use SPHERE\System\Extension\Extension;
  *
  * @package SPHERE\Common\Frontend\Ajax\Receiver
  */
-abstract class AbstractReceiver extends Extension implements IReceiverInterface
+abstract class AbstractReceiver extends Extension implements IReceiverInterface, IFrontendInterface
 {
+
+    const IDENTIFIER_PREFIX = 'Sphere-Ajax-Receiver';
 
     /** @var string $Identifier */
     private $Identifier = '';
@@ -24,7 +27,7 @@ abstract class AbstractReceiver extends Extension implements IReceiverInterface
      */
     public function __construct()
     {
-        $this->Identifier = 'Sphere-Ajax-Receiver-' . sha1(uniqid('',true));
+        $this->Identifier = self::IDENTIFIER_PREFIX.'-' . sha1(uniqid('',true));
     }
 
     /**
@@ -50,10 +53,13 @@ abstract class AbstractReceiver extends Extension implements IReceiverInterface
 
     /**
      * @param string $Identifier
+     * @return $this
      */
     public function setIdentifier($Identifier)
     {
+        $Identifier = preg_replace('![^\w\d\_\-]!is','_', $Identifier);
         $this->Identifier = $Identifier;
+        return $this;
     }
 
     /**
@@ -69,9 +75,19 @@ abstract class AbstractReceiver extends Extension implements IReceiverInterface
     /**
      * @return string
      */
-    protected function getContent()
+    public function getContent()
     {
         return $this->Content;
     }
 
+    /**
+     * @param string $Content
+     *
+     * @return $this
+     */
+    public function initContent( $Content )
+    {
+        $this->setContent( $Content );
+        return $this;
+    }
 }

@@ -13,6 +13,7 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -30,6 +31,8 @@ class TblMinimumGradeCount extends Element
     const ATTR_TBL_GRADE_TYPE = 'tblGradeType';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
     const ATTR_SERVICE_TBL_LEVEL = 'serviceTblLevel';
+    const ATTR_PERIOD = 'Period';
+    const ATTR_HIGHLIGHTED = 'Highlighted';
 
     /**
      * @Column(type="integer")
@@ -50,6 +53,16 @@ class TblMinimumGradeCount extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblSubject;
+
+    /**
+     * @Column(type="integer")
+     */
+    protected $Period;
+
+    /**
+     * @Column(type="integer")
+     */
+    protected $Highlighted;
 
     /**
      * @return bool|TblGradeType
@@ -177,7 +190,62 @@ class TblMinimumGradeCount extends Element
         if (($tblGradeType = $this->getTblGradeType())){
             return $tblGradeType ? $tblGradeType->getCode() . ' - ' . $tblGradeType->getName() : '';
         } else {
-            return '';
+            switch ($this->getHighlighted())  {
+                case SelectBoxItem::HIGHLIGHTED_ALL: $gradeType = 'Alle Zensuren-Typen'; break;
+                case SelectBoxItem::HIGHLIGHTED_IS_HIGHLIGHTED: $gradeType = 'Nur große Zensuren-Typen (Fett marktiert)'; break;
+                case SelectBoxItem::HIGHLIGHTED_IS_NOT_HIGHLIGHTED: $gradeType = 'Nur kleine Zensuren-Typen (nicht Fett markiert)'; break;
+                default: $gradeType = '';
+            }
+
+            return $gradeType;
         }
+    }
+
+    /**
+     * @return integer
+     */
+    public function getPeriod()
+    {
+        return $this->Period;
+    }
+
+    /**
+     * @param integer $Period
+     */
+    public function setPeriod($Period)
+    {
+        $this->Period = $Period;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getHighlighted()
+    {
+        return $this->Highlighted;
+    }
+
+    /**
+     * @param mixed $Highlighted
+     */
+    public function setHighlighted($Highlighted)
+    {
+        $this->Highlighted = $Highlighted;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPeriodDisplayName()
+    {
+
+        switch ($this->getPeriod())  {
+            case SelectBoxItem::PERIOD_FULL_YEAR: $period = 'Gesamtes Schuljahr'; break;
+            case SelectBoxItem::PERIOD_FIRST_PERIOD: $period = '1. Halbjahr'; break;
+            case SelectBoxItem::PERIOD_SECOND_PERIOD: $period = '2. Halbjahr'; break;
+            default: $period = '';
+        }
+
+        return $period;
     }
 }

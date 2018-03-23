@@ -7,6 +7,7 @@ use SPHERE\Application\Reporting\Custom\Chemnitz\Person\Person as ChemnitzPerson
 use SPHERE\Application\Reporting\Custom\Hormersdorf\Person\Person as HormersdorfPerson;
 use SPHERE\Application\Reporting\Custom\Herrnhut\Person\Person as HerrnhutPerson;
 use SPHERE\Application\Reporting\Custom\Coswig\Person\Person as CoswigPerson;
+use SPHERE\Application\Reporting\Custom\Muldental\Person\Person as MuldentalPerson;
 use SPHERE\Application\Reporting\Custom\Schneeberg\Person\Person as SchneebergPerson;
 use SPHERE\Application\Reporting\Custom\Radebeul\Person\Person as RadebeulPerson;
 use SPHERE\Common\Main;
@@ -29,25 +30,29 @@ class Custom implements IApplicationInterface
         if ($consumerAcronym === 'ESZC' || $consumerAcronym === 'DEMO') {
             ChemnitzPerson::registerModule();
         }
-        // Hormersdorf
-        if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH' || $consumerAcronym === 'DEMO') {
-            HormersdorfPerson::registerModule();
-        }
-        // Herrnhut
-        if ($consumerAcronym === 'EZGH' || $consumerAcronym === 'DEMO') {
-            HerrnhutPerson::registerModule();
-        }
         // Coswig
         if ($consumerAcronym === 'EVSC' || $consumerAcronym === 'DEMO') {
             CoswigPerson::registerModule();
         }
-        // Schneeberg
-        if ($consumerAcronym === 'ESS' || $consumerAcronym === 'DEMO') {
-            SchneebergPerson::registerModule();
+        // Herrnhut
+        if ($consumerAcronym === 'EZSH' || $consumerAcronym === 'DEMO') {
+            HerrnhutPerson::registerModule();
+        }
+        // Hormersdorf
+        if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH' || $consumerAcronym === 'DEMO') {
+            HormersdorfPerson::registerModule();
+        }
+        // Muldental
+        if ($consumerAcronym === 'EVAMTL' || $consumerAcronym === 'DEMO') {
+            MuldentalPerson::registerModule();
         }
         // Radebeul
         if ($consumerAcronym === 'EVSR' || $consumerAcronym === 'DEMO') {
             RadebeulPerson::registerModule();
+        }
+        // Schneeberg
+        if ($consumerAcronym === 'ESS' || $consumerAcronym === 'DEMO') {
+            SchneebergPerson::registerModule();
         }
 
         Main::getDisplay()->addApplicationNavigation(

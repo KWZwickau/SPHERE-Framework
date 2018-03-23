@@ -1,0 +1,29 @@
+SELECT
+    viewPerson.TblPerson_Id AS TblPerson_Id,
+    viewDivisionStudent.TblLevel_Name AS TblLevel_Name,
+    viewDivisionStudent.TblLevel_Description AS TblLevel_Description,
+    viewDivisionStudent.TblLevel_IsChecked AS TblLevel_IsChecked,
+    viewDivisionStudent.TblDivision_Name AS TblDivision_Name,
+    viewDivisionStudent.TblDivision_Description AS TblDivision_Description,
+    viewSchoolType.TblType_Name AS TblType_Name,
+    viewSchoolType.TblType_Description AS TblType_Description,
+    (CASE WHEN (ISNULL(`viewYearPeriod`.`TblYear_Year`) OR (`viewYearPeriod`.`TblYear_Year` = '')) THEN `viewYearPeriod`.`TblYear_Name` ELSE `viewYearPeriod`.`TblYear_Year` END) AS `TblYear_Year`,
+    viewYearPeriod.TblYear_Description AS TblYear_Description,
+    viewYearPeriod.TblPeriod_Name AS TblPeriod_Name,
+    viewYearPeriod.TblPeriod_Description AS TblPeriod_Description,
+    viewYearPeriod.TblPeriod_FromDate AS TblPeriod_FromDate,
+    viewYearPeriod.TblPeriod_ToDate AS TblPeriod_ToDate,
+    viewDivisionSubject.TblSubjectGroup_Name AS TblSubjectGroup_Name,
+    viewDivisionSubject.TblSubjectGroup_Description AS TblSubjectGroup_Description,
+    viewDivisionSubject.TblSubjectGroup_IsAdvancedCourse AS TblSubjectGroup_IsAdvancedCourse,
+    viewSubject.TblSubject_Acronym AS TblSubject_Acronym,
+    viewSubject.TblSubject_Name AS TblSubject_Name,
+    viewSubject.TblSubject_Description AS TblSubject_Description
+FROM
+    ((((((PeoplePerson_{{ ConsumerAcronym }}.viewPerson
+    LEFT JOIN EducationLessonDivision_{{ ConsumerAcronym }}.viewDivisionStudent ON ((PeoplePerson_{{ ConsumerAcronym }}.viewPerson.TblPerson_Id = EducationLessonDivision_{{ ConsumerAcronym }}.viewDivisionStudent.TblDivisionStudent_serviceTblPerson)))
+    LEFT JOIN EducationSchoolType_{{ ConsumerAcronym }}.viewSchoolType ON ((EducationLessonDivision_{{ ConsumerAcronym }}.viewDivisionStudent.TblLevel_serviceTblType = EducationSchoolType_{{ ConsumerAcronym }}.viewSchoolType.TblType_Id)))
+    LEFT JOIN EducationLessonTerm_{{ ConsumerAcronym }}.viewYearPeriod ON ((EducationLessonDivision_{{ ConsumerAcronym }}.viewDivisionStudent.TblDivision_serviceTblYear = EducationLessonTerm_{{ ConsumerAcronym }}.viewYearPeriod.TblYearPeriod_tblYear)))
+    LEFT JOIN EducationLessonDivision_{{ ConsumerAcronym }}.viewDivisionSubject ON ((EducationLessonDivision_{{ ConsumerAcronym }}.viewDivisionStudent.TblDivision_Id = EducationLessonDivision_{{ ConsumerAcronym }}.viewDivisionSubject.TblDivisionSubject_tblDivision)))
+    LEFT JOIN EducationLessonSubject_{{ ConsumerAcronym }}.viewSubject ON ((EducationLessonDivision_{{ ConsumerAcronym }}.viewDivisionSubject.TblDivisionSubject_serviceTblSubject = EducationLessonSubject_{{ ConsumerAcronym }}.viewSubject.TblSubject_Id)))
+    LEFT JOIN EducationLessonDivision_{{ ConsumerAcronym }}.tblSubjectStudent ON ((EducationLessonDivision_{{ ConsumerAcronym }}.tblSubjectStudent.tblDivisionSubject = EducationLessonDivision_{{ ConsumerAcronym }}.viewDivisionSubject.TblDivisionSubject_Id)))

@@ -7,13 +7,16 @@ use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestTyp
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblMinimumGradeCount;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGradeTypeList;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroupGradeTypeList;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -27,8 +30,8 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
     public function setupDatabaseContent()
     {
 
-        $tblScoreType = $this->createScoreType('Noten (1-6)', 'GRADES');
-        $this->updateScoreType($tblScoreType, $tblScoreType->getName(), $tblScoreType->getIdentifier(), '^[1-6]{1}$');
+        $tblScoreType = $this->createScoreType('Noten (1-6) mit Tendenz', 'GRADES');
+        $this->updateScoreType($tblScoreType, 'Noten (1-6) mit Tendenz', $tblScoreType->getIdentifier(), '^([1-6]{1}|[1-5]{1}[+-]{1})$');
 
         $tblScoreType = $this->createScoreType('Punkte (0-15)', 'POINTS');
         $this->updateScoreType($tblScoreType, $tblScoreType->getName(), $tblScoreType->getIdentifier(), '^([0-9]{1}|1[0-5]{1})$');
@@ -39,6 +42,9 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
         $this->updateScoreType($tblScoreType, $tblScoreType->getName(), $tblScoreType->getIdentifier(), '^(5((\.|,)0+)?|[1-4]{1}((\.|,)[0-9]+)?)$');
 
         $this->createScoreType('Noten (1-6) mit Komma', 'GRADES_COMMA', '^(6((\.|,)0+)?|[1-5]{1}((\.|,)[0-9]+)?)$');
+
+        $tblScoreType = $this->createScoreType('Noten (1-5) mit Tendenz', 'GRADES_BEHAVIOR_TASK');
+        $this->updateScoreType($tblScoreType, $tblScoreType->getName(), $tblScoreType->getIdentifier(),  '^([1-5]{1}|[1-4]{1}[+-]{1})$');
 
         $TestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
         if ($TestType) {
@@ -81,6 +87,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
             $Entity->setCode($Code);
             $Entity->setHighlighted($IsHighlighted);
             $Entity->setServiceTblTestType($tblTestType);
+            $Entity->setIsActive(true);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -94,8 +101,10 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
      * @param $Name
      * @param $Code
      * @param $Description
-     * @param $IsHighlighted
+     * @param bool $IsHighlighted
      * @param TblTestType $tblTestType
+     * @param bool $IsActive
+     *
      * @return bool
      */
     public function updateGradeType(
@@ -104,7 +113,8 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
         $Code,
         $Description,
         $IsHighlighted,
-        TblTestType $tblTestType
+        TblTestType $tblTestType,
+        $IsActive
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -118,6 +128,8 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
             $Entity->setDescription($Description);
             $Entity->setHighlighted($IsHighlighted);
             $Entity->setServiceTblTestType($tblTestType);
+            $Entity->setIsActive($IsActive);
+
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
 
@@ -129,6 +141,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
 
     /**
      * @param TblPerson $tblPerson
+     * @param TblPerson $tblPersonTeacher
      * @param TblDivision $tblDivision
      * @param TblSubject $tblSubject
      * @param TblSubjectGroup|null $tblSubjectGroup
@@ -146,6 +159,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
      */
     public function createGrade(
         TblPerson $tblPerson,
+        TblPerson $tblPersonTeacher = null,
         TblDivision $tblDivision,
         TblSubject $tblSubject,
         TblSubjectGroup $tblSubjectGroup = null,
@@ -162,23 +176,32 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
 
         $Manager = $this->getConnection()->getEntityManager();
 
-        $Entity = new TblGrade();
-        $Entity->setServiceTblPerson($tblPerson);
-        $Entity->setServiceTblDivision($tblDivision);
-        $Entity->setServiceTblSubject($tblSubject);
-        $Entity->setServiceTblSubjectGroup($tblSubjectGroup);
-        $Entity->setServiceTblPeriod($tblPeriod);
-        $Entity->setTblGradeType($tblGradeType);
-        $Entity->setServiceTblTest($tblTest);
-        $Entity->setServiceTblTestType($tblTestType);
-        $Entity->setGrade($Grade);
-        $Entity->setComment($Comment);
-        $Entity->setTrend($Trend);
-        $Entity->setDate($Date ? new \DateTime($Date) : null);
-        $Entity->setTblGradeText($tblGradeText);
+        $Entity = $Manager->getEntity('TblGrade')
+            ->findOneBy(array(
+                TblGrade::ATTR_SERVICE_TBL_TEST => $tblTest->getId(),
+                TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            ));
 
-        $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        if (null === $Entity) {
+            $Entity = new TblGrade();
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setServiceTblPersonTeacher($tblPersonTeacher);
+            $Entity->setServiceTblDivision($tblDivision);
+            $Entity->setServiceTblSubject($tblSubject);
+            $Entity->setServiceTblSubjectGroup($tblSubjectGroup);
+            $Entity->setServiceTblPeriod($tblPeriod);
+            $Entity->setTblGradeType($tblGradeType);
+            $Entity->setServiceTblTest($tblTest);
+            $Entity->setServiceTblTestType($tblTestType);
+            $Entity->setGrade($Grade);
+            $Entity->setComment($Comment);
+            $Entity->setTrend($Trend);
+            $Entity->setDate($Date ? new \DateTime($Date) : null);
+            $Entity->setTblGradeText($tblGradeText);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
 
         return $Entity;
     }
@@ -202,6 +225,36 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
         }
         return false;
     }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     * @param TblDivision|null $tblDivision
+     * @param TblPeriod|null $tblPeriod
+     * @param TblTestType|null $tblTestType
+     *
+     * @return bool|TblGrade[]
+     */
+    public function getGradeAllBy(TblPerson $tblPerson = null, TblDivision $tblDivision = null, TblPeriod $tblPeriod = null, TblTestType $tblTestType = null)
+    {
+        $Parameter = array(
+            TblGrade::ENTITY_REMOVE => null
+        );
+        if( $tblPerson ) {
+            $Parameter[TblGrade::ATTR_SERVICE_TBL_PERSON] = $tblPerson->getId();
+        }
+        if( $tblDivision ) {
+            $Parameter[TblGrade::ATTR_SERVICE_TBL_DIVISION] = $tblDivision->getId();
+        }
+        if( $tblPeriod ) {
+            $Parameter[TblGrade::ATTR_SERVICE_TBL_PERIOD] = $tblPeriod->getId();
+        }
+        if( $tblTestType ) {
+            $Parameter[TblGrade::ATTR_SERVICE_TBL_TEST_TYPE] = $tblTestType->getId();
+        }
+
+        return $this->getForceEntityListBy(__METHOD__,$this->getEntityManager(),(new TblGrade())->getEntityShortName(), $Parameter);
+    }
+
 
     /**
      * @param $Id
@@ -239,6 +292,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
     public function getGradeTypeByName($Name)
     {
 
+        /** @var TblGradeType $Entity */
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblGradeType')
             ->findOneBy(array(TblGradeType::ATTR_NAME => $Name));
         return (null === $Entity ? false : $Entity);
@@ -246,15 +300,31 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
 
     /**
      * @param TblTestType $tblTestType
+     * @param bool $IsActive
+     *
      * @return bool|TblGradeType[]
      */
-    public function getGradeTypeAllByTestType(TblTestType $tblTestType)
+    public function getGradeTypeAllByTestType(TblTestType $tblTestType, $IsActive = true)
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGradeType',
             array(
-                TblGradeType::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId()
+                TblGradeType::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
+                TblGradeType::ATTR_IS_ACTIVE => $IsActive
             ),
+            array(
+                TblGradeType::ATTR_NAME => self::ORDER_ASC
+            )
+        );
+    }
+
+    /**
+     * @return false|TblGradeType[]
+     */
+    public function getGradeTypeAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGradeType',
             array(
                 TblGradeType::ATTR_NAME => self::ORDER_ASC
             )
@@ -350,6 +420,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
      * @param int $Trend
      * @param null $Date
      * @param TblGradeText $tblGradeText
+     * @param TblPerson $tblPersonTeacher
      *
      * @return bool
      */
@@ -359,7 +430,8 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
         $Comment = '',
         $Trend = 0,
         $Date = null,
-        TblGradeText $tblGradeText = null
+        TblGradeText $tblGradeText = null,
+        TblPerson $tblPersonTeacher = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -373,6 +445,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
             $Entity->setTrend($Trend);
             $Entity->setDate($Date ? new \DateTime($Date) : null);
             $Entity->setTblGradeText($tblGradeText);
+            $Entity->setServiceTblPersonTeacher($tblPersonTeacher);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -392,6 +465,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
     {
 
 //        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade', $Id);
+        /** @var TblGrade $Entity */
         $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblGrade', $Id);
         return (null === $Entity ? false : $Entity);
     }
@@ -399,61 +473,29 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
     /**
      * @param TblTest $tblTest
      * @param TblPerson $tblPerson
+     * @param bool $IsForced
      *
      * @return bool|TblGrade
      */
     public function getGradeByTestAndStudent(
         TblTest $tblTest,
-        TblPerson $tblPerson
-    ) {
-
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade',
-            array(
-                TblGrade::ATTR_SERVICE_TBL_TEST => $tblTest->getId(),
-                TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
-            ));
-    }
-
-    /**
-     * @param \SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest $tblTest
-     * @param TblPerson $tblPerson
-     * @param string $Grade
-     * @param string $Comment
-     *
-     * @return null|TblGrade
-     */
-    public function createGradeToTest(
-        TblTest $tblTest,
         TblPerson $tblPerson,
-        $Grade = '',
-        $Comment = ''
+        $IsForced = false
     ) {
 
-        $Manager = $this->getConnection()->getEntityManager();
-
-        $Entity = $Manager->getEntity('TblGrade')
-            ->findOneBy(array(
-                TblGrade::ATTR_SERVICE_TBL_TEST => $tblTest->getId(),
-                TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-            ));
-
-        if (null === $Entity) {
-            $Entity = new TblGrade();
-            $Entity->setServiceTblTest($tblTest);
-            $Entity->setServiceTblPerson($tblPerson);
-            $Entity->setServiceTblDivision($tblTest->getServiceTblDivision());
-            $Entity->setServiceTblSubject($tblTest->getServiceTblSubject());
-            $Entity->setServiceTblPeriod($tblTest->getServiceTblPeriod());
-            $Entity->setTblGradeType($tblTest->getServiceTblGradeType());
-            $Entity->setServiceTblTestType(Evaluation::useService()->getTestTypeByIdentifier('TEST'));
-            $Entity->setGrade($Grade);
-            $Entity->setComment($Comment);
-
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        if ($IsForced) {
+            return $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade',
+                array(
+                    TblGrade::ATTR_SERVICE_TBL_TEST => $tblTest->getId(),
+                    TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+                ));
+        } else {
+            return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade',
+                array(
+                    TblGrade::ATTR_SERVICE_TBL_TEST => $tblTest->getId(),
+                    TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+                ));
         }
-
-        return $Entity;
     }
 
     /**
@@ -507,16 +549,18 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
 
     /**
      * @param TblDivision $tblDivision
-     * @param TblSubject $tblSubject
+     * @param TblSubject  $tblSubject
+     * @param TblTestType $tblTestType
      *
      * @return bool
      */
-    public function existsGrades(TblDivision $tblDivision, TblSubject $tblSubject)
+    public function existsGrades(TblDivision $tblDivision, TblSubject $tblSubject, TblTestType $tblTestType)
     {
 
         if( $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade', array(
-            TblGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-            TblGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+            TblGrade::ATTR_SERVICE_TBL_DIVISION  => $tblDivision->getId(),
+            TblGrade::ATTR_SERVICE_TBL_SUBJECT   => $tblSubject->getId(),
+            TblGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId()
         ))) {
             return true;
         }
@@ -608,5 +652,120 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
     {
 
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGradeText');
+    }
+
+    /**
+     * @param $Name
+     *
+     * @return false|TblGradeText
+     */
+    public function getGradeTextByName($Name)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGradeText',
+            array(
+                TblGradeText::ATTR_NAME => $Name
+            )
+        );
+    }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool
+     */
+    public function existsGradeByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade', array(
+            TblGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivisionSubject->getTblDivision()->getId(),
+            TblGrade::ATTR_SERVICE_TBL_SUBJECT => $tblDivisionSubject->getServiceTblSubject()->getId(),
+            TblGrade::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblDivisionSubject->getTblSubjectGroup()
+                ? $tblDivisionSubject->getTblSubjectGroup() : null
+        )) ? true : false;
+    }
+
+    /**
+     * @param TblGradeType $tblGradeType
+     *
+     * @return bool
+     */
+    public function isGradeTypeUsedInGradebook(TblGradeType $tblGradeType)
+    {
+
+        if ($this->getCachedEntityBy(
+            __METHOD__,
+            $this->getConnection()->getEntityManager(),
+            'TblGrade',
+            array(
+                TblGrade::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId()
+            ))
+        ) {
+            return true;
+        }
+
+        if ($this->getCachedEntityBy(
+            __METHOD__,
+            $this->getConnection()->getEntityManager(),
+            'TblScoreConditionGradeTypeList',
+            array(
+                TblScoreConditionGradeTypeList::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId()
+            ))
+        ) {
+            return true;
+        }
+
+        if ($this->getCachedEntityBy(
+            __METHOD__,
+            $this->getConnection()->getEntityManager(),
+            'TblScoreGroupGradeTypeList',
+            array(
+                TblScoreGroupGradeTypeList::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId()
+            ))
+        ) {
+            return true;
+        }
+
+        if ($this->getCachedEntityBy(
+            __METHOD__,
+            $this->getConnection()->getEntityManager(),
+            'TblMinimumGradeCount',
+            array(
+                TblMinimumGradeCount::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId()
+            ))
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblGradeType $tblGradeType
+     * @param $tblGradeList
+     */
+    public function updateGradesGradeType(
+        TblGradeType $tblGradeType,
+        $tblGradeList
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblGrade $tblGrade */
+        foreach ($tblGradeList as $tblGrade) {
+            /** @var TblGrade $Entity */
+            $Entity = $Manager->getEntityById('TblGrade', $tblGrade->getId());
+
+            $Protocol = clone $Entity;
+            if (null !== $Entity) {
+                $Entity->setTblGradeType($tblGradeType);
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
     }
 }

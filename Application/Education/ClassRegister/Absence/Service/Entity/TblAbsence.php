@@ -33,6 +33,8 @@ class TblAbsence extends Element
 
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
+    const ATTR_FROM_DATE = 'FromDate';
+    const ATTR_TO_DATE = 'ToDate';
 
     /**
      * @Column(type="bigint")
@@ -264,4 +266,20 @@ class TblAbsence extends Element
         return $countDays;
     }
 
+    /**
+     * @return bool
+     */
+    public function isSingleDay()
+    {
+
+        if ($this->getFromDate() && $this->getToDate()) {
+            if ($this->getFromDate() == $this->getToDate()) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return true;
+        }
+    }
 }

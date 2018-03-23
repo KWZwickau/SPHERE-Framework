@@ -1,0 +1,14 @@
+CREATE 
+    ALGORITHM = UNDEFINED 
+    DEFINER = `root`@`%`
+    SQL SECURITY DEFINER
+VIEW SettingConsumer_DEMO.viewGroup AS
+    SELECT 
+        viewPerson.TblPerson_Id AS TblPerson_Id,
+        viewPeopleGroupMember.TblGroup_Name AS TblGroup_Name,
+        viewPeopleGroupMember.TblGroup_Description AS TblGroup_Description,
+        viewPeopleGroupMember.TblGroup_Remark AS TblGroup_Remark,
+        viewPeopleGroupMember.TblGroup_MetaTable AS TblGroup_MetaTable
+    FROM
+        (PeoplePerson_DEMO.viewPerson
+        LEFT JOIN PeopleGroup_DEMO.viewPeopleGroupMember ON ((viewPerson.TblPerson_Id = viewPeopleGroupMember.TblMember_serviceTblPerson)))

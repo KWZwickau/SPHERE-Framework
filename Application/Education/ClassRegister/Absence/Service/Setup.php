@@ -12,11 +12,12 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
 use SPHERE\System\Database\Binding\AbstractSetup;
+use SPHERE\System\Database\Fitting\Element;
 use SPHERE\System\Database\Fitting\View;
 
 /**
  * Class Setup
- * 
+ *
  * @package SPHERE\Application\Education\ClassRegister\Absence\Service
  */
 class Setup extends AbstractSetup
@@ -61,6 +62,10 @@ class Setup extends AbstractSetup
         $Table = $this->getConnection()->createTable($Schema, 'tblAbsence');
         if (!$this->getConnection()->hasColumn('tblAbsence', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
+        }
+        $this->getConnection()->removeIndex($Table, array('serviceTblPerson'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
         }
         if (!$this->getConnection()->hasColumn('tblAbsence', 'serviceTblDivision')) {
             $Table->addColumn('serviceTblDivision', 'bigint', array('notnull' => false));

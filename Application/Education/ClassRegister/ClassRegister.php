@@ -2,8 +2,11 @@
 namespace SPHERE\Application\Education\ClassRegister;
 
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
+use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
@@ -34,7 +37,6 @@ use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
-use SPHERE\Application\IApplicationInterface;
 
 /**
  * Class ClassRegister
@@ -82,6 +84,9 @@ class ClassRegister implements IApplicationInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Sort', __NAMESPACE__ . '\Sort\Frontend::frontendSortDivision')
         );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'\Sort\Gender', __NAMESPACE__.'\Sort\Frontend::frontendSortDivisionGender')
+        );
 
     }
 
@@ -105,9 +110,12 @@ class ClassRegister implements IApplicationInterface
     }
 
     /**
+     * @param bool $IsAllYears
+     * @param null $YearId
+     *
      * @return Stage
      */
-    public function frontendDivisionTeacher()
+    public function frontendDivisionTeacher($IsAllYears = false, $YearId = null)
     {
 
         $Stage = new Stage('Klassenbuch', 'Auswählen');
@@ -129,19 +137,25 @@ class ClassRegister implements IApplicationInterface
             }
         }
 
+        $buttonList = Evaluation::useFrontend()->setYearButtonList('/Education/ClassRegister/Teacher',
+            $IsAllYears, $YearId, $tblYear, false);
+
         if ($tblPerson) {
             $tblDivisionList = Division::useService()->getDivisionAllByTeacher($tblPerson);
         } else {
             $tblDivisionList = false;
         }
 
-        return $this->getDivisionSelectStage($Stage, $tblDivisionList);
+        return $this->getDivisionSelectStage($Stage, $tblDivisionList, '/Education/ClassRegister/Teacher', $tblYear, $buttonList);
     }
 
     /**
+     * @param bool $IsAllYears
+     * @param null $YearId
+     *
      * @return Stage
      */
-    public function frontendDivisionAll()
+    public function frontendDivisionAll($IsAllYears = false, $YearId = null)
     {
 
         $Stage = new Stage('Klassenbuch', 'Auswählen');
@@ -155,27 +169,41 @@ class ClassRegister implements IApplicationInterface
                 '/Education/ClassRegister/All', new Edit()));
         }
 
+        $buttonList = Evaluation::useFrontend()->setYearButtonList('/Education/ClassRegister/All',
+            $IsAllYears, $YearId, $tblYear);
 
         $tblDivisionList = Division::useService()->getDivisionAll();
-        return $this->getDivisionSelectStage($Stage, $tblDivisionList, '/Education/ClassRegister/All');
+        return $this->getDivisionSelectStage($Stage, $tblDivisionList, '/Education/ClassRegister/All', $tblYear, $buttonList);
     }
 
     /**
      * @param Stage $Stage
      * @param array $tblDivisionList
      * @param string $BasicRoute
+     * @param bool|TblYear $tblYear
+     * @param array $buttonList
      *
      * @return Stage
      */
     public function getDivisionSelectStage(
         Stage $Stage,
         $tblDivisionList,
-        $BasicRoute = '/Education/ClassRegister/Teacher'
+        $BasicRoute = '/Education/ClassRegister/Teacher',
+        $tblYear = false,
+        $buttonList = array()
     ) {
         $divisionTable = array();
         if ($tblDivisionList) {
             /** @var TblDivision $tblDivision */
             foreach ($tblDivisionList as $tblDivision) {
+                // Bei einem ausgewähltem Schuljahr die anderen Schuljahre ignorieren
+                /** @var TblYear $tblYear */
+                if ($tblYear && $tblDivision  && $tblDivision->getServiceTblYear()
+                    && $tblDivision->getServiceTblYear()->getId() != $tblYear->getId()
+                ) {
+                    continue;
+                }
+
                 $divisionTable[] = array(
                     'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
                     'Type' => $tblDivision->getTypeName(),
@@ -195,6 +223,9 @@ class ClassRegister implements IApplicationInterface
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
+                        empty($buttonList)
+                            ? null
+                            : new LayoutColumn($buttonList),
                         new LayoutColumn(array(
                             new TableData($divisionTable, null, array(
                                 'Year' => 'Schuljahr',
@@ -260,15 +291,29 @@ class ClassRegister implements IApplicationInterface
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         if ($tblDivision) {
+            $IsSortable = Access::useService()->hasAuthorization('/Api/Education/ClassRegister/Reorder');
             $studentTable = array();
             $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
             if ($tblStudentList) {
                 foreach ($tblStudentList as $tblPerson) {
                     $tblAddress = $tblPerson->fetchMainAddress();
                     $birthday = '';
+                    $Gender = '';
                     if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))) {
                         if ($tblCommon->getTblCommonBirthDates()) {
                             $birthday = $tblCommon->getTblCommonBirthDates()->getBirthday();
+                            $tblGender = $tblCommon->getTblCommonBirthDates()->getTblCommonGender();
+                            if ($tblGender) {
+                                $Gender = $tblGender->getName();
+                                switch ($Gender) {
+                                    case 'Männlich':
+                                        $Gender = 'M';
+                                        break;
+                                    case 'Weiblich':
+                                        $Gender = 'W';
+                                        break;
+                                }
+                            }
                         }
                     }
                     $course = '';
@@ -290,21 +335,22 @@ class ClassRegister implements IApplicationInterface
                     $absence = ($excusedDays + $unExcusedDays) . ' (' . new Success($excusedDays) . ', '
                         . new \SPHERE\Common\Frontend\Text\Repository\Danger($unExcusedDays) . ')';
                     $studentTable[] = array(
-                        'Number' => (count($studentTable) + 1),
-                        'Name' => $isTeacher
+                        'Number'   => (count($studentTable) + 1),
+                        'Name'     => (($isTeacher || !$IsSortable)
                             ? $tblPerson->getLastFirstName()
                             : new PullClear(
-                            new PullLeft(new ResizeVertical() . ' ' . $tblPerson->getLastFirstName())
-                        ),
-                        'Address' => $tblAddress ? $tblAddress->getGuiString() : '',
+                                new PullLeft(new ResizeVertical().' '.$tblPerson->getLastFirstName())
+                            )),
+                        'Gender'   => $Gender,
+                        'Address'  => $tblAddress ? $tblAddress->getGuiString() : '',
                         'Birthday' => $birthday,
-                        'Course' => $course,
-                        'Absence' => $absence,
-                        'Option' => new Standard(
+                        'Course'   => $course,
+                        'Absence'  => $absence,
+                        'Option'   => new Standard(
                             '', '/Education/ClassRegister/Absence', new Time(),
                             array(
                                 'DivisionId' => $tblDivision->getId(),
-                                'PersonId' => $tblPerson->getId(),
+                                'PersonId'   => $tblPerson->getId(),
                                 'BasicRoute' => $isTeacher
                                     ? '/Education/ClassRegister/Teacher' : '/Education/ClassRegister/All'
                             ),
@@ -316,7 +362,14 @@ class ClassRegister implements IApplicationInterface
 
             if (!$isTeacher) {
                 $buttonList[] = new Standard(
-                    'Klasse nach Nachname->Vorname sortieren', '/Education/ClassRegister/Sort', new ResizeVertical(),
+                    'Sortierung alphabetisch', '/Education/ClassRegister/Sort', new ResizeVertical(),
+                    array(
+                        'DivisionId' => $tblDivision->getId()
+                    )
+                );
+                $buttonList[] = new Standard(
+                    'Sortierung Geschlecht (alphabetisch)', '/Education/ClassRegister/Sort/Gender',
+                    new ResizeVertical(),
                     array(
                         'DivisionId' => $tblDivision->getId()
                     )
@@ -361,15 +414,16 @@ class ClassRegister implements IApplicationInterface
                             new LayoutColumn($buttonList),
                             new LayoutColumn(array(
                                 new TableData($studentTable, null, array(
-                                    'Number' => '#',
-                                    'Name' => 'Name',
-                                    'Address' => 'Addresse',
+                                    'Number'   => '#',
+                                    'Name'     => 'Name',
+                                    'Gender'   => 'Geschlecht',
+                                    'Address'  => 'Addresse',
                                     'Birthday' => 'Geburtsdatum',
-                                    'Course' => 'Bildungsgang',
-                                    'Absence' => 'Fehlzeiten (E, U)',
-                                    'Option' => ''
+                                    'Course'   => 'Bildungsgang',
+                                    'Absence'  => 'Fehlzeiten (E, U)',
+                                    'Option'   => ''
                                 ),
-                                    $isTeacher
+                                    ($isTeacher || !$IsSortable)
                                         ? array(
                                             'paging' => false
                                         )

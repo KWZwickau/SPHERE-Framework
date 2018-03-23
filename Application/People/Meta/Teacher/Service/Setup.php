@@ -49,6 +49,10 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblTeacher', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
+        $this->getConnection()->removeIndex($Table, array('serviceTblPerson'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
+        }
         if (!$this->getConnection()->hasColumn('tblTeacher', 'Acronym')) {
             $Table->addColumn('Acronym', 'string');
         }

@@ -2,7 +2,7 @@
 namespace SPHERE\Common\Frontend\Form\Repository\Field;
 
 use SPHERE\Common\Frontend\Form\IFieldInterface;
-use SPHERE\Common\Frontend\Form\Repository\AbstractField;
+use SPHERE\Common\Frontend\Form\Repository\AbstractTextField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 
 /**
@@ -10,7 +10,7 @@ use SPHERE\Common\Frontend\Icon\IIconInterface;
  *
  * @package SPHERE\Common\Frontend\Form\Repository\Field
  */
-class TextArea extends AbstractField implements IFieldInterface
+class TextArea extends AbstractTextField implements IFieldInterface
 {
 
     /**
@@ -28,6 +28,7 @@ class TextArea extends AbstractField implements IFieldInterface
 
         $this->Name = $Name;
         $this->Template = $this->getTemplate(__DIR__.'/TextArea.twig');
+        $this->Template->setVariable('ElementHash', md5(uniqid(microtime(),true)));
         $this->Template->setVariable('ElementName', $Name);
         $this->Template->setVariable('ElementLabel', $Label);
         $this->Template->setVariable('ElementPlaceholder', $Placeholder);

@@ -2,6 +2,7 @@
 namespace SPHERE\Application\People\Meta\Student\Service\Data;
 
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSchoolEnrollmentType;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
@@ -24,6 +25,8 @@ abstract class Student extends AbstractData
      * @param null $tblStudentBaptism
      * @param null $tblStudentIntegration
      * @param string $SchoolAttendanceStartDate
+     * @param bool $HasMigrationBackground
+     * @param bool $IsInPreparationDivisionForMigrants
      *
      * @return TblStudent
      */
@@ -36,16 +39,29 @@ abstract class Student extends AbstractData
         $tblStudentLocker = null,
         $tblStudentBaptism = null,
         $tblStudentIntegration = null,
-        $SchoolAttendanceStartDate = ''
+        $SchoolAttendanceStartDate = '',
+        $HasMigrationBackground = false,
+        $IsInPreparationDivisionForMigrants = false
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
+
+        $IsIdentifier = true;
+        $IdentifierResult = $Manager->getEntity('TblStudent')
+            ->findOneBy(array(
+                TblStudent::ATTR_TBL_IDENTIFIER => $Identifier,
+            ));
+        if ($IdentifierResult) {
+            $IsIdentifier = false;
+        }
+
         $Entity = $this->getStudentByPerson($tblPerson);
         if (!$Entity) {
-
             $Entity = new TblStudent();
             $Entity->setServiceTblPerson($tblPerson);
-            $Entity->setIdentifier($Identifier);
+            if ($IsIdentifier) {
+                $Entity->setIdentifier($Identifier);
+            }
             $Entity->setTblStudentMedicalRecord($tblStudentMedicalRecord);
             $Entity->setTblStudentTransport($tblStudentTransport);
             $Entity->setTblStudentBilling($tblStudentBilling);
@@ -53,6 +69,8 @@ abstract class Student extends AbstractData
             $Entity->setTblStudentBaptism($tblStudentBaptism);
             $Entity->setTblStudentIntegration($tblStudentIntegration);
             $Entity->setSchoolAttendanceStartDate(( $SchoolAttendanceStartDate ? new \DateTime($SchoolAttendanceStartDate) : null ));
+            $Entity->setHasMigrationBackground($HasMigrationBackground);
+            $Entity->setIsInPreparationDivisionForMigrants($IsInPreparationDivisionForMigrants);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -70,6 +88,8 @@ abstract class Student extends AbstractData
      * @param null $tblStudentBaptism
      * @param null $tblStudentIntegration
      * @param string $SchoolAttendanceStartDate
+     * @param bool $HasMigrationBackground
+     * @param bool $IsInPreparationDivisionForMigrants
      *
      * @return bool
      */
@@ -82,16 +102,30 @@ abstract class Student extends AbstractData
         $tblStudentLocker = null,
         $tblStudentBaptism = null,
         $tblStudentIntegration = null,
-        $SchoolAttendanceStartDate = ''
+        $SchoolAttendanceStartDate = '',
+        $HasMigrationBackground = false,
+        $IsInPreparationDivisionForMigrants = false
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
+
+        $IsIdentifier = true;
+        $IdentifierResult = $Manager->getEntity('TblStudent')
+            ->findOneBy(array(
+                TblStudent::ATTR_TBL_IDENTIFIER => $Identifier,
+            ));
+        if ($IdentifierResult) {
+            $IsIdentifier = false;
+        }
+
         /** @var null|TblStudent $Entity */
         $Entity = $Manager->getEntityById('TblStudent', $tblStudent->getId());
         if (null !== $Entity) {
             $Protocol = clone $Entity;
 
-            $Entity->setIdentifier($Identifier);
+            if ($IsIdentifier) {
+                $Entity->setIdentifier($Identifier);
+            }
             $Entity->setTblStudentMedicalRecord($tblStudentMedicalRecord);
             $Entity->setTblStudentTransport($tblStudentTransport);
             $Entity->setTblStudentBilling($tblStudentBilling);
@@ -99,6 +133,8 @@ abstract class Student extends AbstractData
             $Entity->setTblStudentBaptism($tblStudentBaptism);
             $Entity->setTblStudentIntegration($tblStudentIntegration);
             $Entity->setSchoolAttendanceStartDate(( $SchoolAttendanceStartDate ? new \DateTime($SchoolAttendanceStartDate) : null ));
+            $Entity->setHasMigrationBackground($HasMigrationBackground);
+            $Entity->setIsInPreparationDivisionForMigrants($IsInPreparationDivisionForMigrants);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -132,6 +168,19 @@ abstract class Student extends AbstractData
     }
 
     /**
+     * @param string $Identifier
+     *
+     * @return bool|TblStudent
+     */
+    public function getStudentByIdentifier($Identifier)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblStudent', array(
+            TblStudent::ATTR_TBL_IDENTIFIER => $Identifier
+        ));
+    }
+
+    /**
      * @param TblStudent $tblStudent
      *
      * @return bool
@@ -148,5 +197,52 @@ abstract class Student extends AbstractData
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblStudentSchoolEnrollmentType
+     */
+    public function getStudentSchoolEnrollmentTypeById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblStudentSchoolEnrollmentType', $Id);
+    }
+
+    /**
+     * @return false|TblStudentSchoolEnrollmentType[]
+     */
+    public function getStudentSchoolEnrollmentTypeAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblStudentSchoolEnrollmentType');
+    }
+
+    /**
+     * @param string $Identifier
+     * @param string $Name
+     *
+     * @return TblStudentSchoolEnrollmentType
+     */
+    public function createStudentSchoolEnrollmentType($Identifier, $Name)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblStudentSchoolEnrollmentType')->findOneBy(array(
+            TblStudentSchoolEnrollmentType::ATTR_IDENTIFIER => $Identifier
+        ));
+
+        if (null === $Entity) {
+            $Entity = new TblStudentSchoolEnrollmentType();
+            $Entity->setIdentifier($Identifier);
+            $Entity->setName($Name);
+            $Manager->saveEntity($Entity);
+
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
     }
 }

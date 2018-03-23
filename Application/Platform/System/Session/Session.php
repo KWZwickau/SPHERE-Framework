@@ -7,13 +7,16 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSession;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Platform\System\Protocol\Service\Entity\TblProtocol;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Off;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Danger;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Main;
@@ -38,7 +41,12 @@ class Session extends Extension implements IModuleInterface
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__,
-                __CLASS__.'::frontendSession'
+                __CLASS__ . '::frontendSession'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/History',
+                __CLASS__ . '::frontendSessionHistory'
             )
         );
     }
@@ -60,13 +68,27 @@ class Session extends Extension implements IModuleInterface
     }
 
     /**
+     * @param null $Id
+     *
      * @return Stage
      */
-    public function frontendSession()
+    public function frontendSession($Id = null)
     {
 
-        $Stage = new Stage('Aktive Sessions', 'der aktuell angemeldete Benutzer');
+        $Stage = new Stage('Active Session', 'der aktuell angemeldete Benutzer');
+//        $Stage->addButton(new External('Login History', __NAMESPACE__.'/History', null, array(), false));
+        $Stage->addButton(new Standard('Login History', __NAMESPACE__.'/History'));
 
+        if ($Id) {
+            $tblSessionAll = Account::useService()->getSessionAll();
+            if ($tblSessionAll) {
+                foreach ($tblSessionAll as $tblSession) {
+                    if ($tblSession->getId() == $Id) {
+                        Account::useService()->destroySession(null, $tblSession->getSession());
+                    }
+                }
+            }
+        }
         $Result = array();
 
         $tblSessionAll = Account::useService()->getSessionAll();
@@ -74,6 +96,24 @@ class Session extends Extension implements IModuleInterface
             array_walk($tblSessionAll, function (TblSession $tblSession) use (&$Result) {
 
                 $tblAccount = $tblSession->getTblAccount();
+                $tblIdentification = $tblAccount->getServiceTblIdentification();
+                $loginTime = 60 * 10;
+                switch ($tblIdentification->getName()) {
+                    case 'System':
+                        $loginTime = ( 60 * 60 * 4 );
+                        break;
+                    case 'Token':
+                        $loginTime = ( 60 * 60 );
+                        break;
+                    case 'Credential':
+                        $loginTime = ( 60 * 30 );
+                        break;
+                    case 'UserCredential':
+                        $loginTime = ( 60 * 30 );
+                        break;
+                }
+
+                $Activity = gmdate("H:i:s", $loginTime - ($tblSession->getTimeout() - time()));
 
                 if ($tblSession->getEntityUpdate() && $tblSession->getEntityCreate()) {
                     $Interval = $tblSession->getEntityUpdate()->getTimestamp() - $tblSession->getEntityCreate()->getTimestamp();
@@ -85,31 +125,73 @@ class Session extends Extension implements IModuleInterface
                     }
                 }
 
-                if (( $Activity = Protocol::useService()->getProtocolLastActivity($tblAccount) )) {
-                    $Activity = current($Activity)->getEntityCreate();
-                } else {
-                    $Activity = '-NA-';
-                }
-                
+                // need to much time and info is not necessary
+//                if (($Activity = Protocol::useService()->getProtocolLastActivity($tblAccount))) {
+//                    $Activity = current($Activity)->getEntityCreate();
+//                } else {
+//                    $Activity = '-NA-';
+//                }
 
                 array_push($Result, array(
-                    'Id'         => $tblSession->getId(),
-                    'Consumer'   => ( $tblAccount->getServiceTblConsumer() ?
+                    'Id' => $tblSession->getId(),
+                    'Consumer' => ($tblAccount->getServiceTblConsumer() ?
                         $tblAccount->getServiceTblConsumer()->getAcronym()
-                        .'&nbsp;'.new Muted($tblAccount->getServiceTblConsumer()->getName())
+                        . '&nbsp;' . new Muted($tblAccount->getServiceTblConsumer()->getName())
                         : '-NA-'
                     ),
-                    'Account'    => ( $tblAccount ? $tblAccount->getUsername() : '-NA-' ),
-                    'TTL'        => gmdate("H:i:s", $tblSession->getTimeout() - time()),
+                    'Account' => ($tblAccount ? $tblAccount->getUsername() : '-NA-'),
+                    'TTL' => gmdate("H:i:s", $tblSession->getTimeout() - time()),
                     'ActiveTime' => gmdate('H:i:s', $Interval),
-                    'LoginTime'  => $tblSession->getEntityCreate(),
+                    'LoginTime' => $tblSession->getEntityCreate(),
                     'LastAction' => $Activity,
-                    'Identifier' => strtoupper($tblSession->getSession())
+                    'Identifier' => strtoupper($tblSession->getSession()),
+                    'Option' => new Danger('', new Link\Route(__NAMESPACE__), new Off(), array(
+                        'Id' => $tblSession->getId()
+                    ))
                 ));
-
             });
         }
 
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new TableData($Result, null, array(
+                                'Id' => '#',
+                                'Consumer' => 'Mandant',
+                                'Account' => 'Benutzer',
+                                'LoginTime' => 'Anmeldung',
+                                'ActiveTime' => 'Dauer',
+                                'LastAction' => 'letzte Aktivität',
+                                'TTL' => 'Timeout',
+                                'Identifier' => 'Session',
+                                'Option' => ''
+                            ), array(
+                                'order' => array(array(0, 'desc')),
+                                'columnDefs' => array(
+                                    array('width' => '1%', 'orderable' => false, 'targets' => -1)
+                                )
+                            ), true),
+                            new Redirect(
+                                '/Platform/System/Session', 60
+                            )
+                        ))
+                    ), new Title('Aktive Benutzer')
+                )
+            )
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendSessionHistory()
+    {
+        $Stage = new Stage('Session History', 'der letzten 250 Benutzer');
+        $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
         $History = array();
 
         $tblProtocolAll = Protocol::useService()->getProtocolAllCreateSession();
@@ -117,58 +199,36 @@ class Session extends Extension implements IModuleInterface
             array_walk($tblProtocolAll, function (TblProtocol $tblProtocol) use (&$History) {
 
                 array_push($History, array(
-                    'Consumer'  => $tblProtocol->getConsumerAcronym().'&nbsp;'.new Muted($tblProtocol->getConsumerName()),
+                    'Consumer' => $tblProtocol->getConsumerAcronym() . '&nbsp;' . new Muted($tblProtocol->getConsumerName()),
                     'LoginTime' => $tblProtocol->getEntityCreate(),
-                    'Account'   => $tblProtocol->getAccountUsername(),
-                    'AccountId' => ( $tblProtocol->getServiceTblAccount() ? $tblProtocol->getServiceTblAccount()->getId() : '-NA-' )
+                    'Account' => $tblProtocol->getAccountUsername(),
+                    'AccountId' => ($tblProtocol->getServiceTblAccount() ? $tblProtocol->getServiceTblAccount()->getId() : '-NA-')
                 ));
 
             });
         }
-
         $Stage->setContent(
-            new Layout(array(
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(array(
-                            new TableData($Result, null, array(
-                                'Id'         => '#',
-                                'Consumer'   => 'Mandant',
-                                'Account'    => 'Benutzer',
-                                'LoginTime'  => 'Anmeldung',
-                                'LastAction' => 'Aktivität',
-                                'ActiveTime' => 'Dauer',
-                                'TTL'        => 'Timeout',
-                                'Identifier' => 'Session'
-                            )),
-                        ))
-                    ), new Title('Aktive Benutzer')
-                ),
+            new Layout(
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(array(
                             new TableData($History, null, array(
                                 'LoginTime' => 'Zeitpunkt',
                                 'AccountId' => 'Account',
-                                'Account'   => 'Benutzer',
-                                'Consumer'  => 'Mandant',
+                                'Account' => 'Benutzer',
+                                'Consumer' => 'Mandant',
                             ), array(
-                                'order'      => array(array(0, 'desc')),
+                                'order' => array(array(0, 'desc')),
                                 'columnDefs' => array(
-                                    array('type' => 'de_datetime', 'width' => '10%', 'targets' => 0),
-                                    array('width' => '45%', 'targets' => 2),
-                                    array('width' => '45%', 'targets' => 3)
+                                    array('type' => 'de_datetime', 'width' => '20%', 'targets' => 0),
+                                    array('width' => '35%', 'targets' => array(2, 3))
                                 )
                             )),
-                            new Redirect(
-                                '/Platform/System/Session', 30
-                            )
                         ))
                     ), new Title('Protokoll der Anmeldungen')
                 )
-            ))
+            )
         );
-
         return $Stage;
     }
 }

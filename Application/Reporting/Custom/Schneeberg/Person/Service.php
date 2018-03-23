@@ -9,6 +9,7 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -44,6 +45,7 @@ class Service extends Extension
                 $Item['City'] = '';
                 $Item['District'] = '';
                 $Item['Parents'] = '';
+                $Item['ParentJob'] = '';
                 $Item['Phone'] = '';
                 $Item['PhoneMother'] = '';
                 $Item['PhoneFather'] = '';
@@ -99,10 +101,49 @@ class Service extends Extension
 
                 $Item['LastName'] = $tblPerson->getLastName();
                 $Item['FirstName'] = $tblPerson->getFirstSecondName();
+
+                $FatherString = '( - )';
+                if ($father) {
+                    $tblCustodyFather = Custody::useService()->getCustodyByPerson($father);
+                    if ($tblCustodyFather) {
+                        $FatherString = '('.($tblCustodyFather->getOccupation()
+                                ? $tblCustodyFather->getOccupation()
+                                : ' - ').
+                            ($tblCustodyFather->getEmployment()
+                                ? ', '.$tblCustodyFather->getEmployment()
+                                : '')
+                            .')';
+                    }
+                }
+                $MotherString = '( - )';
+                if ($mother) {
+                    $tblCustodyMother = Custody::useService()->getCustodyByPerson($mother);
+                    if ($tblCustodyMother) {
+                        $MotherString = '('.
+                            ($tblCustodyMother->getOccupation()
+                                ? $tblCustodyMother->getOccupation()
+                                : ' - ').
+                            ($tblCustodyMother->getEmployment()
+                                ? ', '.$tblCustodyMother->getEmployment()
+                                : '')
+                            .')';
+                    }
+                }
+
                 if ($father && $mother){
+
+                    $Item['ParentJob'] = $father->getFirstSecondName().' '.$father->getLastName().' '.$FatherString;
+                    $Item['ParentJob'] .= ', '.$mother->getFirstSecondName().' '.$mother->getLastName().' '.$MotherString;
+
                     $Item['Parents'] = $mother->getFirstSecondName() .
                         ($father->getLastName() == $mother->getLastName() ? '' : ' ' . $mother->getLastName())
                         . ' & ' . $father->getFirstSecondName() . ' ' . $father->getLastName();
+                } elseif ($father) {
+                    $Item['ParentJob'] = $father->getFirstSecondName().' '.$father->getLastName().' '.$FatherString;
+                    $Item['Parents'] = $father->getFirstSecondName().' '.$father->getLastName();
+                } elseif ($mother) {
+                    $Item['ParentJob'] = $mother->getFirstSecondName().' '.$mother->getLastName().$MotherString;
+                    $Item['Parents'] = $mother->getFirstSecondName().' '.$mother->getLastName();
                 }
 
                 $common = Common::useService()->getCommonByPerson($tblPerson);
@@ -188,6 +229,7 @@ class Service extends Extension
             $export->setValue($export->getCell($column++, $row), 'PLZ');
             $export->setValue($export->getCell($column++, $row), 'Ort');
             $export->setValue($export->getCell($column++, $row), 'Eltern');
+            $export->setValue($export->getCell($column++, $row), 'Eltern (Beruf)');
             $export->setValue($export->getCell($column++, $row), 'Telefon privat');
             $export->setValue($export->getCell($column++, $row), 'Mutter');
             $export->setValue($export->getCell($column++, $row), 'Vater');
@@ -205,6 +247,7 @@ class Service extends Extension
                 $export->setValue($export->getCell($column++, $row), $PersonData['ZipCode']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['City']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['Parents']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['ParentJob']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['Phone']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['PhoneMother']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['PhoneFather']);

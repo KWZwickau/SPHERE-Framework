@@ -1,0 +1,11 @@
+CREATE 
+    ALGORITHM = UNDEFINED 
+    DEFINER = `root`@`%`
+    SQL SECURITY DEFINER
+VIEW SettingConsumer_DEMO.viewGroupTeacher AS
+    SELECT 
+        viewPerson.TblPerson_Id AS TblPerson_Id,
+        viewPeopleMetaTeacher.TblTeacher_Acronym AS TblTeacher_Acronym
+    FROM
+        (PeoplePerson_DEMO.viewPerson
+        LEFT JOIN PeopleMeta_DEMO.viewPeopleMetaTeacher ON ((viewPerson.TblPerson_Id = viewPeopleMetaTeacher.TblTeacher_serviceTblPerson)))

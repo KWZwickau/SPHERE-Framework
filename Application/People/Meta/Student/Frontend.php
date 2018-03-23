@@ -1,11 +1,19 @@
 <?php
+
 namespace SPHERE\Application\People\Meta\Student;
 
+use SPHERE\Application\Api\MassReplace\ApiMassReplace;
+use SPHERE\Application\Api\MassReplace\StudentFilter;
+use SPHERE\Application\Api\People\Meta\Student\ApiStudent;
+use SPHERE\Application\Api\People\Meta\Subject\MassReplaceSubject;
+use SPHERE\Application\Api\People\Meta\Transfer\MassReplaceTransfer;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Type;
@@ -18,10 +26,12 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationCa
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Aspect;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
@@ -66,6 +76,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -87,7 +98,6 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param TblPerson $tblPerson
      * @param array     $Meta
-     *
      * @param null      $Group
      *
      * @return Stage
@@ -102,8 +112,14 @@ class Frontend extends Extension implements IFrontendInterface
         if ($hasApiRight && $tblPerson != null) {
             $Info = new External(
                 'Herunterladen der Schülerkartei', 'SPHERE\Application\Api\Document\Standard\StudentCard\Create',
-                new Download(), array('PersonId' => $tblPerson->getId()), 'Schülerkartei herunterladen');
+                    new Download(), array('PersonId' => $tblPerson->getId()), 'Schülerkartei herunterladen')
+                .new External(
+                    'Erstellen der Schulbescheinigung', '\Document\Standard\EnrollmentDocument\Fill',
+                    new Download(), array('PersonId' => $tblPerson->getId()),
+                    'Erstellen und Herunterladen einer Schulbescheinigung');
         }
+
+        $this->setYearAndDivisionForMassReplace($tblPerson, $Year, $Division);
 
         $Stage->setContent(
             new Layout(array(
@@ -123,27 +139,46 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             Student::useService()->createMeta(
-                                ( new Form(array(
+                                (new Form(array(
                                     new FormGroup(
                                         new FormRow(array(
                                             new FormColumn(
                                                 new Panel('Identifikation', array(
-                                                    new TextField('Meta[Student][Identifier]', 'Schülernummer',
-                                                        'Schülernummer')
+                                                    (new TextField('Meta[Student][Identifier]', 'Schülernummer',
+                                                        'Schülernummer'))
+                                                        ->ajaxPipelineOnKeyUp(ApiStudent::pipelineCompareIdentifier($tblPerson->getId()))
+                                                ,
+                                                    ApiStudent::receiverControlIdentifier()
                                                 ), Panel::PANEL_TYPE_INFO)
                                                 , 4),
                                             new FormColumn(
                                                 new Panel('Schulpflicht', array(
-                                                    new DatePicker('Meta[Student][SchoolAttendanceStartDate]', '', 'Beginnt am', new Calendar())
+                                                    new DatePicker('Meta[Student][SchoolAttendanceStartDate]', '',
+                                                        'Beginnt am', new Calendar())
                                                 ), Panel::PANEL_TYPE_INFO)
                                                 , 4),
-                                        )), new Title(new TileSmall().' Grunddaten ', new Bold(new Success($tblPerson->getFullName())))
+                                            new FormColumn(
+                                                new Panel('Mitgration', array(
+                                                    new CheckBox(
+                                                        'Meta[Student][HasMigrationBackground]',
+                                                        'Migrationshintergrund',
+                                                        1
+                                                    ),
+                                                    new CheckBox(
+                                                        'Meta[Student][IsInPreparationDivisionForMigrants]',
+                                                        'Besucht Vorbereitungsklasse für Migranten',
+                                                        1
+                                                    )
+                                                ), Panel::PANEL_TYPE_INFO)
+                                                , 4),
+                                        )), new Title(new TileSmall().' Grunddaten ',
+                                            new Bold(new Success($tblPerson->getFullName())))
                                     ),
-                                    $this->formGroupTransfer($tblPerson),
+                                    $this->formGroupTransfer($tblPerson, $Year, $Division),
                                     $this->formGroupGeneral($tblPerson),
-                                    $this->formGroupSubject($tblPerson),
+                                    $this->formGroupSubject($tblPerson, $Year, $Division),
                                     $this->formGroupIntegration($tblPerson),
-                                ), new Primary('Speichern', new Save()))
+                                ), (new Primary('Speichern', new Save()))->disableOnLoad())
                                 )->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.')
                                 , $tblPerson, $Meta, $Group
                             )
@@ -158,15 +193,20 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblPerson|null $tblPerson
+     * @param array $Year
+     * @param array $Division
      *
      * @return FormGroup
      */
-    private function formGroupTransfer(TblPerson $tblPerson = null)
-    {
+    private function formGroupTransfer(
+        TblPerson $tblPerson = null,
+        $Year,
+        $Division
+    ) {
 
         if (null !== $tblPerson) {
             $Global = $this->getGlobal();
-            if (!isset( $Global->POST['Meta']['Transfer'] )) {
+            if (!isset($Global->POST['Meta']['Transfer'])) {
                 /** @var TblStudent $tblStudent */
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 if ($tblStudent) {
@@ -193,6 +233,10 @@ class Frontend extends Extension implements IFrontendInterface
                         );
                         $Global->POST['Meta']['Transfer'][$TransferTypeEnrollment->getId()]['Date'] = $tblStudentTransferEnrollment->getTransferDate();
                         $Global->POST['Meta']['Transfer'][$TransferTypeEnrollment->getId()]['Remark'] = $tblStudentTransferEnrollment->getRemark();
+                        $Global->POST['Meta']['Transfer'][$TransferTypeEnrollment->getId()]['StudentSchoolEnrollmentType']
+                            = $tblStudentTransferEnrollment->getTblStudentSchoolEnrollmentType()
+                            ? $tblStudentTransferEnrollment->getTblStudentSchoolEnrollmentType()->getId()
+                            : 0;
                     }
 
                     $TransferTypeArrive = Student::useService()->getStudentTransferTypeByIdentifier('Arrive');
@@ -280,12 +324,39 @@ class Frontend extends Extension implements IFrontendInterface
             $tblDivisionStudentAllByPerson = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
             if ($tblDivisionStudentAllByPerson) {
                 foreach ($tblDivisionStudentAllByPerson as &$tblDivisionStudent) {
+                    $TeacherString = ' | ';
                     $tblDivision = $tblDivisionStudent->getTblDivision();
                     if ($tblDivision) {
+                        $tblTeacherPersonList = Division::useService()->getTeacherAllByDivision($tblDivision);
+                        if ($tblTeacherPersonList) {
+                            foreach ($tblTeacherPersonList as $tblTeacherPerson) {
+                                if ($TeacherString !== ' | ') {
+                                    $TeacherString .= ', ';
+                                }
+                                $tblTeacher = Teacher::useService()->getTeacherByPerson($tblTeacherPerson);
+                                if ($tblTeacher) {
+                                    $TeacherString .= new Bold($tblTeacher->getAcronym().' ');
+                                }
+                                $TeacherString .= ($tblTeacherPerson->getTitle() != ''
+                                        ? $tblTeacherPerson->getTitle().' '
+                                        : '').
+                                    $tblTeacherPerson->getFirstName().' '.$tblTeacherPerson->getLastName();
+                                $tblDivisionTeacher = Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblDivision,
+                                    $tblTeacherPerson);
+                                if ($tblDivisionTeacher && $tblDivisionTeacher->getDescription() != '') {
+                                    $TeacherString .= ' ('.$tblDivisionTeacher->getDescription().')';
+                                }
+                            }
+                        }
+                        if ($TeacherString === ' | ') {
+                            $TeacherString = '';
+                        }
                         $tblLevel = $tblDivision->getTblLevel();
                         $tblYear = $tblDivision->getServiceTblYear();
                         if ($tblLevel && $tblYear) {
-                            $VisitedDivisions[] = $tblYear->getDisplayName() . ' Klasse ' . $tblDivision->getDisplayName();;
+                            $VisitedDivisions[] = $tblYear->getDisplayName().' Klasse '.$tblDivision->getDisplayName()
+                                .new Muted(new Small(' '.($tblLevel->getServiceTblType() ? $tblLevel->getServiceTblType()->getName() : '')))
+                                .$TeacherString;
                             foreach ($tblDivisionStudentAllByPerson as &$tblDivisionStudentTemp) {
                                 if ($tblDivisionStudent->getId() !== $tblDivisionStudentTemp->getId()
                                     && $tblDivisionStudentTemp->getTblDivision()
@@ -294,6 +365,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         && $tblDivisionStudent->getTblDivision()->getTblLevel()->getId()
                                         === $tblDivisionStudentTemp->getTblDivision()->getTblLevel()->getId()
                                     )
+                                    && $tblDivisionStudentTemp->getTblDivision()->getTblLevel()->getName() != ''
                                 ) {
                                     $RepeatedLevels[] = $tblYear->getDisplayName().' Klasse '.$tblLevel->getName();
                                 }
@@ -302,7 +374,7 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
 
-                if (!empty( $VisitedDivisions )) {
+                if (!empty($VisitedDivisions)) {
                     rsort($VisitedDivisions);
                 }
             }
@@ -311,6 +383,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblCompanyAllSchool = Group::useService()->getCompanyAllByGroup(
             Group::useService()->getGroupByMetaTable('SCHOOL')
         );
+        $tblCompanyAllOwn = array();
 
         $tblCompanyAllSchoolNursery = Group::useService()->getCompanyAllByGroup(
             Group::useService()->getGroupByMetaTable('NURSERY')
@@ -330,27 +403,169 @@ class Frontend extends Extension implements IFrontendInterface
             $tblSchoolCourseAll = array(new TblCourse());
         }
 
+        $tblStudentSchoolEnrollmentTypeAll = Student::useService()->getStudentSchoolEnrollmentTypeAll();
+
         $tblStudentTransferTypeEnrollment = Student::useService()->getStudentTransferTypeByIdentifier('Enrollment');
         $tblStudentTransferTypeArrive = Student::useService()->getStudentTransferTypeByIdentifier('Arrive');
         $tblStudentTransferTypeLeave = Student::useService()->getStudentTransferTypeByIdentifier('Leave');
         $tblStudentTransferTypeProcess = Student::useService()->getStudentTransferTypeByIdentifier('Process');
 
+        // Normaler Inhalt
+        $useCompanyAllSchoolEnrollment = $tblCompanyAllSchool;
+        $useCompanyAllSchoolArrive = $tblCompanyAllSchoolNursery;
+        $useCompanyAllSchoolLeave = $tblCompanyAllSchool;
+        $tblSchoolList = School::useService()->getSchoolAll();
+        if ($tblSchoolList) {
+            foreach ($tblSchoolList as $tblSchool) {
+                if ($tblSchool->getServiceTblCompany()) {
+                    $tblCompanyAllOwn[] = $tblSchool->getServiceTblCompany();
+                }
+            }
+        }
+        if (empty($tblCompanyAllOwn)) {
+            $useCompanyAllSchoolProcess = $tblCompanyAllSchool;
+        } else {
+            $useCompanyAllSchoolProcess = $tblCompanyAllOwn;
+        }
+
+
+        // add selected Company if missing in list
+        $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+        if ($tblStudent) {
+
+            // Erweiterung der SelectBox wenn Daten vorhanden aber nicht enthalten sind
+            // Enrollment
+            $tblStudentTransferTypeEnrollmentEntity = Student::useService()->getStudentTransferByType($tblStudent,
+                $tblStudentTransferTypeEnrollment);
+            if ($tblStudentTransferTypeEnrollmentEntity && ($TransferCompanyEnrollment = $tblStudentTransferTypeEnrollmentEntity->getServiceTblCompany())) {
+                if (!array_key_exists($TransferCompanyEnrollment->getId(), $useCompanyAllSchoolEnrollment)) {
+                    $TransferCompanyEnrollmentList = array($TransferCompanyEnrollment->getId() => $TransferCompanyEnrollment);
+                    $useCompanyAllSchoolEnrollment = array_merge($useCompanyAllSchoolEnrollment,
+                        $TransferCompanyEnrollmentList);
+                }
+            }
+            // Arrive
+            $tblStudentTransferTypeArriveEntity = Student::useService()->getStudentTransferByType($tblStudent,
+                $tblStudentTransferTypeArrive);
+            if ($tblStudentTransferTypeArriveEntity && ($TransferCompanyArrive = $tblStudentTransferTypeArriveEntity->getServiceTblCompany())) {
+                if (!array_key_exists($TransferCompanyArrive->getId(), $useCompanyAllSchoolArrive)) {
+                    $TransferCompanyArriveList = array($TransferCompanyArrive->getId() => $TransferCompanyArrive);
+                    $useCompanyAllSchoolArrive = array_merge($useCompanyAllSchoolArrive, $TransferCompanyArriveList);
+                }
+            }
+            // Leave
+            $tblStudentTransferTypeLeaveEntity = Student::useService()->getStudentTransferByType($tblStudent,
+                $tblStudentTransferTypeLeave);
+            if ($tblStudentTransferTypeLeaveEntity && ($TransferCompanyLeave = $tblStudentTransferTypeLeaveEntity->getServiceTblCompany())) {
+                if (!array_key_exists($TransferCompanyLeave->getId(), $useCompanyAllSchoolLeave)) {
+                    $TransferCompanyLeaveList = array($TransferCompanyLeave->getId() => $TransferCompanyLeave);
+                    $useCompanyAllSchoolLeave = array_merge($useCompanyAllSchoolLeave, $TransferCompanyLeaveList);
+                }
+            }
+            // Process
+            $tblStudentTransferTypeProcessEntity = Student::useService()->getStudentTransferByType($tblStudent,
+                $tblStudentTransferTypeProcess);
+            if ($tblStudentTransferTypeProcessEntity && ($TransferCompanyProcess = $tblStudentTransferTypeProcessEntity->getServiceTblCompany())) {
+                if (!array_key_exists($TransferCompanyProcess->getId(), $useCompanyAllSchoolProcess)) {
+                    $TransferCompanyProcessList = array($TransferCompanyProcess->getId() => $TransferCompanyProcess);
+                    $useCompanyAllSchoolProcess = array_merge($useCompanyAllSchoolProcess, $TransferCompanyProcessList);
+                }
+            }
+        }
+
+        $NodeEnrollment = 'Schülertransfer - Ersteinschulung';
+        $NodeArrive = 'Schülertransfer - Schüler Aufnahme';
+        $NodeLeave = 'Schülertransfer - Schüler Abgabe';
+        $NodeProcess = 'Schülertransfer - Aktueller Schulverlauf';
+
         return new FormGroup(array(
             new FormRow(array(
                 new FormColumn(array(
                     new Panel('Ersteinschulung', array(
-                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeEnrollment->getId().'][School]',
+
+                        ApiMassReplace::receiverField((
+                        $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeEnrollment->getId().'][School]',
                             'Schule', array(
-                                '{{ Name }} {{ Description }}' => $tblCompanyAllSchool
-                            ), new Education()),
-                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeEnrollment->getId().'][Type]',
+                                '{{ Name }} {{ ExtendedName }} {{ Description }}' => $useCompanyAllSchoolEnrollment
+                            ), new Education())
+                        ))
+                        .ApiMassReplace::receiverModal($Field, $NodeEnrollment)
+                        .new PullRight((new Link('Massen-Änderung',
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ENROLLMENT_SCHOOL,
+                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                      => $tblPerson->getId(),
+                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeEnrollment,
+                            )))->ajaxPipelineOnClick(
+                            ApiMassReplace::pipelineOpen($Field, $NodeEnrollment)
+                        )),
+
+                        ApiMassReplace::receiverField((
+                        $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeEnrollment->getId().'][Type]',
                             'Schulart', array(
                                 '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
+                            ), new Education())
+                        ))
+                        .ApiMassReplace::receiverModal($Field, $NodeEnrollment)
+                        .new PullRight((new Link('Massen-Änderung',
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ENROLLMENT_SCHOOL_TYPE,
+                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                      => $tblPerson->getId(),
+                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeEnrollment,
+                            )))->ajaxPipelineOnClick(
+                            ApiMassReplace::pipelineOpen($Field, $NodeEnrollment)
+                        )),
+
+                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeEnrollment->getId().'][StudentSchoolEnrollmentType]',
+                            'Einschulungsart', array(
+                                '{{ Name }}' => $tblStudentSchoolEnrollmentTypeAll
                             ), new Education()),
-                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeEnrollment->getId().'][Course]',
+
+                        ApiMassReplace::receiverField((
+                        $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeEnrollment->getId().'][Course]',
                             'Bildungsgang', array(
                                 '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
-                            ), new Education()),
+                            ), new Education())
+                        ))
+                        .ApiMassReplace::receiverModal($Field, $NodeEnrollment)
+                        .new PullRight((new Link('Massen-Änderung',
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ENROLLMENT_COURSE,
+                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                      => $tblPerson->getId(),
+                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeEnrollment,
+                            )))->ajaxPipelineOnClick(
+                            ApiMassReplace::pipelineOpen($Field, $NodeEnrollment)
+                        )),
+
+//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeEnrollment->getId().'][School]',
+//                            'Schule', array(
+//                                '{{ Name }} {{ Description }}' => $tblCompanyAllSchool
+//                            ), new Education()),
+//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeEnrollment->getId().'][Type]',
+//                            'Schulart', array(
+//                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
+//                            ), new Education()),
+//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeEnrollment->getId().'][Course]',
+//                            'Bildungsgang', array(
+//                                '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
+//                            ), new Education()),
                         new DatePicker('Meta[Transfer]['.$tblStudentTransferTypeEnrollment->getId().'][Date]',
                             'Datum', 'Datum', new Calendar()),
                         new TextArea('Meta[Transfer]['.$tblStudentTransferTypeEnrollment->getId().'][Remark]',
@@ -359,18 +574,83 @@ class Frontend extends Extension implements IFrontendInterface
                 ), 4),
                 new FormColumn(array(
                     new Panel('Schüler - Aufnahme', array(
-                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][School]',
+                        ApiMassReplace::receiverField((
+                        $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][School]',
                             'Abgebende Schule / Kita', array(
-                                '{{ Name }} {{ Description }}' => $tblCompanyAllSchoolNursery
-                            ), new Education()),
-                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][Type]',
+                                '{{ Name }} {{ ExtendedName }} {{ Description }}' => $useCompanyAllSchoolArrive
+                            ), new Education())
+                        ))
+                        .ApiMassReplace::receiverModal($Field, $NodeArrive)
+                        .new PullRight((new Link('Massen-Änderung',
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ARRIVE_SCHOOL,
+                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                      => $tblPerson->getId(),
+                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeArrive,
+                            )))->ajaxPipelineOnClick(
+                            ApiMassReplace::pipelineOpen($Field, $NodeArrive)
+                        )),
+
+                        ApiMassReplace::receiverField((
+                        $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][Type]',
                             'Letzte Schulart', array(
                                 '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
-                            ), new Education()),
-                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][Course]',
+                            ), new Education())
+                        ))
+                        .ApiMassReplace::receiverModal($Field, $NodeArrive)
+                        .new PullRight((new Link('Massen-Änderung',
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ARRIVE_SCHOOL_TYPE,
+                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                      => $tblPerson->getId(),
+                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeArrive,
+                            )))->ajaxPipelineOnClick(
+                            ApiMassReplace::pipelineOpen($Field, $NodeArrive)
+                        )),
+
+                        ApiMassReplace::receiverField((
+                        $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][Course]',
                             'Letzter Bildungsgang', array(
                                 '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
-                            ), new Education()),
+                            ), new Education())
+                        ))
+                        .ApiMassReplace::receiverModal($Field, $NodeArrive)
+                        .new PullRight((new Link('Massen-Änderung',
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ARRIVE_COURSE,
+                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                      => $tblPerson->getId(),
+                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeArrive,
+                            )))->ajaxPipelineOnClick(
+                            ApiMassReplace::pipelineOpen($Field, $NodeArrive)
+                        )),
+//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][School]',
+//                            'Abgebende Schule / Kita', array(
+//                                '{{ Name }} {{ Description }}' => $tblCompanyAllSchoolNursery
+//                            ), new Education()),
+//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][Type]',
+//                            'Letzte Schulart', array(
+//                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
+//                            ), new Education()),
+//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][Course]',
+//                            'Letzter Bildungsgang', array(
+//                                '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
+//                            ), new Education()),
                         new DatePicker('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][Date]',
                             'Datum',
                             'Datum', new Calendar()),
@@ -380,18 +660,83 @@ class Frontend extends Extension implements IFrontendInterface
                 ), 4),
                 new FormColumn(array(
                     new Panel('Schüler - Abgabe', array(
-                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][School]',
+                        ApiMassReplace::receiverField((
+                        $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][School]',
                             'Aufnehmende Schule', array(
-                                '{{ Name }} {{ Description }}' => $tblCompanyAllSchool
-                            ), new Education()),
-                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][Type]',
+                                '{{ Name }} {{ ExtendedName }} {{ Description }}' => $useCompanyAllSchoolLeave
+                            ), new Education())
+                        ))
+                        .ApiMassReplace::receiverModal($Field, $NodeLeave)
+                        .new PullRight((new Link('Massen-Änderung',
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_LEAVE_SCHOOL,
+                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                      => $tblPerson->getId(),
+                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeLeave,
+                            )))->ajaxPipelineOnClick(
+                            ApiMassReplace::pipelineOpen($Field, $NodeLeave)
+                        )),
+
+                        ApiMassReplace::receiverField((
+                        $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][Type]',
                             'Letzte Schulart', array(
                                 '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
-                            ), new Education()),
-                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][Course]',
+                            ), new Education())
+                        ))
+                        .ApiMassReplace::receiverModal($Field, $NodeLeave)
+                        .new PullRight((new Link('Massen-Änderung',
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_LEAVE_SCHOOL_TYPE,
+                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                      => $tblPerson->getId(),
+                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeLeave,
+                            )))->ajaxPipelineOnClick(
+                            ApiMassReplace::pipelineOpen($Field, $NodeLeave)
+                        )),
+
+                        ApiMassReplace::receiverField((
+                        $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][Course]',
                             'Letzter Bildungsgang', array(
                                 '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
-                            ), new Education()),
+                            ), new Education())
+                        ))
+                        .ApiMassReplace::receiverModal($Field, $NodeLeave)
+                        .new PullRight((new Link('Massen-Änderung',
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_LEAVE_COURSE,
+                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                      => $tblPerson->getId(),
+                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeLeave,
+                            )))->ajaxPipelineOnClick(
+                            ApiMassReplace::pipelineOpen($Field, $NodeLeave)
+                        )),
+//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][School]',
+//                            'Aufnehmende Schule', array(
+//                                '{{ Name }} {{ Description }}' => $tblCompanyAllSchool
+//                            ), new Education()),
+//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][Type]',
+//                            'Letzte Schulart', array(
+//                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
+//                            ), new Education()),
+//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][Course]',
+//                            'Letzter Bildungsgang', array(
+//                                '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
+//                            ), new Education()),
                         new DatePicker('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][Date]',
                             'Datum',
                             'Datum', new Calendar()),
@@ -400,21 +745,66 @@ class Frontend extends Extension implements IFrontendInterface
                     ), Panel::PANEL_TYPE_INFO),
                 ), 4),
             )),
+            //ToDO merken der Stelle
             new FormRow(array(
                 new FormColumn(array(
                     new Panel('Schulverlauf', array(
-                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]',
+                        ApiMassReplace::receiverField((
+                        $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]',
                             'Aktuelle Schule', array(
-                                '{{ Name }} {{ Description }}' => $tblCompanyAllSchool
-                            ), new Education()),
-                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Type]',
-                            'Aktuelle Schulart', array(
-                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll,
-                            ), new Education()),
-                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Course]',
+                                '{{ Name }} {{ ExtendedName }} {{ Description }}' => $useCompanyAllSchoolProcess
+                            ), new Education())
+                        ))
+                        .ApiMassReplace::receiverModal($Field, $NodeProcess)
+                        .new PullRight((new Link('Massen-Änderung',
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL,
+                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                      => $tblPerson->getId(),
+                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeProcess,
+                            )))->ajaxPipelineOnClick(
+                            ApiMassReplace::pipelineOpen($Field, $NodeProcess)
+                        )),
+
+                        ApiMassReplace::receiverField((
+                        $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Course]',
                             'Aktueller Bildungsgang', array(
-                                '{{ Name }} {{ Description }}' => $tblSchoolCourseAll,
-                            ), new Education()),
+                                '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
+                            ), new Education())
+                        ))
+                        .ApiMassReplace::receiverModal($Field, $NodeProcess)
+                        .new PullRight((new Link('Massen-Änderung',
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_CURRENT_COURSE,
+                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                      => $tblPerson->getId(),
+                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeProcess,
+                            )))->ajaxPipelineOnClick(
+                            ApiMassReplace::pipelineOpen($Field, $NodeProcess)
+                        )),
+//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]',
+//                            'Aktuelle Schule', array(
+//                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll,
+//                            ), new Education()),
+//                        // removed SchoolType
+//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Type]',
+//                            'Aktuelle Schulart', array(
+//                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll,
+//                            ), new Education()),
+//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Course]',
+//                            'Aktueller Bildungsgang', array(
+//                                '{{ Name }} {{ Description }}' => $tblSchoolCourseAll,
+//                            ), new Education()),
                         new TextArea('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Remark]',
                             'Bemerkungen', 'Bemerkungen', new Pencil()),
                     ), Panel::PANEL_TYPE_INFO),
@@ -427,7 +817,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'Vom System erkannte Besuche. Wird bei Klassen&shy;zuordnung in Schuljahren erzeugt'
                         )
                     ),
-                ), 3),
+                ), 6),
                 new FormColumn(array(
                     new Panel('Aktuelle Schuljahrwiederholungen',
                         $RepeatedLevels,
@@ -453,13 +843,17 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (null !== $tblPerson) {
             $Global = $this->getGlobal();
-            if (!isset( $Global->POST['Meta']['MedicalRecord'] )) {
+            if (!isset($Global->POST['Meta']['MedicalRecord'])) {
                 /** @var TblStudent $tblStudent */
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 if ($tblStudent) {
 
                     $Global->POST['Meta']['Student']['Identifier'] = $tblStudent->getIdentifier();
                     $Global->POST['Meta']['Student']['SchoolAttendanceStartDate'] = $tblStudent->getSchoolAttendanceStartDate();
+
+                    $Global->POST['Meta']['Student']['HasMigrationBackground'] = $tblStudent->getHasMigrationBackground();
+                    $Global->POST['Meta']['Student']['IsInPreparationDivisionForMigrants'] = $tblStudent->isInPreparationDivisionForMigrants();
+
 
                     /** @var TblStudentMedicalRecord $tblStudentMedicalRecord */
                     $tblStudentMedicalRecord = $tblStudent->getTblStudentMedicalRecord();
@@ -584,7 +978,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new Panel(new Hospital().' Krankenakte', array(
                         new TextArea('Meta[MedicalRecord][Disease]', 'Krankheiten / Allergien',
                             'Krankheiten / Allergien', new Heart()),
-                        new TextArea('Meta[MedicalRecord][Medication]', 'Mediakamente', 'Mediakamente',
+                        new TextArea('Meta[MedicalRecord][Medication]', 'Medikamente', 'Medikamente',
                             new Medicine()),
                         new SelectBox('Meta[MedicalRecord][AttendingDoctor]', 'Behandelnder Arzt', array(),
                             new Stethoscope()),
@@ -638,17 +1032,21 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblPerson|null $tblPerson
+     * @param array $Year
+     * @param array $Division
      *
      * @return FormGroup
      */
-    private    function formGroupSubject(
-        TblPerson $tblPerson = null
+    private function formGroupSubject(
+        TblPerson $tblPerson = null,
+        $Year,
+        $Division
     ) {
 
         $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
         $Global = $this->getGlobal();
 
-        if ($tblStudent && !isset( $Global->POST['Meta']['Subject'] )) {
+        if ($tblStudent && !isset($Global->POST['Meta']['Subject'])) {
 
             $tblStudentSubjectAll = Student::useService()->getStudentSubjectAllByStudent($tblStudent);
             if ($tblStudentSubjectAll) {
@@ -672,13 +1070,13 @@ class Frontend extends Extension implements IFrontendInterface
             $tblSubjectOrientation = array(new TblSubject());
         }
 
-        // Advanced
-        $tblSubjectAdvanced = Subject::useService()->getSubjectAdvancedAll();
-        if ($tblSubjectAdvanced) {
-            array_push($tblSubjectAdvanced, new TblSubject());
-        } else {
-            $tblSubjectAdvanced = array(new TblSubject());
-        }
+//        // Advanced
+//        $tblSubjectAdvanced = Subject::useService()->getSubjectAdvancedAll();
+//        if ($tblSubjectAdvanced) {
+//            array_push($tblSubjectAdvanced, new TblSubject());
+//        } else {
+//            $tblSubjectAdvanced = array(new TblSubject());
+//        }
 
         // Elective
         $tblSubjectElective = Subject::useService()->getSubjectElectiveAll();
@@ -724,37 +1122,49 @@ class Frontend extends Extension implements IFrontendInterface
             new FormRow(array(
                 new FormColumn(array(
                     $this->panelSubjectList('FOREIGN_LANGUAGE', 'Fremdsprachen', 'Fremdsprache',
-                        $tblSubjectForeignLanguage, 4, ( $tblStudent ? $tblStudent : null )),
+                        $tblSubjectForeignLanguage, 4, ($tblStudent ? $tblStudent : null), $Year, $Division, $tblPerson),
                 ), 3),
                 new FormColumn(array(
-                    $this->panelSubjectList('RELIGION', 'Religion', 'Religion', $tblSubjectReligion, 1),
-                    $this->panelSubjectList('PROFILE', 'Profile', 'Profil', $tblSubjectProfile, 1),
-                    $this->panelSubjectList('ORIENTATION', 'Neigungskurse', 'Neigungskurs', $tblSubjectOrientation,
-                        1),
-                    $this->panelSubjectList('ADVANCED', 'Vertiefungskurse', 'Vertiefungskurs', $tblSubjectAdvanced,
-                        1),
+                    $this->panelSubjectList('RELIGION', 'Religion', 'Religion', $tblSubjectReligion, 1,
+                        ($tblStudent ? $tblStudent : null), $Year,
+                        $Division, $tblPerson),
+                    $this->panelSubjectList('PROFILE', 'Profile', 'Profil', $tblSubjectProfile, 1,
+                        ($tblStudent ? $tblStudent : null), $Year,
+                        $Division, $tblPerson),
+                    $this->panelSubjectList('ORIENTATION', 'Neigungskurse', 'Neigungskurs', $tblSubjectOrientation, 1,
+                        ($tblStudent ? $tblStudent : null), $Year, $Division, $tblPerson),
+//                    $this->panelSubjectList('ADVANCED', 'Vertiefungskurse', 'Vertiefungskurs', $tblSubjectAdvanced, 1,
+//                        null, $Year, $Division, $tblPerson),
                 ), 3),
                 new FormColumn(array(
-                    $this->panelSubjectList('ELECTIVE', 'Wahlfächer', 'Wahlfach', $tblSubjectElective, 2),
-                    $this->panelSubjectList('TEAM', 'Arbeitsgemeinschaften', 'Arbeitsgemeinschaft', $tblSubjectAll,
-                        3),
+                    $this->panelSubjectList('ELECTIVE', 'Wahlfächer', 'Wahlfach', $tblSubjectElective, 3,
+                        ($tblStudent ? $tblStudent : null), $Year,
+                        $Division, $tblPerson),
                 ), 3),
                 new FormColumn(array(
-                    $this->panelSubjectList('TRACK_INTENSIVE', 'Leistungskurse', 'Leistungskurs', $tblSubjectAll,
-                        2),
-                    $this->panelSubjectList('TRACK_BASIC', 'Grundkurse', 'Grundkurs', $tblSubjectAll, 8),
+                    $this->panelSubjectList('TEAM', 'Arbeitsgemeinschaften', 'Arbeitsgemeinschaft', $tblSubjectAll, 3,
+                        ($tblStudent ? $tblStudent : null), $Year, $Division, $tblPerson),
                 ), 3),
+//                new FormColumn(array(
+//                    $this->panelSubjectList('TRACK_INTENSIVE', 'Leistungskurse', 'Leistungskurs', $tblSubjectAll, 2,
+//                        null, $Year, $Division, $tblPerson),
+//                    $this->panelSubjectList('TRACK_BASIC', 'Grundkurse', 'Grundkurs', $tblSubjectAll, 8, null, $Year,
+//                        $Division, $tblPerson),
+//                ), 3),
             )),
         ), new Title(new TileSmall().' Unterrichtsfächer', new Bold(new Success($tblPerson->getFullName()))));
     }
 
     /**
-     * @param string       $Identifier
-     * @param string       $Title
-     * @param string       $Label
+     * @param string $Identifier
+     * @param string $Title
+     * @param string $Label
      * @param TblSubject[] $SubjectList
-     * @param int          $Count
-     * @param TblStudent   $tblStudent
+     * @param int $Count
+     * @param TblStudent $tblStudent
+     * @param array $Year
+     * @param array $Division
+     * @param TblPerson|null $tblPerson
      *
      * @return Panel
      */
@@ -764,24 +1174,98 @@ class Frontend extends Extension implements IFrontendInterface
         $Label,
         $SubjectList,
         $Count = 1,
-        TblStudent $tblStudent = null
+        TblStudent $tblStudent = null,
+        $Year = array(),
+        $Division = array(),
+        TblPerson $tblPerson = null
     ) {
 
         $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier(strtoupper($Identifier));
         $Panel = array();
         for ($Rank = 1; $Rank <= $Count; $Rank++) {
             $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($Rank);
-            array_push($Panel,
-                new SelectBox(
-                    'Meta[Subject]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
-                    ( $Count > 1 ? $tblStudentSubjectRanking->getName().' ' : '' ).$Label,
-                    array('{{ Acronym }} - {{ Name }} {{ Description }}' => $SubjectList),
-                    new Education()
-                )
-            );
+            $PersonId = false;
+            if($tblPerson) {
+                $PersonId = $tblPerson->getId();
+            }
+
+            $useSubjectList = $SubjectList;
+            $tblStudentSubject = false;
+            // Vorhandene Werte ergänzen (wenn sie in der SelectBox nicht mehr existieren)
+            if ($tblStudent && $tblStudentSubjectType && $tblStudentSubjectRanking) {
+                $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
+                    $tblStudentSubjectType, $tblStudentSubjectRanking);
+                if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                    if (!array_key_exists($tblSubject->getId(), $SubjectList)) {
+                        $tblSubjectList = array($tblSubject->getId() => $tblSubject);
+                        $useSubjectList = array_merge($SubjectList, $tblSubjectList);
+                    }
+                }
+            }
+
+            // activate MassReplace
+            if ($Identifier == 'PROFILE'
+                || $Identifier == 'RELIGION'
+                || $Identifier == 'ORIENTATION'
+                || $Identifier == 'FOREIGN_LANGUAGE'
+                || $Identifier == 'ELECTIVE'
+                || $Identifier == 'TEAM'
+            ) {
+                $Node = 'Unterrichtsfächer';
+                array_push($Panel,
+                    ApiMassReplace::receiverField((
+                    $Field = new SelectBox('Meta[Subject]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
+                        ($Count > 1 ? $tblStudentSubjectRanking->getName().' ' : '') . $Label
+                        , array('{{ Acronym }} - {{ Name }} {{ Description }}' => $useSubjectList), new Education())
+                    ))
+                    .ApiMassReplace::receiverModal($Field, $Node)
+                    .new PullRight((new Link('Massen-Änderung',
+                        ApiMassReplace::getEndpoint(), null, array(
+                            ApiMassReplace::SERVICE_CLASS                                   => MassReplaceSubject::CLASS_MASS_REPLACE_SUBJECT,
+                            ApiMassReplace::SERVICE_METHOD                                  => MassReplaceSubject::METHOD_REPLACE_SUBJECT,
+                            ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                            MassReplaceSubject::ATTR_TYPE                                   => $tblStudentSubjectType->getId(),
+                            MassReplaceSubject::ATTR_RANKING                                => $tblStudentSubjectRanking->getId(),
+                            'Id'                                                            => $PersonId,
+                            'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                            'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                            'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                            'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                            'Node'                                                          => $Node,
+                        )))->ajaxPipelineOnClick(
+                        ApiMassReplace::pipelineOpen($Field, $Node)
+                    ))
+                );
+            } else {
+                array_push($Panel,
+                    new SelectBox(
+                        'Meta[Subject]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
+                        ($Count > 1 ? $tblStudentSubjectRanking->getName().' ' : '').$Label,
+                        array('{{ Acronym }} - {{ Name }} {{ Description }}' => $useSubjectList),
+                        new Education()
+                    ));
+            }
             // Student FOREIGN_LANGUAGE: LevelFrom, LevelTill
             if ($tblStudentSubjectType->getIdentifier() == 'FOREIGN_LANGUAGE') {
                 $tblLevelAll = Division::useService()->getLevelAll();
+
+                // Gespeicherte Daten ergänzen wenn nicht bereits vorhanden
+                $useLevelFromList = $tblLevelAll;
+                $useLevelTillList = $tblLevelAll;
+                if ($tblStudentSubject && ($tblLevelFrom = $tblStudentSubject->getServiceTblLevelFrom())) {
+                    if (!array_key_exists($tblLevelFrom->getId(), $tblLevelAll)) {
+                        $tblLevelFromList = array($tblLevelFrom->getId() => $tblLevelFrom);
+                        $useLevelFromList = array_merge($tblLevelAll, $tblLevelFromList);
+                    }
+                }
+                if ($tblStudentSubject && ($tblLevelTill = $tblStudentSubject->getServiceTblLevelTill())) {
+                    if (!array_key_exists($tblLevelTill->getId(), $tblLevelAll)) {
+                        $tblLevelTillList = array($tblLevelTill->getId() => $tblLevelTill);
+                        $useLevelTillList = array_merge($tblLevelAll, $tblLevelTillList);
+                    }
+                }
+
+
                 // Read StudentSubject Levels from DB
                 if ($tblStudent) {
                     $tblStudentSubjectAll = Student::useService()
@@ -808,7 +1292,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new SelectBox(
                         'Meta[SubjectLevelFrom]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
                         new Muted(new Small('von Klasse')),
-                        array('{{ Name }} {{ ServiceTblType.Name }}' => $tblLevelAll),
+                        array('{{ Name }} {{ ServiceTblType.Name }}' => $useLevelFromList),
                         new Time()
                     )
                 );
@@ -816,7 +1300,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new SelectBox(
                         'Meta[SubjectLevelTill]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
                         new Muted(new Small('bis Klasse')),
-                        array('{{ Name }} {{ ServiceTblType.Name }}' => $tblLevelAll),
+                        array('{{ Name }} {{ ServiceTblType.Name }}' => $useLevelTillList),
                         new Time()
                     )
                 );
@@ -836,7 +1320,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (null !== $tblPerson) {
             $Global = $this->getGlobal();
-            if (!isset( $Global->POST['Meta']['Integration'] )) {
+            if (!isset($Global->POST['Meta']['Integration'])) {
 
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
 
@@ -869,6 +1353,9 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($tblStudentFocusAll) {
                         foreach ($tblStudentFocusAll as $tblStudentFocus) {
                             $Global->POST['Meta']['Integration']['Focus'][$tblStudentFocus->getTblStudentFocusType()->getId()] = 1;
+                            if ($tblStudentFocus->isPrimary()) {
+                                $Global->POST['Meta']['Integration']['PrimaryFocus'] = $tblStudentFocus->getTblStudentFocusType()->getId();
+                            }
                         }
                     }
                 }
@@ -900,10 +1387,12 @@ class Frontend extends Extension implements IFrontendInterface
             });
         $PanelDisorder = new Panel('Förderbedarf: Teilleistungsstörungen', $PanelDisorder, Panel::PANEL_TYPE_INFO);
 
-        $PanelFocus = array();
         $tblStudentFocusType = Student::useService()->getStudentFocusTypeAll();
         $tblStudentFocusType = $this->getSorter($tblStudentFocusType)->sortObjectBy('Name',
             new StringNaturalOrderSorter());
+        $PanelFocus = array();
+        $PanelFocus[] = new SelectBox('Meta[Integration][PrimaryFocus]', 'Primär geförderter Schwerpunkt',
+            array('{{ Name}}' => $tblStudentFocusType));
         array_walk($tblStudentFocusType,
             function (TblStudentFocusType $tblStudentFocusType) use (&$PanelFocus) {
 
@@ -950,5 +1439,34 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormColumn($PanelDisorder, 3),
             )),
         ), new Title(new TileSmall().' Integration', new Bold(new Success($tblPerson->getFullName()))));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $Year
+     * @param $Division
+     */
+    private function setYearAndDivisionForMassReplace(TblPerson $tblPerson, &$Year, &$Division)
+    {
+        $Year[ViewYear::TBL_YEAR_ID] = '';
+        $Division[ViewDivisionStudent::TBL_LEVEL_ID] = '';
+        $Division[ViewDivisionStudent::TBL_DIVISION_NAME] = '';
+        $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE] = '';
+        // #SSW-1598 Fehlerbehebung Massen-Änderung
+        if ($tblPerson
+            && ($tblStudent = $tblPerson->getStudent())
+            && ($tblDivision = $tblStudent->getCurrentMainDivision())
+        ) {
+            $Division[ViewDivisionStudent::TBL_DIVISION_NAME] = $tblDivision->getName();
+            if (($tblLevel = $tblDivision->getTblLevel())) {
+                $Division[ViewDivisionStudent::TBL_LEVEL_ID] = $tblLevel->getId();
+            }
+            if (($tblType = $tblLevel->getServiceTblType())) {
+                $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE] = $tblType->getId();
+            }
+            if (($tblYear = $tblDivision->getServiceTblYear())) {
+                $Year[ViewYear::TBL_YEAR_ID] = $tblYear->getId();
+            }
+        }
     }
 }

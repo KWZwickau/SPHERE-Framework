@@ -27,18 +27,24 @@ class Form extends Extension implements IFormInterface
     protected $GridButtonList = array();
     /** @var string $Hash */
     protected $Hash = '';
+    /** @var array $Data */
+    protected $Data;
     /** @var IBridgeInterface $Template */
     protected $Template = null;
     /** @var bool $EnableSaveDraft */
     private $EnableSaveDraft = false;
+    /** @var bool $EnableNewTab */
+    private $EnableNewTab = false;
+    /** @var bool $DisableSubmitAction */
+    private $DisableSubmitAction = false;
 
     /**
-     * @param FormGroup|FormGroup[]                    $FormGroup
+     * @param FormGroup|FormGroup[] $FormGroup
      * @param null|IButtonInterface|IButtonInterface[] $FormButtonList
-     * @param string                                   $FormAction
-     * @param array                                    $FormActionData
+     * @param string $Action
+     * @param array $Data
      */
-    public function __construct($FormGroup, $FormButtonList = null, $FormAction = '', $FormActionData = array())
+    public function __construct($FormGroup, $FormButtonList = null, $Action = '', $Data = array())
     {
 
         if (!is_array($FormGroup)) {
@@ -53,26 +59,31 @@ class Form extends Extension implements IFormInterface
         }
         $this->GridButtonList = $FormButtonList;
 
-        $this->Template = $this->getTemplate(__DIR__.'/Form.twig');
-        if (!empty( $FormActionData )) {
-            $this->Template->setVariable('FormAction', $this->getRequest()->getUrlBase().$FormAction);
-            $this->Template->setVariable('FormData', '?'.http_build_query(
-                    (new Authenticator(new Get()))->getAuthenticator()->createSignature(
-                        $FormActionData, $FormAction
-                    )
-                ));
+        if (!empty($Data)) {
+            $this->Data = $Data;
         } else {
-            if (empty( $FormAction )) {
-                $this->Template->setVariable('FormAction', $FormAction);
+            $this->Data = array();
+        }
+
+        $this->Template = $this->getTemplate(__DIR__.'/Form.twig');
+        if (!empty($Data)) {
+            $this->Template->setVariable('FormAction', $this->getRequest()->getUrlBase() . $Action);
+            $this->Template->setVariable('FormData', '?'.http_build_query(
+                    (new Authenticator(new Get()))->getAuthenticator()->createSignature($Data, $Action)
+                    )
+            );
+        } else {
+            if (empty($Action)) {
+                $this->Template->setVariable('FormAction', $Action);
             } else {
-                $this->Template->setVariable('FormAction', $this->getRequest()->getUrlBase().$FormAction);
+                $this->Template->setVariable('FormAction', $this->getRequest()->getUrlBase() . $Action);
             }
         }
     }
 
     /**
-     * @param string              $Name
-     * @param string              $Message
+     * @param string $Name
+     * @param string $Message
      * @param IIconInterface|null $Icon
      *
      * @return Form
@@ -111,8 +122,8 @@ class Form extends Extension implements IFormInterface
     }
 
     /**
-     * @param string              $Name
-     * @param string              $Message
+     * @param string $Name
+     * @param string $Message
      * @param IIconInterface|null $Icon
      *
      * @return Form
@@ -168,6 +179,15 @@ class Form extends Extension implements IFormInterface
     public function enableSaveDraft()
     {
         $this->EnableSaveDraft = true;
+        return $this;
+    }
+
+    /**
+     * @return Form
+     */
+    public function enableNewTab()
+    {
+        $this->EnableNewTab = true;
         return $this;
     }
 
@@ -237,10 +257,18 @@ class Form extends Extension implements IFormInterface
         $this->Template->setVariable('FormButtonList', $this->GridButtonList);
         $this->Template->setVariable('GridGroupList', $this->GridGroupList);
         $this->Template->setVariable('Hash', $this->getHash());
-        if( $this->EnableSaveDraft ) {
+        if ($this->EnableSaveDraft) {
             $this->Template->setVariable('EnableSaveDraft', true);
         } else {
             $this->Template->setVariable('EnableSaveDraft', false);
+        }
+        if ($this->EnableNewTab) {
+            $this->Template->setVariable('EnableNewTab', true);
+        } else {
+            $this->Template->setVariable('EnableNewTab', false);
+        }
+        if ($this->DisableSubmitAction) {
+            $this->Template->setVariable('DisableSubmitAction', true);
         }
         return $this->Template->getContent();
     }
@@ -252,24 +280,24 @@ class Form extends Extension implements IFormInterface
     {
         $HashList = array();
 
-        if (empty( $this->Hash )) {
+        if (empty($this->Hash)) {
             $GroupList = $this->GridGroupList;
-            array_walk($GroupList, function ($FormGroup) use(&$HashList) {
+            array_walk($GroupList, function ($FormGroup) use (&$HashList) {
                 if (is_object($FormGroup)) {
                     $HashList[] = get_class($FormGroup);
                     /** @var FormGroup $FormGroup */
                     $RowList = $FormGroup->getFormRow();
-                    array_walk($RowList, function ($FormRow) use(&$HashList) {
+                    array_walk($RowList, function ($FormRow) use (&$HashList) {
                         if (is_object($FormRow)) {
                             $HashList[] = get_class($FormRow);
                             /** @var FormRow $FormRow */
                             $ColumnList = $FormRow->getFormColumn();
-                            array_walk($ColumnList, function ($FormColumn) use(&$HashList) {
+                            array_walk($ColumnList, function ($FormColumn) use (&$HashList) {
                                 if (is_object($FormColumn)) {
                                     $HashList[] = get_class($FormColumn);
                                     /** @var FormColumn $FormColumn */
                                     $FrontendList = $FormColumn->getFrontend();
-                                    array_walk($FrontendList, function ($Frontend) use(&$HashList) {
+                                    array_walk($FrontendList, function ($Frontend) use (&$HashList) {
                                         if (is_object($Frontend)) {
                                             $HashList[] = get_class($Frontend);
                                         }
@@ -280,20 +308,36 @@ class Form extends Extension implements IFormInterface
                     });
                 }
             });
-            $this->Hash = md5(json_encode($HashList).date('Ymd'));
+            $this->Hash = md5(json_encode($HashList) . date('Ymd'));
         }
         return $this->Hash;
     }
 
+    /**
+     * @return $this
+     */
+    public function disableSubmitAction()
+    {
+        $this->DisableSubmitAction = true;
+        return $this;
+    }
 
     /**
      * @param Pipeline $Pipeline
      * @return $this
      */
-    public function ajaxPipelineOnSubmit( Pipeline $Pipeline )
+    public function ajaxPipelineOnSubmit(Pipeline $Pipeline)
     {
 
-        $this->Template->setVariable('AjaxEventSubmit', $Pipeline->parseScript( $this ));
+        $this->Template->setVariable('AjaxEventSubmit', $Pipeline->parseScript($this));
         return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getData()
+    {
+        return $this->Data;
     }
 }

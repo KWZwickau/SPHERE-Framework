@@ -1,9 +1,10 @@
 <?php
+
 namespace SPHERE\Application\Platform\Roadmap\Youtrack;
 
+use SPHERE\System\Cache\Handler\APCuHandler;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Debugger\DebuggerFactory;
-use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 use SPHERE\System\Debugger\Logger\QueryLogger;
 
 /**
@@ -14,7 +15,7 @@ use SPHERE\System\Debugger\Logger\QueryLogger;
 class Parser extends Connection
 {
 
-    private $YouTrackFilter = 'Sichtbar für: {Alle Benutzer} Beheben in: -{Nicht definiert}';
+    private $YouTrackFilter = 'Sichtbar für: {Alle Benutzer} Beheben in: -{Nicht geplant}';
     /** @var bool $Authenticated */
     private $Authenticated = false;
 
@@ -34,7 +35,7 @@ class Parser extends Connection
         $Issues = $this->getIssues();
 
         $Response = $this->requestCurl(
-            $this->getCredentials()->getHost().'/rest/admin/agile'
+            $this->getCredentials()->getHost() . '/rest/admin/agile'
         );
 
         /** @var \SimpleXMLElement $Response */
@@ -44,7 +45,7 @@ class Parser extends Connection
         $Sprints = $Response->xpath('//agileSettings/sprints//id');
         foreach ((array)$Sprints as $Sprint) {
             $Response = $this->requestCurl(
-                $this->getCredentials()->getHost().'/rest/admin/agile/'.$Board.'/sprint/'.$Sprint
+                $this->getCredentials()->getHost() . '/rest/admin/agile/' . $Board . '/sprint/' . $Sprint
             );
             $Response = simplexml_load_string($Response);
             /** @var Sprint $Sprint */
@@ -69,15 +70,15 @@ class Parser extends Connection
     {
 
         $Url = $this->getCredentials()->getHost()
-            .'/rest/issue/byproject/SSW'
-            .'?filter='.urlencode($this->YouTrackFilter)
-            .'&max='.urlencode('1000');
+            . '/rest/issue/byproject/SSW'
+            . '?filter=' . urlencode($this->YouTrackFilter)
+            . '&max=' . urlencode('1000');
 
         $Key = md5($Url);
         $Cache = $this->getCache(new MemcachedHandler());
-        if (!( $Result = $Cache->getValue($Key, __METHOD__) )) {
+        if (!($Result = $Cache->getValue($Key, __METHOD__))) {
             $Response = $this->requestCurl($Url);
-            (new DebuggerFactory())->createLogger(new QueryLogger())->addLog(__METHOD__.' '.$Url);
+            (new DebuggerFactory())->createLogger(new QueryLogger())->addLog(__METHOD__ . ' ' . $Url);
 
             /** @var \SimpleXMLElement $Response */
             $Response = simplexml_load_string($Response);
@@ -89,7 +90,7 @@ class Parser extends Connection
                 $Result[] = new Issue($Issue);
             }
 
-            $Cache->setValue($Key, $Result, ( 60 * 60 * 1 ), __METHOD__);
+            $Cache->setValue($Key, $Result, (60 * 60 * 1), __METHOD__);
         }
         return $Result;
     }
@@ -104,9 +105,9 @@ class Parser extends Connection
     {
 
         $Key = md5($Url);
-        $Cache = $this->getCache(new MemcachedHandler());
-        if (!( $Response = $Cache->getValue($Key, __METHOD__) )) {
-            (new DebuggerFactory())->createLogger(new QueryLogger())->addLog(__METHOD__.' '.$Url);
+        $Cache = $this->getCache(new APCuHandler());
+        if (!($Response = $Cache->getValue($Key, __METHOD__))) {
+            (new DebuggerFactory())->createLogger(new QueryLogger())->addLog(__METHOD__ . ' ' . $Url);
             if (!$this->Authenticated) {
                 $this->doLogin();
                 $this->Authenticated = true;
@@ -121,7 +122,7 @@ class Parser extends Connection
             curl_setopt($CurlHandler, CURLOPT_RETURNTRANSFER, 1);
             $Response = curl_exec($CurlHandler);
             curl_close($CurlHandler);
-            $Cache->setValue($Key, $Response, ( 60 * 60 * 1 ), __METHOD__);
+            $Cache->setValue($Key, $Response, (60 * 60 * 1), __METHOD__);
         }
         return $Response;
     }

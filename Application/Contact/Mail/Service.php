@@ -113,6 +113,38 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
+     * @param                $Address
+     * @param                $Type
+     *
+     * @return bool
+     */
+    public function checkFormMailToPerson(
+        IFormInterface &$Form,
+        $Address,
+        $Type
+    ) {
+
+        $Error = false;
+
+        $Address = $this->validateMailAddress($Address);
+
+        if (isset($Address) && empty($Address)) {
+            $Form->setError('Address', 'Bitte geben Sie eine gültige E-Mail Adresse an');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Address');
+        }
+        if (!($tblType = $this->getTypeById($Type['Type']))) {
+            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Type[Type]');
+        }
+        return $Error;
+    }
+
+    /**
+     * @param IFormInterface $Form
      * @param TblPerson      $tblPerson
      * @param string         $Address
      * @param array          $Type
@@ -133,33 +165,19 @@ class Service extends AbstractService
             return $Form;
         }
 
-        $Error = false;
+        $Error = $this->checkFormMailToPerson($Form, $Address, $Type);
+        $tblType = $this->getTypeById($Type['Type']);
 
-        $Address = $this->validateMailAddress($Address);
-
-        if (isset( $Address ) && empty( $Address )) {
-            $Form->setError('Address', 'Bitte geben Sie eine gültige E-Mail Adresse an');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Number');
-        }
-        if (!($tblType = $this->getTypeById($Type['Type']))){
-            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Type[Type]');
-        }
-
-        if (!$Error) {
+        if (!$Error && $tblType) {
             $tblMail = (new Data($this->getBinding()))->createMail($Address);
 
             if ((new Data($this->getBinding()))->addMailToPerson($tblPerson, $tblMail, $tblType, $Type['Remark'])
             ) {
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die E-Mail Adresse wurde erfolgreich hinzugefügt')
-                .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPerson->getId()));
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die E-Mail Adresse wurde erfolgreich hinzugefügt')
+                    .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPerson->getId()));
             } else {
-                return new Danger(new Ban() . ' Die E-Mail Adresse konnte nicht hinzugefügt werden')
-                .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR, array('Id' => $tblPerson->getId()));
+                return new Danger(new Ban().' Die E-Mail Adresse konnte nicht hinzugefügt werden')
+                    .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR, array('Id' => $tblPerson->getId()));
             }
         }
         return $Form;
@@ -390,7 +408,7 @@ class Service extends AbstractService
                         array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
                 }
             } else {
-                return new Danger('Firma nicht gefunden', new Ban());
+                return new Danger('Institution nicht gefunden', new Ban());
             }
         }
         return $Form;

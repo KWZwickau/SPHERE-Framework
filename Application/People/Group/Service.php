@@ -293,6 +293,7 @@ class Service extends AbstractService
     }
 
     /**
+     * @deprecated use countMemberByGroup
      * @param TblGroup $tblGroup
      *
      * @return int
@@ -301,6 +302,15 @@ class Service extends AbstractService
     {
 
         return $this->countEntityList((new Data($this->getBinding()))->getMemberAllByGroup($tblGroup));
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     * @return int
+     */
+    public function countMemberByGroup(TblGroup $tblGroup)
+    {
+        return (new Data($this->getBinding()))->countMemberByGroup($tblGroup);
     }
 
     /**
@@ -580,6 +590,31 @@ class Service extends AbstractService
             foreach ($tblGroupList as $tblGroup) {
                 $this->removeGroupPerson($tblGroup, $tblPerson, $IsSoftRemove);
             }
+        }
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     * @return TblPerson[]|bool
+     */
+    public function getTudors(TblGroup $tblGroup)
+    {
+
+        if ($tblGroup->isLocked()) {
+            return false;
+        } else {
+            $tudors = array();
+            if (($tblPersonList = $this->getPersonAllByGroup($tblGroup))
+                && ($tblGroupTudor = $this->getGroupByMetaTable(TblGroup::META_TABLE_TUDOR))
+            ) {
+                foreach ($tblPersonList as $tblPerson) {
+                    if ($this->existsGroupPerson($tblGroupTudor, $tblPerson)) {
+                        $tudors[] = $tblPerson;
+                    }
+                }
+            }
+
+            return empty($tudors) ? false : $tudors;
         }
     }
 }

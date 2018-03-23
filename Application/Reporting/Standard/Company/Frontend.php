@@ -36,14 +36,14 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendGroupList($GroupId = null)
     {
 
-        $Stage = new Stage('Auswertung', 'Firmengruppenlisten');
+        $Stage = new Stage('Auswertung', 'Institutionengruppenlisten');
         $tblGroupAll = Group::useService()->getGroupAll();
-        $groupList = array();
+        $companyList = array();
 
         if ($GroupId === null) {
             if ($tblGroupAll){
                 foreach ($tblGroupAll as &$tblGroup){
-                    $tblGroup->Count = Group::useService()->countMemberAllByGroup($tblGroup);
+                    $tblGroup->Count = Group::useService()->countMemberByGroup($tblGroup);
                     $tblGroup->Option = new Standard(new Select(), '/Reporting/Standard/Company/GroupList', null, array(
                         'GroupId' => $tblGroup->getId()
                     ));
@@ -56,7 +56,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(
                             new LayoutColumn(
                                 new TableData(
-                                    $tblGroupAll, null, array('Name' => 'Name', 'Count' => 'Firmen', 'Option' => '')
+                                    $tblGroupAll, null, array('Name' => 'Name', 'Count' => 'Institutionen', 'Option' => '')
                                 )
                             )
                         )
@@ -69,8 +69,8 @@ class Frontend extends Extension implements IFrontendInterface
             );
             $tblGroup = Group::useService()->getGroupById($GroupId);
             if ($tblGroup) {
-                $groupList = Company::useService()->createGroupList($tblGroup);
-                if ($groupList) {
+                $companyList = Company::useService()->createGroupList($tblGroup);
+                if ($companyList) {
                     $Stage->addButton(
                         new Primary('Herunterladen',
                             '/Api/Reporting/Standard/Company/GroupList/Download', new Download(),
@@ -94,12 +94,13 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(
-                                new TableData($groupList, null,
+                                new TableData($companyList, null,
                                     array(
                                         'Number'           => 'lfd. Nr.',
                                         'Name'             => 'Name',
                                         'ExtendedName'     => 'Zusatz',
                                         'Description'      => 'Beschreibung',
+                                        'ContactPerson'    => 'Ansprechpartner',
                                         'Address'          => 'Anschrift',
                                         'PhoneNumber'      => 'Telefon Festnetz',
                                         'MobilPhoneNumber' => 'Telefon Mobil',
@@ -113,15 +114,6 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     ),
-                    new LayoutGroup(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                new Panel('Anzahl', array(
-                                    'Gesamt: '.count($groupList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4)
-                        ))
-                    )
                 ))
             );
         }

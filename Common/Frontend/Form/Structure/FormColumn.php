@@ -4,6 +4,7 @@ namespace SPHERE\Common\Frontend\Form\Structure;
 use SPHERE\Common\Frontend\Form\IFieldInterface;
 use SPHERE\Common\Frontend\Form\IStructureInterface;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Text\Repository\Code;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -21,7 +22,7 @@ class FormColumn extends Extension implements IStructureInterface
 
     /**
      * @param IFrontendInterface|IFrontendInterface[] $Frontend
-     * @param int                                     $Size
+     * @param int $Size
      */
     public function __construct($Frontend, $Size = 12)
     {
@@ -31,10 +32,30 @@ class FormColumn extends Extension implements IStructureInterface
         }
         /** @var IFieldInterface $Object */
         foreach ((array)$Frontend as $Index => $Object) {
-            if (null !== $Object->getName()) {
+            if ((
+                    $Object instanceof IFieldInterface
+                    && null !== $Object->getName()
+                ) || (
+                    is_object($Object)
+                    && method_exists($Object, 'getName')
+                    && null !== $Object->getName()
+                )
+            ) {
                 $Frontend[$Object->getName()] = $Object;
-                unset( $Frontend[$Index] );
+            } else {
+                if (
+                    $Object instanceof IFrontendInterface
+                ) {
+                    $Frontend[uniqid('IFrontendInterface', true)] = $Object;
+                } else {
+                    trigger_error(
+                        'Element missing Field- or Frontend-Interface ' . new Code(
+                            htmlspecialchars(print_r($Object,true))
+                        )
+                    );
+                }
             }
+            unset($Frontend[$Index]);
         }
         $this->Frontend = $Frontend;
         $this->Size = $Size;

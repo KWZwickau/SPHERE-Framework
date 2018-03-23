@@ -8,7 +8,6 @@ use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -19,8 +18,10 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
-use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Document;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Icon\Repository\Star;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -29,7 +30,6 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -51,7 +51,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Einstellungen', 'Vorlage bearbeiten');
-        $Stage->addButton(new Standard('Zurück', '/Education/Certificate/Setting', new ChevronLeft()));
+        $Stage->addButton(new Standard('Zurück', '/Education/Certificate/Setting/Template', new ChevronLeft()));
 
         if (( $tblCertificate = Generator::useService()->getCertificateById($Certificate) )) {
 
@@ -87,7 +87,8 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $Stage->setContent(
-                Generator::useService()->createCertificateSetting(
+                new Panel('Zeugnisvorlage', array($tblCertificate->getName(), $tblCertificate->getDescription()), Panel::PANEL_TYPE_INFO)
+                . Generator::useService()->createCertificateSetting(
                     new Form(array(
                         new FormGroup(array(
                             new FormRow(array(
@@ -149,11 +150,11 @@ class Frontend extends Extension implements IFrontendInterface
                         ? $tblCertificateSubject->getServiceTblSubject()->getId()
                         : 0
                     );
-                $Global->POST[$FieldName][$LaneIndex][$LaneRanking]['Liberation'] =
-                    ( $tblCertificateSubject->getServiceTblStudentLiberationCategory()
-                        ? $tblCertificateSubject->getServiceTblStudentLiberationCategory()->getId()
-                        : 0
-                    );
+//                $Global->POST[$FieldName][$LaneIndex][$LaneRanking]['Liberation'] =
+//                    ( $tblCertificateSubject->getServiceTblStudentLiberationCategory()
+//                        ? $tblCertificateSubject->getServiceTblStudentLiberationCategory()->getId()
+//                        : 0
+//                    );
                 $Global->POST[$FieldName][$LaneIndex][$LaneRanking]['IsEssential'] =
                     ( $tblCertificateSubject->isEssential()
                         ? 1
@@ -163,7 +164,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->savePost();
         }
 
-        $tblStudentLiberationCategoryAll = Student::useService()->getStudentLiberationCategoryAll();
+//        $tblStudentLiberationCategoryAll = Student::useService()->getStudentLiberationCategoryAll();
 
         return new Panel($LaneTitle, array(
             new SelectBox($FieldName.'['.$LaneIndex.']['.$LaneRanking.'][Subject]', 'Fach',
@@ -171,9 +172,9 @@ class Frontend extends Extension implements IFrontendInterface
             ),
             new CheckBox($FieldName.'['.$LaneIndex.']['.$LaneRanking.'][IsEssential]',
                 'Muss immer ausgewiesen werden', 1),
-            new SelectBox($FieldName.'['.$LaneIndex.']['.$LaneRanking.'][Liberation]', 'Befreiung',
-                array('{{ Name }}' => $tblStudentLiberationCategoryAll)
-            ),
+//            new SelectBox($FieldName.'['.$LaneIndex.']['.$LaneRanking.'][Liberation]', 'Befreiung',
+//                array('{{ Name }}' => $tblStudentLiberationCategoryAll)
+//            ),
         ));
     }
 
@@ -222,8 +223,8 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendSelectCertificate()
     {
 
-        $Stage = new Stage('Einstellungen', 'Vorlage auswählen');
-        $Stage->addButton(new Backward());
+        $Stage = new Stage('Einstellungen', 'Zeugnisvorlage auswählen');
+        $Stage = self::setSettingMenue($Stage, 'Template');
 
         // Find Certificate-Templates
         $tblConsumer = Consumer::useService()->getConsumerBySession();
@@ -253,10 +254,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 ).'</div>',
                             'Category' => $tblCertificate->getDisplayCategory(),
                             'Option' => new Standard(
-                                'Weiter', '/Education/Certificate/Setting/Configuration', new ChevronRight(),
+                                '', '/Education/Certificate/Setting/Configuration', new Select(),
                                 array(
                                     'Certificate' => $tblCertificate->getId()
-                                ), 'Auswählen')
+                                ), 'Zeugnisvorlage auswählen')
                         )
                     );
                 });
@@ -266,7 +267,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'Category'         => 'Kategorie',
                 'Name'        => 'Name',
                 'Description' => 'Beschreibung',
-                'Option'      => 'Option'
+                'Option'      => ''
             ), array(
                 'order'      => array(array(0, 'asc'), array(1, 'asc'), array(2, 'asc'), array(3, 'asc')),
                 'columnDefs' => array(
@@ -288,6 +289,84 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             // TODO Error
         }
+
+        return $Stage;
+    }
+
+    /**
+     * @param null $Data
+     *
+     * @return Stage
+     */
+    public function frontendApproval($Data = null)
+    {
+
+        $Stage = new Stage('Einsellungen', 'Automatische Freigabe');
+        $Stage = self::setSettingMenue($Stage, 'Approval');
+
+        $certificateTypeList = array();
+        if (($tblCertificateTypeAll = Generator::useService()->getCertificateTypeAll())) {
+            $Global = $this->getGlobal();
+            foreach ($tblCertificateTypeAll as $tblCertificateType) {
+                $Global->POST['Data'][$tblCertificateType->getId()] = $tblCertificateType->isAutomaticallyApproved() ? 1 : 0;
+            }
+            $Global->savePost();
+
+            foreach ($tblCertificateTypeAll as $tblCertificateType) {
+                if ($tblCertificateType->getIdentifier() !== 'GRADE_INFORMATION') {
+                    $certificateTypeList[] = new CheckBox('Data[' . $tblCertificateType->getId() . ']',
+                        $tblCertificateType->getName(), 1);
+                }
+            }
+        }
+
+        $form = new Form(
+            new FormGroup(
+                new FormRow(
+                    new FormColumn(
+                        new Panel(
+                            'Zeugnistypen automatisch freigeben',
+                            $certificateTypeList,
+                            Panel::PANEL_TYPE_PRIMARY
+                        )
+                    )
+                )
+            )
+        );
+        $form->appendFormButton(new Primary('Speichern', new Save()));
+
+        $Stage->setContent(Generator::useService()->updateCertificateType($form, $Data));
+
+        return $Stage;
+    }
+
+    public function frontendDashboard()
+    {
+
+        $Stage = new Stage('Einstellungen', 'Auswählen');
+        $Stage = self::setSettingMenue($Stage, '');
+
+        return $Stage;
+    }
+
+    /**
+     * @param Stage $Stage
+     * @param string $Route
+     *
+     * @return Stage
+     */
+    private static function setSettingMenue(Stage $Stage, $Route = 'Template')
+    {
+
+        $text = 'Zeungisvorlagen';
+        $Stage->addButton(new Standard($Route == 'Template' ? new Edit() . ' ' . $text : $text,
+            '/Education/Certificate/Setting/Template', null, null,
+            'Den Zeugnisvorlagen Fächer zuordnen'));
+
+        $text = 'Automatische Freigabe';
+        $Stage->addButton(new Standard($Route == 'Approval' ? new Edit() . ' ' . $text : $text,
+            '/Education/Certificate/Setting/Approval', null, null,
+            'Automatische Freigaben setzen'));
 
         return $Stage;
     }

@@ -21,6 +21,7 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransport;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
@@ -316,6 +317,10 @@ class Data extends Integration
             $this->createStudentLiberationType($tblStudentLiberationCategory, 'Teilbefreit');
             $this->createStudentLiberationType($tblStudentLiberationCategory, 'Vollbefreit');
         }
+
+        $this->createStudentSchoolEnrollmentType('PREMATURE', 'vorzeitige Einschulung');
+        $this->createStudentSchoolEnrollmentType('REGULAR', 'fristgemäße Einschulung');
+        $this->createStudentSchoolEnrollmentType('POSTPONED', 'Einschulung nach Zurückstellung');
     }
 
     /**
@@ -656,5 +661,34 @@ class Data extends Integration
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblStudentTransport', $Id
         );
+    }
+
+    /**
+     * @param Element[] $EntityList
+     * @param Element[] $ProtocolList
+     *
+     * @return bool
+     *
+     */
+    public function bulkSaveEntityList($EntityList = array(), $ProtocolList = array())
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        if (!empty($EntityList)) {
+            foreach ($EntityList as $key => $Entity) {
+                $Manager->bulkSaveEntity($Entity);
+                if ($ProtocolList[$key] === false) {
+                    Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+                } else {
+                    Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                        $ProtocolList[$key],
+                        $Entity, true);
+                }
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
+            return true;
+        }
+        return false;
     }
 }

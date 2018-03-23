@@ -10,6 +10,9 @@ use Doctrine\DBAL\Query\QueryBuilder;
  */
 class View
 {
+    const JOIN_LEFT = 0;
+    const JOIN = 1;
+    const JOIN_RIGHT = 2;
 
     /** @var string $Pattern */
     private $Pattern = '|^[a-z\söäüß\-&\(\)]+$|is';
@@ -43,16 +46,17 @@ class View
      * Add ORM-Node-Link
      *
      * @param Element $From
-     * @param string  $FromKey
+     * @param string $FromKey
      * @param Element $To
-     * @param string  $ToKey Default: "Id"
+     * @param string $ToKey Default: "Id"
+     * @param int $Join View::{JOIN_LEFT|JOIN|JOIN_RIGHT}
      *
      * @return $this
      */
-    public function addLink(Element $From, $FromKey, Element $To = null, $ToKey = 'Id')
+    public function addLink(Element $From, $FromKey, Element $To = null, $ToKey = 'Id', $Join = View::JOIN_LEFT)
     {
 
-        array_push($this->LinkList, array('From' => $From, 'FromKey' => $FromKey, 'To' => $To, 'ToKey' => $ToKey));
+        array_push($this->LinkList, array('From' => $From, 'FromKey' => $FromKey, 'To' => $To, 'ToKey' => $ToKey, 'Join' => $Join));
         return $this;
     }
 
@@ -123,16 +127,44 @@ class View
             /** @var Element $To */
             $To = $Link['To'];
             if( $Link['To'] ) {
-                $QueryBuilder->leftJoin(
-                    $From->getEntityShortName(),
-                    $this->convertWordCase($To->getEntityShortName()),
-                    $To->getEntityShortName(),
-                    $QueryBuilder->expr()->andX(
-                        $QueryBuilder->expr()->eq($From->getEntityShortName() . '.' . $Link['FromKey'],
-                            $To->getEntityShortName() . '.' . $Link['ToKey']),
-                        $QueryBuilder->expr()->isNull($To->getEntityShortName() . '.EntityRemove')
-                    )
-                );
+                switch( $Link['Join'] ) {
+                    case View::JOIN_LEFT:
+                        $QueryBuilder->leftJoin(
+                            $From->getEntityShortName(),
+                            $this->convertWordCase($To->getEntityShortName()),
+                            $To->getEntityShortName(),
+                            $QueryBuilder->expr()->andX(
+                                $QueryBuilder->expr()->eq($From->getEntityShortName() . '.' . $Link['FromKey'],
+                                    $To->getEntityShortName() . '.' . $Link['ToKey']),
+                                $QueryBuilder->expr()->isNull($To->getEntityShortName() . '.EntityRemove')
+                            )
+                        );
+                        break;
+                    case View::JOIN:
+                        $QueryBuilder->join(
+                            $From->getEntityShortName(),
+                            $this->convertWordCase($To->getEntityShortName()),
+                            $To->getEntityShortName(),
+                            $QueryBuilder->expr()->andX(
+                                $QueryBuilder->expr()->eq($From->getEntityShortName() . '.' . $Link['FromKey'],
+                                    $To->getEntityShortName() . '.' . $Link['ToKey']),
+                                $QueryBuilder->expr()->isNull($To->getEntityShortName() . '.EntityRemove')
+                            )
+                        );
+                        break;
+                    case View::JOIN_RIGHT:
+                        $QueryBuilder->rightJoin(
+                            $From->getEntityShortName(),
+                            $this->convertWordCase($To->getEntityShortName()),
+                            $To->getEntityShortName(),
+                            $QueryBuilder->expr()->andX(
+                                $QueryBuilder->expr()->eq($From->getEntityShortName() . '.' . $Link['FromKey'],
+                                    $To->getEntityShortName() . '.' . $Link['ToKey']),
+                                $QueryBuilder->expr()->isNull($To->getEntityShortName() . '.EntityRemove')
+                            )
+                        );
+                        break;
+                }
             }
         }
         $QueryBuilder->where(
@@ -162,18 +194,22 @@ class View
         array_walk($PropertyList, function (\ReflectionProperty &$Property) use ($Entity, $Prefix) {
 
             $Property = $this->convertSelectAlias($Property->getName(), $Entity->getEntityShortName(), $Prefix);
+
         });
+        $PropertyList = array_filter( $PropertyList );
+
         return implode(', ', $PropertyList);
     }
 
     /**
      * Prepend Table-Alias
      *
-     * @param      $Field
-     * @param      $Table
+     * @param string $Field
+     * @param string $Table
      * @param bool $Prefix
-     *
      * @return string
+     *
+     * @throws \Exception
      */
     private function convertSelectAlias($Field, $Table, $Prefix = true)
     {

@@ -9,10 +9,10 @@ use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertifi
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
 use SPHERE\Application\Education\Certificate\Generator\Service\Setup;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
@@ -206,27 +206,27 @@ class Service extends AbstractService
                         // Update
                         (new Data($this->getBinding()))->updateCertificateSubject($tblCertificateSubject,
                             $tblSubject,
-                            ((isset($Field['IsEssential']) && $Field['IsEssential']) ? true : false),
-                            ((isset($Field['Liberation']) && $Field['Liberation'])
-                                ? (Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
-                                    ? Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
-                                    : null
-                                )
-                                : null
-                            )
+                            isset($Field['IsEssential'])
+//                            , ((isset($Field['Liberation']) && $Field['Liberation'])
+//                                ? (Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
+//                                    ? Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
+//                                    : null
+//                                )
+//                                : null
+//                            )
                         );
                     } else {
                         // Create
                         (new Data($this->getBinding()))->createCertificateSubject($tblCertificate,
                             $LaneIndex, $LaneRanking, $tblSubject,
-                            ((isset($Field['IsEssential']) && $Field['IsEssential']) ? true : false),
-                            ((isset($Field['Liberation']) && $Field['Liberation'])
-                                ? (Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
-                                    ? Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
-                                    : null
-                                )
-                                : null
-                            )
+                            isset($Field['IsEssential'])
+//                            , ((isset($Field['Liberation']) && $Field['Liberation'])
+//                                ? (Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
+//                                    ? Student::useService()->getStudentLiberationCategoryById($Field['Liberation'])
+//                                    : null
+//                                )
+//                                : null
+//                            )
                         );
                     }
                 } else {
@@ -248,7 +248,7 @@ class Service extends AbstractService
 
         if (empty($Error)) {
             return new Success(new Enable() . ' Die Einstellungen wurden gespeichert')
-            . new Redirect('/Education/Certificate/Setting', Redirect::TIMEOUT_SUCCESS);
+            . new Redirect('/Education/Certificate/Setting/Template', Redirect::TIMEOUT_SUCCESS);
         } else {
             // TODO Show $Error List
             return new Danger(new Disable() . ' Eine oder mehrere Einstellungen wurden nicht gespeichert!')
@@ -386,16 +386,24 @@ class Service extends AbstractService
     {
 
         return array(
-            'Content.Input.Remark' => 'TextArea',
-            'Content.Input.Rating' => 'TextArea',
-            'Content.Input.Survey' => 'TextArea',
-            'Content.Input.Deepening' => 'TextField',
-            'Content.Input.SchoolType' => 'SelectBox',
-            'Content.Input.Type' => 'SelectBox',
-            'Content.Input.DateCertifcate' => 'DatePicker',
-            'Content.Input.DateConference' => 'DatePicker',
-            'Content.Input.Transfer' => 'SelectBox',
-            'Content.Input.TeamExtra' => 'TextField'
+            'Content.Input.Remark'             => 'TextArea',
+            'Content.Input.SecondRemark'       => 'TextArea',
+            'Content.Input.RemarkWithoutTeam'  => 'TextArea',
+            'Content.Input.Rating'             => 'TextArea',
+            'Content.Input.TechnicalRating'    => 'TextArea',
+            'Content.Input.Survey'             => 'TextArea',
+            'Content.Input.Deepening'          => 'TextField',
+            'Content.Input.SchoolType'         => 'SelectBox',
+            'Content.Input.Type'               => 'SelectBox',
+            'Content.Input.DateCertifcate'     => 'DatePicker',
+            'Content.Input.DateConference'     => 'DatePicker',
+            'Content.Input.DateConsulting'     => 'DatePicker',
+            'Content.Input.Transfer'           => 'SelectBox',
+            'Content.Input.IndividualTransfer' => 'TextField',
+            'Content.Input.TeamExtra'          => 'TextField',
+            'Content.Input.BellSubject'        => 'TextField',
+            'Content.Input.PerformanceGroup'   => 'TextField',
+            'Content.Input.Arrangement'        => 'TextArea'
         );
     }
 
@@ -406,16 +414,70 @@ class Service extends AbstractService
     {
 
         return array(
-            'Content.Input.Remark' => 'Bemerkungen',
-            'Content.Input.Rating' => 'Einschätzung',
-            'Content.Input.Survey' => 'Gutachten',
-            'Content.Input.Deepening' => 'Vertiefungsrichtung',
-            'Content.Input.SchoolType' => 'Ausbildung fortsetzen',
-            'Content.Input.Type' => 'Bezieht sich auf',
-            'Content.Input.DateCertifcate' => 'Datum des Zeugnisses',
-            'Content.Input.DateConference' => 'Datum der Konferenz',
-            'Content.Input.Transfer' => 'Versetzungsvermerk',
-            'Content.Input.TeamExtra' => 'Arbeitsgemeinschaften'
+            'Content.Input.Remark'             => 'Bemerkungen',
+            'Content.Input.SecondRemark'       => 'Bemerkung Seite 2',
+            'Content.Input.RemarkWithoutTeam'  => 'Bemerkungen',
+            'Content.Input.Rating'             => 'Einschätzung',
+            'Content.Input.TechnicalRating'    => 'Fachliche Einschätzung',
+            'Content.Input.Survey'             => 'Gutachten',
+            'Content.Input.Deepening'          => 'Vertiefungsrichtung',
+            'Content.Input.SchoolType'         => 'Ausbildung fortsetzen',
+            'Content.Input.Type'               => 'Bezieht sich auf',
+            'Content.Input.DateCertifcate'     => 'Datum des Zeugnisses',
+            'Content.Input.DateConference'     => 'Datum der Klassenkonferenz',
+            'Content.Input.DateConsulting'     => 'Datum der Bildungsberatung',
+            'Content.Input.Transfer'           => 'Versetzungsvermerk',
+            'Content.Input.IndividualTransfer' => 'Versetzungsvermerk',
+            'Content.Input.TeamExtra'          => 'Arbeitsgemeinschaften',
+            'Content.Input.BellSubject'        => 'Thema BELL',
+            'Content.Input.PerformanceGroup'   => 'Leistungsgruppe',
+            'Content.Input.Arrangement'        => 'Besonderes Engagement'
         );
+    }
+
+    /**
+     * @param TblGradeType $tblGradeType
+     *
+     * @return bool
+     */
+    public function isGradeTypeUsed(TblGradeType $tblGradeType)
+    {
+
+        return (new Data($this->getBinding()))->isGradeTypeUsed($tblGradeType);
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function updateCertificateType(
+        IFormInterface $Form,
+        $Data
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        $Global = $this->getGlobal();
+        if (!isset($Global->POST['Button']['Submit'])) {
+            return $Form;
+        }
+
+        if (($tblCertificateTypeAll = $this->getCertificateTypeAll())) {
+            foreach ($tblCertificateTypeAll as $tblCertificateType) {
+                if (isset($Data[$tblCertificateType->getId()]) && !$tblCertificateType->isAutomaticallyApproved()) {
+                    (new Data($this->getBinding()))->updateCertificateType($tblCertificateType,
+                        $tblCertificateType->getIdentifier(), $tblCertificateType->getName(), true);
+                } elseif (!isset($Data[$tblCertificateType->getId()]) && $tblCertificateType->isAutomaticallyApproved()) {
+                    (new Data($this->getBinding()))->updateCertificateType($tblCertificateType,
+                        $tblCertificateType->getIdentifier(), $tblCertificateType->getName(), false);
+                }
+            }
+        }
+
+        return new Success('Die Daten wurden erfolgreich gespeichert', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+            . new Redirect('/Education/Certificate/Setting/Approval', Redirect::TIMEOUT_SUCCESS);
     }
 }

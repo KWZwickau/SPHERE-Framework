@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Layout\Repository\Address as LayoutAddress;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Database\Fitting\Element;
@@ -17,6 +18,10 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblAddress extends Element
 {
+
+    // GuiStringOrder (Consumer Setting)
+    const VALUE_PLZ_ORT_OT_STR_NR = '1';
+    const VALUE_OT_STR_NR_PLZ_ORT = '2';
 
     const ATTR_STREET_NAME = 'StreetName';
     const ATTR_STREET_NUMBER = 'StreetNumber';
@@ -88,22 +93,56 @@ class TblAddress extends Element
     }
 
     /**
+     * @param bool $Extended (true = with Location (Country, State, Nation))
+     *
      * @return string
      */
-    public function getGuiString()
+    public function getGuiString($Extended = true)
     {
 
         $Cache = $this->getCache(new MemcachedHandler());
         if (null === ($Return = $Cache->getValue($this->getId(), __METHOD__))) {
 
-            $Return =
-                ( $this->getTblCity()->getDisplayDistrict() !== '' ? ( $this->getTblCity()->getDisplayDistrict() ).' ' : '' )
-                .$this->getStreetName()
-                . ' ' . $this->getStreetNumber()
-                . ', ' . $this->getTblCity()->getCode()
-                .' '.$this->getTblCity()->getName()
-                . ($this->getLocation() ? ' (' . $this->getLocation() . ')' : '');
-
+            // 0 as Default
+            $Value = '0';
+            $tblSetting = Consumer::useService()->getSetting('Contact', 'Address', 'Address', 'Format_GuiString');
+            if ($tblSetting) {
+                $Value = $tblSetting->getValue();
+            }
+            switch ($Value) {
+                case $this::VALUE_PLZ_ORT_OT_STR_NR:
+                    $Return =
+                        $this->getTblCity()->getCode()
+                        .' '.$this->getTblCity()->getName()
+                        .($this->getTblCity()->getDisplayDistrict() !== '' ? ' '.($this->getTblCity()->getDisplayDistrict()).',' : ',')
+                        .' '.$this->getStreetName()
+                        .' '.$this->getStreetNumber()
+                        .($Extended
+                            ? ($this->getLocation() ? ' ('.$this->getLocation().')' : '')
+                            : ''
+                        );
+                    break;
+                case $this::VALUE_OT_STR_NR_PLZ_ORT:
+                    $Return =
+                        ($this->getTblCity()->getDisplayDistrict() !== '' ? ' '.($this->getTblCity()->getDisplayDistrict()) : '')
+                        .' '.$this->getStreetName()
+                        .' '.$this->getStreetNumber()
+                        .', '.$this->getTblCity()->getCode()
+                        .' '.$this->getTblCity()->getName()
+                        .($Extended
+                            ? ($this->getLocation() ? ' ('.$this->getLocation().')' : '')
+                            : ''
+                        );
+                    break;
+                default:
+                    $Return =
+                        $this->getTblCity()->getCode()
+                        .' '.$this->getTblCity()->getName()
+                        .($this->getTblCity()->getDisplayDistrict() !== '' ? ' '.($this->getTblCity()->getDisplayDistrict()).',' : ',')
+                        .' '.$this->getStreetName()
+                        .' '.$this->getStreetNumber()
+                        .($this->getLocation() ? ' ('.$this->getLocation().')' : '');
+            }
             $Cache->setValue($this->getId(), $Return, 0, __METHOD__);
         }
         return $Return;

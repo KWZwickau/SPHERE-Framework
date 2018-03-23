@@ -122,7 +122,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Form
      */
-    private function formAddress()
+    public function formAddress()
     {
 
         $tblAddress = Address::useService()->getAddressAll();
@@ -192,7 +192,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblCompany = Company::useService()->getCompanyById($Id);
         $Stage = new Stage('Adresse', 'Hinzufügen');
-        $Stage->setMessage('Eine Adresse zur gewählten Firma hinzufügen');
+        $Stage->setMessage('Eine Adresse zur gewählten Institution hinzufügen');
 
         if ($tblCompany) {
             $Stage->addButton(new Standard('Zurück', '/Corporation/Company', new ChevronLeft(), array('Id' => $tblCompany->getId())));
@@ -202,7 +202,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(array(
                         new LayoutRow(
                             new LayoutColumn(
-                                new Panel(new Building() . ' Firma',
+                                new Panel(new Building().' Institution',
                                     array(
                                         new Bold($tblCompany->getName()),
                                         $tblCompany->getExtendedName()),
@@ -230,7 +230,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             return $Stage;
         } else {
-            return $Stage . new Danger(new Ban() . ' Firma nicht gefunden.')
+            return $Stage.new Danger(new Ban().' Institution nicht gefunden.')
             . new Redirect('/Corporation/Search/Group', Redirect::TIMEOUT_ERROR);
         }
     }
@@ -333,7 +333,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblToCompany = Address::useService()->getAddressToCompanyById($Id);
 
         $Stage = new Stage('Adresse', 'Bearbeiten');
-        $Stage->setMessage('Die Adresse der gewählten Firma ändern');
+        $Stage->setMessage('Die Adresse der gewählten Institution ändern');
         if ($tblToCompany->getServiceTblCompany()) {
 
             $tblCompany = $tblToCompany->getServiceTblCompany();
@@ -361,12 +361,12 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(array(
                         new LayoutRow(
                             new LayoutColumn(
-                                new Panel(new PersonIcon() . ' Firma',
+                                new Panel(new PersonIcon().' Institution',
                                     $tblToCompany->getServiceTblCompany()
                                         ? array(
                                         new Bold($tblToCompany->getServiceTblCompany()->getName()),
                                         $tblToCompany->getServiceTblCompany()->getExtendedName())
-                                        : 'Firma nicht gefunden.',
+                                        : 'Institution nicht gefunden.',
                                     Panel::PANEL_TYPE_SUCCESS
                                 )
                             )
@@ -390,7 +390,7 @@ class Frontend extends Extension implements IFrontendInterface
             );
             return $Stage;
         } else {
-            return $Stage . new Danger(new Ban() . ' Firma nicht gefunden.')
+            return $Stage.new Danger(new Ban().' Institution nicht gefunden.')
             . new Redirect('/Corporation/Search/Group', Redirect::TIMEOUT_ERROR);
         }
     }
@@ -481,7 +481,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $tblCompany = $tblToCompany->getServiceTblCompany();
             if(!$tblCompany){
-                return $Stage . new Danger('Firma nicht gefunden', new Ban())
+                return $Stage.new Danger('Institution nicht gefunden', new Ban())
                 . new Redirect('/Corporation/Search/Group', Redirect::TIMEOUT_ERROR);
             }
 
@@ -493,7 +493,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new Bold($tblCompany->getName()),
                                 $tblCompany->getExtendedName()),
                             Panel::PANEL_TYPE_SUCCESS,
-                            new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
+                            new Standard('Zurück zur Institution', '/Corporation/Company', new ChevronLeft(),
                                 array('Id' => $tblCompany->getId())
                             )
                         ),

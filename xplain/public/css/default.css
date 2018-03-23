@@ -1,0 +1,30 @@
+body {
+    padding-top: 80px;
+}
+#comp_infos {
+    display: none;
+}
+.a-black {
+    color: #333 !important;
+    text-decoration: none !important;
+}
+textarea {
+    margin-top: 10px;
+    white-space: pre-wrap;
+    font-family: monospace;
+    tab-size: 4;
+    /* Used only for Firefox which does not apply tab-size */
+    -moz-tab-size: 4;
+}
+#form-content .pull-right {
+    margin-bottom: 10px;
+    margin-top: -5px;
+}
+#context_queries {
+    display: none;
+}
+div.container {
+    margin-left: 0;
+    margin-right: 0;
+    width: 100%;
+}

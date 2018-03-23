@@ -18,7 +18,7 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
 {
 
     /** @var null|\Memcached $Connection */
-    private $Connection = null;
+    private static $Connection = null;
 
     private $Host = '';
     private $Port = '';
@@ -32,25 +32,37 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
     public function setConfig($Name, ReaderInterface $Config = null)
     {
 
-        if (null === $this->Connection
+        if (null === self::$Connection
             && null !== $Config
             && class_exists('\Memcached', false)
         ) {
             $Value = $Config->getValue($Name);
             if ($Value) {
-                $this->Host = $Value->getContainer('Host');
-                $this->Port = $Value->getContainer('Port');
-                if ($this->Host && $this->Port) {
-                    $this->Connection = new \Memcached('pMC');
-                    $this->Connection->setOption(\Memcached::OPT_LIBKETAMA_COMPATIBLE, true);
-                    $this->Connection->setOption(\Memcached::OPT_TCP_NODELAY, true);
-                    $this->Connection->setOption(\Memcached::OPT_NO_BLOCK, true);
-                    $this->Connection->setOption(\Memcached::OPT_CONNECT_TIMEOUT, 1);
-                    if( !count($this->Connection->getServerList()) ) {
-                        if ($this->Connection->addServer((string)$this->Host, (string)$this->Port)) {
+                if ($Value->getContainer('Enabled') && $Value->getContainer('Enabled')->getValue()) {
+                    $this->Host = $Value->getContainer('Host');
+                    $this->Port = $Value->getContainer('Port');
+                    if ($this->Host && $this->Port) {
+                        self::$Connection = new \Memcached('pMC');
+                        self::$Connection->setOption(\Memcached::OPT_LIBKETAMA_COMPATIBLE, true);
+                        self::$Connection->setOption(\Memcached::OPT_COMPRESSION, false);
+                        self::$Connection->setOption(\Memcached::OPT_TCP_NODELAY, true);
+                        self::$Connection->setOption(\Memcached::OPT_NO_BLOCK, true);
+                        self::$Connection->setOption(\Memcached::OPT_CONNECT_TIMEOUT, 1);
+                        if (!count(self::$Connection->getServerList())) {
+                            if (self::$Connection->addServer((string)$this->Host, (string)$this->Port)) {
+                                $this->setValue('CheckRunningStatus', true);
+                                if (true === $this->getValue('CheckRunningStatus')) {
+                                    self::$Connection->delete('CheckRunningStatus');
+                                    return $this;
+                                } else {
+                                    (new DebuggerFactory())->createLogger(new ErrorLogger())
+                                        ->addLog(__METHOD__ . ' Error: Server not available -> Fallback');
+                                }
+                            }
+                        } else {
                             $this->setValue('CheckRunningStatus', true);
                             if (true === $this->getValue('CheckRunningStatus')) {
-                                $this->Connection->delete('CheckRunningStatus');
+                                self::$Connection->delete('CheckRunningStatus');
                                 return $this;
                             } else {
                                 (new DebuggerFactory())->createLogger(new ErrorLogger())
@@ -58,38 +70,32 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
                             }
                         }
                     } else {
-                        $this->setValue('CheckRunningStatus', true);
-                        if (true === $this->getValue('CheckRunningStatus')) {
-                            $this->Connection->delete('CheckRunningStatus');
-                            return $this;
-                        } else {
-                            (new DebuggerFactory())->createLogger(new ErrorLogger())
-                                ->addLog(__METHOD__ . ' Error: Server not available -> Fallback');
-                        }
+                        (new DebuggerFactory())->createLogger(new ErrorLogger())
+                            ->addLog(__METHOD__ . ' Error: Configuration not available -> Fallback');
                     }
                 } else {
                     (new DebuggerFactory())->createLogger(new ErrorLogger())
-                        ->addLog(__METHOD__.' Error: Configuration not available -> Fallback');
+                        ->addLog(__METHOD__ . ' Error: MemcachedHandler is Disabled -> Fallback');
                 }
             } else {
                 (new DebuggerFactory())->createLogger(new ErrorLogger())
-                    ->addLog(__METHOD__.' Error: Configuration not available -> Fallback');
+                    ->addLog(__METHOD__ . ' Error: Configuration not available -> Fallback');
             }
         } else {
             if (null === $Config) {
                 (new DebuggerFactory())->createLogger(new ErrorLogger())
-                    ->addLog(__METHOD__.' Error: Configuration not available -> Fallback');
+                    ->addLog(__METHOD__ . ' Error: Initialisation not possible -> Fallback');
             }
         }
         (new DebuggerFactory())->createLogger(new ErrorLogger())
-            ->addLog(__METHOD__.' Error: Memcached not available -> Fallback');
+            ->addLog(__METHOD__ . ' Error: Memcached not available -> Fallback');
         return (new CacheFactory())->createHandler(new DefaultHandler());
     }
 
     /**
      * @param string $Key
-     * @param mixed  $Value
-     * @param int    $Timeout
+     * @param mixed $Value
+     * @param int $Timeout
      * @param string $Region
      *
      * @return MemcachedHandler
@@ -98,17 +104,17 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
     {
 
         if ($this->isValid()) {
-            $this->Connection->set(preg_replace('!\s+!is', '', $this->getSlotRegion($Region).'#'.$Key), $Value,
-                ( !$Timeout ? null : time() + $Timeout ));
+            self::$Connection->set(preg_replace('!\s+!is', '', $this->getSlotRegion($Region) . '#' . $Key), $Value,
+                (!$Timeout ? null : time() + $Timeout));
             // 0 = MEMCACHED_SUCCESS
-            if (0 == ( $Code = $this->Connection->getResultCode() )) {
+            if (0 == ($Code = self::$Connection->getResultCode())) {
                 return $this;
             } else {
                 (new DebuggerFactory())->createLogger(new ErrorLogger())
-                    ->addLog(__METHOD__.' Error: '
-                        .$Region.'->'.$Key.' - '
-                        .$Code.' - '
-                        .$this->Connection->getResultMessage()
+                    ->addLog(__METHOD__ . ' Error: '
+                        . $Region . '->' . $Key . ' - '
+                        . $Code . ' - '
+                        . self::$Connection->getResultMessage()
                     );
             }
         }
@@ -121,7 +127,7 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
     private function isValid()
     {
 
-        return ( null === $this->Connection ? false : true );
+        return (null === self::$Connection ? false : true);
     }
 
     /**
@@ -132,7 +138,7 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
     public function getSlotRegion($Region)
     {
 
-        return $this->getSlot().':'.$Region;
+        return $this->getSlot() . ':' . $Region;
     }
 
     /**
@@ -141,7 +147,7 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
     public function getSlot()
     {
 
-        if (isset( $_SESSION['Memcached-Slot'] )) {
+        if (isset($_SESSION['Memcached-Slot'])) {
             return $_SESSION['Memcached-Slot'];
         }
         return 'PUBLIC';
@@ -157,16 +163,16 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
     {
 
         if ($this->isValid()) {
-            $Value = $this->Connection->get(preg_replace('!\s+!is', '', $this->getSlotRegion($Region).'#'.$Key));
+            $Value = self::$Connection->get(preg_replace('!\s+!is', '', $this->getSlotRegion($Region) . '#' . $Key));
             // 0 = MEMCACHED_SUCCESS
-            if (0 == ( $Code = $this->Connection->getResultCode() )) {
+            if (0 == ($Code = self::$Connection->getResultCode())) {
                 return $Value;
             } else {
                 (new DebuggerFactory())->createLogger(new ErrorLogger())
-                    ->addLog(__METHOD__.' Error: '
-                        .$Region.'->'.$Key.' - '
-                        .$Code.' - '
-                        .$this->Connection->getResultMessage()
+                    ->addLog(__METHOD__ . ' Error: '
+                        . $Region . '->' . $Key . ' - '
+                        . $Code . ' - '
+                        . self::$Connection->getResultMessage()
                     );
             }
         }
@@ -179,7 +185,7 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
     public function getCache()
     {
 
-        return $this->Connection;
+        return self::$Connection;
     }
 
     /**
@@ -190,33 +196,36 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
 
         (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Clear MemCached');
         if ($this->isValid()) {
-            $this->Connection->flush();
+            self::$Connection->flush();
             // 0 = MEMCACHED_SUCCESS
-            if (0 == ( $Code = $this->Connection->getResultCode() )) {
+            if (0 == ($Code = self::$Connection->getResultCode())) {
                 return $this;
             } else {
                 (new DebuggerFactory())->createLogger(new ErrorLogger())
-                    ->addLog(__METHOD__.' Error: '
-                        .$Code.' - '
-                        .$this->Connection->getResultMessage()
+                    ->addLog(__METHOD__ . ' Error: '
+                        . $Code . ' - '
+                        . self::$Connection->getResultMessage()
                     );
             }
         }
         return $this;
     }
 
+    /**
+     * @param string $Slot
+     */
     public function clearSlot($Slot)
     {
 
-        (new DebuggerFactory())->createLogger(new CacheLogger())->addLog('Requested Memcached-Slot-Clear: '.$Slot);
-        $Pattern = '!^'.preg_quote($Slot, '!').':!is';
-        if (!( $CacheList = $this->fetchKeys() )) {
+        (new DebuggerFactory())->createLogger(new CacheLogger())->addLog('Requested Memcached-Slot-Clear: ' . $Slot);
+        $Pattern = '!^' . preg_quote($Slot, '!') . ':!is';
+        if (!($CacheList = $this->fetchKeys())) {
             $CacheList = array();
         }
         $KeyList = preg_grep($Pattern, $CacheList);
-        if (!empty( $KeyList )) {
+        if (!empty($KeyList)) {
             $this->removeKeys($KeyList);
-            (new DebuggerFactory())->createLogger(new CacheLogger())->addLog('Cleared Memcached-Slot: '.implode(',',
+            (new DebuggerFactory())->createLogger(new CacheLogger())->addLog('Cleared Memcached-Slot: ' . implode(',',
                     $KeyList));
         }
     }
@@ -231,15 +240,17 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
     public function fetchKeys()
     {
 
-        $List = $this->Connection->getAllKeys();
+        $List = self::$Connection->getAllKeys();
+        (new DebuggerFactory())->createLogger(new ErrorLogger())
+            ->addLog(__METHOD__ . ' Content: ' . json_encode($List));
         // 0 = MEMCACHED_SUCCESS
-        if (0 == ( $Code = $this->Connection->getResultCode() )) {
+        if (0 == ($Code = self::$Connection->getResultCode())) {
             return $List;
         } else {
             (new DebuggerFactory())->createLogger(new ErrorLogger())
-                ->addLog(__METHOD__.' Error: '
-                    .$Code.' - '
-                    .$this->Connection->getResultMessage()
+                ->addLog(__METHOD__ . ' Error: '
+                    . $Code . ' - '
+                    . self::$Connection->getResultMessage()
                 );
         }
         return array();
@@ -257,15 +268,15 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
     public function removeKeys($List)
     {
 
-        $this->Connection->deleteMulti($List);
+        self::$Connection->deleteMulti($List);
         // 0 = MEMCACHED_SUCCESS
-        if (0 == ( $Code = $this->Connection->getResultCode() )) {
+        if (0 == ($Code = self::$Connection->getResultCode())) {
             return $this;
         } else {
             (new DebuggerFactory())->createLogger(new ErrorLogger())
-                ->addLog(__METHOD__.' Error: '
-                    .$Code.' - '
-                    .$this->Connection->getResultMessage()
+                ->addLog(__METHOD__ . ' Error: '
+                    . $Code . ' - '
+                    . self::$Connection->getResultMessage()
                 );
         }
         return $this;
@@ -279,8 +290,8 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
 
         (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Status MemCached');
         if ($this->isValid()) {
-            $Status = $this->Connection->getStats();
-            $Status = $Status[$this->Host.':'.$this->Port];
+            $Status = self::$Connection->getStats();
+            $Status = $Status[$this->Host . ':' . $this->Port];
             return new CacheStatus(
                 $Status['get_hits'], $Status['get_misses'], $Status['limit_maxbytes'],
                 $Status['bytes'], $Status['limit_maxbytes'] - $Status['bytes'], 0

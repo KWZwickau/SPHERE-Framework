@@ -107,9 +107,7 @@ class Manager extends Extension
     final public function killEntity($Entity)
     {
 
-        if( !$this->EntityManager->contains( $Entity ) ) {
-            $Entity = $this->EntityManager->merge($Entity);
-        }
+        $Entity = $this->prepareEntity( $Entity );
         $this->EntityManager->remove($Entity);
         $this->flushCache(get_class($Entity));
         (new DataCacheHandler(__METHOD__))->addDependency($Entity)->clearData();
@@ -234,6 +232,7 @@ class Manager extends Extension
     final public function bulkSaveEntity($Entity)
     {
 
+        $Entity = $this->prepareEntity( $Entity, true );
         $this->EntityManager->persist($Entity);
         return $this;
     }
@@ -248,11 +247,30 @@ class Manager extends Extension
     final public function bulkKillEntity($Entity)
     {
 
-        if( !$this->EntityManager->contains( $Entity ) ) {
-            $Entity = $this->EntityManager->merge($Entity);
-        }
+        $Entity = $this->prepareEntity( $Entity );
         $this->EntityManager->remove($Entity);
         return $this;
+    }
+
+    /**
+     * @param Element $Entity
+     * @param bool $updateLifeCycle
+     * @return Element
+     */
+    final private function prepareEntity( $Entity, $updateLifeCycle = false ) {
+
+        if( !$this->EntityManager->contains( $Entity ) ) {
+            /** @var Element $Entity */
+            $Entity = $this->EntityManager->merge($Entity);
+            if( $updateLifeCycle ) {
+                if (empty($Entity->getEntityCreate())) {
+                    $Entity->lifecycleCreate();
+                } else {
+                    $Entity->lifecycleUpdate();
+        }
+            }
+        }
+        return $Entity;
     }
 
     /**

@@ -41,7 +41,7 @@ class Data extends AbstractData
     /**
      * @param string $Name
      * @param string $Description
-     * @param bool   $IsLocked
+     * @param bool $IsLocked
      * @param string $Identifier
      *
      * @return TblPartition
@@ -53,13 +53,13 @@ class Data extends AbstractData
 
         if ($IsLocked) {
             $Entity = $Manager->getEntity('TblPartition')->findOneBy(array(
-                TblPartition::ATTR_IS_LOCKED  => $IsLocked,
+                TblPartition::ATTR_IS_LOCKED => $IsLocked,
                 TblPartition::ATTR_IDENTIFIER => $Identifier,
-                TblPartition::ENTITY_REMOVE   => null
+                TblPartition::ENTITY_REMOVE => null
             ));
         } else {
             $Entity = $Manager->getEntity('TblPartition')->findOneBy(array(
-                TblPartition::ATTR_NAME     => $Name,
+                TblPartition::ATTR_NAME => $Name,
                 TblPartition::ENTITY_REMOVE => null
             ));
         }
@@ -104,9 +104,9 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string          $Name
-     * @param string          $Extension
-     * @param string          $MimeType
+     * @param string $Name
+     * @param string $Extension
+     * @param string $MimeType
      * @param TblFileCategory $tblFileCategory
      *
      * @return TblFileType
@@ -136,11 +136,11 @@ class Data extends AbstractData
 
     /**
      * @param TblPartition $tblPartition
-     * @param string       $Name
-     * @param string       $Description
+     * @param string $Name
+     * @param string $Description
      * @param TblDirectory $tblDirectory
-     * @param bool         $IsLocked
-     * @param string       $Identifier
+     * @param bool $IsLocked
+     * @param string $Identifier
      *
      * @return TblDirectory
      */
@@ -157,18 +157,18 @@ class Data extends AbstractData
 
         if ($IsLocked) {
             $Entity = $Manager->getEntity('TblDirectory')->findOneBy(array(
-                TblDirectory::ATTR_IS_LOCKED     => $IsLocked,
-                TblDirectory::ATTR_IDENTIFIER    => strtoupper($Identifier),
+                TblDirectory::ATTR_IS_LOCKED => $IsLocked,
+                TblDirectory::ATTR_IDENTIFIER => strtoupper($Identifier),
                 TblDirectory::ATTR_TBL_PARTITION => $tblPartition->getId(),
-                TblDirectory::ATTR_TBL_DIRECTORY => ( $tblDirectory ? $tblDirectory->getId() : null ),
-                TblDirectory::ENTITY_REMOVE      => null
+                TblDirectory::ATTR_TBL_DIRECTORY => ($tblDirectory ? $tblDirectory->getId() : null),
+                TblDirectory::ENTITY_REMOVE => null
             ));
         } else {
             $Entity = $Manager->getEntity('TblDirectory')->findOneBy(array(
-                TblDirectory::ATTR_NAME          => $Name,
+                TblDirectory::ATTR_NAME => $Name,
                 TblDirectory::ATTR_TBL_PARTITION => $tblPartition->getId(),
-                TblDirectory::ATTR_TBL_DIRECTORY => ( $tblDirectory ? $tblDirectory->getId() : null ),
-                TblDirectory::ENTITY_REMOVE      => null
+                TblDirectory::ATTR_TBL_DIRECTORY => ($tblDirectory ? $tblDirectory->getId() : null),
+                TblDirectory::ENTITY_REMOVE => null
             ));
         }
 
@@ -228,7 +228,7 @@ class Data extends AbstractData
     public function getBinaryById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBinary', $Id);
+        return $this->getForceEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBinary', $Id);
     }
 
     /**
@@ -295,7 +295,7 @@ class Data extends AbstractData
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDirectory',
             array(
-                TblDirectory::ATTR_TBL_DIRECTORY => ( $tblDirectory ? $tblDirectory->getId() : null )
+                TblDirectory::ATTR_TBL_DIRECTORY => ($tblDirectory ? $tblDirectory->getId() : null)
             ));
     }
 
@@ -337,26 +337,26 @@ class Data extends AbstractData
         $Hash = $New->getHash();
 
         $Entity = $Manager->getEntity('TblBinary')->findOneBy(array(
-            TblBinary::ATTR_HASH     => $Hash,
+            TblBinary::ATTR_HASH => $Hash,
             TblBinary::ENTITY_REMOVE => null
         ));
 
         if (null === $Entity) {
             $Entity = $New;
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+//            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
 
         return $Entity;
     }
 
     /**
-     * @param TblBinary    $tblBinary
+     * @param TblBinary $tblBinary
      * @param TblDirectory $tblDirectory
-     * @param TblFileType  $tblFileType
-     * @param string       $Name
-     * @param string       $Description
-     * @param bool         $IsLocked
+     * @param TblFileType $tblFileType
+     * @param string $Name
+     * @param string $Description
+     * @param bool $IsLocked
      *
      * @return TblFile
      */
@@ -374,8 +374,8 @@ class Data extends AbstractData
         $Entity = $Manager->getEntity('TblFile')->findOneBy(array(
             TblFile::ATTR_TBL_DIRECTORY => $tblDirectory->getId(),
             TblFile::ATTR_TBL_FILE_TYPE => $tblFileType->getId(),
-            TblFile::ATTR_NAME          => $Name,
-            TblFile::ENTITY_REMOVE      => null
+            TblFile::ATTR_NAME => $Name,
+            TblFile::ENTITY_REMOVE => null
         ));
 
         if (null === $Entity) {
@@ -438,5 +438,56 @@ class Data extends AbstractData
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblReferenceType',
             $Id);
+    }
+
+    /**
+     * @param TblDirectory $tblDirectory
+     * @param TblFileType $tblFileType
+     * @param $Name
+     *
+     * @return false|TblFile
+     */
+    public function exitsFile(
+        TblDirectory $tblDirectory,
+        TblFileType $tblFileType,
+        $Name
+    ) {
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblFile', array(
+            TblFile::ATTR_TBL_DIRECTORY => $tblDirectory->getId(),
+            TblFile::ATTR_TBL_FILE_TYPE => $tblFileType->getId(),
+            TblFile::ATTR_NAME => $Name,
+            TblFile::ENTITY_REMOVE => null
+        ));
+    }
+
+    /**
+     * @param TblFile $tblFile
+     * @param TblBinary $tblBinary
+     * @param $Description
+     *
+     * @return bool
+     */
+    public function updateFile(
+        TblFile $tblFile,
+        TblBinary $tblBinary,
+        $Description
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblFile $Entity*/
+        $Entity = $Manager->getEntityById('TblFile', $tblFile->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setTblBinary($tblBinary);
+            $Entity->setDescription($Description);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
     }
 }

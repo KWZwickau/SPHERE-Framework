@@ -25,9 +25,9 @@ class Data extends AbstractData
     {
 
         $this->createObjectType('Einzel-Person', 'PERSON');
-        $this->createObjectType('Einzel-Firma', 'COMPANY');
+        $this->createObjectType('Einzel-Institution', 'COMPANY');
         $this->createObjectType('Personengruppe', 'PERSONGROUP');
-        $this->createObjectType('Firmengruppe', 'COMPANYGROUP');
+        $this->createObjectType('Institutionengruppe', 'COMPANYGROUP');
         $this->createObjectType('Klassen', 'DIVISIONGROUP');
 
         $this->createElementType('CheckBox', 'CHECKBOX');
@@ -64,6 +64,23 @@ class Data extends AbstractData
         }
 
         return $Entity;
+    }
+
+    public function updateObjectType(TblObjectType $tblObjectType, $Name)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblObjectType $Entity */
+        $Entity = $Manager->getEntityById('TblObjectType', $tblObjectType->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setName($Name);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -647,6 +664,7 @@ class Data extends AbstractData
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
+        /** @var TblListElementList $Entity */
         return $Entity;
     }
 

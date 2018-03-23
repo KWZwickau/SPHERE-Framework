@@ -9,11 +9,14 @@ use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
+use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
 use SPHERE\Application\Setting\Consumer\School\Service\Entity\TblSchool;
 use SPHERE\Common\Frontend\Form\Repository\Button\Danger;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -22,6 +25,8 @@ use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Link;
 use SPHERE\Common\Frontend\Icon\Repository\Mail as MailIcon;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
@@ -49,8 +54,10 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -90,12 +97,42 @@ class Frontend extends Extension implements IFrontendInterface
             $Form = null;
             foreach ($tblSchoolAll as $tblSchool) {
                 $tblCompany = $tblSchool->getServiceTblCompany();
+                $CompanyNumber = $tblSchool->getCompanyNumber();
+                $CompanyNumberStandard = '';
+                if ($CompanyNumber == '') {
+                    $tblResponsibilityList = Responsibility::useService()->getResponsibilityAll();
+                    if ($tblResponsibilityList) {
+                        /** @var TblResponsibility $tblResponsibility */
+                        $tblResponsibility = current($tblResponsibilityList);
+                        $CompanyNumberStandard = $tblResponsibility->getCompanyNumber();
+                    }
+                }
+
+                $CompanyNumberPanel = new Panel(new PullClear('Unternehmensnr. des Unfallversicherungsträgers'
+                        .new PullRight(($CompanyNumber == '' ? '(leer)' : '')))
+                    , ($CompanyNumber != ''
+                        ? $CompanyNumber
+                        : ($CompanyNumberStandard != ''
+                            ? 'Schulträger: '.$CompanyNumberStandard.' '.
+                            new ToolTip(new Info(),
+                                'Diese wird verwendet wenn bei der Schule keine Unternehmensnr. hinterlegt ist.')
+                            : '')),
+                    ($CompanyNumber != '' ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_WARNING),
+                    new PullRight(new Standard('', '/Setting/Consumer/School/Edit', new Edit(),
+                        array('Id' => $tblSchool->getId()),
+                        'Bearbeiten der Unternehmensnr. des Unfallversicherungsträgers')));
+
                 if ($tblCompany) {
                     $Form .= new Layout(array(
                         new LayoutGroup(array(
                             new LayoutRow(new LayoutColumn(
                                 self::frontendLayoutCombine($tblCompany)
                             )),
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    $CompanyNumberPanel
+                                    , 3)
+                            )
                         ),
                             (new Title(new TagList().' '.
                                 new \SPHERE\Common\Frontend\Text\Repository\Warning($tblSchool->getServiceTblType()
@@ -122,7 +159,27 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendLayoutCombine(TblCompany $tblCompany)
     {
 
-        $tblAddressAll = Address::useService()->getAddressAllByCompany($tblCompany);
+        $tblAddressAllUnsorted = Address::useService()->getAddressAllByCompany($tblCompany);
+
+        $tblAddressAllMain = array();
+        $tblAddressAllNotMain = array();
+        if ($tblAddressAllUnsorted) {
+            foreach ($tblAddressAllUnsorted as $tblAddress) {
+                if (Address::useService()->getTypeById(1) == $tblAddress->getTblType()) {
+                    $tblAddressAllMain[] = $tblAddress;
+                } else {
+                    $tblAddressAllNotMain[] = $tblAddress;
+                }
+            }
+        }
+        $tblAddressAll = array();
+        if (!empty($tblAddressAllMain)) {
+            $tblAddressAll = array_merge($tblAddressAll, $tblAddressAllMain);
+        }
+        if (!empty($tblAddressAllNotMain)) {
+            $tblAddressAll = array_merge($tblAddressAll, $tblAddressAllNotMain);
+        }
+
         $tblPhoneAll = Phone::useService()->getPhoneAllByCompany($tblCompany);
         $tblMailAll = Mail::useService()->getMailAllByCompany($tblCompany);
         $tblRelationshipAll = Relationship::useService()->getCompanyRelationshipAllByCompany($tblCompany);
@@ -232,7 +289,7 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             $tblRelationshipAll = array(
                 new LayoutColumn(
-                    new Warning('Keine Firmenbeziehungen hinterlegt')
+                    new Warning('Keine Institutionenbeziehungen hinterlegt')
                     , 3)
             );
         }
@@ -330,7 +387,7 @@ class Frontend extends Extension implements IFrontendInterface
         $PanelSelectCompanyTitle = new PullClear(
             'Schule auswählen:'
             .new PullRight(
-                new Standard('Neue Firma anlegen', '/Corporation/Company', new Building()
+                new Standard('Neue Institution anlegen', '/Corporation/Company', new Building()
                     , array(), '"Schule hinzufügen" verlassen'
                 ))
         );
@@ -339,16 +396,13 @@ class Frontend extends Extension implements IFrontendInterface
         $TableContent = array();
         if ($tblCompanyAll) {
             array_walk($tblCompanyAll, function (TblCompany $tblCompany) use (&$TableContent) {
-
-                $temp = new PullClear(new RadioBox('School',
-                    $tblCompany->getName()
+                $temp['Select'] = new RadioBox('School', '&nbsp;', $tblCompany->getId());
+                $temp['Content'] = $tblCompany->getName()
                     .new Container($tblCompany->getExtendedName())
-                    .new Container(new Muted($tblCompany->getDescription())),
-                    $tblCompany->getId()));
+                    .new Container(new Muted($tblCompany->getDescription()));
                 array_push($TableContent, $temp);
             });
         }
-
 
         return new Form(
             new FormGroup(array(
@@ -364,15 +418,89 @@ class Frontend extends Extension implements IFrontendInterface
                     ), 4),
                     new FormColumn(array(
                         !empty( $TableContent ) ?
-                            new Panel($PanelSelectCompanyTitle, $TableContent, Panel::PANEL_TYPE_INFO, null, 15)
+                            new Panel($PanelSelectCompanyTitle,
+                                new TableData($TableContent, null, array(
+                                    'Select'  => 'Auswahl',
+                                    'Content' => 'Institution',
+                                ), array(
+                                    'columnDefs' => array(
+                                        array('width' => '1%', 'targets' => array(0))
+                                    ),
+                                ))
+                                , Panel::PANEL_TYPE_INFO, null)
                             : new Panel($PanelSelectCompanyTitle,
-                            new Warning('Es ist keine Firma vorhanden die als Schule ausgewählt werden kann')
+                            new Warning('Es ist keine Institution vorhanden die als Schule ausgewählt werden kann')
                             , Panel::PANEL_TYPE_INFO)
                     ,
                     ), 8),
                 )),
             ))
         );
+    }
+
+    /**
+     * @param null $Id
+     * @param null $CompanyNumber
+     *
+     * @return Stage
+     */
+    public function frontendSchoolEdit($Id = null, $CompanyNumber = null)
+    {
+
+        $Stage = new Stage('Unternehmensnr. des Unfallversicherungsträgers', 'Bearbeiten');
+        $Stage->addButton(new Standard('Zurück', '/Setting/Consumer/School', new ChevronLeft()));
+        $tblSchool = School::useService()->getSchoolById($Id);
+        $Type = '';
+        $tblType = $tblSchool->getServiceTblType();
+        if ($tblType) {
+            $Type = $tblType->getName();
+        }
+        if (!$tblSchool) {
+            return $Stage->setContent(new Warning('Diese Schule wurde nicht gefunden.')
+                .new Redirect('/Setting/Consumer/School', Redirect::TIMEOUT_ERROR));
+        }
+        $Form = new Form(new FormGroup(new FormRow(new FormColumn(
+            new Panel('Unternehmensnr. des Unfallversicherungsträgers', new TextField('CompanyNumber', '', ''),
+                Panel::PANEL_TYPE_SUCCESS)
+        ))));
+        $Form->appendFormButton(new Primary('Speichern', new Save()))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+        $tblCompany = $tblSchool->getServiceTblCompany();
+        if ($tblCompany) {
+            $PanelHead = new Panel('Institution der eine Unternehmensnr. des Unfallversicherungsträgers bearbeitet werden soll'
+                , $tblCompany->getDisplayName().' '.new Small(new Muted('('.$Type.')')), Panel::PANEL_TYPE_INFO);
+        } else {
+            $PanelHead = new Panel('Institution wird nicht mehr gefunden!', '', Panel::PANEL_TYPE_DANGER);
+        }
+
+
+        $Global = $this->getGlobal();
+        if ($tblSchool->getCompanyNumber()) {
+            $Global->POST['CompanyNumber'] = $tblSchool->getCompanyNumber();
+            $Global->savePost();
+        }
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            $PanelHead
+                            , 6)
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Well(School::useService()->updateSchool(
+                                $Form, $tblSchool, $CompanyNumber
+                            ))
+                            , 6)
+                    )
+                ))
+            )
+        );
+
+        return $Stage;
     }
 
     /**

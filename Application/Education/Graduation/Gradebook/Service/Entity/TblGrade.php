@@ -16,6 +16,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
@@ -33,6 +34,7 @@ class TblGrade extends Element
     const ATTR_SERVICE_TBL_TEST = 'serviceTblTest';
     const ATTR_SERVICE_TBL_TEST_TYPE = 'serviceTblTestType';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const ATTR_SERVICE_TBL_PERSON_TEACHER = 'serviceTblPersonTeacher';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
     const ATTR_SERVICE_TBL_SUBJECT_GROUP = 'serviceTblSubjectGroup';
     const ATTR_SERVICE_TBL_PERIOD = 'serviceTblPeriod';
@@ -107,6 +109,11 @@ class TblGrade extends Element
      * @Column(type="bigint")
      */
     protected $tblGradeText;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblPersonTeacher;
 
     /**
      * @return string
@@ -315,7 +322,7 @@ class TblGrade extends Element
         }
 
         $gradeValue = $this->getGrade();
-        if ($gradeValue) {
+        if ($gradeValue !== null && $gradeValue !== '') {
             if ($WithTrend) {
                 $trend = $this->getTrend();
                 if (TblGrade::VALUE_TREND_PLUS === $trend) {
@@ -324,9 +331,11 @@ class TblGrade extends Element
                     $gradeValue .= '-';
                 }
             }
+
+            return $gradeValue;
         }
 
-        return $gradeValue ? $gradeValue : '';
+        return '';
     }
 
     /**
@@ -412,5 +421,69 @@ class TblGrade extends Element
     {
 
         $this->tblGradeText = ( null === $tblGradeText ? null : $tblGradeText->getId() );
+    }
+
+    /**
+     * @return bool|TblPerson
+     */
+    public function getServiceTblPersonTeacher()
+    {
+
+        if (null === $this->serviceTblPersonTeacher) {
+            return false;
+        } else {
+            return Person::useService()->getPersonById($this->serviceTblPersonTeacher);
+        }
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     */
+    public function setServiceTblPersonTeacher(TblPerson $tblPerson = null)
+    {
+
+        $this->serviceTblPersonTeacher = ( null === $tblPerson ? null : $tblPerson->getId() );
+    }
+
+    /**
+     * @return string
+     */
+    public function getDisplayTeacher()
+    {
+
+        if (($tblPerson = $this->getServiceTblPersonTeacher())){
+            if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))){
+                if ($tblTeacher->getAcronym()) {
+                    return $tblTeacher->getAcronym();
+                }
+            }
+
+            return $tblPerson->getLastName();
+        }
+
+        return '';
+    }
+
+    /**
+     * @return bool|\DateTime
+     */
+    public function getDateForSorter()
+    {
+
+        if (($tblTest = $this->getServiceTblTest())) {
+            if ($tblTest->isContinues()) {
+                if ($this->getDate()) {
+                    $date = $this->getDate();
+                } else {
+                    $date = $tblTest->getFinishDate();
+                }
+            } else {
+                $date = $tblTest->getDate();
+            }
+
+            return  new \DateTime($date);
+        }
+
+        return false;
     }
 }

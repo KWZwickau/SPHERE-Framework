@@ -72,7 +72,7 @@ class Custom implements IModuleInterface
         /*
          * Herrnhut
          */
-        if ($consumerAcronym === 'EZGH' || $consumerAcronym === 'DEMO') {
+        if ($consumerAcronym === 'EZSH' || $consumerAcronym === 'DEMO') {
             Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                 __NAMESPACE__.'/Herrnhut/Common/ProfileList/Download',
                 __NAMESPACE__.'\Herrnhut\Common::downloadProfileList'
@@ -142,6 +142,23 @@ class Custom implements IModuleInterface
             Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
                 __NAMESPACE__.'/Radebeul/Person/DiseaseList/Download',
                 __NAMESPACE__.'\Radebeul\Person::downloadDiseaseList'
+            ));
+
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Radebeul/Person/Nursery/Download',
+                __NAMESPACE__.'\Radebeul\Person::downloadNursery'
+            ));
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Radebeul/Person/NurseryList/Download',
+                __NAMESPACE__.'\Radebeul\Person::downloadNurseryList'
+            ));
+        }
+
+        // Muldental
+        if ($consumerAcronym === 'EVAMTL' || $consumerAcronym === 'DEMO') {
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Muldental/Common/ClassList/Download',
+                __NAMESPACE__.'\Muldental\Common::downloadClassList'
             ));
         }
     }

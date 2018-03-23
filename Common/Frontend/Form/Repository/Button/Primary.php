@@ -20,16 +20,18 @@ class Primary extends Extension implements IButtonInterface
     protected $Template = null;
 
     /**
-     * @param string         $Name
+     * @param string $Name
      * @param IIconInterface $Icon
+     * @param bool $useNewTab
      */
-    public function __construct($Name, IIconInterface $Icon = null)
+    public function __construct($Name, IIconInterface $Icon = null, $useNewTab = false)
     {
 
         $this->Name = $Name;
         $this->Template = $this->getTemplate(__DIR__.'/Submit.twig');
         $this->Template->setVariable('Name', $Name);
         $this->Template->setVariable('Type', 'primary');
+        $this->Template->setVariable('NewTab', $useNewTab);
         if (null !== $Icon) {
             $this->Template->setVariable('Icon', $Icon);
         }
@@ -60,5 +62,14 @@ class Primary extends Extension implements IButtonInterface
     {
 
         return $this->Template->getContent();
+    }
+
+    /**
+     * @return $this
+     */
+    public function disableOnLoad()
+    {
+        $this->Template->setVariable('disableOnLoad', 'disableOnLoad');
+        return $this;
     }
 }

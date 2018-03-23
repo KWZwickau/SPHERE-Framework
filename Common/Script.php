@@ -28,6 +28,11 @@ class Script extends Extension
          */
 
         $this->setSource(
+            'jQuery.deparam', '/Library/jQuery.BBQ/1.3pre/jQuery.deparam.js',
+            "'undefined' !== typeof jQuery.deparam"
+        );
+
+        $this->setSource(
             'jQuery', '/Library/jQuery/1.11.3/jquery-1.11.3.min.js',
             "'undefined' !== typeof jQuery"
         );
@@ -95,6 +100,11 @@ class Script extends Extension
             'jQuery.DataTable.Responsive',
             '/Library/DataTables/Responsive-2.1.0/js/dataTables.responsive.min.js',
             "'undefined' !== typeof jQuery.fn.DataTable.Responsive"
+        );
+        $this->setSource(
+            'jQuery.DataTable.FixedHeader',
+            '/Library/DataTables/FixedHeader-3.1.2/js/dataTables.fixedHeader.min.js',
+            "'undefined' !== typeof jQuery.fn.DataTable.FixedHeader"
         );
         $this->setSource(
             'jQuery.DataTable.RowReorder',
@@ -220,6 +230,12 @@ class Script extends Extension
             'jQuery.FlowPlayer', '/Library/jQuery.FlowPlayer/6.0.3/flowplayer.min.js',
             "'undefined' !== typeof jQuery.fn.flowplayer"
         );
+
+        $this->setSource(
+            'jQuery.Select2', '/Library/jQuery.Select2/4.0.3/dist/js/select2.full.min.js',
+            "'undefined' !== typeof jQuery.fn.select2"
+        );
+
         $this->setSource(
             'Highlight.js', '/Library/Highlight.js/8.8.0/highlight.pack.js',
             "'undefined' !== typeof hljs"
@@ -234,11 +250,13 @@ class Script extends Extension
          */
 
         $this->setModule(
-            'ModAlways', array(/*'Highlight.js',*/
+            'ModAlways', array(
+                'Highlight.js',
                 'Bootbox.js',
                 'List.Js',
                 'Bootstrap.Notify',
                 'Bootstrap',
+                'jQuery.deparam',
                 'jQuery.Ui',
                 'jQuery'
             )
@@ -250,6 +268,13 @@ class Script extends Extension
                 'Bootstrap.Notify',
                 'Bootstrap',
                 'jQuery.Ui',
+                'jQuery'
+            )
+        );
+
+        $this->setModule(
+            'ModSelect2', array(
+                'jQuery.Select2',
                 'jQuery'
             )
         );
@@ -267,9 +292,11 @@ class Script extends Extension
                 'jQuery.DataTable.Buttons.Bootstrap',
                 'jQuery.DataTable.Buttons',
                 'jQuery.DataTable.RowReorder',
+                'jQuery.DataTable.FixedHeader',
                 'jQuery.DataTable.Responsive',
                 'jQuery.DataTable.Bootstrap',
                 'jQuery.DataTable',
+//                'jQuery.DetectElementResize',
                 'jQuery'
             )
         );
@@ -332,7 +359,7 @@ class Script extends Extension
         if (!in_array($Alias, self::$SourceList)) {
             $RealPath = FileSystem::getFileLoader($Location)->getRealPath();
             if( !empty($RealPath) ) {
-                $cTag = '?cTAG-' . md5_file($RealPath);
+                $cTag = '?cTAG-' . hash_file('crc32',$RealPath);
             } else {
                 $cTag = '?cTAG-' . 'MISS-'.time();
             }
@@ -350,7 +377,7 @@ class Script extends Extension
         if (!in_array($Alias, self::$ModuleList)) {
             $RealPath = FileSystem::getFileLoader('/Common/Script/' . $Alias . '.js')->getRealPath();
             if( !empty($RealPath) ) {
-                $cTag = '?cTAG-' . md5_file($RealPath);
+                $cTag = '?cTAG-' . hash_file('crc32',$RealPath);
             } else {
                 $cTag = '?cTAG-' . 'MISS-'.time();
             }

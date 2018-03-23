@@ -34,7 +34,7 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-        $this->createGroup('Alle', 'Firmendaten', '', true, 'COMMON');
+        $this->createGroup('Alle', 'Institutionendaten', '', true, 'COMMON');
         $this->createGroup('Schulen', '', '', true, 'SCHOOL');
         $this->createGroup('Kita', 'Kindertagesstätte', '', true, 'NURSERY');
     }
@@ -255,6 +255,7 @@ class Data extends AbstractData
         } else {
             $EntityList = $ResultList;
         }
+        /** @var TblGroup[] $EntityList */
         return ( null === $EntityList ? false : $EntityList );
     }
 
@@ -357,6 +358,17 @@ class Data extends AbstractData
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember', array(
             TblMember::ATTR_TBL_GROUP     => $tblGroup->getId(),
             TblMember::SERVICE_TBL_COMPANY => $tblCompany->getId()
+        ));
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     * @return int
+     */
+    public function countMemberByGroup(TblGroup $tblGroup)
+    {
+        return $this->getEntityManager()->getEntity((new TblMember())->getEntityShortName())->countBy(array(
+            TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
         ));
     }
 }

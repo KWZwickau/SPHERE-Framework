@@ -4,7 +4,6 @@ namespace SPHERE\Common;
 use Doctrine\DBAL\Driver\PDOException;
 use Doctrine\DBAL\Exception\InvalidFieldNameException;
 use Doctrine\DBAL\Exception\TableNotFoundException;
-use MOC\V\Component\Router\Component\Bridge\Repository\UniversalRouter;
 use SPHERE\Application\Api\Api;
 use SPHERE\Application\Billing\Billing;
 use SPHERE\Application\Contact\Contact;
@@ -44,6 +43,7 @@ use SPHERE\Common\Window\Stage;
 use SPHERE\System\Authenticator\Authenticator;
 use SPHERE\System\Authenticator\Type\Get;
 use SPHERE\System\Authenticator\Type\Post;
+use SPHERE\System\Authenticator\Type\Request;
 use SPHERE\System\Cache\Handler\APCuHandler;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
@@ -79,7 +79,7 @@ class Main extends Extension
             self::$Display = new Display();
         }
         if (self::getDispatcher() === null) {
-            self::$Dispatcher = new Dispatcher(new UniversalRouter());
+            self::$Dispatcher = new Dispatcher(new Router());
         }
     }
 
@@ -89,7 +89,7 @@ class Main extends Extension
     public static function initCloudCache()
     {
 
-        if (!isset( $_SESSION['Memcached-Slot'] )) {
+        if (!isset($_SESSION['Memcached-Slot'])) {
             try {
                 if (Consumer::useService()->getConsumerBySession()) {
                     $_SESSION['Memcached-Slot'] = Consumer::useService()->getConsumerBySession()->getAcronym();
@@ -141,11 +141,15 @@ class Main extends Extension
 
                 if ($this->runAuthenticator()) {
                     if (Access::useService()->existsRightByName($this->getRequest()->getPathInfo())) {
-                        echo self::getDispatcher()->fetchRoute(
-                            $this->getRequest()->getPathInfo()
-                        );
+                        if (!Access::useService()->hasAuthorization($this->getRequest()->getPathInfo())) {
+                            header('HTTP/1.0 403 Forbidden: '.$this->getRequest()->getPathInfo());
+                        } else {
+                            echo self::getDispatcher()->fetchRoute(
+                                $this->getRequest()->getPathInfo()
+                            );
+                        }
                     } else {
-                        header('HTTP/1.0 511 Network Authentication Required');
+                        header('HTTP/1.0 511 Network Authentication Required: '.$this->getRequest()->getPathInfo());
                         self::getDisplay()->setContent(
                             self::getDispatcher()->fetchRoute(
                                 $this->getRequest()->getPathInfo()
@@ -154,9 +158,9 @@ class Main extends Extension
                         echo self::getDisplay()->getContent();
                     }
                 } else {
-                    header('HTTP/1.0 400 Bad Request');
+                    header('HTTP/1.0 400 Bad Request: '.$this->getRequest()->getUrl());
                 }
-                exit( 0 );
+                exit(0);
             } catch (\Exception $Exception) {
                 $this->runSelfHeal($Exception);
             }
@@ -207,7 +211,7 @@ class Main extends Extension
 
         try {
             echo self::getDisplay()->getContent();
-            exit( 0 );
+            exit(0);
         } catch (\Exception $Exception) {
             $this->runSelfHeal($Exception);
         }
@@ -245,6 +249,9 @@ class Main extends Extension
                     if (!$Error) {
                         return;
                     }
+                    if (preg_match('!apc_store.*?was.*?on.*?gc-list.*?for!is', $Error['message'])) {
+                        return;
+                    }
                     $Display = new Display();
                     $Display->addServiceNavigation(
                         new Link(new Link\Route('/'), new Link\Name('Zurück zur Anwendung'))
@@ -274,7 +281,8 @@ class Main extends Extension
 
         $Get = (new Authenticator(new Get()))->getAuthenticator();
         $Post = (new Authenticator(new Post()))->getAuthenticator();
-        if (!( $Get->validateSignature() && $Post->validateSignature() )) {
+        $Request = (new Authenticator(new Request()))->getAuthenticator();
+        if (!($Get->validateSignature() && $Post->validateSignature() && $Request->validateSignature())) {
             self::getDisplay()->setClusterNavigation();
             self::getDisplay()->setApplicationNavigation();
             self::getDisplay()->setModuleNavigation();
@@ -297,7 +305,7 @@ class Main extends Extension
         $Protocol = (new System\Database\Database())->frontendSetup(false, true);
 
         $Display = new Display();
-        $Stage = new Stage(new Danger(new Hospital()).' Automatische Reparatur', 'Datenintegrität');
+        $Stage = new Stage(new Danger(new Hospital()) . ' Automatische Reparatur', 'Datenintegrität');
         $Stage->setMessage('Diese automatische Fehlerbehebung wird immer dann ausgeführt wenn die Integrität der gespeicherten Daten gefährdet sein könnte');
         $Stage->setContent(
             new Layout(
@@ -305,15 +313,15 @@ class Main extends Extension
                     new LayoutRow(
                         new LayoutColumn(array(
                             new Panel('Was ist das?', array(
-                                (new Frontend\Message\Repository\Info(new Shield().' Es wird eine automatische Reparatur der Datenbank und eine Überprüfung der Daten durchgeführt')),
-                                (new Frontend\Message\Repository\Success(new Success().' Sollte die gleiche Fehlermeldung nach einem erneuten Seitenaufruf nicht wieder auftauchen ist das Problem behoben worden')),
-                                (new Frontend\Message\Repository\Danger(new HazardSign().' Sollte der Fehler damit nicht behoben werden, senden Sie bitte den angezeigten Fehlerbericht')),
-                                (new Frontend\Message\Repository\Warning(new Info().' Bitte senden Sie den Bericht nur, wenn der '.new Bold('gleiche').' Fehler mehrfach auftritt. Sollte '.new Bold('kein').' Bericht verfügbar sein, wenden Sie sich bitte direkt an den Support.')),
+                                (new Frontend\Message\Repository\Info(new Shield() . ' Es wird eine automatische Reparatur der Datenbank und eine Überprüfung der Daten durchgeführt')),
+                                (new Frontend\Message\Repository\Success(new Success() . ' Sollte die gleiche Fehlermeldung nach einem erneuten Seitenaufruf nicht wieder auftauchen ist das Problem behoben worden')),
+                                (new Frontend\Message\Repository\Danger(new HazardSign() . ' Sollte der Fehler damit nicht behoben werden, senden Sie bitte den angezeigten Fehlerbericht')),
+                                (new Frontend\Message\Repository\Warning(new Info() . ' Bitte senden Sie den Bericht nur, wenn der ' . new Bold('gleiche') . ' Fehler mehrfach auftritt. Sollte ' . new Bold('kein') . ' Bericht verfügbar sein, wenden Sie sich bitte direkt an den Support.')),
                             ), Panel::PANEL_TYPE_PRIMARY,
                                 new PullRight(strip_tags((new Redirect(self::getRequest()->getPathInfo(), 110)),
                                     '<div><a><script><span>'))
                             ),
-                            ( $Exception
+                            ($Exception
                                 ? new Panel('', array(
                                     new Error('Datenintegritätsprüfung', $Exception->getMessage()),
                                     $Protocol
@@ -329,7 +337,7 @@ class Main extends Extension
         $Display->setContent($Stage);
 
         echo $Display->getContent(true);
-        exit( 0 );
+        exit(0);
     }
 
     public static function registerGuiPlatform()

@@ -2,6 +2,7 @@
 namespace SPHERE\Common\Window;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
+use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\ITemplateInterface;
 use SPHERE\Common\Frontend\Link\ILinkInterface;
 use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
@@ -37,8 +38,9 @@ class Stage extends Extension implements ITemplateInterface
     /**
      * @param null|string $Title
      * @param null|string $Description
+     * @param null|string $Message
      */
-    public function __construct($Title = null, $Description = null)
+    public function __construct($Title = null, $Description = null, $Message = null)
     {
 
         $this->Template = $this->getTemplate(__DIR__.'/Stage.twig');
@@ -47,6 +49,9 @@ class Stage extends Extension implements ITemplateInterface
         }
         if (null !== $Description) {
             $this->setDescription($Description);
+        }
+        if (null !== $Message) {
+            $this->setMessage($Message);
         }
     }
 
@@ -156,6 +161,10 @@ class Stage extends Extension implements ITemplateInterface
      */
     public function setContent($Content)
     {
+        /**
+         * Add Ajax Frontend Modal-Close Receiver
+         */
+        $Content .= CloseModal::CloseModalReceiver();
 
         $this->Content = $Content;
         return $this;

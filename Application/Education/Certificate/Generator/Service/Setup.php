@@ -66,6 +66,7 @@ class Setup extends AbstractSetup
             $Table->addColumn('IsGradeInformation', 'boolean');
         }
         $this->createColumn($Table, 'IsInformation', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($Table, 'IsChosenDefault', self::FIELD_TYPE_BOOLEAN);
 
         $this->createColumn($Table, 'serviceTblCourse', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblSchoolType', self::FIELD_TYPE_BIGINT, true);
@@ -132,6 +133,8 @@ class Setup extends AbstractSetup
         }
         $this->getConnection()->addForeignKey($Table, $tblCertificate);
 
+        $this->createIndex($Table, array('serviceTblGradeType'), false);
+
         return $Table;
     }
 
@@ -147,6 +150,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Identifier', self::FIELD_TYPE_STRING);
         $this->createIndex($Table, array('Identifier'));
+        $this->createColumn($Table, 'IsAutomaticallyApproved', self::FIELD_TYPE_BOOLEAN, false, false);
 
         return $Table;
     }

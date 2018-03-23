@@ -4,16 +4,20 @@ namespace SPHERE\Common\Frontend\Ajax;
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use MOC\V\Component\Template\Template;
 use SPHERE\Common\Frontend\Ajax\Emitter\AbstractEmitter;
+use SPHERE\Common\Frontend\Ajax\Emitter\ScriptEmitter;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Emitter\ClientEmitter;
+use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Link\Repository\AbstractLink;
 
 /**
  * Class Pipeline
  *
  * @package SPHERE\Common\Frontend\Ajax
  */
-class Pipeline
+class Pipeline implements IFrontendInterface
 {
 
     /** @var string $SuccessTitle */
@@ -26,6 +30,17 @@ class Pipeline
     private $LoadingMessage = '';
     /** @var AbstractEmitter[] $Emitter */
     private $Emitter = array();
+    /** @var bool $Sync */
+    private $Sync = true;
+
+    /**
+     * Pipeline constructor.
+     * @param bool $Sync
+     */
+    public function __construct( $Sync = true )
+    {
+        $this->Sync = $Sync;
+    }
 
     /**
      * @param string $Title
@@ -54,10 +69,47 @@ class Pipeline
     /**
      * @param AbstractEmitter $AbstractEmitter
      * @return $this
+     * @deprecated use appendEmitter
      */
     public function addEmitter(AbstractEmitter $AbstractEmitter)
     {
+        return $this->appendEmitter( $AbstractEmitter );
+    }
+
+    /**
+     * @param AbstractEmitter $AbstractEmitter
+     * @return $this
+     */
+    public function appendEmitter(AbstractEmitter $AbstractEmitter)
+    {
         array_push($this->Emitter, $AbstractEmitter);
+        return $this;
+    }
+
+    /**
+     * @param AbstractEmitter $AbstractEmitter
+     * @return $this
+     */
+    public function prependEmitter(AbstractEmitter $AbstractEmitter)
+    {
+        array_unshift($this->Emitter, $AbstractEmitter);
+        return $this;
+    }
+
+    /**
+     * Append Foreign Pipeline
+     *
+     * WARNING! ONLY STRUCTURE, NOT DATA!
+     *
+     * @param Pipeline $Pipeline
+     * @return $this
+     */
+    public function appendForeignEmitter(Pipeline $Pipeline)
+    {
+        $PipelineEmitter = $Pipeline->getEmitter();
+        foreach( $PipelineEmitter as $Emitter ) {
+            $this->appendEmitter( $Emitter );
+        }
         return $this;
     }
 
@@ -96,32 +148,104 @@ class Pipeline
     }
 
     /**
-     * @param Form $Form
+     * @param Form|AbstractField|null $FrontendElement
      * @return string
      * @throws \Exception
      */
-    public function parseScript(Form $Form = null)
+    public function parseScript($FrontendElement = null)
     {
         foreach ($this->Emitter as $Index => $Emitter) {
+            $Method = 'GET';
+            $Data = array();
             // ServerEmitter
             if ($Emitter instanceof ServerEmitter) {
                 $Url = $Emitter->getAjaxUri() . $Emitter->getAjaxGetPayload();
-                if ($Form === null) {
+                if ($FrontendElement === null) {
+                    /**
+                     * NO Element
+                     */
                     if (strlen($Emitter->getAjaxPostPayload()) == 2) {
                         $Method = 'GET';
                     } else {
                         $Method = 'POST';
                     }
                     $Data = $Emitter->getAjaxPostPayload();
-                } else {
+                } else if( $FrontendElement instanceof AbstractLink ) {
+                    $Method = 'POST';
+                    /**
+                     * Link
+                     */
+                    if (strlen($Emitter->getAjaxPostPayload()) > 2) {
+                        if( !empty( $FrontendElement->getData() ) ) {
+                            $Payload = json_decode( $Emitter->getAjaxPostPayload(), true );
+                            $Payload = array_merge( $FrontendElement->getData(), $Payload );
+                            $Payload = json_encode( $Payload, JSON_FORCE_OBJECT );
+                        } else {
+                            $Payload = json_decode($Emitter->getAjaxPostPayload(), true);
+                            $Payload = json_encode($Payload, JSON_FORCE_OBJECT);
+                        }
+                    } else {
+                        if (!empty($FrontendElement->getData())) {
+                            $Payload = json_encode($FrontendElement->getData(), JSON_FORCE_OBJECT);
+                        } else {
+                            $Payload = json_encode($Data, JSON_FORCE_OBJECT);
+                        }
+                    }
+                    $Data = 'var EmitterData = ' . $Payload . '; ';
+                    $Data .= 'var Element = jQuery("#' . $FrontendElement->getHash() . '"); ';
+                    $Data .= 'var DataSet = Element.closest("form"); ';
+                    $Data .= 'if( DataSet.length ) { DataSet = DataSet.serializeArray(); ';
+                    $Data .= 'for( var Index in DataSet ) { EmitterData[DataSet[Index]["name"]] = DataSet[Index]["value"]; };';
+                    $Data .= '} ';
+                    $Data .= 'return EmitterData;';
+                } else if( $FrontendElement instanceof Form ) {
+                    /**
+                     * Form
+                     */
                     $Method = 'POST';
                     if (strlen($Emitter->getAjaxPostPayload()) > 2) {
-                        $Data = 'var EmitterData = ' . $Emitter->getAjaxPostPayload() . ';';
-                        $Data .= 'var FormData = jQuery("form#' . $Form->getHash() . '").serializeArray();';
+                        if( !empty( $FrontendElement->getData() ) ) {
+                            $Payload = json_decode( $Emitter->getAjaxPostPayload(), true );
+                            $Payload = array_merge( $FrontendElement->getData(), $Payload );
+                            $Data = json_encode( $Payload, JSON_FORCE_OBJECT );
+                        } else {
+                            $Data = json_decode( $Emitter->getAjaxPostPayload(), true );
+                            $Data = json_encode( $Data, JSON_FORCE_OBJECT );
+                        }
+                        $Data = 'var EmitterData = ' . $Data . ';';
+                        $Data .= 'var FormData = jQuery("form#' . $FrontendElement->getHash() . '").serializeArray();';
                         $Data .= 'for( var Index in FormData ) { EmitterData[FormData[Index]["name"]] = FormData[Index]["value"]; };';
                         $Data .= 'return EmitterData;';
                     } else {
-                        $Data = 'return jQuery("form#' . $Form->getHash() . '").serializeArray();';
+                        if( !empty( $FrontendElement->getData() ) ) {
+                            $Data = json_encode( $FrontendElement->getData(), JSON_FORCE_OBJECT );
+                        } else {
+                            $Data = json_encode( $Data, JSON_FORCE_OBJECT );
+                        }
+                        $Data = 'var EmitterData = ' . $Data . ';';
+                        $Data .= 'var FormData = jQuery("form#' . $FrontendElement->getHash() . '").serializeArray();';
+                        $Data .= 'for( var Index in FormData ) { EmitterData[FormData[Index]["name"]] = FormData[Index]["value"]; };';
+                        $Data .= 'return EmitterData;';
+                    }
+                } else if( $FrontendElement instanceof AbstractField ) {
+                    /**
+                     * Field
+                     */
+                    $Method = 'POST';
+                    if (strlen($Emitter->getAjaxPostPayload()) > 2) {
+                        $Data = 'var EmitterData = ' . $Emitter->getAjaxPostPayload() . ';';
+                        $Data .= 'var Element = jQuery("[name=\"' . $FrontendElement->getName() . '\"]");';
+                        $Data .= 'var DataSet = Element.closest("form");';
+                        $Data .= 'if( DataSet.length ) { DataSet = DataSet.serializeArray(); }';
+                        $Data .= 'else { DataSet = jQuery.deparam("'. $FrontendElement->getName() .'=" + Element.val() ); }';
+                        $Data .= 'for( var Index in DataSet ) { EmitterData[DataSet[Index]["name"]] = DataSet[Index]["value"]; };';
+                        $Data .= 'return EmitterData;';
+                    } else {
+                        $Data = 'var Element = jQuery("[name=\"' . $FrontendElement->getName() . '\"]");';
+                        $Data .= 'var DataSet = Element.closest("form");';
+                        $Data .= 'if( DataSet.length ) { DataSet = DataSet.serializeArray(); }';
+                        $Data .= 'else { DataSet = jQuery.deparam("'. $FrontendElement->getName() .'=" + Element.val() ); }';
+                        $Data .= 'return DataSet';
                     }
                 }
 
@@ -134,11 +258,11 @@ class Pipeline
                 /** @var IBridgeInterface $Template */
                 if (!isset($Template)) {
                     $Template = Template::getTwigTemplateString(
-                        'jQuery().ModAjax({ Receiver: {{ Receiver }}, Notify: { Hash: {{ Hash }}, ' . $this->getNotifyMessage($Emitter) . ' } }).loadAjax( {{ Method }}, {{ Url }} , {{ Data }}, {{ Callback }} );'
+                        'jQuery().ModAjax({ Sync: '.($this->Sync ? 'true' : 'false').', Receiver: {{ Receiver }}, Notify: { Hash: {{ Hash }}, ' . $this->getNotifyMessage($Emitter) . ' } }).loadAjax( {{ Method }}, {{ Url }} , {{ Data }}, {{ Callback }} );'
                     );
                 } else {
                     $Template->setVariable('Callback',
-                        'function(){ jQuery().ModAjax({ Receiver: {{ Receiver }}, Notify: { Hash: {{ Hash }}, ' . $this->getNotifyMessage($Emitter) . ' } }).loadAjax( {{ Method }}, {{ Url }} , {{ Data }}, {{ Callback }} ); }'
+                        'function(){ jQuery().ModAjax({ Sync: '.($this->Sync ? 'true' : 'false').', Receiver: {{ Receiver }}, Notify: { Hash: {{ Hash }}, ' . $this->getNotifyMessage($Emitter) . ' } }).loadAjax( {{ Method }}, {{ Url }} , {{ Data }}, {{ Callback }} ); }'
                     );
                     $Template = Template::getTwigTemplateString($Template->getContent());
                 }
@@ -150,31 +274,27 @@ class Pipeline
                 $Template->setVariable('Hash', json_encode(sha1(json_encode($Method) . json_encode($Url) . json_encode($Data) . json_encode($ReceiverContext))));
             }
             // ClientEmitter
-            if ($Emitter instanceof ClientEmitter) {
-
+            if ($Emitter instanceof ClientEmitter || $Emitter instanceof ScriptEmitter) {
                 $Content = $Emitter->getContent();
-
                 $ReceiverList = $Emitter->getAjaxReceiver();
                 $ReceiverContext = array();
                 foreach ($ReceiverList as $Receiver) {
                     $ReceiverContext[] = $Receiver->getHandler();
                 }
-
                 /** @var IBridgeInterface $Template */
                 if (!isset($Template)) {
                     $Template = Template::getTwigTemplateString(
-                        'jQuery().ModAjax({ Receiver: {{ Receiver }}, Notify: { Hash: {{ Hash }}, ' . $this->getNotifyMessage($Emitter) . ' } }).loadContent( {{ Content }}, {{ Callback }} );'
+                        'jQuery().ModAjax({ Sync: '.($this->Sync ? 'true' : 'false').', Receiver: {{ Receiver }}, Notify: { Hash: {{ Hash }}, ' . $this->getNotifyMessage($Emitter) . ' } }).loadContent( {{ Content }}, {{ Callback }} );'
                     );
                 } else {
                     $Template->setVariable('Callback',
-                        'function(){ jQuery().ModAjax({ Receiver: {{ Receiver }}, Notify: { Hash: {{ Hash }}, ' . $this->getNotifyMessage($Emitter) . ' } }).loadContent( {{ Content }}, {{ Callback }} ); }'
+                        'function(){ jQuery().ModAjax({ Sync: '.($this->Sync ? 'true' : 'false').', Receiver: {{ Receiver }}, Notify: { Hash: {{ Hash }}, ' . $this->getNotifyMessage($Emitter) . ' } }).loadContent( {{ Content }}, {{ Callback }} ); }'
                     );
                     $Template = Template::getTwigTemplateString($Template->getContent());
                 }
                 $Template->setVariable('Content', $Content);
                 $Template->setVariable('Receiver', json_encode($ReceiverContext));
                 $Template->setVariable('Hash', json_encode(sha1(json_encode($Content) . json_encode($ReceiverContext))));
-
             }
         }
         if (isset($Template)) {

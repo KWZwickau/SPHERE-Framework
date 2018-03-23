@@ -177,4 +177,26 @@ abstract class Integration extends Subject
 
         return (new Data($this->getBinding()))->addStudentFocus($tblStudent, $tblStudentFocusType);
     }
+
+    /**
+     * @param TblStudent $tblStudent
+     *
+     * @return false|TblStudentFocus
+     */
+    public function getStudentFocusPrimary(TblStudent $tblStudent) {
+
+        return (new Data($this->getBinding()))->getStudentFocusPrimary($tblStudent);
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param TblStudentDisorderType $tblStudentDisorderType
+     *
+     * @return false|TblStudentDisorder
+     */
+    public function getStudentDisorder(TblStudent $tblStudent, TblStudentDisorderType $tblStudentDisorderType)
+    {
+
+        return (new Data($this->getBinding()))->getStudentDisorder($tblStudent, $tblStudentDisorderType);
+    }
 }

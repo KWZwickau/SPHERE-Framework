@@ -39,7 +39,7 @@
             },
             "lengthChange": true,
             "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'Alle']],
-            "pageLength": 10,
+            "pageLength": 25,
             "dom": "<'row'<'col-sm-5 hidden-xs'liB><'col-sm-7 hidden-xs'fp>>" +
             "<'row'<'col-sm-12'tr>>" +
             "<'row'<'col-sm-5'i><'col-sm-7'p>>",
@@ -47,6 +47,7 @@
             responsive: true,
             autoWidth: false,
             deferRender: true,
+            fixedHeader: true,
             // Setup RowReorder Extension
             ExtensionRowReorder: {
                 Enabled: false,
@@ -315,6 +316,18 @@
         // }
 
         Table = this.DataTable(settings);
+        /**
+         * Fix: FixedHeaders won't recalculate if DT changes size/content/etc.
+         */
+        if( settings.fixedHeader ) {
+            Table.on( 'draw.dt', function () {
+                Table.fixedHeader.adjust();
+            } );
+            // TODO: div:resize Event needs better handler
+            jQuery('div#nav-toggle').resize(function(){
+                Table.fixedHeader.adjust();
+            });
+        }
 
         // Activate AJAX JS on Change
         // Table.on( 'draw', function () {

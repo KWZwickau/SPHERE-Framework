@@ -122,6 +122,21 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
     }
 
     /**
+     * @param bool $IsActive
+     *
+     * @return bool|TblScoreGroup[]
+     */
+    public function getScoreGroupListByActive($IsActive = true)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreGroup',
+            array(
+                TblScoreGroup::ATTR_IS_ACTIVE => $IsActive
+            )
+        );
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblScoreCondition
@@ -140,6 +155,21 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
     {
 
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreCondition');
+    }
+
+    /**
+     * @param bool $IsActive
+     *
+     * @return bool|TblScoreCondition[]
+     */
+    public function getScoreConditionListByActive($IsActive = true)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreCondition',
+            array(
+                TblScoreCondition::ATTR_IS_ACTIVE => $IsActive
+            )
+        );
     }
 
     /**
@@ -338,6 +368,7 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
             $Entity = new TblScoreRule();
             $Entity->setName($Name);
             $Entity->setDescription($Description);
+            $Entity->setIsActive(true);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -371,6 +402,7 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
             $Entity->setName($Name);
             $Entity->setRound($Round);
             $Entity->setPriority($Priority);
+            $Entity->setIsActive(true);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -407,6 +439,7 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
             $Entity->setRound($Round);
             $Entity->setMultiplier($Multiplier);
             $Entity->setIsEveryGradeASingleGroup($IsEveryGradeASingleGroup);
+            $Entity->setIsActive(true);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -623,13 +656,16 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
      * @param $Name
      * @param $Round
      * @param $Priority
+     * @param $IsActive
+     *
      * @return bool
      */
     public function updateScoreCondition(
         TblScoreCondition $tblScoreCondition,
         $Name,
         $Round,
-        $Priority
+        $Priority,
+        $IsActive
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -641,6 +677,8 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
             $Entity->setName($Name);
             $Entity->setRound($Round);
             $Entity->setPriority($Priority);
+            $Entity->setIsActive($IsActive);
+
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
 
@@ -655,7 +693,8 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
      * @param $Name
      * @param $Round
      * @param $Multiplier
-     * @param $IsEveryGradeASingleGroup
+     * @param bool $IsEveryGradeASingleGroup
+     * @param bool $IsActive
      *
      * @return bool
      */
@@ -664,7 +703,8 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
         $Name,
         $Round,
         $Multiplier,
-        $IsEveryGradeASingleGroup
+        $IsEveryGradeASingleGroup,
+        $IsActive
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -677,6 +717,7 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
             $Entity->setRound($Round);
             $Entity->setMultiplier($Multiplier);
             $Entity->setIsEveryGradeASingleGroup($IsEveryGradeASingleGroup);
+            $Entity->setIsActive($IsActive);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -691,12 +732,14 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
      * @param TblScoreRule $tblScoreRule
      * @param $Name
      * @param $Description
+     * @param bool $IsActive
      * @return bool
      */
     public function updateScoreRule(
         TblScoreRule $tblScoreRule,
         $Name,
-        $Description
+        $Description,
+        $IsActive
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -707,6 +750,7 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
         if (null !== $Entity) {
             $Entity->setName($Name);
             $Entity->setDescription($Description);
+            $Entity->setIsActive($IsActive);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
 
@@ -966,6 +1010,145 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
             return true;
         }
 
+        return false;
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     *
+     * @return bool
+     */
+    public function isScoreRuleUsed(TblScoreRule $tblScoreRule)
+    {
+
+        if (($tblScoreRuleDivisionSubjectList = $this->getScoreRuleDivisionSubjectAllByScoreRule($tblScoreRule))){
+            return true;
+        }
+        if (($tblScoreRuleSubjectGroupList = $this->getScoreRuleSubjectGroupAllByScoreRule($tblScoreRule))) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     *
+     * @return bool
+     */
+    public function destroyScoreRule(TblScoreRule $tblScoreRule)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblScoreRule $Entity */
+        $Entity = $Manager->getEntityById('TblScoreRule', $tblScoreRule->getId());
+        if (null !== $Entity) {
+
+
+            if (($tblScoreConditionsByScoreRule = $this->getScoreRuleConditionListByRule($tblScoreRule))) {
+                foreach ($tblScoreConditionsByScoreRule as $tblScoreRuleConditionList) {
+                    $this->removeScoreRuleConditionList($tblScoreRuleConditionList);
+                }
+            }
+
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return bool
+     */
+    public function isScoreConditionUsed(TblScoreCondition $tblScoreCondition)
+    {
+
+        return $this->getCachedEntityBy(
+            __METHOD__,
+            $this->getConnection()->getEntityManager(),
+            'TblScoreRuleConditionList',
+            array(
+                TblScoreRuleConditionList::ATTR_TBL_SCORE_CONDITION => $tblScoreCondition->getId()
+            )
+        ) ? true : false;
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return bool
+     */
+    public function destroyScoreCondition(TblScoreCondition $tblScoreCondition)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblScoreCondition $Entity */
+        $Entity = $Manager->getEntityById('TblScoreCondition', $tblScoreCondition->getId());
+        if (null !== $Entity) {
+            if (($list = $this->getScoreConditionGradeTypeListByCondition($tblScoreCondition))) {
+                foreach ($list as $item) {
+                    $this->removeScoreConditionGradeTypeList($item);
+                }
+            }
+            if (($list = $this->getScoreConditionGroupListByCondition($tblScoreCondition))) {
+                foreach ($list as $item) {
+                    $this->removeScoreConditionGroupList($item);
+                }
+            }
+
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblScoreGroup $tblScoreGroup
+     *
+     * @return bool
+     */
+    public function isScoreGroupUsed(TblScoreGroup $tblScoreGroup)
+    {
+
+        return $this->getCachedEntityBy(
+            __METHOD__,
+            $this->getConnection()->getEntityManager(),
+            'TblScoreConditionGroupList',
+            array(
+                TblScoreConditionGroupList::ATTR_TBL_SCORE_GROUP => $tblScoreGroup->getId()
+            )
+        ) ? true : false;
+    }
+
+    /**
+     * @param TblScoreGroup $tblScoreGroup
+     *
+     * @return bool
+     */
+    public function destroyScoreGroup(TblScoreGroup $tblScoreGroup)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblScoreGroup $Entity */
+        $Entity = $Manager->getEntityById('TblScoreGroup', $tblScoreGroup->getId());
+        if (null !== $Entity) {
+            if (($list = $this->getScoreGroupGradeTypeListByGroup($tblScoreGroup))) {
+                foreach ($list as $item) {
+                    $this->removeScoreGroupGradeTypeList($item);
+                }
+            }
+
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+
+            return true;
+        }
         return false;
     }
 }

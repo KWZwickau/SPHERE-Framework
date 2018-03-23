@@ -166,6 +166,14 @@ table.dataTable.dtr-inline.collapsed > tbody > tr.parent > th:first-child:before
 
 .label {
     font-weight: normal;
+    text-shadow: none !important;
+}
+
+/* BADGE */
+
+.badge {
+    font-weight: normal;
+    text-shadow: none !important;
 }
 
 /* TYPEAHEAD RESPONSIVE */

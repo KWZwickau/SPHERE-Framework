@@ -4,6 +4,7 @@ namespace SPHERE\Application\People\Person;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Service\Data;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
@@ -84,7 +85,7 @@ class Service extends AbstractService
     public function countPersonAllByGroup(TblGroup $tblGroup)
     {
 
-        return Group::useService()->countMemberAllByGroup($tblGroup);
+        return Group::useService()->countMemberByGroup($tblGroup);
     }
 
     /**
@@ -196,6 +197,37 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string $FirstName
+     * @param string $LastName
+     * @param string $Birthday
+     *
+     * @return bool|TblPerson
+     */
+    public function getPersonByNameAndBirthday($FirstName, $LastName, $Birthday)
+    {
+
+        $tblPersonList = (new Data($this->getBinding()))->getPersonAllByFirstNameAndLastName($FirstName, $LastName);
+
+        if ($tblPersonList) {
+            foreach ($tblPersonList as $tblPerson) {
+                $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
+                if (!$tblCommon) {
+                    continue;
+                }
+                $tblCommonBirthDates = $tblCommon->getTblCommonBirthDates();
+                if (!$tblCommonBirthDates) {
+                    continue;
+                }
+
+                if ($Birthday == $tblCommonBirthDates->getBirthday()) {
+                    return $tblPerson;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * @param IFormInterface|null $Form
      * @param TblPerson $tblPerson
      * @param $Person
@@ -258,6 +290,18 @@ class Service extends AbstractService
         }
 
         return $Form;
+    }
+
+    /**
+     * @param TblPerson     $tblPerson
+     * @param TblSalutation $tblSalutation
+     *
+     * @return bool
+     */
+    public function updateSalutation(TblPerson $tblPerson, TblSalutation $tblSalutation)
+    {
+
+        return ( new Data($this->getBinding()) )->updateSalutation($tblPerson, $tblSalutation);
     }
 
     /**

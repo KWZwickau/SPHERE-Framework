@@ -5,6 +5,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -27,6 +29,8 @@ class TblGroup extends Element
     const META_TABLE_TEACHER = 'TEACHER';
     const META_TABLE_CLUB = 'CLUB';
     const META_TABLE_COMPANY_CONTACT = 'COMPANY_CONTACT';
+    const META_TABLE_TUDOR = 'TUDOR';
+
     /**
      * @Column(type="string")
      */
@@ -145,5 +149,14 @@ class TblGroup extends Element
     {
 
         $this->Name = $Name;
+    }
+
+    /**
+     * @return bool|TblPerson[]
+     */
+    public function getTudors()
+    {
+
+        return Group::useService()->getTudors($this);
     }
 }

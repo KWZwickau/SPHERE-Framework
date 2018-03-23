@@ -13,7 +13,9 @@ class Danger extends AbstractLink implements ILinkInterface
 {
 
     /**
-     * AbstractLink constructor.
+     * Danger constructor.
+     *
+     * Without authorization the link will not be displayed
      *
      * @param string              $Name
      * @param string              $Path

@@ -4,6 +4,7 @@ namespace SPHERE\Application\Setting\MyAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
+use SPHERE\Application\Setting\User\Account\Account as UserAccount;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -23,7 +24,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
      * @param string         $CredentialLock
      * @param string         $CredentialLockSafety
      *
-     * @return IFormInterface|Redirect
+     * @return IFormInterface|Redirect|string
      */
     public function updatePassword(
         IFormInterface $Form,
@@ -48,6 +49,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                 $Form->setSuccess('CredentialLock', '');
             } else {
                 $Form->setError('CredentialLock', 'Das Passwort muss mindestens 8 Zeichen lang sein');
+                $Form->setError('CredentialLockSafety', '');
                 $Error = true;
             }
         }
@@ -56,22 +58,56 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             $Form->setError('CredentialLockSafety', 'Bitte geben Sie ein Passwort an');
             $Error = true;
         }
-        if ($CredentialLock != $CredentialLockSafety) {
+        if ($CredentialLock != $CredentialLockSafety && !$Error) {
             $Form->setError('CredentialLock', '');
             $Form->setError('CredentialLockSafety', 'Die beiden Passworte stimmen nicht überein');
             $Error = true;
-        } else {
+        } elseif (!$Error) {
             if (!empty( $CredentialLock ) && !empty( $CredentialLockSafety )) {
+                $Form->setSuccess('CredentialLock', '');
                 $Form->setSuccess('CredentialLockSafety', '');
             } else {
+                $Form->setError('CredentialLock', '');
                 $Form->setError('CredentialLockSafety', '');
+            }
+        }
+
+        // are enough criteria matched?
+        $Step = 0;
+        if ($CredentialLock && !$Error) {
+            if (preg_match('![a-z]!s', $CredentialLock)) {
+                $Step++;
+            }
+            if (preg_match('![A-Z]!s', $CredentialLock)) {
+                $Step++;
+            }
+            if (preg_match('![0-9]!s', $CredentialLock)) {
+                $Step++;
+            }
+            if (preg_match('![^\w\d]!s', $CredentialLock)) {
+                $Step++;
+            }
+            // min 3 criteria
+            if ($Step < 3) {
+                $Form->setError('CredentialLock', 'Nicht genügend Sicherheitskriterien erfüllt');
+                $Form->setError('CredentialLockSafety', '');
+                $Error = true;
             }
         }
 
         if ($Error) {
             return $Form;
         } else {
+            $tblAccountUpdate = $tblAccount->getEntityUpdate();
             if (Account::useService()->changePassword($CredentialLock, $tblAccount)) {
+                // erste PW Änderung von UserAccounts -> Weiterleitung Startseite
+                if ($tblAccountUpdate === null) {
+                    $tblUserAccount = UserAccount::useService()->getUserAccountByAccount($tblAccount);
+                    if ($tblUserAccount) {
+                        return new Success('Das Passwort wurde erfolgreich geändert').new Redirect('/',
+                                Redirect::TIMEOUT_SUCCESS);
+                    }
+                }
                 return new Success('Das Passwort wurde erfolgreich geändert').new Redirect('/Setting/MyAccount', Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger('Das Passwort konnte nicht geändert werden').new Redirect('/Setting/MyAccount', Redirect::TIMEOUT_ERROR);
@@ -102,7 +138,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
      * @param TblAccount     $tblAccount
      * @param array          $Setting
      *
-     * @return IFormInterface|Redirect
+     * @return IFormInterface|Redirect|string
      */
     public function updateSetting(
         IFormInterface $Form,

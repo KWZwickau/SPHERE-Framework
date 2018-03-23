@@ -313,7 +313,7 @@ class Frontend extends Extension implements IFrontendInterface
                         if (class_exists($CertificateClass)) {
 
                             /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Template */
-                            $Template = new $CertificateClass($tblPerson, $tblDivision);
+                            $Template = new $CertificateClass($tblDivision);
 
                             $GradeList = $Template->getGrade();
                             $HeaderBehavior = array();
@@ -374,6 +374,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Content.Input.KMI'            => 'TextField',
                                 'Content.Input.KOR'            => 'TextField',
                                 'Content.Input.Remark'         => 'TextArea',
+                                'Content.Input.SecondRemark'   => 'TextArea',
                                 'Content.Input.Rating'         => 'TextArea',
                                 'Content.Input.Survey'         => 'TextArea',
                                 'Content.Input.Team'           => 'TextArea',
@@ -382,6 +383,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Content.Input.Date'           => 'DatePicker',
                                 'Content.Input.DateCertifcate' => 'DatePicker',
                                 'Content.Input.DateConference' => 'DatePicker',
+                                'Content.Input.DateConsulting' => 'DatePicker',
                                 'Content.Input.Transfer'       => 'TextField',
                                 'Content.Input.LevelTwo'       => 'TextField',
                                 'Content.Input.LevelThree'     => 'TextField',
@@ -404,6 +406,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Content.Input.KMI'            => 'Mitarbeit',
                                 'Content.Input.KOR'            => 'Ordnung',
                                 'Content.Input.Remark'         => 'Bemerkungen',
+                                'Content.Input.SecondRemark'   => 'Bemerkung Seite 2',
                                 'Content.Input.Rating'         => 'Einschätzung',
                                 'Content.Input.Survey'         => 'Gutachten',
                                 'Content.Input.Team'           => 'Arbeitsgemeinschaften',
@@ -411,7 +414,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Content.Input.SchoolType'     => 'Schulart (am Gymnasium/an der Mittelschule/...)',
                                 'Content.Input.Date'           => 'Datum',
                                 'Content.Input.DateCertifcate' => 'Datum des Zeugnisses',
-                                'Content.Input.DateConference' => 'Datum der Konferenz',
+                                'Content.Input.DateConference' => 'Datum der Klassenkonferenz',
+                                'Content.Input.DateConsulting' => 'Datum der Bildungsberatung',
                                 'Content.Input.Transfer'       => 'Versetzungsvermerk',
                                 'Content.Input.LevelTwo'       => '2. Fremdsprache ab Klassenstufe',
                                 'Content.Input.LevelThree'     => '3. Fremdsprache ab Klassenstufe',
@@ -547,9 +551,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     $CertificateClass = '\SPHERE\Application\Api\Education\Graduation\Certificate\Repository\\'.$Load->getCertificate();
                                     if (class_exists($CertificateClass)) {
                                         $tblDivision = Division::useService()->getDivisionById($Load->getDivision());
-                                        $tblPerson = Person::useService()->getPersonById($Load->getPerson());
                                         /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Template */
-                                        $Template = new $CertificateClass($tblPerson, $tblDivision);
+                                        $Template = new $CertificateClass($tblDivision);
                                     }
                                     $Content = $Template->createCertificate($Load->getData())->getContent();
                                     break;

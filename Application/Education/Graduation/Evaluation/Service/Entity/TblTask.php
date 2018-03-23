@@ -66,6 +66,11 @@ class TblTask extends Element
     protected $serviceTblScoreType;
 
     /**
+     * @Column(type="boolean")
+     */
+    protected $IsLocked;
+
+    /**
      * @return string
      */
     public function getName()
@@ -337,17 +342,27 @@ class TblTask extends Element
     public function isLocked()
     {
 
-        $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($this);
-        if ($tblTestAllByTask){
-            foreach ($tblTestAllByTask as $tblTest){
-                $tblGradeListByTest = Gradebook::useService()->getGradeAllByTest($tblTest);
-                if ($tblGradeListByTest){
-                    return true;
-                }
-            }
-        }
+//        $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($this);
+//        if ($tblTestAllByTask){
+//            foreach ($tblTestAllByTask as $tblTest){
+//                $tblGradeListByTest = Gradebook::useService()->getGradeAllByTest($tblTest);
+//                if ($tblGradeListByTest){
+//                    return true;
+//                }
+//            }
+//        }
+//
+//        return false;
 
-        return false;
+        return $this->IsLocked;
+    }
+
+    /**
+     * @param boolean $IsLocked
+     */
+    public function setIsLocked($IsLocked)
+    {
+        $this->IsLocked = (boolean) $IsLocked;
     }
 
 }

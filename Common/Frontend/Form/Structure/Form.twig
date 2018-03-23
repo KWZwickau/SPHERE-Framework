@@ -5,6 +5,7 @@
       data-toggle="validator"
       role="form"
       {% if( AjaxEventSubmit is not empty ) %} class="AjaxSubmit"{% endif %}
+      {% if EnableNewTab is not empty %} target="_blank"{% endif %}
     >
     {% for FormGroup in GridGroupList %}
         {% if( FormGroup.getFormTitle is not empty ) %}
@@ -43,6 +44,7 @@
         {% endfor %}
     {% endfor %}
     {% if( FormButtonList|length > 0) %}
+        <br/>
         <div class="form-group">
             <div class="btn-group">
                 {% for FormButton in FormButtonList %}
@@ -62,11 +64,18 @@
                 {% if FormConfirm is not empty %}notifyChangedMessage: "{{ FormConfirm }}"{% else %}notifyChangedField: false{% endif %}
                 {% if EnableSaveDraft is not empty %},saveDraftData: {{ EnableSaveDraft }}{% endif %}
             });
-            {% if( AjaxEventSubmit is not empty ) %}
-            jQuery("form#{{ Hash }}").on('submit',function(Event){
+            {% if( DisableSubmitAction is not empty ) %}
+            jQuery("form#{{ Hash }}").on('submit', function (Event) {
                 Event.preventDefault();
-                {{ AjaxEventSubmit }}
-            })
+            });
+            {% endif %}
+            {% if( AjaxEventSubmit is not empty ) %}
+            Client.Use('ModAjax', function() {
+                jQuery("form#{{ Hash }}").on('submit', function (Event) {
+                    Event.preventDefault();
+                    {{ AjaxEventSubmit }}
+                });
+            });
             {% endif %}
         });
     });

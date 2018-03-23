@@ -72,14 +72,14 @@ class Service extends AbstractService
     public function countCompanyAllByGroup(TblGroup $tblGroup)
     {
 
-        return Group::useService()->countCompanyAllByGroup($tblGroup);
+        return Group::useService()->countMemberByGroup($tblGroup);
     }
 
     /**
      * @param IFormInterface $Form
      * @param array $Company
      *
-     * @return IFormInterface|Redirect
+     * @return IFormInterface|Redirect|string
      */
     public function createCompany(IFormInterface $Form = null, $Company)
     {
@@ -98,6 +98,16 @@ class Service extends AbstractService
             $Error = true;
         }
 
+        // company name with extend have to be unique
+        if (isset($Company['Name']) && !empty($Company['Name'])) {
+            $tblCompanyCatch = $this->getCompanyByName($Company['Name'], $Company['ExtendedName']);
+            if ($tblCompanyCatch) {
+                $Form->setError('Company[Name]', 'Name der Firma (mit Zusatz) bereits vorhanden!');
+                $Form->setError('Company[ExtendedName]', 'Name der Firma (mit Zusatz) bereits vorhanden!');
+                $Error = true;
+            }
+        }
+
         if (!$Error) {
 
             if (($tblCompany = (new Data($this->getBinding()))->createCompany($Company['Name'],
@@ -112,12 +122,12 @@ class Service extends AbstractService
                         );
                     }
                 }
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Firma wurde erfolgreich erstellt')
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Institution wurde erfolgreich erstellt')
                 . new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS,
                     array('Id' => $tblCompany->getId())
                 );
             } else {
-                return new Danger(new Ban() . ' Die Firma konnte nicht erstellt werden')
+                return new Danger(new Ban().' Die Institution konnte nicht erstellt werden')
                 . new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR);
             }
         }
@@ -154,7 +164,7 @@ class Service extends AbstractService
      * @param array $Company
      * @param null|int $Group
      *
-     * @return IFormInterface|Redirect
+     * @return IFormInterface|Redirect|string
      */
     public function updateCompany(IFormInterface $Form = null, TblCompany $tblCompany, $Company, $Group)
     {
@@ -171,6 +181,16 @@ class Service extends AbstractService
         if (isset($Company['Name']) && empty($Company['Name'])) {
             $Form->setError('Company[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
+        }
+
+        // company name with extend have to be unique
+        if (isset($Company['Name']) && !empty($Company['Name'])) {
+            $tblCompanyCatch = $this->getCompanyByName($Company['Name'], $Company['ExtendedName']);
+            if ($tblCompanyCatch && $tblCompanyCatch->getId() != $tblCompany->getId()) {
+                $Form->setError('Company[Name]', 'Name der Firma (mit Zusatz) bereits vorhanden!');
+                $Form->setError('Company[ExtendedName]', 'Name der Firma (mit Zusatz) bereits vorhanden!');
+                $Error = true;
+            }
         }
 
         if (!$Error) {
@@ -198,10 +218,10 @@ class Service extends AbstractService
                         Group::useService()->removeGroupCompany($tblGroup, $tblCompany);
                     }
                 }
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Firma wurde erfolgreich aktualisiert')
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Institution wurde erfolgreich aktualisiert')
                 . new Redirect(null, Redirect::TIMEOUT_SUCCESS);
             } else {
-                return new Danger(new Ban() . ' Die Firma konnte nicht aktualisiert werden')
+                return new Danger(new Ban().' Die Institution konnte nicht aktualisiert werden')
                 . new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR);
             }
         }
@@ -218,6 +238,18 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getCompanyByDescription($Description);
+    }
+
+    /**
+     * @param string $Name
+     * @param string $ExtendedName
+     *
+     * @return bool|TblCompany
+     */
+    public function getCompanyByName($Name, $ExtendedName)
+    {
+
+        return ( new Data($this->getBinding()) )->getCompanyByName($Name, $ExtendedName);
     }
 
     /**

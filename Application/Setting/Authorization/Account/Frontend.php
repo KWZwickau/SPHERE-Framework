@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Setting\Authorization\Account;
 
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
@@ -94,7 +95,9 @@ class Frontend extends Extension implements IFrontendInterface
 
                 if (
                     ( $tblAccount->getServiceTblIdentification()
-                        && $tblAccount->getServiceTblIdentification()->getId() != Account::useService()->getIdentificationByName('System')->getId() )
+                        && $tblAccount->getServiceTblIdentification()->getId() != Account::useService()->getIdentificationByName('System')->getId()
+                        && $tblAccount->getServiceTblIdentification()->getId() != Account::useService()->getIdentificationByName('UserCredential')->getId()
+                    )
                     && $tblAccount->getServiceTblConsumer()
                     && $tblAccount->getServiceTblConsumer()->getId() == Consumer::useService()->getConsumerBySession()->getId()
                 ) {
@@ -188,6 +191,12 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Benutzerkonto', 'Hinzufügen');
         $Stage->addButton(new Standard('Zurück', '/Setting/Authorization/Account', new ChevronLeft()));
+        $tblAuthentication = Account::useService()->getIdentificationByName('Token');
+        if ($tblAuthentication) {
+            $Global = $this->getGlobal();
+            $Global->POST['Account']['Identification'] = $tblAuthentication->getId();
+            $Global->savePost();
+        }
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(
@@ -220,22 +229,14 @@ class Frontend extends Extension implements IFrontendInterface
         $tblIdentificationAll = Account::useService()->getIdentificationAll();
         if ($tblIdentificationAll) {
             array_walk($tblIdentificationAll, function (TblIdentification &$tblIdentification) {
-
                 if ($tblIdentification->getName() == 'System') {
                     $tblIdentification = false;
+                } elseif ($tblIdentification->getName() == 'Credential') {
+                    $tblIdentification = false;
+                } elseif ($tblIdentification->getName() == 'UserCredential') {
+                    $tblIdentification = false;
                 } else {
-                    switch (strtoupper($tblIdentification->getName())) {
-                        case 'CREDENTIAL':
-                            $Global = $this->getGlobal();
-                            if (!isset( $Global->POST['Account']['Identification'] )) {
-                                $Global->POST['Account']['Identification'] = $tblIdentification->getId();
-                                $Global->savePost();
-                            }
-                            $Label = $tblIdentification->getDescription();
-                            break;
-                        default:
-                            $Label = $tblIdentification->getDescription().' ('.new Key().')';
-                    }
+                    $Label = $tblIdentification->getDescription().' ('.new Key().')';
                     $tblIdentification = new RadioBox(
                         'Account[Identification]', $Label, $tblIdentification->getId()
                     );
@@ -248,17 +249,27 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Role
         $tblRoleAll = Access::useService()->getRoleAll();
-        $tblRoleAll = $this->getSorter($tblRoleAll)->sortObjectBy( TblRole::ATTR_NAME, new StringGermanOrderSorter() );
+        $tblRoleAll = $this->getSorter($tblRoleAll)->sortObjectBy(TblRole::ATTR_NAME, new StringGermanOrderSorter());
         if ($tblRoleAll) {
             array_walk($tblRoleAll, function (TblRole &$tblRole) {
 
                 if ($tblRole->isInternal()) {
                     $tblRole = false;
                 } else {
-                    $tblRole = new CheckBox('Account[Role]['.$tblRole->getId().']',
-                        ( $tblRole->isSecure() ? new YubiKey() : new Publicly() ).' '.$tblRole->getName(),
-                        $tblRole->getId()
-                    );
+                    if (!$tblRole->isIndividual()
+                        || (
+                            ($tblAccount = Account::useService()->getAccountBySession())
+                            && ($tblConsumer = $tblAccount->getServiceTblConsumer())
+                            && (Access::useService()->getRoleConsumerBy($tblRole, $tblConsumer))
+                        )
+                    ) {
+                        $tblRole = new CheckBox('Account[Role][' . $tblRole->getId() . ']',
+                            ($tblRole->isSecure() ? new YubiKey() : new Publicly()) . ' ' . $tblRole->getName(),
+                            $tblRole->getId()
+                        );
+                    } else {
+                        $tblRole = false;
+                    }
                 }
             });
             $tblRoleAll = array_filter($tblRoleAll);
@@ -330,7 +341,12 @@ class Frontend extends Extension implements IFrontendInterface
             $tblPerson = false;
         }
 
-        $tblPersonAll = \SPHERE\Application\People\Person\Person::useService()->getPersonAll();
+        $tblGroup = Group::useService()->getGroupByMetaTable('STAFF');
+        if ($tblGroup) {
+            $tblPersonAll = Group::useService()->getPersonAllByGroup($tblGroup);
+        } else {
+            $tblPersonAll = false;
+        }
         if ($tblPersonAll) {
             array_walk($tblPersonAll, function (TblPerson &$tblPersonItem) use ($tblPerson, $Global) {
 
@@ -365,7 +381,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Person Panel
         if ($tblPerson) {
-            $PanelPerson = new Panel(new Person().' für folgende Person', array(
+            $PanelPerson = new Panel(new Person().' für folgende Mitarbeiter', array(
                 new Danger('AKTUELL hinterlegte Person, '),
                 new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId()),
                 new Danger('ODER eine andere Person wählen: '),
@@ -373,14 +389,14 @@ class Frontend extends Extension implements IFrontendInterface
             ), Panel::PANEL_TYPE_INFO);
         } elseif (isset( $Global->POST['Account']['User'] )) {
             $tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($Global->POST['Account']['User']);
-            $PanelPerson = new Panel(new Person().' für folgende Person', array(
+            $PanelPerson = new Panel(new Person().' für folgende Mitarbeiter', array(
                 new Warning('AKTUELL selektierte Person, '),
                 new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId()),
                 new Danger('ODER eine andere Person wählen: '),
                 new TableData($tblPersonAll, null, array('Person' => 'Person wählen', 'Address' => 'Adresse')),
             ), Panel::PANEL_TYPE_INFO);
         } else {
-            $PanelPerson = new Panel(new Person().' für folgende Person', array(
+            $PanelPerson = new Panel(new Person().' für folgende Mitarbeiter', array(
                 new TableData($tblPersonAll, null, array('Person' => 'Person wählen', 'Address' => 'Adresse')),
             ), Panel::PANEL_TYPE_INFO);
         }

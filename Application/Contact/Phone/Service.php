@@ -392,7 +392,7 @@ class Service extends AbstractService
                         array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
                 }
             } else {
-                return new Danger('Firma nicht gefunden', new Ban());
+                return new Danger('Institution nicht gefunden', new Ban());
             }
         }
         return $Form;
@@ -456,5 +456,29 @@ class Service extends AbstractService
                 $this->removePhoneToPerson($tblToPerson, $IsSoftRemove);
             }
         }
+    }
+
+    /**
+     * @param $Name
+     * @param $Description
+     *
+     * @return false|TblType
+     */
+    public function getTypeByNameAndDescription($Name, $Description)
+    {
+
+        return (new Data($this->getBinding()))->getTypeByNameAndDescription($Name, $Description);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblType $tblType
+     *
+     * @return false|TblToPerson[]
+     */
+    public function getPhoneToPersonAllBy(TblPerson $tblPerson, TblType $tblType)
+    {
+
+        return (new Data($this->getBinding()))->getPhoneToPersonAllBy($tblPerson, $tblType);
     }
 }

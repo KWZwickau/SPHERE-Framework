@@ -102,29 +102,48 @@ class Frontend extends Extension implements IFrontendInterface
                 foreach ($tblPrepareList as $tblPrepare) {
                     $countStudents = 0;
                     $countApproved = 0;
+                    $isAutomaticallyApproved = false;
                     $tblDivision = $tblPrepare->getServiceTblDivision();
+
+                    if (($tblCertificateType = $tblPrepare->getCertificateType())
+                        && $tblCertificateType->isAutomaticallyApproved()
+                    ) {
+                        $isAutomaticallyApproved = true;
+                    }
+
                     if ($tblDivision) {
                         if (($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))) {
                             $countStudents = count($tblPersonList);
-                            foreach ($tblPersonList as $tblPerson) {
-                                if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
-                                        $tblPerson))
-                                    && $tblPrepareStudent->isApproved()
-                                ) {
-                                    $countApproved++;
+                            if (!$isAutomaticallyApproved) {
+                                foreach ($tblPersonList as $tblPerson) {
+                                    if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
+                                            $tblPerson))
+                                        && $tblPrepareStudent->isApproved()
+                                    ) {
+                                        $countApproved++;
+                                    }
                                 }
                             }
                         }
+                    }
+
+                    if ($isAutomaticallyApproved) {
+                        $status = new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                            . ' ' .$countStudents . ' Zeugnisse werden automatisch freigegeben.');
+                    } else {
+                        $status = $countApproved < $countStudents
+                            ? new Warning(new Exclamation() . ' ' . $countApproved . ' von ' . $countStudents . ' Zeugnisse freigegeben.')
+                            : new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                                . ' ' . $countApproved . ' von ' . $countStudents . ' Zeugnissen freigegeben.');
                     }
 
                     $prepareList[] = array(
                         'Date' => $tblPrepare->getDate(),
                         'Name' => $tblPrepare->getName(),
                         'Division' => $tblDivision ? $tblDivision->getDisplayName() : '',
-                        'Status' => $countApproved < $countStudents
-                            ? new Warning(new Exclamation() . ' ' . $countApproved . ' von ' . $countStudents . ' Zeugnisse freigegeben.')
-                            : new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
-                                . ' ' . $countApproved . ' von ' . $countStudents . ' Zeugnissen freigegeben.'),
+                        'CertificateType' =>
+                            $tblCertificateType ? $tblCertificateType->getName() : '',
+                        'Status' => $status,
                         'Option' =>
                             (new Standard(
                                 '',
@@ -137,7 +156,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ))
                             . (new External(
                                 '',
-                                '/Api/Education/Certificate/Generator/PreviewZip',
+                                '/Api/Education/Certificate/Generator/PreviewMultiPdf',
                                 new Download(),
                                 array(
                                     'PrepareId' => $tblPrepare->getId(),
@@ -171,6 +190,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'Date' => 'Zeugnisdatum',
                         'Division' => 'Klasse',
                         'Name' => 'Name',
+                        'CertificateType' => 'Zeugnistyp',
                         'Status' => 'Freigaben',
                         'Option' => ''
                     ),
@@ -194,54 +214,56 @@ class Frontend extends Extension implements IFrontendInterface
                 foreach ($tblPrepareList as $tblPrepare) {
                     $tblDivision = $tblPrepare->getServiceTblDivision();
 
-                    $prepareList[] = array(
-                        'Year' => $tblDivision->getServiceTblYear()
-                            ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
-                        'Date' => $tblPrepare->getDate(),
-                        'Name' => $tblPrepare->getName(),
-                        'Division' => $tblDivision ? $tblDivision->getDisplayName() : '',
-                        'Option' =>
-                            (new Standard(
-                                '',
-                                '/Education/Certificate/Approve/Prepare',
-                                new EyeOpen(),
-                                array(
-                                    'PrepareId' => $tblPrepare->getId(),
-                                    'IsAllYears' => true
-                                ),
-                                'Klassenansicht -> Zeugnisse einzeln freigeben'
-                            ))
-                            . (new External(
-                                '',
-                                '/Api/Education/Certificate/Generator/PreviewZip',
-                                new Download(),
-                                array(
-                                    'PrepareId' => $tblPrepare->getId(),
-                                    'Name' => 'Zeugnismuster'
-                                ), 'Alle Zeugnisse als Muster herunterladen'))
-                            . (new Standard(
-                                '',
-                                '/Education/Certificate/Approve/Prepare/Division/SetApproved',
-                                new Check(),
-                                array(
-                                    'PrepareId' => $tblPrepare->getId(),
-                                    'Route' => '/Education/Certificate/Approve',
-                                    'IsAllYears' => true
-                                ),
-                                'Alle Zeugnisse dieser Klasse freigeben'
-                            ))
-                            . (new Standard(
-                                '',
-                                '/Education/Certificate/Approve/Prepare/Division/ResetApproved',
-                                new Disable(),
-                                array(
-                                    'PrepareId' => $tblPrepare->getId(),
-                                    'Route' => '/Education/Certificate/Approve',
-                                    'IsAllYears' => true
-                                ),
-                                'Alle Zeugnisfreigaben dieser Klasse entfernen'
-                            ))
-                    );
+                    if ($tblDivision) {
+                        $prepareList[] = array(
+                            'Year' => $tblDivision->getServiceTblYear()
+                                ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                            'Date' => $tblPrepare->getDate(),
+                            'Name' => $tblPrepare->getName(),
+                            'Division' => $tblDivision ? $tblDivision->getDisplayName() : '',
+                            'Option' =>
+                                (new Standard(
+                                    '',
+                                    '/Education/Certificate/Approve/Prepare',
+                                    new EyeOpen(),
+                                    array(
+                                        'PrepareId' => $tblPrepare->getId(),
+                                        'IsAllYears' => true
+                                    ),
+                                    'Klassenansicht -> Zeugnisse einzeln freigeben'
+                                ))
+                                . (new External(
+                                    '',
+                                    '/Api/Education/Certificate/Generator/PreviewMultiPdf',
+                                    new Download(),
+                                    array(
+                                        'PrepareId' => $tblPrepare->getId(),
+                                        'Name' => 'Zeugnismuster'
+                                    ), 'Alle Zeugnisse als Muster herunterladen'))
+                                . (new Standard(
+                                    '',
+                                    '/Education/Certificate/Approve/Prepare/Division/SetApproved',
+                                    new Check(),
+                                    array(
+                                        'PrepareId' => $tblPrepare->getId(),
+                                        'Route' => '/Education/Certificate/Approve',
+                                        'IsAllYears' => true
+                                    ),
+                                    'Alle Zeugnisse dieser Klasse freigeben'
+                                ))
+                                . (new Standard(
+                                    '',
+                                    '/Education/Certificate/Approve/Prepare/Division/ResetApproved',
+                                    new Disable(),
+                                    array(
+                                        'PrepareId' => $tblPrepare->getId(),
+                                        'Route' => '/Education/Certificate/Approve',
+                                        'IsAllYears' => true
+                                    ),
+                                    'Alle Zeugnisfreigaben dieser Klasse entfernen'
+                                ))
+                        );
+                    }
                 }
 
                 $content = new TableData($prepareList, null,
@@ -326,6 +348,14 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 ));
 
+                if (($tblCertificateType = $tblPrepare->getCertificateType())
+                    && $tblCertificateType->isAutomaticallyApproved()
+                ) {
+                    $isAutomaticallyApproved = true;
+                } else {
+                    $isAutomaticallyApproved = false;
+                }
+
                 $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
                 if ($tblStudentList) {
                     foreach ($tblStudentList as $tblPerson) {
@@ -353,6 +383,16 @@ class Frontend extends Extension implements IFrontendInterface
                             $isApproved = false;
                         }
 
+                        if ($isAutomaticallyApproved) {
+                            $status = $isApproved
+                                ? new Success(new Enable() . ' freigegeben')
+                                : new Success(new Enable() . ' wird automatisch freigegeben');
+                        } else {
+                            $status = $isApproved
+                                ? new Success(new Enable() . ' freigegeben')
+                                : new Warning(new Exclamation() . ' nicht freigegeben');
+                        }
+
                         $studentTable[] = array(
                             'Number' => count($studentTable) + 1,
                             'Name' => $tblPerson->getLastFirstName(),
@@ -364,10 +404,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new Success(new Enable() . ' ' . $tblCertificate->getName()
                                     . ($tblCertificate->getDescription() ? '<br>' . $tblCertificate->getDescription() : ''))
                                 : new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation() . ' Keine Zeugnisvorlage ausgewählt')),
-                            'Status' =>
-                                $isApproved
-                                    ? new Success(new Enable() . ' freigegeben')
-                                    : new Warning(new Exclamation() . ' nicht freigegeben'),
+                            'Status' => $status,
                             'Option' =>
                                 ($tblCertificate ? new External(
                                     'Zeugnis herunterladen',
@@ -423,7 +460,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(array(
                                 new External(
                                     'Alle Zeugnisse als Muster herunterladen',
-                                    '/Api/Education/Certificate/Generator/PreviewZip',
+                                    '/Api/Education/Certificate/Generator/PreviewMultiPdf',
                                     new Download(),
                                     array(
                                         'PrepareId' => $tblPrepare->getId(),

@@ -5,6 +5,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\Application\People\Meta\Custody\Service\Entity\TblCustody;
 use SPHERE\System\Database\Binding\AbstractSetup;
+use SPHERE\System\Database\Fitting\Element;
 use SPHERE\System\Database\Fitting\View;
 
 /**
@@ -49,6 +50,10 @@ class Setup extends AbstractSetup
         $Table = $this->getConnection()->createTable($Schema, 'tblCustody');
         if (!$this->getConnection()->hasColumn('tblCustody', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
+        }
+        $this->getConnection()->removeIndex($Table, array('serviceTblPerson'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
         }
         if (!$this->getConnection()->hasColumn('tblCustody', 'Remark')) {
             $Table->addColumn('Remark', 'text');

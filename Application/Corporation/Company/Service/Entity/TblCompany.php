@@ -20,7 +20,7 @@ class TblCompany extends Element
 {
 
     const ATTR_NAME = 'Name';
-    const ATTR_EXTENDED_NAME = 'ExtendedNameName';
+    const ATTR_EXTENDED_NAME = 'ExtendedName';
     const ATTR_DESCRIPTION = 'Description';
 
     /**

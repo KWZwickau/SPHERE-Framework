@@ -54,6 +54,23 @@ class Style
     }
 
     /**
+     * @param float|int $Value [-1 = Auto]
+     *
+     * @return $this
+     */
+    public function setRowHeight($Value = '20')
+    {
+
+        $RowRange = $this->getRangeRowList();
+        foreach ($RowRange as $RowName) {
+            if ('20' !== $Value) {
+                $this->Worksheet->getRowDimension($RowName)->setRowHeight((float)$Value);
+            }
+        }
+        return $this;
+    }
+
+    /**
      * @return array Cell & Range: array( 'A', ... )
      */
     private function getRangeColumnNameList()
@@ -93,6 +110,31 @@ class Style
     {
 
         $this->Worksheet->getStyle($this->getRangeName())->getFont()->setBold($Toggle);
+        return $this;
+    }
+
+    /**
+     * @param string $Color "replace # with FF"
+     *
+     * @return $this
+     */
+    public function setFontColor($Color = 'FFFFFFFF')
+    {
+
+        $PHPExcel_Style_Color = new \PHPExcel_Style_Color($Color);
+        $this->Worksheet->getStyle($this->getRangeName())->getFont()->setColor($PHPExcel_Style_Color);
+        return $this;
+    }
+
+    /**
+     * @param bool $Toggle
+     *
+     * @return $this
+     */
+    public function setFontItalic($Toggle = true)
+    {
+
+        $this->Worksheet->getStyle($this->getRangeName())->getFont()->setItalic($Toggle);
         return $this;
     }
 
@@ -205,6 +247,15 @@ class Style
                 throw new ComponentException($Exception->getMessage(), $Exception->getCode(), $Exception);
             }
         }
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function setWrapText()
+    {
+        $this->Worksheet->getStyle($this->getRangeName())->getAlignment()->setWrapText(true);
         return $this;
     }
 
@@ -394,6 +445,15 @@ class Style
 
         $this->Worksheet->getStyle($this->getRangeName())->getBorders()->getLeft()->setBorderStyle($this->getBorderSize($Size));
         $this->Worksheet->getStyle($this->getRangeName())->getBorders()->getLeft()->setColor(new \PHPExcel_Style_Color());
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function setAutoFilter()
+    {
+        $this->Worksheet->setAutoFilter($this->getRangeName());
         return $this;
     }
 }

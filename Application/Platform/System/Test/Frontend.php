@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Platform\System\Test;
 
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Api\Platform\Test\ApiSystemTest;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Platform\System\Test\Service\Entity\TblTestPicture;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -14,6 +15,7 @@ use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Form\Repository\Button\Danger;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Button\Reset;
+use SPHERE\Common\Frontend\Form\Repository\Button\Standard as BtnStandard;
 use SPHERE\Common\Frontend\Form\Repository\Button\Success;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -24,6 +26,7 @@ use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\PasswordField;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextCaptcha;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -55,12 +58,14 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutSocial;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTab;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTabs;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Cache\Handler\TwigHandler;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -76,13 +81,25 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendPlatform()
     {
+        $Global = $this->getGlobal();
+        $this->getDebugger()->screenDump($Global);
+        $this->getDebugger()->screenDump($_REQUEST);
+        $this->getDebugger()->screenDump($_FILES);
 
         $Stage = new Stage('Test', 'Frontend');
 
-        $Stage->setMessage('Message: Red alert.Processor of a distant x-ray vision, lower the death!Make it so, chemical wind!Fantastic nanomachines, to the alpha quadrant.Boldly sonic showers lead to the understanding.The death is a ship-wide cosmonaut.Wobble nosily like a post-apocalyptic space suit.Cosmonauts are the emitters of the fantastic ionic cannon.Where is the strange teleporter?');
+        $Stage->setMessage(
+            'Message: Red alert. Processor of a distant x-ray vision, lower the death! Make it so, chemical
+             wind! Fantastic nanomachines, to the alpha quadrant.Boldly sonic showers lead to the understanding. The 
+             death is a ship-wide cosmonaut. Wobble nosily like a post-apocalyptic space suit.Cosmonauts are the 
+             emitters of the fantastic ionic cannon. Where is the strange teleporter?'
+        );
 
         $Stage->addButton(
-            new Standard('Link', new Route(__NAMESPACE__))
+            new Standard('Link', new Route(__NAMESPACE__), null, array(), true)
+        );
+        $Stage->addButton(
+            new External('Link', 'http://www.google.de')
         );
 
         $D1 = new TblDivision();
@@ -115,14 +132,30 @@ class Frontend extends Extension implements IFrontendInterface
             ksort($IconList);
         }
 
+        $Receiver = 'Modal benötigt die API Route "/Api/Platform/Test/ApiSystemTest"'
+            .ApiSystemTest::receiverFirstModal()
+            .ApiSystemTest::receiverSecondModal()
+            .ApiSystemTest::receiverThirdModal();
+        $firstReceiverButton = (new Standard('Öffne ein Modal', ApiSystemTest::getEndpoint()))
+            ->ajaxPipelineOnClick(ApiSystemTest::pipelineOpenFirstModal());
+        $secondReceiverButton = (new Standard('Modal mit Form', ApiSystemTest::getEndpoint()))
+            ->ajaxPipelineOnClick(ApiSystemTest::pipelineOpenSecondModal());
+        $thirdReceiverButton = (new Standard('Modal mit "Laden"', ApiSystemTest::getEndpoint()))
+            ->ajaxPipelineOnClick(ApiSystemTest::pipelineOpenThirdModal());
+        $fourReceiverButton = (new Standard('Modal mit "Tabs"', ApiSystemTest::getEndpoint()))
+            ->ajaxPipelineOnClick(ApiSystemTest::pipelineOpenFourthModal());
+
         $Stage->setContent(
             (new Form(
                 new FormGroup(array(
                     new FormRow(array(
-                        new FormColumn(
+                        new FormColumn(array(
                             new AutoCompleter('AutoCompleter', 'AutoCompleter', 'AutoCompleter',
-                                array('123', '234', '345'))
-                            , 3),
+                                array('123', '234', '345')),
+                            new SelectCompleter('SelectCompleter', 'SelectCompleter', 'SelectCompleter',
+                                array('', '1+','1','1-', '2', '2-','2+','3','3-','3+','4','4-','4+','5','5-','5+','6','6-','6+')
+                            )
+                        ), 3),
                         new FormColumn(array(
                             new CheckBox('CheckBox', 'CheckBox', 'c1'),
                             new RadioBox('RadioBox1', 'RadioBox1a', '1a'),
@@ -130,9 +163,12 @@ class Frontend extends Extension implements IFrontendInterface
                         new FormColumn(
                             new DatePicker('DatePicker', 'DatePicker', 'DatePicker')
                             , 3),
-                        new FormColumn(
-                            new FileUpload('FileUpload', 'FileUpload', 'FileUpload')
-                            , 3),
+                        new FormColumn(array(
+                            new FileUpload('FileUpload[1]', 'FileUpload', 'FileUpload'),
+                            new FileUpload('FileUpload[2]', 'FileUpload', 'FileUpload'),
+                            new FileUpload('FileUpload[A]', 'FileUpload', 'FileUpload'),
+                            new FileUpload('FileUpload[B]', 'FileUpload', 'FileUpload'),
+                        ), 3),
                     )),
                     new FormRow(array(
                         new FormColumn(
@@ -152,12 +188,12 @@ class Frontend extends Extension implements IFrontendInterface
                     )),
                     new FormRow(array(
                         new FormColumn(array(
-                            new SelectBox('SelectBox1', 'SelectBox',
+                            new SelectBox('SelectBox1', 'SelectBox - Bootstrap Default',
                                 array('0' => 'A', '2' => '1', '3' => '2', '4' => '3')
                             ),
-                            new SelectBox('SelectBox2', 'SelectBox',
-                                array('{{ Name }}{{ Name }}{{ Name }} {{ Name }}{{ Name }}{{ Name }}' => $Check)
-                            ),
+                            (new SelectBox('SelectBox2', 'SelectBox - jQuery Select2',
+                                array('{{ Id }}{{ Name }}{{ Name }} {{ Id }}{{ Name }}{{ Name }}' => $Check)
+                            ))->configureLibrary( SelectBox::LIBRARY_SELECT2 ),
                         ), 3),
                         new FormColumn(
                             new TextArea('TextArea', 'TextArea', 'TextArea')
@@ -182,7 +218,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new Primary('Primary'),
                     new Danger('Danger'),
                     new Success('Success'),
-                    new Reset('Reset')
+                    new Reset('Reset'),
+                    new BtnStandard('Standard')
                 )
             ))->setConfirm('Wirklich?')
             .new Layout(array(
@@ -230,7 +267,17 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new TableData(array(
                                 array('A' => 1, 'B' => '2'),
-                                array('A' => 2, 'B' => '34567890')
+                                array('A' => 2, 'B' => '34567890'),
+                                array('A' => 'SelectBox Width Test DT', 'B' =>
+                                    (new SelectBox('SelectBox2DT', 'SelectBox - jQuery Select2',
+                                    array('{{ Id }}{{ Name }}{{ Name }} {{ Id }}{{ Name }}{{ Name }}' => $Check)
+                                    ))->configureLibrary( SelectBox::LIBRARY_SELECT2 )
+                                ),
+                                array('A' => 'SelectCompleter', 'B' =>
+                                    new SelectCompleter('SelectCompleterDT', 'SelectCompleter', 'SelectCompleter',
+                                        array('', '1+','1','1-', '2', '2-','2+','3','3-','3+','4','4-','4+','5','5-','5+','6','6-','6+')
+                                    )
+                                )
                             ))
                             , 6),
 
@@ -270,6 +317,19 @@ class Frontend extends Extension implements IFrontendInterface
                     )),
 
                 ), new Title('Layout Development')),
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            $Receiver
+                            , 3),
+                        new LayoutColumn(
+                            $firstReceiverButton
+                            .$secondReceiverButton
+                            .$thirdReceiverButton
+                            .$fourReceiverButton
+                            , 9)
+                    ))
+                    , new Title('ModalReceiver')),
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(implode($IconList)),
@@ -441,8 +501,11 @@ class Frontend extends Extension implements IFrontendInterface
 
     public function frontendSandbox()
     {
+//        $this->getCache(new TwigHandler())->clearCache();
 
         $Stage = new Stage('SandBox');
+
+//        $Stage->setContent( $this->getTemplate( __DIR__.'/Test.twig' ) );
 
         $R1 = new ModalReceiver();
         $R2 = new FieldValueReceiver( (new NumberField( 'NUFF' ))->setDefaultValue(9));
@@ -450,22 +513,24 @@ class Frontend extends Extension implements IFrontendInterface
         $R4 = new InlineReceiver( new \SPHERE\Common\Frontend\Message\Repository\Warning( ':P' ));
 
         $P = new Pipeline();
-//        $P->setLoadingMessage('Bitte warten', 'Interface wird geladen..');
-//        $P->setSuccessMessage('Erfolgreich', 'Daten wurden geladen');
+        $P->setLoadingMessage('Bitte warten', 'Interface wird geladen..');
+        $P->setSuccessMessage('Erfolgreich', 'Daten wurden geladen');
 
-        $P->addEmitter( $E2 = new ClientEmitter($R2, 0 ) );
-        $P->addEmitter( $E4 = new ClientEmitter(array($R1,$R4), new Info( ':)' ) ) );
+        $P->appendEmitter($E2 = new ClientEmitter($R2, 0));
+        $P->appendEmitter($E4 = new ClientEmitter(array($R1, $R4), new Info(':)')));
 
-        $P->addEmitter( $E3 = new ServerEmitter(array($R4,$R3), new Route('SPHERE\Application\Api\Corporation/Similar')) );
+        $P->appendEmitter($E3 = new ServerEmitter(array($R4, $R3),
+            new Route('SPHERE\Application\Api\Corporation/Similar')));
         $E3->setGetPayload(array(
             'MethodName' => 'ajaxContent'
         ));
-//        $E3->setLoadingMessage('Bitte warten', 'Interface wird geladen..');
-//        $E3->setSuccessMessage('Erfolgreich', 'Daten wurden geladen');
+        $E3->setLoadingMessage('Bitte warten', 'Interface wird geladen..');
+        $E3->setSuccessMessage('Erfolgreich', 'Daten wurden geladen');
 
-        $P->addEmitter( $E1 = new ServerEmitter($R1, new Route('SPHERE\Application\Api\Corporation/Similar')) );
+        $P->appendEmitter($E1 = new ServerEmitter($R1, new Route('SPHERE\Application\Api\Corporation/Similar')));
         $E1->setGetPayload(array(
             'MethodName' => 'ajaxLayoutSimilarPerson'
+//            'MethodName' => 'ajaxFormDingens'
         ));
         $E1->setPostPayload(array(
             'Reload' => (string)$R1->getIdentifier(),
@@ -473,6 +538,15 @@ class Frontend extends Extension implements IFrontendInterface
         ));
         $E1->setLoadingMessage('Bitte warten', 'Inhalte werden geladen..');
         $E1->setSuccessMessage('Erfolgreich', 'Daten wurden geladen');
+
+        $P2 = new Pipeline();
+        $P2->setLoadingMessage('Bitte warten', 'Interface wird geladen..');
+        $P2->setSuccessMessage('Erfolgreich', 'Daten wurden geladen');
+
+        $P2->appendEmitter($E1 = new ServerEmitter($R1, new Route('SPHERE\Application\Api\Corporation/Similar')));
+        $E1->setGetPayload(array(
+            'MethodName' => 'ajaxFormDingens'
+        ));
 
 
         $Stage->setContent(
@@ -489,7 +563,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         ))
                                     )
                                 )
-                            , new Primary('Ajax-Form?')))->ajaxPipelineOnSubmit( $P )
+                            , new Primary('Ajax-Form?')))->ajaxPipelineOnSubmit( $P2 )->setConfirm('Test with Ajax')
                         ))
                     )
                 ),

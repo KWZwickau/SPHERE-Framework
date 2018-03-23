@@ -44,7 +44,7 @@ abstract class AbstractData extends Cacheable
     protected function getEntityAllByLogic(Element $Entity, AbstractLogic $Logic)
     {
 
-        $Manager = $this->getConnection()->getEntityManager();
+        $Manager = $this->getEntityManager();
         $Builder = $Manager->getQueryBuilder();
 
         $Builder->select('E')->from($Entity->getEntityFullName(), 'E');
@@ -64,9 +64,6 @@ abstract class AbstractData extends Cacheable
             }
             return $Result;
         }
-
-        // TODO: Remove
-//        $this->getDebugger()->screenDump( $Query->getSQL() );
 
         return $Query->getResult();
     }
@@ -92,16 +89,13 @@ abstract class AbstractData extends Cacheable
     protected function getColumnAllByLogic(Element $Entity, AbstractLogic $Logic, $Column = 'Id')
     {
 
-        $Manager = $this->getConnection()->getEntityManager();
+        $Manager = $this->getEntityManager();
         $Builder = $Manager->getQueryBuilder();
 
         $Builder->select('E.'.$Column)->from($Entity->getEntityFullName(), 'E');
         $Builder->andWhere($Logic->getExpression());
         $Query = $Builder->getQuery();
         $Query->useQueryCache(true);
-
-        // TODO: Remove
-        // $this->getDebugger()->screenDump($Query->getSQL());
 
         return $Query->getResult(ColumnHydrator::HYDRATION_MODE);
     }
@@ -157,10 +151,10 @@ abstract class AbstractData extends Cacheable
      * @return false|Element[]
      * @throws \Exception
      */
-    final protected function getForceEntityListBy($__METHOD__, Manager $EntityManager, $EntityName, $Parameter)
+    final protected function getForceEntityListBy($__METHOD__, Manager $EntityManager, $EntityName, $Parameter, $OrderBy = array( 'EntityCreate' => self::ORDER_DESC ))
     {
 
-        $EntityList = $EntityManager->getEntity($EntityName)->findBy($Parameter);
+        $EntityList = $EntityManager->getEntity($EntityName)->findBy($Parameter, $OrderBy);
         $this->debugFactory($__METHOD__, $EntityList, $Parameter);
         return ( empty( $EntityList ) ? false : $EntityList );
     }
@@ -199,5 +193,16 @@ abstract class AbstractData extends Cacheable
         }
         $this->debugFactory($__METHOD__, $Entity, $Parameter);
         return $Entity;
+    }
+
+    /**
+     * @param bool $useCache true
+     *
+     * @return Manager
+     */
+    final protected function getEntityManager( $useCache = true )
+    {
+
+        return $this->getConnection()->getEntityManager( $useCache );
     }
 }

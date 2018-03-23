@@ -133,6 +133,16 @@ class UniversalRequest extends Bridge implements IBridgeInterface
     }
 
     /**
+     * Gets a list of languages acceptable by the client browser.
+     *
+     * @return array Languages ordered in the user browser preferences
+     */
+    public function getLanguageList() {
+
+        return self::$Instance->getSymfonyRequest()->getLanguages();
+    }
+
+    /**
      * @return array
      */
     public function getParameterArray()

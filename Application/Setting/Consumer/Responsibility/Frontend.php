@@ -8,6 +8,7 @@ use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblRespons
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -15,6 +16,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
@@ -36,6 +38,7 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
@@ -75,13 +78,27 @@ class Frontend extends Extension implements IFrontendInterface
             $Form = null;
             foreach ($tblResponsibilityAll as $tblResponsibility) {
                 $tblCompany = $tblResponsibility->getServiceTblCompany();
+                $CompanyNumber = $tblResponsibility->getCompanyNumber();
+                $CompanyNumberPanel = new Panel(new PullClear('Unternehmensnr. des Unfallversicherungsträgers'
+                        .new PullRight(($CompanyNumber == '' ? '(leer)' : '')))
+                    , $CompanyNumber,
+                    ($CompanyNumber != '' ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_WARNING),
+                    new PullRight(new Standard('', '/Setting/Consumer/Responsibility/Edit', new Edit(),
+                        array('Id' => $tblResponsibility->getId()),
+                        'Bearbeiten der Unternehmensnr. des Unfallversicherungsträgers')));
 
                 if ($tblCompany) {
+
                     $Form .= new Layout(array(
                         new LayoutGroup(array(
                             new LayoutRow(new LayoutColumn(
                                 School::useFrontend()->frontendLayoutCombine($tblCompany)
                             )),
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    $CompanyNumberPanel
+                                    , 3)
+                            )
                         ), (new Title(new TagList().' Kontaktdaten', 'von '.$tblCompany->getDisplayName()))
                         ),
                     ));
@@ -137,7 +154,7 @@ class Frontend extends Extension implements IFrontendInterface
         $PanelSelectCompanyTitle = new PullClear(
             'Schulträger auswählen:'
             . new PullRight(
-                new Standard('Neue Firma anlegen', '/Corporation/Company', new Building()
+                new Standard('Neue Institution anlegen', '/Corporation/Company', new Building()
                     , array(), '"Schulträger hinzufügen" verlassen'
                 ))
         );
@@ -145,30 +162,96 @@ class Frontend extends Extension implements IFrontendInterface
         $TableContent = array();
         if ($tblCompanyAll) {
             array_walk($tblCompanyAll, function (TblCompany $tblCompany) use (&$TableContent) {
-
-                $temp = new PullClear(new RadioBox('Responsibility',
-                    $tblCompany->getName()
+                $temp['Select'] = new RadioBox('Responsibility', '&nbsp;', $tblCompany->getId());
+                $temp['Content'] = $tblCompany->getName()
                     .new Container($tblCompany->getExtendedName())
-                    .new Container(new Muted($tblCompany->getDescription())),
-                    $tblCompany->getId()));
+                    .new Container(new Muted($tblCompany->getDescription()));
                 array_push($TableContent, $temp);
             });
         }
-
 
         return new Form(
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(array(
                         !empty($TableContent) ?
-                            new Panel($PanelSelectCompanyTitle, $TableContent, Panel::PANEL_TYPE_INFO, null, 15)
+                            new Panel($PanelSelectCompanyTitle,
+                                new TableData($TableContent, null, array(
+                                    'Select'  => 'Auswahl',
+                                    'Content' => 'Institution',
+                                ), array(
+                                    'columnDefs' => array(
+                                        array('width' => '1%', 'targets' => array(0))
+                                    ),
+                                ))
+                                , Panel::PANEL_TYPE_INFO, null, 15)
                             : new Panel($PanelSelectCompanyTitle,
-                            new Warning('Es ist keine Firma vorhanden die ausgewählt werden kann')
+                            new Warning('Es ist keine Institution vorhanden die ausgewählt werden kann')
                             , Panel::PANEL_TYPE_INFO)
                     ), 12),
                 )),
             ))
         );
+    }
+
+    /**
+     * @param null $Id
+     * @param null $CompanyNumber
+     *
+     * @return Stage
+     */
+    public function frontendResponsibilityEdit($Id = null, $CompanyNumber = null)
+    {
+
+        $Stage = new Stage('Unternehmensnr. des Unfallversicherungsträgers', 'Bearbeiten');
+        $Stage->addButton(new Standard('Zurück', '/Setting/Consumer/Responsibility', new ChevronLeft()));
+        $tblResponsibility = Responsibility::useService()->getResponsibilityById($Id);
+        if (!$tblResponsibility) {
+            return $Stage->setContent(new Warning('Dieser Schulträger wurde nicht gefunden.')
+                .new Redirect('/Setting/Consumer/Responsibility', Redirect::TIMEOUT_ERROR));
+        }
+        $Form = new Form(new FormGroup(new FormRow(new FormColumn(
+            new Panel('Unternehmensnr. des Unfallversicherungsträgers', new TextField('CompanyNumber', '', ''),
+                Panel::PANEL_TYPE_SUCCESS)
+        ))));
+        $Form->appendFormButton(new Primary('Speichern', new Save()))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+        $tblCompany = $tblResponsibility->getServiceTblCompany();
+        if ($tblCompany) {
+            $PanelHead = new Panel('Institution der eine Unternehmensnr. des Unfallversicherungsträgers bearbeitet werden soll'
+                , $tblCompany->getDisplayName(), Panel::PANEL_TYPE_INFO);
+        } else {
+            $PanelHead = new Panel('Institution wird nicht mehr gefunden!', '', Panel::PANEL_TYPE_DANGER);
+        }
+
+
+        $Global = $this->getGlobal();
+        if ($tblResponsibility->getCompanyNumber()) {
+            $Global->POST['CompanyNumber'] = $tblResponsibility->getCompanyNumber();
+            $Global->savePost();
+        }
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            $PanelHead
+                            , 6)
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Well(Responsibility::useService()->updateResponsibility(
+                                $Form, $tblResponsibility, $CompanyNumber
+                            ))
+                            , 6)
+                    )
+                ))
+            )
+        );
+
+        return $Stage;
     }
 
     /**

@@ -185,7 +185,7 @@ class Schneeberg implements IModuleInterface
 
         return new Thumbnail(
             FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
-            'Schneeberg', 'Schulen (Firmen)',
+            'Schneeberg', 'Schulen (Institutionen)',
             new Standard('', '/Transfer/Import/Schneeberg/Company', new Upload(), array(), 'Upload')
         );
     }

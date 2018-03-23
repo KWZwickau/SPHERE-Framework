@@ -1,0 +1,6 @@
+SELECT
+    viewPerson.TblPerson_Id AS TblPerson_Id,
+    viewPeopleMetaTeacher.TblTeacher_Acronym AS TblTeacher_Acronym
+FROM
+    (PeoplePerson_{{ ConsumerAcronym }}.viewPerson
+    LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.viewPeopleMetaTeacher ON ((viewPerson.TblPerson_Id = viewPeopleMetaTeacher.TblTeacher_serviceTblPerson)))

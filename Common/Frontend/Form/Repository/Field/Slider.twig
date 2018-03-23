@@ -1,0 +1,98 @@
+<div class="form-group {{ ElementGroup }}">
+    {% if( ElementLabel is not empty ) %}
+        <label>{{ ElementLabel }}{% if( Required is not empty ) %}<span class="text-danger"> *</span>{% endif %}</label>
+    {% endif %}
+    {% if( ElementIcon is not empty ) %}
+    <div class="input-group">
+        <span class="input-group-addon">
+            {{ ElementIcon }}
+        </span>
+        {% if ElementPrefix is not empty %}
+            <span class="input-group-addon input-group-prefix">
+                {{ ElementPrefix }}
+            </span>
+        {% endif %}
+        {% endif %}
+        <input type="text" class="form-control{% if( ElementClass is not empty ) %} {{ ElementClass }}{% endif %}" name="{{ ElementName }}" placeholder="{{ ElementPlaceholder }}"
+               {% if( ElementMask is not empty and ElementValue is empty ) %}data-mask="{{ ElementMask }}" {% endif %}
+               value="{{ ElementValue }}" {% if( Disabled is not empty ) %}disabled{% endif %} {% if( Required is not empty ) %}required{% endif %} {% if( TabIndex is not empty ) %}tabindex="{{ TabIndex }}"{% endif %} {{ AutoFocus }}/>
+        {{ ElementFeedbackIcon }}
+        {% if( ElementIcon is not empty ) %}
+    </div>
+    {% endif %}
+    {{ ElementFeedbackMessage }}
+</div>
+<script type="text/javascript">
+    //noinspection JSUnresolvedFunction
+    executeScript(function() {
+        Client.Use('ModSlider', function () {
+            jQuery('input[name="{{ ElementName }}"]').ModSlider();
+        });
+    });
+</script>
+
+{% if( AutoFocus is not empty ) %}
+<script type="text/javascript">
+    //noinspection JSUnresolvedFunction
+    executeScript(function() {
+        Client.Use('ModAlways', function () {
+            setTimeout(function(){ jQuery('input[name="{{ ElementName }}"]').focus(); }, 300);
+        });
+    });
+</script>
+{% endif %}
+
+{% if( AjaxEventChange is not empty or AjaxEventKeyUp is not empty ) %}
+<script type="text/javascript">
+
+    var typewatch = function ()
+    {
+        var timer = 0;
+        return function (callback, ms)
+        {
+            clearTimeout(timer);
+            timer = setTimeout(callback, ms);
+        }
+    }();
+
+    //noinspection JSUnresolvedFunction
+    executeScript(function()
+    {
+        Client.Use('ModAlways', function()
+        {
+            Client.Use('ModAjax', function()
+            {
+                {% if( AjaxEventChange is not empty ) %}
+                jQuery('input[type="text"][name="{{ ElementName }}"]').on('change',function(Event){
+                    Event.preventDefault();
+                    {{ AjaxEventChange }}
+                });
+                {% endif %}
+                {% if( AjaxEventKeyUp is not empty ) %}
+                jQuery('input[type="text"][name="{{ ElementName }}"]').on('keyup',function(Event){
+                    // Exclude Keys
+                    var KeyCode = Event.which;
+                    // Code 9 = TAB
+                    // Code 37,38,39,40 = LEFT,UP,RIGHT,DOWN Arrow
+                    if(
+                        KeyCode === 9
+                        || KeyCode === 37
+                        || KeyCode === 38
+                        || KeyCode === 39
+                        || KeyCode === 40
+                    ) {
+                        return;
+                    }
+
+                    typewatch(function ()
+                    {
+                        Event.preventDefault();
+                        {{ AjaxEventKeyUp }}
+                    }, 500);
+                });
+                {% endif %}
+            });
+        });
+    });
+</script>
+{% endif %}

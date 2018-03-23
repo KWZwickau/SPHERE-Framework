@@ -1,0 +1,9 @@
+SELECT
+    viewPerson.TblPerson_Id AS TblPerson_Id,
+    viewPhoneToPerson.TblToPerson_Remark AS TblToPerson_Remark,
+    viewPhoneToPerson.TblType_Name AS TblType_Name,
+    viewPhoneToPerson.TblType_Description AS TblType_Description,
+    viewPhoneToPerson.TblPhone_Number AS TblPhone_Number
+FROM
+    (PeoplePerson_{{ ConsumerAcronym }}.viewPerson
+    LEFT JOIN ContactPhone_{{ ConsumerAcronym }}.viewPhoneToPerson ON ((PeoplePerson_{{ ConsumerAcronym }}.viewPerson.TblPerson_Id = ContactPhone_{{ ConsumerAcronym }}.viewPhoneToPerson.TblToPerson_serviceTblPerson)))

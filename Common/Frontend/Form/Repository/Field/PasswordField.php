@@ -2,7 +2,7 @@
 namespace SPHERE\Common\Frontend\Form\Repository\Field;
 
 use SPHERE\Common\Frontend\Form\IFieldInterface;
-use SPHERE\Common\Frontend\Form\Repository\AbstractField;
+use SPHERE\Common\Frontend\Form\Repository\AbstractTextField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 
 /**
@@ -10,7 +10,7 @@ use SPHERE\Common\Frontend\Icon\IIconInterface;
  *
  * @package SPHERE\Common\Frontend\Form\Repository\Field
  */
-class PasswordField extends AbstractField implements IFieldInterface
+class PasswordField extends AbstractTextField implements IFieldInterface
 {
 
     /**
@@ -36,13 +36,15 @@ class PasswordField extends AbstractField implements IFieldInterface
         }
     }
 
-    /** @noinspection PhpMissingParentCallCommonInspection */
+    /**
+     * @return string
+     */
     public function getContent()
     {
 
         if( $this->isForceDefaultValue ) {
             $this->setPostValue($this->Template, $this->getName(), 'ElementValue');
         }
-        return $this->Template->getContent();
+        return parent::getContent();
     }
 }

@@ -1,0 +1,37 @@
+<div id="{{ Hash }}" class="carousel slide hidden-xs" data-ride="carousel" data-interval="5000" data-pause="hover">
+    {# Indicators #}
+    <ol class="carousel-indicators">
+        {% for Index, Item in ContentList %}
+            <li data-target="#{{ Hash }}" data-slide-to="{{ Index }}"
+                {% if( Item.Toggle is not empty ) %}class="active"{% endif %}></li>
+        {% endfor %}
+    </ol>
+    {# Wrapper for slides #}
+    <div class="carousel-inner" role="listbox">
+        {% for Item in ContentList %}
+            <div class="item{% if( Item.Toggle is not empty ) %} active{% endif %}">
+                <img class="img-responsive" src="{{ Item.Source }}" alt="{{ Item.Title }}" style="margin: auto;">
+                <div class="carousel-caption" style="position: absolute; top: 0; left: 10%; text-align: left;">
+                    {% if( Item.Caption is not empty ) %}
+                        <h3>{{ Item.Caption }}</h3>
+                    {% endif %}
+                    {% if( Item.Description is not empty ) %}
+                        <p>{{ Item.Description }}</p>
+                    {% endif %}
+                    {% if( Item.Link is not empty ) %}
+                        <div style="padding: 10px 0;">{{ Item.Link }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    {# Controls #}
+    <a class="left carousel-control" href="#{{ Hash }}" role="button" data-slide="prev">
+        <span class="mbcom-icon mbcom-icon-arrow-left" aria-hidden="true"></span>
+        <span class="sr-only">Zurück</span>
+    </a>
+    <a class="right carousel-control" href="#{{ Hash }}" role="button" data-slide="next">
+        <span class="mbcom-icon mbcom-icon-arrow-right" aria-hidden="true"></span>
+        <span class="sr-only">Vor</span>
+    </a>
+</div>

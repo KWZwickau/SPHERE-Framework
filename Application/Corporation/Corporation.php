@@ -36,13 +36,13 @@ class Corporation implements IClusterInterface
         Group::registerApplication();
 
         Main::getDisplay()->addClusterNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Firmen'), new Link\Icon(new Building()))
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Institutionen'), new Link\Icon(new Building()))
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
         ));
 
-        Main::getDispatcher()->registerWidget('Firmen', array(__CLASS__, 'widgetCorporationGroupList'), 4, 6);
+        Main::getDispatcher()->registerWidget('Institutionen', array(__CLASS__, 'widgetCorporationGroupList'), 4, 6);
     }
 
     /**
@@ -62,7 +62,7 @@ class Corporation implements IClusterInterface
                                 .new Muted(new Small('<br/>'.$tblGroup->getDescription()))
                                 , array(9, 0, 7)),
                             new LayoutColumn(
-                                new Muted(new Small(Group::useService()->countMemberAllByGroup($tblGroup).'&nbsp;Mitglieder'))
+                                new Muted(new Small(Group::useService()->countMemberByGroup($tblGroup).'&nbsp;Mitglieder'))
                                 , 2, array(LayoutColumn::GRID_OPTION_HIDDEN_SM, LayoutColumn::GRID_OPTION_HIDDEN_XS)),
                             new LayoutColumn(
                                 new PullRight(
@@ -78,7 +78,7 @@ class Corporation implements IClusterInterface
             $tblGroupAll = array_filter($tblGroupAll);
         }
 
-        return new Panel('Firmen in Gruppen', $tblGroupAll);
+        return new Panel('Institutionen in Gruppen', $tblGroupAll);
     }
 
     /**
@@ -87,9 +87,9 @@ class Corporation implements IClusterInterface
     public function frontendDashboard()
     {
 
-        $Stage = new Stage('Dashboard', 'Firmen');
+        $Stage = new Stage('Dashboard', 'Institutionen');
 
-        $Stage->setContent(Main::getDispatcher()->fetchDashboard('Firmen'));
+        $Stage->setContent(Main::getDispatcher()->fetchDashboard('Institutionen'));
 
         return $Stage;
     }

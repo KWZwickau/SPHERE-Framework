@@ -212,11 +212,11 @@ class Data extends AbstractData
             ->setParameter(2, '%TblSession%')
             ->setParameter(3, $this->getProtocolTimestamp())
             ->orderBy('P.EntityCreate', 'DESC')
-            ->setMaxResults(10000)
+            ->setMaxResults(250)
             ->getQuery();
 
-        $Query->useQueryCache(false);
-        $Query->useResultCache(false);
+        $Query->useQueryCache(true);
+        $Query->useResultCache(true, 300, __METHOD__);
         $EntityList = $Query->getResult();
         return ( empty( $EntityList ) ? false : $EntityList );
     }
@@ -246,6 +246,9 @@ class Data extends AbstractData
             ->orderBy('P.EntityCreate', 'DESC')
             ->setMaxResults(1)
             ->getQuery();
+
+        $Query->useQueryCache(true);
+        $Query->useResultCache(true, 300, __METHOD__);
 
         $EntityList = $Query->getResult();
         return ( empty( $EntityList ) ? false : $EntityList );
