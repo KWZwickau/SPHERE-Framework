@@ -63,7 +63,10 @@ class Data extends AbstractData
                     '');
             }
 
+            // Anzeige des Notendurchschnitts in der Eltern/Schüler-Übersicht
             $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsShownAverageInStudentOverview', TblSetting::TYPE_BOOLEAN, false);
+            // Anzeige des Notenspiegels und des Fach-Klassendurchschnitts in der Eltern/Schüler-Übersicht
+            $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsShownScoreInStudentOverview', TblSetting::TYPE_BOOLEAN, false);
 
             if ($tblConsumer->getAcronym() == 'ESZC') {
                 $this->createSetting(
