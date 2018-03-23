@@ -1,0 +1,38 @@
+-- ViewGroupStudent
+SELECT
+vS.TblStudent_serviceTblPerson AS TblPerson_Id,
+vS.TblStudent_Id AS TblStudent_Id,
+
+(select distinct
+group_concat(
+concat(
+vSF.TblStudentFocusType_Name
+) separator '\n'
+)
+from PeopleMeta_{{ ConsumerAcronym }}.viewStudentFocus vSF
+where vSF.TblStudent_Id =  vS.TblStudent_Id
+) TblStudentFocusType_NameList,
+
+(select distinct
+group_concat(
+concat(
+vSD.TblStudentDisorderType_Name
+) separator '\n'
+)
+from PeopleMeta_{{ ConsumerAcronym }}.viewStudentDisorder vSD
+where vSD.TblStudent_Id =  vS.TblStudent_Id
+) TblStudentDisorderType_NameList,
+
+viewStudentIntegration.TblStudentIntegration_CoachingRequestDate AS TblStudentIntegration_CoachingRequestDate,
+viewStudentIntegration.TblStudentIntegration_CoachingCounselDate AS TblStudentIntegration_CoachingCounselDate,
+viewStudentIntegration.TblStudentIntegration_CoachingDecisionDate AS TblStudentIntegration_CoachingDecisionDate,
+viewStudentIntegration.TblStudentIntegration_CoachingRequired AS TblStudentIntegration_CoachingRequired,
+viewStudentIntegration.TblStudentIntegration_CoachingTime AS TblStudentIntegration_CoachingTime,
+viewStudentIntegration.TblStudentIntegration_CoachingRemark AS TblStudentIntegration_CoachingRemark,
+viewPersonCoach.TblSalutation_Salutation AS TblSalutation_Salutation_Coach,
+viewPersonCoach.TblPerson_FirstName AS TblPerson_FirstName_Coach,
+viewPersonCoach.TblPerson_LastName AS TblPerson_LastName_Coach
+
+FROM PeopleMeta_{{ ConsumerAcronym }}.viewStudent vS
+LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.viewStudentIntegration ON vS.TblStudent_Id = viewStudentIntegration.TblStudent_Id
+LEFT JOIN PeoplePerson_{{ ConsumerAcronym }}.viewPerson viewPersonCoach ON viewStudentIntegration.TblStudentIntegration_serviceTblPerson = viewPersonCoach.TblPerson_Id

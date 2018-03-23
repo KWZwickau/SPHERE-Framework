@@ -33,6 +33,12 @@ class Individual implements IApplicationInterface, IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Prospect', __NAMESPACE__.'\Frontend::frontendProspect'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Custody', __NAMESPACE__.'\Frontend::frontendCustody'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Teacher', __NAMESPACE__.'\Frontend::frontendTeacher'
+        ));
     }
 
     public static function registerModule()

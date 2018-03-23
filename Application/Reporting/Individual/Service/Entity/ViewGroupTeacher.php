@@ -6,6 +6,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\People\Meta\Teacher\Service\Entity\TblTeacher;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
@@ -14,20 +16,15 @@ use SPHERE\System\Database\Binding\AbstractView;
 
 /**
  * @Entity
- * @Table(name="viewGroup")
+ * @Table(name="viewGroupTeacher")
  * @Cache(usage="READ_ONLY")
  */
-class ViewGroup extends AbstractView
+class ViewGroupTeacher extends AbstractView
 {
 
     // Sortierung beeinflusst die Gruppenreihenfolge im Frontend
     const TBL_PERSON_ID = 'TblPerson_Id';
-
-    const TBL_GROUP_ID = 'TblGroup_Id';
-    const TBL_GROUP_NAME = 'TblGroup_Name';
-    const TBL_GROUP_DESCRIPTION = 'TblGroup_Description';
-    const TBL_GROUP_REMARK = 'TblGroup_Remark';
-    const TBL_GROUP_META_TABLE = 'TblGroup_MetaTable';
+    const TBL_TEACHER_ACRONYM = 'TblTeacher_Acronym';
 
     /**
      * @return array
@@ -45,23 +42,7 @@ class ViewGroup extends AbstractView
     /**
      * @Column(type="string")
      */
-    protected $TblGroup_Id;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblGroup_Name;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblGroup_Description;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblGroup_Remark;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblGroup_MetaTable;
+    protected $TblTeacher_Acronym;
 
     /**
      * Use this method to set PropertyName to DisplayName conversions with "setNameDefinition()"
@@ -71,23 +52,13 @@ class ViewGroup extends AbstractView
     public function loadNameDefinition()
     {
 
-        //NameDefinition
-//        $this->setNameDefinition(self::TBL_GROUP_ID, 'Gruppe: Name');
-        $this->setNameDefinition(self::TBL_GROUP_NAME, 'Gruppe: Name');
-        $this->setNameDefinition(self::TBL_GROUP_DESCRIPTION, 'Gruppe: Beschreibung');
-        $this->setNameDefinition(self::TBL_GROUP_REMARK, 'Gruppe: Bemerkung');
+//        //NameDefinition
+        $this->setNameDefinition(self::TBL_TEACHER_ACRONYM, 'Lehrer: Kürzel');
 
-
-        //GroupDefinition
-        $this->setGroupDefinition('Gruppeninformation', array(
-//            self::TBL_GROUP_ID,
-            self::TBL_GROUP_NAME,
-            self::TBL_GROUP_DESCRIPTION,
-            self::TBL_GROUP_REMARK,
+//        //GroupDefinition
+        $this->setGroupDefinition('&nbsp;', array(
+            self::TBL_TEACHER_ACRONYM,
         ));
-
-        // Flag um Filter zu deaktivieren (nur Anzeige von Informationen)
-//        $this->setDisableDefinition(self::TBL_SALUTATION_SALUTATION_S1);
     }
 
     /**
@@ -122,23 +93,11 @@ class ViewGroup extends AbstractView
     {
 
         switch ($PropertyName) {
-//            case self::TBL_GROUP_ID:
-//                // Test Address By Student
-//                $Data = array();
-//                $tblGroupList = Group::useService()->getGroupAll();
-//                if($tblGroupList){
-//                    foreach($tblGroupList as $tblGroup){
-//                        if($tblGroup->getName() == 'Alle'){
-//                            // ignore Entry
-//                        } else {
-//                            $Data[$tblGroup->getId()] = $tblGroup->getName();
-//                        }
-//                    }
-//                }
-////                // all group from TblGroup
-////                $Data = Group::useService()->getPropertyList( new TblGroup(''), TblGroup::ATTR_NAME );
-//                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount, false);
-//                break;
+            case self::TBL_TEACHER_ACRONYM:
+                // old version: all name from City
+                $Data = Teacher::useService()->getPropertyList( new TblTeacher(), TblTeacher::ATTR_ACRONYM );
+                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
+                break;
             default:
                 $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );
                 break;

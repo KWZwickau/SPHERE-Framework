@@ -6,6 +6,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Address\Service\Entity\TblCity;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
@@ -33,6 +35,15 @@ class ViewPersonContact extends AbstractView
     const TBL_ADDRESS_COUNTY = 'TblAddress_County';
     const TBL_ADDRESS_STATE = 'TblState_Name';
     const TBL_ADDRESS_NATION = 'TblAddress_Nation';
+
+    const TBL_ADDRESS_STREET_NAME_2 = 'TblAddress_StreetName2';
+    const TBL_ADDRESS_STREET_NUMBER_2 = 'TblAddress_StreetNumber2';
+    const TBL_CITY_CODE_2 = 'TblCity_Code2';
+    const TBL_CITY_CITY_2 = 'TblCity_City2';
+    const TBL_CITY_DISTRICT_2 = 'TblCity_District2';
+    const TBL_ADDRESS_COUNTY_2 = 'TblAddress_County2';
+    const TBL_ADDRESS_STATE_2 = 'TblState_Name2';
+    const TBL_ADDRESS_NATION_2 = 'TblAddress_Nation2';
 
     const TBL_PHONE_NUMBER = 'TblPhone_Number';
     const TBL_MAIL_ADDRESS = 'TblMail_Address';
@@ -82,6 +93,40 @@ class ViewPersonContact extends AbstractView
      * @Column(type="string")
      */
     protected $TblState_Name;
+
+    /**
+     * @Column(type="string")
+     */
+    protected $TblAddress_StreetName2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblAddress_StreetNumber2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblCity_Code2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblCity_City2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblCity_District2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblAddress_County2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblAddress_Nation2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblState_Name2;
+
     /**
      * @Column(type="string")
      */
@@ -100,19 +145,28 @@ class ViewPersonContact extends AbstractView
     {
 
         //NameDefinition
-        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME, 'Person: Straße');
-        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER, 'Person: Hausnummer');
-        $this->setNameDefinition(self::TBL_CITY_CODE, 'Person: Postleitzahl');
-        $this->setNameDefinition(self::TBL_CITY_CITY, 'Person: Ort');
-        $this->setNameDefinition(self::TBL_CITY_DISTRICT, 'Person: Ortsteil');
-        $this->setNameDefinition(self::TBL_ADDRESS_COUNTY, 'Person: Landkreis');
-        $this->setNameDefinition(self::TBL_ADDRESS_STATE, 'Person: Bundesland');
-        $this->setNameDefinition(self::TBL_ADDRESS_NATION, 'Person: Land');
+        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME, 'Hauptadresse: Straße');
+        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER, 'Hauptadresse: Hausnummer');
+        $this->setNameDefinition(self::TBL_CITY_CODE, 'Hauptadresse: Postleitzahl');
+        $this->setNameDefinition(self::TBL_CITY_CITY, 'Hauptadresse: Ort');
+        $this->setNameDefinition(self::TBL_CITY_DISTRICT, 'Hauptadresse: Ortsteil');
+        $this->setNameDefinition(self::TBL_ADDRESS_COUNTY, 'Hauptadresse: Landkreis');
+        $this->setNameDefinition(self::TBL_ADDRESS_STATE, 'Hauptadresse: Bundesland');
+        $this->setNameDefinition(self::TBL_ADDRESS_NATION, 'Hauptadresse: Land');
+
+        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_2, 'Nebenadresse: Straße');
+        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_2, 'Nebenadresse: Hausnummer');
+        $this->setNameDefinition(self::TBL_CITY_CODE_2, 'Nebenadresse: Postleitzahl');
+        $this->setNameDefinition(self::TBL_CITY_CITY_2, 'Nebenadresse: Ort');
+        $this->setNameDefinition(self::TBL_CITY_DISTRICT_2, 'Nebenadresse: Ortsteil');
+        $this->setNameDefinition(self::TBL_ADDRESS_COUNTY_2, 'Nebenadresse: Landkreis');
+        $this->setNameDefinition(self::TBL_ADDRESS_STATE_2, 'Nebenadresse: Bundesland');
+        $this->setNameDefinition(self::TBL_ADDRESS_NATION_2, 'Nebenadresse: Land');
 
         $this->setNameDefinition(self::TBL_PHONE_NUMBER, 'Person: Telefonnummer');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS, 'Person: E-Mail');
 
-        $this->setGroupDefinition('Adressdaten', array(
+        $this->setGroupDefinition('Hauptadresse', array(
             self::TBL_ADDRESS_STREET_NAME,
             self::TBL_ADDRESS_STREET_NUMBER,
             self::TBL_CITY_CODE,
@@ -122,6 +176,18 @@ class ViewPersonContact extends AbstractView
             self::TBL_ADDRESS_STATE,
             self::TBL_ADDRESS_NATION,
         ));
+
+        $this->setGroupDefinition('Zweit-/Nebenadresse', array(
+            self::TBL_ADDRESS_STREET_NAME_2,
+            self::TBL_ADDRESS_STREET_NUMBER_2,
+            self::TBL_CITY_CODE_2,
+            self::TBL_CITY_CITY_2,
+            self::TBL_CITY_DISTRICT_2,
+            self::TBL_ADDRESS_COUNTY_2,
+            self::TBL_ADDRESS_STATE_2,
+            self::TBL_ADDRESS_NATION_2,
+        ));
+
         $this->setGroupDefinition('Kontaktdaten', array(
             self::TBL_PHONE_NUMBER,
             self::TBL_MAIL_ADDRESS,
@@ -183,6 +249,11 @@ class ViewPersonContact extends AbstractView
                 }
 //                // old version: all name from City
 //                $Data = Address::useService()->getPropertyList( new TblCity(), TblCity::ATTR_NAME );
+                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
+                break;
+            case self::TBL_CITY_CITY_2:
+                // old version: all name from City
+                $Data = Address::useService()->getPropertyList( new TblCity(), TblCity::ATTR_NAME );
                 $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
                 break;
             default:

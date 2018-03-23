@@ -24,8 +24,7 @@ class ViewStudent extends AbstractView
     // Sortierung beeinflusst die Gruppenreihenfolge im Frontend
     const TBL_PERSON_ID = 'TblPerson_Id';
     const TBL_STUDENT_ID = 'TblStudent_Id';
-    const TBL_STUDENT_IDENTIFIER = 'TblStudent_Identifier';
-    const TBL_STUDENT_SCHOOL_ATTENDANCE_START_DATE = 'TblStudent_SchoolAttendanceStartDate';
+
     const SIBLINGS_COUNT = 'Sibling_Count';
     // Krankenakte
     const TBL_STUDENT_MEDICAL_RECORD_DISEASE = 'TblStudentMedicalRecord_Disease';
@@ -48,18 +47,6 @@ class ViewStudent extends AbstractView
     const TBL_STUDENT_LOCKER_LOCKER_NUMBER = 'TblStudentLocker_LockerNumber';
     const TBL_STUDENT_LOCKER_LOCKER_LOCATION = 'TblStudentLocker_LockerLocation';
     const TBL_STUDENT_LOCKER_KEY_NUMBER = 'TblStudentLocker_KeyNumber';
-    // Integration
-    const TBL_STUDENT_FOCUS_TYPE_NAME_LIST = 'TblStudentFocusType_NameList';
-    const TBL_STUDENT_DISORDER_TYPE_NAME_LIST = 'TblStudentDisorderType_NameList';
-    const TBL_STUDENT_INTEGRATION_COACHING_REQUEST_DATE = 'TblStudentIntegration_CoachingRequestDate';
-    const TBL_STUDENT_INTEGRATION_COACHING_COUNSEL_DATE = 'TblStudentIntegration_CoachingCounselDate';
-    const TBL_STUDENT_INTEGRATION_COACHING_DECISION_DATE = 'TblStudentIntegration_CoachingDecisionDate';
-    const TBL_STUDENT_INTEGRATION_COACHING_REQUIRED = 'TblStudentIntegration_CoachingRequired';
-    const TBL_STUDENT_INTEGRATION_COACHING_TIME = 'TblStudentIntegration_CoachingTime';
-    const TBL_STUDENT_INTEGRATION_COACHING_REMARK = 'TblStudentIntegration_CoachingRemark';
-    const TBL_SALUTATION_SALUTATION_COACH = 'TblSalutation_Salutation_Coach';
-    const TBL_PERSON_FIRST_NAME_COACH = 'TblPerson_FirstName_Coach';
-    const TBL_PERSON_LAST_NAME_COACH = 'TblPerson_LastName_Coach';
 
     /**
      * @return array
@@ -81,59 +68,7 @@ class ViewStudent extends AbstractView
     /**
      * @Column(type="string")
      */
-    protected $TblStudent_Identifier;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblStudent_SchoolAttendanceStartDate;
-    /**
-     * @Column(type="string")
-     */
     protected $TblStudentBaptism_Location;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblStudentFocusType_NameList;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblStudentDisorderType_NameList;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblStudentIntegration_CoachingRequestDate;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblStudentIntegration_CoachingCounselDate;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblStudentIntegration_CoachingDecisionDate;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblStudentIntegration_CoachingRequired;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblStudentIntegration_CoachingTime;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblStudentIntegration_CoachingRemark;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblSalutation_Salutation_Coach;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPerson_FirstName_Coach;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPerson_LastName_Coach;
     /**
      * @Column(type="string")
      */
@@ -208,22 +143,7 @@ class ViewStudent extends AbstractView
     {
 
 //        //NameDefinition
-        $this->setNameDefinition(self::TBL_STUDENT_IDENTIFIER, 'Grunddaten: Schülernummer');
-        $this->setNameDefinition(self::TBL_STUDENT_SCHOOL_ATTENDANCE_START_DATE, 'Grunddaten: Schulpflicht beginn');
 //        $this->setNameDefinition(self::TBL_STUDENT_BAPTISM_LOCATION, 'Schüler: Ort der Taufe');
-        $this->setNameDefinition(self::TBL_STUDENT_FOCUS_TYPE_NAME_LIST, 'Integration: Schwerpunkte');
-        $this->setNameDefinition(self::TBL_STUDENT_DISORDER_TYPE_NAME_LIST, 'Integration: Teilleistungsstörungen');
-
-        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_REQUEST_DATE, 'Integration: Datum der Beratung');
-        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_COUNSEL_DATE, 'Integration: Datum der Beantragung');
-        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_DECISION_DATE, 'Integration: SBA Bescheid Datum');
-
-        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_REQUIRED, 'Integration: Förderbedarf');
-        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_TIME, 'Integration: Stundenbedarf pro Woche');
-        $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_REMARK, 'Integration: Bemerkung');
-        $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_COACH, 'Integration: Anrede Schulbegleitung');
-        $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME_COACH, 'Integration: Vorname Schulbegleitung');
-        $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_COACH, 'Integration: NachName Schulbegleitung');
 
         $this->setNameDefinition(self::TBL_STUDENT_LIBERATION_TYPE_NAME, 'Allgemeines: Unterrichtsbefreiung');
         // TBL_STUDENT_LIBERATION_TYPE_DESCRIPTION
@@ -244,16 +164,11 @@ class ViewStudent extends AbstractView
         $this->setNameDefinition(self::TBL_STUDENT_TRANSPORT_STATION_EXIT, 'Allgemeines: Ausstiegshaltestelle');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSPORT_REMARK, 'Allgemeines: Bemerkung');
 
-        $this->setNameDefinition(self::SIBLINGS_COUNT, 'Schüler: Anzahl Geschwister');
+        $this->setNameDefinition(self::SIBLINGS_COUNT, 'Allgemeines: Anzahl Geschwister');
 
 //        //GroupDefinition
-        $this->setGroupDefinition('Grunddaten', array(
-            self::TBL_STUDENT_IDENTIFIER,
-            self::TBL_STUDENT_SCHOOL_ATTENDANCE_START_DATE,
-            self::SIBLINGS_COUNT
-        ));
-
-        $this->setGroupDefinition('Allgemeines', array(
+        $this->setGroupDefinition('&nbsp;', array(
+            self::SIBLINGS_COUNT,
             self::TBL_STUDENT_LIBERATION_TYPE_NAME,
             self::TBL_STUDENT_LIBERATION_CATEGORY_NAME,
             self::TBL_STUDENT_LOCKER_LOCKER_NUMBER,
@@ -267,20 +182,6 @@ class ViewStudent extends AbstractView
             self::TBL_STUDENT_TRANSPORT_STATION_ENTRANCE,
             self::TBL_STUDENT_TRANSPORT_STATION_EXIT,
             self::TBL_STUDENT_TRANSPORT_REMARK
-        ));
-
-        $this->setGroupDefinition('Integration', array(
-            self::TBL_STUDENT_FOCUS_TYPE_NAME_LIST,
-            self::TBL_STUDENT_DISORDER_TYPE_NAME_LIST,
-            self::TBL_STUDENT_INTEGRATION_COACHING_REQUEST_DATE,
-            self::TBL_STUDENT_INTEGRATION_COACHING_COUNSEL_DATE,
-            self::TBL_STUDENT_INTEGRATION_COACHING_DECISION_DATE,
-            self::TBL_STUDENT_INTEGRATION_COACHING_REQUIRED,
-            self::TBL_STUDENT_INTEGRATION_COACHING_TIME,
-            self::TBL_STUDENT_INTEGRATION_COACHING_REMARK,
-            self::TBL_SALUTATION_SALUTATION_COACH,
-            self::TBL_PERSON_FIRST_NAME_COACH,
-            self::TBL_PERSON_LAST_NAME_COACH
         ));
     }
 

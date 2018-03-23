@@ -43,7 +43,58 @@ SELECT
         where vP.TblPerson_Id = vCA.TblPerson_Id
         and vCA.TblType_Name = 'Hauptadresse'
     ) TblAddress_Nation,
+    -- ----------------------------------------
+    (select vCA.TblAddress_StreetName
+        from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
+        where vP.TblPerson_Id = vCA.TblPerson_Id
+        and vCA.TblType_Name = 'Zweit-/Nebenadresse'
+        LIMIT 0, 1
+    ) TblAddress_StreetName2,
 
+    (select vCA.TblAddress_StreetNumber
+        from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
+        where vP.TblPerson_Id = vCA.TblPerson_Id
+        and vCA.TblType_Name = 'Zweit-/Nebenadresse'
+        LIMIT 0, 1
+    ) TblAddress_StreetNumber2,
+
+    (select vCA.TblCity_Name
+        from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
+        where vP.TblPerson_Id = vCA.TblPerson_Id
+        and vCA.TblType_Name = 'Zweit-/Nebenadresse'
+        LIMIT 0, 1
+    ) TblCity_City2,
+
+    (select vCA.TblCity_District from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
+        where vP.TblPerson_Id = vCA.TblPerson_Id
+        and vCA.TblType_Name = 'Zweit-/Nebenadresse'
+        LIMIT 0, 1
+    ) TblCity_District2,
+
+    (select vCA.TblCity_Code from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
+        where vP.TblPerson_Id = vCA.TblPerson_Id
+        and vCA.TblType_Name = 'Zweit-/Nebenadresse'
+        LIMIT 0, 1
+    ) TblCity_Code2,
+
+    (select vCA.TblAddress_County from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
+        where vP.TblPerson_Id = vCA.TblPerson_Id
+        and vCA.TblType_Name = 'Zweit-/Nebenadresse'
+        LIMIT 0, 1
+    ) TblAddress_County2,
+
+    (select vCA.TblState_Name from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
+        where vP.TblPerson_Id = vCA.TblPerson_Id
+        and vCA.TblType_Name = 'Zweit-/Nebenadresse'
+        LIMIT 0, 1
+    ) TblState_Name2,
+
+    (select vCA.TblAddress_Nation from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
+        where vP.TblPerson_Id = vCA.TblPerson_Id
+        and vCA.TblType_Name = 'Zweit-/Nebenadresse'
+        LIMIT 0, 1
+    ) TblAddress_Nation2,
+    -- ----------------------------------------
     (select
         group_concat(
             concat(

@@ -1,0 +1,10 @@
+SELECT
+vS.TblStudent_serviceTblPerson AS TblPerson_Id,
+vS.TblStudent_Id AS TblStudent_Id,
+
+vS.TblStudent_Identifier AS TblStudent_Identifier,
+vS.TblStudent_SchoolAttendanceStartDate AS TblStudent_SchoolAttendanceStartDate,
+vS.TblStudent_HasMigrationBackground AS TblStudent_HasMigrationBackground,
+vS.TblStudent_IsInPreparationDivisionForMigrants AS TblStudent_IsInPreparationDivisionForMigrants
+
+FROM PeopleMeta_{{ ConsumerAcronym }}.viewStudent vS

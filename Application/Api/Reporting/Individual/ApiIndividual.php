@@ -21,8 +21,12 @@ use SPHERE\Application\Reporting\Individual\Service\Entity\TblPreset;
 use SPHERE\Application\Reporting\Individual\Service\Entity\TblWorkSpace;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewEducationStudent;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroup;
+use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupCustody;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupProspect;
+use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentBasic;
+use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentIntegration;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentTransfer;
+use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupTeacher;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewPerson;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewPersonContact;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudent;
@@ -33,6 +37,7 @@ use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary as Submit;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
+use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -79,6 +84,7 @@ use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Error;
 use SPHERE\Common\Window\Navigation\Link\Route;
@@ -177,7 +183,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         ));
         $Pipeline->appendEmitter($Emitter);
 
-        $Emitter =new ClientEmitter( self::receiverResult(), new Muted( 'Es wurde bisher keine Suche durchgeführt' ) );
+        $Emitter = new ClientEmitter( self::receiverResult(), new Muted( 'Es wurde bisher keine Suche durchgeführt' ) );
         $Pipeline->appendEmitter($Emitter);
 
         return $Pipeline;
@@ -507,9 +513,15 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'getFilter'
         ));
-        $Emitter->setPostPayload(array(
-            'ViewType' => $ViewType
-        ));
+        // Post?? //ToDO ask Gerd!
+        $Post = $_POST;
+        $Post['ViewType'] = $ViewType;
+        $Emitter->setPostPayload(
+            $Post
+        );
+//        $Emitter->setPostPayload(array(
+//            'ViewType' => $ViewType
+//        ));
         $Pipeline->appendEmitter($Emitter);
         return $Pipeline;
     }
@@ -923,11 +935,6 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
         $AccordionList = array();
 
-//        $AccordionList[] = (new Accordion(''))
-//            ->addItem('Schüler', $this->getPanelList(new ViewStudent(), $WorkSpaceList),
-//                (isset($ViewList['ViewStudent']) ? true : false))
-//            ->addItem('Klassen', $this->getPanelList(new ViewEducationStudent(), $WorkSpaceList),
-//                (isset($ViewList['ViewEducationStudent']) ? true : false));
         switch ($ViewType) {
             case TblWorkSpace::VIEW_TYPE_ALL:
                 $Block = $this->getPanelList(new ViewGroup(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_ALL);
@@ -964,26 +971,42 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                         $AccordionList[] = new Dropdown( 'Person:', new Scrollable( $Block ) );
                     }
                 }
-                $Block = $this->getPanelList(new ViewStudent(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);
+                $Block = $this->getPanelList(new ViewGroupStudentBasic(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);
                 if( !empty( $Block ) ) {
-                    if( isset($ViewList['ViewStudent']) ) {
-                        $AccordionList[] = new Panel( 'Schüler:', new Scrollable( $Block, 300 ));
+                    if( isset($ViewList['ViewGroupStudentBasic']) ) {
+                        $AccordionList[] = new Panel( 'Schüler Grunddaten:', new Scrollable( $Block, 128 ));
                     } else {
-                        $AccordionList[] = new Dropdown( 'Schüler:', new Scrollable( $Block ) );
+                        $AccordionList[] = new Dropdown( 'Schüler Grunddaten:', new Scrollable( $Block ) );
                     }
                 }
                 $Block = $this->getPanelList(new ViewGroupStudentTransfer(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);
                 if( !empty( $Block ) ) {
                     if (isset($ViewList['ViewGroupStudentTransfer'])) {
-                        $AccordionList[] = new Panel('Schülertransfer:', new Scrollable($Block, 300));
+                        $AccordionList[] = new Panel('Schüler Transfer:', new Scrollable($Block, 300));
                     } else {
-                        $AccordionList[] = new Dropdown('Schülertransfer:', new Scrollable($Block));
+                        $AccordionList[] = new Dropdown('Schüler Transfer:', new Scrollable($Block));
+                    }
+                }
+                $Block = $this->getPanelList(new ViewStudent(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewStudent']) ) {
+                        $AccordionList[] = new Panel( 'Schüler Allgemeines:', new Scrollable( $Block, 300 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Schüler Allgemeines:', new Scrollable( $Block ) );
+                    }
+                }
+                $Block = $this->getPanelList(new ViewGroupStudentIntegration(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewGroupStudentIntegration']) ) {
+                        $AccordionList[] = new Panel( 'Schüler Integration:', new Scrollable( $Block, 300 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Schüler Integration:', new Scrollable( $Block ) );
                     }
                 }
                 $Block = $this->getPanelList(new ViewEducationStudent(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);
                 if( !empty( $Block ) ) {
                     if( isset($ViewList['ViewEducationStudent']) ) {
-                        $AccordionList[] = new Panel( 'Bildung:', new Scrollable( $Block, 300 ));
+                        $AccordionList[] = new Panel( 'Bildung:', new Scrollable( $Block, 245 ));
                     } else {
                         $AccordionList[] = new Dropdown( 'Bildung:', new Scrollable( $Block ) );
                     }
@@ -996,6 +1019,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                         $AccordionList[] = new Dropdown( 'Kontakt:', new Scrollable( $Block ) );
                     }
                 }
+                // View only for Students
                 $Block = $this->getPanelList(new ViewStudentCustody(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);
                 if( !empty( $Block ) ) {
                     if( isset($ViewList['ViewStudentCustody']) ) {
@@ -1005,10 +1029,15 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     }
                 }
             break;
-            case TblWorkSpace::VIEW_TYPE_CUSTODY:
-
-            break;
             case TblWorkSpace::VIEW_TYPE_PROSPECT:
+                $Block = $this->getPanelList(new ViewPerson(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_PROSPECT);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewPerson']) ) {
+                        $AccordionList[] = new Panel( 'Person:', new Scrollable( $Block, 300 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Person:', new Scrollable( $Block ) );
+                    }
+                }
                 $Block = $this->getPanelList(new ViewGroupProspect(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_PROSPECT);
                 if( !empty( $Block ) ) {
                     if( isset($ViewList['ViewGroupProspect']) ) {
@@ -1025,16 +1054,59 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                         $AccordionList[] = new Dropdown( 'Kontakt:', new Scrollable( $Block ) );
                     }
                 }
-                // ViewStudentCustody is only for Student's
-//                $Block = $this->getPanelList(new ViewStudentCustody(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_PROSPECT);
-//                if( !empty( $Block ) ) {
-//                    if( isset($ViewList['ViewStudentCustody']) ) {
-//                        $AccordionList[] = new Panel( 'Sorgeberechtigte:', new Scrollable( $Block, 300 ));
-//                    } else {
-//                        $AccordionList[] = new Dropdown( 'Sorgeberechtigte:', new Scrollable( $Block ) );
-//                    }
-//                }
             break;
+            case TblWorkSpace::VIEW_TYPE_CUSTODY:
+                $Block = $this->getPanelList(new ViewPerson(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_CUSTODY);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewPerson']) ) {
+                        $AccordionList[] = new Panel( 'Person:', new Scrollable( $Block, 300 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Person:', new Scrollable( $Block ) );
+                    }
+                }
+                $Block = $this->getPanelList(new ViewGroupCustody(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_CUSTODY);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewGroupCustody']) ) {
+                        $AccordionList[] = new Panel( 'Sorgeberechtigte:', new Scrollable( $Block, 80 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Sorgeberechtigte:', new Scrollable( $Block ) );
+                    }
+                }
+                $Block = $this->getPanelList(new ViewPersonContact(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_CUSTODY);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewPersonContact']) ) {
+                        $AccordionList[] = new Panel( 'Kontakt:', new Scrollable( $Block, 300 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Kontakt:', new Scrollable( $Block ) );
+                    }
+                }
+                break;
+            case TblWorkSpace::VIEW_TYPE_TEACHER:
+                $Block = $this->getPanelList(new ViewPerson(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_TEACHER);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewPerson']) ) {
+                        $AccordionList[] = new Panel( 'Person:', new Scrollable( $Block, 300 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Person:', new Scrollable( $Block ) );
+                    }
+                }
+                $Block = $this->getPanelList(new ViewGroupTeacher(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_TEACHER);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewGroupTeacher']) ) {
+                        $AccordionList[] = new Panel( 'Lehrer:', new Scrollable( $Block, 300 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Lehrer:', new Scrollable( $Block ) );
+                    }
+                }
+                $Block = $this->getPanelList(new ViewPersonContact(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_TEACHER);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewPersonContact']) ) {
+                        $AccordionList[] = new Panel( 'Kontakt:', new Scrollable( $Block, 300 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Kontakt:', new Scrollable( $Block ) );
+                    }
+                }
+                break;
         }
 
         return
@@ -1054,6 +1126,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
     /**
      * @param AbstractView   $View
      * @param TblWorkSpace[] $WorkSpaceList
+     * @param $ViewType
      *
      * @return string
      */
@@ -1071,15 +1144,6 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 }
             }
         }
-//        $ConstantList = ViewEducationStudent::getConstants();
-//        if ($ConstantList) {
-//            foreach ($ConstantList as $Constant) {
-//                $Group = $View->getGroupDefinition($Constant);
-//                if ($Group) {
-//                    $ViewBlockList[$Group][] = $Constant;
-//                }
-//            }
-//        }
         if ($ViewBlockList) {
             foreach ($ViewBlockList as $Block => $FieldList) {
 
@@ -1100,7 +1164,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 }
 
                 if (!empty($FieldListArray)) {
-                    array_unshift( $FieldListArray, new Bold( $Block ) );
+                    if($Block !== '&nbsp;'){
+                        array_unshift( $FieldListArray, new Bold( $Block ) );
+                    }
                     $PanelString .= new Listing( $FieldListArray );
                 }
             }
@@ -1118,13 +1184,27 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
     {
 
         $tblWorkSpaceList = Individual::useService()->getWorkSpaceAll($ViewType);
-        $FormColumnAll = array();
+        $LayoutColumnAll = array();
 
         // TODO: Card Fold
 //        $TS = Template::getTwigTemplateString('>> {{ Feld }} <<');
 
 
         if ($tblWorkSpaceList) {
+            $Global = $this->getGlobal();
+            // pre fill filter behavior with "like"
+            foreach ($tblWorkSpaceList as $tblWorkSpace) {
+                $FieldCount = $tblWorkSpace->getFieldCount();
+                if(!isset($Global->POST[$tblWorkSpace->getField()])){
+                    for($i = 0; $i <= $FieldCount; $i++){
+                        if(!isset($Global->POST[$tblWorkSpace->getField().'_Radio'.$i])){
+                            $Global->POST[$tblWorkSpace->getField().'_Radio'.$i] = 1;
+                        }
+                    }
+                }
+            }
+            $Global->savePost();
+
             foreach ($tblWorkSpaceList as $tblWorkSpace) {
                 $FieldCount = $tblWorkSpace->getFieldCount();
                 if ($FieldCount <= 1) {
@@ -1156,26 +1236,27 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     } else {
                         $FilterInputList[] = ( $i == 1
                             ? new PullClear( $View->getFormField( $tblWorkSpace->getField(), 'Alle' ) )
+                            .new Center($this->getBehaviorRadioBox($tblWorkSpace->getField().'_Radio'.$i))
                             : new PullClear( $View->getFormField( $tblWorkSpace->getField(), 'ODER' ) )
+                            .new Center($this->getBehaviorRadioBox($tblWorkSpace->getField().'_Radio'.$i))
 //                            ? new TextField($tblWorkSpace->getField().'['.$i.']', 'Alle' )
 //                            : new TextField($tblWorkSpace->getField().'['.$i.']', 'ODER')
                         );
                     }
                 }
-                $FilterInputList[] = new Center( new PullClear(
-                    new PullLeft(
-                    (new Link('', ApiIndividual::getEndpoint(), new ChevronLeft(), array(),
-                        'Feld&nbsp;nach&nbsp;links'))
-                        ->ajaxPipelineOnClick(ApiIndividual::pipelineMoveFilterField($tblWorkSpace->getId(),
-                            'left', $ViewType))
-                    )
-                    .$LinkGroup
-                    .new PullRight(
-                        (new Link('', ApiIndividual::getEndpoint(), new ChevronRight(), array(),
-                        'Feld&nbsp;nach&nbsp;rechts'))
-                        ->ajaxPipelineOnClick(ApiIndividual::pipelineMoveFilterField($tblWorkSpace->getId(),
-                            'right', $ViewType))
-                    ))
+                $FilterInputList[] = new Center( new PullClear( new PullLeft(
+                            (new Link('', ApiIndividual::getEndpoint(), new ChevronLeft(), array(),
+                                'Feld&nbsp;nach&nbsp;links'))
+                                ->ajaxPipelineOnClick(ApiIndividual::pipelineMoveFilterField($tblWorkSpace->getId(),
+                                    'left', $ViewType))
+                        )
+                        .$LinkGroup
+                        .new PullRight(
+                            (new Link('', ApiIndividual::getEndpoint(), new ChevronRight(), array(),
+                                'Feld&nbsp;nach&nbsp;rechts'))
+                                ->ajaxPipelineOnClick(ApiIndividual::pipelineMoveFilterField($tblWorkSpace->getId(),
+                                    'right', $ViewType))
+                        ))
                 );
 
                 $Listing = new Listing(
@@ -1194,65 +1275,65 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                         ), $FilterInputList)
                 );
 
-                $FormColumnAll[$tblWorkSpace->getPosition()] = new FormColumn( $Listing, 3);
+                $LayoutColumnAll[$tblWorkSpace->getPosition()] = new LayoutColumn( $Listing, 3);
             }
-            ksort($FormColumnAll);
+            ksort($LayoutColumnAll);
         }
 
-        $FormRowList = array();
-        $FormRowCount = 0;
-        $FormRow = null;
-        if (!empty($FormColumnAll)) {
+        $LayoutRowList = array();
+        $LayoutRowCount = 0;
+        $LayoutRow = null;
+        if (!empty($LayoutColumnAll)) {
             /**
-             * @var FormColumn $FormColumn
+             * @var LayoutColumn $LayoutColumn
              */
-            foreach ($FormColumnAll as $FormColumn) {
-                if ($FormRowCount % 4 == 0) {
-                    $FormRow = new FormRow(array());
-                    $FormRowList[] = $FormRow;
+            foreach ($LayoutColumnAll as $LayoutColumn) {
+                if ($LayoutRowCount % 4 == 0) {
+                    $LayoutRow = new LayoutRow(array());
+                    $LayoutRowList[] = $LayoutRow;
                 }
-                $FormRow->addColumn($FormColumn);
-                $FormRowCount++;
+                $LayoutRow->addColumn($LayoutColumn);
+                $LayoutRowCount++;
             }
-            $FormRowList[] = new FormRow(new FormColumn(array(
+            $LayoutRowList[] = new LayoutRow(new LayoutColumn(array(
                 (new Primary('Suchen', self::getEndpoint(),
                     new Search()))->ajaxPipelineOnClick(self::pipelineResult($ViewType))
 //            ,
 //                (new Danger('Filter entfernen', ApiIndividual::getEndpoint(), new Disable()))->ajaxPipelineOnClick(
 //                    ApiIndividual::pipelineDelete())
             , new PullRight(
-                (new LinkGroup())->addLink(
-                    (new Standard('Filter speichern', ApiIndividual::getEndpoint(), new FolderClosed(), array(),
-                        'Speichern als Filtervorlage'))->ajaxPipelineOnClick(
-                        ApiIndividual::pipelinePresetSaveModal()
-                    )
+                    (new LinkGroup())->addLink(
+                        (new Standard('Filter speichern', ApiIndividual::getEndpoint(), new FolderClosed(), array(),
+                            'Speichern als Filtervorlage'))->ajaxPipelineOnClick(
+                            ApiIndividual::pipelinePresetSaveModal()
+                        )
                     )->addLink(
-                    (new Standard('Filter laden', ApiIndividual::getEndpoint(), new FolderOpen(), array(),
-                        'Laden von Filtervorlagen'))->ajaxPipelineOnClick(
-                        ApiIndividual::pipelinePresetShowModal('', $ViewType)
-                    ))
+                        (new Standard('Filter laden', ApiIndividual::getEndpoint(), new FolderOpen(), array(),
+                            'Laden von Filtervorlagen'))->ajaxPipelineOnClick(
+                            ApiIndividual::pipelinePresetShowModal('', $ViewType)
+                        ))
                 )
             )));
         }
 
-        if (!empty($FormRowList)) {
-            $Form = (new Form(
-                new FormGroup(
-                    $FormRowList
+        if (!empty($LayoutRowList)) {
+            $Layout = (new Layout(
+                new LayoutGroup(
+                    $LayoutRowList
                 )
-            ))->disableSubmitAction();
+            )); //->disableSubmitAction();
             $Panel = //new Panel(
                 new Title(
-                'Filteroptionen',''.new PullRight(
+                    'Filteroptionen',''.new PullRight(
 
-                    (new Link(new DangerText( new Disable().'&nbsp;Alle Felder entfernen'), ApiIndividual::getEndpoint()))->ajaxPipelineOnClick(
-                        ApiIndividual::pipelineDelete($ViewType))
-                ))
-                .'<div class="FilterCardStyle">'
-                .'<style type="text/css">div.FilterCardStyle div.form-group { margin-bottom: auto; }</style>'
-                .$Form
-                .'</div>';
-                //, Panel::PANEL_TYPE_INFO);
+                        (new Link(new DangerText( new Disable().'&nbsp;Alle Felder entfernen'), ApiIndividual::getEndpoint()))->ajaxPipelineOnClick(
+                            ApiIndividual::pipelineDelete($ViewType))
+                    ))
+//                .'<div class="FilterCardStyle">'
+//                .'<style type="text/css">div.FilterCardStyle div.form-group { margin-bottom: auto; }</style>'
+                .$Layout;
+//                .'</div>';
+            //, Panel::PANEL_TYPE_INFO);
         }
 
         return (isset($Panel) ? $Panel : new Title('Filteroptionen').new Muted('Bitte wählen Sie Felder aus den verfügbaren Informationen oder laden Sie eine')
@@ -1261,6 +1342,47 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 ApiIndividual::pipelinePresetShowModal('', $ViewType)
             )
         );
+    }
+
+    /**
+     * @param string $RadioBoxName
+     *
+     * @return string
+     */
+    private function getBehaviorRadioBox($RadioBoxName)
+    {
+
+        return '' // <div style="padding-top: 1px;"></div>'
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(new ToolTip(
+                            '<div class="alert alert-info" style="padding: 0; width: 19px;height: 10px;margin-bottom: 8px">'.
+                                new RadioBox($RadioBoxName, '&nbsp;', 1, RadioBox::RADIO_BOX_TYPE_DEFAULT)
+                            .'</div>'
+                                , 'like (enthält)', false)
+                            , 3),
+                        new LayoutColumn(new ToolTip(
+                                '<div class="alert alert-danger" style="padding: 0; width: 19px;height: 10px;margin-bottom: 8px">'.
+                                new RadioBox($RadioBoxName, '&nbsp;', 2, RadioBox::RADIO_BOX_TYPE_DANGER)
+                                .'</div>'
+                                , 'not like (enthält nicht)', false)
+                            , 3),
+                        new LayoutColumn(new ToolTip(
+                                '<div class="alert alert-warning" style="padding: 0; width: 19px;height: 10px;margin-bottom: 8px">'.
+                                new RadioBox($RadioBoxName, '&nbsp;', 3, RadioBox::RADIO_BOX_TYPE_WARNING)
+                                .'</div>'
+                                , 'null (ist leer)', false)
+                            , 3),
+                        new LayoutColumn(new ToolTip(
+                                '<div class="alert alert-success" style="padding: 0; width: 19px;height: 10px;margin-bottom: 8px">'.
+                                new RadioBox($RadioBoxName, '&nbsp;', 4, RadioBox::RADIO_BOX_TYPE_SUCCESS)
+                                .'</div>'
+                                , 'not null ( ist nicht leer)', false)
+                            , 3),
+                    ))
+                )
+            );
     }
 
     /**
@@ -1408,14 +1530,103 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     // Add View to Query (if not exists)
                     $ViewClass = $this->instanceView( $tblWorkSpace, false );
                     if (!in_array($tblWorkSpace->getView(), $ViewList)) {
+
+                        if($Index == 0 ) {
+                            switch ($ViewType) {
+
+                                case TblWorkSpace::VIEW_TYPE_PROSPECT:
+                                    $viewGroup = new ViewGroup();
+                                    $Parameter = ':Filter'.'Initial'.'Value'.'MetaTable';
+                                    $Builder->from($viewGroup->getEntityFullName(),
+                                        $viewGroup->getViewObjectName());
+                                    $Builder->andWhere(
+                                        $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
+                                            $Parameter)
+                                    );
+                                    $ParameterList[$Parameter] = 'PROSPECT';
+                                    $ViewList[] = 'ViewGroup';
+                                    break;
+                                case TblWorkSpace::VIEW_TYPE_CUSTODY:
+                                    $viewGroup = new ViewGroup();
+                                    $Parameter = ':Filter'.'Initial'.'Value'.'MetaTable';
+                                    $Builder->from($viewGroup->getEntityFullName(),
+                                        $viewGroup->getViewObjectName() );
+                                    $Builder->andWhere(
+                                        $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
+                                            $Parameter)
+                                    );
+                                    $ParameterList[$Parameter] = 'CUSTODY';
+                                    $ViewList[] = 'ViewGroup';
+                                    break;
+                                case TblWorkSpace::VIEW_TYPE_TEACHER:
+                                    $viewGroup = new ViewGroup();
+                                    $Parameter = ':Filter'.'Initial'.'Value'.'MetaTable';
+                                    $Builder->from($viewGroup->getEntityFullName(),
+                                        $viewGroup->getViewObjectName());
+                                    $Builder->andWhere(
+                                        $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
+                                            $Parameter)
+                                    );
+                                    $ParameterList[$Parameter] = 'TEACHER';
+                                    $ViewList[] = 'ViewGroup';
+                                    break;
+                            }
+                        }
+
+
+
                         if (empty($ViewList)) {
                             $Builder->from($ViewClass, $tblWorkSpace->getView());
                         } else {
-                            $Builder->join($ViewClass, $tblWorkSpace->getView(), Join::WITH,
+                            $Builder->Join($ViewClass, $tblWorkSpace->getView(), Join::WITH,
                                 current( $ViewList ).'.TblPerson_Id = '.$tblWorkSpace->getView().'.TblPerson_Id'
                             );
                         }
                         $ViewList[] = $tblWorkSpace->getView();
+//                        if($Index == 0) {
+//                            switch ($ViewType) {
+//
+//                                case TblWorkSpace::VIEW_TYPE_PROSPECT:
+//                                    $Parameter = ':Filter'.'999'.'Value'.'999';
+//                                    $Builder->join((new ViewGroup)->getEntityFullName(),
+//                                        (new ViewGroup())->getViewObjectName(), Join::WITH,
+//                                        current($ViewList).'.TblPerson_Id = '.(new ViewGroup())->getViewObjectName().'.TblPerson_Id'
+//                                    );
+//                                    $Builder->andWhere(
+//                                        $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
+//                                            $Parameter)
+//                                    );
+//                                    $ParameterList[$Parameter] = 'PROSPECT';
+//                                    $ViewList[] = 'ViewGroup';
+//                                    break;
+//                                case TblWorkSpace::VIEW_TYPE_CUSTODY:
+//                                    $Parameter = ':Filter'.'999'.'Value'.'999';
+//                                    $Builder->join((new ViewGroup)->getEntityFullName(),
+//                                        (new ViewGroup())->getViewObjectName(), Join::WITH,
+//                                        current($ViewList).'.TblPerson_Id = '.(new ViewGroup())->getViewObjectName().'.TblPerson_Id'
+//                                    );
+//                                    $Builder->andWhere(
+//                                        $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
+//                                            $Parameter)
+//                                    );
+//                                    $ParameterList[$Parameter] = 'CUSTODY';
+//                                    $ViewList[] = 'ViewGroup';
+//                                    break;
+//                                case TblWorkSpace::VIEW_TYPE_TEACHER:
+//                                    $Parameter = ':Filter'.'999'.'Value'.'999';
+//                                    $Builder->join((new ViewGroup)->getEntityFullName(),
+//                                        (new ViewGroup())->getViewObjectName(), Join::WITH,
+//                                        current($ViewList).'.TblPerson_Id = '.(new ViewGroup())->getViewObjectName().'.TblPerson_Id'
+//                                    );
+//                                    $Builder->andWhere(
+//                                        $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
+//                                            $Parameter)
+//                                    );
+//                                    $ParameterList[$Parameter] = 'TEACHER';
+//                                    $ViewList[] = 'ViewGroup';
+//                                    break;
+//                            }
+//                        }
                     }
 
                     // Add Field to Select
@@ -1466,15 +1677,21 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                         if ($OrExp) {
                             $Builder->andWhere($OrExp);
                         }
-                    } else {
-                        if (isset($Filter[$tblWorkSpace->getField()]) && count($Filter[$tblWorkSpace->getField()]) == 1) {
-                            // Single Value
-                            foreach ($Filter[$tblWorkSpace->getField()] as $Count => $Value) {
-                                // Escape User Input
-                                $Value = preg_replace( '/[^\p{L}\p{N}]/u', '_', $Value );
-                                // If User Input exists
-                                if (!empty($Value) || $Value === 0) {
-                                    $Parameter = ':Filter' . $Index . 'Value' . $Count;
+                    } elseif (isset($Filter[$tblWorkSpace->getField()]) && count($Filter[$tblWorkSpace->getField()]) == 1) {
+
+                        //FilterBehavior 1 = like; 2 = not like; 3 = null; 4 = not null
+                        $Behavior = 1;
+                        if(isset($Filter[$tblWorkSpace->getField().'_Radio1'])){
+                            $Behavior = $Filter[$tblWorkSpace->getField().'_Radio1'];
+                        }
+
+                        // Single Value
+                        foreach ($Filter[$tblWorkSpace->getField()] as $Count => $Value) {
+                            // Escape User Input
+                            $Value = preg_replace( '/[^\p{L}\p{N}]/u', '_', $Value );
+                            // If User Input exists
+                            if (!empty($Value) || $Value === 0) {
+                                $Parameter = ':Filter' . $Index . 'Value' . $Count;
 
 //                                    // choose eq by Id or like by text
 //                                    if(preg_match('!^[\w]+[_Id]$!is', $tblWorkSpace->getField())) {
@@ -1485,33 +1702,96 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 //                                        );
 //                                        $ParameterList[$Parameter] = $Value;
 //                                    } else {
-                                        // Add AND Condition to Where (if filter is set)
+                                // Add AND Condition to Where (if filter is set)
+                                switch ($Behavior){
+                                    case 1:
                                         $Builder->andWhere(
                                             $Builder->expr()->like($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField(),
                                                 $Parameter)
                                         );
+                                        $ParameterList[$Parameter] = '%'.$Value.'%';
+                                        break;
+                                    case 2:
+                                        $Builder->andWhere(
+                                            $Builder->expr()->notLike($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField(),
+                                                $Parameter)
+                                        );
+                                        $ParameterList[$Parameter] = '%'.$Value.'%';
+                                        break;
+                                    case 3:
+                                        $Builder->andWhere(
+                                            $Builder->expr()->eq($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField(),
+                                            $Parameter)
+                                        );
+                                        $ParameterList[$Parameter] = '';
+                                        $Builder->orWhere(
+                                            $Builder->expr()->isNull($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField())
+                                        );
+                                        break;
+                                    case 4:
+                                        $Builder->andWhere(
+                                            $Builder->expr()->like($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField(),
+                                                $Parameter)
+                                        );
+                                        $ParameterList[$Parameter] = '_%';
+                                        $Builder->orWhere(
+                                            $Builder->expr()->isNotNull($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField())
+                                        );
+                                        break;
+                                }
+//                                        $Builder->andWhere(
+//                                            $Builder->expr()->like($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField(),
+//                                                $Parameter)
+//                                        );
 //                                        $ParameterList[$Parameter] = '%'.$Value.'%';
 //                                    }
-                                    $ParameterList[$Parameter] = $Value;
+//                                    $ParameterList[$Parameter] = $Value;
+                            } else {
+                                $Parameter = ':Filter' . $Index . 'Value' . $Count;
+                                switch ($Behavior){
+                                    case 3:
+                                        $Builder->andWhere(
+                                            $Builder->expr()->eq($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField(),
+                                                $Parameter)
+                                        );
+                                        $ParameterList[$Parameter] = '';
+                                        $Builder->orWhere(
+                                            $Builder->expr()->isNull($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField())
+                                        );
+                                        break;
+                                    case 4:
+                                        $Builder->andWhere(
+                                            $Builder->expr()->like($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField(),
+                                                $Parameter)
+                                        );
+                                        $ParameterList[$Parameter] = '_%';
+                                        $Builder->orWhere(
+                                            $Builder->expr()->isNotNull($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField())
+                                        );
+                                        break;
                                 }
                             }
                         }
                     }
-
                     // Add Field to "Group By" to prevent duplicates
                     $Builder->distinct( true );
                 }
 
                 // Bind Parameter to Query
                 foreach ($ParameterList as $Parameter => $Value) {
-                    $Builder->setParameter((string)$Parameter, '%' . $Value . '%');
-//                    $Builder->setParameter((string)$Parameter, $Value);
+//                    $Builder->setParameter((string)$Parameter, '%' . $Value . '%');
+                    $Builder->setParameter((string)$Parameter, $Value);
                 }
 
                 $Query = $Builder->getQuery();
+
+//                return $Query->getSQL();
+//                echo($Query->getSQL());
+//                exit;
+
                 $Query->useQueryCache(true);
                 $Query->useResultCache(true, 300);
-                $Query->setMaxResults(1000);
+                $Query->setMaxResults(10000);
 
                 $this->getLogger( new QueryLogger() )->addLog( $Query->getSQL() );
                 $this->getLogger( new QueryLogger() )->addLog( print_r( $Query->getParameters(), true ) );
@@ -1551,8 +1831,8 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 //                    $ColumnDTNames[$Name] = preg_replace('!\_!is', ' ', $Name);
                 });
                 $Result = (new TableData($Result, null, $ColumnDTNames, array(
-                    'responsive' => false
-                )))
+                        'responsive' => false
+                    )))
 
                     .$this->getDownloadForm($ViewType);
 //                    .'DEBUG'

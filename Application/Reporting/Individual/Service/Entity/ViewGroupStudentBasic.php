@@ -14,20 +14,19 @@ use SPHERE\System\Database\Binding\AbstractView;
 
 /**
  * @Entity
- * @Table(name="viewGroup")
+ * @Table(name="viewGroupStudentBasic")
  * @Cache(usage="READ_ONLY")
  */
-class ViewGroup extends AbstractView
+class ViewGroupStudentBasic extends AbstractView
 {
 
     // Sortierung beeinflusst die Gruppenreihenfolge im Frontend
     const TBL_PERSON_ID = 'TblPerson_Id';
-
-    const TBL_GROUP_ID = 'TblGroup_Id';
-    const TBL_GROUP_NAME = 'TblGroup_Name';
-    const TBL_GROUP_DESCRIPTION = 'TblGroup_Description';
-    const TBL_GROUP_REMARK = 'TblGroup_Remark';
-    const TBL_GROUP_META_TABLE = 'TblGroup_MetaTable';
+    const TBL_STUDENT_ID = 'TblStudent_Id';
+    const TBL_STUDENT_IDENTIFIER = 'TblStudent_Identifier';
+    const TBL_STUDENT_SCHOOL_ATTENDANCE_START_DATE = 'TblStudent_SchoolAttendanceStartDate';
+    const TBL_STUDENT_HAS_MIGRATION_BACKGROUND = 'TblStudent_HasMigrationBackground';
+    const TBL_STUDENT_IS_IN_PREPARATION_DIVISION_FOR_MIGRANTS = 'TblStudent_IsInPreparationDivisionForMigrants';
 
     /**
      * @return array
@@ -45,23 +44,23 @@ class ViewGroup extends AbstractView
     /**
      * @Column(type="string")
      */
-    protected $TblGroup_Id;
+    protected $TblStudent_Id;
     /**
      * @Column(type="string")
      */
-    protected $TblGroup_Name;
+    protected $TblStudent_Identifier;
     /**
      * @Column(type="string")
      */
-    protected $TblGroup_Description;
+    protected $TblStudent_SchoolAttendanceStartDate;
     /**
      * @Column(type="string")
      */
-    protected $TblGroup_Remark;
+    protected $TblStudent_HasMigrationBackground;
     /**
      * @Column(type="string")
      */
-    protected $TblGroup_MetaTable;
+    protected $TblStudent_IsInPreparationDivisionForMigrants;
 
     /**
      * Use this method to set PropertyName to DisplayName conversions with "setNameDefinition()"
@@ -71,23 +70,19 @@ class ViewGroup extends AbstractView
     public function loadNameDefinition()
     {
 
-        //NameDefinition
-//        $this->setNameDefinition(self::TBL_GROUP_ID, 'Gruppe: Name');
-        $this->setNameDefinition(self::TBL_GROUP_NAME, 'Gruppe: Name');
-        $this->setNameDefinition(self::TBL_GROUP_DESCRIPTION, 'Gruppe: Beschreibung');
-        $this->setNameDefinition(self::TBL_GROUP_REMARK, 'Gruppe: Bemerkung');
+//        //NameDefinition
+        $this->setNameDefinition(self::TBL_STUDENT_IDENTIFIER, 'Grunddaten: Schülernummer');
+        $this->setNameDefinition(self::TBL_STUDENT_SCHOOL_ATTENDANCE_START_DATE, 'Grunddaten: Schulpflicht beginn');
+        $this->setNameDefinition(self::TBL_STUDENT_HAS_MIGRATION_BACKGROUND, 'Grunddaten: Migrationshintergrund');
+        $this->setNameDefinition(self::TBL_STUDENT_IS_IN_PREPARATION_DIVISION_FOR_MIGRANTS, 'Grunddaten: Besucht Vorbereitungsklasse für Migranten');
 
-
-        //GroupDefinition
-        $this->setGroupDefinition('Gruppeninformation', array(
-//            self::TBL_GROUP_ID,
-            self::TBL_GROUP_NAME,
-            self::TBL_GROUP_DESCRIPTION,
-            self::TBL_GROUP_REMARK,
+//        //GroupDefinition
+        $this->setGroupDefinition('&nbsp;', array(
+            self::TBL_STUDENT_IDENTIFIER,
+            self::TBL_STUDENT_SCHOOL_ATTENDANCE_START_DATE,
+            self::TBL_STUDENT_HAS_MIGRATION_BACKGROUND,
+            self::TBL_STUDENT_IS_IN_PREPARATION_DIVISION_FOR_MIGRANTS
         ));
-
-        // Flag um Filter zu deaktivieren (nur Anzeige von Informationen)
-//        $this->setDisableDefinition(self::TBL_SALUTATION_SALUTATION_S1);
     }
 
     /**
@@ -122,22 +117,11 @@ class ViewGroup extends AbstractView
     {
 
         switch ($PropertyName) {
-//            case self::TBL_GROUP_ID:
-//                // Test Address By Student
-//                $Data = array();
-//                $tblGroupList = Group::useService()->getGroupAll();
-//                if($tblGroupList){
-//                    foreach($tblGroupList as $tblGroup){
-//                        if($tblGroup->getName() == 'Alle'){
-//                            // ignore Entry
-//                        } else {
-//                            $Data[$tblGroup->getId()] = $tblGroup->getName();
-//                        }
-//                    }
-//                }
-////                // all group from TblGroup
-////                $Data = Group::useService()->getPropertyList( new TblGroup(''), TblGroup::ATTR_NAME );
-//                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount, false);
+//            case self::SIBLINGS_COUNT:
+//                $PropertyCount = $this->calculateFormFieldCount( $PropertyName, $doResetCount );
+//                $Field = new NumberField( $PropertyName.'['.$PropertyCount.']',
+//                    $Placeholder, $Label, $Icon
+//                );
 //                break;
             default:
                 $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );
