@@ -228,10 +228,10 @@ class Service extends AbstractService
                 $Data['Certificate'][$typeId]['Data' . $count]['Division'] = $tblLevel->getName();
                 if ($tblCertificateType->getIdentifier() == 'YEAR') {
                     $Data['Certificate'][$typeId]['Data' . $count]['Year'] = $year;
-                    $Data['Certificate'][$typeId]['Data' . $count]['HalfYear'] = '&ndash;';
+                    $Data['Certificate'][$typeId]['Data' . $count]['HalfYear'] = '2';
                 } else {
-                    $Data['Certificate'][$typeId]['Data' . $count]['Year'] = '&ndash;';
-                    $Data['Certificate'][$typeId]['Data' . $count]['HalfYear'] = $year;
+                    $Data['Certificate'][$typeId]['Data' . $count]['Year'] = $year;
+                    $Data['Certificate'][$typeId]['Data' . $count]['HalfYear'] = '1';
                 }
                 $Data['Certificate'][$typeId]['Data' . $count]['YearForRemark'] = $year;
 
