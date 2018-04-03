@@ -4,6 +4,7 @@ namespace SPHERE\Application\Api\Reporting\Individual;
 
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\Query\Expr\Orx;
+use Doctrine\ORM\QueryBuilder;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
@@ -1357,27 +1358,27 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(new ToolTip(
-                            '<div class="alert alert-info" style="padding: 0; width: 19px;height: 10px;margin-bottom: 8px">'.
-                                new RadioBox($RadioBoxName, '&nbsp;', 1, RadioBox::RADIO_BOX_TYPE_DEFAULT)
+                            '<div class="alert alert-info" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
+                                .new RadioBox($RadioBoxName, '&nbsp;', 1, RadioBox::RADIO_BOX_TYPE_DEFAULT)
                             .'</div>'
                                 , 'like (enthält)', false)
                             , 3),
                         new LayoutColumn(new ToolTip(
-                                '<div class="alert alert-danger" style="padding: 0; width: 19px;height: 10px;margin-bottom: 8px">'.
-                                new RadioBox($RadioBoxName, '&nbsp;', 2, RadioBox::RADIO_BOX_TYPE_DANGER)
-                                .'</div>'
+                            '<div class="alert alert-danger" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
+                                .new RadioBox($RadioBoxName, '&nbsp;', 2, RadioBox::RADIO_BOX_TYPE_DANGER)
+                            .'</div>'
                                 , 'not like (enthält nicht)', false)
                             , 3),
                         new LayoutColumn(new ToolTip(
-                                '<div class="alert alert-warning" style="padding: 0; width: 19px;height: 10px;margin-bottom: 8px">'.
-                                new RadioBox($RadioBoxName, '&nbsp;', 3, RadioBox::RADIO_BOX_TYPE_WARNING)
-                                .'</div>'
+                            '<div class="alert alert-warning" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
+                                .new RadioBox($RadioBoxName, '&nbsp;', 3, RadioBox::RADIO_BOX_TYPE_WARNING)
+                            .'</div>'
                                 , 'null (ist leer)', false)
                             , 3),
                         new LayoutColumn(new ToolTip(
-                                '<div class="alert alert-success" style="padding: 0; width: 19px;height: 10px;margin-bottom: 8px">'.
-                                new RadioBox($RadioBoxName, '&nbsp;', 4, RadioBox::RADIO_BOX_TYPE_SUCCESS)
-                                .'</div>'
+                            '<div class="alert alert-success" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
+                                .new RadioBox($RadioBoxName, '&nbsp;', 4, RadioBox::RADIO_BOX_TYPE_SUCCESS)
+                            .'</div>'
                                 , 'not null ( ist nicht leer)', false)
                             , 3),
                     ))
@@ -1510,7 +1511,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
      *
      * @return \Doctrine\ORM\Query|null
      */
-    private function buildSearchQuery($ViewType = TblWorkSpace::VIEW_TYPE_ALL)
+    private function buildSearchQuery($ViewType = TblWorkSpace::VIEW_TYPE_ALL, $SqlReturn = false)
     {
         $Binding = Individual::useService()->getBinding();
         $Manager = $Binding->getEntityManager();
@@ -1532,119 +1533,35 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     if (!in_array($tblWorkSpace->getView(), $ViewList)) {
 
                         if($Index == 0 ) {
-                            switch ($ViewType) {
-
-                                case TblWorkSpace::VIEW_TYPE_PROSPECT:
-                                    $viewGroup = new ViewGroup();
-                                    $Parameter = ':Filter'.'Initial'.'Value'.'MetaTable';
-                                    $Builder->from($viewGroup->getEntityFullName(),
-                                        $viewGroup->getViewObjectName());
-                                    $Builder->andWhere(
-                                        $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
-                                            $Parameter)
-                                    );
-                                    $ParameterList[$Parameter] = 'PROSPECT';
-                                    $ViewList[] = 'ViewGroup';
-                                    break;
-                                case TblWorkSpace::VIEW_TYPE_CUSTODY:
-                                    $viewGroup = new ViewGroup();
-                                    $Parameter = ':Filter'.'Initial'.'Value'.'MetaTable';
-                                    $Builder->from($viewGroup->getEntityFullName(),
-                                        $viewGroup->getViewObjectName() );
-                                    $Builder->andWhere(
-                                        $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
-                                            $Parameter)
-                                    );
-                                    $ParameterList[$Parameter] = 'CUSTODY';
-                                    $ViewList[] = 'ViewGroup';
-                                    break;
-                                case TblWorkSpace::VIEW_TYPE_TEACHER:
-                                    $viewGroup = new ViewGroup();
-                                    $Parameter = ':Filter'.'Initial'.'Value'.'MetaTable';
-                                    $Builder->from($viewGroup->getEntityFullName(),
-                                        $viewGroup->getViewObjectName());
-                                    $Builder->andWhere(
-                                        $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
-                                            $Parameter)
-                                    );
-                                    $ParameterList[$Parameter] = 'TEACHER';
-                                    $ViewList[] = 'ViewGroup';
-                                    break;
-                            }
+                            $Builder = $this->setInitialView($Builder, $ViewType, $ViewList, $ParameterList);
                         }
-
-
 
                         if (empty($ViewList)) {
                             $Builder->from($ViewClass, $tblWorkSpace->getView());
                         } else {
-                            $Builder->Join($ViewClass, $tblWorkSpace->getView(), Join::WITH,
+                            $Builder->leftJoin($ViewClass, $tblWorkSpace->getView(), Join::WITH,
                                 current( $ViewList ).'.TblPerson_Id = '.$tblWorkSpace->getView().'.TblPerson_Id'
                             );
                         }
                         $ViewList[] = $tblWorkSpace->getView();
-//                        if($Index == 0) {
-//                            switch ($ViewType) {
-//
-//                                case TblWorkSpace::VIEW_TYPE_PROSPECT:
-//                                    $Parameter = ':Filter'.'999'.'Value'.'999';
-//                                    $Builder->join((new ViewGroup)->getEntityFullName(),
-//                                        (new ViewGroup())->getViewObjectName(), Join::WITH,
-//                                        current($ViewList).'.TblPerson_Id = '.(new ViewGroup())->getViewObjectName().'.TblPerson_Id'
-//                                    );
-//                                    $Builder->andWhere(
-//                                        $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
-//                                            $Parameter)
-//                                    );
-//                                    $ParameterList[$Parameter] = 'PROSPECT';
-//                                    $ViewList[] = 'ViewGroup';
-//                                    break;
-//                                case TblWorkSpace::VIEW_TYPE_CUSTODY:
-//                                    $Parameter = ':Filter'.'999'.'Value'.'999';
-//                                    $Builder->join((new ViewGroup)->getEntityFullName(),
-//                                        (new ViewGroup())->getViewObjectName(), Join::WITH,
-//                                        current($ViewList).'.TblPerson_Id = '.(new ViewGroup())->getViewObjectName().'.TblPerson_Id'
-//                                    );
-//                                    $Builder->andWhere(
-//                                        $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
-//                                            $Parameter)
-//                                    );
-//                                    $ParameterList[$Parameter] = 'CUSTODY';
-//                                    $ViewList[] = 'ViewGroup';
-//                                    break;
-//                                case TblWorkSpace::VIEW_TYPE_TEACHER:
-//                                    $Parameter = ':Filter'.'999'.'Value'.'999';
-//                                    $Builder->join((new ViewGroup)->getEntityFullName(),
-//                                        (new ViewGroup())->getViewObjectName(), Join::WITH,
-//                                        current($ViewList).'.TblPerson_Id = '.(new ViewGroup())->getViewObjectName().'.TblPerson_Id'
-//                                    );
-//                                    $Builder->andWhere(
-//                                        $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
-//                                            $Parameter)
-//                                    );
-//                                    $ParameterList[$Parameter] = 'TEACHER';
-//                                    $ViewList[] = 'ViewGroup';
-//                                    break;
-//                            }
-//                        }
                     }
 
                     // Add Field to Select
                     $ViewClass = $this->instanceView( $tblWorkSpace );
                     $Alias = $this->encodeField( $ViewClass->getNameDefinition($tblWorkSpace->getField()) );
 
-//                    $FieldName = $tblWorkSpace->getField();
-//                    if(preg_match('!^[\w]+[_Id]$!is', $tblWorkSpace->getField())) {
-//                        $FieldName = str_replace('_Id', '_Name', $tblWorkSpace->getField());
-//                    }
-//                     $Builder->addSelect($tblWorkSpace->getView() . '.' . $FieldName
-                    $Builder->addSelect($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField()
+                    $FieldName = $tblWorkSpace->getField();
+                    if(preg_match('!^[\w]+[_Id]$!is', $tblWorkSpace->getField())) {
+                        $FieldName = str_replace('_Id', '_Name', $tblWorkSpace->getField());
+                    }
+                     $Builder->addSelect($tblWorkSpace->getView() . '.' . $FieldName
+//                    $Builder->addSelect($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField()
                         . ' AS ' . $Alias
                     );
 
                     // Add Field to Sort
-//                    $Builder->addOrderBy( $tblWorkSpace->getView() . '.' . $FieldName );
-                    $Builder->addOrderBy( $tblWorkSpace->getView() . '.' . $tblWorkSpace->getField() );
+                    $Builder->addOrderBy( $tblWorkSpace->getView() . '.' . $FieldName );
+//                    $Builder->addOrderBy( $tblWorkSpace->getView() . '.' . $tblWorkSpace->getField() );
 
                     // Add Condition to Parameter (if exists and is not empty)
                     $Filter = $this->getGlobal()->POST;
@@ -1653,6 +1570,13 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     if (isset($Filter[$tblWorkSpace->getField()]) && count($Filter[$tblWorkSpace->getField()]) > 1) {
                         // Multiple Values
                         foreach ($Filter[$tblWorkSpace->getField()] as $Count => $Value) {
+
+                            //FilterBehavior 1 = like; 2 = not like; 3 = null; 4 = not null
+                            $Behavior = 1;
+                            if(isset($Filter[$tblWorkSpace->getField().'_Radio'.$Count])){
+                                $Behavior = $Filter[$tblWorkSpace->getField().'_Radio'.$Count];
+                            }
+
                             // Escape User Input
                             $Value = preg_replace( '/[^\p{L}\p{N}]/u', '_', $Value );
                             // If User Input exists
@@ -1660,17 +1584,18 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                                 $Parameter = ':Filter' . $Index . 'Value' . $Count;
                                 if (!$OrExp) {
                                     $OrExp = $Builder->expr()->orX(
-                                        $Builder->expr()->like($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField(),
-                                            $Parameter)
-                                    );
+                                        $this->chooseBehaviorMultiExpression(
+                                            $Builder, $tblWorkSpace->getView(), $tblWorkSpace->getField(), $Value, $Parameter,
+                                            $ParameterList, $Behavior)
+                                );
                                 } else {
                                     $OrExp->add(
-                                        $Builder->expr()->like($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField(),
-                                            $Parameter)
+                                        $this->chooseBehaviorMultiExpression(
+                                            $Builder, $tblWorkSpace->getView(), $tblWorkSpace->getField(), $Value, $Parameter,
+                                            $ParameterList, $Behavior)
                                     );
                                 }
-//                                $ParameterList[$Parameter] = '%'.$Value.'%';
-                                $ParameterList[$Parameter] = $Value;
+//                                $ParameterList[$Parameter] = $Value;
                             }
                         }
                         // Add AND Condition to Where (if filter is set)
@@ -1690,87 +1615,51 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                             // Escape User Input
                             $Value = preg_replace( '/[^\p{L}\p{N}]/u', '_', $Value );
                             // If User Input exists
+                            $Parameter = ':Filter' . $Index . 'Value' . $Count;
                             if (!empty($Value) || $Value === 0) {
-                                $Parameter = ':Filter' . $Index . 'Value' . $Count;
-
 //                                    // choose eq by Id or like by text
-//                                    if(preg_match('!^[\w]+[_Id]$!is', $tblWorkSpace->getField())) {
-//                                        // Add AND Condition to Where (if filter is set)
-//                                        $Builder->andWhere(
-//                                            $Builder->expr()->eq($tblWorkSpace->getView().'.'.$tblWorkSpace->getField(),
-//                                                $Parameter)
-//                                        );
-//                                        $ParameterList[$Parameter] = $Value;
-//                                    } else {
+                                    if(preg_match('!^[\w]+[_Id]$!is', $tblWorkSpace->getField())) {
+                                        // Add AND Condition to Where (if filter is set)
+                                        if($Behavior == 1){
+                                            $Builder->andWhere(
+                                                $Builder->expr()->eq($tblWorkSpace->getView().'.'.$tblWorkSpace->getField(),
+                                                    $Parameter)
+                                            );
+                                        } elseif($Behavior == 2) {
+                                            $Builder->andWhere(
+                                                $Builder->expr()->neq($tblWorkSpace->getView().'.'.$tblWorkSpace->getField(),
+                                                    $Parameter)
+                                            );
+                                        }
+                                        $ParameterList[$Parameter] = $Value;
+                                    } else {
+                                    $this->chooseBehavior(
+                                        $Builder, $tblWorkSpace->getView(), $tblWorkSpace->getField(), $Value, $Parameter,
+                                        $ParameterList, $Behavior);
+                                }
                                 // Add AND Condition to Where (if filter is set)
-                                switch ($Behavior){
-                                    case 1:
-                                        $Builder->andWhere(
-                                            $Builder->expr()->like($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField(),
-                                                $Parameter)
-                                        );
-                                        $ParameterList[$Parameter] = '%'.$Value.'%';
-                                        break;
-                                    case 2:
-                                        $Builder->andWhere(
-                                            $Builder->expr()->notLike($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField(),
-                                                $Parameter)
-                                        );
-                                        $ParameterList[$Parameter] = '%'.$Value.'%';
-                                        break;
-                                    case 3:
-                                        $Builder->andWhere(
-                                            $Builder->expr()->eq($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField(),
-                                            $Parameter)
-                                        );
-                                        $ParameterList[$Parameter] = '';
-                                        $Builder->orWhere(
-                                            $Builder->expr()->isNull($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField())
-                                        );
-                                        break;
-                                    case 4:
-                                        $Builder->andWhere(
-                                            $Builder->expr()->like($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField(),
-                                                $Parameter)
-                                        );
-                                        $ParameterList[$Parameter] = '_%';
-                                        $Builder->orWhere(
-                                            $Builder->expr()->isNotNull($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField())
-                                        );
-                                        break;
-                                }
-//                                        $Builder->andWhere(
-//                                            $Builder->expr()->like($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField(),
-//                                                $Parameter)
-//                                        );
-//                                        $ParameterList[$Parameter] = '%'.$Value.'%';
-//                                    }
-//                                    $ParameterList[$Parameter] = $Value;
+
                             } else {
-                                $Parameter = ':Filter' . $Index . 'Value' . $Count;
-                                switch ($Behavior){
-                                    case 3:
+                                if(preg_match('!^[\w]+[_Id]$!is', $tblWorkSpace->getField())) {
+                                    // Add AND Condition to Where (if filter is set)
+                                    if($Value === '' && $Behavior == 1){
                                         $Builder->andWhere(
-                                            $Builder->expr()->eq($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField(),
+                                            $Builder->expr()->like($tblWorkSpace->getView().'.'.$tblWorkSpace->getField(),
                                                 $Parameter)
                                         );
-                                        $ParameterList[$Parameter] = '';
-                                        $Builder->orWhere(
-                                            $Builder->expr()->isNull($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField())
-                                        );
-                                        break;
-                                    case 4:
+                                    } elseif($Value === '' && $Behavior == 2) {
                                         $Builder->andWhere(
-                                            $Builder->expr()->like($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField(),
+                                            $Builder->expr()->notLike($tblWorkSpace->getView().'.'.$tblWorkSpace->getField(),
                                                 $Parameter)
                                         );
-                                        $ParameterList[$Parameter] = '_%';
-                                        $Builder->orWhere(
-                                            $Builder->expr()->isNotNull($tblWorkSpace->getView() . '.' . $tblWorkSpace->getField())
-                                        );
-                                        break;
+                                        $ParameterList[$Parameter] = $Value;
+                                    }
                                 }
+                                $this->chooseBehavior(
+                                    $Builder, $tblWorkSpace->getView(), $tblWorkSpace->getField(), $Value, $Parameter,
+                                    $ParameterList, $Behavior);
                             }
+
                         }
                     }
                     // Add Field to "Group By" to prevent duplicates
@@ -1785,9 +1674,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
                 $Query = $Builder->getQuery();
 
-//                return $Query->getSQL();
-//                echo($Query->getSQL());
-//                exit;
+                if($SqlReturn){
+                    return $Query->getSQL();
+                }
 
                 $Query->useQueryCache(true);
                 $Query->useResultCache(true, 300);
@@ -1803,12 +1692,142 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
     }
 
     /**
+     * @param QueryBuilder $Builder
+     * @param string       $ViewType
+     * @param array        $ViewList
+     * @param array        $ParameterList
+     *
+     * @return QueryBuilder
+     */
+    private function setInitialView(QueryBuilder $Builder, $ViewType, &$ViewList = array(), &$ParameterList = array())
+    {
+        switch ($ViewType) {
+            case TblWorkSpace::VIEW_TYPE_PROSPECT:
+                $viewGroup = new ViewGroup();
+                $Parameter = ':Filter'.'Initial'.'Value'.'MetaTable';
+                $Builder->from($viewGroup->getEntityFullName(),
+                    $viewGroup->getViewObjectName());
+                $Builder->andWhere(
+                    $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
+                        $Parameter)
+                );
+                $ParameterList[$Parameter] = 'PROSPECT';
+                $ViewList[] = 'ViewGroup';
+                break;
+            case TblWorkSpace::VIEW_TYPE_CUSTODY:
+                $viewGroup = new ViewGroup();
+                $Parameter = ':Filter'.'Initial'.'Value'.'MetaTable';
+                $Builder->from($viewGroup->getEntityFullName(),
+                    $viewGroup->getViewObjectName() );
+                $Builder->andWhere(
+                    $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
+                        $Parameter)
+                );
+                $ParameterList[$Parameter] = 'CUSTODY';
+                $ViewList[] = 'ViewGroup';
+                break;
+            case TblWorkSpace::VIEW_TYPE_TEACHER:
+                $viewGroup = new ViewGroup();
+                $Parameter = ':Filter'.'Initial'.'Value'.'MetaTable';
+                $Builder->from($viewGroup->getEntityFullName(),
+                    $viewGroup->getViewObjectName());
+                $Builder->andWhere(
+                    $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
+                        $Parameter)
+                );
+                $ParameterList[$Parameter] = 'TEACHER';
+                $ViewList[] = 'ViewGroup';
+                break;
+        }
+        return $Builder;
+    }
+
+    /**
+     * @param QueryBuilder $Builder
+     * @param string       $View
+     * @param string       $Field
+     * @param string       $Value
+     * @param string       $Parameter
+     * @param array        $ParameterList
+     * @param int          $Behavior
+     *
+     * @return \Doctrine\ORM\Query\Expr\Comparison|Orx
+     */
+    private function chooseBehaviorMultiExpression(QueryBuilder &$Builder, $View, $Field, $Value, $Parameter, &$ParameterList, $Behavior)
+    {
+
+        switch ($Behavior){
+            case 1:
+                $ParameterList[$Parameter] = '%'.$Value.'%';
+                return $Builder->expr()->like($View . '.' . $Field, $Parameter);
+                break;
+            case 2:
+                $ParameterList[$Parameter] = '%'.$Value.'%';
+                $Builder->expr()->notLike($View . '.' . $Field, $Parameter);
+                break;
+            case 3:
+                $ParameterList[$Parameter] = '';
+                return $Builder->expr()->orX(
+                    $Builder->expr()->isNull($View . '.' . $Field),
+                    $Builder->expr()->eq($View . '.' . $Field,
+                        $Parameter)
+                );
+                break;
+            case 4:
+                $ParameterList[$Parameter] = '_%';
+                return $Builder->expr()->like($View . '.' . $Field, $Parameter);
+                break;
+        }
+        //default
+        $ParameterList[$Parameter] = '%'.$Value.'%';
+        return $Builder->expr()->like($View . '.' . $Field, $Parameter);
+    }
+
+    /**
+     * @param QueryBuilder $Builder
+     * @param string       $View
+     * @param string       $Field
+     * @param string       $Value
+     * @param string       $Parameter
+     * @param array        $ParameterList
+     * @param int       $Behavior
+     *
+     */
+    private function chooseBehavior(QueryBuilder &$Builder, $View, $Field, $Value, $Parameter, &$ParameterList, $Behavior)
+    {
+
+        switch ($Behavior){
+            case 1:
+                $ParameterList[$Parameter] = '%'.$Value.'%';
+                $Builder->andWhere($Builder->expr()->like($View . '.' . $Field, $Parameter));
+                break;
+            case 2:
+                $ParameterList[$Parameter] = '%'.$Value.'%';
+                $Builder->andWhere($Builder->expr()->notLike($View . '.' . $Field, $Parameter));
+                break;
+            case 3:
+                $ParameterList[$Parameter] = '';
+                $Builder->andWhere($Builder->expr()->orX(
+                    $Builder->expr()->isNull($View . '.' . $Field),
+                    $Builder->expr()->eq($View . '.' . $Field,
+                        $Parameter))
+                );
+                break;
+            case 4:
+                $ParameterList[$Parameter] = '_%';
+                $Builder->andWhere($Builder->expr()->like($View . '.' . $Field, $Parameter));
+                break;
+        }
+    }
+
+    /**
      * @param string $ViewType
      *
      * @return array|bool|Info|Error|string
      */
     public function getSearchResult($ViewType = TblWorkSpace::VIEW_TYPE_ALL) {
 
+//        return $Query = $this->buildSearchQuery($ViewType, true);
         $Query = $this->buildSearchQuery($ViewType);
         if( null === $Query ) {
             return 'Error';

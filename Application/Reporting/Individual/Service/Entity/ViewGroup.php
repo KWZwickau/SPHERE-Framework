@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
@@ -72,16 +73,16 @@ class ViewGroup extends AbstractView
     {
 
         //NameDefinition
-//        $this->setNameDefinition(self::TBL_GROUP_ID, 'Gruppe: Name');
-        $this->setNameDefinition(self::TBL_GROUP_NAME, 'Gruppe: Name');
+        $this->setNameDefinition(self::TBL_GROUP_ID, 'Gruppe: Name');
+//        $this->setNameDefinition(self::TBL_GROUP_NAME, 'Gruppe: Name');
         $this->setNameDefinition(self::TBL_GROUP_DESCRIPTION, 'Gruppe: Beschreibung');
         $this->setNameDefinition(self::TBL_GROUP_REMARK, 'Gruppe: Bemerkung');
 
 
         //GroupDefinition
         $this->setGroupDefinition('Gruppeninformation', array(
-//            self::TBL_GROUP_ID,
-            self::TBL_GROUP_NAME,
+            self::TBL_GROUP_ID,
+//            self::TBL_GROUP_NAME,
             self::TBL_GROUP_DESCRIPTION,
             self::TBL_GROUP_REMARK,
         ));
@@ -122,23 +123,23 @@ class ViewGroup extends AbstractView
     {
 
         switch ($PropertyName) {
-//            case self::TBL_GROUP_ID:
-//                // Test Address By Student
-//                $Data = array();
-//                $tblGroupList = Group::useService()->getGroupAll();
-//                if($tblGroupList){
-//                    foreach($tblGroupList as $tblGroup){
-//                        if($tblGroup->getName() == 'Alle'){
-//                            // ignore Entry
-//                        } else {
-//                            $Data[$tblGroup->getId()] = $tblGroup->getName();
-//                        }
-//                    }
-//                }
-////                // all group from TblGroup
-////                $Data = Group::useService()->getPropertyList( new TblGroup(''), TblGroup::ATTR_NAME );
-//                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount, false);
-//                break;
+            case self::TBL_GROUP_ID:
+                // Test Address By Student
+                $Data = array();
+                $tblGroupList = Group::useService()->getGroupAll();
+                if($tblGroupList){
+                    foreach($tblGroupList as $tblGroup){
+                        if($tblGroup->getName() == 'Alle'){
+                            // ignore Entry
+                        } else {
+                            $Data[$tblGroup->getId()] = $tblGroup->getName();
+                        }
+                    }
+                }
+//                // all group from TblGroup
+//                $Data = Group::useService()->getPropertyList( new TblGroup(''), TblGroup::ATTR_NAME );
+                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount, false);
+                break;
             default:
                 $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );
                 break;
