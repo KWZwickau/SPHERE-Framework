@@ -223,32 +223,53 @@ class ViewPersonContact extends AbstractView
      * @param null|string $Label
      * @param IIconInterface|null $Icon
      * @param bool $doResetCount Reset ALL FieldName calculations e.g. FieldName[23] -> FieldName[1]
+     * @param string $ViewType
      * @return AbstractField
      */
-    public function getFormField( $PropertyName, $Placeholder = null, $Label = null, IIconInterface $Icon = null, $doResetCount = false )
+    public function getFormField( $PropertyName, $Placeholder = null, $Label = null, IIconInterface $Icon = null,
+        $doResetCount = false, $ViewType = TblWorkSpace::VIEW_TYPE_ALL  )
     {
 
         switch ($PropertyName) {
             case self::TBL_CITY_CITY:
                 // Test Address By Student
                 $Data = array();
-                $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
-                $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
-                if ($tblPersonList) {
-                    foreach ($tblPersonList as $tblPerson) {
-                        $tblAddress = $tblPerson->fetchMainAddress();
-                        if ($tblAddress) {
-                            $tblCity = $tblAddress->getTblCity();
-                            if ($tblCity) {
-                                if (!isset($Data[$tblCity->getName()])) {
-                                    $Data[$tblCity->getName()] = $tblCity->getName();
+                $tblGroup = false;
+                switch ($ViewType){
+                    case TblWorkSpace::VIEW_TYPE_STUDENT:
+                        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
+                        break;
+                    case TblWorkSpace::VIEW_TYPE_PROSPECT:
+                        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_PROSPECT);
+                        break;
+                    case TblWorkSpace::VIEW_TYPE_CUSTODY:
+                        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CUSTODY);
+                        break;
+                    case TblWorkSpace::VIEW_TYPE_TEACHER:
+                        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_TEACHER);
+                        break;
+                    default:
+                        // old version: all name from City
+                        $Data = Address::useService()->getPropertyList( new TblCity(), TblCity::ATTR_NAME );
+                        break;
+                }
+                if($tblGroup){
+                    $tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup);
+                    if ($tblPersonList) {
+                        foreach ($tblPersonList as $tblPerson) {
+                            $tblAddress = $tblPerson->fetchMainAddress();
+                            if ($tblAddress) {
+                                $tblCity = $tblAddress->getTblCity();
+                                if ($tblCity) {
+                                    if (!isset($Data[$tblCity->getName()])) {
+                                        $Data[$tblCity->getName()] = $tblCity->getName();
+                                    }
                                 }
                             }
                         }
                     }
                 }
-//                // old version: all name from City
-//                $Data = Address::useService()->getPropertyList( new TblCity(), TblCity::ATTR_NAME );
+
                 $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
                 break;
             case self::TBL_CITY_CITY_2:

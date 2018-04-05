@@ -130,7 +130,8 @@ class ViewGroup extends AbstractView
                 if($tblGroupList){
                     foreach($tblGroupList as $tblGroup){
                         if($tblGroup->getName() == 'Alle'){
-                            // ignore Entry
+                            // Extend Name
+                            $Data[$tblGroup->getId()] = $tblGroup->getName().' (Gruppe)';
                         } else {
                             $Data[$tblGroup->getId()] = $tblGroup->getName();
                         }

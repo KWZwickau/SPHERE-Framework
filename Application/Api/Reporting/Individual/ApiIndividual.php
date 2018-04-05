@@ -1196,8 +1196,11 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             // pre fill filter behavior with "like"
             foreach ($tblWorkSpaceList as $tblWorkSpace) {
                 $FieldCount = $tblWorkSpace->getFieldCount();
-                if(!isset($Global->POST[$tblWorkSpace->getField()])){
-                    for($i = 0; $i <= $FieldCount; $i++){
+                for($i = 1; $i <= $FieldCount; $i++){
+                    if(!isset($Global->POST[$tblWorkSpace->getField().'_Radio'.$i])){
+//                        if($i == 2){
+//                            Debugger::screenDump($tblWorkSpace->getField().'_Radio'.$i);
+//                        }
                         if(!isset($Global->POST[$tblWorkSpace->getField().'_Radio'.$i])){
                             $Global->POST[$tblWorkSpace->getField().'_Radio'.$i] = 1;
                         }
@@ -1236,9 +1239,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                         $LinkGroup = '';
                     } else {
                         $FilterInputList[] = ( $i == 1
-                            ? new PullClear( $View->getFormField( $tblWorkSpace->getField(), 'Alle' ) )
+                            ? new PullClear( $View->getFormField( $tblWorkSpace->getField(), 'Alle', null, null, false, $ViewType) )
                             .new Center($this->getBehaviorRadioBox($tblWorkSpace->getField().'_Radio'.$i))
-                            : new PullClear( $View->getFormField( $tblWorkSpace->getField(), 'ODER' ) )
+                            : new PullClear( $View->getFormField( $tblWorkSpace->getField(), 'ODER', null, null, false, $ViewType ) )
                             .new Center($this->getBehaviorRadioBox($tblWorkSpace->getField().'_Radio'.$i))
 //                            ? new TextField($tblWorkSpace->getField().'['.$i.']', 'Alle' )
 //                            : new TextField($tblWorkSpace->getField().'['.$i.']', 'ODER')
@@ -1353,37 +1356,84 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
     private function getBehaviorRadioBox($RadioBoxName)
     {
 
-        return '' // <div style="padding-top: 1px;"></div>'
-            .new Layout(
+        if(preg_match('!^[\w]+_Id_Radio[1]{1}$!is', $RadioBoxName)) {
+            // Layout if Id Search
+            return new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                    new LayoutColumn(new ToolTip(
+                            '<div class="alert alert-info" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
+                            . new RadioBox($RadioBoxName, '&nbsp;', 1, RadioBox::RADIO_BOX_TYPE_DEFAULT)
+                            . '</div>'
+                            , 'equal (gleich)', false)
+                        , 3),
+                    new LayoutColumn(new ToolTip(
+                            '<div class="alert alert-danger" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
+                            . new RadioBox($RadioBoxName, '&nbsp;', 2, RadioBox::RADIO_BOX_TYPE_DANGER)
+                            . '</div>'
+                            , 'not equal (ungleich)', false)
+                        , 3)
+                    ))
+                )
+            );
+        } elseif(preg_match('!^[\w]+_Id_Radio[0-9]+$!is', $RadioBoxName)){
+            return new Layout(
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(new ToolTip(
                             '<div class="alert alert-info" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
-                                .new RadioBox($RadioBoxName, '&nbsp;', 1, RadioBox::RADIO_BOX_TYPE_DEFAULT)
-                            .'</div>'
-                                , 'like (enthält)', false)
-                            , 3),
-                        new LayoutColumn(new ToolTip(
-                            '<div class="alert alert-danger" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
-                                .new RadioBox($RadioBoxName, '&nbsp;', 2, RadioBox::RADIO_BOX_TYPE_DANGER)
-                            .'</div>'
-                                , 'not like (enthält nicht)', false)
-                            , 3),
-                        new LayoutColumn(new ToolTip(
-                            '<div class="alert alert-warning" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
-                                .new RadioBox($RadioBoxName, '&nbsp;', 3, RadioBox::RADIO_BOX_TYPE_WARNING)
-                            .'</div>'
-                                , 'null (ist leer)', false)
-                            , 3),
-                        new LayoutColumn(new ToolTip(
-                            '<div class="alert alert-success" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
-                                .new RadioBox($RadioBoxName, '&nbsp;', 4, RadioBox::RADIO_BOX_TYPE_SUCCESS)
-                            .'</div>'
-                                , 'not null ( ist nicht leer)', false)
-                            , 3),
+                            . new RadioBox($RadioBoxName, '&nbsp;', 1, RadioBox::RADIO_BOX_TYPE_DEFAULT)
+                            . '</div>'
+                            , 'equal (gleich)', false)
+                        , 3),
                     ))
                 )
             );
+        } elseif(preg_match('!^[\w]+_Radio[1]{1}$!is', $RadioBoxName)){
+            return new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(new ToolTip(
+                            '<div class="alert alert-info" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
+                            .new RadioBox($RadioBoxName, '&nbsp;', 1, RadioBox::RADIO_BOX_TYPE_DEFAULT)
+                            .'</div>'
+                            , 'like (enthält)', false)
+                        , 3),
+                        new LayoutColumn(new ToolTip(
+                            '<div class="alert alert-danger" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
+                            .new RadioBox($RadioBoxName, '&nbsp;', 2, RadioBox::RADIO_BOX_TYPE_DANGER)
+                            .'</div>'
+                            , 'not like (enthält nicht)', false)
+                        , 3),
+                        new LayoutColumn(new ToolTip(
+                            '<div class="alert alert-warning" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
+                            .new RadioBox($RadioBoxName, '&nbsp;', 3, RadioBox::RADIO_BOX_TYPE_WARNING)
+                            .'</div>'
+                            , 'null (ist leer)', false)
+                        , 3),
+                        new LayoutColumn(new ToolTip(
+                            '<div class="alert alert-success" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
+                            .new RadioBox($RadioBoxName, '&nbsp;', 4, RadioBox::RADIO_BOX_TYPE_SUCCESS)
+                            .'</div>'
+                            , 'not null ( ist nicht leer)', false)
+                        , 3),
+                    ))
+                )
+            );
+        } else {
+            return new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(new ToolTip(
+                            '<div class="alert alert-info" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
+                            .new RadioBox($RadioBoxName, '&nbsp;', 1, RadioBox::RADIO_BOX_TYPE_DEFAULT)
+                            .'</div>'
+                            , 'like (enthält)', false)
+                        , 3)
+                    )
+                )
+            );
+        }
     }
 
     /**
@@ -1583,17 +1633,43 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                             if (!empty($Value) || $Value === 0 ) {
                                 $Parameter = ':Filter' . $Index . 'Value' . $Count;
                                 if (!$OrExp) {
-                                    $OrExp = $Builder->expr()->orX(
-                                        $this->chooseBehaviorMultiExpression(
-                                            $Builder, $tblWorkSpace->getView(), $tblWorkSpace->getField(), $Value, $Parameter,
-                                            $ParameterList, $Behavior)
-                                );
+                                    if(preg_match('!^[\w]+_Id$!is', $tblWorkSpace->getField())) {
+                                        // Add AND Condition to Where (if filter is set)
+                                        if($Behavior == 1){
+                                            $OrExp = $Builder->expr()->orX(
+                                                $Builder->expr()->eq($tblWorkSpace->getView().'.'.$tblWorkSpace->getField(),
+                                                    $Parameter));
+                                        } elseif($Behavior == 2) {
+                                            $OrExp = $Builder->expr()->orX(
+                                                $Builder->expr()->neq($tblWorkSpace->getView().'.'.$tblWorkSpace->getField(),
+                                                    $Parameter));
+                                        }
+                                        $ParameterList[$Parameter] = $Value;
+                                    } else {
+                                        $OrExp = $Builder->expr()->orX(
+                                            $this->chooseBehaviorMultiExpression(
+                                                $Builder, $tblWorkSpace->getView(), $tblWorkSpace->getField(), $Value, $Parameter,
+                                                $ParameterList, $Behavior)
+                                        );
+                                    }
                                 } else {
-                                    $OrExp->add(
-                                        $this->chooseBehaviorMultiExpression(
-                                            $Builder, $tblWorkSpace->getView(), $tblWorkSpace->getField(), $Value, $Parameter,
-                                            $ParameterList, $Behavior)
-                                    );
+                                    if(preg_match('!^[\w]+_Id$!is', $tblWorkSpace->getField())) {
+                                        // Add AND Condition to Where (if filter is set)
+                                        if($Behavior == 1){
+                                            $OrExp->add( $Builder->expr()->eq($tblWorkSpace->getView().'.'.$tblWorkSpace->getField(),
+                                                $Parameter));
+                                        } elseif($Behavior == 2) {
+                                            $OrExp->add( $Builder->expr()->neq($tblWorkSpace->getView().'.'.$tblWorkSpace->getField(),
+                                                $Parameter));
+                                        }
+                                        $ParameterList[$Parameter] = $Value;
+                                    } else {
+                                        $OrExp->add(
+                                            $this->chooseBehaviorMultiExpression(
+                                                $Builder, $tblWorkSpace->getView(), $tblWorkSpace->getField(), $Value, $Parameter,
+                                                $ParameterList, $Behavior)
+                                        );
+                                    }
                                 }
 //                                $ParameterList[$Parameter] = $Value;
                             }
@@ -1618,29 +1694,29 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                             $Parameter = ':Filter' . $Index . 'Value' . $Count;
                             if (!empty($Value) || $Value === 0) {
 //                                    // choose eq by Id or like by text
-                                    if(preg_match('!^[\w]+[_Id]$!is', $tblWorkSpace->getField())) {
-                                        // Add AND Condition to Where (if filter is set)
-                                        if($Behavior == 1){
-                                            $Builder->andWhere(
-                                                $Builder->expr()->eq($tblWorkSpace->getView().'.'.$tblWorkSpace->getField(),
-                                                    $Parameter)
-                                            );
-                                        } elseif($Behavior == 2) {
-                                            $Builder->andWhere(
-                                                $Builder->expr()->neq($tblWorkSpace->getView().'.'.$tblWorkSpace->getField(),
-                                                    $Parameter)
-                                            );
-                                        }
-                                        $ParameterList[$Parameter] = $Value;
-                                    } else {
-                                    $this->chooseBehavior(
-                                        $Builder, $tblWorkSpace->getView(), $tblWorkSpace->getField(), $Value, $Parameter,
-                                        $ParameterList, $Behavior);
+                                if(preg_match('!^[\w]+_Id$!is', $tblWorkSpace->getField())) {
+                                    // Add AND Condition to Where (if filter is set)
+                                    if($Behavior == 1){
+                                        $Builder->andWhere(
+                                            $Builder->expr()->eq($tblWorkSpace->getView().'.'.$tblWorkSpace->getField(),
+                                                $Parameter)
+                                        );
+                                    } elseif($Behavior == 2) {
+                                        $Builder->andWhere(
+                                            $Builder->expr()->neq($tblWorkSpace->getView().'.'.$tblWorkSpace->getField(),
+                                                $Parameter)
+                                        );
+                                    }
+                                    $ParameterList[$Parameter] = $Value;
+                                } else {
+                                $this->chooseBehavior(
+                                    $Builder, $tblWorkSpace->getView(), $tblWorkSpace->getField(), $Value, $Parameter,
+                                    $ParameterList, $Behavior);
                                 }
                                 // Add AND Condition to Where (if filter is set)
 
                             } else {
-                                if(preg_match('!^[\w]+[_Id]$!is', $tblWorkSpace->getField())) {
+                                if(preg_match('!^[\w]+_Id$!is', $tblWorkSpace->getField())) {
                                     // Add AND Condition to Where (if filter is set)
                                     if($Value === '' && $Behavior == 1){
                                         $Builder->andWhere(
@@ -1663,7 +1739,8 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                         }
                     }
                     // Add Field to "Group By" to prevent duplicates
-                    $Builder->distinct( true );
+                    //ToDO distinct as an option?
+//                    $Builder->distinct( true );
                 }
 
                 // Bind Parameter to Query
@@ -1702,6 +1779,18 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
     private function setInitialView(QueryBuilder $Builder, $ViewType, &$ViewList = array(), &$ParameterList = array())
     {
         switch ($ViewType) {
+            case TblWorkSpace::VIEW_TYPE_STUDENT:
+                $viewGroup = new ViewGroup();
+                $Parameter = ':Filter'.'Initial'.'Value'.'MetaTable';
+                $Builder->from($viewGroup->getEntityFullName(),
+                    $viewGroup->getViewObjectName());
+                $Builder->andWhere(
+                    $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
+                        $Parameter)
+                );
+                $ParameterList[$Parameter] = 'STUDENT';
+                $ViewList[] = 'ViewGroup';
+                break;
             case TblWorkSpace::VIEW_TYPE_PROSPECT:
                 $viewGroup = new ViewGroup();
                 $Parameter = ':Filter'.'Initial'.'Value'.'MetaTable';
