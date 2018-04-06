@@ -531,6 +531,19 @@ class Frontend extends Extension
         $Stage = new Stage('Zeugnis generieren', 'Klassenübersicht');
         $Stage->addButton(new Standard('Zurück', '/Education/Certificate/Generate', new ChevronLeft()));
 
+        $Stage->setMessage(
+            new Warning(new Bold('Hinweis: ')
+                . new Container('Für die automatischen Zuordnungen der Zeugnisvorlagen zu den Schülern werden
+                    die folgenden Daten herangezogen:')
+                . new Container('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&ndash; Die Schulart wird über Klasse ermittelt 
+                    (Bildung -> Unterricht).')
+                . new Container('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&ndash; Bei Zeugnisvorlagen der Mittelschule ab 
+                    Klasse 7 ist der Bildungsgang erforderlich (Schülerakte -> Schulverlauf -> Aktueller Bildungsgang).')
+                . new Container('Bei staatlichen Zeugnisvorlagen ist zusätzlich die aktuelle Schule erforderlich 
+                    (Schülerakte -> Schulverlauf -> Aktuelle Schule).')
+            )
+        );
+
         if (($tblGenerateCertificate = Generate::useService()->getGenerateCertificateById($GenerateCertificateId))) {
             $tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType();
             $tableData = array();
