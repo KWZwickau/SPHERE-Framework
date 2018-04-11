@@ -74,8 +74,9 @@ class SchoolContract extends AbstractDocument
         $this->FieldValue['Birthplace'] = (isset($DataPost['Birthplace']) && $DataPost['Birthplace'] != '' ? $DataPost['Birthplace'] : '&nbsp;');
 
         // division prepare
-        $this->FieldValue['ReservationDivision'] = (isset($DataPost['ReservationDivision']) && $DataPost['ReservationDivision'] != '' ? $DataPost['ReservationDivision'] : '&nbsp;');
-        $this->FieldValue['ReservationDate'] = (isset($DataPost['ReservationDate']) && $DataPost['ReservationDate'] != '' ? $DataPost['ReservationDate'] : '&nbsp;');
+        $this->FieldValue['ReservationDivision'] = (isset($DataPost['ReservationDivision']) && $DataPost['ReservationDivision'] != '' ? $DataPost['ReservationDivision'] : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
+        $this->FieldValue['ReservationDate'] = (isset($DataPost['ReservationDate']) && $DataPost['ReservationDate'] != '' ? $DataPost['ReservationDate']
+            : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
 
         // custody
         $this->FieldValue['SalutationCustody1'] = (isset($DataPost['SalutationCustody1']) && $DataPost['SalutationCustody1'] != '' ? $DataPost['SalutationCustody1'] : '&nbsp;');
@@ -156,7 +157,7 @@ class SchoolContract extends AbstractDocument
                             )
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
-                                    ->setContent('Christen machen Schule Zwickau GmbH')
+                                    ->setContent('Christen machen Schule Zwickau gemeinnützige GmbH')
                                     ->styleTextSize(self::TEXT_SIZE)
                                     ->styleTextBold()
                                     ->styleAlignCenter()
@@ -202,11 +203,12 @@ class SchoolContract extends AbstractDocument
                                             {% endif %}
                                             ')
                                             ->styleTextSize(self::TEXT_SIZE)
-                                            , '40%')
+                                        , '40%')
                                         ->addElementColumn((new Element())
                                             ->setContent($this->FieldValue['FirstLastName'])
                                             ->styleTextSize(self::TEXT_SIZE)
-                                            , '60%')
+                                            ->styleTextBold()
+                                        , '60%')
                                     )
                                     ->stylePaddingBottom('30px')
                                 )
@@ -325,12 +327,13 @@ class SchoolContract extends AbstractDocument
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
                                     ->setContent('Der Schulträger nimmt '.$this->FieldValue['ProspectCall'].' mit Wirkung 
-                                    vom '.$this->FieldValue['ReservationDate'].' in die '.$this->FieldValue['ReservationDivision'].'.
-                                    Klasse der Evangelischen Schule "Stephan Roth" Zwickau auf, sofern '.$this->FieldValue['ProspectCallShort'].'
+                                    vom <b>'.$this->FieldValue['ReservationDate'].'</b> in die <b>'.$this->FieldValue['ReservationDivision'].'.
+                                    Klasse</b> der Evangelischen Schule "Stephan Roth" Zwickau auf, sofern '.$this->FieldValue['ProspectCallShort'].'
                                     die von der Schulaufsicht als notwendig erklärten Voraussetzungen für die 
                                     Einschulung und die sonstigen Voraussetzungen nach diesem Vertrag erfüllt.')
                                     ->styleTextSize(self::TEXT_SIZE)
                                     ->stylePaddingBottom('15px')
+                                    ->styleAlignJustify()
                                 )
                             )
                             ->addSection((new Section())
@@ -352,6 +355,7 @@ class SchoolContract extends AbstractDocument
                                     der Schulordnung geht die Evangelische Schule "Stephan Roth" Zwickau')
                                     ->styleTextSize(self::TEXT_SIZE)
                                     ->stylePaddingBottom('10px')
+                                    ->styleAlignJustify()
                                 )
                             )
                             ->addSection((new Section())

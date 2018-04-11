@@ -31,6 +31,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -166,7 +167,9 @@ class Zwickau extends Extension implements IModuleInterface
             if ($tblProspect) {
                 if(($tblReservation = $tblProspect->getTblProspectReservation())){
                     $Global->POST['Data']['ReservationDivision'] = $tblReservation->getReservationDivision();
-                    $Global->POST['Data']['ReservationDate'] = '01.08.'.substr($tblReservation->getReservationYear(), 0, 4);
+                    if($tblReservation->getReservationYear()){
+                        $Global->POST['Data']['ReservationDate'] = '01.08.'.substr($tblReservation->getReservationYear(), 0, 4);
+                    }
                 }
             }
 
@@ -259,7 +262,7 @@ class Zwickau extends Extension implements IModuleInterface
                                     new LayoutColumn(new Well(
                                         new Layout(
                                             new LayoutGroup(array(
-                                                new LayoutRow(array(
+                                                new LayoutRow(
                                                     new LayoutColumn(
                                                         new TextField('Data[FirstLastName]', 'Vorname, Name',
                                                             'Vorname, Name '.
@@ -269,12 +272,8 @@ class Zwickau extends Extension implements IModuleInterface
                                                                     ? 'der Schülerin'
                                                                     : 'des Schülers/der Schülerin')
                                                             ))
-                                                        , 8),
-                                                    new LayoutColumn(
-                                                        new TextField('Data[Denomination]', 'Konfession',
-                                                            'Konfession')
-                                                        , 4),
-                                                )),
+                                                    , 12)
+                                                ),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
                                                         new TextField('Data[Birthday]', 'Geboren am',
@@ -285,6 +284,12 @@ class Zwickau extends Extension implements IModuleInterface
                                                             'Geburtsort')
                                                         , 6),
                                                 )),
+                                                new LayoutRow(
+                                                    new LayoutColumn(
+                                                        new TextField('Data[Denomination]', 'Konfession',
+                                                            'Konfession')
+                                                        , 4)
+                                                ),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
                                                         new TextField('Data[AddressPLZ]', 'Postleitzahl',
@@ -301,12 +306,12 @@ class Zwickau extends Extension implements IModuleInterface
                                                 )),
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        new TextField('Data[ReservationDivision]', 'Vorraussichtliche Klasse',
-                                                            'Vorraussichtliche Klasse')
-                                                        , 4),
-                                                    new LayoutColumn(
                                                         new TextField('Data[ReservationDate]', '01.08.XXXX',
                                                             'Vorraussichtlicher Schulbeginn')
+                                                        , 4),
+                                                    new LayoutColumn(
+                                                        new TextField('Data[ReservationDivision]', 'Vorraussichtliche Klasse',
+                                                            'Vorraussichtliche Klasse')
                                                         , 4),
                                                 ))
                                             ))
@@ -321,19 +326,31 @@ class Zwickau extends Extension implements IModuleInterface
                                             new LayoutGroup( array(
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        new TextField('Data[SalutationCustody1]', 'Anrede', 'Anrede Sorgeberechtigte(r) 1')
-                                                        , 4),
+                                                        new Center(new Title('1'))
+                                                    , 1),
                                                     new LayoutColumn(
-                                                        new TextField('Data[FirstLastNameCustody1]', 'Name', 'Name Sorgeberechtigte(r) 1')
-                                                        , 8)
+                                                        new TextField('Data[SalutationCustody1]', 'Anrede', 'Anrede')
+                                                    , 4),
+                                                    new LayoutColumn(
+                                                        new TextField('Data[FirstLastNameCustody1]', 'Name', 'Name')
+                                                    , 7)
                                                 )),
+                                            ))
+                                        )
+                                    )),
+                                    new LayoutColumn(new Well(
+                                        new Layout(
+                                            new LayoutGroup( array(
                                                 new LayoutRow(array(
                                                     new LayoutColumn(
-                                                        new TextField('Data[SalutationCustody2]', 'Anrede', 'Anrede Sorgeberechtigte(r) 2')
-                                                        , 4),
+                                                        new Center(new Title('2'))
+                                                    , 1),
                                                     new LayoutColumn(
-                                                        new TextField('Data[FirstLastNameCustody2]', 'Name', 'Name Sorgeberechtigte(r) 2')
-                                                        , 8)
+                                                        new TextField('Data[SalutationCustody2]', 'Anrede', 'Anrede')
+                                                    , 4),
+                                                    new LayoutColumn(
+                                                        new TextField('Data[FirstLastNameCustody2]', 'Name', 'Name')
+                                                    , 7)
                                                 ))
                                             ))
                                         )
