@@ -8,7 +8,6 @@ use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -88,11 +87,18 @@ class Zwickau extends Extension implements IModuleInterface
         if (($tblGroup = Group::useService()->getGroupByMetaTable('PROSPECT'))) {
             if (($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
                 foreach ($tblPersonList as $tblPerson) {
+                    $ReservationYear = '';
+                    if(($tblProspect = Prospect::useService()->getProspectByPerson($tblPerson))){
+                        if(($tblProspectReservation = $tblProspect->getTblProspectReservation())){
+                            $ReservationYear = $tblProspectReservation->getReservationDivision();
+                        }
+                    }
+
                     $tblAddress = $tblPerson->fetchMainAddress();
                     $dataList[] = array(
                         'Name'     => $tblPerson->getLastFirstName(),
                         'Address'  => $tblAddress ? $tblAddress->getGuiString() : '',
-                        'Division' => Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson),
+                        'Reservation' => $ReservationYear,
                         'Option'   => new Standard('Erstellen', __NAMESPACE__.'/Fill', null,
                             array('PersonId' => $tblPerson->getId()))
 //                        'Option' => new External(
@@ -119,7 +125,7 @@ class Zwickau extends Extension implements IModuleInterface
                                 array(
                                     'Name'     => 'Name',
                                     'Address'  => 'Adresse',
-                                    'Division' => 'Klasse',
+                                    'Reservation' => 'für Klassenstufe',
                                     'Option'   => ''
                                 )
                             )
