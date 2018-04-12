@@ -45,6 +45,7 @@ class ReportingUpgrade
         'viewGroupStudent' => 'viewGroupStudent.twig',
         'viewGroupStudentBasic' => 'viewGroupStudentBasic.twig',
         'viewGroupStudentIntegration' => 'viewGroupStudentIntegration.twig',
+        'viewGroupStudentSubject' => 'viewGroupStudentSubject.twig',
         'viewGroupTeacher' => 'viewGroupTeacher.twig',
         'viewPerson' => 'viewPerson.twig',
         'viewPersonContact' => 'viewPersonContact.twig',

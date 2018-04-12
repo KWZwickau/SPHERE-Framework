@@ -26,6 +26,7 @@ use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupCustody;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupProspect;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentBasic;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentIntegration;
+use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentSubject;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentTransfer;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupTeacher;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewPerson;
@@ -499,6 +500,18 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             'ViewType' => $ViewType
         ));
         $Pipeline->appendEmitter($Emitter);
+        // Refresh Filter
+        $Emitter = new ServerEmitter(self::receiverFilter(), self::getEndpoint());
+        $Emitter->setLoadingMessage('Filter wird aktualisiert...');
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'getFilter'
+        ));
+        $Emitter->setPostPayload(
+            array(
+            'ViewType' => $ViewType
+            )
+        );
+        $Pipeline->appendEmitter($Emitter);
         $Emitter = new ServerEmitter(self::receiverNavigation(), self::getEndpoint());
         $Emitter->setLoadingMessage('Verfügbare Informationen werden aktualisiert...');
         $Emitter->setGetPayload(array(
@@ -507,22 +520,6 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         $Emitter->setPostPayload(array(
             'ViewType' => $ViewType
         ));
-        $Pipeline->appendEmitter($Emitter);
-        // Refresh Filter
-        $Emitter = new ServerEmitter(self::receiverFilter(), self::getEndpoint());
-        $Emitter->setLoadingMessage('Filter wird aktualisiert...');
-        $Emitter->setGetPayload(array(
-            self::API_TARGET => 'getFilter'
-        ));
-        // Post?? //ToDO ask Gerd!
-        $Post = $_POST;
-        $Post['ViewType'] = $ViewType;
-        $Emitter->setPostPayload(
-            $Post
-        );
-//        $Emitter->setPostPayload(array(
-//            'ViewType' => $ViewType
-//        ));
         $Pipeline->appendEmitter($Emitter);
         return $Pipeline;
     }
@@ -996,6 +993,14 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                         $AccordionList[] = new Dropdown( 'Schüler Allgemeines:', new Scrollable( $Block ) );
                     }
                 }
+                $Block = $this->getPanelList(new ViewGroupStudentSubject(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewGroupStudentSubject']) ) {
+                        $AccordionList[] = new Panel( 'Schüler Fächer:', new Scrollable( $Block, 300 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Schüler Fächer:', new Scrollable( $Block ) );
+                    }
+                }
                 $Block = $this->getPanelList(new ViewGroupStudentIntegration(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);
                 if( !empty( $Block ) ) {
                     if( isset($ViewList['ViewGroupStudentIntegration']) ) {
@@ -1300,6 +1305,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 $LayoutRowCount++;
             }
             $LayoutRowList[] = new LayoutRow(new LayoutColumn(array(
+//                new PullLeft(
+//                    new ToolTip(new CheckBox('isDistinct', 'Distinct &nbsp;&nbsp;', true), 'Zusammenfassen doppelter Werte', false)
+//                )
                 (new Primary('Suchen', self::getEndpoint(),
                     new Search()))->ajaxPipelineOnClick(self::pipelineResult($ViewType))
 //            ,
@@ -1329,7 +1337,6 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             $Panel = //new Panel(
                 new Title(
                     'Filteroptionen',''.new PullRight(
-
                         (new Link(new DangerText( new Disable().'&nbsp;Alle Felder entfernen'), ApiIndividual::getEndpoint()))->ajaxPipelineOnClick(
                             ApiIndividual::pipelineDelete($ViewType))
                     ))
@@ -1473,11 +1480,19 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 foreach ($tblWorkspaceAll as $Index => $tblWorkSpace) {
                     // Add Condition to Parameter (if exists and is not empty)
                     $Filter = $this->getGlobal()->POST;
-                    if (isset($Filter[$tblWorkSpace->getField()])) {
-                        foreach ($Filter[$tblWorkSpace->getField()] as $Count => $Value) {
-                            if (!empty($Value)) {
-                                $FieldList[] = new HiddenField( $tblWorkSpace->getField().'['.$Count.']' );
-                            }
+////                    if (isset($Filter[$tblWorkSpace->getField()])) {
+//                        foreach ($Filter[$tblWorkSpace->getField()] as $Count => $Value) {
+//                            if (!empty($Value)) {
+//                                $FieldList[] = new HiddenField( $tblWorkSpace->getField().'['.$Count.']' );
+//                            }
+//                        }
+////                    }
+                    $FieldCount = $tblWorkSpace->getFieldCount();
+                    for($i = 1; $i <= $FieldCount ; $i++) {
+
+                        $FieldList[] = new HiddenField($tblWorkSpace->getField().'['.$i.']');
+                        if( isset($Filter[$tblWorkSpace->getField().'_Radio'.$i])){
+                            $FieldList[] = new HiddenField( $tblWorkSpace->getField().'_Radio'.$i );
                         }
                     }
                 }
@@ -1558,6 +1573,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
     /**
      * @param string $ViewType
+     * @param bool   $SqlReturn
      *
      * @return \Doctrine\ORM\Query|null
      */
@@ -1630,7 +1646,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                             // Escape User Input
                             $Value = preg_replace( '/[^\p{L}\p{N}]/u', '_', $Value );
                             // If User Input exists
-                            if (!empty($Value) || $Value === 0 ) {
+                            if (!empty($Value) || $Value === 0 || $Behavior == 3 || $Behavior == 4) {
                                 $Parameter = ':Filter' . $Index . 'Value' . $Count;
                                 if (!$OrExp) {
                                     if(preg_match('!^[\w]+_Id$!is', $tblWorkSpace->getField())) {
@@ -1688,59 +1704,62 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
                         // Single Value
                         foreach ($Filter[$tblWorkSpace->getField()] as $Count => $Value) {
-                            // Escape User Input
-                            $Value = preg_replace( '/[^\p{L}\p{N}]/u', '_', $Value );
-                            // If User Input exists
-                            $Parameter = ':Filter' . $Index . 'Value' . $Count;
-                            if (!empty($Value) || $Value === 0) {
+                            if($Value || $Behavior == 3 || $Behavior == 4){
+                                // Escape User Input
+                                $Value = preg_replace( '/[^\p{L}\p{N}]/u', '_', $Value );
+                                // If User Input exists
+                                $Parameter = ':Filter' . $Index . 'Value' . $Count;
+                                if (!empty($Value) || $Value === 0) {
 //                                    // choose eq by Id or like by text
-                                if(preg_match('!^[\w]+_Id$!is', $tblWorkSpace->getField())) {
-                                    // Add AND Condition to Where (if filter is set)
-                                    if($Behavior == 1){
-                                        $Builder->andWhere(
-                                            $Builder->expr()->eq($tblWorkSpace->getView().'.'.$tblWorkSpace->getField(),
-                                                $Parameter)
-                                        );
-                                    } elseif($Behavior == 2) {
-                                        $Builder->andWhere(
-                                            $Builder->expr()->neq($tblWorkSpace->getView().'.'.$tblWorkSpace->getField(),
-                                                $Parameter)
-                                        );
-                                    }
-                                    $ParameterList[$Parameter] = $Value;
-                                } else {
-                                $this->chooseBehavior(
-                                    $Builder, $tblWorkSpace->getView(), $tblWorkSpace->getField(), $Value, $Parameter,
-                                    $ParameterList, $Behavior);
-                                }
-                                // Add AND Condition to Where (if filter is set)
-
-                            } else {
-                                if(preg_match('!^[\w]+_Id$!is', $tblWorkSpace->getField())) {
-                                    // Add AND Condition to Where (if filter is set)
-                                    if($Value === '' && $Behavior == 1){
-                                        $Builder->andWhere(
-                                            $Builder->expr()->like($tblWorkSpace->getView().'.'.$tblWorkSpace->getField(),
-                                                $Parameter)
-                                        );
-                                    } elseif($Value === '' && $Behavior == 2) {
-                                        $Builder->andWhere(
-                                            $Builder->expr()->notLike($tblWorkSpace->getView().'.'.$tblWorkSpace->getField(),
-                                                $Parameter)
-                                        );
+                                    if(preg_match('!^[\w]+_Id$!is', $tblWorkSpace->getField())) {
+                                        // Add AND Condition to Where (if filter is set)
+                                        if($Behavior == 1){
+                                            $Builder->andWhere(
+                                                $Builder->expr()->eq($tblWorkSpace->getView().'.'.$tblWorkSpace->getField(),
+                                                    $Parameter)
+                                            );
+                                        } elseif($Behavior == 2) {
+                                            $Builder->andWhere(
+                                                $Builder->expr()->neq($tblWorkSpace->getView().'.'.$tblWorkSpace->getField(),
+                                                    $Parameter)
+                                            );
+                                        }
                                         $ParameterList[$Parameter] = $Value;
+                                    } elseif($Value || $Behavior == 3 || $Behavior == 4) {
+                                        $this->chooseBehavior(
+                                            $Builder, $tblWorkSpace->getView(), $tblWorkSpace->getField(), $Value, $Parameter,
+                                            $ParameterList, $Behavior);
                                     }
-                                }
-                                $this->chooseBehavior(
-                                    $Builder, $tblWorkSpace->getView(), $tblWorkSpace->getField(), $Value, $Parameter,
-                                    $ParameterList, $Behavior);
-                            }
+                                    // Add AND Condition to Where (if filter is set)
 
+                                } else {
+                                    if(preg_match('!^[\w]+_Id$!is', $tblWorkSpace->getField())) {
+                                        // Add AND Condition to Where (if filter is set)
+                                        if($Value === '' && $Behavior == 1){
+                                            $Builder->andWhere(
+                                                $Builder->expr()->like($tblWorkSpace->getView().'.'.$tblWorkSpace->getField(),
+                                                    $Parameter)
+                                            );
+                                        } elseif($Value === '' && $Behavior == 2) {
+                                            $Builder->andWhere(
+                                                $Builder->expr()->notLike($tblWorkSpace->getView().'.'.$tblWorkSpace->getField(),
+                                                    $Parameter)
+                                            );
+                                            $ParameterList[$Parameter] = $Value;
+                                        }
+                                    }
+                                    $this->chooseBehavior(
+                                        $Builder, $tblWorkSpace->getView(), $tblWorkSpace->getField(), $Value, $Parameter,
+                                        $ParameterList, $Behavior);
+                                }
+                            }
                         }
                     }
                     // Add Field to "Group By" to prevent duplicates
                     //ToDO distinct as an option?
-//                    $Builder->distinct( true );
+                    if(isset($Filter['isDistinct']) && $Filter['isDistinct'] == 1){
+                        $Builder->distinct( true );
+                    }
                 }
 
                 // Bind Parameter to Query
@@ -2005,7 +2024,11 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
             /** @var PhpExcel $Document */
             $Document = Document::getDocument( $File->getFileLocation() );
-            $Document->renameWorksheet('Auswertung-'.date('d-m-Y-H-i-s') );
+            $WorkSheetString = $this->getRealNameByViewType($ViewType);
+            if($WorkSheetString === ''){
+                $WorkSheetString = 'Tabelle1';
+            }
+            $Document->renameWorksheet($WorkSheetString);
 
             // Header
             foreach ( $ColumnDTNames as $Index => $Name ) {
@@ -2057,9 +2080,44 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 //        }
 
 //        return new Table( new TableHead( new TableRow( $Header ) ), new TableBody( $Rows ) );
+
+        $FileName = 'Auswertung_';
+        $FileName .= $this->getRealNameByViewType($ViewType);
+        $FileName .= '_'.date('d-m-Y_H-i-s').'.xlsx';
+
         return FileSystem::getStream(
-            $File->getRealPath(), $File->getFileName()
+            $File->getRealPath(), $FileName
         )->__toString();
+    }
+
+    /**
+     * @param string $ViewType
+     *
+     * @return string
+     */
+    private function getRealNameByViewType($ViewType = TblWorkSpace::VIEW_TYPE_ALL)
+    {
+        switch($ViewType){
+            case TblWorkSpace::VIEW_TYPE_ALL :
+                $Name = 'Allgemein';
+                break;
+            case TblWorkSpace::VIEW_TYPE_STUDENT :
+                $Name = 'Schueler';
+                break;
+            case TblWorkSpace::VIEW_TYPE_PROSPECT :
+                $Name = 'Interessent';
+                break;
+            case TblWorkSpace::VIEW_TYPE_CUSTODY :
+                $Name = 'Sorgeberechtigten';
+                break;
+            case TblWorkSpace::VIEW_TYPE_TEACHER :
+                $Name = 'Lehrer';
+                break;
+            default:
+                $Name = '';
+                break;
+        }
+        return $Name;
     }
 
 }
