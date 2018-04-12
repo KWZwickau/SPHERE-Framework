@@ -1013,7 +1013,7 @@ class Service extends AbstractService
                     && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
                     && $tblCertificateType->getIdentifier() == 'DIPLOMA'
                 ) {
-                    // todo Abitur?
+                    // Abiturnoten werden direkt im Certificate in der API gedruckt
                     if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('EN'))
                         && ($tblPrepareAdditionalGradeList = $this->getPrepareAdditionalGradeListBy(
                             $tblPrepare, $tblPerson, $tblPrepareAdditionalGradeType

@@ -24,7 +24,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
-use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -142,6 +141,7 @@ class Frontend
                                 $tblCertificate = $tblPrepareStudent->getServiceTblCertificate();
                             }
 
+                            // todo status einbringung der Noten (sind 40 schon erreicht)
                             $studentTable[] = array(
                                 'Number' => $count++,
                                 'Name' => $tblPerson->getLastFirstName(),
@@ -184,16 +184,6 @@ class Frontend
                                             'PersonId' => $tblPerson->getId(),
                                         ),
                                         'Sonstige Informationen'))
-                                    // todo remove
-                                    . (new Standard(
-                                        '', '/Education/Certificate/Prepare/Certificate/Show', new EyeOpen(),
-                                        array(
-                                            'PrepareId' => $tblPrepare->getId(),
-                                            'GroupId' => $tblGroup ? $tblGroup->getId() : null,
-                                            'PersonId' => $tblPerson->getId(),
-                                            'Route' => 'Diploma'
-                                        ),
-                                        'Zeugnisvorschau anzeigen'))
                                     . (new External(
                                         '',
                                         '/Api/Education/Certificate/Generator/Preview',

@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -53,111 +54,110 @@ class GymAbitur extends Certificate
 
         $this->setCourses($tblPerson);
 
-        // todo wieder einfügen
         // leere Seite
-//        $pageList[] = new Page();
+        $pageList[] = new Page();
 
-//        $pageList[] = (new Page())
-//            ->addSlice($Header)
-//            ->addSlice((new Slice())
-//                ->addElement((new Element())
-//                    ->setContent('Zeugnis')
-//                    ->styleTextSize('27px')
-//                    ->styleAlignCenter()
-//                    ->styleMarginTop('25%')
-//                    ->styleTextBold()
-//                )
-//            )
-//            ->addSlice((new Slice())
-//                ->addElement((new Element())
-//                    ->setContent('der allgemeinen Hochschulreife')
-//                    ->styleTextSize('27px')
-//                    ->styleAlignCenter()
-//                    ->styleMarginTop('20px')
-//                    ->styleMarginBottom('5px')
-//                )
-//            )
-//            ->addSliceArray($this->getSchoolPartAbitur($personId))
-//            ->addSlice((new Slice())
-//                ->addSection((new Section())
-//                    ->addElementColumn((new Element())
-//                        ->setContent('Vor- und Zuname')
-//                        , '25%')
-//                    ->addElementColumn((new Element())
-//                        ->setContent('
-//                                {{ Content.P' . $personId . '.Person.Data.Name.First }}
-//                                {{ Content.P' . $personId . '.Person.Data.Name.Last }}
-//                        ')
-//                        ->styleAlignCenter()
-//                        ->styleBorderBottom()
-//                    )
-//                )->styleMarginTop('20px')
-//            )
-//            ->addSlice((new Slice())
-//                ->addSection((new Section())
-//                    ->addElementColumn((new Element())
-//                        ->setContent('geboren am')
-//                        , '25%')
-//                    ->addElementColumn((new Element())
-//                        ->setContent('{% if(Content.P' . $personId . '.Person.Common.BirthDates.Birthday is not empty) %}
-//                                    {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthday|date("d.m.Y") }}
-//                                {% else %}
-//                                    &nbsp;
-//                                {% endif %}')
-//                        ->styleAlignCenter()
-//                        ->styleBorderBottom()
-//                        , '20%')
-//                    ->addElementColumn((new Element())
-//                        ->setContent('in')
-//                        ->styleAlignCenter()
-//                        , '5%')
-//                    ->addElementColumn((new Element())
-//                        ->setContent('{% if(Content.P' . $personId . '.Person.Common.BirthDates.Birthplace is not empty) %}
-//                                    {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthplace }}
-//                                {% else %}
-//                                    &nbsp;
-//                                {% endif %}')
-//                        ->styleAlignCenter()
-//                        ->styleBorderBottom()
-//                    )
-//                )->styleMarginTop('20px')
-//            )
-//            ->addSlice((new Slice())
-//                ->addSection((new Section())
-//                    ->addElementColumn((new Element())
-//                        ->setContent('wohnhaft in')
-//                        , '25%')
-//                    ->addElementColumn((new Element())
-//                        ->setContent('{% if(Content.P' . $personId . '.Person.Address.City.Name) %}
-//                                    {{ Content.P' . $personId . '.Person.Address.Street.Name }}
-//                                    {{ Content.P' . $personId . '.Person.Address.Street.Number }},
-//                                    {{ Content.P' . $personId . '.Person.Address.City.Code }}
-//                                    {{ Content.P' . $personId . '.Person.Address.City.Name }}
-//                                {% else %}
-//                                      &nbsp;
-//                                {% endif %}')
-//                        ->styleAlignCenter()
-//                        ->styleBorderBottom()
-//                    )
-//                )->styleMarginTop('20px')
-//            )
-//            ->addSlice((new Slice())
-//                ->addSection((new Section())
-//                    ->addElementColumn((new Element())
-//                        ->setContent('hat sich nach dem Besuch der gymnasialen Oberstufe der Abiturprüfung unterzogen.')
-//                    )
-//                )->styleMarginTop('20px')
-//            )
-//            ->addSlice((new Slice())
-//                ->addSection((new Section())
-//                    ->addElementColumn((new Element())
-//                        ->setContent('Dem Zeugnis liegt die „Verordnung des Sächsischen Staatsministeriums für Kultus
-//                            über allgemeinbildende Gymnasien und die Abiturprüfung im Freistaat Sachsen“ (SOGYA) in der jeweils geltenden Fassung zu Grunde.
-//                        ')
-//                        ->styleTextSize('12px')
-//                    )
-//                )->styleMarginTop('370px')
-//            );
+        $pageList[] = (new Page())
+            ->addSlice($Header)
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('Zeugnis')
+                    ->styleTextSize('27px')
+                    ->styleAlignCenter()
+                    ->styleMarginTop('25%')
+                    ->styleTextBold()
+                )
+            )
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('der allgemeinen Hochschulreife')
+                    ->styleTextSize('27px')
+                    ->styleAlignCenter()
+                    ->styleMarginTop('20px')
+                    ->styleMarginBottom('5px')
+                )
+            )
+            ->addSliceArray($this->getSchoolPartAbitur($personId))
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Vor- und Zuname')
+                        , '25%')
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                                {{ Content.P' . $personId . '.Person.Data.Name.First }}
+                                {{ Content.P' . $personId . '.Person.Data.Name.Last }}
+                        ')
+                        ->styleAlignCenter()
+                        ->styleBorderBottom()
+                    )
+                )->styleMarginTop('20px')
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('geboren am')
+                        , '25%')
+                    ->addElementColumn((new Element())
+                        ->setContent('{% if(Content.P' . $personId . '.Person.Common.BirthDates.Birthday is not empty) %}
+                                    {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthday|date("d.m.Y") }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
+                        ->styleAlignCenter()
+                        ->styleBorderBottom()
+                        , '20%')
+                    ->addElementColumn((new Element())
+                        ->setContent('in')
+                        ->styleAlignCenter()
+                        , '5%')
+                    ->addElementColumn((new Element())
+                        ->setContent('{% if(Content.P' . $personId . '.Person.Common.BirthDates.Birthplace is not empty) %}
+                                    {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthplace }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
+                        ->styleAlignCenter()
+                        ->styleBorderBottom()
+                    )
+                )->styleMarginTop('20px')
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('wohnhaft in')
+                        , '25%')
+                    ->addElementColumn((new Element())
+                        ->setContent('{% if(Content.P' . $personId . '.Person.Address.City.Name) %}
+                                    {{ Content.P' . $personId . '.Person.Address.Street.Name }}
+                                    {{ Content.P' . $personId . '.Person.Address.Street.Number }},
+                                    {{ Content.P' . $personId . '.Person.Address.City.Code }}
+                                    {{ Content.P' . $personId . '.Person.Address.City.Name }}
+                                {% else %}
+                                      &nbsp;
+                                {% endif %}')
+                        ->styleAlignCenter()
+                        ->styleBorderBottom()
+                    )
+                )->styleMarginTop('20px')
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('hat sich nach dem Besuch der gymnasialen Oberstufe der Abiturprüfung unterzogen.')
+                    )
+                )->styleMarginTop('20px')
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Dem Zeugnis liegt die „Verordnung des Sächsischen Staatsministeriums für Kultus
+                            über allgemeinbildende Gymnasien und die Abiturprüfung im Freistaat Sachsen“ (SOGYA) in der jeweils geltenden Fassung zu Grunde.
+                        ')
+                        ->styleTextSize('12px')
+                    )
+                )->styleMarginTop('370px')
+            );
 
         /*
          * Block I
@@ -361,8 +361,6 @@ class GymAbitur extends Certificate
         $color = '#BBB';
         $isAdvancedSubject = false;
 
-        // todo Zensuren
-
         // tatsächliche Religion aus der Schülerakte bestimmen
         if ($subjectName == 'RELIGION') {
             $subjectName = 'Ev./Kath. Religion³/Ethik';
@@ -398,6 +396,34 @@ class GymAbitur extends Certificate
             }
         }
 
+        $grades = array(
+            '11-1' => '&nbsp;',
+            '11-2' => '&nbsp;',
+            '12-1' => '&nbsp;',
+            '12-2' => '&nbsp;',
+        );
+        if (($tblPerson = Person::useService()->getPersonById($personId))
+            && ($tblSubject = Subject::useService()->getSubjectByName($subjectName))
+        ) {
+            for ($level = 11; $level < 13; $level++) {
+                for ($term = 1; $term < 3; $term++) {
+                    $midTerm = $level . '-' . $term;
+                    if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier($midTerm))
+                        && ($tblPrepare = $this->getTblPrepareCertificate())
+                        && ($tblPrepareAdditionalGrade = Prepare::useService()->getPrepareAdditionalGradeBy(
+                            $tblPrepare,
+                            $tblPerson,
+                            $tblSubject,
+                            $tblPrepareAdditionalGradeType
+                        ))
+                    ) {
+                        $isSelected = $tblPrepareAdditionalGrade->isSelected();
+                        $grades[$midTerm] = ($isSelected ? '' : '(') . $tblPrepareAdditionalGrade->getGrade() . ($isSelected ? '' : ')');
+                    }
+                }
+            }
+        }
+
         return (new Section())
             ->addElementColumn((new Element())
                 ->setContent($subjectName)
@@ -415,7 +441,7 @@ class GymAbitur extends Certificate
                 ->styleBorderBottom($isLastRow ? '1px' : '0px')
                 , $hasAdvancedCourse ? '5%' : '0%')
             ->addElementColumn((new Element())
-                ->setContent('&nbsp;')
+                ->setContent($grades['11-1'])
                 ->styleAlignCenter()
                 ->styleBackgroundColor($color)
                 ->styleBorderTop()
@@ -423,7 +449,7 @@ class GymAbitur extends Certificate
                 ->styleBorderBottom($isLastRow ? '1px' : '0px')
                 , '12.5%')
             ->addElementColumn((new Element())
-                ->setContent('&nbsp;')
+                ->setContent($grades['11-2'])
                 ->styleAlignCenter()
                 ->styleBackgroundColor($color)
                 ->styleBorderTop()
@@ -431,7 +457,7 @@ class GymAbitur extends Certificate
                 ->styleBorderBottom($isLastRow ? '1px' : '0px')
                 , '12.5%')
             ->addElementColumn((new Element())
-                ->setContent('&nbsp;')
+                ->setContent($grades['12-1'])
                 ->styleAlignCenter()
                 ->styleBackgroundColor($color)
                 ->styleBorderTop()
@@ -439,7 +465,7 @@ class GymAbitur extends Certificate
                 ->styleBorderBottom($isLastRow ? '1px' : '0px')
                 , '12.5%')
             ->addElementColumn((new Element())
-                ->setContent('&nbsp;')
+                ->setContent($grades['12-2'])
                 ->styleAlignCenter()
                 ->styleBackgroundColor($color)
                 ->styleBorderTop()
