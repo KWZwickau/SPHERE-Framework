@@ -14,13 +14,14 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class AbstractBlock
  *
  * @package SPHERE\Application\Education\Certificate\Prepare\Abitur
  */
-abstract class AbstractBlock
+abstract class AbstractBlock extends Extension
 {
 
     /**

@@ -37,6 +37,7 @@ use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 
@@ -271,6 +272,7 @@ class Frontend
      * @param null $GroupId
      * @param null $PersonId
      * @param int $View
+     * @param null $Data
      *
      * @return Stage
      */
@@ -278,7 +280,8 @@ class Frontend
         $PrepareId = null,
         $GroupId = null,
         $PersonId = null,
-        $View = BlockIView::PREVIEW
+        $View = BlockIView::PREVIEW,
+        $Data = null
     ) {
 
         $stage = new Stage('Abiturzeugnis', 'Block I: Ergebnisse in der Qualifikationsphase');
@@ -299,6 +302,35 @@ class Frontend
 
             $form = $blockI->getForm();
 
+            if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))) {
+                $service = Prepare::useService()->updateAbiturPreliminaryGrades(
+                    $form,
+                    $tblPerson,
+                    $tblPrepare,
+                    $GroupId,
+                    $View,
+                    $Data
+                );
+                if ($View != BlockIView::PREVIEW && !$tblPrepareStudent->isApproved()) {
+                    $content = new Well($service);
+                } else {
+                    $content = $form;
+                }
+            } else {
+                $content = $form;
+            }
+
+            if ($View == BlockIView::EDIT_GRADES) {
+                $textEditGrades = new Bold(new \SPHERE\Common\Frontend\Text\Repository\Primary('Punkte bearbeiten'));
+                $textChooseCourses = 'Kurse einbringen';
+            } elseif ($View == BlockIView::CHOOSE_COURSES) {
+                $textEditGrades = 'Punkte bearbeiten';
+                $textChooseCourses = new Bold(new \SPHERE\Common\Frontend\Text\Repository\Primary('Kurse einbringen'));
+            } else {
+                $textEditGrades = 'Punkte bearbeiten';
+                $textChooseCourses = 'Kurse einbringen';
+            }
+
             $stage->setContent(
                 new Layout(array(
                     new LayoutGroup(array(
@@ -309,7 +341,7 @@ class Frontend
                                     $tblPerson ? $tblPerson->getLastFirstName() : '',
                                     Panel::PANEL_TYPE_INFO
                                 ),
-                                new Standard('Punkte bearbeiten',
+                                new Standard($textEditGrades,
                                     '/Education/Certificate/Prepare/Prepare/Diploma/Abitur/BlockI',
                                     new Edit(), array(
                                         'PrepareId' => $PrepareId,
@@ -318,7 +350,7 @@ class Frontend
                                         'View' => BlockIView::EDIT_GRADES
                                     )
                                 ),
-                                new Standard('Kurse einbringen',
+                                new Standard($textChooseCourses,
                                     '/Education/Certificate/Prepare/Prepare/Diploma/Abitur/BlockI',
                                     new Check(), array(
                                         'PrepareId' => $PrepareId,
@@ -332,7 +364,7 @@ class Frontend
                         new LayoutRow(array(
                             new LayoutColumn(array(
                                 '<br>',
-                                $form
+                                $content
                             ))
                         ))
                     ))

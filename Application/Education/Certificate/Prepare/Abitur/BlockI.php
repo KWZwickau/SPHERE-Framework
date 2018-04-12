@@ -11,7 +11,6 @@ namespace SPHERE\Application\Education\Certificate\Prepare\Abitur;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
-use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -48,6 +47,8 @@ class BlockI extends AbstractBlock
      * @var TblSubject|null
      */
     private $tblReligionSubject = null;
+
+    private $count = 0;
 
     /**
      * @var TblPrepareStudent[]|array
@@ -98,6 +99,27 @@ class BlockI extends AbstractBlock
         $this->setReligion();
         $this->setPrepareStudentList();
         $this->setPointList();
+
+        // kopieren der Vornoten aus vorhandenen Kurshalbjahreszeugnissen
+        if ($view == BlockIView::PREVIEW) {
+            // todo Stichtagsnotenauftrag 12-2
+            for ($level = 11; $level < 13; $level++) {
+                for ($term = 1; $term < 3; $term++) {
+                    $midTerm = $level . '-' . $term;
+                    if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier($midTerm))
+                         && isset($this->tblPrepareStudentList[$midTerm])
+                    ) {
+                        /** @var TblPrepareStudent $tblPrepareStudent */
+                        $tblPrepareStudent = $this->tblPrepareStudentList[$midTerm];
+                        Prepare::useService()->copyAbiturPreliminaryGrades(
+                            $tblPrepareStudent,
+                            $tblPrepareAdditionalGradeType,
+                            $this->tblPrepareCertificate
+                        );
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -210,51 +232,59 @@ class BlockI extends AbstractBlock
                 $course = 'GK';
             }
 
-            // todo Stichtagsnotenauftrag 12-2
-            // todo nicht eingebrachte Punkte einklammern
-            // Zensuren von Zeugnissen
+            $global = $this->getGlobal();
             for ($level = 11; $level < 13; $level++){
                 for ($term = 1; $term < 3; $term++) {
                     $midTerm = $level . '-' . $term;
+                    $tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier($midTerm);
+                    $tblPrepareAdditionalGrade = Prepare::useService()->getPrepareAdditionalGradeBy(
+                        $this->tblPrepareCertificate,
+                        $this->tblPerson,
+                        $tblSubject,
+                        $tblPrepareAdditionalGradeType
+                    );
 
-                    if (isset($this->tblPrepareStudentList[$midTerm])) {
-                        /** @var TblPrepareStudent $tblPrepareStudent */
-                        $tblPrepareStudent = $this->tblPrepareStudentList[$midTerm];
-                        if (($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
-                            && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
-                            && ($tblDivision = $tblPrepare->getServiceTblDivision())
-                            && ($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK'))
-                            && ($tblPrepareGrade = Prepare::useService()->getPrepareGradeBySubject($tblPrepare, $tblPerson,
-                                $tblDivision, $tblSubject, $tblTestType))
-                        ) {
-                            if ($this->View == BlockIView::CHOOSE_COURSES) {
-                                // todo data, post, tabindex (spaltenweise), noten
-                                $checkBox = new CheckBox('Data[Subject]', $tblPrepareGrade->getGrade(), 1);
-                                if ($this->tblPrepareStudent && $this->tblPrepareStudent->isApproved()) {
-                                    $checkBox->setDisabled();
-                                }
-                                $grades[$midTerm] = $checkBox;
-                            } else {
-                                $grades[$midTerm] = $tblPrepareGrade->getGrade();
+                    $tabIndex = $level * 1000 + $term * 100 + $this->count++;
+                    if ($hasSubject && $this->View == BlockIView::EDIT_GRADES) {
+                        if ($tblPrepareAdditionalGrade) {
+                            $global->POST['Data'][$midTerm][$tblSubject->getId()] = $tblPrepareAdditionalGrade->getGrade();
+                        }
+
+                        if ($tblPrepareAdditionalGrade && $tblPrepareAdditionalGrade->isLocked()) {
+                            $grades[$midTerm] = $tblPrepareAdditionalGrade->getGrade();
+                        } else {
+                            $selectBox = new SelectCompleter('Data['. $midTerm . '][' . $tblSubject->getId() . ']', '', '', $this->pointsList);
+                            $selectBox->setTabIndex($tabIndex);
+                            if ($this->tblPrepareStudent && $this->tblPrepareStudent->isApproved()) {
+                                $selectBox->setDisabled();
                             }
+                            $grades[$midTerm] = $selectBox;
                         }
-                    } elseif ($hasSubject && $this->View == BlockIView::EDIT_GRADES) {
-                        // todo data, post, tabindex (spaltenweise)
-                        $selectBox = new SelectCompleter('Data[Grade]', '', '', $this->pointsList);
-                        if ($this->tblPrepareStudent && $this->tblPrepareStudent->isApproved()) {
-                            $selectBox->setDisabled();
-                        }
-                        $grades[$midTerm] = $selectBox;
                     } elseif ($hasSubject && $this->View == BlockIView::CHOOSE_COURSES) {
-                        // todo data, post, tabindex (spaltenweise), noten
-                        $checkBox = new CheckBox('Data[Subject]', '&nbsp;', 1);
-                        if ($this->tblPrepareStudent && $this->tblPrepareStudent->isApproved()) {
-                            $checkBox->setDisabled();
+                        if ($tblPrepareAdditionalGrade) {
+                            $global->POST['Data'][$midTerm][$tblSubject->getId()] = $tblPrepareAdditionalGrade->isSelected() ? 1 : 0;
+
+                            $label = $tblPrepareAdditionalGrade->getGrade();
+                            $checkBox = new CheckBox('Data['. $midTerm . '][' . $tblSubject->getId() . ']', $label, 1);
+                            $checkBox->setTabIndex($tabIndex);
+                            if ($this->tblPrepareStudent && $this->tblPrepareStudent->isApproved()) {
+                                $checkBox->setDisabled();
+                            }
+                            $grades[$midTerm] = $checkBox;
+                        } else {
+                            $grades[$midTerm] = '';
                         }
-                        $grades[$midTerm] = $checkBox;
+                    } elseif ($hasSubject && $this->View == BlockIView::PREVIEW && $tblPrepareAdditionalGradeType) {
+                        if ($tblPrepareAdditionalGrade) {
+                            $isSelected = $tblPrepareAdditionalGrade->isSelected();
+                            $grades[$midTerm] = ($isSelected ? '' : '(')
+                                . $tblPrepareAdditionalGrade->getGrade()
+                                . ($isSelected ? '' : ')');
+                        }
                     }
                 }
             }
+            $global->savePost();
         } else {
             $subjectName = new Muted($subjectName);
         }

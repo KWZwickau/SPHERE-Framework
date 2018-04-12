@@ -59,6 +59,16 @@ class Data extends AbstractData
 
         // Real + Hauptschulabschluss
         $this->createPrepareAdditionalGradeType('En (Endnote)', 'EN');
+
+        // Abitur
+        $this->createPrepareAdditionalGradeType('11/1', '11-1');
+        $this->createPrepareAdditionalGradeType('11/2', '11-2');
+        $this->createPrepareAdditionalGradeType('12/1', '12-1');
+        $this->createPrepareAdditionalGradeType('12/2', '12-2');
+        $this->createPrepareAdditionalGradeType('schriftliche Prüfung', 'WRITTEN_EXAM');
+        $this->createPrepareAdditionalGradeType('mündliche Prüfung', 'VERBAL_EXAM');
+        $this->createPrepareAdditionalGradeType('zusätzliche mündliche Prüfung', 'EXTRA_VERBAL_EXAM');
+        $this->createPrepareAdditionalGradeType('Klasse 10', 'LEVEL-10');
     }
 
     /**
@@ -1039,6 +1049,8 @@ class Data extends AbstractData
      * @param TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
      * @param $ranking
      * @param $grade
+     * @param bool $isSelected
+     * @param bool $isLocked
      *
      * @return TblPrepareAdditionalGrade
      */
@@ -1048,7 +1060,9 @@ class Data extends AbstractData
         TblSubject $tblSubject,
         TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
         $ranking,
-        $grade
+        $grade,
+        $isSelected = false,
+        $isLocked = false
     ) {
 
         $Manager = $this->getEntityManager();
@@ -1069,6 +1083,8 @@ class Data extends AbstractData
             $Entity->setTblPrepareAdditionalGradeType($tblPrepareAdditionalGradeType);
             $Entity->setRanking($ranking);
             $Entity->setGrade($grade);
+            $Entity->setSelected($isSelected);
+            $Entity->setLocked($isLocked);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -1080,12 +1096,18 @@ class Data extends AbstractData
     /**
      * @param TblPrepareAdditionalGrade $tblPrepareAdditionalGrade
      * @param $grade
+     * @param bool $isSelected
      *
      * @return bool
+     *
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
      */
     public function updatePrepareAdditionalGrade(
         TblPrepareAdditionalGrade $tblPrepareAdditionalGrade,
-        $grade
+        $grade,
+        $isSelected = false
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -1095,6 +1117,7 @@ class Data extends AbstractData
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setGrade($grade);
+            $Entity->setSelected($isSelected);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

@@ -14,6 +14,7 @@ use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
+use SPHERE\Application\Education\Certificate\Prepare\Abitur\BlockIView;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Data;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveInformation;
@@ -1012,6 +1013,7 @@ class Service extends AbstractService
                     && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
                     && $tblCertificateType->getIdentifier() == 'DIPLOMA'
                 ) {
+                    // todo Abitur?
                     if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('EN'))
                         && ($tblPrepareAdditionalGradeList = $this->getPrepareAdditionalGradeListBy(
                             $tblPrepare, $tblPerson, $tblPrepareAdditionalGradeType
@@ -1971,8 +1973,8 @@ class Service extends AbstractService
         $grade
     ) {
 
-        return (new Data($this->getBinding()))->createPrepareAdditionalGrade($tblPrepareCertificate,
-            $tblPerson, $tblSubject, $tblPrepareAdditionalGradeType, $ranking, $grade);
+        return (new Data($this->getBinding()))->createPrepareAdditionalGrade($tblPrepareCertificate, $tblPerson,
+            $tblSubject, $tblPrepareAdditionalGradeType, $ranking, $grade);
     }
 
     /**
@@ -2369,15 +2371,11 @@ class Service extends AbstractService
                                 )
                                 ) {
                                     (new Data($this->getBinding()))->updatePrepareAdditionalGrade($tblPrepareAdditionalGrade,
-                                        trim($value));
+                                        trim($value), false);
                                 } elseif (trim($value) != '') {
                                     (new Data($this->getBinding()))->createPrepareAdditionalGrade(
-                                        $tblPrepareItem,
-                                        $tblPerson,
-                                        $tblCurrentSubject,
-                                        $tblPrepareAdditionalGradeType,
-                                        0,
-                                        trim($value)
+                                        $tblPrepareItem, $tblPerson, $tblCurrentSubject, $tblPrepareAdditionalGradeType,
+                                        0, trim($value), false, false
                                     );
                                 }
                             }
@@ -2966,5 +2964,131 @@ class Service extends AbstractService
     ) {
 
         return (new Data($this->getBinding()))->updateLeaveStudent($tblLeaveStudent, $IsApproved, $IsPrinted);
+    }
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param TblPerson $tblPerson
+     * @param TblPrepareCertificate $tblPrepare
+     * @param null $GroupId
+     * @param null|BlockIView $View
+     * @param null $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function updateAbiturPreliminaryGrades(
+        IFormInterface $Form = null,
+        TblPerson $tblPerson,
+        TblPrepareCertificate $tblPrepare,
+        $GroupId = null,
+        $View = null,
+        $Data = null
+    ) {
+
+        if ($Data === null) {
+            return $Form;
+        }
+
+        // todo check Wertebereich
+        if ($View == BlockIView::EDIT_GRADES) {
+            foreach ($Data as $midTerm => $subjects) {
+                if (is_array($subjects)
+                    && (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier($midTerm)))
+                ) {
+                    foreach ($subjects as $subjectId => $grade) {
+                        $grade = trim($grade);
+                        if (($tblSubject = Subject::useService()->getSubjectById($subjectId))
+                            && $grade !== null && $grade !== ''
+                        ) {
+                            // todo Prüfung ob bulkSave erforderlich
+                            if (($tblPrepareAdditionalGrade = $this->getPrepareAdditionalGradeBy(
+                                $tblPrepare,
+                                $tblPerson,
+                                $tblSubject,
+                                $tblPrepareAdditionalGradeType
+                            ))) {
+                                (new Data($this->getBinding()))->updatePrepareAdditionalGrade(
+                                    $tblPrepareAdditionalGrade, $grade, $tblPrepareAdditionalGrade->isSelected());
+                            } else {
+                                (new Data($this->getBinding()))->createPrepareAdditionalGrade($tblPrepare,
+                                    $tblPerson, $tblSubject, $tblPrepareAdditionalGradeType, 0, $grade, false, false);
+                            }
+                        }
+                    }
+                }
+            }
+        } elseif ($View == BlockIView::CHOOSE_COURSES) {
+            for ($level = 11; $level < 13; $level++) {
+                for ($term = 1; $term < 3; $term++) {
+                    $midTerm = $level . '-' . $term;
+                    if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier($midTerm))
+                        && ($tblPrepareAdditionalGradeList = $this->getPrepareAdditionalGradeListBy(
+                            $tblPrepare, $tblPerson, $tblPrepareAdditionalGradeType
+                        ))
+                    ) {
+                        foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
+                            if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
+                                if (isset($Data[$midTerm][$tblSubject->getId()])) {
+                                    if (!$tblPrepareAdditionalGrade->isSelected()) {
+                                        (new Data($this->getBinding()))->updatePrepareAdditionalGrade(
+                                            $tblPrepareAdditionalGrade, $tblPrepareAdditionalGrade->getGrade(), true);
+                                    }
+                                } else {
+                                    if ($tblPrepareAdditionalGrade->isSelected()) {
+                                        (new Data($this->getBinding()))->updatePrepareAdditionalGrade(
+                                            $tblPrepareAdditionalGrade, $tblPrepareAdditionalGrade->getGrade(), false);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Informationen wurden erfolgreich gespeichert.')
+            . new Redirect('/Education/Certificate/Prepare/Prepare/Diploma/Abitur/BlockI', Redirect::TIMEOUT_SUCCESS, array(
+                'PrepareId' => $tblPrepare->getId(),
+                'PersonId' => $tblPerson->getId(),
+                'GroupId' => $GroupId,
+                'Route' => 'Diploma'
+            ));
+    }
+
+    /**
+     * @param TblPrepareStudent $tblPrepareStudent
+     * @param TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     */
+    public function copyAbiturPreliminaryGrades(
+        TblPrepareStudent $tblPrepareStudent,
+        TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
+        TblPrepareCertificate $tblPrepareCertificate
+    ) {
+        // Zensuren von Zeugnissen
+        if (($tblPreviousPrepare = $tblPrepareStudent->getTblPrepareCertificate())
+            && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+            && ($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK'))
+            && ($tblPrepareGradeList = Prepare::useService()->getPrepareGradeAllByPerson(
+                $tblPreviousPrepare,
+                $tblPerson,
+                $tblTestType))
+        ) {
+            foreach ($tblPrepareGradeList as $tblPrepareGrade) {
+                if (($tblSubject = $tblPrepareGrade->getServiceTblSubject())
+                ) {
+                    if (!($tblPrepareAdditionalGrade = Prepare::useService()->getPrepareAdditionalGradeBy(
+                        $tblPrepareCertificate,
+                        $tblPerson,
+                        $tblSubject,
+                        $tblPrepareAdditionalGradeType
+                    ))) {
+                        (new Data($this->getBinding()))->createPrepareAdditionalGrade($tblPrepareCertificate,
+                            $tblPerson, $tblSubject, $tblPrepareAdditionalGradeType, 0, $tblPrepareGrade->getGrade(), false, true);
+                    }
+                    // todo else eventuell update
+                }
+            }
+        }
     }
 }
