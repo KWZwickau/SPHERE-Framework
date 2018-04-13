@@ -1192,6 +1192,35 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     * @param TblPerson $tblPerson
+     * @param TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
+     * @param $ranking
+     *
+     * @return false|TblPrepareAdditionalGrade
+     * @throws \Exception
+     */
+    public function getPrepareAdditionalGradeByRanking(
+        TblPrepareCertificate $tblPrepareCertificate,
+        TblPerson $tblPerson,
+        TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
+        $ranking
+    ) {
+
+        return $this->getCachedEntityBy(
+            __METHOD__,
+            $this->getEntityManager(),
+            'TblPrepareAdditionalGrade',
+            array(
+                TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepareCertificate->getId(),
+                TblPrepareAdditionalGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                TblPrepareAdditionalGrade::ATTR_TBL_PREPARE_ADDITIONAL_GRADE_TYPE => $tblPrepareAdditionalGradeType->getId(),
+                TblPrepareAdditionalGrade::ATTR_RANKING => $ranking,
+            )
+        );
+    }
+
+    /**
      * @param $Id
      * @return false|TblPrepareAdditionalGrade
      */

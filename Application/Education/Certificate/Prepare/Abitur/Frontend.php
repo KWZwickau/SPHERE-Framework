@@ -369,13 +369,15 @@ class Frontend
      * @param null $PrepareId
      * @param null $GroupId
      * @param null $PersonId
+     * @param null $Data
      *
      * @return Stage
      */
     public function frontendPrepareDiplomaAbiturBlockII(
         $PrepareId = null,
         $GroupId = null,
-        $PersonId = null
+        $PersonId = null,
+        $Data = null
     ) {
 
         $stage = new Stage('Abiturzeugnis', 'Block II: Ergebnisse in der Abiturprüfung');
@@ -395,7 +397,7 @@ class Frontend
             $blockII = new BlockII($tblDivision, $tblPerson, $tblPrepare);
 
             $stage->setContent(
-                $blockII->getContent()
+                $blockII->getContent($GroupId, $Data)
             );
         }
 

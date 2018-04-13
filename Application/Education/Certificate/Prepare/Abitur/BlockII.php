@@ -60,12 +60,47 @@ class BlockII extends AbstractBlock
     }
 
     /**
+     * @param null $GroupId
+     * @param null $Data
+     *
      * @return Layout
      */
-    public function getContent()
+    public function getContent($GroupId = null, $Data = null)
     {
 
         $dataList = array();
+        if (($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
+            $this->tblPrepareCertificate,
+            $this->tblPerson
+        ))) {
+            $global = $this->getGlobal();
+            foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
+                if (($tblPrepareAdditionalGradeType = $tblPrepareAdditionalGrade->getTblPrepareAdditionalGradeType())
+                    && ($tblPrepareAdditionalGradeType->getIdentifier() == 'WRITTEN_EXAM'
+                        || $tblPrepareAdditionalGradeType->getIdentifier() == 'VERBAL_EXAM'
+                        || $tblPrepareAdditionalGradeType->getIdentifier() == 'EXTRA_VERBAL_EXAM'
+                    )
+                ) {
+                    $global->POST['Data'][$tblPrepareAdditionalGrade->getRanking()]['Grades']
+                        [$tblPrepareAdditionalGradeType->getIdentifier()] = $tblPrepareAdditionalGrade->getGrade();
+                    if ($tblPrepareAdditionalGrade->getRanking() > 2
+                        && (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject()))
+                    ) {
+                        $global->POST['Data'][$tblPrepareAdditionalGrade->getRanking()]['Subject'] = $tblSubject->getId();
+                    }
+                }
+            }
+            $global->savePost();
+        }
+
+        if (($tblPrepareInformationList = Prepare::useService()->getPrepareInformationAllByPerson($this->tblPrepareCertificate, $this->tblPerson))) {
+            foreach ($tblPrepareInformationList as $tblPrepareInformation) {
+                $global = $this->getGlobal();
+                $global->POST['Data'][$tblPrepareInformation->getField()] = $tblPrepareInformation->getValue();
+                $global->savePost();
+            }
+        }
+
         for ($i = 1; $i < 6; $i++) {
             $dataList = $this->setRow($dataList, $i);
         }
@@ -100,11 +135,11 @@ class BlockII extends AbstractBlock
         $tableBELL = new TableData(
             array(array(
                 'Description' => new TextArea(
-                    'Data[Area]',
+                    'Data[BellSubject]',
                     'Thema'
                 ),
                 'Points' => new TextField(
-                    'Data[Points]',
+                    'Data[BellPoints]',
                     'vierfache Wertung'
                 )
             )),
@@ -148,7 +183,16 @@ class BlockII extends AbstractBlock
         ));
 
         if ($this->tblPrepareStudent && !$this->tblPrepareStudent->isApproved()) {
-            $content = new Well($form->appendFormButton(new Primary('Speichern', new Save())));
+            $form->appendFormButton(new Primary('Speichern', new Save()));
+            $content = new Well(Prepare::useService()->updateAbiturExamGrades(
+                $form,
+                $this->tblPrepareCertificate,
+                $this->tblPerson,
+                $Data,
+                $GroupId,
+                $this->getFirstAdvancedCourse(),
+                $this->getSecondAdvancedCourse()
+            ));
         } else {
             $content = $form;
         }
@@ -190,13 +234,11 @@ class BlockII extends AbstractBlock
             $number .= ' (LF)';
             $exam = ($tblSubject ? $tblSubject->getName() : '&nbsp;');
         } else {
-            // todo data
-            $exam = new SelectBox('Data', '', array('Name' => $this->BasicCourses));
+            $exam = new SelectBox('Data[' .  $i . '][Subject]', '', array('Name' => $this->BasicCourses));
         }
 
         if ($i < 4) {
-            // todo data, post
-            $selectBox = new SelectCompleter('Data[Grade]', '', '', $this->pointsList);
+            $selectBox = new SelectCompleter('Data[' .  $i . '][Grades][WRITTEN_EXAM]', '', '', $this->pointsList);
             if ($this->tblPrepareStudent && $this->tblPrepareStudent->isApproved()) {
                 $selectBox->setDisabled();
             }
@@ -206,23 +248,77 @@ class BlockII extends AbstractBlock
         } else {
             $writtenExam = '&nbsp;';
 
-            // todo data, post
-            $selectBox = new SelectCompleter('Data[Grade]', '', '', $this->pointsList);
+            $selectBox = new SelectCompleter('Data[' .  $i . '][Grades][VERBAL_EXAM]', '', '', $this->pointsList);
             if ($this->tblPrepareStudent && $this->tblPrepareStudent->isApproved()) {
                 $selectBox->setDisabled();
             }
             $verbalExam = $selectBox;
         }
 
-        // todo data, post
-        $selectBox = new SelectCompleter('Data[Grade]', '', '', $this->pointsList);
+        $selectBox = new SelectCompleter('Data[' .  $i . '][Grades][EXTRA_VERBAL_EXAM]', '', '', $this->pointsList);
         if ($this->tblPrepareStudent && $this->tblPrepareStudent->isApproved()) {
             $selectBox->setDisabled();
         }
         $extraVerbalExam = $selectBox;
 
-        // todo total
+        // https://publikationen.sachsen.de/bdb/artikel/28331 Seite 27 Tabelle
         $total = '&nbsp;';
+        if ($i < 4) {
+            if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('WRITTEN_EXAM'))
+                && ($writtenExamGrade = Prepare::useService()->getPrepareAdditionalGradeByRanking(
+                    $this->tblPrepareCertificate,
+                    $this->tblPerson,
+                    $tblPrepareAdditionalGradeType,
+                    $i))
+            ) {
+                $writtenExamGradeValue = $writtenExamGrade->getGrade();
+
+                if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EXTRA_VERBAL_EXAM'))
+                    && ($extraVerbalExamGrade = Prepare::useService()->getPrepareAdditionalGradeByRanking(
+                        $this->tblPrepareCertificate,
+                        $this->tblPerson,
+                        $tblPrepareAdditionalGradeType,
+                        $i))
+                ) {
+                    $extraVerbalExamGradeValue = $extraVerbalExamGrade->getGrade();
+
+                    if ($extraVerbalExamGradeValue !== '' && $extraVerbalExamGradeValue !== null) {
+                        $total = 4 * (floatval($writtenExamGradeValue) * (2 / 3) + floatval($extraVerbalExamGradeValue) * (1 / 3));
+                        $total = round($total);
+                    } else {
+                        $total = floatval($writtenExamGradeValue) * 4;
+                    }
+                }
+            }
+        } else {
+            if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('VERBAL_EXAM'))
+                && ($verbalExamGrade = Prepare::useService()->getPrepareAdditionalGradeByRanking(
+                    $this->tblPrepareCertificate,
+                    $this->tblPerson,
+                    $tblPrepareAdditionalGradeType,
+                    $i))
+            ) {
+                $verbalExamGradeValue = $verbalExamGrade->getGrade();
+
+                if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EXTRA_VERBAL_EXAM'))
+                    && ($extraVerbalExamGrade = Prepare::useService()->getPrepareAdditionalGradeByRanking(
+                        $this->tblPrepareCertificate,
+                        $this->tblPerson,
+                        $tblPrepareAdditionalGradeType,
+                        $i))
+                ) {
+                    $extraVerbalExamGradeValue = $extraVerbalExamGrade->getGrade();
+
+                    if ($extraVerbalExamGradeValue !== '' && $extraVerbalExamGradeValue !== null) {
+                        $total = 4 * (floatval($verbalExamGradeValue) * (2 / 3) + floatval($extraVerbalExamGradeValue) * (1 / 3));
+                        $total = round($total);
+                    } else {
+                        $total = floatval($verbalExamGradeValue) * 4;
+                    }
+                }
+            }
+        }
+
 
         $dataList[] = array(
             'Number' => $number,
