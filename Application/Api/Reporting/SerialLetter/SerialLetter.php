@@ -27,6 +27,9 @@ class SerialLetter implements IModuleInterface
             __NAMESPACE__ . '/Download', __NAMESPACE__ . '\SerialLetter::downloadSerialLetter'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Company/Download', __NAMESPACE__ . '\SerialLetter::downloadSerialLetterCompany'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Exchange', __NAMESPACE__.'\SerialLetter::executeSerialPerson'
         ));
     }
@@ -59,6 +62,27 @@ class SerialLetter implements IModuleInterface
         if ($tblSerialLetter) {
             $fileLocation = SerialLetterApp::useService()
                 ->createSerialLetterExcel($tblSerialLetter);
+            if ($fileLocation) {
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    "Adressen-Serienbrief ".$tblSerialLetter->getName()." ".date("Y-m-d H:i:s").".xlsx")->__toString();
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param null $Id
+     *
+     * @return bool|string
+     */
+    public function downloadSerialLetterCompany($Id = null)
+    {
+
+        $tblSerialLetter = SerialLetterApp::useService()->getSerialLetterById($Id);
+        if ($tblSerialLetter) {
+            $fileLocation = SerialLetterApp::useService()
+                ->createSerialLetterCompanyExcel($tblSerialLetter);
             if ($fileLocation) {
                 return FileSystem::getDownload($fileLocation->getRealPath(),
                     "Adressen-Serienbrief ".$tblSerialLetter->getName()." ".date("Y-m-d H:i:s").".xlsx")->__toString();

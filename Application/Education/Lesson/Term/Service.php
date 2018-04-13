@@ -911,8 +911,7 @@ class Service extends AbstractService
         /**
          * Skip to Frontend
          */
-        $Global = $this->getGlobal();
-        if (!isset($Global->POST['Button']['Submit'])) {
+        if ($DataAddHoliday === null && $DataRemoveHoliday === null) {
             return $Form;
         }
 

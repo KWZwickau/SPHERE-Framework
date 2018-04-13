@@ -12,6 +12,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -919,6 +920,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Kategorien', $PanelContent, Panel::PANEL_TYPE_INFO)
                     ),
+                    new FormColumn(new HiddenField('Category[IsSubmit]'))
                 )),
             ))
         );
@@ -1004,6 +1006,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Fächer', $tblSubjectAllAvailable, Panel::PANEL_TYPE_INFO)
                     ),
+                    new FormColumn(new HiddenField('Subject[IsSubmit]'))
                 )),
             ))
         );

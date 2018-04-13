@@ -78,7 +78,7 @@ class TblPrepareGrade extends Element
     /**
      * @return bool|TblPrepareCertificate
      */
-    public function gettblPrepareCertificate()
+    public function getTblPrepareCertificate()
     {
 
         if (null === $this->tblPrepareCertificate) {
@@ -91,7 +91,7 @@ class TblPrepareGrade extends Element
     /**
      * @param TblPrepareCertificate|null $tblPrepareCertificate
      */
-    public function settblPrepareCertificate(TblPrepareCertificate $tblPrepareCertificate = null)
+    public function setTblPrepareCertificate(TblPrepareCertificate $tblPrepareCertificate = null)
     {
 
         $this->tblPrepareCertificate = (null === $tblPrepareCertificate ? null : $tblPrepareCertificate->getId());

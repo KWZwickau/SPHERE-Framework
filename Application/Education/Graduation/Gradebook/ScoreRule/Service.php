@@ -669,8 +669,7 @@ abstract class Service extends ServiceMinimumGrade
         /**
          * Skip to Frontend
          */
-        $Global = $this->getGlobal();
-        if (!isset($Global->POST['Button']['Submit']) || $tblYear == null) {
+        if ($Data === null) {
             return $Stage;
         }
 
@@ -749,8 +748,7 @@ abstract class Service extends ServiceMinimumGrade
         /**
          * Skip to Frontend
          */
-        $Global = $this->getGlobal();
-        if (!isset($Global->POST['Button']['Submit']) || $tblYear == null) {
+        if ($Data === null) {
             return $Stage;
         }
 

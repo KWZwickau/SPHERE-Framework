@@ -125,8 +125,8 @@ class Service extends AbstractService
      * @param TblDivision $tblDivision
      * @param Certificate $Certificate
      * @param FilePointer $File
+     * @param TblPrepareCertificate|null $tblPrepareCertificate
      *
-     * @param TblPrepareCertificate $tblPrepareCertificate
      * @return bool|TblFile
      */
     public function saveCertificateRevision(
@@ -134,7 +134,7 @@ class Service extends AbstractService
         TblDivision $tblDivision,
         Certificate $Certificate,
         FilePointer $File,
-        TblPrepareCertificate $tblPrepareCertificate
+        TblPrepareCertificate $tblPrepareCertificate = null
     ) {
 
         // Load Tmp
@@ -160,7 +160,8 @@ class Service extends AbstractService
                     $tblBinary = $this->createBinary($File->getFileContent());
                     if ($tblBinary) {
                         $name = $tblYear->getYear() . ' - ' . $tblPerson->getLastFirstName() . ' - '
-                            . $Certificate->getCertificateName() . ' - ' . $tblPrepareCertificate->getId();
+                            . $Certificate->getCertificateName() . ' - '
+                            . ($tblPrepareCertificate ? $tblPrepareCertificate->getId() : $tblDivision->getId());
 
                         if (($tblFile = $this->exitsFile($tblDirectory, $tblFileType, $name))) {
                             $this->updateFile($tblFile, $tblBinary, 'Zuletzt erstellt: ' . date('d.m.Y H:i:s'));
