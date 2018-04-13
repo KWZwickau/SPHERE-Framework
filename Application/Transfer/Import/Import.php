@@ -111,9 +111,13 @@ class Import implements IApplicationInterface
             $dataList = Meerane::setLinks($dataList);
         }
 
-//        if(!$dataList){
-//
-//        }
+        if(empty($dataList)){
+            $Stage->setContent(
+                Main::getDispatcher()->fetchDashboard('Import')
+            );
+            return $Stage;
+        }
+
         $table = new TableData(
             $dataList,
             null,
