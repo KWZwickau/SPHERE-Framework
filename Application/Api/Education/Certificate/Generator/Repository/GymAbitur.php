@@ -552,8 +552,152 @@ class GymAbitur extends Certificate
                         , '50%')
                 )
             )
+            // Berechnung der Gesamtqualifikation und der Durchschnittsnote
+            // todo Points berechnen und  anzeigen
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Berechnung der Gesamtqualifikation und der Durchschnittsnote')
+                        ->styleTextBold()
+                        ->styleMarginTop('40px')
+                        ->styleMarginBottom('15px')
+                    )
+                )
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Block I:')
+                        ->stylePaddingLeft('5px')
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '10%')
+                    ->addElementColumn((new Element())
+                        ->setContent('mindestens 200,')
+                        , '25%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Punktsumme aus den Halbjahresergebnissen²')
+                        ->stylePaddingLeft('5px')
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleAlignCenter()
+                        ->styleBorderBottom()
+                        , '10%')
+                    ->addElementColumn((new Element())
+                        ->setContent('höchstens 600 Punkte')
+                        , '25%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                    )
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Block II:')
+                        ->stylePaddingLeft('5px')
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '10%')
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '25%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Punktsumme aus den Gesamtergebnissen in den Prüfungsfächern')
+                        ->stylePaddingLeft('5px')
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '10%')
+                    ->addElementColumn((new Element())
+                        ->setContent('mindestens 100,')
+                        , '25%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('in vierfacher Wertung³')
+                        ->stylePaddingLeft('5px')
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleAlignCenter()
+                        ->styleBorderBottom()
+                        , '10%')
+                    ->addElementColumn((new Element())
+                        ->setContent('höchstens 300 Punkte')
+                        , '25%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                    )
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '10%')
+                    ->addElementColumn((new Element())
+                        ->setContent('mindestens 300,')
+                        , '25%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Gesamtpunktzahl')
+                        ->stylePaddingLeft('5px')
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleAlignCenter()
+                        ->styleBorderBottom()
+                        , '10%')
+                    ->addElementColumn((new Element())
+                        ->setContent('höchstens 900 Punkte')
+                        , '25%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                    )
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                    )
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Durchschnittsnote')
+                        ->stylePaddingLeft('5px')
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleAlignCenter()
+                        ->styleBorderBottom()
+                        , '10%')
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '25%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                    )
+                )
+                ->styleBorderAll()
+            )
+            ->addSlice($this->setPointsOverview('60px'))
             ->addSlice($this->getInfo(
-                '500px',
+                '150px',
                 '¹ Alle Punktzahlen werden zweistellig angegeben.',
                 '² Halbjahresergebnisse aus Leistungskursfächern (LF) werden doppelt gewichtet.',
                 '³ Bei Einbringung einer Besonderen Lernleistung wird diese an Stelle des 5. Prüfungsfaches gewertet.'
@@ -1025,5 +1169,87 @@ class GymAbitur extends Certificate
         if (!empty($basicCourses)) {
             $this->BasicCourses = $basicCourses;
         }
+    }
+
+    /**
+     * @param Section $section
+     * @param string $name
+     * @param $textSize
+     * @param bool $isBorderBottom
+     * @param bool $isBorderRight
+     */
+    private function setColumnElement(
+        Section $section,
+        $name,
+        $textSize,
+        $isBorderBottom = false,
+        $isBorderRight = false
+    ) {
+
+        $section
+            ->addElementColumn((new Element())
+                ->setContent($name)
+                ->styleTextSize($textSize)
+                ->styleAlignCenter()
+                ->styleBorderLeft()
+                ->styleBorderTop()
+                ->styleBorderRight($isBorderRight ? '1px' : '0px')
+                ->styleBorderBottom($isBorderBottom ? '1px' : '0px')
+                , '14.28%');
+    }
+
+    /**
+     * @param string $MarginTop
+     *
+     * @return Slice
+     */
+    private function setPointsOverview($MarginTop = '25px')
+    {
+
+        $textSize = '10px';
+        $slice = new Slice();
+        $slice
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Für die Umsetzung der Noten in Punkte gilt:')
+                    ->styleTextSize($textSize)
+                )
+            );
+
+        $section = new Section();
+        $this->setColumnElement($section, 'Notenstufen', $textSize);
+        $this->setColumnElement($section, 'sehr gut', $textSize);
+        $this->setColumnElement($section, 'gut', $textSize);
+        $this->setColumnElement($section, 'befriedigend', $textSize);
+        $this->setColumnElement($section, 'ausreichend', $textSize);
+        $this->setColumnElement($section, 'mangelhaft', $textSize);
+        $this->setColumnElement($section, 'ungenügend', $textSize, false, true);
+        $slice
+            ->addSection($section);
+
+        $section = new Section();
+        $this->setColumnElement($section, 'Noten', $textSize);
+        $this->setColumnElement($section, '+&nbsp;&nbsp;&nbsp;1&nbsp;&nbsp;&nbsp;-', $textSize);
+        $this->setColumnElement($section, '+&nbsp;&nbsp;&nbsp;2&nbsp;&nbsp;&nbsp;-', $textSize);
+        $this->setColumnElement($section, '+&nbsp;&nbsp;&nbsp;3&nbsp;&nbsp;&nbsp;-', $textSize);
+        $this->setColumnElement($section, '+&nbsp;&nbsp;&nbsp;4&nbsp;&nbsp;&nbsp;-', $textSize);
+        $this->setColumnElement($section, '+&nbsp;&nbsp;&nbsp;5&nbsp;&nbsp;&nbsp;-', $textSize);
+        $this->setColumnElement($section, '6', $textSize, false, true);
+        $slice
+            ->addSection($section);
+
+        $section = new Section();
+        $this->setColumnElement($section, 'Punkte', $textSize, true);
+        $this->setColumnElement($section, '15 14 13', $textSize, true);
+        $this->setColumnElement($section, '12 11 10', $textSize, true);
+        $this->setColumnElement($section, '09 08 07', $textSize, true);
+        $this->setColumnElement($section, '06 05 04', $textSize, true);
+        $this->setColumnElement($section, '03 02 01', $textSize, true);
+        $this->setColumnElement($section, '00', $textSize, true, true);
+        $slice
+            ->addSection($section);
+
+        return $slice
+            ->styleMarginTop($MarginTop);
     }
 }
