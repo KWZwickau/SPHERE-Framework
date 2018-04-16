@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCe
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
@@ -132,7 +133,6 @@ class BlockII extends AbstractBlock
             )
         );
 
-        // todo CheckBox ob BELL eingebracht wird als 5. PF
         $tableBELL = new TableData(
             array(array(
                 'Description' => new TextArea(
@@ -175,7 +175,10 @@ class BlockII extends AbstractBlock
                         ),
                         new Panel(
                             'Besondere Lernleistung',
-                            $tableBELL,
+                            array(
+                                new CheckBox('Data[IsBellUsed]', 'Die besondere Lernleistung ersetzt das 5. Prüfungsfach', 1),
+                                $tableBELL
+                            ),
                             Panel::PANEL_TYPE_PRIMARY
                         )
                     ))

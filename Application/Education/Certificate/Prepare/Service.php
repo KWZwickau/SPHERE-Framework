@@ -3247,6 +3247,17 @@ class Service extends AbstractService
             }
         }
 
+        $isBellUsed = isset($Data['IsBellUsed']);
+        if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson, 'IsBellUsed'))) {
+            (new Data($this->getBinding()))->updatePrepareInformation(
+                $tblPrepareInformation,
+                'IsBellUsed',
+                $isBellUsed
+            );
+        } else {
+            (new Data($this->getBinding()))->createPrepareInformation($tblPrepare, $tblPerson, 'IsBellUsed', $isBellUsed);
+        }
+
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Informationen wurden erfolgreich gespeichert.')
             . new Redirect('/Education/Certificate/Prepare/Prepare/Diploma/Abitur/BlockII', Redirect::TIMEOUT_SUCCESS, array(
                 'PrepareId' => $tblPrepare->getId(),

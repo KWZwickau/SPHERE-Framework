@@ -327,6 +327,22 @@ class GymAbitur extends Certificate
         /*
          * Block II
          */
+        if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($this->getTblPrepareCertificate(), $tblPerson, 'IsBellUsed'))
+            && $tblPrepareInformation->getValue()
+        ) {
+            $isBellUsed = true;
+        } else {
+            $isBellUsed = false;
+        }
+
+        if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($this->getTblPrepareCertificate(), $tblPerson, 'BellPoints'))) {
+            $bellPoints = ($isBellUsed ? '' : '(')
+                . str_pad($tblPrepareInformation->getValue(),2, 0, STR_PAD_LEFT)
+                . ($isBellUsed ? '' : ')');
+        } else {
+            $bellPoints = '&nbsp;';
+        }
+
         $slice = new Slice();
         $slice
             ->addSection((new Section())
@@ -435,7 +451,7 @@ class GymAbitur extends Certificate
                         ->styleMarginTop('10px')
                     , '70%')
             )
-            ->addSectionList($this->setExamRows($personId));
+            ->addSectionList($this->setExamRows($personId, $isBellUsed));
 
         $pageList[] = (new Page())
             ->addSlice((new Slice())
@@ -458,11 +474,84 @@ class GymAbitur extends Certificate
                     ->addElementColumn((new Element())
                         ->setContent('Block II: Ergebnisse in der Abiturprüfung')
                         ->styleTextBold()
-                        ->styleMarginTop('10px')
+                        ->styleMarginTop('15px')
                     )
                 )
             )
             ->addSlice($slice)
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Besondere Lernleistung')
+                        ->styleTextBold()
+                        ->styleMarginTop('40px')
+                    )
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Thema')
+                        ->stylePaddingLeft('5px')
+                        ->styleBorderLeft()
+                        ->styleBorderTop()
+                        ->styleMarginTop('15px')
+                        , '50%')
+                    ->addElementColumn((new Element())
+                        ->setContent('Punktzahl in <b>vierfacher</b> Wertung')
+                        ->stylePaddingLeft('5px')
+                        ->styleBorderLeft()
+                        ->styleBorderTop()
+                        ->styleBorderRight()
+                        ->styleMarginTop('15px')
+                        , '50%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if(Content.P' . $personId . '.Input.BellSubject is not empty) %}
+                                {{ Content.P' . $personId . '.Input.BellSubject|nl2br }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}')
+                        ->stylePaddingLeft('5px')
+                        ->stylePaddingRight('5px')
+                        ->styleBorderLeft()
+                        ->styleBorderTop()
+                        ->styleBorderBottom()
+                        ->styleHeight('69px')
+                        , '50%')
+                    ->addSliceColumn((new Slice)
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element())
+                                ->setContent('&nbsp;')
+                            )
+                        )
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element())
+                                ->setContent('&nbsp;')
+                                , '33%')
+                            ->addElementColumn((new Element())
+                                ->setContent($bellPoints)
+                                ->styleAlignCenter()
+                                ->styleBorderBottom()
+                            )
+                            ->addElementColumn((new Element())
+                                ->setContent('&nbsp;')
+                                , '33%')
+                        )
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element())
+                                ->setContent('&nbsp;')
+                            )
+                        )
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element())
+                                ->setContent('&nbsp;')
+                            )
+                        )
+                        ->styleBorderAll()
+                        , '50%')
+                )
+            )
             ->addSlice($this->getInfo(
                 '500px',
                 '¹ Alle Punktzahlen werden zweistellig angegeben.',
@@ -623,7 +712,7 @@ class GymAbitur extends Certificate
             ;
     }
 
-    private function setExamRows($personId)
+    private function setExamRows($personId, $isBellUsed)
     {
         $color = '#BBB';
         $sectionList = array();
@@ -687,7 +776,9 @@ class GymAbitur extends Certificate
                             $subjectName = $i . '. ' . ($i < 3 ? '(LF) ' : ' ') . $tblSubject->getName();
                         }
 
-                        $verbalExam = str_pad($verbalExamGrade->getGrade(), 2, 0, STR_PAD_LEFT);
+                        $verbalExam = ($isBellUsed && $i == 5 ? '(' : '')
+                            . str_pad($verbalExamGrade->getGrade(), 2, 0, STR_PAD_LEFT)
+                            . ($isBellUsed && $i == 5 ? ')' : '');
 
                         if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EXTRA_VERBAL_EXAM'))
                             && ($extraVerbalExamGrade = Prepare::useService()->getPrepareAdditionalGradeByRanking(
@@ -698,7 +789,9 @@ class GymAbitur extends Certificate
                         ) {
                             $extraVerbalExamGradeValue = $extraVerbalExamGrade->getGrade();
                             if ($extraVerbalExamGradeValue !== '' && $extraVerbalExamGradeValue !== null) {
-                                $extraVerbalExam = str_pad($extraVerbalExamGradeValue, 2, 0, STR_PAD_LEFT);
+                                $extraVerbalExam = ($isBellUsed && $i == 5 ? '(' : '')
+                                    . str_pad($extraVerbalExamGradeValue, 2, 0, STR_PAD_LEFT)
+                                    . ($isBellUsed && $i == 5 ? ')' : '');
                             }
                         } else {
                             $extraVerbalExamGrade = false;
@@ -708,6 +801,10 @@ class GymAbitur extends Certificate
                             $verbalExamGrade,
                             $extraVerbalExamGrade ? $extraVerbalExamGrade : null
                         );
+
+                        $total = ($isBellUsed && $i == 5 ? '(' : '')
+                        . $total
+                        . ($isBellUsed && $i == 5 ? ')' : '');
                     }
                 }
             }
