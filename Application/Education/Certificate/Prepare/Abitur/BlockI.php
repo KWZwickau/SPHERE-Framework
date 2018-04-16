@@ -11,6 +11,7 @@ namespace SPHERE\Application\Education\Certificate\Prepare\Abitur;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
+use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -101,7 +102,6 @@ class BlockI extends AbstractBlock
 
         // kopieren der Vornoten aus vorhandenen Kurshalbjahreszeugnissen
         if ($view == BlockIView::PREVIEW) {
-            // todo Stichtagsnotenauftrag 12-2
             for ($level = 11; $level < 13; $level++) {
                 for ($term = 1; $term < 3; $term++) {
                     $midTerm = $level . '-' . $term;
@@ -110,11 +110,25 @@ class BlockI extends AbstractBlock
                     ) {
                         /** @var TblPrepareStudent $tblPrepareStudent */
                         $tblPrepareStudent = $this->tblPrepareStudentList[$midTerm];
-                        Prepare::useService()->copyAbiturPreliminaryGrades(
+                        Prepare::useService()->copyAbiturPreliminaryGradesFromCertificates(
                             $tblPrepareStudent,
                             $tblPrepareAdditionalGradeType,
                             $this->tblPrepareCertificate
                         );
+                    }
+                    // Stichtagsnotenauftrag 12-2
+                    elseif ($level == 12 && $term == 2) {
+                        if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier($midTerm))
+                            && ($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK'))
+                        ) {
+                            Prepare::useService()->copyAbiturPreliminaryGradesFromAppointedDateTask(
+                                $tblDivision,
+                                $tblPerson,
+                                $tblPrepareCertificate,
+                                $tblPrepareAdditionalGradeType,
+                                $tblTestType
+                            );
+                        }
                     }
                 }
             }

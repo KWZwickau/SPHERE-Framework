@@ -3060,7 +3060,7 @@ class Service extends AbstractService
      * @param TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
      * @param TblPrepareCertificate $tblPrepareCertificate
      */
-    public function copyAbiturPreliminaryGrades(
+    public function copyAbiturPreliminaryGradesFromCertificates(
         TblPrepareStudent $tblPrepareStudent,
         TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
         TblPrepareCertificate $tblPrepareCertificate
@@ -3077,16 +3077,85 @@ class Service extends AbstractService
             foreach ($tblPrepareGradeList as $tblPrepareGrade) {
                 if (($tblSubject = $tblPrepareGrade->getServiceTblSubject())
                 ) {
-                    if (!($tblPrepareAdditionalGrade = Prepare::useService()->getPrepareAdditionalGradeBy(
+                    if (($tblPrepareAdditionalGrade = Prepare::useService()->getPrepareAdditionalGradeBy(
                         $tblPrepareCertificate,
                         $tblPerson,
                         $tblSubject,
                         $tblPrepareAdditionalGradeType
                     ))) {
+                        if (($tblPrepareGrade->getGrade() !== $tblPrepareAdditionalGrade->getGrade())) {
+                            (new Data($this->getBinding()))->updatePrepareAdditionalGrade(
+                                $tblPrepareAdditionalGrade,
+                                $tblPrepareGrade->getGrade(),
+                                $tblPrepareAdditionalGrade->isSelected()
+                            );
+                        }
+                    } else {
                         (new Data($this->getBinding()))->createPrepareAdditionalGrade($tblPrepareCertificate,
                             $tblPerson, $tblSubject, $tblPrepareAdditionalGradeType, 0, $tblPrepareGrade->getGrade(), false, true);
                     }
-                    // todo else eventuell update
+                }
+            }
+        }
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson $tblPerson
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     * @param TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
+     * @param TblTestType $tblTestType
+     *
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     */
+    public function copyAbiturPreliminaryGradesFromAppointedDateTask(
+        TblDivision $tblDivision,
+        TblPerson $tblPerson,
+        TblPrepareCertificate $tblPrepareCertificate,
+        TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
+        TblTestType $tblTestType
+    ) {
+
+        if (($tblTaskList = Evaluation::useService()->getTaskAllByDivision($tblDivision, $tblTestType))) {
+            foreach ($tblTaskList as $tblTask) {
+                if (($tblPeriod = $tblTask->getServiceTblPeriod())
+                    && strpos($tblPeriod->getName(), '2.') !== false
+                ) {
+                    if (($tblTestList = Evaluation::useService()->getTestAllByTask($tblTask))) {
+                        foreach ($tblTestList as $tblTest) {
+                            if (($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson))
+                                && ($tblSubject = $tblGrade->getServiceTblSubject())
+                            ) {
+                                if ($tblGrade->getGrade() !== null && $tblGrade->getGrade() !== '') {
+                                    if (($tblPrepareAdditionalGrade = $this->getPrepareAdditionalGradeBy(
+                                        $tblPrepareCertificate, $tblPerson, $tblSubject, $tblPrepareAdditionalGradeType))
+                                    ) {
+                                        if (($tblGrade->getGrade() !== $tblPrepareAdditionalGrade->getGrade())) {
+                                            (new Data($this->getBinding()))->updatePrepareAdditionalGrade(
+                                                $tblPrepareAdditionalGrade,
+                                                $tblGrade->getGrade(),
+                                                $tblPrepareAdditionalGrade->isSelected()
+                                            );
+                                        }
+                                    } else {
+                                        (new Data($this->getBinding()))->createPrepareAdditionalGrade(
+                                            $tblPrepareCertificate,
+                                            $tblPerson,
+                                            $tblSubject,
+                                            $tblPrepareAdditionalGradeType,
+                                            0,
+                                            $tblGrade->getGrade(),
+                                            false,
+                                            true);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    break;
                 }
             }
         }
