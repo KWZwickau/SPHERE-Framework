@@ -691,7 +691,9 @@ class Data extends AbstractData
                     continue;
                 }
 
-                if (($tblPersonDivisionList = Student::useService()->getCurrentDivisionListByPerson($tblPerson))) {
+                if (($tblYear = $tblDivision->getServiceTblYear())
+                    && ($tblPersonDivisionList = Student::useService()->getDivisionListByPersonAndYear($tblPerson, $tblYear))
+                ) {
                     foreach ($tblPersonDivisionList as $tblDivisionItem) {
                         if (!isset($divisionList[$tblDivisionItem->getId()])) {
                             $divisionList[$tblDivisionItem->getId()] = $tblDivisionItem;

@@ -8,6 +8,8 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Platform\System\Protocol\Service\Entity\TblProtocol;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Family;
+use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Off;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -18,7 +20,11 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Redirect;
@@ -100,16 +106,16 @@ class Session extends Extension implements IModuleInterface
                 $loginTime = 60 * 10;
                 switch ($tblIdentification->getName()) {
                     case 'System':
-                        $loginTime = ( 60 * 60 * 4 );
+                        $loginTime = (60 * 60 * 4);
                         break;
                     case 'Token':
-                        $loginTime = ( 60 * 60 );
+                        $loginTime = (60 * 60);
                         break;
                     case 'Credential':
-                        $loginTime = ( 60 * 30 );
+                        $loginTime = (60 * 30);
                         break;
                     case 'UserCredential':
-                        $loginTime = ( 60 * 30 );
+                        $loginTime = (60 * 30);
                         break;
                 }
 
@@ -132,6 +138,26 @@ class Session extends Extension implements IModuleInterface
 //                    $Activity = '-NA-';
 //                }
 
+                if ($tblAccount && $tblAccount->getServiceTblIdentification()
+                    && $tblAccount->getServiceTblIdentification()->getName() == 'System') {
+                    $UserName = new Info($UserNamePrepare = $tblAccount->getUsername());
+                    $AccountType = new ToolTip('A '.new Key(), 'Admin');
+                } elseif ($tblAccount && $tblAccount->getServiceTblIdentification()
+                    && $tblAccount->getServiceTblIdentification()->getName() == 'Token') {
+                    $UserNamePrepare = $tblAccount->getUsername();
+                    $separatorStringPos = strpos($UserNamePrepare, '-');
+                    $UserNameBuild = new Success(substr($UserNamePrepare, 0, $separatorStringPos));
+                    $UserNameBuild .= substr($UserNamePrepare, $separatorStringPos);
+                    $UserName = new Bold($UserNameBuild);
+                    $AccountType = new ToolTip('M '.new Key(), 'Mitarbeiter');
+                } elseif ($tblAccount) {
+                    $UserName = $tblAccount->getUsername();
+                    $AccountType = new ToolTip('S &nbsp;'.new Family(), 'Soreberechtigte / Schüler');
+                } else {
+                    $UserName = '-NA-';
+                    $AccountType = '-NA-';
+                }
+
                 array_push($Result, array(
                     'Id' => $tblSession->getId(),
                     'Consumer' => ($tblAccount->getServiceTblConsumer() ?
@@ -139,7 +165,8 @@ class Session extends Extension implements IModuleInterface
                         . '&nbsp;' . new Muted($tblAccount->getServiceTblConsumer()->getName())
                         : '-NA-'
                     ),
-                    'Account' => ($tblAccount ? $tblAccount->getUsername() : '-NA-'),
+                    'Account' => $UserName,
+                    'AccountType' => $AccountType,
                     'TTL' => gmdate("H:i:s", $tblSession->getTimeout() - time()),
                     'ActiveTime' => gmdate('H:i:s', $Interval),
                     'LoginTime' => $tblSession->getEntityCreate(),
@@ -161,6 +188,7 @@ class Session extends Extension implements IModuleInterface
                                 'Id' => '#',
                                 'Consumer' => 'Mandant',
                                 'Account' => 'Benutzer',
+                                'AccountType' => 'Typ',
                                 'LoginTime' => 'Anmeldung',
                                 'ActiveTime' => 'Dauer',
                                 'LastAction' => 'letzte Aktivität',

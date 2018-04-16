@@ -946,7 +946,7 @@ class Frontend extends Extension implements IFrontendInterface
                 // modify with continues tests
                 if ($tblTest->getFinishDate()) {
                     $stringDate = $tblTest->getFinishDate();
-                    $stringReturnDate = $tblTest->getFinishDate();
+                    $stringReturnDate = ''; // $tblTest->getFinishDate();
                 }
 
                 // show autoReturnDate
