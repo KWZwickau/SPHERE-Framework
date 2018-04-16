@@ -3255,4 +3255,59 @@ class Service extends AbstractService
                 'Route' => 'Diploma'
             ));
     }
+
+    /**
+     * @param TblPrepareAdditionalGrade $tblWrittenExamGrade
+     * @param TblPrepareAdditionalGrade|null $tblExtraVerbalGrade
+     *
+     * @return float|int|string
+     */
+    public function calcAbiturExamGradesTotalForWrittenExam(
+        TblPrepareAdditionalGrade $tblWrittenExamGrade,
+        TblPrepareAdditionalGrade $tblExtraVerbalGrade = null
+    ) {
+
+        $writtenExamGradeValue = $tblWrittenExamGrade->getGrade();
+        if ($tblExtraVerbalGrade) {
+            $extraVerbalExamGradeValue = $tblExtraVerbalGrade->getGrade();
+            if ($extraVerbalExamGradeValue !== '' && $extraVerbalExamGradeValue !== null) {
+                $total = 4 * (floatval($writtenExamGradeValue) * (2 / 3) + floatval($extraVerbalExamGradeValue) * (1 / 3));
+            } else {
+                $total = floatval($writtenExamGradeValue) * 4;
+            }
+        } else {
+            $total = floatval($writtenExamGradeValue) * 4;
+        }
+        $total = str_pad(round($total), 2, 0, STR_PAD_LEFT);
+
+        return $total;
+    }
+
+    /**
+     * @param TblPrepareAdditionalGrade $tblVerbalExamGrade
+     * @param TblPrepareAdditionalGrade|null $tblExtraVerbalGrade
+     *
+     * @return float|int|string
+     */
+    public function calcAbiturExamGradesTotalForVerbalExam(
+        TblPrepareAdditionalGrade $tblVerbalExamGrade,
+        TblPrepareAdditionalGrade $tblExtraVerbalGrade = null
+    ) {
+
+        $verbalExamGradeValue = $tblVerbalExamGrade->getGrade();
+        if ($tblExtraVerbalGrade) {
+            $extraVerbalExamGradeValue = $tblExtraVerbalGrade->getGrade();
+            if ($extraVerbalExamGradeValue !== '' && $extraVerbalExamGradeValue !== null) {
+                $total = 4 * (floatval($verbalExamGradeValue) * (2 / 3) + floatval($extraVerbalExamGradeValue) * (1 / 3));
+                $total = str_pad(round($total), 2, 0, STR_PAD_LEFT);
+            } else {
+                $total = floatval($verbalExamGradeValue) * 4;
+            }
+        } else {
+            $total = floatval($verbalExamGradeValue) * 4;
+        }
+        $total = str_pad(round($total), 2, 0, STR_PAD_LEFT);
+
+        return $total;
+    }
 }

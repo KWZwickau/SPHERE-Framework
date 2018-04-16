@@ -28,7 +28,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Muted;
 
 /**
  * Class BlockI
@@ -277,26 +276,36 @@ class BlockI extends AbstractBlock
                     } elseif ($hasSubject && $this->View == BlockIView::PREVIEW && $tblPrepareAdditionalGradeType) {
                         if ($tblPrepareAdditionalGrade) {
                             $isSelected = $tblPrepareAdditionalGrade->isSelected();
+                            $value = str_pad($tblPrepareAdditionalGrade->getGrade(),2, 0, STR_PAD_LEFT);
                             $grades[$midTerm] = ($isSelected ? '' : '(')
-                                . $tblPrepareAdditionalGrade->getGrade()
+                                . $value
                                 . ($isSelected ? '' : ')');
                         }
                     }
                 }
             }
             $global->savePost();
-        } else {
-            $subjectName = new Muted($subjectName);
-        }
 
-        $array[] = array(
-            'Subject' => $subjectName,
-            'Course' => $course,
-            '11-1' => isset($grades['11-1']) ? $grades['11-1'] : '',
-            '11-2' => isset($grades['11-2']) ? $grades['11-2'] : '',
-            '12-1' => isset($grades['12-1']) ? $grades['12-1'] : '',
-            '12-2' => isset($grades['12-2']) ? $grades['12-2'] : '',
-        );
+            $array[] = array(
+                'Subject' => $subjectName,
+                'Course' => $course,
+                '11-1' => isset($grades['11-1']) ? $grades['11-1'] : '',
+                '11-2' => isset($grades['11-2']) ? $grades['11-2'] : '',
+                '12-1' => isset($grades['12-1']) ? $grades['12-1'] : '',
+                '12-2' => isset($grades['12-2']) ? $grades['12-2'] : '',
+            );
+        } else {
+            // nicht vorhandene Fächer sollen erstmal nicht angezeigt werden
+            // $subjectName = new Muted($subjectName);
+//            $array[] = array(
+//                'Subject' => $subjectName,
+//                'Course' => $course,
+//                '11-1' => isset($grades['11-1']) ? $grades['11-1'] : '',
+//                '11-2' => isset($grades['11-2']) ? $grades['11-2'] : '',
+//                '12-1' => isset($grades['12-1']) ? $grades['12-1'] : '',
+//                '12-2' => isset($grades['12-2']) ? $grades['12-2'] : '',
+//            );
+        }
 
         return $array;
     }

@@ -132,6 +132,7 @@ class BlockII extends AbstractBlock
             )
         );
 
+        // todo CheckBox ob BELL eingebracht wird als 5. PF
         $tableBELL = new TableData(
             array(array(
                 'Description' => new TextArea(
@@ -271,8 +272,6 @@ class BlockII extends AbstractBlock
                     $tblPrepareAdditionalGradeType,
                     $i))
             ) {
-                $writtenExamGradeValue = $writtenExamGrade->getGrade();
-
                 if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EXTRA_VERBAL_EXAM'))
                     && ($extraVerbalExamGrade = Prepare::useService()->getPrepareAdditionalGradeByRanking(
                         $this->tblPrepareCertificate,
@@ -280,15 +279,15 @@ class BlockII extends AbstractBlock
                         $tblPrepareAdditionalGradeType,
                         $i))
                 ) {
-                    $extraVerbalExamGradeValue = $extraVerbalExamGrade->getGrade();
 
-                    if ($extraVerbalExamGradeValue !== '' && $extraVerbalExamGradeValue !== null) {
-                        $total = 4 * (floatval($writtenExamGradeValue) * (2 / 3) + floatval($extraVerbalExamGradeValue) * (1 / 3));
-                        $total = round($total);
-                    } else {
-                        $total = floatval($writtenExamGradeValue) * 4;
-                    }
+                } else {
+                    $extraVerbalExamGrade = false;
                 }
+
+                $total = Prepare::useService()->calcAbiturExamGradesTotalForWrittenExam(
+                    $writtenExamGrade,
+                    $extraVerbalExamGrade ? $extraVerbalExamGrade : null
+                );
             }
         } else {
             if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('VERBAL_EXAM'))
@@ -298,8 +297,6 @@ class BlockII extends AbstractBlock
                     $tblPrepareAdditionalGradeType,
                     $i))
             ) {
-                $verbalExamGradeValue = $verbalExamGrade->getGrade();
-
                 if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EXTRA_VERBAL_EXAM'))
                     && ($extraVerbalExamGrade = Prepare::useService()->getPrepareAdditionalGradeByRanking(
                         $this->tblPrepareCertificate,
@@ -307,15 +304,15 @@ class BlockII extends AbstractBlock
                         $tblPrepareAdditionalGradeType,
                         $i))
                 ) {
-                    $extraVerbalExamGradeValue = $extraVerbalExamGrade->getGrade();
 
-                    if ($extraVerbalExamGradeValue !== '' && $extraVerbalExamGradeValue !== null) {
-                        $total = 4 * (floatval($verbalExamGradeValue) * (2 / 3) + floatval($extraVerbalExamGradeValue) * (1 / 3));
-                        $total = round($total);
-                    } else {
-                        $total = floatval($verbalExamGradeValue) * 4;
-                    }
+                } else {
+                    $extraVerbalExamGrade = false;
                 }
+
+                $total = Prepare::useService()->calcAbiturExamGradesTotalForVerbalExam(
+                    $verbalExamGrade,
+                    $extraVerbalExamGrade ? $extraVerbalExamGrade : null
+                );
             }
         }
 

@@ -324,6 +324,152 @@ class GymAbitur extends Certificate
             ))
         ;
 
+        /*
+         * Block II
+         */
+        $slice = new Slice();
+        $slice
+            ->addSection((new Section())
+                ->addSliceColumn(
+                    (new Slice)
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element())
+                                ->setContent('&nbsp;')
+                            )
+                        )
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element())
+                                ->setContent('Prüfungsfach')
+                                ->stylePaddingLeft('5px')
+                                ->styleTextBold()
+                            )
+                        )
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element())
+                                ->setContent('&nbsp;')
+                                ->styleTextSize('12px')
+                            )
+                        )
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element())
+                                ->setContent('&nbsp;')
+                                ->styleTextSize('13px')
+                            )
+                        )
+                        ->styleBorderTop()
+                        ->styleBorderLeft()
+                        ->styleMarginTop('10px')
+                    , '30%')
+                ->addSliceColumn(
+                    (new Slice)
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element())
+                                ->setContent('Bewertung:')
+                                ->styleTextBold()
+                                ->styleAlignCenter()
+                            )
+                        )
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element())
+                                ->setContent('Punktzahlen in einfacher Wertung')
+                                ->styleAlignCenter()
+                            )
+                        )
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element())
+                                ->setContent('schriftliche')
+                                ->styleTextSize('12px')
+                                ->styleAlignCenter()
+                                ->styleBorderTop()
+                                , '25%')
+                            ->addElementColumn((new Element())
+                                ->setContent('mündliche')
+                                ->styleTextSize('12px')
+                                ->styleAlignCenter()
+                                ->styleBorderTop()
+                                ->styleBorderLeft()
+                                , '25%')
+                            ->addElementColumn((new Element())
+                                ->setContent('zusätzliche')
+                                ->styleTextSize('12px')
+                                ->styleAlignCenter()
+                                ->styleBorderTop()
+                                ->styleBorderLeft()
+                                , '25%')
+                            ->addElementColumn((new Element())
+                                ->setContent('Gesamtergebnis in')
+                                ->styleTextSize('12px')
+                                ->styleAlignCenter()
+                                ->styleBorderTop()
+                                ->styleBorderLeft()
+                                , '25%')
+                        )
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element())
+                                ->setContent('Prüfung')
+                                ->styleTextSize('12px')
+                                ->styleAlignCenter()
+                                , '25%')
+                            ->addElementColumn((new Element())
+                                ->setContent('Prüfung')
+                                ->styleTextSize('12px')
+                                ->styleAlignCenter()
+                                ->styleBorderLeft()
+                                , '25%')
+                            ->addElementColumn((new Element())
+                                ->setContent('mündliche Prüfung')
+                                ->styleTextSize('12px')
+                                ->styleAlignCenter()
+                                ->styleBorderLeft()
+                                , '25%')
+                            ->addElementColumn((new Element())
+                                ->setContent('<b>vierfacher</b> Wertung')
+                                ->styleTextSize('12px')
+                                ->styleAlignCenter()
+                                ->styleBorderLeft()
+                                , '25%')
+                        )
+                        ->styleBorderLeft()
+                        ->styleBorderTop()
+                        ->styleBorderRight()
+                        ->styleMarginTop('10px')
+                    , '70%')
+            )
+            ->addSectionList($this->setExamRows($personId));
+
+        $pageList[] = (new Page())
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Vor- und Zuname')
+                        ->styleMarginTop('10px')
+                        , '18%')
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                                {{ Content.P' . $personId . '.Person.Data.Name.First }}
+                                {{ Content.P' . $personId . '.Person.Data.Name.Last }}
+                        ')
+                        ->styleAlignCenter()
+                        ->styleBorderBottom()
+                        ->styleMarginTop('10px')
+                    )
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Block II: Ergebnisse in der Abiturprüfung')
+                        ->styleTextBold()
+                        ->styleMarginTop('10px')
+                    )
+                )
+            )
+            ->addSlice($slice)
+            ->addSlice($this->getInfo(
+                '500px',
+                '¹ Alle Punktzahlen werden zweistellig angegeben.',
+                '² Halbjahresergebnisse aus Leistungskursfächern (LF) werden doppelt gewichtet.',
+                '³ Bei Einbringung einer Besonderen Lernleistung wird diese an Stelle des 5. Prüfungsfaches gewertet.'
+            ));
+
         return $pageList;
     }
 
@@ -418,7 +564,8 @@ class GymAbitur extends Certificate
                         ))
                     ) {
                         $isSelected = $tblPrepareAdditionalGrade->isSelected();
-                        $grades[$midTerm] = ($isSelected ? '' : '(') . $tblPrepareAdditionalGrade->getGrade() . ($isSelected ? '' : ')');
+                        $value = str_pad($tblPrepareAdditionalGrade->getGrade(),2, 0, STR_PAD_LEFT);
+                        $grades[$midTerm] = ($isSelected ? '' : '(') . $value . ($isSelected ? '' : ')');
                     }
                 }
             }
@@ -474,6 +621,142 @@ class GymAbitur extends Certificate
                 ->styleBorderBottom($isLastRow ? '1px' : '0px')
                 , '12.5%')
             ;
+    }
+
+    private function setExamRows($personId)
+    {
+        $color = '#BBB';
+        $sectionList = array();
+
+        for ($i = 1; $i < 6; $i++) {
+            $section = new Section();
+
+            $subjectName = '&nbsp;';
+            $writtenExam = '&nbsp;';
+            $verbalExam = '&nbsp;';
+            $extraVerbalExam = '&nbsp;';
+            $total = '&nbsp;';
+
+            if (($tblPerson = Person::useService()->getPersonById($personId))
+                && $this->getTblPrepareCertificate()
+            ) {
+
+                if ($i < 4) {
+                    if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('WRITTEN_EXAM'))
+                        && ($writtenExamGrade = Prepare::useService()->getPrepareAdditionalGradeByRanking(
+                            $this->getTblPrepareCertificate(),
+                            $tblPerson,
+                            $tblPrepareAdditionalGradeType,
+                            $i))
+                    ) {
+                        if (($tblSubject = $writtenExamGrade->getServiceTblSubject())) {
+                            $subjectName = $i . '. ' . ($i < 3 ? '(LF) ' : ' ') . $tblSubject->getName();
+                        }
+
+                        $writtenExam = str_pad($writtenExamGrade->getGrade(), 2, 0, STR_PAD_LEFT);
+
+                        if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EXTRA_VERBAL_EXAM'))
+                            && ($extraVerbalExamGrade = Prepare::useService()->getPrepareAdditionalGradeByRanking(
+                                $this->getTblPrepareCertificate(),
+                                $tblPerson,
+                                $tblPrepareAdditionalGradeType,
+                                $i))
+                        ) {
+                            $extraVerbalExamGradeValue = $extraVerbalExamGrade->getGrade();
+                            if ($extraVerbalExamGradeValue !== '' && $extraVerbalExamGradeValue !== null) {
+                                $extraVerbalExam = str_pad($extraVerbalExamGradeValue, 2, 0, STR_PAD_LEFT);
+                            }
+                        } else {
+                            $extraVerbalExamGrade = false;
+                        }
+
+                        $total = Prepare::useService()->calcAbiturExamGradesTotalForWrittenExam(
+                            $writtenExamGrade,
+                            $extraVerbalExamGrade ? $extraVerbalExamGrade : null
+                        );
+                    }
+                } else {
+                    if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('VERBAL_EXAM'))
+                        && ($verbalExamGrade = Prepare::useService()->getPrepareAdditionalGradeByRanking(
+                            $this->getTblPrepareCertificate(),
+                            $tblPerson,
+                            $tblPrepareAdditionalGradeType,
+                            $i))
+                    ) {
+                        if (($tblSubject = $verbalExamGrade->getServiceTblSubject())) {
+                            $subjectName = $i . '. ' . ($i < 3 ? '(LF) ' : ' ') . $tblSubject->getName();
+                        }
+
+                        $verbalExam = str_pad($verbalExamGrade->getGrade(), 2, 0, STR_PAD_LEFT);
+
+                        if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EXTRA_VERBAL_EXAM'))
+                            && ($extraVerbalExamGrade = Prepare::useService()->getPrepareAdditionalGradeByRanking(
+                                $this->getTblPrepareCertificate(),
+                                $tblPerson,
+                                $tblPrepareAdditionalGradeType,
+                                $i))
+                        ) {
+                            $extraVerbalExamGradeValue = $extraVerbalExamGrade->getGrade();
+                            if ($extraVerbalExamGradeValue !== '' && $extraVerbalExamGradeValue !== null) {
+                                $extraVerbalExam = str_pad($extraVerbalExamGradeValue, 2, 0, STR_PAD_LEFT);
+                            }
+                        } else {
+                            $extraVerbalExamGrade = false;
+                        }
+
+                        $total = Prepare::useService()->calcAbiturExamGradesTotalForVerbalExam(
+                            $verbalExamGrade,
+                            $extraVerbalExamGrade ? $extraVerbalExamGrade : null
+                        );
+                    }
+                }
+            }
+
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent($subjectName)
+                    ->styleBorderLeft()
+                    ->styleBorderTop()
+                    ->styleBorderBottom($i < 5 ? '0px' : '1px')
+                    , '30%')
+                ->addElementColumn((new Element())
+                    ->setContent($writtenExam)
+                    ->styleAlignCenter()
+                    ->styleBorderLeft()
+                    ->styleBorderTop()
+                    ->styleBorderBottom($i < 5 ? '0px' : '1px')
+                    ->styleBackgroundColor($i <4 ? $color : '#FFF')
+                    , '17.5%')
+                ->addElementColumn((new Element())
+                    ->setContent($verbalExam)
+                    ->styleAlignCenter()
+                    ->styleBorderLeft()
+                    ->styleBorderTop()
+                    ->styleBorderBottom($i < 5 ? '0px' : '1px')
+                    ->styleBackgroundColor($i > 3 ? $color : '#FFF')
+                    , '17.5%')
+                ->addElementColumn((new Element())
+                    ->setContent($extraVerbalExam)
+                    ->styleAlignCenter()
+                    ->styleBorderLeft()
+                    ->styleBorderTop()
+                    ->styleBorderBottom($i < 5 ? '0px' : '1px')
+                    ->styleBackgroundColor($color)
+                    , '17.5%')
+                ->addElementColumn((new Element())
+                    ->setContent($total)
+                    ->styleAlignCenter()
+                    ->styleBorderLeft()
+                    ->styleBorderTop()
+                    ->styleBorderBottom($i < 5 ? '0px' : '1px')
+                    ->styleBorderRight()
+                    ->styleBackgroundColor($color)
+                    , '17.5%');
+
+            $sectionList[] = $section;
+        }
+
+        return $sectionList;
     }
 
     /**
