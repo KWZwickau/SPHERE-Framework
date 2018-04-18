@@ -89,7 +89,7 @@ class ApiStudent extends Extension implements IApiInterface
                         .new Container('Es erfolgt keine Speicherung der Schülernummer.')));
                 } else {
                     // Info über historisch benutze Schülernummer ausgeben
-                    return new Danger(new Bold('Die Schülernummer wurde bereits vergeben'
+                    return new Danger(new Bold('Die Schülernummer ist bereits vergeben: -[ Person gelöscht ]-'
 //                    .new Container()
                         .new Container('Es erfolgt keine Speicherung der Schülernummer.')));
                 }
