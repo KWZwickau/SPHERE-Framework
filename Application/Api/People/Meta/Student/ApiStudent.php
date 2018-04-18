@@ -74,21 +74,25 @@ class ApiStudent extends Extension implements IApiInterface
     {
 
         if (isset($Meta['Student']['Identifier']) && ($Identifier = $Meta['Student']['Identifier'])) {
-            $tblStudent = Student::useService()->getStudentByIdentifier($Identifier);
+            $tblStudent = Student::useService()->getStudentByIdentifier($Identifier, true);
             if ($tblStudent) {
                 $tblPerson = $tblStudent->getServiceTblPerson();
                 // Eigene Schülernummer ignorieren
                 if ($tblPerson && $PersonId == $tblPerson->getId()) {
                     return '';
                 }
-                // Person ausgeben die der Schülernummer entspricht
-                $PersonString = '';
                 if ($tblPerson) {
+                    // Person ausgeben die der Schülernummer entspricht
                     $PersonString = $tblPerson->getLastFirstName();
-                }
-                return new Danger(new Bold('Die Schülernummer ist bereits vergeben: '.$PersonString
+                    return new Danger(new Bold('Die Schülernummer ist bereits vergeben: '.$PersonString
 //                    .new Container()
-                    .new Container('Es erfolgt keine Speicherung der Schülernummer.')));
+                        .new Container('Es erfolgt keine Speicherung der Schülernummer.')));
+                } else {
+                    // Info über historisch benutze Schülernummer ausgeben
+                    return new Danger(new Bold('Die Schülernummer wurde bereits vergeben'
+//                    .new Container()
+                        .new Container('Es erfolgt keine Speicherung der Schülernummer.')));
+                }
             }
         }
         return '';
