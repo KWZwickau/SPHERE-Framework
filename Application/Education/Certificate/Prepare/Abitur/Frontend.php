@@ -22,6 +22,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
@@ -37,6 +38,8 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 
@@ -141,11 +144,38 @@ class Frontend
                                 $tblCertificate = $tblPrepareStudent->getServiceTblCertificate();
                             }
 
-                            // todo status einbringung der Noten (sind 40 schon erreicht)
+                            list($countCourses, $resultBlockI) = Prepare::useService()->getResultForAbiturBlockI(
+                                $tblPrepare,
+                                $tblPerson
+                            );
+                            if ($countCourses == 40) {
+                                $countCourses = new Success(new Check() . ' ' . $countCourses . ' von 40');
+                            } else {
+                                $countCourses = new Warning(new Disable() . ' ' . $countCourses . ' von 40');
+                            }
+                            if ($resultBlockI >= 200) {
+                                $resultBlockI = new Success(new Check() . ' ' . $resultBlockI . ' von mindestens 200');
+                            } else {
+                                $resultBlockI = new Warning(new Disable() . ' ' . $resultBlockI . ' von mindestens 200');
+                            }
+
+                            $resultBlockII = Prepare::useService()->getResultForAbiturBlockII(
+                                $tblPrepare,
+                                $tblPerson
+                            );
+                            if ($resultBlockII >= 100) {
+                                $resultBlockII = new Success(new Check() . ' ' . $resultBlockII . ' von mindestens 100');
+                            } else {
+                                $resultBlockII = new Warning(new Disable() . ' ' . $resultBlockII . ' von mindestens 100');
+                            }
+
                             $studentTable[] = array(
                                 'Number' => $count++,
                                 'Name' => $tblPerson->getLastFirstName(),
                                 'Division' => $tblDivisionItem->getDisplayName(),
+                                'SelectedCourses' => $countCourses,
+                                'ResultBlockI' => $resultBlockI,
+                                'ResultBlockII' => $resultBlockII,
                                 'Option' => ($tblCertificate
                                     ?
                                     (new Standard(
@@ -208,6 +238,9 @@ class Frontend
                     'Number' => '#',
                     'Name' => 'Name',
                     'Division' => 'Klasse',
+                    'SelectedCourses' => 'Eingebrachte Kurse',
+                    'ResultBlockI' => 'Block I Punktsumme',
+                    'ResultBlockII' => 'Block II Punktsumme',
                     'Option' => ' '
                 ),
                 array(
@@ -321,6 +354,27 @@ class Frontend
                 $textChooseCourses = 'Kurse einbringen';
             }
 
+            list($countCourses, $resultBlockI) = Prepare::useService()->getResultForAbiturBlockI(
+                $tblPrepare,
+                $tblPerson
+            );
+
+            if ($countCourses == 40) {
+                $countCourses = new \SPHERE\Common\Frontend\Message\Repository\Success(
+                    new Check() . ' ' . $countCourses . ' von 40 Kursen eingebracht.');
+            } else {
+                $countCourses = new \SPHERE\Common\Frontend\Message\Repository\Warning(
+                    new Disable() . ' ' . $countCourses . ' von 40 Kursen eingebracht.');
+            }
+
+            if ($resultBlockI >= 200) {
+                $resultBlockI = new \SPHERE\Common\Frontend\Message\Repository\Success(
+                    new Check() . ' ' . $resultBlockI . ' von mindestens 200 Punkten erreicht.');
+            } else {
+                $resultBlockI = new \SPHERE\Common\Frontend\Message\Repository\Warning(
+                    new Disable() . ' ' . $resultBlockI . ' von mindestens 200 Punkten erreicht.');
+            }
+
             $stage->setContent(
                 new Layout(array(
                     new LayoutGroup(array(
@@ -349,6 +403,13 @@ class Frontend
                                         'View' => BlockIView::CHOOSE_COURSES
                                     )
                                 ),
+                            ))
+                        )),
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                '<br>',
+                                $countCourses,
+                                $resultBlockI
                             ))
                         )),
                         new LayoutRow(array(

@@ -3432,4 +3432,264 @@ class Service extends AbstractService
 
         return $total;
     }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson $tblPerson
+     *
+     * @return array
+     */
+    public function getCoursesForStudent(TblDivision $tblDivision, TblPerson $tblPerson)
+    {
+
+        $advancedCourses = array();
+        $basicCourses = array();
+        if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))) {
+            foreach ($tblDivisionSubjectList as $tblDivisionSubjectItem) {
+                if (($tblSubjectGroup = $tblDivisionSubjectItem->getTblSubjectGroup())) {
+
+                    if (($tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject(
+                        $tblDivisionSubjectItem))
+                    ) {
+                        foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                            if (($tblSubject = $tblDivisionSubjectItem->getServiceTblSubject())
+                                && ($tblPersonStudent = $tblSubjectStudent->getServiceTblPerson())
+                                && $tblPerson->getId() == $tblPersonStudent->getId()
+                            ) {
+                                if ($tblSubjectGroup->isAdvancedCourse()) {
+                                    $advancedCourses[$tblSubject->getId()] = $tblSubject;
+                                } else {
+                                    $basicCourses[$tblSubject->getId()] = $tblSubject;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return array($advancedCourses, $basicCourses);
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblPerson $tblPerson
+     *
+     * @return array
+     */
+    public function getResultForAbiturBlockI(
+        TblPrepareCertificate $tblPrepare,
+        TblPerson $tblPerson
+    ) {
+        $countCourses = 0;
+        $countCoursesTotal = 0;
+        $resultBlockI = 0;
+        if (($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
+            $tblPrepare,
+            $tblPerson
+        ))) {
+
+            if (($tblDivision = $tblPrepare->getServiceTblDivision())) {
+                list($advancedCourses, $basicCourses) = Prepare::useService()->getCoursesForStudent(
+                    $tblDivision,
+                    $tblPerson
+                );
+            } else {
+                $advancedCourses = array();
+            }
+
+            foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
+                $identifier = $tblPrepareAdditionalGrade->getTblPrepareAdditionalGradeType()->getIdentifier();
+                if ($identifier == '11-1' || $identifier == '11-2' || $identifier == '12-1' || $identifier == '12-2') {
+                    if (($tblPrepareAdditionalGrade->isSelected())) {
+
+                        $countCourses++;
+
+                        // Leistungskurse zählen doppelt
+                        if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())
+                            && isset($advancedCourses[$tblSubject->getId()])
+                        ) {
+                            $countCoursesTotal += 2;
+                            $resultBlockI += 2 * floatval($tblPrepareAdditionalGrade->getGrade());
+                        } else {
+                            $countCoursesTotal++;
+                            $resultBlockI += floatval($tblPrepareAdditionalGrade->getGrade());
+                        }
+                    }
+                }
+            }
+
+            if ($countCoursesTotal > 0) {
+                $resultBlockI = round(($resultBlockI / $countCoursesTotal) * 40);
+            }
+        }
+
+        return array($countCourses, $resultBlockI);
+    }
+
+    /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     * @param TblPerson $tblPerson
+     *
+     * @return int
+     * @throws \Exception
+     */
+    public function getResultForAbiturBlockII(
+        TblPrepareCertificate $tblPrepareCertificate,
+        TblPerson $tblPerson
+    ) {
+
+        $result = 0;
+        for ($i = 1; $i < 6; $i++) {
+            $total = 0;
+            if ($i < 4) {
+                if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('WRITTEN_EXAM'))
+                    && ($writtenExamGrade = Prepare::useService()->getPrepareAdditionalGradeByRanking(
+                        $tblPrepareCertificate,
+                        $tblPerson,
+                        $tblPrepareAdditionalGradeType,
+                        $i))
+                ) {
+                    if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EXTRA_VERBAL_EXAM'))
+                        && ($extraVerbalExamGrade = Prepare::useService()->getPrepareAdditionalGradeByRanking(
+                            $tblPrepareCertificate,
+                            $tblPerson,
+                            $tblPrepareAdditionalGradeType,
+                            $i))
+                    ) {
+
+                    } else {
+                        $extraVerbalExamGrade = false;
+                    }
+
+                    $total = Prepare::useService()->calcAbiturExamGradesTotalForWrittenExam(
+                        $writtenExamGrade,
+                        $extraVerbalExamGrade ? $extraVerbalExamGrade : null
+                    );
+                }
+            } else {
+                if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('VERBAL_EXAM'))
+                    && ($verbalExamGrade = Prepare::useService()->getPrepareAdditionalGradeByRanking(
+                        $tblPrepareCertificate,
+                        $tblPerson,
+                        $tblPrepareAdditionalGradeType,
+                        $i))
+                ) {
+                    if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('EXTRA_VERBAL_EXAM'))
+                        && ($extraVerbalExamGrade = Prepare::useService()->getPrepareAdditionalGradeByRanking(
+                            $tblPrepareCertificate,
+                            $tblPerson,
+                            $tblPrepareAdditionalGradeType,
+                            $i))
+                    ) {
+
+                    } else {
+                        $extraVerbalExamGrade = false;
+                    }
+
+                    $total = Prepare::useService()->calcAbiturExamGradesTotalForVerbalExam(
+                        $verbalExamGrade,
+                        $extraVerbalExamGrade ? $extraVerbalExamGrade : null
+                    );
+                }
+            }
+
+            // die Bell ersetzt das 5. Prüfungsfach
+            if ($i == 5) {
+                if (($tblPrepareInformationIsBellUsed = Prepare::useService()->getPrepareInformationBy(
+                        $tblPrepareCertificate, $tblPerson, 'IsBellUsed'))
+                    && $tblPrepareInformationIsBellUsed->getValue()
+                ) {
+                    $total = 0;
+                    if (($tblPrepareInformationBellPoints = Prepare::useService()->getPrepareInformationBy(
+                        $tblPrepareCertificate, $tblPerson, 'BellPoints'))
+                    ) {
+                        $total = floatval($tblPrepareInformationBellPoints->getValue());
+                    }
+                }
+            }
+
+            $result += floatval($total);
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param $totalPoints
+     *
+     * @return string
+     */
+    public function  getResultForAbiturAverageGrade(
+        $totalPoints
+    ) {
+
+        // ist Formel korrekt?
+//        return str_replace('.',',', round((17/3) - ($totalPoints/180),1));
+        if ($totalPoints <= 900 && $totalPoints > 822) {
+            return '1,0';
+        } elseif ($totalPoints > 804) {
+            return '1,1';
+        } elseif ($totalPoints > 786) {
+            return '1,2';
+        } elseif ($totalPoints > 768) {
+            return '1,3';
+        } elseif ($totalPoints > 750) {
+            return '1,4';
+        } elseif ($totalPoints > 732) {
+            return '1,5';
+        } elseif ($totalPoints > 714) {
+            return '1,6';
+        } elseif ($totalPoints > 696) {
+            return '1,7';
+        } elseif ($totalPoints > 678) {
+            return '1,8';
+        } elseif ($totalPoints > 660) {
+            return '1,9';
+        } elseif ($totalPoints > 642) {
+            return '2,0';
+        } elseif ($totalPoints > 624) {
+            return '2,1';
+        } elseif ($totalPoints > 606) {
+            return '2,2';
+        } elseif ($totalPoints > 588) {
+            return '2,3';
+        } elseif ($totalPoints > 570) {
+            return '2,4';
+        } elseif ($totalPoints > 552) {
+            return '2,5';
+        } elseif ($totalPoints > 534) {
+            return '2,6';
+        } elseif ($totalPoints > 516) {
+            return '2,7';
+        } elseif ($totalPoints > 498) {
+            return '2,8';
+        } elseif ($totalPoints > 480) {
+            return '2,9';
+        } elseif ($totalPoints > 462) {
+            return '3,0';
+        } elseif ($totalPoints > 444) {
+            return '3,1';
+        } elseif ($totalPoints > 426) {
+            return '3,2';
+        } elseif ($totalPoints > 408) {
+            return '3,3';
+        } elseif ($totalPoints > 390) {
+            return '3,4';
+        } elseif ($totalPoints > 372) {
+            return '3,5';
+        } elseif ($totalPoints > 354) {
+            return '3,6';
+        } elseif ($totalPoints > 336) {
+            return '3,7';
+        } elseif ($totalPoints > 318) {
+            return '3,8';
+        } elseif ($totalPoints > 300) {
+            return '3,9';
+        } elseif ($totalPoints == 300) {
+            return '4,0';
+        } else {
+            return '&nbsp;';
+        }
+    }
 }

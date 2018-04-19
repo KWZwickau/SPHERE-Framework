@@ -22,6 +22,8 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Check;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -29,6 +31,8 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 
 /**
@@ -201,6 +205,16 @@ class BlockII extends AbstractBlock
             $content = $form;
         }
 
+        $resultBlockII = Prepare::useService()->getResultForAbiturBlockII(
+            $this->tblPrepareCertificate,
+            $this->tblPerson
+        );
+        if ($resultBlockII >= 100) {
+            $resultBlockII = new Success(new Check() . ' ' . $resultBlockII . ' von mindestens 100 Punkten erreicht.');
+        } else {
+            $resultBlockII = new Warning(new Disable() . ' ' . $resultBlockII . ' von mindestens 100 Punkten erreicht.');
+        }
+
         return new Layout(array(
             new LayoutGroup(array(
                 new LayoutRow(array(
@@ -210,6 +224,7 @@ class BlockII extends AbstractBlock
                             $this->tblPerson ? $this->tblPerson->getLastFirstName() : '',
                             Panel::PANEL_TYPE_INFO
                         ),
+                        $resultBlockII
                     ))
                 )),
                 new LayoutRow(array(

@@ -343,6 +343,22 @@ class GymAbitur extends Certificate
             $bellPoints = '&nbsp;';
         }
 
+        // Berechnung der Gesamtqualifikation und der Durchschnittsnote
+        list($countCourses, $resultBlockI) = Prepare::useService()->getResultForAbiturBlockI(
+            $this->getTblPrepareCertificate(),
+            $tblPerson
+        );
+        $resultBlockII = Prepare::useService()->getResultForAbiturBlockII(
+            $this->getTblPrepareCertificate(),
+            $tblPerson
+        );
+        $resultPoints = $resultBlockI + $resultBlockII;
+        if ($resultBlockI >= 200 && $resultBlockII >= 100) {
+            $resultAverageGrade = Prepare::useService()->getResultForAbiturAverageGrade($resultPoints);
+        } else {
+            $resultAverageGrade = '&nbsp;';
+        }
+
         $slice = new Slice();
         $slice
             ->addSection((new Section())
@@ -553,7 +569,6 @@ class GymAbitur extends Certificate
                 )
             )
             // Berechnung der Gesamtqualifikation und der Durchschnittsnote
-            // todo Points berechnen und  anzeigen
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -583,7 +598,7 @@ class GymAbitur extends Certificate
                         ->stylePaddingLeft('5px')
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
+                        ->setContent($resultBlockI)
                         ->styleAlignCenter()
                         ->styleBorderBottom()
                         , '10%')
@@ -626,7 +641,7 @@ class GymAbitur extends Certificate
                         ->stylePaddingLeft('5px')
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
+                        ->setContent($resultBlockII)
                         ->styleAlignCenter()
                         ->styleBorderBottom()
                         , '10%')
@@ -656,7 +671,7 @@ class GymAbitur extends Certificate
                         ->stylePaddingLeft('5px')
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
+                        ->setContent($resultPoints)
                         ->styleAlignCenter()
                         ->styleBorderBottom()
                         , '10%')
@@ -680,7 +695,7 @@ class GymAbitur extends Certificate
                         ->stylePaddingLeft('5px')
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
+                        ->setContent($resultAverageGrade)
                         ->styleAlignCenter()
                         ->styleBorderBottom()
                         , '10%')

@@ -8,9 +8,9 @@
 
 namespace SPHERE\Application\Education\Certificate\Prepare\Abitur;
 
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareStudent;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -72,34 +72,11 @@ abstract class AbstractBlock extends Extension
 
     protected function setCourses()
     {
-        $advancedCourses = array();
-        $basicCourses = array();
-        if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($this->tblDivision))) {
-            foreach ($tblDivisionSubjectList as $tblDivisionSubjectItem) {
-                if (($tblSubjectGroup = $tblDivisionSubjectItem->getTblSubjectGroup())) {
 
-                    if (($tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject(
-                        $tblDivisionSubjectItem))
-                    ) {
-                        foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                            if (($tblSubject = $tblDivisionSubjectItem->getServiceTblSubject())
-                                && ($tblPersonStudent = $tblSubjectStudent->getServiceTblPerson())
-                                && $this->tblPerson->getId() == $tblPersonStudent->getId()
-                            ) {
-                                if ($tblSubjectGroup->isAdvancedCourse()) {
-                                    $advancedCourses[$tblSubject->getId()] = $tblSubject;
-                                } else {
-                                    $basicCourses[$tblSubject->getId()] = $tblSubject;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        $this->AdvancedCourses = $advancedCourses;
-        $this->BasicCourses = $basicCourses;
+        list($this->AdvancedCourses, $this->BasicCourses) = Prepare::useService()->getCoursesForStudent(
+            $this->tblDivision,
+            $this->tblPerson
+        );
     }
 
     /**
