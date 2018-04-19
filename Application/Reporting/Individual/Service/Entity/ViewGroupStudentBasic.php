@@ -117,12 +117,14 @@ class ViewGroupStudentBasic extends AbstractView
     {
 
         switch ($PropertyName) {
-//            case self::SIBLINGS_COUNT:
-//                $PropertyCount = $this->calculateFormFieldCount( $PropertyName, $doResetCount );
-//                $Field = new NumberField( $PropertyName.'['.$PropertyCount.']',
-//                    $Placeholder, $Label, $Icon
-//                );
-//                break;
+            case self::TBL_STUDENT_HAS_MIGRATION_BACKGROUND:
+                $Data[1] = 'Ja';
+                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount);
+                break;
+            case self::TBL_STUDENT_IS_IN_PREPARATION_DIVISION_FOR_MIGRANTS:
+                $Data[1] = 'Ja';
+                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount);
+                break;
             default:
                 $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );
                 break;

@@ -91,15 +91,17 @@ class Data extends AbstractData
 
     /**
      * @param TblPreset $tblPreset
+     * @param string    $ViewType
      *
      * @return false|TblPresetSetting[]
      */
-    public function getPresetSettingAllByPreset(TblPreset $tblPreset)
+    public function getPresetSettingAllByPreset(TblPreset $tblPreset, $ViewType = TblWorkSpace::VIEW_TYPE_ALL)
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPresetSetting',
             array(
                 TblPresetSetting::ATTR_TBL_PRESET => $tblPreset->getId(),
+                TblPresetSetting::ATTR_VIEW_TYPE => $ViewType
             ));
     }
 

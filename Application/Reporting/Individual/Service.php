@@ -108,13 +108,14 @@ class Service extends AbstractService
 
     /**
      * @param TblPreset $tblPreset
+     * @param string    $ViewType
      *
      * @return false|TblPresetSetting[]
      */
-    public function getPresetSettingAllByPreset(TblPreset $tblPreset)
+    public function getPresetSettingAllByPreset(TblPreset $tblPreset, $ViewType = TblWorkSpace::VIEW_TYPE_ALL)
     {
 
-        return (new Data($this->getBinding()))->getPresetSettingAllByPreset($tblPreset);
+        return (new Data($this->getBinding()))->getPresetSettingAllByPreset($tblPreset, $ViewType);
     }
 
     /**
@@ -228,13 +229,14 @@ class Service extends AbstractService
 
     /**
      * @param TblPreset $tblPreset
+     * @param string    $ViewType
      *
      * @return bool
      */
-    public function removePreset(TblPreset $tblPreset)
+    public function removePreset(TblPreset $tblPreset, $ViewType = TblWorkSpace::VIEW_TYPE_ALL)
     {
 
-        $tblPresetSettingList = Individual::useService()->getPresetSettingAllByPreset($tblPreset);
+        $tblPresetSettingList = Individual::useService()->getPresetSettingAllByPreset($tblPreset, $ViewType);
         if ($tblPresetSettingList) {
             foreach ($tblPresetSettingList as $tblPresetSetting) {
                 (new Data($this->getBinding()))->removePresetSetting($tblPresetSetting);

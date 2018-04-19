@@ -393,10 +393,11 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
     /**
      * @param string $Info
+     * @param string $ViewType
      *
      * @return Pipeline
      */
-    public static function pipelinePresetSaveModal($Info = '')
+    public static function pipelinePresetSaveModal($Info = '', $ViewType = TblWorkSpace::VIEW_TYPE_ALL)
     {
 
         $Pipeline = new Pipeline();
@@ -405,7 +406,8 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             self::API_TARGET => 'getModalSavePreset'
         ));
         $Emitter->setPostPayload(array(
-            'Info' => $Info
+            'Info' => $Info,
+            'ViewType' => $ViewType
         ));
         $Pipeline->appendEmitter($Emitter);
 
@@ -666,7 +668,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 $Item['EntityCreate'] = $tblPreset->getEntityCreate();
                 $Item['FieldCount'] = '';
                 $Item['Option'] = '';
-                $tblPresetSetting = Individual::useService()->getPresetSettingAllByPreset($tblPreset);
+                $tblPresetSetting = Individual::useService()->getPresetSettingAllByPreset($tblPreset, $ViewType);
 
                 if ($tblPresetSetting) {
                     $Item['FieldCount'] = count($tblPresetSetting);
@@ -722,7 +724,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         if ($tblPreset) {
             // destroy existing Workspace
             Individual::useService()->removeWorkSpaceAll($ViewType);
-            $tblPresetSettingList = Individual::useService()->getPresetSettingAllByPreset($tblPreset);
+            $tblPresetSettingList = Individual::useService()->getPresetSettingAllByPreset($tblPreset, $ViewType);
             $ViewType = TblWorkSpace::VIEW_TYPE_ALL;
             if ($tblPresetSettingList) {
                 foreach ($tblPresetSettingList as $tblPresetSetting) {
@@ -756,7 +758,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
         $tblPreset = Individual::useService()->getPresetById($PresetId);
         if ($tblPreset) {
-            if(($tblPresetSetting = Individual::useService()->getPresetSettingAllByPreset($tblPreset))){
+            if(($tblPresetSetting = Individual::useService()->getPresetSettingAllByPreset($tblPreset, $ViewType))){
                 $tblWorkSpaceList = Individual::useService()->getWorkSpaceAll($tblPresetSetting[0]->getViewType());
                 if ($tblWorkSpaceList) {
                     foreach ($tblWorkSpaceList as $tblWorkSpace) {
@@ -768,7 +770,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 }
             }
 
-            Individual::useService()->removePreset($tblPreset);
+            Individual::useService()->removePreset($tblPreset, $ViewType);
 //            $Info = 'Erfolgreich entfernt';
             return ApiIndividual::pipelinePresetShowModal('', $ViewType);
         }
@@ -779,26 +781,27 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
     /**
      * @param string $Info
+     * @param string $ViewType
      *
      * @return Layout
      */
-    public function getModalSavePreset($Info = '')
+    public function getModalSavePreset($Info = '', $ViewType = TblWorkSpace::VIEW_TYPE_ALL)
     {
 
         $tblPresetList = Individual::useService()->getPresetAll();
         $TableContent = array();
         $viewStudent = new ViewStudent();
 
-        $ViewType = TblWorkSpace::VIEW_TYPE_ALL;
         if ($tblPresetList) {
-            array_walk($tblPresetList, function (TblPreset $tblPreset) use (&$TableContent, $viewStudent, &$ViewType) {
+            array_walk($tblPresetList, function (TblPreset $tblPreset) use (&$TableContent, $viewStudent, $ViewType) {
                 $Item['Name'] = $tblPreset->getName();
                 $Item['EntityCreate'] = $tblPreset->getEntityCreate();
                 $Item['FieldCount'] = '';
 
-                $tblPresetSettingList = Individual::useService()->getPresetSettingAllByPreset($tblPreset);
+                $tblPresetSettingList = Individual::useService()->getPresetSettingAllByPreset($tblPreset, $ViewType);
+                $ViewTypeControll = '';
                 if ($tblPresetSettingList) {
-                    $ViewType = $tblPresetSettingList[0]->getViewType();
+                    $ViewTypeControll = $tblPresetSettingList[0]->getViewType();
                     $FieldCount = count($tblPresetSettingList);
 //                    //Anzeige der Felder als Accordion
 //                    $FieldList = array();
@@ -814,7 +817,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
                     $Item['FieldCount'] = $FieldCount;
                 }
-                array_push($TableContent, $Item);
+                if($ViewTypeControll == $ViewType){
+                    array_push($TableContent, $Item);
+                }
             });
         }
 
@@ -880,12 +885,12 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 Individual::useService()->createPresetSetting($tblPreset, $tblWorkSpace);
             }
             $Info = 'Speicherung erfolgreich';
-            return ApiIndividual::pipelinePresetSaveModal($Info)
+            return ApiIndividual::pipelinePresetSaveModal($Info, $ViewType)
                 .ApiIndividual::pipelineCloseModal();
         }
 
         $Info = 'Speicherung konnte nicht erfolgen bitte überprüfen Sie ihre Eingabe';
-        return ApiIndividual::pipelinePresetSaveModal($Info);
+        return ApiIndividual::pipelinePresetSaveModal($Info, $ViewType);
 
     }
 
@@ -1317,7 +1322,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     (new LinkGroup())->addLink(
                         (new Standard('Filter speichern', ApiIndividual::getEndpoint(), new FolderClosed(), array(),
                             'Speichern als Filtervorlage'))->ajaxPipelineOnClick(
-                            ApiIndividual::pipelinePresetSaveModal()
+                            ApiIndividual::pipelinePresetSaveModal('', $ViewType)
                         )
                     )->addLink(
                         (new Standard('Filter laden', ApiIndividual::getEndpoint(), new FolderOpen(), array(),
@@ -1370,13 +1375,13 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     new LayoutRow(array(
                     new LayoutColumn(new ToolTip(
                             '<div class="alert alert-info" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
-                            . new RadioBox($RadioBoxName, '&nbsp;', 1, RadioBox::RADIO_BOX_TYPE_DEFAULT)
+                            . (new RadioBox($RadioBoxName, '&nbsp;', 1, RadioBox::RADIO_BOX_TYPE_DEFAULT))->setTabIndex(-1)
                             . '</div>'
                             , 'equal (gleich)', false)
                         , 3),
                     new LayoutColumn(new ToolTip(
                             '<div class="alert alert-danger" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
-                            . new RadioBox($RadioBoxName, '&nbsp;', 2, RadioBox::RADIO_BOX_TYPE_DANGER)
+                            . (new RadioBox($RadioBoxName, '&nbsp;', 2, RadioBox::RADIO_BOX_TYPE_DANGER))->setTabIndex(-1)
                             . '</div>'
                             , 'not equal (ungleich)', false)
                         , 3)
@@ -1389,7 +1394,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     new LayoutRow(array(
                         new LayoutColumn(new ToolTip(
                             '<div class="alert alert-info" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
-                            . new RadioBox($RadioBoxName, '&nbsp;', 1, RadioBox::RADIO_BOX_TYPE_DEFAULT)
+                            . (new RadioBox($RadioBoxName, '&nbsp;', 1, RadioBox::RADIO_BOX_TYPE_DEFAULT))->setTabIndex(-1)
                             . '</div>'
                             , 'equal (gleich)', false)
                         , 3),
@@ -1402,25 +1407,25 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     new LayoutRow(array(
                         new LayoutColumn(new ToolTip(
                             '<div class="alert alert-info" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
-                            .new RadioBox($RadioBoxName, '&nbsp;', 1, RadioBox::RADIO_BOX_TYPE_DEFAULT)
+                            .(new RadioBox($RadioBoxName, '&nbsp;', 1, RadioBox::RADIO_BOX_TYPE_DEFAULT))->setTabIndex(-1)
                             .'</div>'
                             , 'like (enthält)', false)
                         , 3),
                         new LayoutColumn(new ToolTip(
                             '<div class="alert alert-danger" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
-                            .new RadioBox($RadioBoxName, '&nbsp;', 2, RadioBox::RADIO_BOX_TYPE_DANGER)
+                            .(new RadioBox($RadioBoxName, '&nbsp;', 2, RadioBox::RADIO_BOX_TYPE_DANGER))->setTabIndex(-1)
                             .'</div>'
                             , 'not like (enthält nicht)', false)
                         , 3),
                         new LayoutColumn(new ToolTip(
                             '<div class="alert alert-warning" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
-                            .new RadioBox($RadioBoxName, '&nbsp;', 3, RadioBox::RADIO_BOX_TYPE_WARNING)
+                            .(new RadioBox($RadioBoxName, '&nbsp;', 3, RadioBox::RADIO_BOX_TYPE_WARNING))->setTabIndex(-1)
                             .'</div>'
                             , 'null (ist leer)', false)
                         , 3),
                         new LayoutColumn(new ToolTip(
                             '<div class="alert alert-success" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
-                            .new RadioBox($RadioBoxName, '&nbsp;', 4, RadioBox::RADIO_BOX_TYPE_SUCCESS)
+                            .(new RadioBox($RadioBoxName, '&nbsp;', 4, RadioBox::RADIO_BOX_TYPE_SUCCESS))->setTabIndex(-1)
                             .'</div>'
                             , 'not null ( ist nicht leer)', false)
                         , 3),
@@ -1433,7 +1438,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     new LayoutRow(
                         new LayoutColumn(new ToolTip(
                             '<div class="alert alert-info" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
-                            .new RadioBox($RadioBoxName, '&nbsp;', 1, RadioBox::RADIO_BOX_TYPE_DEFAULT)
+                            .(new RadioBox($RadioBoxName, '&nbsp;', 1, RadioBox::RADIO_BOX_TYPE_DEFAULT))->setTabIndex(-1)
                             .'</div>'
                             , 'like (enthält)', false)
                         , 3)

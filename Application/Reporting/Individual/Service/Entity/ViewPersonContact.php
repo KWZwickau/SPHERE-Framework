@@ -7,6 +7,7 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Contact\Address\Service\Entity\TblCity;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
@@ -275,6 +276,36 @@ class ViewPersonContact extends AbstractView
             case self::TBL_CITY_CITY_2:
                 // old version: all name from City
                 $Data = Address::useService()->getPropertyList( new TblCity(), TblCity::ATTR_NAME );
+                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
+                break;
+            case self::TBL_ADDRESS_STREET_NAME:
+                // old version: all name from City
+                $Data = Address::useService()->getPropertyList( new TblAddress(), TblAddress::ATTR_STREET_NAME );
+                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
+                break;
+            case self::TBL_ADDRESS_STREET_NAME_2:
+                // old version: all name from City
+                $Data = Address::useService()->getPropertyList( new TblAddress(), TblAddress::ATTR_STREET_NAME );
+                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
+                break;
+            case self::TBL_CITY_CODE:
+                // old version: all name from City
+                $Data = Address::useService()->getPropertyList( new TblCity(), TblCity::ATTR_CODE );
+                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
+                break;
+            case self::TBL_CITY_CODE_2:
+                // old version: all name from City
+                $Data = Address::useService()->getPropertyList( new TblCity(), TblCity::ATTR_CODE );
+                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
+                break;
+            case self::TBL_CITY_DISTRICT:
+                // old version: all name from City
+                $Data = Address::useService()->getPropertyList( new TblCity(), TblCity::ATTR_CODE );
+                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
+                break;
+            case self::TBL_CITY_DISTRICT_2:
+                // old version: all name from City
+                $Data = Address::useService()->getPropertyList( new TblCity(), TblCity::ATTR_CODE );
                 $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
                 break;
             default:

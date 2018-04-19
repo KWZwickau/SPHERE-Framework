@@ -9,7 +9,9 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
+use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonInformation;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
@@ -195,6 +197,35 @@ class ViewPerson extends AbstractView
     {
 
         switch ($PropertyName) {
+//            case self::TBL_PERSON_FIRST_NAME:
+//                // old version: all name from City
+//                $Data = Person::useService()->getPropertyList( new TblPerson(), TblPerson::ATTR_FIRST_NAME );
+//                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
+//                break;
+//            case self::TBL_PERSON_LAST_NAME:
+//                // old version: all name from City
+//                $Data = Person::useService()->getPropertyList( new TblPerson(), TblPerson::ATTR_LAST_NAME );
+//                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
+//                break;
+            case self::TBL_PERSON_BIRTH_NAME:
+                // old version: all name from City
+                $Data = Person::useService()->getPropertyList( new TblPerson(), TblPerson::ATTR_LAST_NAME );
+                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
+                break;
+            case self::TBL_COMMON_INFORMATION_NATIONALITY:
+                // old version: all name from City
+                $Data = Common::useService()->getPropertyList( new TblCommonInformation(), TblCommonInformation::ATTR_NATIONALITY );
+                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
+                break;
+            case self::TBL_COMMON_INFORMATION_DENOMINATION:
+                // old version: all name from City
+                $Data = Common::useService()->getPropertyList( new TblCommonInformation(), TblCommonInformation::ATTR_DENOMINATION );
+                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
+                break;
+            case self::TBL_COMMON_INFORMATION_IS_ASSISTANCE:
+                $Data = Common::useService()->getPropertyList( new TblCommonInformation(), TblCommonInformation::ATTR_IS_ASSISTANCE );
+                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount );
+                break;
             case self::TBL_COMMON_BIRTHDATES_BIRTHPLACE:
                 $Data = Common::useService()->getPropertyList( new TblCommonBirthDates(), TblCommonBirthDates::ATTR_BIRTHPLACE );
                 $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
