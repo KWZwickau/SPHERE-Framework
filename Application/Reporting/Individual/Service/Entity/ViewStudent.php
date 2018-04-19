@@ -47,6 +47,9 @@ class ViewStudent extends AbstractView
     const TBL_STUDENT_LOCKER_LOCKER_NUMBER = 'TblStudentLocker_LockerNumber';
     const TBL_STUDENT_LOCKER_LOCKER_LOCATION = 'TblStudentLocker_LockerLocation';
     const TBL_STUDENT_LOCKER_KEY_NUMBER = 'TblStudentLocker_KeyNumber';
+    // Einverständnis
+    const TBL_STUDENT_STUDENT_NAME_AGREEMENT = 'TblStudent_NameAgreement';
+    const TBL_STUDENT_STUDENT_PICTURE_AGREEMENT = 'TblStudent_PictureAgreement';
 
     /**
      * @return array
@@ -133,6 +136,14 @@ class ViewStudent extends AbstractView
      * @Column(type="string")
      */
     protected $Sibling_Count;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudent_NameAgreement;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudent_PictureAgreement;
 
     /**
      * Use this method to set PropertyName to DisplayName conversions with "setNameDefinition()"
@@ -166,6 +177,9 @@ class ViewStudent extends AbstractView
 
         $this->setNameDefinition(self::SIBLINGS_COUNT, 'Allgemeines: Anzahl Geschwister');
 
+        $this->setNameDefinition(self::TBL_STUDENT_STUDENT_NAME_AGREEMENT, 'Allgemeines: Erlaubnis Schülername');
+        $this->setNameDefinition(self::TBL_STUDENT_STUDENT_PICTURE_AGREEMENT, 'Allgemeines: Erlaubnis Schülerbild');
+
 //        //GroupDefinition
         $this->setGroupDefinition('&nbsp;', array(
             self::SIBLINGS_COUNT,
@@ -181,7 +195,9 @@ class ViewStudent extends AbstractView
             self::TBL_STUDENT_TRANSPORT_ROUTE,
             self::TBL_STUDENT_TRANSPORT_STATION_ENTRANCE,
             self::TBL_STUDENT_TRANSPORT_STATION_EXIT,
-            self::TBL_STUDENT_TRANSPORT_REMARK
+            self::TBL_STUDENT_TRANSPORT_REMARK,
+            self::TBL_STUDENT_STUDENT_NAME_AGREEMENT,
+            self::TBL_STUDENT_STUDENT_PICTURE_AGREEMENT,
         ));
     }
 

@@ -6,26 +6,26 @@ vS.TblStudent_Id AS TblStudent_Id,
 group_concat(
 concat(
 vSA.TblStudentAgreementType_Name
-) separator '\n'
+) separator ', \n'
 )
 from PeopleMeta_{{ ConsumerAcronym }}.viewStudentAgreement vSA
 where vSA.TblStudentAgreementCategory_Name like '%Foto%'
 and vSA.TblStudent_Id =  vS.TblStudent_Id
 and vSA.TblStudentAgreementType_Name is not null
-) StudentPictureAgreement,
+) TblStudent_PictureAgreement,
 
 viewStudentBaptism.TblStudentBaptism_Location,
 (select distinct
 group_concat(
 concat(
 vSA.TblStudentAgreementType_Name
-) separator '\n'
+) separator ', \n'
 )
 from PeopleMeta_{{ ConsumerAcronym }}.viewStudentAgreement vSA
 where vSA.TblStudentAgreementCategory_Name like '%Namentliche%'
 and vSA.TblStudent_Id =  vS.TblStudent_Id
 and vSA.TblStudentAgreementType_Name is not null
-) StudentNameAgreement,
+) TblStudent_NameAgreement,
 
 viewStudentLiberation.TblStudentLiberationType_Name AS TblStudentLiberationType_Name,
 viewStudentLiberation.TblStudentLiberationType_Description AS TblStudentLiberationType_Description,

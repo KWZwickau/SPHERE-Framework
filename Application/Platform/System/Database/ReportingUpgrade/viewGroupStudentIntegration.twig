@@ -7,7 +7,7 @@ vS.TblStudent_Id AS TblStudent_Id,
 group_concat(
 concat(
 vSF.TblStudentFocusType_Name
-) separator '\n'
+) separator ', \n'
 )
 from PeopleMeta_{{ ConsumerAcronym }}.viewStudentFocus vSF
 where vSF.TblStudent_Id =  vS.TblStudent_Id
@@ -17,7 +17,7 @@ where vSF.TblStudent_Id =  vS.TblStudent_Id
 group_concat(
 concat(
 vSD.TblStudentDisorderType_Name
-) separator '\n'
+) separator ', \n'
 )
 from PeopleMeta_{{ ConsumerAcronym }}.viewStudentDisorder vSD
 where vSD.TblStudent_Id =  vS.TblStudent_Id
