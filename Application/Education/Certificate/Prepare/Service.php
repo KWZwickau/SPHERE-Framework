@@ -2989,8 +2989,34 @@ class Service extends AbstractService
             return $Form;
         }
 
-        // todo check Wertebereich
         if ($View == BlockIView::EDIT_GRADES) {
+            // check Wertebereich
+            $error = false;
+            foreach ($Data as $midTerm => $subjects) {
+                if (is_array($subjects)
+                    && (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier($midTerm)))
+                ) {
+                    foreach ($subjects as $subjectId => $value) {
+                        if (trim($value) !== '') {
+                            if (!preg_match('!^^([0-9]{1}|1[0-5]{1})$!is', trim($value))) {
+                                $error = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if ($error) {
+                $Form->prependGridGroup(
+                    new FormGroup(new FormRow(new FormColumn(new Danger(
+                            'Nicht alle eingebenen Zensuren befinden sich im Wertebereich (0 - 15 Punkte).
+                            Die Daten wurden nicht gespeichert.', new Exclamation())
+                    ))));
+
+                return $Form;
+            }
+
             foreach ($Data as $midTerm => $subjects) {
                 if (is_array($subjects)
                     && (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier($midTerm)))
@@ -3217,37 +3243,53 @@ class Service extends AbstractService
             return $form;
         }
 
+        // check Wertebereich && is subject selected
+        $errorGrades = false;
+        $errorSubject = false;
+        $errorRanking = 0;
+        foreach ($Data as $ranking => $items) {
+            if (isset($items['Grades'])) {
+                foreach ($items['Grades'] as $key => $value) {
+                    if (trim($value) !== '') {
+                        if (!preg_match('!^^([0-9]{1}|1[0-5]{1})$!is', trim($value))) {
+                            $errorGrades = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if ($ranking > 2) {
+                if (isset($items['Subject']) && !Subject::useService()->getSubjectById($items['Subject'])) {
+                    if (isset($items['Grades'])) {
+                        foreach ($items['Grades'] as $key => $value) {
+                            if (trim($value) !== '') {
+                                $errorSubject = true;
+                                $errorRanking = $ranking;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
 
+        }
 
-        // todo error WerteBereich
-        // todo error kein Fach ausgewählt
-
-//        $error = false;
-//        if ($Data != null) {
-//            foreach ($Data as $personGrades) {
-//                if (is_array($personGrades)) {
-//                    foreach ($personGrades as $identifier => $value) {
-//                        if (trim($value) !== '') {
-//                            if (!preg_match('!^[1-6]{1}$!is', trim($value))) {
-//                                $error = true;
-//                                break;
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//
-//        if ($error) {
-//            $form->prependGridGroup(
-//                new FormGroup(new FormRow(new FormColumn(new Danger(
-//                        'Nicht alle eingebenen Zensuren befinden sich im Wertebereich (1-6).
-//                        Die Daten wurden nicht gespeichert.', new Exclamation())
-//                ))));
-//
-//            return $form;
-//        } else {
-//        }
+        if ($errorGrades) {
+            $form->prependGridGroup(
+                new FormGroup(new FormRow(new FormColumn(new Danger(
+                        'Nicht alle eingebenen Zensuren befinden sich im Wertebereich (0 - 15 Punkte).
+                            Die Daten wurden nicht gespeichert.', new Exclamation())
+                ))));
+        }
+        if ($errorSubject) {
+            $form->prependGridGroup(
+                new FormGroup(new FormRow(new FormColumn(new Danger(
+                        'Beim ' . $errorRanking . '. Prüfungsfach wurde kein Fach ausgewählt. Die Daten wurden nicht gespeichert.', new Exclamation())
+                ))));
+        }
+        if ($errorGrades || $errorSubject) {
+            return $form;
+        }
 
         foreach ($Data as $ranking => $items) {
             $tblSubject = false;
