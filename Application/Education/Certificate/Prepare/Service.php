@@ -2549,7 +2549,7 @@ class Service extends AbstractService
                     if ($hasForeignLanguages && isset($tblForeignLanguagesAll[$tblSubject->getId()])) {
 //                        $isForeignLanguage = true;
                         $hasMissingLanguage = true;
-                    } else {
+                    } /** @noinspection PhpStatementHasEmptyBodyInspection */ else {
 //                        $isForeignLanguage = false;
                     }
 
@@ -3490,6 +3490,7 @@ class Service extends AbstractService
         ))) {
 
             if (($tblDivision = $tblPrepare->getServiceTblDivision())) {
+                /** @noinspection PhpUnusedLocalVariableInspection */
                 list($advancedCourses, $basicCourses) = Prepare::useService()->getCoursesForStudent(
                     $tblDivision,
                     $tblPerson

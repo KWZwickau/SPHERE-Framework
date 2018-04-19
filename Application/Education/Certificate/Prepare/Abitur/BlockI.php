@@ -308,7 +308,7 @@ class BlockI extends AbstractBlock
                 '12-1' => isset($grades['12-1']) ? $grades['12-1'] : '',
                 '12-2' => isset($grades['12-2']) ? $grades['12-2'] : '',
             );
-        } else {
+        } /** @noinspection PhpStatementHasEmptyBodyInspection */ else {
             // nicht vorhandene Fächer sollen erstmal nicht angezeigt werden
             // $subjectName = new Muted($subjectName);
 //            $array[] = array(

@@ -54,8 +54,161 @@ class GymAbitur extends Certificate
 
         $this->setCourses($tblPerson);
 
-        // leere Seite
-        $pageList[] = new Page();
+        $hasLatinums = false;
+        $hasGraecums = false;
+        $hasHebraicums = false;
+        if ($tblPerson && $this->getTblPrepareCertificate()) {
+            if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($this->getTblPrepareCertificate(), $tblPerson, 'Latinums'))
+                && $tblPrepareInformation->getValue()
+            ) {
+                $hasLatinums = true;
+            }
+            if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($this->getTblPrepareCertificate(), $tblPerson, 'Graecums'))
+                && $tblPrepareInformation->getValue()
+            ) {
+                $hasGraecums = true;
+            }
+            if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($this->getTblPrepareCertificate(), $tblPerson, 'Hebraicums'))
+                && $tblPrepareInformation->getValue()
+            ) {
+                $hasLatinums = true;
+            }
+        }
+        $certificates = 'Dieses Zeugnis schließt den Nachweis des <b>';
+        if ($hasLatinums) {
+            $certificates .= 'Latinums';
+        } else {
+            $certificates .= '<s>Latinums</s>';
+        }
+        $certificates .= '/';
+        if ($hasGraecums) {
+            $certificates .= 'Graecums';
+        } else {
+            $certificates .= '<s>Graecums</s>';
+        }
+        $certificates .= '/';
+        if ($hasHebraicums) {
+            $certificates .= 'Hebraicums';
+        } else {
+            $certificates .= '<s>Hebraicums</s>';
+        }
+        $certificates .= '</b>² ein.';
+
+        // Seite 4 zuerst für Multi-Pdf-Druck
+        $pageList[] = (new Page())
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Vor- und Zuname')
+                        ->styleMarginTop('10px')
+                        , '18%')
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                                {{ Content.P' . $personId . '.Person.Data.Name.First }}
+                                {{ Content.P' . $personId . '.Person.Data.Name.Last }}
+                        ')
+                        ->styleAlignCenter()
+                        ->styleBorderBottom()
+                        ->styleMarginTop('10px')
+                    )
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Ergebnisse der Pflichtfächer, die in Klassenstufe 10 abgeschlossen wurden¹')
+                        ->styleTextBold()
+                        ->styleMarginTop('15px')
+                    )
+                )
+            )
+            ->addSlice($this->getLevelTen($tblPerson ? $tblPerson : null))
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Fremdsprachen')
+                        ->styleTextBold()
+                        ->styleMarginTop('45px')
+                    )
+                )
+            )
+            ->addSlice($this->getForeignLanguages($tblPerson ? $tblPerson : null))
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent($certificates)
+                        ->styleMarginTop('15px')
+                    )
+                )
+            )
+            ->addSlice((new Slice)
+                ->addElement((new Element())
+                    ->setContent('Bemerkungen:')
+                    ->styleTextBold()
+                    ->styleMarginTop('30px')
+                )
+            )
+            ->addSlice($this->getDescriptionContent($personId))
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
+                                Frau
+                            {% else %}
+                                {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
+                                    Herr
+                                {% else %}
+                                    Frau/Herr²
+                                {% endif %}
+                            {% endif %}
+                            <u> {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u> 
+                            hat die <b>Abiturprüfung bestanden</b> und die Berechtigung zum Studium an einer Hochschule in der
+                            Bundesrepublik Deutschland erworben.
+                        ')
+                        ->stylePaddingBottom()
+                    )
+                )
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        // $Content['P' . $personId]['Company']['Address']['City']['Name']
+                        ->setContent('
+                                {{ Content.P' . $personId . '.Company.Address.City.Name }}, {{ Content.P' . $personId . '.Input.Date }}
+                            ')
+                        ->styleMarginTop('30px')
+                        ->styleBorderBottom()
+                        , '35%')
+                    ->addElementColumn((new Element()))
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                                Ort, Datum
+                            ')
+                        ->styleMarginTop('0px')
+                        , '35%')
+                    ->addElementColumn((new Element()))
+                )
+            )
+            // todo Prüfungsausschuss
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        , '35%')
+                    ->addElementColumn((new Element())
+                        ->setContent('Der Prüfungsausschuss')
+                    )
+                    ->addElementColumn((new Element())
+                        , '40%')
+                )
+                ->styleMarginTop('15px')
+            )
+            ->addSlice($this->getInfo(
+                '40px',
+                '¹ Das jeweilige Fach ist einzutragen. Die Ausweisung der Noten und Notenstufen kann der Schüler ablehnen
+                 (§ 65 Absatz 3 der Schulordnung Gymnasien Abiturprüfung).',
+                '² Nichtzutreffendes ist zu streichen.'
+            ));
 
         $pageList[] = (new Page())
             ->addSlice($Header)
@@ -344,6 +497,7 @@ class GymAbitur extends Certificate
         }
 
         // Berechnung der Gesamtqualifikation und der Durchschnittsnote
+        /** @noinspection PhpUnusedLocalVariableInspection */
         list($countCourses, $resultBlockI) = Prepare::useService()->getResultForAbiturBlockI(
             $this->getTblPrepareCertificate(),
             $tblPerson
@@ -1266,5 +1420,170 @@ class GymAbitur extends Certificate
 
         return $slice
             ->styleMarginTop($MarginTop);
+    }
+
+    private function getLevelTen(TblPerson $tblPerson = null)
+    {
+
+        $slice = new Slice();
+        $slice
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Fach')
+                    ->styleAlignCenter()
+                    ->styleTextBold()
+                    ->styleBorderLeft()
+                    ->styleBorderTop()
+                    ->styleMarginTop('15px')
+                    , '50%')
+                ->addElementColumn((new Element())
+                    ->setContent('Note')
+                    ->styleAlignCenter()
+                    ->styleTextBold()
+                    ->styleBorderLeft()
+                    ->styleBorderTop()
+                    ->styleMarginTop('15px')
+                    , '20%')
+                ->addElementColumn((new Element())
+                    ->setContent('Notenstufe')
+                    ->styleAlignCenter()
+                    ->styleTextBold()
+                    ->styleBorderLeft()
+                    ->styleBorderTop()
+                    ->styleBorderRight()
+                    ->styleMarginTop('15px')
+                    , '30%')
+            );
+
+        for ($i = 1; $i < 8; $i++) {
+            $subject = '&nbsp;';
+            $grade = '&nbsp;';
+            $gradeText = '&nbsp;';
+
+            // todo data
+            $slice
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent($subject)
+                        ->stylePaddingLeft('5px')
+                        ->styleBorderLeft()
+                        ->styleBorderTop()
+                        ->styleBorderBottom($i == 7 ? '1px' : '0px')
+                        , '50%')
+                    ->addElementColumn((new Element())
+                        ->setContent($grade)
+                        ->styleAlignCenter()
+                        ->styleBorderLeft()
+                        ->styleBorderTop()
+                        ->styleBorderBottom($i == 7 ? '1px' : '0px')
+                        , '20%')
+                    ->addElementColumn((new Element())
+                        ->setContent($gradeText)
+                        ->styleAlignCenter()
+                        ->styleBorderLeft()
+                        ->styleBorderTop()
+                        ->styleBorderRight()
+                        ->styleBorderBottom($i == 7 ? '1px' : '0px')
+                        , '30%')
+                );
+        }
+
+        return $slice;
+    }
+
+    private function getForeignLanguages(TblPerson $tblPerson = null)
+    {
+
+        $slice = new Slice();
+        $slice
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Fach')
+                    ->styleAlignCenter()
+                    ->styleBorderLeft()
+                    ->styleBorderTop()
+                    ->styleMarginTop('15px')
+                    , '50%')
+                ->addElementColumn((new Element())
+                    ->setContent('Klassen-/Jahrgangsstufe')
+                    ->styleAlignCenter()
+                    ->styleBorderLeft()
+                    ->styleBorderTop()
+                    ->styleBorderRight()
+                    ->styleMarginTop('15px')
+                    , '50%')
+            );
+
+        $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE');
+        if (($tblPerson)) {
+            $tblStudent = $tblPerson->getStudent();
+        } else {
+            $tblStudent = false;
+        }
+
+        for ($i = 1; $i < 5; $i++) {
+            $subject = '&nbsp;';
+            $levelFrom = '&nbsp;';
+            $levelTill = '&nbsp;';
+
+            if ($tblStudent
+                && $tblStudentSubjectType
+                && ($tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i))
+                && ($tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking(
+                    $tblStudent, $tblStudentSubjectType, $tblStudentSubjectRanking
+                ))
+            ) {
+                if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                    $subject = $tblSubject->getName();
+                    if (($tblLevelFrom = $tblStudentSubject->getServiceTblLevelFrom())) {
+                        $levelFrom = $tblLevelFrom->getName();
+                    } else {
+                        $levelFrom = '&ndash;';
+                    }
+                    if (($tblLevelTill = $tblStudentSubject->getServiceTblLevelTill())) {
+                        $levelTill = $tblLevelTill->getName();
+                    } else {
+                        $levelTill = '&ndash;';
+                    }
+                }
+            }
+
+            $slice
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent($subject)
+                        ->stylePaddingLeft('5px')
+                        ->styleBorderLeft()
+                        ->styleBorderTop()
+                        ->styleBorderBottom($i == 4 ? '1px' : '0px')
+                        , '50%')
+                    ->addSliceColumn((new Slice())
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element())
+                                ->setContent('von')
+                                ->stylePaddingLeft('5px')
+                                , '15%')
+                            ->addElementColumn((new Element())
+                                ->setContent($levelFrom)
+                                ->styleAlignCenter()
+                                , '35%')
+                            ->addElementColumn((new Element())
+                                ->setContent('bis')
+                                ->stylePaddingLeft('5px')
+                                , '15%')
+                            ->addElementColumn((new Element())
+                                ->setContent($levelTill)
+                                ->styleAlignCenter()
+                                , '35%')
+                        )
+                        ->styleBorderLeft()
+                        ->styleBorderTop()
+                        ->styleBorderRight()
+                        ->styleBorderBottom($i == 4 ? '1px' : '0px')
+                    )
+                );
+        }
+
+        return $slice;
     }
 }
