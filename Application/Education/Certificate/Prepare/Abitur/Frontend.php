@@ -42,6 +42,7 @@ use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Extension;
 
 
 /**
@@ -49,7 +50,7 @@ use SPHERE\Common\Window\Stage;
  *
  * @package SPHERE\Application\Education\Certificate\Prepare\Abitur
  */
-class Frontend
+class Frontend extends Extension
 {
     /**
      * @param null $PrepareId
@@ -469,13 +470,16 @@ class Frontend
      * @param null $PrepareId
      * @param null $GroupId
      * @param null $PersonId
+     * @param null $Data
      *
      * @return Stage
+     * @throws \Exception
      */
     public function frontendPrepareDiplomaAbiturLevelTen(
         $PrepareId = null,
         $GroupId = null,
-        $PersonId = null
+        $PersonId = null,
+        $Data = null
     ) {
 
         $stage = new Stage('Abiturzeugnis', 'Ergebnisse der Pflichtfächer, die in Klassenstufe 10 abgeschlossen wurden');
@@ -495,7 +499,7 @@ class Frontend
             $levelTen = new LevelTen($tblDivision, $tblPerson, $tblPrepare);
 
             $stage->setContent(
-                $levelTen->getContent()
+                $levelTen->getContent($Data, $GroupId)
             );
         }
 
@@ -533,6 +537,34 @@ class Frontend
             && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
         ) {
             // todo ort, datum, Vorsitzender, Mitglied, Mitglied für gesamte Klasse bzw. Gruppe setzen
+
+            $global = $this->getGlobal();
+            if (($tblPrepareInformationRemark = Prepare::useService()->getPrepareInformationBy($tblPrepare, $tblPerson, 'Remark'))) {
+                $global->POST['Data']['Remark'] = $tblPrepareInformationRemark->getValue();
+            }
+            if (($tblPrepareInformationLatinums = Prepare::useService()->getPrepareInformationBy($tblPrepare, $tblPerson, 'Latinums'))) {
+                $global->POST['Data']['Latinums'] = $tblPrepareInformationLatinums->getValue();
+            }
+            if (($tblPrepareInformationGraecums = Prepare::useService()->getPrepareInformationBy($tblPrepare, $tblPerson, 'Graecums'))) {
+                $global->POST['Data']['Graecums'] = $tblPrepareInformationGraecums->getValue();
+            }
+            if (($tblPrepareInformationHebraicums = Prepare::useService()->getPrepareInformationBy($tblPrepare, $tblPerson, 'Hebraicums'))) {
+                $global->POST['Data']['Hebraicums'] = $tblPrepareInformationHebraicums->getValue();
+            }
+            $global->savePost();
+
+            $textArea = new TextArea('Data[Remark]', 'Bemerkungen', 'Bemerkungen');
+            $checkBox1 = new CheckBox('Data[Latinums]', 'Nachweis des Latinums', 1);
+            $checkBox2 = new CheckBox('Data[Graecums]', 'Nachweis des Graecums', 1);
+            $checkBox3 = new CheckBox('Data[Hebraicums]', 'Nachweis des Hebraicums', 1);
+
+            if ($tblPrepareStudent->isApproved()) {
+                $textArea->setDisabled();
+                $checkBox1->setDisabled();
+                $checkBox2->setDisabled();
+                $checkBox3->setDisabled();
+            }
+
             $form = new Form(array(
                 new FormGroup(array(
                     new FormRow(array(
@@ -540,10 +572,10 @@ class Frontend
                             new Panel(
                                 'Sonstige Informationen',
                                 array(
-                                    new TextArea('Data[Remark]', 'Bemerkungen', 'Bemerkungen'),
-                                    new CheckBox('Data[Latinums]', 'Nachweis des Latinums', 1),
-                                    new CheckBox('Data[Graecums]', 'Nachweis des Graecums', 1),
-                                    new CheckBox('Data[Hebraicums]', 'Nachweis des Hebraicums', 1)
+                                    $textArea,
+                                    $checkBox1,
+                                    $checkBox2,
+                                    $checkBox3
                                 ),
                                 Panel::PANEL_TYPE_PRIMARY
                             ),
@@ -553,7 +585,8 @@ class Frontend
             ));
 
             if ($tblPrepareStudent && !$tblPrepareStudent->isApproved()) {
-                $content = new Well($form->appendFormButton(new Primary('Speichern', new Save())));
+                $content = new Well(Prepare::useService()->updateAbiturPrepareInformation($form->appendFormButton(new Primary('Speichern', new Save())),
+                    $tblPrepare, $tblPerson, $Data, $GroupId));
             } else {
                 $content = $form;
             }

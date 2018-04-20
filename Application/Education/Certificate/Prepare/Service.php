@@ -1961,6 +1961,8 @@ class Service extends AbstractService
      * @param TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
      * @param $ranking
      * @param $grade
+     * @param bool $isSelected
+     * @param bool $isLocked
      *
      * @return TblPrepareAdditionalGrade
      */
@@ -1970,11 +1972,13 @@ class Service extends AbstractService
         TblSubject $tblSubject,
         TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
         $ranking,
-        $grade
+        $grade,
+        $isSelected = false,
+        $isLocked = false
     ) {
 
         return (new Data($this->getBinding()))->createPrepareAdditionalGrade($tblPrepareCertificate, $tblPerson,
-            $tblSubject, $tblPrepareAdditionalGradeType, $ranking, $grade);
+            $tblSubject, $tblPrepareAdditionalGradeType, $ranking, $grade, $isSelected, $isLocked);
     }
 
     /**
@@ -2998,7 +3002,7 @@ class Service extends AbstractService
                 ) {
                     foreach ($subjects as $subjectId => $value) {
                         if (trim($value) !== '') {
-                            if (!preg_match('!^^([0-9]{1}|1[0-5]{1})$!is', trim($value))) {
+                            if (!preg_match('!^([0-9]{1}|1[0-5]{1})$!is', trim($value))) {
                                 $error = true;
                                 break;
                             }
@@ -3251,7 +3255,7 @@ class Service extends AbstractService
             if (isset($items['Grades'])) {
                 foreach ($items['Grades'] as $key => $value) {
                     if (trim($value) !== '') {
-                        if (!preg_match('!^^([0-9]{1}|1[0-5]{1})$!is', trim($value))) {
+                        if (!preg_match('!^([0-9]{1}|1[0-5]{1})$!is', trim($value))) {
                             $errorGrades = true;
                             break;
                         }
@@ -3692,5 +3696,195 @@ class Service extends AbstractService
         } else {
             return '&nbsp;';
         }
+    }
+
+    /**
+     * @param IFormInterface $form
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblPerson $tblPerson
+     * @param $Data
+     * @param $GroupId
+     *
+     * @return IFormInterface|string
+     */
+    public function updateAbiturPrepareInformation(
+        IFormInterface $form,
+        TblPrepareCertificate $tblPrepare,
+        TblPerson $tblPerson,
+        $Data,
+        $GroupId
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if ($Data === null) {
+            return $form;
+        }
+
+        if (isset($Data['Remark'])) {
+            if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson, 'Remark'))) {
+                (new Data($this->getBinding()))->updatePrepareInformation(
+                    $tblPrepareInformation,
+                    'Remark',
+                    $Data['Remark']
+                );
+            } else {
+                (new Data($this->getBinding()))->createPrepareInformation($tblPrepare, $tblPerson, 'Remark', $Data['Remark']);
+            }
+        }
+
+        if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson, 'Latinums'))) {
+            (new Data($this->getBinding()))->updatePrepareInformation(
+                $tblPrepareInformation,
+                'Latinums',
+                isset($Data['Latinums'])
+            );
+        } else {
+            (new Data($this->getBinding()))->createPrepareInformation($tblPrepare, $tblPerson, 'Latinums', isset($Data['Latinums']));
+        }
+        if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson, 'Graecums'))) {
+            (new Data($this->getBinding()))->updatePrepareInformation(
+                $tblPrepareInformation,
+                'Graecums',
+                isset($Data['Graecums'])
+            );
+        } else {
+            (new Data($this->getBinding()))->createPrepareInformation($tblPrepare, $tblPerson, 'Graecums', isset($Data['Graecums']));
+        }
+        if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson, 'Hebraicums'))) {
+            (new Data($this->getBinding()))->updatePrepareInformation(
+                $tblPrepareInformation,
+                'Hebraicums',
+                isset($Data['Hebraicums'])
+            );
+        } else {
+            (new Data($this->getBinding()))->createPrepareInformation($tblPrepare, $tblPerson, 'Hebraicums', isset($Data['Hebraicums']));
+        }
+
+        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Informationen wurden erfolgreich gespeichert.')
+            . new Redirect('/Education/Certificate/Prepare/Prepare/Diploma/Abitur/Preview', Redirect::TIMEOUT_SUCCESS, array(
+                'PrepareId' => $tblPrepare->getId(),
+                'GroupId' => $GroupId,
+                'Route' => 'Diploma'
+            ));
+    }
+
+    /**
+     * @param TblPrepareAdditionalGrade $tblPrepareAdditionalGrade
+     * @param $grade
+     * @param bool $isSelected
+     *
+     * @return bool
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     */
+    public function updatePrepareAdditionalGrade(
+        TblPrepareAdditionalGrade $tblPrepareAdditionalGrade,
+        $grade,
+        $isSelected = false
+    ) {
+
+        (new Data($this->getBinding()))->updatePrepareAdditionalGrade($tblPrepareAdditionalGrade, $grade, $isSelected);
+
+        return false;
+    }
+
+    /**
+     * @param IFormInterface $form
+     * @param TblPrepareCertificate $tblPrepare
+     * @param TblPerson $tblPerson
+     * @param $Data
+     * @param $GroupId
+     *
+     * @return IFormInterface|string
+     * @throws \Exception
+     */
+    public function updateAbiturLevelTenGrades(
+        IFormInterface $form,
+        TblPrepareCertificate $tblPrepare,
+        TblPerson $tblPerson,
+        $Data,
+        $GroupId
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if ($Data === null) {
+            return $form;
+        }
+
+        // check Wertebereich
+        $errorGrades = false;
+        if (isset($Data['Grades'])) {
+            foreach ($Data['Grades'] as $key => $value) {
+                if (trim($value) !== '') {
+                    if (!preg_match('!^[1-6]{1}$!is', trim($value))) {
+                        $errorGrades = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if ($errorGrades) {
+            $form->prependGridGroup(
+                new FormGroup(new FormRow(new FormColumn(new Danger(
+                        'Nicht alle eingebenen Zensuren befinden sich im Wertebereich (1 - 6).
+                            Die Daten wurden nicht gespeichert.', new Exclamation())
+                ))));
+
+            return $form;
+        }
+
+        if (isset($Data['Grades'])
+            && ($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier('LEVEL-10'))
+        ) {
+            $ranking = 1;
+            foreach ($Data['Grades'] as $subjectId => $value) {
+                if (($tblSubject = Subject::useService()->getSubjectById($subjectId))) {
+                    if (($tblPrepareAdditionalGrade = $this->getPrepareAdditionalGradeBy(
+                        $tblPrepare,
+                        $tblPerson,
+                        $tblSubject,
+                        $tblPrepareAdditionalGradeType
+                    ))) {
+                        (new Data($this->getBinding()))->updatePrepareAdditionalGrade(
+                            $tblPrepareAdditionalGrade,
+                            $value
+                        );
+                    } else {
+                        (new Data($this->getBinding()))->createPrepareAdditionalGrade(
+                            $tblPrepare,
+                            $tblPerson,
+                            $tblSubject,
+                            $tblPrepareAdditionalGradeType,
+                            $ranking++,
+                            $value
+                        );
+                    }
+                }
+            }
+        }
+
+        $levelTenGradesAreNotShown = isset($Data['LevelTenGradesAreNotShown']);
+        if (($tblPrepareInformation = $this->getPrepareInformationBy($tblPrepare, $tblPerson, 'LevelTenGradesAreNotShown'))) {
+            (new Data($this->getBinding()))->updatePrepareInformation(
+                $tblPrepareInformation,
+                'LevelTenGradesAreNotShown',
+                $levelTenGradesAreNotShown
+            );
+        } else {
+            (new Data($this->getBinding()))->createPrepareInformation($tblPrepare, $tblPerson, 'LevelTenGradesAreNotShown', $levelTenGradesAreNotShown);
+        }
+
+        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Informationen wurden erfolgreich gespeichert.')
+            . new Redirect('/Education/Certificate/Prepare/Prepare/Diploma/Abitur/Preview', Redirect::TIMEOUT_SUCCESS, array(
+                'PrepareId' => $tblPrepare->getId(),
+                'GroupId' => $GroupId,
+                'Route' => 'Diploma'
+            ));
     }
 }

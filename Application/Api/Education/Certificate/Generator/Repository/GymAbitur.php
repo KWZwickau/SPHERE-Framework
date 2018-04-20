@@ -40,6 +40,15 @@ class GymAbitur extends Certificate
      */
     private $BasicCourses = false;
 
+    private $gradeTextList = array(
+        '1' => 'sehr gut',
+        '2' => 'gut',
+        '3' => 'befriedigend',
+        '4' => 'ausreichend',
+        '5' => 'mangelhaft',
+        '6' => 'ungenügend',
+    );
+
     /**
      * @param TblPerson|null $tblPerson
      *
@@ -171,7 +180,6 @@ class GymAbitur extends Certificate
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        // $Content['P' . $personId]['Company']['Address']['City']['Name']
                         ->setContent('
                                 {{ Content.P' . $personId . '.Company.Address.City.Name }}, {{ Content.P' . $personId . '.Input.Date }}
                             ')
@@ -1455,12 +1463,27 @@ class GymAbitur extends Certificate
                     , '30%')
             );
 
+        $tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('LEVEL-10');
         for ($i = 1; $i < 8; $i++) {
             $subject = '&nbsp;';
             $grade = '&nbsp;';
             $gradeText = '&nbsp;';
 
-            // todo data
+            if ($tblPrepareAdditionalGradeType
+                && ($tblPrepareAdditionalGrade = Prepare::useService()->getPrepareAdditionalGradeByRanking(
+                    $this->getTblPrepareCertificate(),
+                    $tblPerson,
+                    $tblPrepareAdditionalGradeType,
+                    $i
+                ))
+                && ($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())
+            ) {
+                $subject = $tblSubject->getName();
+                $grade = $tblPrepareAdditionalGrade->getGrade();
+                if (isset($this->gradeTextList[$tblPrepareAdditionalGrade->getGrade()])) {
+                    $gradeText = $this->gradeTextList[$tblPrepareAdditionalGrade->getGrade()];
+                }
+            }
             $slice
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
