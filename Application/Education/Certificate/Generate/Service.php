@@ -10,6 +10,7 @@ namespace SPHERE\Application\Education\Certificate\Generate;
 
 use SPHERE\Application\Education\Certificate\Generate\Service\Data;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
+use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificateSetting;
 use SPHERE\Application\Education\Certificate\Generate\Service\Setup;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
@@ -606,5 +607,98 @@ class Service extends AbstractService
         }
 
         return (new Data($this->getBinding()))->destroyGenerateCertificate($tblGenerateCertificate);
+    }
+
+    /**
+     * @param IFormInterface $form
+     * @param TblGenerateCertificate $tblGenerateCertificate
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function updateAbiturSettings(
+        IFormInterface $form,
+        TblGenerateCertificate $tblGenerateCertificate,
+        $Data
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if ($Data === null) {
+            return $form;
+        }
+
+        $tblPersonLeader = Person::useService()->getPersonById($Data['Leader']);
+        if (($tblGenerateCertificateSettingLeader = $this->getGenerateCertificateSettingBy($tblGenerateCertificate, 'Leader'))) {
+            (new Data($this->getBinding()))->updateGenerateCertificateSetting(
+                $tblGenerateCertificateSettingLeader,
+                $tblPersonLeader
+            );
+        } else {
+            (new Data($this->getBinding()))->createGenerateCertificateSetting(
+                $tblGenerateCertificate,
+                'Leader',
+                $tblPersonLeader
+            );
+        }
+
+        $tblPersonFirstMember = Person::useService()->getPersonById($Data['FirstMember']);
+        if (($tblGenerateCertificateSettingFirstMember = $this->getGenerateCertificateSettingBy($tblGenerateCertificate, 'FirstMember'))) {
+            (new Data($this->getBinding()))->updateGenerateCertificateSetting(
+                $tblGenerateCertificateSettingFirstMember,
+                $tblPersonFirstMember
+            );
+        } else {
+            (new Data($this->getBinding()))->createGenerateCertificateSetting(
+                $tblGenerateCertificate,
+                'FirstMember',
+                $tblPersonFirstMember
+            );
+        }
+
+        $tblPersonSecondMember = Person::useService()->getPersonById($Data['SecondMember']);
+        if (($tblGenerateCertificateSettingSecondMember = $this->getGenerateCertificateSettingBy($tblGenerateCertificate, 'SecondMember'))) {
+            (new Data($this->getBinding()))->updateGenerateCertificateSetting(
+                $tblGenerateCertificateSettingSecondMember,
+                $tblPersonSecondMember
+            );
+        } else {
+            (new Data($this->getBinding()))->createGenerateCertificateSetting(
+                $tblGenerateCertificate,
+                'SecondMember',
+                $tblPersonSecondMember
+            );
+        }
+
+        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Informationen wurden erfolgreich gespeichert.')
+            . new Redirect('/Education/Certificate/Generate/Setting', Redirect::TIMEOUT_SUCCESS, array(
+                'GenerateCertificateId' => $tblGenerateCertificate->getId(),
+            ));
+    }
+
+    /**
+     * @param TblGenerateCertificate $tblGenerateCertificate
+     * @param $Field
+     *
+     * @return false|TblGenerateCertificateSetting
+     * @throws \Exception
+     */
+    public function getGenerateCertificateSettingBy(TblGenerateCertificate $tblGenerateCertificate, $Field)
+    {
+
+        return (new Data($this->getBinding()))->getGenerateCertificateSettingBy($tblGenerateCertificate, $Field);
+    }
+
+    /**
+     * @param TblGenerateCertificate $tblGenerateCertificate
+     *
+     * @return false|TblGenerateCertificateSetting[]
+     * @throws \Exception
+     */
+    public function getGenerateCertificateSettingAllByGenerateCertificate(TblGenerateCertificate $tblGenerateCertificate)
+    {
+
+        return (new Data($this->getBinding()))->getGenerateCertificateSettingAllByGenerateCertificate($tblGenerateCertificate);
     }
 }

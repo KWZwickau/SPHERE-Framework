@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
+use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
@@ -155,7 +156,7 @@ class GymAbitur extends Certificate
                     ->styleMarginTop('30px')
                 )
             )
-            ->addSlice($this->getDescriptionContent($personId))
+            ->addSlice($this->getDescriptionContent($personId, '160px'))
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
@@ -183,7 +184,7 @@ class GymAbitur extends Certificate
                         ->setContent('
                                 {{ Content.P' . $personId . '.Company.Address.City.Name }}, {{ Content.P' . $personId . '.Input.Date }}
                             ')
-                        ->styleMarginTop('30px')
+                        ->styleMarginTop('70px')
                         ->styleBorderBottom()
                         , '35%')
                     ->addElementColumn((new Element()))
@@ -193,28 +194,17 @@ class GymAbitur extends Certificate
                         ->setContent('
                                 Ort, Datum
                             ')
+                        ->styleTextSize('10pt')
                         ->styleMarginTop('0px')
                         , '35%')
                     ->addElementColumn((new Element()))
                 )
             )
-            // todo Prüfungsausschuss
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        , '35%')
-                    ->addElementColumn((new Element())
-                        ->setContent('Der Prüfungsausschuss')
-                    )
-                    ->addElementColumn((new Element())
-                        , '40%')
-                )
-                ->styleMarginTop('15px')
-            )
+            ->addSlice($this->getExaminationsBoard())
             ->addSlice($this->getInfo(
                 '40px',
                 '¹ Das jeweilige Fach ist einzutragen. Die Ausweisung der Noten und Notenstufen kann der Schüler ablehnen
-                 (§ 65 Absatz 3 der Schulordnung Gymnasien Abiturprüfung).',
+                 (§ 65 Absatz 3 SOGYA).',
                 '² Nichtzutreffendes ist zu streichen.'
             ));
 
@@ -1617,6 +1607,136 @@ class GymAbitur extends Certificate
                     )
                 );
         }
+
+        return $slice;
+    }
+
+    /**
+     * @param string $marginTop
+     * @param string $textSize
+     *
+     * @return Slice
+     * @throws \Exception
+     */
+    private function getExaminationsBoard($marginTop = '10px', $textSize = '10pt')
+    {
+
+        $leaderName = '&nbsp;';
+        $leaderDescription = 'Vorsitzende(r)';
+        $firstMemberName = '&nbsp;';
+        $secondMemberName = '&nbsp;';
+
+        if (($tblGenerateCertificate = $this->getTblPrepareCertificate()->getServiceTblGenerateCertificate())) {
+
+            if (($tblGenerateCertificateSettingLeader = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'Leader'))
+                && ($tblPersonLeader = Person::useService()->getPersonById($tblGenerateCertificateSettingLeader->getValue()))
+            ) {
+                $leaderName = $tblPersonLeader->getFullName();
+                if (($tblCommon = $tblPersonLeader->getCommon())
+                    && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
+                    && ($tblGender = $tblCommonBirthDates->getTblCommonGender())
+                ) {
+                    if ($tblGender->getName() == 'Männlich') {
+                        $leaderDescription = 'Vorsitzender';
+                    } elseif ($tblGender->getName() == 'Weiblich') {
+                        $leaderDescription = 'Vorsitzende';
+                    }
+                }
+            }
+
+            if (($tblGenerateCertificateSettingFirstMember = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'FirstMember'))
+                && ($tblPersonFirstMember = Person::useService()->getPersonById($tblGenerateCertificateSettingFirstMember->getValue()))
+            ) {
+                $firstMemberName = $tblPersonFirstMember->getFullName();
+            }
+
+            if (($tblGenerateCertificateSettingSecondMember = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'SecondMember'))
+                && ($tblPersonSecondMember = Person::useService()->getPersonById($tblGenerateCertificateSettingSecondMember->getValue()))
+            ) {
+                $secondMemberName = $tblPersonSecondMember->getFullName();
+            }
+        }
+
+        $slice = (new Slice())
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->styleMarginTop($marginTop)
+                    , '35%')
+                ->addElementColumn((new Element())
+                    ->setContent('Der Prüfungsausschuss')
+                    ->styleTextSize($textSize)
+                    ->styleAlignCenter()
+                    ->styleMarginTop($marginTop)
+                )
+                ->addElementColumn((new Element())
+                    ->styleMarginTop($marginTop)
+                    , '35%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent($leaderName)
+                    ->styleBorderBottom()
+                    ->styleMarginTop('15px')
+                    , '35%')
+                ->addElementColumn((new Element())
+                )
+                ->addElementColumn((new Element())
+                    ->setContent($firstMemberName)
+                    ->styleBorderBottom()
+                    ->styleMarginTop('15px')
+                    , '35%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent($leaderDescription)
+                    ->styleTextSize($textSize)
+                    ->styleMarginTop('0px')
+                    , '35%')
+                ->addElementColumn((new Element())
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Mitglied')
+                    ->styleTextSize($textSize)
+                    ->styleMarginTop('0px')
+                    , '35%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->styleMarginTop('15px')
+                    , '35%')
+                ->addElementColumn((new Element())
+                    ->setContent('Dienstsiegel </br> der Schule' )
+                    ->styleTextSize($textSize)
+                    ->styleAlignCenter()
+                    ->styleMarginTop('15px')
+                )
+                ->addElementColumn((new Element())
+                    ->styleMarginTop('15px')
+                    , '35%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    , '35%')
+                ->addElementColumn((new Element())
+                )
+                ->addElementColumn((new Element())
+                    ->setContent($secondMemberName)
+                    ->styleBorderBottom()
+                    ->styleMarginTop('15px')
+                    , '35%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    , '35%')
+                ->addElementColumn((new Element())
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Mitglied')
+                    ->styleTextSize($textSize)
+                    ->styleMarginTop('0px')
+                    , '35%')
+            )
+        ;
 
         return $slice;
     }
