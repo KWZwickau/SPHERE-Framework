@@ -9,6 +9,10 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Contact\Address\Service\Entity\TblCity;
+use SPHERE\Application\Contact\Mail\Mail;
+use SPHERE\Application\Contact\Mail\Service\Entity\TblMail;
+use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Contact\Phone\Service\Entity\TblPhone;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
@@ -306,6 +310,16 @@ class ViewPersonContact extends AbstractView
             case self::TBL_CITY_DISTRICT_2:
                 // old version: all name from City
                 $Data = Address::useService()->getPropertyList( new TblCity(), TblCity::ATTR_CODE );
+                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
+                break;
+            case self::TBL_MAIL_ADDRESS:
+                // old version: all name from City
+                $Data = Mail::useService()->getPropertyList( new TblMail(), TblMail::ATTR_ADDRESS );
+                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
+                break;
+            case self::TBL_PHONE_NUMBER:
+                // old version: all name from City
+                $Data = Phone::useService()->getPropertyList( new TblPhone(), TblPhone::ATTR_NUMBER );
                 $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
                 break;
             default:

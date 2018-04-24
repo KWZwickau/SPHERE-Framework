@@ -223,8 +223,9 @@ class ViewPerson extends AbstractView
                 $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
                 break;
             case self::TBL_COMMON_INFORMATION_IS_ASSISTANCE:
-                $Data = Common::useService()->getPropertyList( new TblCommonInformation(), TblCommonInformation::ATTR_IS_ASSISTANCE );
-                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount );
+                $Data[1] = 'Ja';
+                $Data[2] = 'Nein';
+                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount);
                 break;
             case self::TBL_COMMON_BIRTHDATES_BIRTHPLACE:
                 $Data = Common::useService()->getPropertyList( new TblCommonBirthDates(), TblCommonBirthDates::ATTR_BIRTHPLACE );

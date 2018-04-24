@@ -6,6 +6,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
@@ -117,16 +119,22 @@ class ViewGroupStudentBasic extends AbstractView
     {
 
         switch ($PropertyName) {
+            case self::TBL_STUDENT_IDENTIFIER:
+                $Data = Common::useService()->getPropertyList(new TblStudent(), TblStudent::ATTR_TBL_IDENTIFIER);
+                $Field = $this->getFormFieldAutoCompleter($Data, $PropertyName, $Label, $Icon, $doResetCount);
+                break;
             case self::TBL_STUDENT_HAS_MIGRATION_BACKGROUND:
                 $Data[1] = 'Ja';
-                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount);
+                $Data[2] = 'Nein';
+                $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount);
                 break;
             case self::TBL_STUDENT_IS_IN_PREPARATION_DIVISION_FOR_MIGRANTS:
                 $Data[1] = 'Ja';
-                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount);
+                $Data[2] = 'Nein';
+                $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount);
                 break;
             default:
-                $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );
+                $Field = parent::getFormField($PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );
                 break;
         }
         return $Field;

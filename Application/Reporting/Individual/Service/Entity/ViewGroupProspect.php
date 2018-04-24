@@ -6,6 +6,10 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Meta\Prospect\Prospect;
+use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspectReservation;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
@@ -22,11 +26,6 @@ class ViewGroupProspect extends AbstractView
 
     // Sortierung beeinflusst die Gruppenreihenfolge im Frontend
     const TBL_PERSON_ID = 'TblPerson_Id';
-//    const TBL_SALUTATION_SALUTATION = 'TblSalutation_Salutation';
-//    const TBL_PERSON_FIRST_NAME = 'TblPerson_FirstName';
-//    const TBL_PERSON_SECOND_NAME = 'TblPerson_SecondName';
-//    const TBL_PERSON_LAST_NAME = 'TblPerson_LastName';
-//    const TBL_COMMON_GENDER_NAME = 'TblCommonGender_Name';
     const TBL_PROSPECT_APPOINTMENT_RESERVATION_DATE = 'TblProspectAppointment_ReservationDate';
     const TBL_PROSPECT_APPOINTMENT_INTERVIEW_DATE = 'TblProspectAppointment_InterviewDate';
     const TBL_PROSPECT_APPOINTMENT_TRIAL_DATE = 'TblProspectAppointment_TrialDate';
@@ -49,26 +48,6 @@ class ViewGroupProspect extends AbstractView
      * @Column(type="string")
      */
     protected $TblPerson_Id;
-//    /**
-//     * @Column(type="string")
-//     */
-//    protected $TblSalutation_Salutation;
-//    /**
-//     * @Column(type="string")
-//     */
-//    protected $TblPerson_FirstName;
-//    /**
-//     * @Column(type="string")
-//     */
-//    protected $TblPerson_SecondName;
-//    /**
-//     * @Column(type="string")
-//     */
-//    protected $TblPerson_LastName;
-//    /**
-//     * @Column(type="string")
-//     */
-//    protected $TblCommonGender_Name;
     /**
      * @Column(type="string")
      */
@@ -111,12 +90,6 @@ class ViewGroupProspect extends AbstractView
     {
 
         //NameDefinition
-//        $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION, 'Person: Anrede');
-//        $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME, 'Person: Vorname');
-//        $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME, 'Person: Zweiter Vorname');
-//        $this->setNameDefinition(self::TBL_PERSON_LAST_NAME, 'Person: Nachname');
-//        $this->setNameDefinition(self::TBL_COMMON_GENDER_NAME, 'Person: Geschlecht');
-
         $this->setNameDefinition(self::TBL_PROSPECT_APPOINTMENT_RESERVATION_DATE, 'Termin: Eingangsdatum');
         $this->setNameDefinition(self::TBL_PROSPECT_APPOINTMENT_INTERVIEW_DATE, 'Termin: Aufnahmegespräche');
         $this->setNameDefinition(self::TBL_PROSPECT_APPOINTMENT_TRIAL_DATE, 'Termin: Schnuppertag');
@@ -127,14 +100,6 @@ class ViewGroupProspect extends AbstractView
         $this->setNameDefinition(self::TBL_PROSPECT_REMARK, 'Interessent: Bemerkung');
 
         //GroupDefinition
-//        $this->setGroupDefinition('Personendaten', array(
-//            self::TBL_SALUTATION_SALUTATION,
-//            self::TBL_PERSON_FIRST_NAME,
-//            self::TBL_PERSON_SECOND_NAME,
-//            self::TBL_PERSON_LAST_NAME,
-//            self::TBL_COMMON_GENDER_NAME,
-//        ));
-
         $this->setGroupDefinition('Termine', array(
             self::TBL_PROSPECT_APPOINTMENT_RESERVATION_DATE,
             self::TBL_PROSPECT_APPOINTMENT_INTERVIEW_DATE,
@@ -186,10 +151,18 @@ class ViewGroupProspect extends AbstractView
     {
 
         switch ($PropertyName) {
-//            case self::TBL_COMMON_GENDER_NAME:
-//                $Data = Common::useService()->getPropertyList( new TblCommonGender(), TblCommonGender::ATTR_NAME );
-//                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount );
-//                break;
+            case self::TBL_TYPE_NAME_A:
+                $Data = Type::useService()->getPropertyList(new TblType(), TblType::ATTR_NAME);
+                $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount);
+                break;
+            case self::TBL_TYPE_NAME_B:
+                $Data = Type::useService()->getPropertyList(new TblType(), TblType::ATTR_NAME);
+                $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount);
+                break;
+            case self::TBL_PROSPECT_RESERVATION_RESERVATION_YEAR:
+                $Data = Prospect::useService()->getPropertyList(new TblProspectReservation(), TblProspectReservation::ATTR_RESERVATION_YEAR);
+                $Field = $this->getFormFieldAutoCompleter($Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount);
+                break;
             default:
                 $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );
                 break;

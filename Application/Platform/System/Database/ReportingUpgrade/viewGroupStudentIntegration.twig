@@ -13,6 +13,14 @@ from PeopleMeta_{{ ConsumerAcronym }}.viewStudentFocus vSF
 where vSF.TblStudent_Id =  vS.TblStudent_Id
 ) TblStudentFocusType_NameList,
 
+(select
+vSF.TblStudentFocusType_Name
+from PeopleMeta_{{ ConsumerAcronym }}.viewStudentFocus vSF
+where vSF.TblStudent_Id =  vS.TblStudent_Id
+and vSF.TblStudentFocus_IsPrimary = 1
+limit 1
+) TblStudentFocusType_MainFocus,
+
 (select distinct
 group_concat(
 concat(

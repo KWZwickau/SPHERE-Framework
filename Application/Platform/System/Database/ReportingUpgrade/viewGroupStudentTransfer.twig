@@ -51,7 +51,7 @@ SELECT
         and vST.TblStudentTransferType_Identifier = 'ENROLLMENT'
     ) TblStudentTransferEnrollment_Course,
     (select distinct
-        vST.TblStudentTransfer_TransferDate
+        DATE_FORMAT( vST.TblStudentTransfer_TransferDate, '%d.%m.%Y' ) AS TblStudentTransfer_TransferDate
         from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
         where vST.TblStudent_Id =  vS.TblStudent_Id
         and vST.TblStudentTransferType_Identifier = 'ENROLLMENT'
@@ -92,7 +92,7 @@ SELECT
         and vST.TblStudentTransferType_Identifier = 'ARRIVE'
     ) TblStudentTransferArrive_Course,
     (select distinct
-        vST.TblStudentTransfer_TransferDate
+        DATE_FORMAT( vST.TblStudentTransfer_TransferDate, '%d.%m.%Y' ) AS TblStudentTransfer_TransferDate
         from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
         where vST.TblStudent_Id =  vS.TblStudent_Id
         and vST.TblStudentTransferType_Identifier = 'ARRIVE'
@@ -133,7 +133,7 @@ SELECT
         and vST.TblStudentTransferType_Identifier = 'LEAVE'
     ) TblStudentTransferLeave_Course,
     (select distinct
-        vST.TblStudentTransfer_TransferDate
+        DATE_FORMAT( vST.TblStudentTransfer_TransferDate, '%d.%m.%Y' ) AS TblStudentTransfer_TransferDate
         from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
         where vST.TblStudent_Id =  vS.TblStudent_Id
         and vST.TblStudentTransferType_Identifier = 'LEAVE'

@@ -15,7 +15,6 @@ use SPHERE\Application\AppTrait;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\IModuleInterface;
-use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Reporting\Individual\Individual;
 use SPHERE\Application\Reporting\Individual\Service\Entity\TblPreset;
@@ -57,7 +56,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Search;
-use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Dropdown;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -99,6 +97,19 @@ use SPHERE\System\Debugger\Logger\QueryLogger;
  */
 class ApiIndividual extends IndividualReceiver implements IApiInterface, IModuleInterface
 {
+
+    private $reducedSelectBoxList = array(
+        'TblSalutation_Salutation',
+        'TblCommonInformation_IsAssistance',
+        'TblStudent_HasMigrationBackground',
+        'TblStudent_IsInPreparationDivisionForMigrants',
+        'TblGroup_Id',
+    );
+
+    private $IdSearchList = array(
+        'TblGroup_Id',
+    );
+
     use ApiTrait, AppTrait;
 
     public static function registerModule()
@@ -107,17 +118,12 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             __NAMESPACE__.'/Download', __CLASS__.'::downloadFile'
         ));
     }
-    /**
-     * @return IServiceInterface
-     */
+
     public static function useService()
     {
         // TODO: Implement useService() method.
     }
 
-    /**
-     * @return IFrontendInterface
-     */
     public static function useFrontend()
     {
         // TODO: Implement useFrontend() method.
@@ -1146,7 +1152,8 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         $PanelString = '';
 
         $ViewBlockList = array();
-        $ConstantList = $View::getConstants();    //ToDO auslesen der Konstanten
+        /** @noinspection PhpUndefinedMethodInspection */
+        $ConstantList = $View::getConstants();    // auslesen der Konstanten
         if ($ConstantList) {
             foreach ($ConstantList as $Constant) {
                 $Group = $View->getGroupDefinition($Constant);
@@ -1248,6 +1255,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                         // No Actions
                         $LinkGroup = '';
                     } else {
+                        /** @var AbstractView|ViewPersonContact $View */
                         $FilterInputList[] = ( $i == 1
                             ? new PullClear( $View->getFormField( $tblWorkSpace->getField(), 'Alle', null, null, false, $ViewType) )
                             .new Center($this->getBehaviorRadioBox($tblWorkSpace->getField().'_Radio'.$i))
@@ -1368,27 +1376,13 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
     private function getBehaviorRadioBox($RadioBoxName)
     {
 
-        if(preg_match('!^[\w]+_Id_Radio[1]{1}$!is', $RadioBoxName)) {
-            // Layout if Id Search
-            return new Layout(
-                new LayoutGroup(
-                    new LayoutRow(array(
-                    new LayoutColumn(new ToolTip(
-                            '<div class="alert alert-info" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
-                            . (new RadioBox($RadioBoxName, '&nbsp;', 1, RadioBox::RADIO_BOX_TYPE_DEFAULT))->setTabIndex(-1)
-                            . '</div>'
-                            , 'equal (gleich)', false)
-                        , 3),
-                    new LayoutColumn(new ToolTip(
-                            '<div class="alert alert-danger" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
-                            . (new RadioBox($RadioBoxName, '&nbsp;', 2, RadioBox::RADIO_BOX_TYPE_DANGER))->setTabIndex(-1)
-                            . '</div>'
-                            , 'not equal (ungleich)', false)
-                        , 3)
-                    ))
-                )
-            );
-        } elseif(preg_match('!^[\w]+_Id_Radio[0-9]+$!is', $RadioBoxName)){
+        $RadioBoxList = array();
+        foreach($this->reducedSelectBoxList as &$reducedSelectBox){
+            $RadioBoxList[] = $reducedSelectBox.'_Radio1';
+        }
+
+        if(!empty($RadioBoxList) && in_array($RadioBoxName, $RadioBoxList)){
+            // Field in List
             return new Layout(
                 new LayoutGroup(
                     new LayoutRow(array(
@@ -1398,6 +1392,12 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                             . '</div>'
                             , 'equal (gleich)', false)
                         , 3),
+                        new LayoutColumn(new ToolTip(
+                            '<div class="alert alert-danger" style="padding: 2px;margin: 0;width: 23px;height: 23px;">'
+                            . (new RadioBox($RadioBoxName, '&nbsp;', 2, RadioBox::RADIO_BOX_TYPE_DANGER))->setTabIndex(-1)
+                            . '</div>'
+                            , 'not equal (ungleich)', false)
+                        , 3)
                     ))
                 )
             );
@@ -1622,7 +1622,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     $Alias = $this->encodeField( $ViewClass->getNameDefinition($tblWorkSpace->getField()) );
 
                     $FieldName = $tblWorkSpace->getField();
-                    if(preg_match('!^[\w]+[_Id]$!is', $tblWorkSpace->getField())) {
+                    if(in_array($tblWorkSpace->getField(), $this->IdSearchList)) {
                         $FieldName = str_replace('_Id', '_Name', $tblWorkSpace->getField());
                     }
                      $Builder->addSelect($tblWorkSpace->getView() . '.' . $FieldName
@@ -1654,7 +1654,8 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                             if (!empty($Value) || $Value === 0 || $Behavior == 3 || $Behavior == 4) {
                                 $Parameter = ':Filter' . $Index . 'Value' . $Count;
                                 if (!$OrExp) {
-                                    if(preg_match('!^[\w]+_Id$!is', $tblWorkSpace->getField())) {
+
+                                    if(in_array($tblWorkSpace->getField(), $this->reducedSelectBoxList)) {
                                         // Add AND Condition to Where (if filter is set)
                                         if($Behavior == 1){
                                             $OrExp = $Builder->expr()->orX(
@@ -1674,7 +1675,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                                         );
                                     }
                                 } else {
-                                    if(preg_match('!^[\w]+_Id$!is', $tblWorkSpace->getField())) {
+                                    if(in_array($tblWorkSpace->getField(), $this->reducedSelectBoxList)) {
                                         // Add AND Condition to Where (if filter is set)
                                         if($Behavior == 1){
                                             $OrExp->add( $Builder->expr()->eq($tblWorkSpace->getView().'.'.$tblWorkSpace->getField(),
@@ -1715,8 +1716,8 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                                 // If User Input exists
                                 $Parameter = ':Filter' . $Index . 'Value' . $Count;
                                 if (!empty($Value) || $Value === 0) {
-//                                    // choose eq by Id or like by text
-                                    if(preg_match('!^[\w]+_Id$!is', $tblWorkSpace->getField())) {
+//                                    // choose eq by List or like by text
+                                    if(in_array($tblWorkSpace->getField(), $this->reducedSelectBoxList)) {
                                         // Add AND Condition to Where (if filter is set)
                                         if($Behavior == 1){
                                             $Builder->andWhere(
@@ -1738,7 +1739,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                                     // Add AND Condition to Where (if filter is set)
 
                                 } else {
-                                    if(preg_match('!^[\w]+_Id$!is', $tblWorkSpace->getField())) {
+                                    if(in_array($tblWorkSpace->getField(), $this->reducedSelectBoxList)) {
                                         // Add AND Condition to Where (if filter is set)
                                         if($Value === '' && $Behavior == 1){
                                             $Builder->andWhere(
@@ -1777,6 +1778,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
                 if($SqlReturn){
                     return $Query->getSQL();
+//                    return new Code(print_r($ParameterList, true));
                 }
 
                 $Query->useQueryCache(true);
@@ -1938,9 +1940,10 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
      *
      * @return array|bool|Info|Error|string
      */
-    public function getSearchResult($ViewType = TblWorkSpace::VIEW_TYPE_ALL) {
+    public function getSearchResult($ViewType = TblWorkSpace::VIEW_TYPE_ALL)
+    {
 
-//        return $Query = $this->buildSearchQuery($ViewType, true);
+//        return $this->buildSearchQuery($ViewType, true);
         $Query = $this->buildSearchQuery($ViewType);
         if( null === $Query ) {
             return 'Error';
@@ -1962,9 +1965,13 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     $ColumnDTNames[$Name] = $this->decodeField($Name);
 //                    $ColumnDTNames[$Name] = preg_replace('!\_!is', ' ', $Name);
                 });
-                $Result = (new TableData($Result, null, $ColumnDTNames, array(
-                        'responsive' => false
-                    )))
+                $Result = (new TableData($Result, null, $ColumnDTNames,
+//                        false
+                        array(
+                        'responsive' => false,
+                        'fixedHeader'=> false
+                    )
+                ))
 
                     .$this->getDownloadForm($ViewType);
 //                    .'DEBUG'

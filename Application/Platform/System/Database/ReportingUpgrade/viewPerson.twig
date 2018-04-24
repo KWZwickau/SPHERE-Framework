@@ -16,7 +16,7 @@ vMC.TblCommonGender_Name AS TblCommonGender_Name,
 vMC.TblCommonInformation_Nationality AS TblCommonInformation_Nationality,
 vMC.TblCommonInformation_Denomination AS TblCommonInformation_Denomination,
 vMC.TblCommonInformation_AssistanceActivity AS TblCommonInformation_AssistanceActivity,
-vMC.TblCommonInformation_IsAssistance AS TblCommonInformation_IsAssistance
+IF (vMC.TblCommonInformation_IsAssistance, 'Ja', 'Nein') AS TblCommonInformation_IsAssistance
 
 --     (select vCA.TblAddress_StreetName from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA where
 --     vP.TblPerson_Id = vCA.TblPerson_Id

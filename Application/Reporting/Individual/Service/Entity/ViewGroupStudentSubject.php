@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
@@ -166,8 +167,8 @@ class ViewGroupStudentSubject extends AbstractView
         $this->setNameDefinition(self::TBL_SUBJECT_NAME_FOREIGN_LANGUAGE_3, 'Fremdsprache 3: Fach');
         $this->setNameDefinition(self::TBL_SUBJECT_FROM_FOREIGN_LANGUAGE_3, 'Fremdsprache 3: Von');
         $this->setNameDefinition(self::TBL_SUBJECT_TILL_FOREIGN_LANGUAGE_3, 'Fremdsprache 3: Bis');
-        $this->setNameDefinition(self::TBL_SUBJECT_TILL_FOREIGN_LANGUAGE_4, 'Fremdsprache 4: Fach');
-        $this->setNameDefinition(self::TBL_SUBJECT_TILL_FOREIGN_LANGUAGE_4, 'Fremdsprache 4: Von');
+        $this->setNameDefinition(self::TBL_SUBJECT_NAME_FOREIGN_LANGUAGE_4, 'Fremdsprache 4: Fach');
+        $this->setNameDefinition(self::TBL_SUBJECT_FROM_FOREIGN_LANGUAGE_4, 'Fremdsprache 4: Von');
         $this->setNameDefinition(self::TBL_SUBJECT_TILL_FOREIGN_LANGUAGE_4, 'Fremdsprache 4: Bis');
 
         $this->setNameDefinition(self::TBL_SUBJECT_NAME_RELIGION, 'Religion: Fach');
@@ -178,9 +179,9 @@ class ViewGroupStudentSubject extends AbstractView
         $this->setNameDefinition(self::TBL_SUBJECT_NAME_ELECTIVE_2, 'Wahlfach 2: Fach');
         $this->setNameDefinition(self::TBL_SUBJECT_NAME_ELECTIVE_3, 'Wahlfach 3: Fach');
 
-        $this->setNameDefinition(self::TBL_SUBJECT_NAME_TEAM_1, 'Arbeitsgemeinschaft 1: Anrede Schulbegleitung');
-        $this->setNameDefinition(self::TBL_SUBJECT_NAME_TEAM_2, 'Arbeitsgemeinschaft 2: Vorname Schulbegleitung');
-        $this->setNameDefinition(self::TBL_SUBJECT_NAME_TEAM_3, 'Arbeitsgemeinschaft 3: NachName Schulbegleitung');
+        $this->setNameDefinition(self::TBL_SUBJECT_NAME_TEAM_1, 'Arbeitsgemeinschaft 1: Fach');
+        $this->setNameDefinition(self::TBL_SUBJECT_NAME_TEAM_2, 'Arbeitsgemeinschaft 2: Fach');
+        $this->setNameDefinition(self::TBL_SUBJECT_NAME_TEAM_3, 'Arbeitsgemeinschaft 3: Fach');
 
           //GroupDefinition
         $this->setGroupDefinition('Fremdsprachen', array(
@@ -250,12 +251,116 @@ class ViewGroupStudentSubject extends AbstractView
     {
 
         switch ($PropertyName) {
-//            case self::SIBLINGS_COUNT:
-//                $PropertyCount = $this->calculateFormFieldCount( $PropertyName, $doResetCount );
-//                $Field = new NumberField( $PropertyName.'['.$PropertyCount.']',
-//                    $Placeholder, $Label, $Icon
-//                );
-//                break;
+            case self::TBL_SUBJECT_NAME_FOREIGN_LANGUAGE_1:
+                $Data = array();
+                if($tblSubjectCategory = Subject::useService()->getCategoryByIdentifier('FOREIGNLANGUAGE')){
+                    if(($tblSubjectList = Subject::useService()->getSubjectAllByCategory($tblSubjectCategory))){
+                        foreach($tblSubjectList as $tblSubject){
+                            $Data[] = $tblSubject->getName();
+                        }
+                    }
+                }
+                $Field = parent::getFormFieldAutoCompleter($Data, $PropertyName, $Label, $Icon, $doResetCount);
+                break;
+            case self::TBL_SUBJECT_NAME_FOREIGN_LANGUAGE_2:
+//                $Data = array();
+                if($tblSubjectCategory = Subject::useService()->getCategoryByIdentifier('FOREIGNLANGUAGE')){
+                    if(($tblSubjectList = Subject::useService()->getSubjectAllByCategory($tblSubjectCategory))){
+                        foreach($tblSubjectList as $tblSubject){
+                            $Data[] = $tblSubject->getName();
+                        }
+                    }
+                }
+                $Field = parent::getFormFieldAutoCompleter($Data, $PropertyName, $Label, $Icon, $doResetCount);
+                break;
+            case self::TBL_SUBJECT_NAME_FOREIGN_LANGUAGE_3:
+//                $Data = array();
+                if($tblSubjectCategory = Subject::useService()->getCategoryByIdentifier('FOREIGNLANGUAGE')){
+                    if(($tblSubjectList = Subject::useService()->getSubjectAllByCategory($tblSubjectCategory))){
+                        foreach($tblSubjectList as $tblSubject){
+                            $Data[] = $tblSubject->getName();
+                        }
+                    }
+                }
+                $Field = parent::getFormFieldAutoCompleter($Data, $PropertyName, $Label, $Icon, $doResetCount);
+                break;
+            case self::TBL_SUBJECT_NAME_FOREIGN_LANGUAGE_4:
+                $Data = array();
+                if($tblSubjectCategory = Subject::useService()->getCategoryByIdentifier('FOREIGNLANGUAGE')){
+                    if(($tblSubjectList = Subject::useService()->getSubjectAllByCategory($tblSubjectCategory))){
+                        foreach($tblSubjectList as $tblSubject){
+                            $Data[] = $tblSubject->getName();
+                        }
+                    }
+                }
+                $Field = parent::getFormFieldAutoCompleter($Data, $PropertyName, $Label, $Icon, $doResetCount);
+                break;
+            case self::TBL_SUBJECT_NAME_PROFILE:
+                $Data = array();
+                if($tblSubjectCategory = Subject::useService()->getCategoryByIdentifier('PROFILE')){
+                    if(($tblSubjectList = Subject::useService()->getSubjectAllByCategory($tblSubjectCategory))){
+                        foreach($tblSubjectList as $tblSubject){
+                            $Data[] = $tblSubject->getName();
+                        }
+                    }
+                }
+                $Field = parent::getFormFieldAutoCompleter($Data, $PropertyName, $Label, $Icon, $doResetCount);
+                break;
+            case self::TBL_SUBJECT_NAME_RELIGION:
+                $Data = array();
+                if($tblSubjectCategory = Subject::useService()->getCategoryByIdentifier('RELIGION')){
+                    if(($tblSubjectList = Subject::useService()->getSubjectAllByCategory($tblSubjectCategory))){
+                        foreach($tblSubjectList as $tblSubject){
+                            $Data[] = $tblSubject->getName();
+                        }
+                    }
+                }
+                $Field = parent::getFormFieldAutoCompleter($Data, $PropertyName, $Label, $Icon, $doResetCount);
+                break;
+            case self::TBL_SUBJECT_NAME_ORIENTATION:
+                $Data = array();
+                if($tblSubjectCategory = Subject::useService()->getCategoryByName('Neigungskurs')){
+                    if(($tblSubjectList = Subject::useService()->getSubjectAllByCategory($tblSubjectCategory))){
+                        foreach($tblSubjectList as $tblSubject){
+                            $Data[] = $tblSubject->getName();
+                        }
+                    }
+                }
+                $Field = parent::getFormFieldAutoCompleter($Data, $PropertyName, $Label, $Icon, $doResetCount);
+                break;
+            case self::TBL_SUBJECT_NAME_ELECTIVE_1:
+                $Data = array();
+                if($tblSubjectCategory = Subject::useService()->getCategoryByName('Wahlfach')){
+                    if(($tblSubjectList = Subject::useService()->getSubjectAllByCategory($tblSubjectCategory))){
+                        foreach($tblSubjectList as $tblSubject){
+                            $Data[] = $tblSubject->getName();
+                        }
+                    }
+                }
+                $Field = parent::getFormFieldAutoCompleter($Data, $PropertyName, $Label, $Icon, $doResetCount);
+                break;
+            case self::TBL_SUBJECT_NAME_ELECTIVE_2:
+                $Data = array();
+                if($tblSubjectCategory = Subject::useService()->getCategoryByName('Wahlfach')){
+                    if(($tblSubjectList = Subject::useService()->getSubjectAllByCategory($tblSubjectCategory))){
+                        foreach($tblSubjectList as $tblSubject){
+                            $Data[] = $tblSubject->getName();
+                        }
+                    }
+                }
+                $Field = parent::getFormFieldAutoCompleter($Data, $PropertyName, $Label, $Icon, $doResetCount);
+                break;
+            case self::TBL_SUBJECT_NAME_ELECTIVE_3:
+                $Data = array();
+                if($tblSubjectCategory = Subject::useService()->getCategoryByName('Wahlfach')){
+                    if(($tblSubjectList = Subject::useService()->getSubjectAllByCategory($tblSubjectCategory))){
+                        foreach($tblSubjectList as $tblSubject){
+                            $Data[] = $tblSubject->getName();
+                        }
+                    }
+                }
+                $Field = parent::getFormFieldAutoCompleter($Data, $PropertyName, $Label, $Icon, $doResetCount);
+                break;
             default:
                 $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );
                 break;

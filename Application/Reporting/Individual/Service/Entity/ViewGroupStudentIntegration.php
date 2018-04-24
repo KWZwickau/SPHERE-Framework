@@ -6,6 +6,9 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentDisorderType;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentFocusType;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
@@ -25,6 +28,7 @@ class ViewGroupStudentIntegration extends AbstractView
     const TBL_STUDENT_ID = 'TblStudent_Id';
     // Integration
     const TBL_STUDENT_FOCUS_TYPE_NAME_LIST = 'TblStudentFocusType_NameList';
+    const TBL_STUDENT_FOCUS_TYPE_MAIN_FOCUS = 'TblStudentFocusType_MainFocus';
     const TBL_STUDENT_DISORDER_TYPE_NAME_LIST = 'TblStudentDisorderType_NameList';
     const TBL_STUDENT_INTEGRATION_COACHING_REQUEST_DATE = 'TblStudentIntegration_CoachingRequestDate';
     const TBL_STUDENT_INTEGRATION_COACHING_COUNSEL_DATE = 'TblStudentIntegration_CoachingCounselDate';
@@ -57,6 +61,10 @@ class ViewGroupStudentIntegration extends AbstractView
      * @Column(type="string")
      */
     protected $TblStudentFocusType_NameList;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentFocusType_MainFocus;
     /**
      * @Column(type="string")
      */
@@ -107,6 +115,7 @@ class ViewGroupStudentIntegration extends AbstractView
     {
 
 //        //NameDefinition
+        $this->setNameDefinition(self::TBL_STUDENT_FOCUS_TYPE_MAIN_FOCUS, 'Integration: Hauptschwerpunkt');
         $this->setNameDefinition(self::TBL_STUDENT_FOCUS_TYPE_NAME_LIST, 'Integration: Schwerpunkte');
         $this->setNameDefinition(self::TBL_STUDENT_DISORDER_TYPE_NAME_LIST, 'Integration: Teilleistungsstörungen');
 
@@ -123,6 +132,7 @@ class ViewGroupStudentIntegration extends AbstractView
 
 //        //GroupDefinition
         $this->setGroupDefinition('&nbsp;', array(
+            self::TBL_STUDENT_FOCUS_TYPE_MAIN_FOCUS,
             self::TBL_STUDENT_FOCUS_TYPE_NAME_LIST,
             self::TBL_STUDENT_DISORDER_TYPE_NAME_LIST,
             self::TBL_STUDENT_INTEGRATION_COACHING_REQUEST_DATE,
@@ -169,12 +179,18 @@ class ViewGroupStudentIntegration extends AbstractView
     {
 
         switch ($PropertyName) {
-//            case self::SIBLINGS_COUNT:
-//                $PropertyCount = $this->calculateFormFieldCount( $PropertyName, $doResetCount );
-//                $Field = new NumberField( $PropertyName.'['.$PropertyCount.']',
-//                    $Placeholder, $Label, $Icon
-//                );
-//                break;
+            case self::TBL_STUDENT_FOCUS_TYPE_MAIN_FOCUS:
+                $Data = Common::useService()->getPropertyList(new TblStudentFocusType(), TblStudentFocusType::ATTR_NAME);
+                $Field = $this->getFormFieldAutoCompleter($Data, $PropertyName, $Label, $Icon, $doResetCount);
+                break;
+            case self::TBL_STUDENT_FOCUS_TYPE_NAME_LIST:
+                $Data = Common::useService()->getPropertyList(new TblStudentFocusType(), TblStudentFocusType::ATTR_NAME);
+                $Field = $this->getFormFieldAutoCompleter($Data, $PropertyName, $Label, $Icon, $doResetCount);
+                break;
+            case self::TBL_STUDENT_DISORDER_TYPE_NAME_LIST:
+                $Data = Common::useService()->getPropertyList(new TblStudentDisorderType(), TblStudentDisorderType::ATTR_NAME);
+                $Field = $this->getFormFieldAutoCompleter($Data, $PropertyName, $Label, $Icon, $doResetCount);
+                break;
             default:
                 $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );
                 break;
