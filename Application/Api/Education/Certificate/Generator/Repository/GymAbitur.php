@@ -872,9 +872,9 @@ class GymAbitur extends Certificate
                 )
                 ->styleBorderAll()
             )
-            ->addSlice($this->setPointsOverview('60px'))
+            ->addSlice($this->setPointsOverview('180px'))
             ->addSlice($this->getInfo(
-                '150px',
+                '50px',
                 '¹ Alle Punktzahlen werden zweistellig angegeben.',
                 '² Halbjahresergebnisse aus Leistungskursfächern (LF) werden doppelt gewichtet.',
                 '³ Bei Einbringung einer Besonderen Lernleistung wird diese an Stelle des 5. Prüfungsfaches gewertet.'
@@ -1463,6 +1463,15 @@ class GymAbitur extends Certificate
                     , '30%')
             );
 
+        // Zensuren ausblenden wenn der Schüler widersprochen hat
+        if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($this->getTblPrepareCertificate(),
+            $tblPerson, 'LevelTenGradesAreNotShown'))
+        ) {
+            $levelTenGradesAreNotShown = $tblPrepareInformation->getValue();
+        } else {
+            $levelTenGradesAreNotShown = false;
+        }
+
         $tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('LEVEL-10');
         for ($i = 1; $i < 8; $i++) {
             $subject = '&nbsp;';
@@ -1479,9 +1488,11 @@ class GymAbitur extends Certificate
                 && ($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())
             ) {
                 $subject = $tblSubject->getName();
-                $grade = $tblPrepareAdditionalGrade->getGrade();
-                if (isset($this->gradeTextList[$tblPrepareAdditionalGrade->getGrade()])) {
-                    $gradeText = $this->gradeTextList[$tblPrepareAdditionalGrade->getGrade()];
+                if (!$levelTenGradesAreNotShown) {
+                    $grade = $tblPrepareAdditionalGrade->getGrade();
+                    if (isset($this->gradeTextList[$tblPrepareAdditionalGrade->getGrade()])) {
+                        $gradeText = $this->gradeTextList[$tblPrepareAdditionalGrade->getGrade()];
+                    }
                 }
             }
             $slice
