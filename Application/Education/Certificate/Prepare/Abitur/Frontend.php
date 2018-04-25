@@ -26,6 +26,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -407,6 +408,16 @@ class Frontend extends Extension
                             ))
                         )),
                         new LayoutRow(array(
+                            new LayoutColumn(array(#
+                                '<br>',
+                                new \SPHERE\Common\Frontend\Text\Repository\Warning(
+                                    new Bold('Hinweise:')
+                                    . new Container('* Die Punkte wurden aus dem entsprechenden Kurshalbjahreszeugnis ermittelt.')
+                                    . new Container('** Die Punkte wurden aus dem Stichtagsnotenauftrag in der 12/2 ermittelt.')
+                                )
+                            ))
+                        )),
+                        new LayoutRow(array(
                             new LayoutColumn(array(
                                 '<br>',
                                 $countCourses,
@@ -536,7 +547,6 @@ class Frontend extends Extension
             && ($tblDivision = $tblPrepare->getServiceTblDivision())
             && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare, $tblPerson))
         ) {
-            // todo ort, datum, Vorsitzender, Mitglied, Mitglied für gesamte Klasse bzw. Gruppe setzen
 
             $global = $this->getGlobal();
             if (($tblPrepareInformationRemark = Prepare::useService()->getPrepareInformationBy($tblPrepare, $tblPerson, 'Remark'))) {

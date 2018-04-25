@@ -29,6 +29,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 
 /**
  * Class BlockI
@@ -101,7 +102,7 @@ class BlockI extends AbstractBlock
         $this->setPointList();
 
         // kopieren der Vornoten aus vorhandenen Kurshalbjahreszeugnissen
-        if ($view == BlockIView::PREVIEW) {
+//        if ($view == BlockIView::PREVIEW) {
             for ($level = 11; $level < 13; $level++) {
                 for ($term = 1; $term < 3; $term++) {
                     $midTerm = $level . '-' . $term;
@@ -115,6 +116,8 @@ class BlockI extends AbstractBlock
                             $tblPrepareAdditionalGradeType,
                             $this->tblPrepareCertificate
                         );
+
+                        $this->columnDefinition[$midTerm] = $this->columnDefinition[$midTerm] . new Warning('*');//'<sup>*</sup>';
                     }
                     // Stichtagsnotenauftrag 12-2
                     elseif ($level == 12 && $term == 2) {
@@ -128,11 +131,13 @@ class BlockI extends AbstractBlock
                                 $tblPrepareAdditionalGradeType,
                                 $tblTestType
                             );
+
+                            $this->columnDefinition[$midTerm] = $this->columnDefinition[$midTerm] . new Warning('**');
                         }
                     }
                 }
             }
-        }
+//        }
     }
 
     /**
@@ -232,7 +237,12 @@ class BlockI extends AbstractBlock
 
         $course = '';
         $grades = array();
-        if (($tblSubject = Subject::useService()->getSubjectByName($subjectName))) {
+        $tblSubject = Subject::useService()->getSubjectByName($subjectName);
+        if (!$tblSubject && $subjectName == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft') {
+            $tblSubject = Subject::useService()->getSubjectByAcronym('GRW');
+        }
+
+        if ($tblSubject) {
             $hasSubject = false;
             if (isset($this->AdvancedCourses[$tblSubject->getId()])) {
                 $hasSubject = true;

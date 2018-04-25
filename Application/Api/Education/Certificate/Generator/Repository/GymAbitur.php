@@ -948,8 +948,14 @@ class GymAbitur extends Certificate
             '12-1' => '&nbsp;',
             '12-2' => '&nbsp;',
         );
+
+        $tblSubject = Subject::useService()->getSubjectByName($subjectName);
+        if (!$tblSubject && $subjectName == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft') {
+            $tblSubject = Subject::useService()->getSubjectByAcronym('GRW');
+        }
+
         if (($tblPerson = Person::useService()->getPersonById($personId))
-            && ($tblSubject = Subject::useService()->getSubjectByName($subjectName))
+            && $tblSubject
         ) {
             for ($level = 11; $level < 13; $level++) {
                 for ($term = 1; $term < 3; $term++) {

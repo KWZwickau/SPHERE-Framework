@@ -654,7 +654,6 @@ class Frontend extends Extension
                                 }
                             }
                         }
-
                         $hasMissingForeignLanguage = false;
                         // check missing subjects on certificates
                         if (($missingSubjects = Prepare::useService()->checkCertificateSubjectsForDivision($tblPrepare, $certificateNameList, $hasMissingForeignLanguage))) {
@@ -671,6 +670,16 @@ class Frontend extends Extension
                         } else {
                             $missingSubjectsString = new Success(
                                 new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Alle Fächer sind zugeordnet.'
+                            );
+                        }
+
+                        // Abitur Fächerprüfung ignorieren
+                        if ($tblCertificateType
+                            && $tblCertificateType->getIdentifier() == 'DIPLOMA'
+                            && $tblLevel->getName() == '12'
+                        ) {
+                            $missingSubjectsString = new Success(
+                                new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Keine Fächerzuordnung erforderlich.'
                             );
                         }
 
