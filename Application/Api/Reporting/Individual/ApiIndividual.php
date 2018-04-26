@@ -99,7 +99,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 {
 
     private $reducedSelectBoxList = array(
-        'TblSalutation_Salutation',
+//        'TblSalutation_Salutation',
         'TblCommonInformation_IsAssistance',
         'TblStudent_HasMigrationBackground',
         'TblStudent_IsInPreparationDivisionForMigrants',
