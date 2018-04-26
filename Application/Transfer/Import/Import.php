@@ -6,6 +6,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Transfer\Import\Annaberg\Annaberg;
 use SPHERE\Application\Transfer\Import\Chemnitz\Chemnitz;
 use SPHERE\Application\Transfer\Import\Coswig\Coswig;
+use SPHERE\Application\Transfer\Import\Dresden\Dresden;
 use SPHERE\Application\Transfer\Import\FuxMedia\FuxSchool;
 use SPHERE\Application\Transfer\Import\Herrnhut\Herrnhut;
 use SPHERE\Application\Transfer\Import\Hormersdorf\Hormersdorf;
@@ -81,6 +82,9 @@ class Import implements IApplicationInterface
         if ($consumerAcronym === 'EVGSM' || $consumerAcronym == 'DEMO') {
             Meerane::registerModule();
         }
+        if ($consumerAcronym === 'FES' || $consumerAcronym == 'DEMO') {
+            Dresden::registerModule();
+        }
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Daten importieren'))
@@ -109,6 +113,9 @@ class Import implements IApplicationInterface
         }
         if ($consumerAcronym === 'EVGSM' || $consumerAcronym == 'DEMO') {
             $dataList = Meerane::setLinks($dataList);
+        }
+        if ($consumerAcronym === 'FES' || $consumerAcronym == 'DEMO') {
+            $dataList = Dresden::setLinks($dataList);
         }
 
         if(empty($dataList)){
