@@ -6,29 +6,10 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Contact\Address\Address;
-use SPHERE\Application\Contact\Address\Service\Entity\TblCity;
-use SPHERE\Application\Education\School\Course\Course;
-use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
-use SPHERE\Application\Education\School\School;
-use SPHERE\Application\People\Meta\Common\Common;
-use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
-use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
-use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransfer;
-use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
-use SPHERE\Application\Reporting\Individual\Individual;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
-use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
-use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
-use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
-use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
-use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Binding\AbstractView;
 
@@ -42,113 +23,33 @@ class ViewStudent extends AbstractView
 
     // Sortierung beeinflusst die Gruppenreihenfolge im Frontend
     const TBL_PERSON_ID = 'TblPerson_Id';
+    const TBL_STUDENT_ID = 'TblStudent_Id';
 
-    const TBL_SALUTATION_SALUTATION = 'TblSalutation_Salutation';
-    const TBL_PERSON_TITLE = 'TblPerson_Title';
-    const TBL_PERSON_FIRST_NAME = 'TblPerson_FirstName';
-    const TBL_PERSON_SECOND_NAME = 'TblPerson_SecondName';
-    const TBL_PERSON_LAST_NAME = 'TblPerson_LastName';
-    const TBL_PERSON_BIRTH_NAME = 'TblPerson_BirthName';
-
-    const TBL_COMMON_BIRTHDATES_BIRTHDAY = 'TblCommonBirthDates_Birthday';
-    const TBL_COMMON_BIRTHDATES_BIRTHPLACE = 'TblCommonBirthDates_Birthplace';
-    const TBL_COMMON_GENDER_NAME = 'TblCommonGender_Name';
-    const TBL_COMMON_INFORMATION_NATIONALITY = 'TblCommonInformation_Nationality';
-    const TBL_COMMON_INFORMATION_DENOMINATION = 'TblCommonInformation_Denomination';
-    const TBL_COMMON_INFORMATION_IS_ASSISTANCE = 'TblCommonInformation_IsAssistance';
-    const TBL_COMMON_INFORMATION_ASSISTANCE_ACTIVITY = 'TblCommonInformation_AssistanceActivity';
-    const TBL_COMMON_REMARK = 'TblCommon_Remark';
-
-    const TBL_ADDRESS_STREET_NAME = 'TblAddress_StreetName';
-    const TBL_ADDRESS_STREET_NUMBER = 'TblAddress_StreetNumber';
-    const TBL_CITY_CODE = 'TblCity_Code';
-    const TBL_CITY_CITY = 'TblCity_City';
-    const TBL_CITY_DISTRICT = 'TblCity_District';
-    const TBL_ADDRESS_COUNTY = 'TblAddress_County';
-    const TBL_ADDRESS_STATE = 'TblState_Name';
-    const TBL_ADDRESS_NATION = 'TblAddress_Nation';
-
-    const TBL_PHONE_NUMBER = 'TblPhone_Number';
-    const TBL_MAIL_ADDRESS = 'TblMail_Address';
-
-    const TBL_STUDENT_IDENTIFIER = 'TblStudent_Identifier';
-    const SCHULE = 'Schule';
-    const BILDUNGSGANG = 'Bildungsgang';
+    const SIBLINGS_COUNT = 'Sibling_Count';
+    // Krankenakte
     const TBL_STUDENT_MEDICAL_RECORD_DISEASE = 'TblStudentMedicalRecord_Disease';
     const TBL_STUDENT_MEDICAL_RECORD_MEDICATION = 'TblStudentMedicalRecord_Medication';
-//    const ARBEITSGEMEINSCHAFT_1 = 'Arbeitsgemeinschaft1';
-//    const ARBEITSGEMEINSCHAFT_2 = 'Arbeitsgemeinschaft2';
-//    const ARBEITSGEMEINSCHAFT_3 = 'Arbeitsgemeinschaft3';
-    const FREMDSPRACHE_1 = 'Fremdsprache1';
-    const FREMDSPRACHE_2 = 'Fremdsprache2';
-    const FREMDSPRACHE_3 = 'Fremdsprache3';
-    const FREMDSPRACHE_4 = 'Fremdsprache4';
-//    const WAHLFACH_1 = 'Wahlfach1';
-//    const WAHLFACH_2 = 'Wahlfach2';
-//    const WAHLFACH_3 = 'Wahlfach3';
-    const RELIGION = 'Religion';
-    const PROFIL = 'Profil';
-    const NEIGUNGSKURS = 'Neigungskurs';
-//    const BEFREIUNGEN = 'Befreiungen';
-
+    const TBL_STUDENT_MEDICAL_RECORD_INSURANCE_STATE = 'TblStudentMedicalRecord_InsuranceState';
     const TBL_STUDENT_MEDICAL_RECORD_INSURANCE = 'TblStudentMedicalRecord_Insurance';
-    const TBL_STUDENT_LOCKER_KEY_NUMBER = 'TblStudentLocker_KeyNumber';
+    // Taufe
+    const TBL_STUDENT_BAPTISM_LOCATION = 'TblStudentBaptism_Location';
+    // Schulbeförderung
+    const TBL_STUDENT_TRANSPORT_ROUTE = 'TblStudentTransport_Route';
+    const TBL_STUDENT_TRANSPORT_STATION_ENTRANCE = 'TblStudentTransport_StationEntrance';
+    const TBL_STUDENT_TRANSPORT_STATION_EXIT = 'TblStudentTransport_StationExit';
+    const TBL_STUDENT_TRANSPORT_REMARK = 'TblStudentTransport_Remark';
+    // Unterrichtsbefreiung
+    const TBL_STUDENT_LIBERATION_TYPE_NAME = 'TblStudentLiberationType_Name';
+    const TBL_STUDENT_LIBERATION_TYPE_DESCRIPTION = 'TblStudentLiberationType_Description';
+    const TBL_STUDENT_LIBERATION_CATEGORY_NAME = 'TblStudentLiberationCategory_Name';
+    const TBL_STUDENT_LIBERATION_CATEGORY_DESCRIPTION = 'TblStudentLiberationCategory_Description';
+    // Schließfach
     const TBL_STUDENT_LOCKER_LOCKER_NUMBER = 'TblStudentLocker_LockerNumber';
-    const SIBLINGS_COUNT = 'Sibling_Count';
-
-    // S1
-    const TBL_SALUTATION_SALUTATION_S1 = 'TblSalutation_Salutation_S1';
-    const TBL_PERSON_TITLE_S1 = 'TblPerson_Title_S1';
-    const TBL_PERSON_FIRST_NAME_S1 = 'TblPerson_FirstName_S1';
-    const TBL_PERSON_SECOND_NAME_S1 = 'TblPerson_SecondName_S1';
-    const TBL_PERSON_LAST_NAME_S1 = 'TblPerson_LastName_S1';
-    const TBL_PERSON_BIRTH_NAME_S1 = 'TblPerson_BirthName_S1';
-    const TBL_ADDRESS_STREET_NAME_S1 = 'TblAddress_StreetName_S1';
-    const TBL_ADDRESS_STREET_NUMBER_S1 = 'TblAddress_StreetNumber_S1';
-    const TBL_CITY_CODE_S1 = 'TblCity_Code_S1';
-    const TBL_CITY_CITY_S1 = 'TblCity_City_S1';
-    const TBL_CITY_DISTRICT_S1 = 'TblCity_District_S1';
-    const TBL_ADDRESS_COUNTY_S1 = 'TblAddress_County_S1';
-    const TBL_ADDRESS_STATE_S1 = 'TblState_Name_S1';
-    const TBL_ADDRESS_NATION_S1 = 'TblAddress_Nation_S1';
-    const TBL_PHONE_NUMBER_S1 = 'TblPhone_Number_S1';
-    const TBL_MAIL_ADDRESS_S1 = 'TblMail_Address_S1';
-
-    // S2
-    const TBL_SALUTATION_SALUTATION_S2 = 'TblSalutation_Salutation_S2';
-    const TBL_PERSON_TITLE_S2 = 'TblPerson_Title_S2';
-    const TBL_PERSON_FIRST_NAME_S2 = 'TblPerson_FirstName_S2';
-    const TBL_PERSON_SECOND_NAME_S2 = 'TblPerson_SecondName_S2';
-    const TBL_PERSON_LAST_NAME_S2 = 'TblPerson_LastName_S2';
-    const TBL_PERSON_BIRTH_NAME_S2 = 'TblPerson_BirthName_S2';
-    const TBL_ADDRESS_STREET_NAME_S2 = 'TblAddress_StreetName_S2';
-    const TBL_ADDRESS_STREET_NUMBER_S2 = 'TblAddress_StreetNumber_S2';
-    const TBL_CITY_CODE_S2 = 'TblCity_Code_S2';
-    const TBL_CITY_CITY_S2 = 'TblCity_City_S2';
-    const TBL_CITY_DISTRICT_S2 = 'TblCity_District_S2';
-    const TBL_ADDRESS_COUNTY_S2 = 'TblAddress_County_S2';
-    const TBL_ADDRESS_STATE_S2 = 'TblState_Name_S2';
-    const TBL_ADDRESS_NATION_S2 = 'TblAddress_Nation_S2';
-    const TBL_PHONE_NUMBER_S2 = 'TblPhone_Number_S2';
-    const TBL_MAIL_ADDRESS_S2 = 'TblMail_Address_S2';
-
-    // S3
-    const TBL_SALUTATION_SALUTATION_S3 = 'TblSalutation_Salutation_S3';
-    const TBL_PERSON_TITLE_S3 = 'TblPerson_Title_S3';
-    const TBL_PERSON_FIRST_NAME_S3 = 'TblPerson_FirstName_S3';
-    const TBL_PERSON_SECOND_NAME_S3 = 'TblPerson_SecondName_S3';
-    const TBL_PERSON_LAST_NAME_S3 = 'TblPerson_LastName_S3';
-    const TBL_PERSON_BIRTH_NAME_S3 = 'TblPerson_BirthName_S3';
-    const TBL_ADDRESS_STREET_NAME_S3 = 'TblAddress_StreetName_S3';
-    const TBL_ADDRESS_STREET_NUMBER_S3 = 'TblAddress_StreetNumber_S3';
-    const TBL_CITY_CODE_S3 = 'TblCity_Code_S3';
-    const TBL_CITY_CITY_S3 = 'TblCity_City_S3';
-    const TBL_CITY_DISTRICT_S3 = 'TblCity_District_S3';
-    const TBL_ADDRESS_COUNTY_S3 = 'TblAddress_County_S3';
-    const TBL_ADDRESS_STATE_S3 = 'TblState_Name_S3';
-    const TBL_ADDRESS_NATION_S3 = 'TblAddress_Nation_S3';
-    const TBL_PHONE_NUMBER_S3 = 'TblPhone_Number_S3';
-    const TBL_MAIL_ADDRESS_S3 = 'TblMail_Address_S3';
+    const TBL_STUDENT_LOCKER_LOCKER_LOCATION = 'TblStudentLocker_LockerLocation';
+    const TBL_STUDENT_LOCKER_KEY_NUMBER = 'TblStudentLocker_KeyNumber';
+    // Einverständnis
+    const TBL_STUDENT_STUDENT_NAME_AGREEMENT = 'TblStudent_NameAgreement';
+    const TBL_STUDENT_STUDENT_PICTURE_AGREEMENT = 'TblStudent_PictureAgreement';
 
     /**
      * @return array
@@ -166,169 +67,39 @@ class ViewStudent extends AbstractView
     /**
      * @Column(type="string")
      */
-    protected $TblCommonGender_Name;
+    protected $TblStudent_Id;
     /**
      * @Column(type="string")
      */
-    protected $TblSalutation_Salutation;
+    protected $TblStudentBaptism_Location;
     /**
      * @Column(type="string")
      */
-    protected $TblPerson_Title;
+    protected $TblStudentLiberationType_Name;
     /**
      * @Column(type="string")
      */
-    protected $TblPerson_FirstName;
+    protected $TblStudentLiberationType_Description;
     /**
      * @Column(type="string")
      */
-    protected $TblPerson_SecondName;
+    protected $TblStudentLiberationCategory_Name;
     /**
      * @Column(type="string")
      */
-    protected $TblPerson_LastName;
+    protected $TblStudentLiberationCategory_Description;
     /**
      * @Column(type="string")
      */
-    protected $TblPerson_BirthName;
+    protected $TblStudentLocker_LockerNumber;
     /**
      * @Column(type="string")
      */
-    protected $TblCommonInformation_Denomination;
+    protected $TblStudentLocker_LockerLocation;
     /**
      * @Column(type="string")
      */
-    protected $TblCommonInformation_Nationality;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCommonInformation_IsAssistance;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCommonInformation_AssistanceActivity;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCommon_Remark;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCommonBirthDates_Birthday;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCommonBirthDates_Birthplace;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblAddress_StreetName;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblAddress_StreetNumber;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCity_Code;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCity_City;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCity_District;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblAddress_County;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblAddress_Nation;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblState_Name;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPhone_Number;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblMail_Address;
-
-    /**
-     * @Column(type="string")
-     */
-    protected $Bildungsgang;
-    /**
-     * @Column(type="string")
-     */
-    protected $Schule;
-//    /**
-//     * @Column(type="string")
-//     */
-//    protected $Arbeitsgemeinschaft1;
-//    /**
-//     * @Column(type="string")
-//     */
-//    protected $Arbeitsgemeinschaft2;
-//    /**
-//     * @Column(type="string")
-//     */
-//    protected $Arbeitsgemeinschaft3;
-    /**
-     * @Column(type="string")
-     */
-    protected $Fremdsprache1;
-    /**
-     * @Column(type="string")
-     */
-    protected $Fremdsprache2;
-    /**
-     * @Column(type="string")
-     */
-    protected $Fremdsprache3;
-    /**
-     * @Column(type="string")
-     */
-    protected $Fremdsprache4;
-//    /**
-//     * @Column(type="string")
-//     */
-//    protected $Wahlfach1;
-//    /**
-//     * @Column(type="string")
-//     */
-//    protected $Wahlfach2;
-//    /**
-//     * @Column(type="string")
-//     */
-//    protected $Wahlfach3;
-    /**
-     * @Column(type="string")
-     */
-    protected $Religion;
-    /**
-     * @Column(type="string")
-     */
-    protected $Profil;
-    /**
-     * @Column(type="string")
-     */
-    protected $Neigungskurs;
-//    /**
-//     * @Column(type="string")
-//     */
-//    protected $Befreiungen;
-
-    /**
-     * @Column(type="string")
-     */
-    protected $TblStudentMedicalRecord_Insurance;
+    protected $TblStudentLocker_KeyNumber;
     /**
      * @Column(type="string")
      */
@@ -340,214 +111,39 @@ class ViewStudent extends AbstractView
     /**
      * @Column(type="string")
      */
-    protected $TblStudentLocker_KeyNumber;
+    protected $TblStudentMedicalRecord_InsuranceState;
     /**
      * @Column(type="string")
      */
-    protected $TblStudentLocker_LockerNumber;
+    protected $TblStudentMedicalRecord_Insurance;
     /**
      * @Column(type="string")
      */
-    protected $TblStudent_Identifier;
+    protected $TblStudentTransport_Route;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentTransport_StationEntrance;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentTransport_StationExit;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStudentTransport_Remark;
     /**
      * @Column(type="string")
      */
     protected $Sibling_Count;
-
     /**
      * @Column(type="string")
      */
-    protected $TblSalutation_Salutation_S1;
+    protected $TblStudent_NameAgreement;
     /**
      * @Column(type="string")
      */
-    protected $TblPerson_Title_S1;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPerson_FirstName_S1;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPerson_SecondName_S1;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPerson_LastName_S1;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPerson_BirthName_S1;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblAddress_StreetName_S1;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblAddress_StreetNumber_S1;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCity_Code_S1;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCity_City_S1;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCity_District_S1;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblAddress_County_S1;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblState_Name_S1;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblAddress_Nation_S1;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPhone_Number_S1;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblMail_Address_S1;
-
-    /**
-     * @Column(type="string")
-     */
-    protected $TblSalutation_Salutation_S2;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPerson_Title_S2;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPerson_FirstName_S2;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPerson_SecondName_S2;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPerson_LastName_S2;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPerson_BirthName_S2;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblAddress_StreetName_S2;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblAddress_StreetNumber_S2;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCity_Code_S2;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCity_City_S2;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCity_District_S2;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblAddress_County_S2;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblState_Name_S2;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblAddress_Nation_S2;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPhone_Number_S2;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblMail_Address_S2;
-
-    /**
-     * @Column(type="string")
-     */
-    protected $TblSalutation_Salutation_S3;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPerson_Title_S3;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPerson_FirstName_S3;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPerson_SecondName_S3;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPerson_LastName_S3;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPerson_BirthName_S3;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblAddress_StreetName_S3;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblAddress_StreetNumber_S3;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCity_Code_S3;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCity_City_S3;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblCity_District_S3;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblAddress_County_S3;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblState_Name_S3;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblAddress_Nation_S3;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPhone_Number_S3;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblMail_Address_S3;
+    protected $TblStudent_PictureAgreement;
 
     /**
      * Use this method to set PropertyName to DisplayName conversions with "setNameDefinition()"
@@ -557,276 +153,52 @@ class ViewStudent extends AbstractView
     public function loadNameDefinition()
     {
 
-        //NameDefinition
-        $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION, 'Schüler: Anrede');
-        $this->setNameDefinition(self::TBL_PERSON_TITLE, 'Schüler: Titel');
-        $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME, 'Schüler: Vorname');
-        $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME, 'Schüler: Zweiter Vorname');
-        $this->setNameDefinition(self::TBL_PERSON_LAST_NAME, 'Schüler: Nachname');
-        $this->setNameDefinition(self::TBL_PERSON_BIRTH_NAME, 'Schüler: Geburtsname');
+//        //NameDefinition
+//        $this->setNameDefinition(self::TBL_STUDENT_BAPTISM_LOCATION, 'Schüler: Ort der Taufe');
 
-        $this->setNameDefinition(self::TBL_COMMON_BIRTHDATES_BIRTHDAY, 'Schüler: Geburtstag');
-        $this->setNameDefinition(self::TBL_COMMON_BIRTHDATES_BIRTHPLACE, 'Schüler: Geburtsort');
-        $this->setNameDefinition(self::TBL_COMMON_GENDER_NAME, 'Schüler: Geschlecht');
-        $this->setNameDefinition(self::TBL_COMMON_INFORMATION_NATIONALITY, 'Schüler: Staatsangehörigkeit');
-        $this->setNameDefinition(self::TBL_COMMON_INFORMATION_DENOMINATION, 'Schüler: Konfession');
-        $this->setNameDefinition(self::TBL_COMMON_INFORMATION_IS_ASSISTANCE, 'Schüler: Mitarbeitsbereitschaft');
-        $this->setNameDefinition(self::TBL_COMMON_INFORMATION_ASSISTANCE_ACTIVITY, 'Schüler: Mitarbeit Tätigkeit');
-        $this->setNameDefinition(self::TBL_COMMON_REMARK, 'Schüler: Bemerkung Person');
+        $this->setNameDefinition(self::TBL_STUDENT_LIBERATION_TYPE_NAME, 'Allgemeines: Sportbefreiung');
+        // TBL_STUDENT_LIBERATION_TYPE_DESCRIPTION
+//        $this->setNameDefinition(self::TBL_STUDENT_LIBERATION_CATEGORY_NAME, 'Allgemeines: Unterrichtskategorie');
+        // TBL_STUDENT_LIBERATION_CATEGORY_DESCRIPTION
 
-        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME, 'Schüler: Straße');
-        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER, 'Schüler: Hausnummer');
-        $this->setNameDefinition(self::TBL_CITY_CODE, 'Schüler: Postleitzahl');
-        $this->setNameDefinition(self::TBL_CITY_CITY, 'Schüler: Ort');
-        $this->setNameDefinition(self::TBL_CITY_DISTRICT, 'Schüler: Ortsteil');
-        $this->setNameDefinition(self::TBL_ADDRESS_COUNTY, 'Schüler: Landkreis');
-        $this->setNameDefinition(self::TBL_ADDRESS_STATE, 'Schüler: Bundesland');
-        $this->setNameDefinition(self::TBL_ADDRESS_NATION, 'Schüler: Land');
+        $this->setNameDefinition(self::TBL_STUDENT_LOCKER_LOCKER_NUMBER, 'Allgemeines: Schließfachnummer');
+        $this->setNameDefinition(self::TBL_STUDENT_LOCKER_LOCKER_LOCATION, 'Allgemeines: Schließfach Standort');
+        $this->setNameDefinition(self::TBL_STUDENT_LOCKER_KEY_NUMBER, 'Allgemeines: Schließfach Schlüssel Nummer');
 
-        $this->setNameDefinition(self::TBL_PHONE_NUMBER, 'Schüler: Telefonnummer');
-        $this->setNameDefinition(self::TBL_MAIL_ADDRESS, 'Schüler: E-Mail');
+        $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_DISEASE, 'Allgemeines: Krankheiten / Allergien');
+        $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_MEDICATION, 'Allgemeines: Medikamente');
+        $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_INSURANCE_STATE, 'Allgemeines: Versicherungsstatus');
+        $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_INSURANCE, 'Allgemeines: Krankenkasse');
 
-        $this->setNameDefinition(self::TBL_STUDENT_IDENTIFIER, 'Schüler: Schülernummer');
-        $this->setNameDefinition(self::SCHULE, 'Schüler: Aktuelle Schule');
-        $this->setNameDefinition(self::BILDUNGSGANG, 'Schüler: Aktueller Bildungsgang');
-        $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_DISEASE, 'Schüler: Krankheiten / Allergien');
-        $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_MEDICATION, 'Schüler: Medikamente');
-//        $this->setNameDefinition(self::ARBEITSGEMEINSCHAFT_1, 'Arbeitsgemeinschaft 1');
-//        $this->setNameDefinition(self::ARBEITSGEMEINSCHAFT_2, 'Arbeitsgemeinschaft 2');
-//        $this->setNameDefinition(self::ARBEITSGEMEINSCHAFT_3, 'Arbeitsgemeinschaft 3');
-        $this->setNameDefinition(self::FREMDSPRACHE_1, 'Schüler: Fremdsprache 1');
-        $this->setNameDefinition(self::FREMDSPRACHE_2, 'Schüler: Fremdsprache 2');
-        $this->setNameDefinition(self::FREMDSPRACHE_3, 'Schüler: Fremdsprache 3');
-        $this->setNameDefinition(self::FREMDSPRACHE_4, 'Schüler: Fremdsprache 4');
-//        $this->setNameDefinition(self::WAHLFACH_1, 'Wahlfach 1');
-//        $this->setNameDefinition(self::WAHLFACH_2, 'Wahlfach 2');
-//        $this->setNameDefinition(self::WAHLFACH_3, 'Wahlfach 3');
-        $this->setNameDefinition(self::RELIGION, 'Schüler: Religion');
-        $this->setNameDefinition(self::PROFIL, 'Schüler: Profil');
-        $this->setNameDefinition(self::NEIGUNGSKURS, 'Schüler: Neigungskurs');
-//        $this->setNameDefinition(self::BEFREIUNGEN, 'Befreiungen');
+        $this->setNameDefinition(self::TBL_STUDENT_TRANSPORT_ROUTE, 'Allgemeines: Buslinie');
+        $this->setNameDefinition(self::TBL_STUDENT_TRANSPORT_STATION_ENTRANCE, 'Allgemeines: Einstiegshaltestelle');
+        $this->setNameDefinition(self::TBL_STUDENT_TRANSPORT_STATION_EXIT, 'Allgemeines: Ausstiegshaltestelle');
+        $this->setNameDefinition(self::TBL_STUDENT_TRANSPORT_REMARK, 'Allgemeines: Bemerkung');
 
-        $this->setNameDefinition(self::TBL_STUDENT_MEDICAL_RECORD_INSURANCE, 'Schüler: Versicherung');
-        $this->setNameDefinition(self::TBL_STUDENT_LOCKER_KEY_NUMBER, 'Schüler: Schließfach Schlüsselnummer');
-        $this->setNameDefinition(self::TBL_STUDENT_LOCKER_LOCKER_NUMBER, 'Schüler: Schließfachnummer');
-        $this->setNameDefinition(self::SIBLINGS_COUNT, 'Schüler: Anzahl Geschwister');
-        // S1
-        $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_S1, 'S1: Anrede');
-        $this->setNameDefinition(self::TBL_PERSON_TITLE_S1, 'S1: Titel');
-        $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME_S1, 'S1: Vorname');
-        $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME_S1, 'S1: Zweiter Vorname');
-        $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_S1, 'S1: Nachname');
-        $this->setNameDefinition(self::TBL_PERSON_BIRTH_NAME_S1, 'S1: Geburtsname');
-        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_S1, 'S1: Straße');
-        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_S1, 'S1: Hausnummer');
-        $this->setNameDefinition(self::TBL_CITY_CODE_S1, 'S1: PLZ');
-        $this->setNameDefinition(self::TBL_CITY_CITY_S1, 'S1: Ort');
-        $this->setNameDefinition(self::TBL_CITY_DISTRICT_S1, 'S1: Ortsteil');
-        $this->setNameDefinition(self::TBL_ADDRESS_COUNTY_S1, 'S1: Landkreis');
-        $this->setNameDefinition(self::TBL_ADDRESS_STATE_S1, 'S1: Bundesland');
-        $this->setNameDefinition(self::TBL_ADDRESS_NATION_S1, 'S1: Land');
-        $this->setNameDefinition(self::TBL_PHONE_NUMBER_S1, 'S1: Telefon');
-        $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S1, 'S1: E-Mail');
-        // S2
-        $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_S2, 'S2: Anrede');
-        $this->setNameDefinition(self::TBL_PERSON_TITLE_S2, 'S2: Titel');
-        $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME_S2, 'S2: Vorname');
-        $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME_S2, 'S2: Zweiter Vorname');
-        $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_S2, 'S2: Nachname');
-        $this->setNameDefinition(self::TBL_PERSON_BIRTH_NAME_S2, 'S2: Geburtsname');
-        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_S2, 'S2: Straße');
-        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_S2, 'S2: Hausnummer');
-        $this->setNameDefinition(self::TBL_CITY_CODE_S2, 'S2: PLZ');
-        $this->setNameDefinition(self::TBL_CITY_CITY_S2, 'S2: Ort');
-        $this->setNameDefinition(self::TBL_CITY_DISTRICT_S2, 'S2: Ortsteil');
-        $this->setNameDefinition(self::TBL_ADDRESS_COUNTY_S2, 'S2: Landkreis');
-        $this->setNameDefinition(self::TBL_ADDRESS_STATE_S2, 'S2: Bundesland');
-        $this->setNameDefinition(self::TBL_ADDRESS_NATION_S2, 'S2: Land');
-        $this->setNameDefinition(self::TBL_PHONE_NUMBER_S2, 'S2: Telefon');
-        $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S2, 'S2: E-Mail');
-        // S3
-        $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_S3, 'S3: Anrede');
-        $this->setNameDefinition(self::TBL_PERSON_TITLE_S3, 'S3: Titel');
-        $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME_S3, 'S3: Vorname');
-        $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME_S3, 'S3: Zweiter Vorname');
-        $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_S3, 'S3: Nachname');
-        $this->setNameDefinition(self::TBL_PERSON_BIRTH_NAME_S3, 'S3: Geburtsname');
-        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_S3, 'S3: Straße');
-        $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_S3, 'S3: Hausnummer');
-        $this->setNameDefinition(self::TBL_CITY_CODE_S3, 'S3: PLZ');
-        $this->setNameDefinition(self::TBL_CITY_CITY_S3, 'S3: Ort');
-        $this->setNameDefinition(self::TBL_CITY_DISTRICT_S3, 'S3: Ortsteil');
-        $this->setNameDefinition(self::TBL_ADDRESS_COUNTY_S3, 'S3: Landkreis');
-        $this->setNameDefinition(self::TBL_ADDRESS_STATE_S3, 'S3: Bundesland');
-        $this->setNameDefinition(self::TBL_ADDRESS_NATION_S3, 'S3: Land');
-        $this->setNameDefinition(self::TBL_PHONE_NUMBER_S3, 'S3: Telefon');
-        $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S3, 'S3: E-Mail');
+        $this->setNameDefinition(self::SIBLINGS_COUNT, 'Allgemeines: Anzahl Geschwister');
 
-        //GroupDefinition
-        $this->setGroupDefinition('Grunddaten', array(
-            self::TBL_SALUTATION_SALUTATION,
-            self::TBL_PERSON_TITLE,
-            self::TBL_PERSON_FIRST_NAME,
-            self::TBL_PERSON_SECOND_NAME,
-            self::TBL_PERSON_LAST_NAME,
-//            self::TBL_PERSON_BIRTH_NAME,
-        ));
-        $this->setGroupDefinition('Personendaten', array(
-            self::TBL_COMMON_BIRTHDATES_BIRTHDAY,
-            self::TBL_COMMON_BIRTHDATES_BIRTHPLACE,
-            self::TBL_COMMON_GENDER_NAME,
-            self::TBL_COMMON_INFORMATION_NATIONALITY,
-            self::TBL_COMMON_INFORMATION_DENOMINATION,
-            self::TBL_COMMON_INFORMATION_IS_ASSISTANCE,
-            self::TBL_COMMON_INFORMATION_ASSISTANCE_ACTIVITY,
-            self::TBL_COMMON_REMARK,
-        ));
+        $this->setNameDefinition(self::TBL_STUDENT_STUDENT_NAME_AGREEMENT, 'Allgemeines: Erlaubnis Schülername');
+        $this->setNameDefinition(self::TBL_STUDENT_STUDENT_PICTURE_AGREEMENT, 'Allgemeines: Erlaubnis Schülerbild');
 
-        $this->setGroupDefinition('Adressdaten', array(
-            self::TBL_ADDRESS_STREET_NAME,
-            self::TBL_ADDRESS_STREET_NUMBER,
-            self::TBL_CITY_CODE,
-            self::TBL_CITY_CITY,
-            self::TBL_CITY_DISTRICT,
-            self::TBL_ADDRESS_COUNTY,
-            self::TBL_ADDRESS_STATE,
-            self::TBL_ADDRESS_NATION,
-        ));
-        $this->setGroupDefinition('Kontaktdaten', array(
-            self::TBL_PHONE_NUMBER,
-            self::TBL_MAIL_ADDRESS,
-        ));
-
-        $this->setGroupDefinition('Schülerakte', array(
-            self::TBL_STUDENT_IDENTIFIER,
-            self::SCHULE,
-            self::BILDUNGSGANG,
+//        //GroupDefinition
+        $this->setGroupDefinition('&nbsp;', array(
+            self::SIBLINGS_COUNT,
+            self::TBL_STUDENT_LIBERATION_TYPE_NAME,
+//            self::TBL_STUDENT_LIBERATION_CATEGORY_NAME,
+            self::TBL_STUDENT_LOCKER_LOCKER_NUMBER,
+            self::TBL_STUDENT_LOCKER_LOCKER_LOCATION,
+            self::TBL_STUDENT_LOCKER_KEY_NUMBER,
             self::TBL_STUDENT_MEDICAL_RECORD_DISEASE,
             self::TBL_STUDENT_MEDICAL_RECORD_MEDICATION,
-//            self::ARBEITSGEMEINSCHAFT_1,
-//            self::ARBEITSGEMEINSCHAFT_2,
-//            self::ARBEITSGEMEINSCHAFT_3,
-            self::FREMDSPRACHE_1,
-            self::FREMDSPRACHE_2,
-            self::FREMDSPRACHE_3,
-            self::FREMDSPRACHE_4,
-//            self::WAHLFACH_1,
-//            self::WAHLFACH_2,
-//            self::WAHLFACH_3,
-            self::RELIGION,
-            self::PROFIL,
-            self::NEIGUNGSKURS,
-//            self::BEFREIUNGEN,
-//            self::TBL_STUDENT_MEDICAL_RECORD_INSURANCE,
-//            self::TBL_STUDENT_LOCKER_KEY_NUMBER,
-//            self::TBL_STUDENT_LOCKER_LOCKER_NUMBER,
-//            self::SIBLINGS_COUNT
+            self::TBL_STUDENT_MEDICAL_RECORD_INSURANCE_STATE,
+            self::TBL_STUDENT_MEDICAL_RECORD_INSURANCE,
+            self::TBL_STUDENT_TRANSPORT_ROUTE,
+            self::TBL_STUDENT_TRANSPORT_STATION_ENTRANCE,
+            self::TBL_STUDENT_TRANSPORT_STATION_EXIT,
+            self::TBL_STUDENT_TRANSPORT_REMARK,
+            self::TBL_STUDENT_STUDENT_NAME_AGREEMENT,
+            self::TBL_STUDENT_STUDENT_PICTURE_AGREEMENT,
         ));
-
-        $this->setGroupDefinition('Sorge. S1 (Zusatzinfo)', array(
-            self::TBL_SALUTATION_SALUTATION_S1,
-            self::TBL_PERSON_TITLE_S1,
-            self::TBL_PERSON_FIRST_NAME_S1,
-            self::TBL_PERSON_SECOND_NAME_S1,
-            self::TBL_PERSON_LAST_NAME_S1,
-            self::TBL_PERSON_BIRTH_NAME_S1,
-            self::TBL_ADDRESS_STREET_NAME_S1,
-            self::TBL_ADDRESS_STREET_NUMBER_S1,
-            self::TBL_CITY_CODE_S1,
-            self::TBL_CITY_CITY_S1,
-            self::TBL_CITY_DISTRICT_S1,
-            self::TBL_ADDRESS_COUNTY_S1,
-            self::TBL_ADDRESS_STATE_S1,
-            self::TBL_ADDRESS_NATION_S1,
-            self::TBL_PHONE_NUMBER_S1,
-            self::TBL_MAIL_ADDRESS_S1
-        ));
-        $this->setGroupDefinition('Sorge. S2 (Zusatzinfo)', array(
-            self::TBL_SALUTATION_SALUTATION_S2,
-            self::TBL_PERSON_TITLE_S2,
-            self::TBL_PERSON_FIRST_NAME_S2,
-            self::TBL_PERSON_SECOND_NAME_S2,
-            self::TBL_PERSON_LAST_NAME_S2,
-            self::TBL_PERSON_BIRTH_NAME_S2,
-            self::TBL_ADDRESS_STREET_NAME_S2,
-            self::TBL_ADDRESS_STREET_NUMBER_S2,
-            self::TBL_CITY_CODE_S2,
-            self::TBL_CITY_CITY_S2,
-            self::TBL_CITY_DISTRICT_S2,
-            self::TBL_ADDRESS_COUNTY_S2,
-            self::TBL_ADDRESS_STATE_S2,
-            self::TBL_ADDRESS_NATION_S2,
-            self::TBL_PHONE_NUMBER_S2,
-            self::TBL_MAIL_ADDRESS_S2
-        ));
-        $this->setGroupDefinition('Sorge. S3 (Zusatzinfo)', array(
-            self::TBL_SALUTATION_SALUTATION_S3,
-            self::TBL_PERSON_TITLE_S3,
-            self::TBL_PERSON_FIRST_NAME_S3,
-            self::TBL_PERSON_SECOND_NAME_S3,
-            self::TBL_PERSON_LAST_NAME_S3,
-            self::TBL_PERSON_BIRTH_NAME_S3,
-            self::TBL_ADDRESS_STREET_NAME_S3,
-            self::TBL_ADDRESS_STREET_NUMBER_S3,
-            self::TBL_CITY_CODE_S3,
-            self::TBL_CITY_CITY_S3,
-            self::TBL_CITY_DISTRICT_S3,
-            self::TBL_ADDRESS_COUNTY_S3,
-            self::TBL_ADDRESS_STATE_S3,
-            self::TBL_ADDRESS_NATION_S3,
-            self::TBL_PHONE_NUMBER_S3,
-            self::TBL_MAIL_ADDRESS_S3,
-        ));
-
-        // Flag um Filter zu deaktivieren (nur Anzeige von Informationen)
-        $this->setDisableDefinition(self::TBL_SALUTATION_SALUTATION_S1);
-        $this->setDisableDefinition(self::TBL_PERSON_TITLE_S1);
-        $this->setDisableDefinition(self::TBL_PERSON_FIRST_NAME_S1);
-        $this->setDisableDefinition(self::TBL_PERSON_SECOND_NAME_S1);
-        $this->setDisableDefinition(self::TBL_PERSON_LAST_NAME_S1);
-        $this->setDisableDefinition(self::TBL_PERSON_BIRTH_NAME_S1);
-        $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NAME_S1);
-        $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NUMBER_S1);
-        $this->setDisableDefinition(self::TBL_CITY_CODE_S1);
-        $this->setDisableDefinition(self::TBL_CITY_CITY_S1);
-        $this->setDisableDefinition(self::TBL_CITY_DISTRICT_S1);
-        $this->setDisableDefinition(self::TBL_ADDRESS_COUNTY_S1);
-        $this->setDisableDefinition(self::TBL_ADDRESS_STATE_S1);
-        $this->setDisableDefinition(self::TBL_ADDRESS_NATION_S1);
-        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_S1);
-        $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_S1);
-        $this->setDisableDefinition(self::TBL_SALUTATION_SALUTATION_S2);
-        $this->setDisableDefinition(self::TBL_PERSON_TITLE_S2);
-        $this->setDisableDefinition(self::TBL_PERSON_FIRST_NAME_S2);
-        $this->setDisableDefinition(self::TBL_PERSON_SECOND_NAME_S2);
-        $this->setDisableDefinition(self::TBL_PERSON_LAST_NAME_S2);
-        $this->setDisableDefinition(self::TBL_PERSON_BIRTH_NAME_S2);
-        $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NAME_S2);
-        $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NUMBER_S2);
-        $this->setDisableDefinition(self::TBL_CITY_CODE_S2);
-        $this->setDisableDefinition(self::TBL_CITY_CITY_S2);
-        $this->setDisableDefinition(self::TBL_CITY_DISTRICT_S2);
-        $this->setDisableDefinition(self::TBL_ADDRESS_COUNTY_S2);
-        $this->setDisableDefinition(self::TBL_ADDRESS_STATE_S2);
-        $this->setDisableDefinition(self::TBL_ADDRESS_NATION_S2);
-        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_S2);
-        $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_S2);
-        $this->setDisableDefinition(self::TBL_SALUTATION_SALUTATION_S3);
-        $this->setDisableDefinition(self::TBL_PERSON_TITLE_S3);
-        $this->setDisableDefinition(self::TBL_PERSON_FIRST_NAME_S3);
-        $this->setDisableDefinition(self::TBL_PERSON_SECOND_NAME_S3);
-        $this->setDisableDefinition(self::TBL_PERSON_LAST_NAME_S3);
-        $this->setDisableDefinition(self::TBL_PERSON_BIRTH_NAME_S3);
-        $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NAME_S3);
-        $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NUMBER_S3);
-        $this->setDisableDefinition(self::TBL_CITY_CODE_S3);
-        $this->setDisableDefinition(self::TBL_CITY_CITY_S3);
-        $this->setDisableDefinition(self::TBL_CITY_DISTRICT_S3);
-        $this->setDisableDefinition(self::TBL_ADDRESS_COUNTY_S3);
-        $this->setDisableDefinition(self::TBL_ADDRESS_STATE_S3);
-        $this->setDisableDefinition(self::TBL_ADDRESS_NATION_S3);
-        $this->setDisableDefinition(self::TBL_PHONE_NUMBER_S3);
-        $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_S3);
     }
 
     /**
@@ -866,26 +238,6 @@ class ViewStudent extends AbstractView
                 $Field = new NumberField( $PropertyName.'['.$PropertyCount.']',
                     $Placeholder, $Label, $Icon
                 );
-                break;
-            case self::TBL_CITY_CITY:
-                $Data = Address::useService()->getPropertyList( new TblCity(), TblCity::ATTR_NAME );
-                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
-                break;
-            case self::TBL_COMMON_BIRTHDATES_BIRTHPLACE:
-                $Data = Common::useService()->getPropertyList( new TblCommonBirthDates(), TblCommonBirthDates::ATTR_BIRTHPLACE );
-                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
-                break;
-            case self::TBL_COMMON_GENDER_NAME:
-                $Data = Common::useService()->getPropertyList( new TblCommonGender(), TblCommonGender::ATTR_NAME );
-                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount );
-                break;
-            case self::TBL_SALUTATION_SALUTATION:
-                $Data = Person::useService()->getPropertyList( new TblSalutation(''), TblSalutation::ATTR_SALUTATION );
-                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount );
-                break;
-            case self::BILDUNGSGANG:
-                $Data = Course::useService()->getPropertyList( new TblCourse(), TblCourse::ATTR_NAME );
-                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount );
                 break;
             default:
                 $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );

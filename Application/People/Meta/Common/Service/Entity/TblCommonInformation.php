@@ -18,6 +18,10 @@ class TblCommonInformation extends Element
     const VALUE_IS_ASSISTANCE_NULL = 0;
     const VALUE_IS_ASSISTANCE_YES = 1;
     const VALUE_IS_ASSISTANCE_NO = 2;
+    const ATTR_NATIONALITY = 'Nationality';
+    const ATTR_DENOMINATION = 'Denomination';
+    const ATTR_ASSISTANCE_ACTIVITY = 'AssistanceActivity';
+    const ATTR_IS_ASSISTANCE = 'IsAssistance';
     /**
      * @Column(type="string")
      */

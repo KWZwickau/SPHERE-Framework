@@ -1,17 +1,17 @@
 SELECT
-    viewPerson.TblPerson_Id AS TblPerson_Id,
-    viewAddressToPerson.TblToPerson_Remark AS TblToPerson_Remark,
-    viewAddressToPerson.TblType_Name AS TblType_Name,
-    viewAddressToPerson.TblType_Description AS TblType_Description,
-    viewAddressToPerson.TblAddress_StreetName AS TblAddress_StreetName,
-    viewAddressToPerson.TblAddress_StreetNumber AS TblAddress_StreetNumber,
-    viewAddressToPerson.TblAddress_PostOfficeBox AS TblAddress_PostOfficeBox,
-    viewAddressToPerson.TblAddress_County AS TblAddress_County,
-    viewAddressToPerson.TblAddress_Nation AS TblAddress_Nation,
-    viewAddressToPerson.TblCity_Code AS TblCity_Code,
-    viewAddressToPerson.TblCity_Name AS TblCity_Name,
-    viewAddressToPerson.TblCity_District AS TblCity_District,
-    viewAddressToPerson.TblState_Name AS TblState_Name
-FROM
-    (PeoplePerson_{{ ConsumerAcronym }}.viewPerson
-    LEFT JOIN ContactAddress_{{ ConsumerAcronym }}.viewAddressToPerson ON ((PeoplePerson_{{ ConsumerAcronym }}.viewPerson.TblPerson_Id = ContactAddress_{{ ConsumerAcronym }}.viewAddressToPerson.TblToPerson_serviceTblPerson)))
+    vATP.TblToPerson_serviceTblPerson AS TblPerson_Id,
+    vATP.TblToPerson_Remark AS TblToPerson_Remark,
+    vATP.TblType_Name AS TblType_Name,
+    vATP.TblType_Description AS TblType_Description,
+    vATP.TblAddress_StreetName AS TblAddress_StreetName,
+    vATP.TblAddress_StreetNumber AS TblAddress_StreetNumber,
+    vATP.TblAddress_PostOfficeBox AS TblAddress_PostOfficeBox,
+    vATP.TblAddress_County AS TblAddress_County,
+    vATP.TblAddress_Nation AS TblAddress_Nation,
+    vATP.TblCity_Code AS TblCity_Code,
+    vATP.TblCity_Name AS TblCity_Name,
+    vATP.TblCity_District AS TblCity_District,
+    vATP.TblState_Name AS TblState_Name
+FROM ContactAddress_{{ ConsumerAcronym }}.viewAddressToPerson vATP
+--     (PeoplePerson_{{ ConsumerAcronym }}.viewPerson vP
+--     LEFT JOIN ContactAddress_{{ ConsumerAcronym }}.viewAddressToPerson vATP ON ((vATP.TblToPerson_serviceTblPerson = vP.TblPerson_Id)))

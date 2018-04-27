@@ -8,8 +8,9 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Common\Frontend\Form\Repository\AbstractField;
-use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Binding\AbstractView;
@@ -37,18 +38,6 @@ class ViewEducationStudent extends AbstractView
 
     const TBL_YEAR_YEAR = 'TblYear_Year';
     const TBL_YEAR_DESCRIPTION = 'TblYear_Description';
-
-    const TBL_PERIOD_NAME = 'TblPeriod_Name';
-    const TBL_PERIOD_DESCRIPTION = 'TblPeriod_Description';
-    const TBL_PERIOD_FROM_DATE = 'TblPeriod_FromDate';
-    const TBL_PERIOD_TO_DATE = 'TblPeriod_ToDate';
-
-    const TBL_SUBJECT_ACRONYM = 'TblSubject_Acronym';
-    const TBL_SUBJECT_NAME = 'TblSubject_Name';
-    const TBL_SUBJECT_DESCRIPTION = 'TblSubject_Description';
-    const TBL_SUBJECT_GROUP_NAME = 'TblSubjectGroup_Name';
-    const TBL_SUBJECT_GROUP_DESCRIPTION = 'TblSubjectGroup_Description';
-    const TBL_SUBJECT_GROUP_IS_ADVANCED_COURSE = 'TblSubjectGroup_IsAdvancedCourse';
 
     /**
      * @return array
@@ -99,46 +88,6 @@ class ViewEducationStudent extends AbstractView
      * @Column(type="string")
      */
     protected $TblYear_Description;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPeriod_Name;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPeriod_Description;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPeriod_FromDate;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPeriod_ToDate;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblSubjectGroup_Name;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblSubjectGroup_Description;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblSubjectGroup_IsAdvancedCourse;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblSubject_Acronym;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblSubject_Name;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblSubject_Description;
 
     /**
      * Use this method to set PropertyName to DisplayName conversions with "setNameDefinition()"
@@ -157,23 +106,11 @@ class ViewEducationStudent extends AbstractView
         $this->setNameDefinition(self::TBL_TYPE_NAME, 'Bildung: Schulart');
         $this->setNameDefinition(self::TBL_YEAR_YEAR, 'Bildung: Schuljahr');
         $this->setNameDefinition(self::TBL_YEAR_DESCRIPTION, 'Bildung: Schuljahr Beschreibung');
-        $this->setNameDefinition(self::TBL_PERIOD_NAME, 'Bildung: Name des Zeitraums');
-        $this->setNameDefinition(self::TBL_PERIOD_DESCRIPTION, 'Bildung: Beschreibung des Zeitraums');
-        $this->setNameDefinition(self::TBL_PERIOD_FROM_DATE, 'Bildung: Von Zeitraum');
-        $this->setNameDefinition(self::TBL_PERIOD_TO_DATE, 'Bildung: Bis Zeitraum');
-        $this->setNameDefinition(self::TBL_SUBJECT_GROUP_NAME, 'Bildung: Fachgruppe');
-        $this->setNameDefinition(self::TBL_SUBJECT_GROUP_DESCRIPTION, 'Bildung: Fachgruppe Beschreibung');
-        $this->setNameDefinition(self::TBL_SUBJECT_GROUP_IS_ADVANCED_COURSE, 'Bildung: Fach ist Leistungskurs');
-        $this->setNameDefinition(self::TBL_SUBJECT_ACRONYM, 'Bildung: Fachkürzel');
-        $this->setNameDefinition(self::TBL_SUBJECT_NAME, 'Bildung: Fach');
-        $this->setNameDefinition(self::TBL_SUBJECT_DESCRIPTION, 'Bildung: Fach Beschreibung');
 
         //GroupDefinition
         $this->setGroupDefinition('Klasse', array(
             self::TBL_TYPE_NAME,
             self::TBL_LEVEL_NAME,
-//            self::TBL_LEVEL_DESCRIPTION,
-//            self::TBL_LEVEL_IS_CHECKED,
             self::TBL_DIVISION_NAME,
             self::TBL_DIVISION_DESCRIPTION,
         ));
@@ -181,19 +118,6 @@ class ViewEducationStudent extends AbstractView
         $this->setGroupDefinition('Zeitraum', array(
             self::TBL_YEAR_YEAR,
             self::TBL_YEAR_DESCRIPTION,
-//            self::TBL_PERIOD_NAME,
-//            self::TBL_PERIOD_DESCRIPTION,
-//            self::TBL_PERIOD_FROM_DATE,
-//            self::TBL_PERIOD_TO_DATE
-        ));
-
-        $this->setGroupDefinition('Fach', array(
-            self::TBL_SUBJECT_ACRONYM,
-            self::TBL_SUBJECT_NAME,
-//            self::TBL_SUBJECT_DESCRIPTION,
-            self::TBL_SUBJECT_GROUP_NAME,
-//            self::TBL_SUBJECT_GROUP_DESCRIPTION,
-//            self::TBL_SUBJECT_GROUP_IS_ADVANCED_COURSE
         ));
 
         // Flag um Filter zu deaktivieren (nur Anzeige von Informationen)
@@ -232,10 +156,24 @@ class ViewEducationStudent extends AbstractView
     {
 
         switch ($PropertyName) {
+            case self::TBL_TYPE_NAME:
+                $Data = Type::useService()->getPropertyList(new TblType(), TblType::ATTR_NAME);
+                $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount, true);
+                break;
             case self::TBL_YEAR_YEAR:
                 $Data = Term::useService()->getPropertyList( new TblYear(), TblYear::ATTR_YEAR );
-                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
+                $Field = $this->getFormFieldAutoCompleter($Data, $PropertyName, $Placeholder, $Label, $Icon,
+                    $doResetCount);
                 break;
+//            case self::TBL_SUBJECT_NAME:
+//                $Data = Subject::useService()->getPropertyList(new TblSubject(), TblSubject::ATTR_NAME);
+//                $Field = $this->getFormFieldAutoCompleter($Data, $PropertyName, $Placeholder, $Label, $Icon,
+//                    $doResetCount);
+//                break;
+//            case self::TBL_SUBJECT_ACRONYM:
+//                $Data = Subject::useService()->getPropertyList(new TblSubject(), TblSubject::ATTR_ACRONYM);
+//                $Field = $this->getFormFieldAutoCompleter( $Data, $PropertyName, $Placeholder, $Label, $Icon, $doResetCount );
+//                break;
             case self::TBL_LEVEL_IS_CHECKED:
                 $Data = array( 0 => 'Nein', 1 => 'Ja' );
                 $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount, false );
