@@ -28,13 +28,14 @@ abstract class Student extends AbstractService
 
     /**
      * @param string $Identifier
+     * @param bool   $isWithRemoved -> true = get also EntityRemove
      *
      * @return bool|TblStudent
      */
-    public function getStudentByIdentifier($Identifier)
+    public function getStudentByIdentifier($Identifier, $isWithRemoved = false)
     {
 
-        return (new Data($this->getBinding()))->getStudentByIdentifier($Identifier);
+        return (new Data($this->getBinding()))->getStudentByIdentifier($Identifier, $isWithRemoved);
     }
 
     /**

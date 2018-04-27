@@ -930,6 +930,9 @@ class Frontend extends Extension implements IFrontendInterface
 
                 array_push($AgreementPanel, new Aspect(new Bold($tblStudentAgreementCategory->getName())));
                 $tblAgreementTypeAll = Student::useService()->getStudentAgreementTypeAllByCategory($tblStudentAgreementCategory);
+                if ($tblAgreementTypeAll) {
+                    $tblAgreementTypeAll = $this->getSorter($tblAgreementTypeAll)->sortObjectBy('Name');
+                }
                 array_walk($tblAgreementTypeAll,
                     function (TblStudentAgreementType $tblStudentAgreementType) use (
                         &$AgreementPanel,
