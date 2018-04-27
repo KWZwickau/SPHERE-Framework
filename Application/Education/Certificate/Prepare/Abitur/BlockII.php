@@ -11,6 +11,9 @@ namespace SPHERE\Application\Education\Certificate\Prepare\Abitur;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -44,6 +47,16 @@ class BlockII extends AbstractBlock
 {
 
     /**
+     * @var bool|array
+     */
+    private $AvailableSubjectsP3 = false;
+
+    /**
+     * @var bool|array
+     */
+    private $AvailableSubjectsP4P5 = false;
+
+    /**
      * BlockII constructor.
      * @param TblDivision $tblDivision
      * @param TblPerson $tblPerson
@@ -62,6 +75,9 @@ class BlockII extends AbstractBlock
 
         $this->setCourses();
         $this->setPointList();
+
+        $this->setAvailableExamsSubjetsP3();
+        $this->setAvailableExamsSubjectsP4P5();
     }
 
     /**
@@ -253,7 +269,13 @@ class BlockII extends AbstractBlock
             $number .= ' (LF)';
             $exam = ($tblSubject ? $tblSubject->getName() : '&nbsp;');
         } else {
-            $exam = new SelectBox('Data[' .  $i . '][Subject]', '', array('Name' => $this->BasicCourses));
+            if ($i == 3) {
+                $availableSubjects = $this->AvailableSubjectsP3;
+            } else {
+                $availableSubjects = $this->AvailableSubjectsP4P5;
+            }
+
+            $exam = new SelectBox('Data[' .  $i . '][Subject]', '', array('Name' => $availableSubjects));
         }
 
         if ($i < 4) {
@@ -346,4 +368,89 @@ class BlockII extends AbstractBlock
 
         return $dataList;
     }
+
+    private function setAvailableExamsSubjetsP3()
+    {
+
+        $this->setAvailableExamsSubjectToArray('Deutsch');
+        $this->setAvailableExamsSubjectToArray('Mathematik');
+        $this->setAvailableExamsSubjectToArray('Geschichte');
+        $this->setAvailableExamsSubjectToArray('Gemeinschaftskunde/Rechtserziehung/Wirtschaft');
+        $this->setAvailableExamsSubjectToArray('Geographie');
+        $this->setAvailableExamsSubjectToArray('Biologie');
+        $this->setAvailableExamsSubjectToArray('Chemie');
+        $this->setAvailableExamsSubjectToArray('Physik');
+
+        //1 An Schulen in kirchlicher Trägerschaft kann das Fach auch schriftliches Prüfungsfach P3 sein
+        /** @var TblSubject $tblSubject */
+        foreach ($this->BasicCourses as $tblSubject) {
+            if (strpos($tblSubject->getName(), 'Religion') !== false) {
+                $this->AvailableSubjectsP3[$tblSubject->getId()] = $tblSubject;
+            }
+        }
+    }
+
+    private function setAvailableExamsSubjectsP4P5()
+    {
+
+        $this->setAvailableExamsSubjectToArray('Deutsch',false);
+        $this->setAvailableExamsSubjectToArray('Mathematik',false);
+        $this->setAvailableExamsSubjectToArray('Kunst',false);
+        $this->setAvailableExamsSubjectToArray('Musik',false);
+        $this->setAvailableExamsSubjectToArray('Geschichte',false);
+        $this->setAvailableExamsSubjectToArray('Gemeinschaftskunde/Rechtserziehung/Wirtschaft', false);
+        $this->setAvailableExamsSubjectToArray('Geographie', false);
+        $this->setAvailableExamsSubjectToArray('Biologie', false);
+        $this->setAvailableExamsSubjectToArray('Chemie', false);
+        $this->setAvailableExamsSubjectToArray('Physik', false);
+        $this->setAvailableExamsSubjectToArray('Ethik', false);
+        $this->setAvailableExamsSubjectToArray('Informatik', false);
+
+        $foreignLanguages = array();
+        if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+            && $this->tblPerson
+            && ($tblStudent = $this->tblPerson->getStudent())
+            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent, $tblStudentSubjectType))
+        ) {
+            foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                if (($tblSubjectItem = $tblStudentSubject->getServiceTblSubject())) {
+                    // Eine in Klassenstufe 10 begonnene Fremdsprache kann kein Prüfungsfach sein
+                    if (!$tblStudentSubject->getServiceTblLevelFrom()
+                        || ($tblStudentSubject->getServiceTblLevelFrom() && $tblStudentSubject->getServiceTblLevelFrom()->getName() != '10')
+                    ) {
+                        $foreignLanguages[$tblSubjectItem->getId()] = $tblSubjectItem;
+                    }
+                }
+            }
+        }
+
+        /** @var TblSubject $tblSubject */
+        foreach ($this->BasicCourses as $tblSubject) {
+            if (strpos($tblSubject->getName(), 'Religion') !== false) {
+                $this->AvailableSubjectsP4P5[$tblSubject->getId()] = $tblSubject;
+            } elseif (isset($foreignLanguages[$tblSubject->getId()])) {
+                $this->AvailableSubjectsP4P5[$tblSubject->getId()] = $tblSubject;
+            }
+        }
+    }
+
+    private function setAvailableExamsSubjectToArray($subjectName, $isP3 = true)
+    {
+
+        $tblSubject = Subject::useService()->getSubjectByName($subjectName);
+        if (!$tblSubject && $subjectName == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft') {
+            $tblSubject = Subject::useService()->getSubjectByAcronym('GRW');
+        }
+
+        if ($tblSubject
+            && isset($this->BasicCourses[$tblSubject->getId()])
+        ) {
+            if ($isP3) {
+                $this->AvailableSubjectsP3[$tblSubject->getId()] = $tblSubject;
+            } else {
+                $this->AvailableSubjectsP4P5[$tblSubject->getId()] = $tblSubject;
+            }
+        }
+    }
+
 }
