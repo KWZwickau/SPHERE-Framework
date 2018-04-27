@@ -1510,7 +1510,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                             )
                         )
                     )
-                    , new Submit( 'Excel download', new Download(), true ), new Route(__NAMESPACE__.'/Download'), array('ViewType' => $ViewType))
+                    , new Submit( 'Herunterladen', new Download(), true ), new Route(__NAMESPACE__.'/Download'), array('ViewType' => $ViewType))
                 );
             }
         }
