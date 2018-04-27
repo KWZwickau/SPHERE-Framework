@@ -156,9 +156,9 @@ class ViewStudent extends AbstractView
 //        //NameDefinition
 //        $this->setNameDefinition(self::TBL_STUDENT_BAPTISM_LOCATION, 'Schüler: Ort der Taufe');
 
-        $this->setNameDefinition(self::TBL_STUDENT_LIBERATION_TYPE_NAME, 'Allgemeines: Unterrichtsbefreiung');
+        $this->setNameDefinition(self::TBL_STUDENT_LIBERATION_TYPE_NAME, 'Allgemeines: Sportbefreiung');
         // TBL_STUDENT_LIBERATION_TYPE_DESCRIPTION
-        $this->setNameDefinition(self::TBL_STUDENT_LIBERATION_CATEGORY_NAME, 'Allgemeines: Unterrichtskategorie');
+//        $this->setNameDefinition(self::TBL_STUDENT_LIBERATION_CATEGORY_NAME, 'Allgemeines: Unterrichtskategorie');
         // TBL_STUDENT_LIBERATION_CATEGORY_DESCRIPTION
 
         $this->setNameDefinition(self::TBL_STUDENT_LOCKER_LOCKER_NUMBER, 'Allgemeines: Schließfachnummer');
@@ -184,7 +184,7 @@ class ViewStudent extends AbstractView
         $this->setGroupDefinition('&nbsp;', array(
             self::SIBLINGS_COUNT,
             self::TBL_STUDENT_LIBERATION_TYPE_NAME,
-            self::TBL_STUDENT_LIBERATION_CATEGORY_NAME,
+//            self::TBL_STUDENT_LIBERATION_CATEGORY_NAME,
             self::TBL_STUDENT_LOCKER_LOCKER_NUMBER,
             self::TBL_STUDENT_LOCKER_LOCKER_LOCATION,
             self::TBL_STUDENT_LOCKER_KEY_NUMBER,
