@@ -1138,41 +1138,43 @@ class Frontend extends FrontendScoreRule
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
-                        new LayoutRow(array(
-                                new LayoutColumn(array(
-                                    new Panel(
-                                        'Fach-Klasse',
-                                        array(
-                                            'Klasse ' . $tblDivision->getDisplayName() . ' - ' .
-                                            ($tblDivisionSubject->getServiceTblSubject() ? $tblDivisionSubject->getServiceTblSubject()->getName() : '') .
-                                            ($tblDivisionSubject->getTblSubjectGroup() ? new Small(
-                                                ' (Gruppe: ' . $tblDivisionSubject->getTblSubjectGroup()->getName() . ')') : ''),
-                                            'Fachlehrer: ' . Division::useService()->getSubjectTeacherNameList(
-                                                $tblDivision, $tblSubject, $tblDivisionSubject->getTblSubjectGroup()
-                                                ? $tblDivisionSubject->getTblSubjectGroup() : null
-                                            )
-                                        ),
-                                        Panel::PANEL_TYPE_INFO
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new Panel(
+                                'Fach-Klasse',
+                                array(
+                                    'Klasse ' . $tblDivision->getDisplayName() . ' - ' .
+                                    ($tblDivisionSubject->getServiceTblSubject() ? $tblDivisionSubject->getServiceTblSubject()->getName() : '') .
+                                    ($tblDivisionSubject->getTblSubjectGroup() ? new Small(
+                                        ' (Gruppe: ' . $tblDivisionSubject->getTblSubjectGroup()->getName() . ')') : ''),
+                                    'Fachlehrer: ' . Division::useService()->getSubjectTeacherNameList(
+                                        $tblDivision, $tblSubject, $tblDivisionSubject->getTblSubjectGroup()
+                                        ? $tblDivisionSubject->getTblSubjectGroup() : null
                                     )
                                 ),
-                                    6
-                                ),
-                                new LayoutColumn(new Panel(
-                                    'Berechnungsvorschrift',
-                                    $tblScoreRule ? $scoreRuleText : new Bold(new \SPHERE\Common\Frontend\Text\Repository\Warning(
-                                        new Ban() . ' Keine Berechnungsvorschrift hinterlegt. Alle Zensuren-Typen sind gleichwertig.'
-                                    )),
-                                    Panel::PANEL_TYPE_INFO
-                                ), 6),
-                                $minimumGradeCountPanel ? new LayoutColumn($minimumGradeCountPanel) : null,
-                                new LayoutColumn(
-                                    $tableData
-                                )
+                                Panel::PANEL_TYPE_INFO
                             )
                         ),
-                    )
-                ),
-                (!empty($errorRowList) ? new LayoutGroup($errorRowList) : null)
+                            6
+                        ),
+                        new LayoutColumn(new Panel(
+                            'Berechnungsvorschrift',
+                            $tblScoreRule ? $scoreRuleText : new Bold(new \SPHERE\Common\Frontend\Text\Repository\Warning(
+                                new Ban() . ' Keine Berechnungsvorschrift hinterlegt. Alle Zensuren-Typen sind gleichwertig.'
+                            )),
+                            Panel::PANEL_TYPE_INFO
+                        ), 6),
+                    )),
+                )),
+                (!empty($errorRowList) ? new LayoutGroup($errorRowList) : null),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        $minimumGradeCountPanel ? new LayoutColumn($minimumGradeCountPanel) : null,
+                        new LayoutColumn(
+                            $tableData
+                        )
+                    )),
+                )),
             ))
         );
 
