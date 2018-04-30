@@ -78,7 +78,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblPerson = Person::useService()->getPersonById($Id);
 
         $Stage = new Stage('Adresse', 'Hinzufügen');
-        $Stage->addButton( new Backward(true) );
+        $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $Id)));
         $Stage->setMessage('Eine Adresse zur gewählten Person hinzufügen');
 
         if(!$tblPerson){

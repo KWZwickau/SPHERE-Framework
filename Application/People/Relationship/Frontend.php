@@ -73,7 +73,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Beziehungen', 'Hinzufügen');
-        $Stage->addButton(new Backward(true));
+//        $Stage->addButton(new Backward(true));
+        $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $Id)));
         $Stage->setMessage(
             'Eine Beziehungen zur gewählten Person hinzufügen'
             . '<br/>Beispiel: Die Person (Vater) > hat folgende Beziehung (Sorgeberechtigt), Bemerkung: Vater > zu folgender Person (Kind)'
@@ -243,7 +244,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Beziehungen', 'Hinzufügen');
-        $Stage->addButton(new Backward(true));
+        $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $Id)));
         $Stage->setMessage(
             'Eine Beziehungen zur gewählten Person hinzufügen'
         );
