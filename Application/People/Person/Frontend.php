@@ -88,7 +88,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Person', 'Datenblatt '.( $Id ? 'bearbeiten' : 'anlegen' ));
-        $Stage->addButton( new Backward() );
+        $Stage->addButton( new Standard('Zurück', '/People', new ChevronLeft()) );
+        new Backward();
 
         if (!$Id) {
 
