@@ -66,8 +66,8 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendCreateToPerson($Id, $Address, $Type)
     {
 
-        $Stage = new Stage('Web Adresse', 'Hinzufügen');
-        $Stage->setMessage('Eine Web Adresse zur gewählten Person hinzufügen');
+        $Stage = new Stage('Internet Adresse', 'Hinzufügen');
+        $Stage->setMessage('Eine Internet Adresse zur gewählten Person hinzufügen');
 
         $tblPerson = Person::useService()->getPersonById($Id);
         if(!$tblPerson){
@@ -125,12 +125,12 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new Panel('Web Adresse',
+                        new Panel('Internet Adresse',
                             array(
                                 (new SelectBox('Type[Type]', 'Typ',
                                     array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
                                 ))->setRequired(),
-                                (new TextField('Address', 'Web Adresse', 'Web Adresse', new Globe() ))->setRequired()
+                                (new TextField('Address', 'Internet Adresse', 'Internet Adresse', new Globe() ))->setRequired()
                             ), Panel::PANEL_TYPE_INFO
                         ), 6),
                     new FormColumn(
@@ -153,8 +153,8 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendCreateToCompany($Id, $Address, $Type)
     {
 
-        $Stage = new Stage('Web Adresse', 'Hinzufügen');
-        $Stage->setMessage('Eine Web Adresse zur gewählten Institution hinzufügen');
+        $Stage = new Stage('Internet Adresse', 'Hinzufügen');
+        $Stage->setMessage('Eine Internet Adresse zur gewählten Institution hinzufügen');
 
         $tblCompany = Company::useService()->getCompanyById($Id);
         if ($tblCompany) {
@@ -211,8 +211,8 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendUpdateToPerson($Id, $Address, $Type)
     {
 
-        $Stage = new Stage('Web Adresse', 'Bearbeiten');
-        $Stage->setMessage('Die Web Adresse der gewählten Person ändern');
+        $Stage = new Stage('Internet Adresse', 'Bearbeiten');
+        $Stage->setMessage('Die Internet Adresse der gewählten Person ändern');
 
         $tblToPerson = Web::useService()->getWebToPersonById($Id);
 
@@ -277,8 +277,8 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendUpdateToCompany($Id, $Address, $Type)
     {
 
-        $Stage = new Stage('Web Adresse', 'Bearbeiten');
-        $Stage->setMessage('Die Web Adresse der gewählten Institution ändern');
+        $Stage = new Stage('Internet Adresse', 'Bearbeiten');
+        $Stage->setMessage('Die Internet Adresse der gewählten Institution ändern');
 
         $tblToCompany = Web::useService()->getWebToCompanyById($Id);
 
@@ -468,7 +468,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblWebAll === false) {
             $tblWebAll = array(
                 new LayoutColumn(
-                    new Warning('Keine Web Adressen hinterlegt')
+                    new Warning('Keine Internet Adressen hinterlegt')
                 )
             );
         }
@@ -500,7 +500,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendDestroyToPerson($Id, $Confirm = false)
     {
 
-        $Stage = new Stage('Web Adresse', 'Löschen');
+        $Stage = new Stage('Internet Adresse', 'Löschen');
         if ($Id) {
             $tblToPerson = Web::useService()->getWebToPersonById($Id);
             $tblPerson = $tblToPerson->getServiceTblPerson();
@@ -522,7 +522,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new Bold($tblPerson->getFullName()),
                             Panel::PANEL_TYPE_SUCCESS
                         ),
-                        new Panel(new Question() . ' Diese Web Adresse wirklich löschen?', array(
+                        new Panel(new Question() . ' Diese Internet Adresse wirklich löschen?', array(
                             $tblToPerson->getTblType()->getName() . ' ' . $tblToPerson->getTblType()->getDescription(),
                             $tblToPerson->getTblWeb()->getAddress(),
                             new Muted(new Small($tblToPerson->getRemark()))
@@ -544,8 +544,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
                             (Web::useService()->removeWebToPerson($tblToPerson)
-                                ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Web Adresse wurde gelöscht')
-                                : new Danger(new Ban() . ' Die Web Adresse konnte nicht gelöscht werden')
+                                ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Internet Adresse wurde gelöscht')
+                                : new Danger(new Ban() . ' Die Internet Adresse konnte nicht gelöscht werden')
                             ),
                             new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
                                 array('Id' => $tblPerson->getId()))
@@ -557,7 +557,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
-                        new Danger(new Ban() . ' Die Web Adresse konnte nicht gefunden werden'),
+                        new Danger(new Ban() . ' Die Internet Adresse konnte nicht gefunden werden'),
                         new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR)
                     )))
                 )))
@@ -575,7 +575,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendDestroyToCompany($Id, $Confirm = false)
     {
 
-        $Stage = new Stage('Web Adresse', 'Löschen');
+        $Stage = new Stage('Internet Adresse', 'Löschen');
         if ($Id) {
             $tblToCompany = Web::useService()->getWebToCompanyById($Id);
             $tblCompany = $tblToCompany->getServiceTblCompany();
@@ -597,7 +597,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblCompany->getExtendedName()),
                             Panel::PANEL_TYPE_SUCCESS
                         ),
-                        new Panel(new Question() . ' Diese Web Adresse wirklich löschen?', array(
+                        new Panel(new Question() . ' Diese Internet Adresse wirklich löschen?', array(
                             $tblToCompany->getTblType()->getName() . ' ' . $tblToCompany->getTblType()->getDescription(),
                             $tblToCompany->getTblWeb()->getAddress(),
                             new Muted(new Small($tblToCompany->getRemark()))
@@ -619,8 +619,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
                             (Web::useService()->removeWebToCompany($tblToCompany)
-                                ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .  ' Die Web Adresse wurde gelöscht')
-                                : new Danger(new Ban() . ' Die Web Adresse konnte nicht gelöscht werden')
+                                ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .  ' Die Internet Adresse wurde gelöscht')
+                                : new Danger(new Ban() . ' Die Internet Adresse konnte nicht gelöscht werden')
                             ),
                             new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblCompany->getId()))
                         )))
@@ -631,7 +631,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
-                        new Danger(new Ban() . ' Die Web Adresse konnte nicht gefunden werden'),
+                        new Danger(new Ban() . ' Die Internet Adresse konnte nicht gefunden werden'),
                         new Redirect('/Corporation/Search/Group', Redirect::TIMEOUT_ERROR)
                     )))
                 )))
@@ -679,7 +679,7 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             $tblWebAll = array(
                 new LayoutColumn(
-                    new Warning('Keine Web Adressen hinterlegt')
+                    new Warning('Keine Internet Adressen hinterlegt')
                 )
             );
         }

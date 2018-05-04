@@ -107,7 +107,7 @@ class Service extends AbstractService
         $Error = false;
 
         if (isset($Address) && empty($Address)) {
-            $Form->setError('Address', 'Bitte geben Sie eine gültige Web Adresse an');
+            $Form->setError('Address', 'Bitte geben Sie eine gültige Internet Adresse an');
             $Error = true;
         } else {
             $Form->setSuccess('Address');
@@ -151,10 +151,10 @@ class Service extends AbstractService
 
             if ((new Data($this->getBinding()))->addWebToPerson($tblPerson, $tblWeb, $tblType, $Type['Remark'])
             ) {
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Web Adresse wurde erfolgreich hinzugefügt')
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Internet Adresse wurde erfolgreich hinzugefügt')
                     .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPerson->getId()));
             } else {
-                return new Danger(new Ban().' Die Web Adresse konnte nicht hinzugefügt werden')
+                return new Danger(new Ban().' Die Internet Adresse konnte nicht hinzugefügt werden')
                     .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR, array('Id' => $tblPerson->getId()));
             }
         }
@@ -235,7 +235,7 @@ class Service extends AbstractService
         $Error = false;
 
         if (isset( $Address ) && empty( $Address )) {
-            $Form->setError('Address', 'Bitte geben Sie eine gültige Web Adresse an');
+            $Form->setError('Address', 'Bitte geben Sie eine gültige Internet Adresse an');
             $Error = true;
         } else {
             $Form->setSuccess('Number');
@@ -252,10 +252,10 @@ class Service extends AbstractService
 
             if ((new Data($this->getBinding()))->addWebToCompany($tblCompany, $tblWeb, $tblType, $Type['Remark'])
             ) {
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .  ' Die Web Adresse wurde erfolgreich hinzugefügt')
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .  ' Die Internet Adresse wurde erfolgreich hinzugefügt')
                 .new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblCompany->getId()));
             } else {
-                return new Danger(new Ban() . ' Die Web Adresse konnte nicht hinzugefügt werden')
+                return new Danger(new Ban() . ' Die Internet Adresse konnte nicht hinzugefügt werden')
                 .new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR, array('Id' => $tblCompany->getId()));
             }
         }
@@ -287,7 +287,7 @@ class Service extends AbstractService
         $Error = false;
 
         if (isset( $Address ) && empty( $Address )) {
-            $Form->setError('Address', 'Bitte geben Sie eine gültige Web Adresse an');
+            $Form->setError('Address', 'Bitte geben Sie eine gültige Internet Adresse an');
             $Error = true;
         } else {
             $Form->setSuccess('Number');
@@ -309,11 +309,11 @@ class Service extends AbstractService
                 if ((new Data($this->getBinding()))->addWebToPerson($tblToPerson->getServiceTblPerson(), $tblWeb,
                     $tblType, $Type['Remark'])
                 ) {
-                    return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Web Adresse wurde erfolgreich geändert')
+                    return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Internet Adresse wurde erfolgreich geändert')
                     . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
                         array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
                 } else {
-                    return new Danger(new Ban() . ' Die Web Adresse konnte nicht geändert werden')
+                    return new Danger(new Ban() . ' Die Internet Adresse konnte nicht geändert werden')
                     . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
                         array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
                 }
@@ -349,7 +349,7 @@ class Service extends AbstractService
         $Error = false;
 
         if (isset( $Address ) && empty( $Address )) {
-            $Form->setError('Address', 'Bitte geben Sie eine gültige Web Adresse an');
+            $Form->setError('Address', 'Bitte geben Sie eine gültige Internet Adresse an');
             $Error = true;
         } else {
             $Form->setSuccess('Number');
@@ -371,11 +371,11 @@ class Service extends AbstractService
                 if ((new Data($this->getBinding()))->addWebToCompany($tblToCompany->getServiceTblCompany(), $tblWeb,
                     $tblType, $Type['Remark'])
                 ) {
-                    return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Web Adresse wurde erfolgreich geändert')
+                    return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Internet Adresse wurde erfolgreich geändert')
                     . new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS,
                         array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
                 } else {
-                    return new Danger(new Ban() . ' Die Web Adresse konnte nicht geändert werden')
+                    return new Danger(new Ban() . ' Die Internet Adresse konnte nicht geändert werden')
                     . new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR,
                         array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
                 }

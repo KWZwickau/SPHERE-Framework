@@ -545,7 +545,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             )
                             ->addButton(
-                                new Standard('Web Adresse hinzufügen', '/Corporation/Company/Web/Create',
+                                new Standard('Internet Adresse hinzufügen', '/Corporation/Company/Web/Create',
                                     new ChevronDown(), array('Id' => $tblCompany->getId())
                                 )
                             )
