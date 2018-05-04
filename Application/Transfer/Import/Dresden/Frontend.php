@@ -17,7 +17,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 class Frontend extends Extension implements IFrontendInterface
 {
@@ -32,16 +31,6 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendPersonImport($File = null)
     {
 
-        $DresdenGroup = new DresdenGroup();
-        $GroupMatchList = $DresdenGroup->getGroupList();
-        $TestString = 'Eltern.Grundschule.Jahrgang GS 2007 b';
-        if(isset($GroupMatchList[$TestString])){
-            Debugger::screenDump($GroupMatchList[$TestString]);
-            Debugger::screenDump('Geschafft');
-        }
-
-
-
         $View = new Stage('Import Dresden', 'Personen-Daten');
         $View->setContent(
             new Layout(
@@ -50,6 +39,46 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(array(
                             new Well(
                                 Dresden::useService()->createPersonFromFile(new Form(
+                                    new FormGroup(
+                                        new FormRow(
+                                            new FormColumn(
+                                                new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
+                                                    array('showPreview' => false))
+                                            )
+                                        )
+                                    )
+                                    , new Primary('Hochladen')
+                                ), $File
+                                )
+                                .new Warning(new Exclamation().' Erlaubte Dateitypen: Excel (XLS,XLSX)')
+                            )
+                        ))
+                    )
+                )
+            )
+        );
+
+        return $View;
+    }
+
+    /**
+     * @param null $File
+     *
+     * @return Stage
+     *
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function frontendUpdatePersonGroupImport($File = null)
+    {
+
+        $View = new Stage('Import Dresden', 'Personen-Gruppen-Daten');
+        $View->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new Well(
+                                Dresden::useService()->updatePersonGroupFromFile(new Form(
                                     new FormGroup(
                                         new FormRow(
                                             new FormColumn(

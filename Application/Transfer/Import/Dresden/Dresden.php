@@ -18,6 +18,12 @@ class Dresden implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Person', __NAMESPACE__ . '\Frontend::frontendPersonImport'
         ));
+        /*
+         * Personen/Institutionen Gruppenzuweisung
+         */
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Group', __NAMESPACE__ . '\Frontend::frontendUpdatePersonGroupImport'
+        ));
     }
 
     /**
@@ -45,17 +51,23 @@ class Dresden implements IModuleInterface
      */
     public static function setLinks($DataList)
     {
-        $consumer = 'EVGSM';
+        $consumer = 'FES';
         $DataList[] = array(
             'Consumer' => $consumer,
-            'Name'     => 'Schüler',
+            'Name'     => '1. Personen',
             'Option'   => new Standard(
                 '',
                 __NAMESPACE__.'/Person',
-                new Select(),
-                array(
-                    'IsNextYear' => false
-                )
+                new Select()
+            )
+        );
+        $DataList[] = array(
+            'Consumer' => $consumer,
+            'Name'     => '3. Gruppenzuweisung',
+            'Option'   => new Standard(
+                '',
+                __NAMESPACE__.'/Group',
+                new Select()
             )
         );
 

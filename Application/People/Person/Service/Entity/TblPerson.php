@@ -24,6 +24,7 @@ class TblPerson extends Element
 
     const ATTR_FIRST_NAME = 'FirstName';
     const ATTR_LAST_NAME = 'LastName';
+    const ATTR_IMPORT_ID = 'ImportId';
 
     /**
      * @Column(type="bigint")
@@ -49,6 +50,10 @@ class TblPerson extends Element
      * @Column(type="string")
      */
     protected $BirthName;
+    /**
+     * @Column(type="string")
+     */
+    protected $ImportId;
 
     /**
      * @return string (Salutation Title FirstName SecondName LastName)
@@ -197,6 +202,24 @@ class TblPerson extends Element
     {
 
         $this->BirthName = $BirthName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getImportId()
+    {
+
+        return $this->ImportId;
+    }
+
+    /**
+     * @param string $ImportId
+     */
+    public function setImportId($ImportId)
+    {
+
+        $this->ImportId = $ImportId;
     }
 
     /**
