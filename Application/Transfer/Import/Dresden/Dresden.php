@@ -18,6 +18,13 @@ class Dresden implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Person', __NAMESPACE__ . '\Frontend::frontendPersonImport'
         ));
+
+        /*
+        * Company
+        */
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Company', __NAMESPACE__ . '\Frontend::frontendCompanyImport'
+        ));
         /*
          * Personen/Institutionen Gruppenzuweisung
          */
@@ -58,6 +65,15 @@ class Dresden implements IModuleInterface
             'Option'   => new Standard(
                 '',
                 __NAMESPACE__.'/Person',
+                new Select()
+            )
+        );
+        $DataList[] = array(
+            'Consumer' => $consumer,
+            'Name'     => '2. Institutionen',
+            'Option'   => new Standard(
+                '',
+                __NAMESPACE__.'/Company',
                 new Select()
             )
         );
