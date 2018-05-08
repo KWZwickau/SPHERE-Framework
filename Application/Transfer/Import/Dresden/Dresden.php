@@ -29,7 +29,13 @@ class Dresden implements IModuleInterface
          * Personen/Institutionen Gruppenzuweisung
          */
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '/Group', __NAMESPACE__ . '\Frontend::frontendUpdatePersonGroupImport'
+            __NAMESPACE__ . '/Group', __NAMESPACE__ . '\Frontend::frontendUpdateGroupImport'
+        ));
+        /*
+         * Personen/Institutionen Beschreibung
+         */
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Description', __NAMESPACE__ . '\Frontend::frontendUpdateDescriptionImport'
         ));
     }
 
@@ -83,6 +89,15 @@ class Dresden implements IModuleInterface
             'Option'   => new Standard(
                 '',
                 __NAMESPACE__.'/Group',
+                new Select()
+            )
+        );
+        $DataList[] = array(
+            'Consumer' => $consumer,
+            'Name'     => '4. Bemerkungen',
+            'Option'   => new Standard(
+                '',
+                __NAMESPACE__.'/Description',
                 new Select()
             )
         );

@@ -88,6 +88,28 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblCompany $tblCompany
+     * @param $Description
+     *
+     * @return bool
+     */
+    public function updateCompanyDescriptionWithoutForm(TblCompany $tblCompany, $Description = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblCompany $Entity */
+        $Entity = $Manager->getEntityById('TblCompany', $tblCompany->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @return bool|TblCompany[]
      */
     public function getCompanyAll()
@@ -149,6 +171,20 @@ class Data extends AbstractData
             array(
                 TblCompany::ATTR_NAME          => $Name,
                 TblCompany::ATTR_EXTENDED_NAME => $ExtendedName
+            ));
+    }
+
+    /**
+     * @param string $Name
+     *
+     * @return bool|TblCompany[]
+     */
+    public function getCompanyListByName($Name)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCompany',
+            array(
+                TblCompany::ATTR_NAME => $Name
             ));
     }
 

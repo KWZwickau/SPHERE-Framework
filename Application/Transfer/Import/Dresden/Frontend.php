@@ -108,17 +108,57 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
-    public function frontendUpdatePersonGroupImport($File = null)
+    public function frontendUpdateGroupImport($File = null)
     {
 
-        $View = new Stage('Import Dresden', 'Personen-Gruppen-Daten');
+        $View = new Stage('Import Dresden', 'Personen/Institutionen-Gruppen-Daten');
         $View->setContent(
             new Layout(
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(array(
                             new Well(
-                                Dresden::useService()->updatePersonGroupFromFile(new Form(
+                                Dresden::useService()->updateGroupFromFile(new Form(
+                                    new FormGroup(
+                                        new FormRow(
+                                            new FormColumn(
+                                                new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
+                                                    array('showPreview' => false))
+                                            )
+                                        )
+                                    )
+                                    , new Primary('Hochladen')
+                                ), $File
+                                )
+                                .new Warning(new Exclamation().' Erlaubte Dateitypen: Excel (XLS,XLSX)')
+                            )
+                        ))
+                    )
+                )
+            )
+        );
+
+        return $View;
+    }
+
+    /**
+     * @param null $File
+     *
+     * @return Stage
+     *
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function frontendUpdateDescriptionImport($File = null)
+    {
+
+        $View = new Stage('Import Dresden', 'Personen/Institutionen-Beschreibung');
+        $View->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new Well(
+                                Dresden::useService()->updateRemarkFromFile(new Form(
                                     new FormGroup(
                                         new FormRow(
                                             new FormColumn(

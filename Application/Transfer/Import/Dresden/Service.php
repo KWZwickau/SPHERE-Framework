@@ -90,7 +90,6 @@ class Service
                     'Titel' => null,    //
                     'Vorname' => null,  //
                     'Nachname' => null, //
-                    'FamStand' => null, //
                     'FamStatus' => null,//
                     'Beruf' => null,    //
                     'EMailDi' => null,  //
@@ -172,16 +171,32 @@ class Service
                                 $NamensZusatz = 'Namenszussatz: '.$NamensZusatz;
                             }
 
-                            $tblPerson = Person::useService()->insertPerson(
-                                $tblSalutation,
-                                $Title,
-                                $firstName,
-                                $NamensZusatz,
-                                $lastName,
-                                $TblGroupList,
-                                $BirthName,
-                                trim($Document->getValue($Document->getCell($Location['Nr'], $RunY)))
-                            );
+                            if(preg_match('!(\w+) und (\w+)!', $firstName)){
+                                $FirstNameArray = explode(' und ', $firstName);
+                                foreach($FirstNameArray as $FirstNamePerson){
+                                    $tblPerson = Person::useService()->insertPerson(
+                                        $tblSalutation,
+                                        $Title,
+                                        $FirstNamePerson,
+                                        $NamensZusatz,
+                                        $lastName,
+                                        $TblGroupList,
+                                        $BirthName,
+                                        trim($Document->getValue($Document->getCell($Location['Nr'], $RunY)))
+                                    );
+                                }
+                            } else {
+                                $tblPerson = Person::useService()->insertPerson(
+                                    $tblSalutation,
+                                    $Title,
+                                    $firstName,
+                                    $NamensZusatz,
+                                    $lastName,
+                                    $TblGroupList,
+                                    $BirthName,
+                                    trim($Document->getValue($Document->getCell($Location['Nr'], $RunY)))
+                                );
+                            }
 
                             if ($tblPerson === false) {
                                 $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Person konnte nicht angelegt werden.';
@@ -333,7 +348,6 @@ class Service
                     }
 
 //                    Debugger::screenDump($error);
-//                    Debugger::screenDump($RelationshipList);
 
                     //DoRelationship
                     $tblRelationShipType = Relationship::useService()->getTypeByName('Sorgeberechtigt');
@@ -493,8 +507,6 @@ class Service
                  */
                 if (!in_array(null, $Location, true)) {
                     $countCompany = 0;
-
-                    $RelationshipList = array();
                     $error = array();
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
                         set_time_limit(300);
@@ -646,7 +658,6 @@ class Service
                     }
 
 //                    Debugger::screenDump($error);
-//                    Debugger::screenDump($RelationshipList);
 
                     return
                         new Success('Es wurden ' . $countCompany . ' Institutionen erfolgreich angelegt.')
@@ -676,11 +687,10 @@ class Service
      * @return IFormInterface|Danger|string
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
-    public function updatePersonGroupFromFile(
+    public function updateGroupFromFile(
         IFormInterface $Form = null,
         UploadedFile $File = null
     ) {
-
 
         /**
          * Skip to Frontend
@@ -753,10 +763,32 @@ class Service
                         } else {
 
                             $GebDatum = trim($Document->getValue($Document->getCell($Location['GebDatum'], $RunY)));
+                            $tblPersonList = array();
+                            $tblPerson = false;
                             if($GebDatum){
-                                $tblPerson = Person::useService()->getPersonByNameAndBirthday($firstName, $lastName, $GebDatum);
+                                if(preg_match('!(\w+) und (\w+)!', $firstName)){
+                                    $FirstNameArray = explode(' und ', $firstName);
+                                    foreach($FirstNameArray as $FirstNamePerson){
+                                        $tblPersonToList = Person::useService()->getPersonByNameAndBirthday($FirstNamePerson, $lastName, $GebDatum);
+                                        if($tblPersonToList){
+                                            $tblPersonList[] = $tblPersonToList;
+                                        }
+                                    }
+                                } else {
+                                    $tblPerson = Person::useService()->getPersonByNameAndBirthday($firstName, $lastName, $GebDatum);
+                                }
                             } else {
-                                $tblPerson = Person::useService()->getPersonByName($firstName, $lastName);
+                                if(preg_match('!(\w+) und (\w+)!', $firstName)){
+                                    $FirstNameArray = explode(' und ', $firstName);
+                                    foreach($FirstNameArray as $FirstNamePerson){
+                                        $tblPersonToList = Person::useService()->getPersonByName($FirstNamePerson, $lastName);
+                                        if($tblPersonToList){
+                                            $tblPersonList[] = $tblPersonToList;
+                                        }
+                                    }
+                                } else {
+                                    $tblPerson = Person::useService()->getPersonByName($firstName, $lastName);
+                                }
                             }
 
                             $tblCompany = Company::useService()->getCompanyByName($lastName, $extendedName);
@@ -768,45 +800,46 @@ class Service
                                 $stringList = array();
                                 $stringList = $this->changeGroupArrayByGroupString($stringList, $KatZuord);
                                 $GroupList = array();
-                                foreach($stringList as $groupString){
-                                    if(isset($GroupMatchList[$groupString])){
-                                        $GroupList = $this->changeGroupArrayByGroupString($GroupList, $GroupMatchList[$groupString]);
+                                foreach ($stringList as $groupString) {
+                                    if (isset($GroupMatchList[$groupString])) {
+                                        $GroupList = $this->changeGroupArrayByGroupString($GroupList,
+                                            $GroupMatchList[$groupString]);
                                     }
                                 }
-                                if(!empty($GroupList)){
+                                if (!empty($GroupList)) {
                                     $isCustody = false;
-                                    if(in_array('Sorgeberechtigt', $GroupList)){
+                                    if (in_array('Sorgeberechtigt', $GroupList)) {
                                         $isCustody = true;
                                     }
-                                    foreach($GroupList as $Group){
-                                        if($isCustody && preg_match('!^Klasse*!', $Group)){
+                                    foreach ($GroupList as $Group) {
+                                        if ($isCustody && preg_match('!^Klasse*!', $Group)) {
                                             // don't insert group for Custody!
-                                        } elseif($isCustody && $Group !== '') {
+                                        } elseif ($isCustody && $Group !== '') {
                                             $tblGroup = Group::useService()->createGroupFromImport($Group);
                                             Group::useService()->addGroupPerson($tblGroup, $tblPerson);
-                                        } elseif(!$isCustody && preg_match('!^Klasse*!', $Group) && $Group !== ''){
+                                        } elseif (!$isCustody && preg_match('!^Klasse*!', $Group) && $Group !== '') {
                                             // division
                                             $CompleteDivision = substr($Group, 7);
                                             $division = substr($CompleteDivision, -1);
-                                            $level = substr($CompleteDivision, 0, strlen($CompleteDivision)-1);
-                                            if($level <= 4){
+                                            $level = substr($CompleteDivision, 0, strlen($CompleteDivision) - 1);
+                                            if ($level <= 4) {
                                                 $tblSchoolType = Type::useService()->getTypeById(6); // Grundschule
-                                            }else {
+                                            } else {
                                                 $tblSchoolType = Type::useService()->getTypeById(8); // Oberschule
                                             }
 
                                             $tblDivision = false;
                                             $year = 17;
                                             if ($division !== '') {
-                                                $tblYear = Term::useService()->insertYear('20' . $year . '/' . ($year + 1));
+                                                $tblYear = Term::useService()->insertYear('20'.$year.'/'.($year + 1));
                                                 if ($tblYear) {
                                                     $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
                                                     if (!$tblPeriodList) {
                                                         // firstTerm
                                                         $tblPeriod = Term::useService()->insertPeriod(
                                                             '1. Halbjahr',
-                                                            '01.08.20' . $year,
-                                                            '31.01.20' . ($year + 1)
+                                                            '01.08.20'.$year,
+                                                            '31.01.20'.($year + 1)
                                                         );
                                                         if ($tblPeriod) {
                                                             Term::useService()->insertYearPeriod($tblYear, $tblPeriod);
@@ -815,8 +848,8 @@ class Service
                                                         // secondTerm
                                                         $tblPeriod = Term::useService()->insertPeriod(
                                                             '2. Halbjahr',
-                                                            '01.02.20' . ($year + 1),
-                                                            '31.07.20' . ($year + 1)
+                                                            '01.02.20'.($year + 1),
+                                                            '31.07.20'.($year + 1)
                                                         );
                                                         if ($tblPeriod) {
                                                             Term::useService()->insertYearPeriod($tblYear, $tblPeriod);
@@ -824,7 +857,8 @@ class Service
                                                     }
 
                                                     if ($tblSchoolType) {
-                                                        $tblLevel = Division::useService()->insertLevel($tblSchoolType, $level);
+                                                        $tblLevel = Division::useService()->insertLevel($tblSchoolType,
+                                                            $level);
                                                         if ($tblLevel) {
                                                             $tblDivision = Division::useService()->insertDivision(
                                                                 $tblYear,
@@ -836,22 +870,115 @@ class Service
                                                 }
 
                                                 if ($tblDivision) {
-                                                    Division::useService()->insertDivisionStudent($tblDivision, $tblPerson);
+                                                    Division::useService()->insertDivisionStudent($tblDivision,
+                                                        $tblPerson);
                                                 } else {
-                                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Schüler konnte keiner Klasse zugeordnet werden.';
+                                                    $error[] = 'Zeile: '.($RunY + 1).' Der Schüler konnte keiner Klasse zugeordnet werden.';
                                                 }
                                             }
                                             // Klassengruppe nicht mit anlegen?!?
 //                                            $tblGroup = Group::useService()->createGroupFromImport($Group);
 //                                            Group::useService()->addGroupPerson($tblGroup, $tblPerson);
 
-                                        } elseif(!$isCustody && $Group !== ''){
+                                        } elseif (!$isCustody && $Group !== '') {
                                             $tblGroup = Group::useService()->createGroupFromImport($Group);
                                             Group::useService()->addGroupPerson($tblGroup, $tblPerson);
                                         }
                                     }
                                 }
 
+                            } elseif(!empty($tblPersonList)) {
+                                foreach($tblPersonList as $tblPerson){
+                                    $countAllocation++;
+
+                                    $KatZuord = trim($Document->getValue($Document->getCell($Location['KatZuord'], $RunY)));
+                                    $stringList = array();
+                                    $stringList = $this->changeGroupArrayByGroupString($stringList, $KatZuord);
+                                    $GroupList = array();
+                                    foreach($stringList as $groupString){
+                                        if(isset($GroupMatchList[$groupString])){
+                                            $GroupList = $this->changeGroupArrayByGroupString($GroupList, $GroupMatchList[$groupString]);
+                                        }
+                                    }
+                                    if(!empty($GroupList)){
+                                        $isCustody = false;
+                                        if(in_array('Sorgeberechtigt', $GroupList)){
+                                            $isCustody = true;
+                                        }
+                                        foreach($GroupList as $Group){
+                                            if($isCustody && preg_match('!^Klasse*!', $Group)){
+                                                // don't insert group for Custody!
+                                            } elseif($isCustody && $Group !== '') {
+                                                $tblGroup = Group::useService()->createGroupFromImport($Group);
+                                                Group::useService()->addGroupPerson($tblGroup, $tblPerson);
+                                            } elseif(!$isCustody && preg_match('!^Klasse*!', $Group) && $Group !== ''){
+                                                // division
+                                                $CompleteDivision = substr($Group, 7);
+                                                $division = substr($CompleteDivision, -1);
+                                                $level = substr($CompleteDivision, 0, strlen($CompleteDivision)-1);
+                                                if($level <= 4){
+                                                    $tblSchoolType = Type::useService()->getTypeById(6); // Grundschule
+                                                }else {
+                                                    $tblSchoolType = Type::useService()->getTypeById(8); // Oberschule
+                                                }
+
+                                                $tblDivision = false;
+                                                $year = 17;
+                                                if ($division !== '') {
+                                                    $tblYear = Term::useService()->insertYear('20' . $year . '/' . ($year + 1));
+                                                    if ($tblYear) {
+                                                        $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+                                                        if (!$tblPeriodList) {
+                                                            // firstTerm
+                                                            $tblPeriod = Term::useService()->insertPeriod(
+                                                                '1. Halbjahr',
+                                                                '01.08.20' . $year,
+                                                                '31.01.20' . ($year + 1)
+                                                            );
+                                                            if ($tblPeriod) {
+                                                                Term::useService()->insertYearPeriod($tblYear, $tblPeriod);
+                                                            }
+
+                                                            // secondTerm
+                                                            $tblPeriod = Term::useService()->insertPeriod(
+                                                                '2. Halbjahr',
+                                                                '01.02.20' . ($year + 1),
+                                                                '31.07.20' . ($year + 1)
+                                                            );
+                                                            if ($tblPeriod) {
+                                                                Term::useService()->insertYearPeriod($tblYear, $tblPeriod);
+                                                            }
+                                                        }
+
+                                                        if ($tblSchoolType) {
+                                                            $tblLevel = Division::useService()->insertLevel($tblSchoolType, $level);
+                                                            if ($tblLevel) {
+                                                                $tblDivision = Division::useService()->insertDivision(
+                                                                    $tblYear,
+                                                                    $tblLevel,
+                                                                    $division
+                                                                );
+                                                            }
+                                                        }
+                                                    }
+
+                                                    if ($tblDivision) {
+                                                        Division::useService()->insertDivisionStudent($tblDivision, $tblPerson);
+                                                    } else {
+                                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Schüler konnte keiner Klasse zugeordnet werden.';
+                                                    }
+                                                }
+                                                // Klassengruppe nicht mit anlegen?!?
+//                                            $tblGroup = Group::useService()->createGroupFromImport($Group);
+//                                            Group::useService()->addGroupPerson($tblGroup, $tblPerson);
+
+                                            } elseif(!$isCustody && $Group !== ''){
+                                                $tblGroup = Group::useService()->createGroupFromImport($Group);
+                                                Group::useService()->addGroupPerson($tblGroup, $tblPerson);
+                                            }
+                                        }
+                                    }
+                                }
                             } elseif($tblCompany){
                                 $countAllocation++;
 
@@ -878,6 +1005,174 @@ class Service
 
                     return
                         new Success('Es wurden ' . $countAllocation . ' Personen/Institutionen-Gruppen zuweisungen erfolgreich angelegt.')
+                        . new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                            new Panel(
+                                'Fehler',
+                                $error,
+                                Panel::PANEL_TYPE_DANGER
+                            )
+                        ))));
+
+                } else {
+                    Debugger::screenDump($Location);
+                    return new Warning(json_encode($Location)) . new Danger(
+                            "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                }
+            }
+        }
+
+        return new Danger('File nicht gefunden');
+    }
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param UploadedFile|null $File
+     *
+     * @return IFormInterface|Danger|string
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function updateRemarkFromFile(
+        IFormInterface $Form = null,
+        UploadedFile $File = null
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $File) {
+            return $Form;
+        }
+
+        if (null !== $File) {
+            if ($File->getError()) {
+                $Form->setError('File', 'Fehler');
+            } else {
+                /**
+                 * Prepare
+                 */
+                $File = $File->move($File->getPath(),
+                    $File->getFilename() . '.' . $File->getClientOriginalExtension());
+
+                /**
+                 * Read
+                 */
+                //$File->getMimeType()
+                /** @var PhpExcel $Document */
+                $Document = Document::getDocument($File->getPathname());
+                if (!$Document instanceof PhpExcel) {
+                    $Form->setError('File', 'Fehler');
+                    return $Form;
+                }
+
+                $X = $Document->getSheetColumnCount();
+                $Y = $Document->getSheetRowCount();
+
+                /**
+                 * Header -> Location
+                 */
+                $Location = array(
+                    'Personalnummer' => null,
+                    'Nachname' => null,
+                    'Vorname' => null,
+                    'GebDatum' => null,
+                    'Bemerkungen' => null,
+                );
+
+                for ($RunX = 0; $RunX < $X; $RunX++) {
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
+                    if (array_key_exists($Value, $Location)) {
+                        $Location[$Value] = $RunX;
+                    }
+                }
+
+                /**
+                 * Import
+                 */
+                if (!in_array(null, $Location, true)) {
+                    $countAllocation = 0;
+                    $error = array();
+                    for ($RunY = 1; $RunY < $Y; $RunY++) {
+                        set_time_limit(300);
+                        // Student
+                        $firstName = trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY)));
+                        $lastName = trim($Document->getValue($Document->getCell($Location['Nachname'], $RunY)));
+                        $day = trim($Document->getValue($Document->getCell($Location['GebDatum'], $RunY)));
+                        if ($day !== '') {
+                            try {
+                                $birthday = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
+                            } catch (\Exception $ex) {
+                                $birthday = '';
+                                $error[] = 'Zeile: ' . ($RunY + 1) . ' Ungültiges Geburtsdatum: ' . $ex->getMessage();
+                            }
+
+                        } else {
+                            $birthday = '';
+                        }
+
+                        $tblPersonList = array();
+                        $tblPerson = false;
+                        if($birthday){
+                            if(preg_match('!(\w+) und (\w+)!', $firstName)){
+                                $FirstNameArray = explode(' und ', $firstName);
+                                foreach($FirstNameArray as $FirstNamePerson){
+                                    $tblPersonToList = Person::useService()->getPersonByNameAndBirthday($FirstNamePerson, $lastName, $birthday);
+                                    if($tblPersonToList){
+                                        $tblPersonList[] = $tblPersonToList;
+                                    }
+                                }
+                            } else {
+                                $tblPerson = Person::useService()->getPersonByNameAndBirthday($firstName, $lastName, $birthday);
+                            }
+                        } else {
+                            if(preg_match('!(\w+) und (\w+)!', $firstName)){
+                                $FirstNameArray = explode(' und ', $firstName);
+                                foreach($FirstNameArray as $FirstNamePerson){
+                                    $tblPersonToList = Person::useService()->getPersonByName($FirstNamePerson, $lastName);
+                                    if($tblPersonToList){
+                                        $tblPersonList[] = $tblPersonToList;
+                                    }
+                                }
+                            } else {
+                                $tblPerson = Person::useService()->getPersonByName($firstName, $lastName);
+                            }
+                        }
+
+                        $tblCompanyList = Company::useService()->getCompanyListByName($lastName);
+
+                        if($tblPerson) {
+                            $KatZuord = trim($Document->getValue($Document->getCell($Location['Bemerkungen'], $RunY)));
+                            if($KatZuord !== ''){
+                                if(($tblCommon = Common::useService()->getCommonByPerson($tblPerson))){
+                                    $countAllocation++;
+                                    Common::useService()->updateCommon($tblCommon, $KatZuord);
+                                }
+                            }
+
+                        } elseif(!empty($tblPersonList)) {
+                            foreach($tblPersonList as $tblPerson){
+                                $KatZuord = trim($Document->getValue($Document->getCell($Location['Bemerkungen'], $RunY)));
+                                if($KatZuord !== ''){
+                                    if(($tblCommon = Common::useService()->getCommonByPerson($tblPerson))){
+                                        $countAllocation++;
+                                        Common::useService()->updateCommon($tblCommon, $KatZuord);
+                                    }
+                                }
+                            }
+                        } elseif($tblCompanyList){
+                            foreach($tblCompanyList as $tblCompany){
+                                $KatZuord = trim($Document->getValue($Document->getCell($Location['Bemerkungen'], $RunY)));
+                                if($KatZuord !== ''){
+                                    $countAllocation++;
+                                    Company::useService()->updateCompanyDescriptionWithoutForm($tblCompany, $KatZuord);
+                                }
+                            }
+                        } else {
+                            $error[] = 'Zeile: ' . ($RunY + 1) . ' "'.new Bold($firstName.' '.$lastName).'" wurde nicht in Personen/Institutionen gefunden.';
+                        }
+                    }
+
+                    return
+                        new Success('Es wurden ' . $countAllocation . ' Personen/Institutionen-Gruppen Bemerkungen erfolgreich bearbeitet.')
                         . new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                             new Panel(
                                 'Fehler',
