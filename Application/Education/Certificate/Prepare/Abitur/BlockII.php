@@ -184,6 +184,11 @@ class BlockII extends AbstractBlock
             )
         );
 
+        $checkbox = new CheckBox('Data[IsBellUsed]', 'Die besondere Lernleistung ersetzt das 5. Prüfungsfach', 1);
+        if ($this->tblPrepareStudent && $this->tblPrepareStudent->isApproved()) {
+            $checkbox->setDisabled();
+        }
+
         $form = new Form(array(
             new FormGroup(array(
                 new FormRow(array(
@@ -196,7 +201,7 @@ class BlockII extends AbstractBlock
                         new Panel(
                             'Besondere Lernleistung',
                             array(
-                                new CheckBox('Data[IsBellUsed]', 'Die besondere Lernleistung ersetzt das 5. Prüfungsfach', 1),
+                                $checkbox,
                                 $tableBELL
                             ),
                             Panel::PANEL_TYPE_PRIMARY
@@ -283,7 +288,11 @@ class BlockII extends AbstractBlock
                 $availableSubjects = $this->AvailableSubjectsP4P5;
             }
 
-            $exam = new SelectBox('Data[' .  $i . '][Subject]', '', array('Name' => $availableSubjects));
+            $selectBoxSubject =  new SelectBox('Data[' .  $i . '][Subject]', '', array('Name' => $availableSubjects));
+            if ($this->tblPrepareStudent && $this->tblPrepareStudent->isApproved()) {
+                $selectBoxSubject->setDisabled();
+            }
+            $exam = $selectBoxSubject;
         }
 
         if ($i < 4) {

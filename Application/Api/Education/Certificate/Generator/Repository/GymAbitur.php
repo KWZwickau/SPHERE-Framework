@@ -22,6 +22,7 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Common\Frontend\Text\Repository\Sup;
 
 /**
  * Class GymAbitur
@@ -170,8 +171,8 @@ class GymAbitur extends Certificate
                                     Frau/Herr²
                                 {% endif %}
                             {% endif %}
-                            <u> {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} </u> 
-                            hat die <b>Abiturprüfung bestanden</b> und die Berechtigung zum Studium an einer Hochschule in der
+                            <u>&nbsp;&nbsp;&nbsp;&nbsp; {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} &nbsp;&nbsp;&nbsp;&nbsp;</u> 
+                            hat die <b>Abiturprüfung bestanden</b></br> und die Berechtigung zum Studium an einer Hochschule in der
                             Bundesrepublik Deutschland erworben.
                         ')
                         ->stylePaddingBottom()
@@ -194,28 +195,24 @@ class GymAbitur extends Certificate
                         ->setContent('
                                 Ort, Datum
                             ')
-                        ->styleTextSize('10pt')
+                        ->styleTextSize('11px')
                         ->styleMarginTop('0px')
                         , '35%')
                     ->addElementColumn((new Element()))
                 )
             )
-            ->addSlice($this->getExaminationsBoard())
-            ->addSlice($this->getInfo(
-                '40px',
-                '¹ Das jeweilige Fach ist einzutragen. Die Ausweisung der Noten und Notenstufen kann der Schüler ablehnen
-                 (§ 65 Absatz 3 SOGYA).',
-                '² Nichtzutreffendes ist zu streichen.'
-            ));
+            ->addSlice($this->getExaminationsBoard('10px','11px'))
+            ->addSlice($this->getInfoForPageFour())
+        ;
 
         $pageList[] = (new Page())
             ->addSlice($Header)
             ->addSlice((new Slice())
                 ->addElement((new Element())
-                    ->setContent('Zeugnis')
+                    ->setContent('ZEUGNIS')
                     ->styleTextSize('27px')
                     ->styleAlignCenter()
-                    ->styleMarginTop('25%')
+                    ->styleMarginTop('22%')
                     ->styleTextBold()
                 )
             )
@@ -224,7 +221,7 @@ class GymAbitur extends Certificate
                     ->setContent('der allgemeinen Hochschulreife')
                     ->styleTextSize('27px')
                     ->styleAlignCenter()
-                    ->styleMarginTop('20px')
+                    ->styleMarginTop('25px')
                     ->styleMarginBottom('5px')
                 )
             )
@@ -302,12 +299,18 @@ class GymAbitur extends Certificate
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('Dem Zeugnis liegt die „Verordnung des Sächsischen Staatsministeriums für Kultus
-                            über allgemeinbildende Gymnasien und die Abiturprüfung im Freistaat Sachsen“ (SOGYA) in der jeweils geltenden Fassung zu Grunde.
+                        ->setContent('
+                        Dem Zeugnis liegen zugrunde: </br>
+                        – &nbsp;&nbsp; Vereinbarung zur Gestaltung der gymnasialen Oberstufe in der Sekundarstufe II (Beschluss der Kultusministerkonferenz vom </br>
+                          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;07.07.1972, in der jeweils geltenden Fassung) </br>
+                        – &nbsp;&nbsp; Vereinbarung über die Abiturprüfung der gymnasialen Oberstufe in der Sekundarstufe II (Beschluss der Kultusministerkon- </br>
+                          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ferenz vom 13.12.1973, in der jeweils geltenden Fassung) </br>
+                        – &nbsp;&nbsp; Schulordnung Gymnasien Abiturprüfung vom 27. Juni 2012 (SächsGVBl. S. 348), die zuletzt durch Artikel 3 der Verordnung </br>
+                          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vom 3. August 2017 (SächsGVBl. S. 348) geändert worden ist, in der jeweils geltenden Fassung
                         ')
-                        ->styleTextSize('12px')
+                        ->styleTextSize('11px')
                     )
-                )->styleMarginTop('370px')
+                )->styleMarginTop('310px')
             );
 
         /*
@@ -340,7 +343,7 @@ class GymAbitur extends Certificate
                                 ->setContent('&nbsp;')
                             )
                             ->addElementColumn((new Element())
-                                ->setContent('LF²')
+                                ->setContent('LF³')
                                 ->styleAlignCenter()
                                 ->styleBorderLeft()
                             , '10%')
@@ -353,7 +356,7 @@ class GymAbitur extends Certificate
                     (new Slice)
                         ->addSection((new Section())
                             ->addElementColumn((new Element())
-                                ->setContent('Bewertung¹')
+                                ->setContent('Bewertung²')
                                 ->styleTextBold()
                                 ->styleAlignCenter()
                             )
@@ -459,20 +462,14 @@ class GymAbitur extends Certificate
                 )
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('Block I: Ergebnisse in der Qualifikationsphase')
+                        ->setContent('Block I: Ergebnisse in der Qualifikationsphase¹')
                         ->styleTextBold()
                         ->styleMarginTop('10px')
                     )
                 )
             )
             ->addSlice($slice)
-            ->addSlice($this->getInfo(
-                '240px',
-                '¹ Alle Punktzahlen werden zweistellig angegeben.',
-                '² Grundkursfächer bleiben ohne besondere Kennzeichnung. Leistungskursfächer sind in der betreffenden Zeile der Spalte „LF“ zu kennzeichnen.',
-                '³ An Gymnasien gem. § 38 Abs. 2 SOGYA sind die Fächer Ev./Kath. Religion dem gesellschaftswissenschaftlichen Aufgabenfeld zugeordnet.'
-//               , new Sup('4') . ' ⁴ mathematisch-naturwissenschaftlich-technisches Aufgabenfeld'
-            ))
+            ->addSlice($this->getInfoForBlockI())
         ;
 
         /*
@@ -486,12 +483,14 @@ class GymAbitur extends Certificate
             $isBellUsed = false;
         }
 
+        $bellPoints = '&ndash;';
         if (($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy($this->getTblPrepareCertificate(), $tblPerson, 'BellPoints'))) {
-            $bellPoints = ($isBellUsed ? '' : '(')
-                . str_pad($tblPrepareInformation->getValue(),2, 0, STR_PAD_LEFT)
-                . ($isBellUsed ? '' : ')');
-        } else {
-            $bellPoints = '&nbsp;';
+            $value = $tblPrepareInformation->getValue();
+            if ($value !== null && $value !== '') {
+                $bellPoints = ($isBellUsed ? '' : '(')
+                    . str_pad($value,2, 0, STR_PAD_LEFT)
+                    . ($isBellUsed ? '' : ')');
+            }
         }
 
         // Berechnung der Gesamtqualifikation und der Durchschnittsnote
@@ -640,7 +639,7 @@ class GymAbitur extends Certificate
                 )
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('Block II: Ergebnisse in der Abiturprüfung')
+                        ->setContent('Block II: Ergebnisse in der Abiturprüfung¹')
                         ->styleTextBold()
                         ->styleMarginTop('15px')
                     )
@@ -650,7 +649,7 @@ class GymAbitur extends Certificate
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('Besondere Lernleistung')
+                        ->setContent('Besondere Lernleistung¹')
                         ->styleTextBold()
                         ->styleMarginTop('40px')
                     )
@@ -678,7 +677,7 @@ class GymAbitur extends Certificate
                             {% if(Content.P' . $personId . '.Input.BellSubject is not empty) %}
                                 {{ Content.P' . $personId . '.Input.BellSubject|nl2br }}
                             {% else %}
-                                &nbsp;
+                                &ndash;
                             {% endif %}')
                         ->stylePaddingLeft('5px')
                         ->stylePaddingRight('5px')
@@ -863,12 +862,8 @@ class GymAbitur extends Certificate
                 ->styleBorderAll()
             )
             ->addSlice($this->setPointsOverview('180px'))
-            ->addSlice($this->getInfo(
-                '50px',
-                '¹ Alle Punktzahlen werden zweistellig angegeben.',
-                '² Halbjahresergebnisse aus Leistungskursfächern (LF) werden doppelt gewichtet.',
-                '³ Bei Einbringung einer Besonderen Lernleistung wird diese an Stelle des 5. Prüfungsfaches gewertet.'
-            ));
+            ->addSlice($this->getInfoForBlockII())
+        ;
 
         return $pageList;
     }
@@ -909,7 +904,7 @@ class GymAbitur extends Certificate
 
         // tatsächliche Religion aus der Schülerakte bestimmen
         if ($subjectName == 'RELIGION') {
-            $subjectName = 'Ev./Kath. Religion³/Ethik';
+            $subjectName = 'Ev./Kath. Religion/Ethik';
             if (($tblPerson = Person::useService()->getPersonById($personId))
                 && ($tblStudent = $tblPerson->getStudent())
                 && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('RELIGION'))
@@ -918,7 +913,8 @@ class GymAbitur extends Certificate
                 $tblStudentSubjectType, $tblStudentSubjectRanking))
                 && ($tblReligionSubject = $tblStudentSubject->getServiceTblSubject())
             ) {
-                $subjectName = $tblReligionSubject->getName() . '³';
+                // todo hochgestellte 4
+                $subjectName = $tblReligionSubject->getName() . new Sup('4');
             }
         } else {
             // Leistungskurse markieren
@@ -943,10 +939,10 @@ class GymAbitur extends Certificate
         }
 
         $grades = array(
-            '11-1' => '&nbsp;',
-            '11-2' => '&nbsp;',
-            '12-1' => '&nbsp;',
-            '12-2' => '&nbsp;',
+            '11-1' => '&ndash;',
+            '11-2' => '&ndash;',
+            '12-1' => '&ndash;',
+            '12-2' => '&ndash;',
         );
 
         $tblSubject = Subject::useService()->getSubjectByName($subjectName);
@@ -986,7 +982,7 @@ class GymAbitur extends Certificate
                 ->styleBorderBottom($isLastRow ? '1px' : '0px')
                 , $hasAdvancedCourse ? '45%' : '50%')
             ->addElementColumn((new Element())
-                ->setContent($isAdvancedSubject ? 'X' : '&nbsp;')
+                ->setContent($isAdvancedSubject ? 'LF' : '&nbsp;')
                 ->styleAlignCenter()
                 ->styleBackgroundColor($hasAdvancedCourse ? $color : '#FFF')
                 ->styleBorderTop()
@@ -1037,11 +1033,11 @@ class GymAbitur extends Certificate
         for ($i = 1; $i < 6; $i++) {
             $section = new Section();
 
-            $subjectName = '&nbsp;';
-            $writtenExam = '&nbsp;';
-            $verbalExam = '&nbsp;';
-            $extraVerbalExam = '&nbsp;';
-            $total = '&nbsp;';
+            $subjectName = '&ndash;';
+            $writtenExam = '&ndash;';
+            $verbalExam = '&ndash;';
+            $extraVerbalExam = '&ndash;';
+            $total = '&ndash;';
 
             if (($tblPerson = Person::useService()->getPersonById($personId))
                 && $this->getTblPrepareCertificate()
@@ -1270,6 +1266,7 @@ class GymAbitur extends Certificate
             $SecondSlice->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
+                    ->styleBorderBottom()
                     , '25%')
                 ->addElementColumn((new Element())
                     ->setContent($extendedName ? $extendedName : '&nbsp;')
@@ -1281,6 +1278,7 @@ class GymAbitur extends Certificate
             $SecondSlice->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
+                    ->styleBorderBottom()
                     , '25%')
                 ->addElementColumn((new Element())
                     ->setContent($extendedName ? $extendedName : '&nbsp;')
@@ -1470,9 +1468,9 @@ class GymAbitur extends Certificate
 
         $tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('LEVEL-10');
         for ($i = 1; $i < 8; $i++) {
-            $subject = '&nbsp;';
-            $grade = '&nbsp;';
-            $gradeText = '&nbsp;';
+            $subject = '&ndash;';
+            $grade = '&ndash;';
+            $gradeText = '&ndash;';
 
             if ($tblPrepareAdditionalGradeType
                 && ($tblPrepareAdditionalGrade = Prepare::useService()->getPrepareAdditionalGradeByRanking(
@@ -1552,9 +1550,9 @@ class GymAbitur extends Certificate
         }
 
         for ($i = 1; $i < 5; $i++) {
-            $subject = '&nbsp;';
-            $levelFrom = '&nbsp;';
-            $levelTill = '&nbsp;';
+            $subject = '&ndash;';
+            $levelFrom = '&ndash;';
+            $levelTill = '&ndash;';
 
             if ($tblStudent
                 && $tblStudentSubjectType
@@ -1573,7 +1571,7 @@ class GymAbitur extends Certificate
                     if (($tblLevelTill = $tblStudentSubject->getServiceTblLevelTill())) {
                         $levelTill = $tblLevelTill->getName();
                     } else {
-                        $levelTill = '&ndash;';
+                        $levelTill = '12';
                     }
                 }
             }
@@ -1624,7 +1622,7 @@ class GymAbitur extends Certificate
      * @return Slice
      * @throws \Exception
      */
-    private function getExaminationsBoard($marginTop = '10px', $textSize = '10pt')
+    private function getExaminationsBoard($marginTop, $textSize)
     {
 
         $leaderName = '&nbsp;';
@@ -1680,14 +1678,14 @@ class GymAbitur extends Certificate
             )
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent($leaderName)
+                    ->setContent('&nbsp;')
                     ->styleBorderBottom()
                     ->styleMarginTop('15px')
                     , '35%')
                 ->addElementColumn((new Element())
                 )
                 ->addElementColumn((new Element())
-                    ->setContent($firstMemberName)
+                    ->setContent('&nbsp;')
                     ->styleBorderBottom()
                     ->styleMarginTop('15px')
                     , '35%')
@@ -1704,6 +1702,20 @@ class GymAbitur extends Certificate
                     ->setContent('Mitglied')
                     ->styleTextSize($textSize)
                     ->styleMarginTop('0px')
+                    , '35%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent($leaderName)
+                    ->styleTextSize($textSize)
+                    ->styleMarginTop('0px')
+                    , '35%')
+                ->addElementColumn((new Element())
+                )
+                ->addElementColumn((new Element())
+                    ->setContent($firstMemberName)
+                    ->styleTextSize($textSize)
+                        ->styleMarginTop('0px')
                     , '35%')
             )
             ->addSection((new Section())
@@ -1726,7 +1738,7 @@ class GymAbitur extends Certificate
                 ->addElementColumn((new Element())
                 )
                 ->addElementColumn((new Element())
-                    ->setContent($secondMemberName)
+                    ->setContent('&nbsp;')
                     ->styleBorderBottom()
                     ->styleMarginTop('15px')
                     , '35%')
@@ -1742,8 +1754,135 @@ class GymAbitur extends Certificate
                     ->styleMarginTop('0px')
                     , '35%')
             )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    , '35%')
+                ->addElementColumn((new Element())
+                )
+                ->addElementColumn((new Element())
+                    ->setContent($secondMemberName)
+                    ->styleTextSize($textSize)
+                    ->styleMarginTop('0px')
+                    , '35%')
+            )
         ;
 
         return $slice;
+    }
+
+    /**
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    private function  getInfoForBlockI($marginTop = '190px')
+    {
+        $slice = new Slice();
+        $slice
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->styleBorderBottom()
+                    , '30%')
+                ->addElementColumn((new Element())
+                    , '70%')
+            )
+            ->styleMarginTop($marginTop)
+            ->addSection($this->setInfoRow(1, 'Die Halbjahresergebnisse, die nicht in die Gesamtqualifikation eingehen, werden in Klammern gesetzt.'))
+            ->addSection($this->setInfoRow(2, 'Alle Punktzahlen werden zweistellig angegeben.'))
+            ->addSection($this->setInfoRow(3, 'Grundkursfächer bleiben ohne besondere Kennzeichnung. Leistungskursfächer sind in der betreffenden Zeile der Spalte „LF“ zu
+                 kennzeichnen.'))
+            ->addSection($this->setInfoRow(4, 'An Gymnasien gemäß § 38 Absatz 2 der Schulordnung Gymnasien Abiturprüfung sind die Fächer Ev./Kath. Religion dem gesellschaftswissenschaftli-</br>
+            chen Aufgabenfeld zugeordnet.'))
+            ->addSection($this->setInfoRow(5, 'mathematisch-naturwissenschaftlich-technisches Aufgabenfeld'))
+
+            ;
+        // todo hochgestellte Zahlen
+//        ->addSlice($this->getInfo(
+//            '220px',
+//            '¹ &nbsp;&nbsp;&nbsp;&nbsp;Die Halbjahresergebnisse, die nicht in die Gesamtqualifikation eingehen, werden in Klammern gesetzt.',
+//            '² &nbsp;&nbsp;&nbsp;&nbsp;Alle Punktzahlen werden zweistellig angegeben.',
+//            '³ &nbsp;&nbsp;&nbsp;&nbsp;Grundkursfächer bleiben ohne besondere Kennzeichnung. Leistungskursfächer sind in der betreffenden Zeile der Spalte „LF“ zu
+//                    kennzeichnen.',
+//            '⁴ &nbsp;&nbsp;&nbsp;&nbsp;An Gymnasien gemäß § 38 Absatz 2 der Schulordnung Gymnasien Abiturprüfung sind die Fächer Ev./Kath. Religion dem
+//                    gesellschaftswissenschaftli-</br>
+//                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; chen Aufgabenfeld zugeordnet.',
+//            '⁵ &nbsp;&nbsp;&nbsp;&nbsp;mathematisch-naturwissenschaftlich-technisches Aufgabenfeld'
+        //¹ ² ³ ⁴ ⁵ ⁶  &#x2074; &#8308; &sup3;
+
+        return $slice;
+    }
+
+    /**
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    private function  getInfoForBlockII($marginTop = '45px')
+    {
+        $slice = new Slice();
+        $slice
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->styleBorderBottom()
+                    , '30%')
+                ->addElementColumn((new Element())
+                    , '70%')
+            )
+            ->styleMarginTop($marginTop)
+            ->addSection($this->setInfoRow(1, 'Alle Punktzahlen werden zweistellig angegeben.'))
+            ->addSection($this->setInfoRow(2, 'Halbjahresergebnisse aus Leistungskursfächern (LF) werden doppelt gewichtet.'))
+            ->addSection($this->setInfoRow(3, 'Bei Einbringung einer Besonderen Lernleistung wird diese an Stelle des 5. Prüfungsfaches gewertet.'))
+        ;
+
+        return $slice;
+    }
+
+    /**
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    private function  getInfoForPageFour($marginTop = '20px')
+    {
+        $slice = new Slice();
+        $slice
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->styleBorderBottom()
+                    , '30%')
+                ->addElementColumn((new Element())
+                    , '70%')
+            )
+            ->styleMarginTop($marginTop)
+            ->addSection($this->setInfoRow(1, 'Das jeweilige Fach ist einzutragen. Die Ausweisung der Noten und Notenstufen kann der Schüler ablehnen (§ 65 Absatz 3 der Schulordnung Gymnasien Abiturprüfung).'))
+            ->addSection($this->setInfoRow(2, 'Nichtzutreffendes ist zu streichen.'))
+        ;
+
+        return $slice;
+    }
+
+
+    /**
+     * @param $i
+     * @param $text
+     *
+     * @return Section
+     */
+    private function setInfoRow($i, $text)
+    {
+        $section = new Section();
+        $section
+            ->addElementColumn((new Element())
+                ->setContent(new Sup($i))
+                ->styleTextSize('6px')
+                ->styleMarginTop('2px')
+                , '3%')
+            ->addElementColumn((new Element())
+                ->setContent($text)
+                ->styleTextSize('9.5px')
+                ->styleMarginTop('2px')
+            );
+
+        return $section;
     }
 }
