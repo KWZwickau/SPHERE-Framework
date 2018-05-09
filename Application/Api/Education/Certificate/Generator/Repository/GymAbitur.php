@@ -1216,7 +1216,7 @@ class GymAbitur extends Certificate
                             if (($tblAddress = $tblCompany->fetchMainAddress())
                                 && ($tblCity = $tblAddress->getTblCity())
                             ) {
-                                $place = ' in ' . $tblCity->getName();
+                                $place = ' zu ' . $tblCity->getName();
                             }
                             $schoolName = $tblCompany->getName();
                             $extendedName = $isSchoolExtendedNameDisplayed ?

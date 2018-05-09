@@ -61,6 +61,7 @@ use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Window\Redirect;
@@ -3886,5 +3887,56 @@ class Service extends AbstractService
                 'GroupId' => $GroupId,
                 'Route' => 'Diploma'
             ));
+    }
+
+
+    public function checkAbiturExams(TblPrepareCertificate $tblPrepareCertificate, TblPerson $tblPerson)
+    {
+
+        $warnings = false;
+        $exams = array();
+        $hasGerman = false;
+        $hasMathematics = false;
+        for ($i = 1; $i <6; $i++) {
+            $tblSubject = false;
+            $grade = false;
+            if ($i < 4) {
+                $tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('WRITTEN_EXAM');
+            } else {
+                $tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('VERBAL_EXAM');
+            }
+
+            if (($examGrade = Prepare::useService()->getPrepareAdditionalGradeByRanking(
+                $tblPrepareCertificate,
+                $tblPerson,
+                $tblPrepareAdditionalGradeType,
+                $i))
+            ) {
+                $tblSubject = $examGrade->getServiceTblSubject();
+                if ($tblSubject) {
+                    if ($tblSubject->getName() == 'Deutsch'){
+                        $hasGerman = true;
+                    }
+                    if ($tblSubject->getName() == 'Mathematik') {
+                        $hasMathematics = true;
+                    }
+                }
+                $grade = $examGrade->getGrade();
+            }
+
+            $exams[$i] = array(
+                'Subject' => $tblSubject,
+                'Grade' => $grade
+            );
+        }
+
+        if (!$hasMathematics) {
+            $warnings[] = new Warning('Das Fach Mathematik muss sich unter den Prüfungsfächern befinden!', new Exclamation());
+        }
+        if (!$hasGerman) {
+            $warnings[] = new Warning('Das Fach Deutsch muss sich unter den Prüfungsfächern befinden!', new Exclamation());
+        }
+
+        return $warnings;
     }
 }

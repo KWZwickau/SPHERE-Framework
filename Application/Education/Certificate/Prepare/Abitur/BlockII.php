@@ -231,17 +231,25 @@ class BlockII extends AbstractBlock
             $resultBlockII = new Warning(new Disable() . ' ' . $resultBlockII . ' von mindestens 100 Punkten erreicht.');
         }
 
+        $columnsContent[] =  new Panel(
+            'Schüler',
+            $this->tblPerson ? $this->tblPerson->getLastFirstName() : '',
+            Panel::PANEL_TYPE_INFO
+        );
+        $columnsContent[] = $resultBlockII;
+
+        if (($warnings = Prepare::useService()->checkAbiturExams($this->tblPrepareCertificate, $this->tblPerson))) {
+            foreach ($warnings as $warning) {
+                $columnsContent[] = $warning;
+            }
+        }
+
         return new Layout(array(
             new LayoutGroup(array(
                 new LayoutRow(array(
-                    new LayoutColumn(array(
-                        new Panel(
-                            'Schüler',
-                            $this->tblPerson ? $this->tblPerson->getLastFirstName() : '',
-                            Panel::PANEL_TYPE_INFO
-                        ),
-                        $resultBlockII
-                    ))
+                    new LayoutColumn(
+                        $columnsContent
+                    )
                 )),
                 new LayoutRow(array(
                     new LayoutColumn(array(
@@ -355,7 +363,6 @@ class BlockII extends AbstractBlock
                 );
             }
         }
-
 
         $dataList[] = array(
             'Number' => $number,
