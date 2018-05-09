@@ -403,8 +403,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Institutionen', 'Datenblatt '.( $Id ? 'bearbeiten' : 'anlegen' ));
 
-        $Stage->addButton(new Standard('Zurück', '/Corporation/Search/Group', new ChevronLeft(),
-            array('Group' => $Group)));
+        $Stage->addButton(new Standard('Zurück', '/Corporation', new ChevronLeft()));
 
         if (!$Id) {
 
@@ -428,8 +427,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             if ($tblCompany) {
                 $Stage->addButton(new Standard('Ansprechpartner hinzufügen', '/Corporation/Company/Contact/Create', new PlusSign(), array(
-                    'Id' => $tblCompany->getId(),
-                    'Group' => $Group
+                    'Id' => $tblCompany->getId()
                 )));
 
                 $Global = $this->getGlobal();
