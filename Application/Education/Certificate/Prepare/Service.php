@@ -773,6 +773,12 @@ class Service extends AbstractService
             $Content['P' . $personId]['Division']['Id'] = $tblDivision->getId();
             $Content['P' . $personId]['Division']['Data']['Level']['Name'] = $tblLevel->getName();
             $Content['P' . $personId]['Division']['Data']['Name'] = $tblDivision->getName();
+            // hänge ein e an die Beschreibung, wenn es noch nicht da ist (Mandant-ESS)
+            $Description = $tblDivision->getDescription();
+            if($Description != '' && substr($Description, -1) != 'e'){
+                $Description .= 'e';
+            }
+            $Content['P' . $personId]['Division']['Data']['DescriptionWithE'] = $Description;
 
             $course = $tblLevel->getName();
             // html funktioniert, allerdings kann es der DOM-PDF nicht, enable utf-8 for domPdf? oder eventuell Schriftart ändern
