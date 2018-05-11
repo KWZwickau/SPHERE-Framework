@@ -161,14 +161,15 @@ class Service extends AbstractService
      * @param        $LastName
      * @param        $GroupList
      * @param string $BirthName
+     * @param string $ImportId
      *
      * @return bool|TblPerson
      */
-    public function insertPerson($Salutation, $Title, $FirstName, $SecondName, $LastName, $GroupList, $BirthName = '')
+    public function insertPerson($Salutation, $Title, $FirstName, $SecondName, $LastName, $GroupList, $BirthName = '', $ImportId = '')
     {
 
         if (( $tblPerson = (new Data($this->getBinding()))->createPerson(
-            $Salutation, $Title, $FirstName, $SecondName, $LastName, $BirthName) )
+            $Salutation, $Title, $FirstName, $SecondName, $LastName, $BirthName, $ImportId) )
         ) {
             // Add to Group
             if (!empty( $GroupList )) {
@@ -194,6 +195,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getPersonById($Id, $IsForced);
+    }
+
+    /**
+     * @param $ImportId
+     *
+     * @return bool|TblPerson
+     */
+    public function getPersonByImportId($ImportId)
+    {
+
+        return (new Data($this->getBinding()))->getPersonByImportId($ImportId);
     }
 
     /**
@@ -223,6 +235,22 @@ class Service extends AbstractService
                     return $tblPerson;
                 }
             }
+        }
+        return false;
+    }
+
+    /**
+     * @param string $FirstName
+     * @param string $LastName
+     *
+     * @return bool|TblPerson
+     */
+    public function getPersonByName($FirstName, $LastName)
+    {
+
+        $tblPersonList = (new Data($this->getBinding()))->getPersonAllByFirstNameAndLastName($FirstName, $LastName);
+        if($tblPersonList){
+            return current($tblPersonList);
         }
         return false;
     }
