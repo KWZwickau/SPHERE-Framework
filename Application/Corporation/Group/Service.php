@@ -13,6 +13,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Sorter;
 
 /**
  * Class Service
@@ -54,6 +55,33 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getGroupAll();
+    }
+
+    /**
+     * Sortierung erst feste Gruppen, dann individuelle Gruppen
+     *
+     * @return bool|TblGroup[]
+     */
+    public function getGroupAllSorted()
+    {
+
+        $lockedList = array();
+        $customList = array();
+        $tblGroupAll = $this->getGroupAll();
+        if ($tblGroupAll) {
+            foreach ($tblGroupAll as $tblGroup) {
+                if ($tblGroup->isLocked()) {
+                    $lockedList[$tblGroup->getId()] = $tblGroup;
+                } else {
+                    $customList[$tblGroup->getId()] = $tblGroup;
+                }
+            }
+        }
+
+        $lockedList = $this->getSorter($lockedList)->sortObjectBy('Name', new Sorter\StringNaturalOrderSorter());
+        $customList = $this->getSorter($customList)->sortObjectBy('Name', new Sorter\StringNaturalOrderSorter());
+
+        return array_merge($lockedList, $customList);
     }
 
     /**
@@ -109,6 +137,17 @@ class Service extends AbstractService
         }
 
         return $Form;
+    }
+
+    /**
+     * @param $Group
+     *
+     * @return TblGroup
+     */
+    public function createGroupFromImport($Group)
+    {
+
+        return (new Data($this->getBinding()))->createGroup($Group, '', '');
     }
 
     /**

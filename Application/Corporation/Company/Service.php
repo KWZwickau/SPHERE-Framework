@@ -136,15 +136,16 @@ class Service extends AbstractService
     }
 
     /**
-     * @param        $Name
+     * @param string $Name
      * @param string $Description
+     * @param string $ExtendedName
      *
      * @return TblCompany
      */
-    public function insertCompany($Name, $Description = '')
+    public function insertCompany($Name, $Description = '', $ExtendedName = '')
     {
 
-        return (new Data($this->getBinding()))->createCompany($Name, '', $Description);
+        return (new Data($this->getBinding()))->createCompany($Name, $ExtendedName, $Description);
     }
 
     /**
@@ -253,6 +254,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string $Name
+     *
+     * @return bool|TblCompany
+     */
+    public function getCompanyListByName($Name)
+    {
+
+        return ( new Data($this->getBinding()) )->getCompanyListByName($Name);
+    }
+
+    /**
      * @param TblCompany $tblCompany
      *
      * @return bool
@@ -275,5 +287,19 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->updateCompany($tblCompany, $Name, $ExtendedName, $Description);
+    }
+
+    /**
+     * @param TblCompany $tblCompany
+     * @param $Name
+     * @param $ExtendedName
+     * @param $Description
+     *
+     * @return bool
+     */
+    public function updateCompanyDescriptionWithoutForm(TblCompany $tblCompany, $Description = '')
+    {
+
+        return (new Data($this->getBinding()))->updateCompanyDescriptionWithoutForm($tblCompany, $Description);
     }
 }

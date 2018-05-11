@@ -319,6 +319,40 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblGroup  $tblGroup
+     * @param TblPerson[] $tblPersonList
+     *
+     * @return bool
+     */
+    public function addGroupPersonList(TblGroup $tblGroup, $tblPersonList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        if(!empty($tblPersonList)){
+            foreach($tblPersonList as $tblPerson){
+                $Entity = $Manager->getEntity('TblMember')
+                    ->findOneBy(array(
+                        TblMember::ATTR_TBL_GROUP     => $tblGroup->getId(),
+                        TblMember::SERVICE_TBL_PERSON => $tblPerson->getId()
+                    ));
+                if (null === $Entity) {
+                    $Entity = new TblMember();
+                    $Entity->setTblGroup($tblGroup);
+                    $Entity->setServiceTblPerson($tblPerson);
+                    $Manager->bulkSaveEntity($Entity);
+                    Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+                }
+            }
+        } else {
+            return false;
+        }
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
      * @param TblGroup $tblGroup
      * @param TblPerson $tblPerson
      * @param bool $IsSoftRemove

@@ -76,10 +76,11 @@ class Data extends AbstractData
      * @param string $SecondName
      * @param string $LastName
      * @param string $BirthName
+     * @param string $ImportId
      *
      * @return TblPerson
      */
-    public function createPerson($Salutation, $Title, $FirstName, $SecondName, $LastName, $BirthName = '')
+    public function createPerson($Salutation, $Title, $FirstName, $SecondName, $LastName, $BirthName = '', $ImportId = '')
     {
 
         if ($Salutation === false) {
@@ -94,6 +95,7 @@ class Data extends AbstractData
         $Entity->setSecondName($SecondName);
         $Entity->setLastName($LastName);
         $Entity->setBirthName($BirthName);
+        $Entity->setImportId($ImportId);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         return $Entity;
@@ -231,6 +233,20 @@ class Data extends AbstractData
         } else {
             return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson', $Id);
         }
+    }
+
+    /**
+     * @param integer $ImportId
+     *
+     * @return bool|TblPerson
+     */
+    public function getPersonByImportId($ImportId)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson',
+            array(
+                TblPerson::ATTR_IMPORT_ID => $ImportId
+            ));
     }
 
     /**
