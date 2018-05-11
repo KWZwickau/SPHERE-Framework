@@ -95,6 +95,26 @@ class Company extends Extension implements IApplicationInterface, IModuleInterfa
             ->setParameterDefault('Id', null)
             ->setParameterDefault('Confirm', false)
         );
+        // Contact: Web
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Web/Create', 'SPHERE\Application\Contact\Web\Frontend::frontendCreateToCompany'
+        )
+            ->setParameterDefault('Address', null)
+            ->setParameterDefault('Type', null)
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Web/Edit', 'SPHERE\Application\Contact\Web\Frontend::frontendUpdateToCompany'
+        )
+            ->setParameterDefault('Id', null)
+            ->setParameterDefault('Address', null)
+            ->setParameterDefault('Type', null)
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Web/Destroy', 'SPHERE\Application\Contact\Web\Frontend::frontendDestroyToCompany'
+        )
+            ->setParameterDefault('Id', null)
+            ->setParameterDefault('Confirm', false)
+        );
         // Contact: Phone
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Phone/Create', 'SPHERE\Application\Contact\Phone\Frontend::frontendCreateToCompany'

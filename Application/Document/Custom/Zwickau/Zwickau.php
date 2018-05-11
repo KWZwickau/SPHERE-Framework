@@ -101,14 +101,6 @@ class Zwickau extends Extension implements IModuleInterface
                         'Reservation' => $ReservationYear,
                         'Option'   => new Standard('Erstellen', __NAMESPACE__.'/Fill', null,
                             array('PersonId' => $tblPerson->getId()))
-//                        'Option' => new External(
-//                            'Herunterladen',
-//                            'SPHERE\Application\Api\Document\Standard\EnrollmentDocument\Create',
-//                            new Download(),
-//                            array(
-//                                'PersonId' => $tblPerson->getId()
-//                            ),
-//                            'Schulbescheinigung herunterladen')
                     );
                 }
             }
@@ -214,7 +206,7 @@ class Zwickau extends Extension implements IModuleInterface
         $Stage->addButton(new External('Blanko Schulvertrag herunterladen',
             'SPHERE\Application\Api\Document\Custom\Zwickau\SchoolContract\Create',
             new Download(), array('Data' => array('empty')),
-            'Schulbescheinigung herunterladen'));
+            'Schulvertrag herunterladen'));
 
         $Stage->setContent(
             new Layout(
@@ -229,7 +221,7 @@ class Zwickau extends Extension implements IModuleInterface
                             $form
                             , 7),
                         new LayoutColumn(
-                            new Title('Vorlage des Standard-Dokuments "Schulbescheinigung"')
+                            new Title('Vorlage des Standard-Dokuments "Schulvertrag"')
                             .new Thumbnail(
                                 FileSystem::getFileLoader('/Common/Style/Resource/Document/SchulVertragCMS.png')
                                 , ''
