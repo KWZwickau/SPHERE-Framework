@@ -42,7 +42,7 @@ class Corporation implements IClusterInterface
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
         ));
 
-        Main::getDispatcher()->registerWidget('Institutionen', array(__CLASS__, 'widgetCorporationGroupList'), 4, 6);
+//        Main::getDispatcher()->registerWidget('Institutionen', array(__CLASS__, 'widgetCorporationGroupList'), 4, 6);
     }
 
     /**
@@ -82,6 +82,56 @@ class Corporation implements IClusterInterface
     }
 
     /**
+     * @return Layout
+     */
+    public static function widgetPersonGroupList()
+    {
+
+        $tblGroupAll = Group::useService()->getGroupAll();
+        $tblGroupLockedList = array();
+        $tblGroupCustomList = array();
+        if ($tblGroupAll) {
+            /** @var TblGroup $tblGroup */
+            foreach ((array)$tblGroupAll as $Index => $tblGroup) {
+
+                $countContent = new Muted(new Small(Group::useService()->countMemberByGroup($tblGroup) . '&nbsp;Institutionen'));
+                $content =
+                    new Layout(new LayoutGroup(new LayoutRow(array(
+                            new LayoutColumn(
+                                $tblGroup->getName()
+                                . new Muted(new Small('<br/>' . $tblGroup->getDescription()))
+                                , 5),
+                            new LayoutColumn(
+                                $countContent
+                                , 6),
+                            new LayoutColumn(
+                                new PullRight(
+                                    new Standard('', '/People/Search/Group',
+                                        new \SPHERE\Common\Frontend\Icon\Repository\Group(),
+                                        array('Id' => $tblGroup->getId()))
+                                ), 1)
+                        )
+                    )));
+
+                if ($tblGroup->isLocked()) {
+                    $tblGroupLockedList[] = $content;
+                } else {
+                    $tblGroupCustomList[] = $content;
+                }
+            }
+        }
+
+        return new Layout(new LayoutGroup(new LayoutRow(array(
+            new LayoutColumn(
+                new Panel('Institutionen in festen Gruppen', $tblGroupLockedList), 6
+            ),
+            !empty($tblGroupCustomList) ?
+                new LayoutColumn(
+                    new Panel('Institutionen in individuellen Gruppen', $tblGroupCustomList), 6) : null
+        ))));
+    }
+
+    /**
      * @return Stage
      */
     public function frontendDashboard()
@@ -89,7 +139,8 @@ class Corporation implements IClusterInterface
 
         $Stage = new Stage('Dashboard', 'Institutionen');
 
-        $Stage->setContent(Main::getDispatcher()->fetchDashboard('Institutionen'));
+//        $Stage->setContent(Main::getDispatcher()->fetchDashboard('Institutionen'));
+        $Stage->setContent(self::widgetPersonGroupList());
 
         return $Stage;
     }
