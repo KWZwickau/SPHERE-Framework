@@ -901,6 +901,8 @@ class GymAbitur extends Certificate
 
         $color = '#BBB';
         $isAdvancedSubject = false;
+        $postfix = false;
+        $width = '5%';
 
         // tatsächliche Religion aus der Schülerakte bestimmen
         if ($subjectName == 'RELIGION') {
@@ -913,8 +915,11 @@ class GymAbitur extends Certificate
                 $tblStudentSubjectType, $tblStudentSubjectRanking))
                 && ($tblReligionSubject = $tblStudentSubject->getServiceTblSubject())
             ) {
-                // todo hochgestellte 4
-                $subjectName = $tblReligionSubject->getName() . new Sup('4');
+                $subjectName = $tblReligionSubject->getName();
+                $postfix = '4';
+                if ($subjectName == 'Ev. Religion') {
+                    $width = '23%';
+                }
             }
         } else {
             // Leistungskurse markieren
@@ -936,6 +941,10 @@ class GymAbitur extends Certificate
                     $isAdvancedSubject = true;
                 }
             }
+        }
+
+        if ($subjectName == 'Informatik') {
+            $postfix = '5';
         }
 
         $grades = array(
@@ -971,6 +980,70 @@ class GymAbitur extends Certificate
                     }
                 }
             }
+        }
+
+        if ($postfix) {
+            return (new Section())
+                ->addSliceColumn((new Slice())
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent($subjectName)
+                            ->stylePaddingLeft('5px')
+                            ->styleBorderTop()
+                            ->styleBorderLeft()
+                            ->styleBorderBottom($isLastRow ? '1px' : '0px')
+                        , $width)
+                        ->addElementColumn((new Element())
+                            ->setContent(new Sup($postfix))
+                            ->stylePaddingTop('2px')
+                            ->styleTextSize('6px')
+                            ->styleBorderTop()
+                            ->styleBorderBottom($isLastRow ? '1px' : '0px')
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent($isAdvancedSubject ? 'LF' : '&nbsp;')
+                            ->styleAlignCenter()
+                            ->styleBackgroundColor($hasAdvancedCourse ? $color : '#FFF')
+                            ->styleBorderTop()
+                            ->styleBorderLeft($hasAdvancedCourse ? '1px' : '0px')
+                            ->styleBorderBottom($isLastRow ? '1px' : '0px')
+                            , $hasAdvancedCourse ? '10%' : '0%')
+                    )
+                    , '50%')
+                ->addElementColumn((new Element())
+                    ->setContent($grades['11-1'])
+                    ->styleAlignCenter()
+                    ->styleBackgroundColor($color)
+                    ->styleBorderTop()
+                    ->styleBorderLeft()
+                    ->styleBorderBottom($isLastRow ? '1px' : '0px')
+                    , '12.5%')
+                ->addElementColumn((new Element())
+                    ->setContent($grades['11-2'])
+                    ->styleAlignCenter()
+                    ->styleBackgroundColor($color)
+                    ->styleBorderTop()
+                    ->styleBorderLeft()
+                    ->styleBorderBottom($isLastRow ? '1px' : '0px')
+                    , '12.5%')
+                ->addElementColumn((new Element())
+                    ->setContent($grades['12-1'])
+                    ->styleAlignCenter()
+                    ->styleBackgroundColor($color)
+                    ->styleBorderTop()
+                    ->styleBorderLeft()
+                    ->styleBorderBottom($isLastRow ? '1px' : '0px')
+                    , '12.5%')
+                ->addElementColumn((new Element())
+                    ->setContent($grades['12-2'])
+                    ->styleAlignCenter()
+                    ->styleBackgroundColor($color)
+                    ->styleBorderTop()
+                    ->styleBorderLeft()
+                    ->styleBorderRight()
+                    ->styleBorderBottom($isLastRow ? '1px' : '0px')
+                    , '12.5%')
+                ;
         }
 
         return (new Section())
@@ -1796,18 +1869,6 @@ class GymAbitur extends Certificate
             ->addSection($this->setInfoRow(5, 'mathematisch-naturwissenschaftlich-technisches Aufgabenfeld'))
 
             ;
-        // todo hochgestellte Zahlen
-//        ->addSlice($this->getInfo(
-//            '220px',
-//            '¹ &nbsp;&nbsp;&nbsp;&nbsp;Die Halbjahresergebnisse, die nicht in die Gesamtqualifikation eingehen, werden in Klammern gesetzt.',
-//            '² &nbsp;&nbsp;&nbsp;&nbsp;Alle Punktzahlen werden zweistellig angegeben.',
-//            '³ &nbsp;&nbsp;&nbsp;&nbsp;Grundkursfächer bleiben ohne besondere Kennzeichnung. Leistungskursfächer sind in der betreffenden Zeile der Spalte „LF“ zu
-//                    kennzeichnen.',
-//            '⁴ &nbsp;&nbsp;&nbsp;&nbsp;An Gymnasien gemäß § 38 Absatz 2 der Schulordnung Gymnasien Abiturprüfung sind die Fächer Ev./Kath. Religion dem
-//                    gesellschaftswissenschaftli-</br>
-//                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; chen Aufgabenfeld zugeordnet.',
-//            '⁵ &nbsp;&nbsp;&nbsp;&nbsp;mathematisch-naturwissenschaftlich-technisches Aufgabenfeld'
-        //¹ ² ³ ⁴ ⁵ ⁶  &#x2074; &#8308; &sup3;
 
         return $slice;
     }
@@ -1874,7 +1935,7 @@ class GymAbitur extends Certificate
         $section
             ->addElementColumn((new Element())
                 ->setContent(new Sup($i))
-                ->styleTextSize('6px')
+                ->styleTextSize('7px')
                 ->styleMarginTop('2px')
                 , '3%')
             ->addElementColumn((new Element())

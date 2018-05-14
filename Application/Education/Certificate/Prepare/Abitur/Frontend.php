@@ -216,6 +216,16 @@ class Frontend extends Extension
                                             'PersonId' => $tblPerson->getId(),
                                         ),
                                         'Sonstige Informationen'))
+//                                    . (new Standard(
+//                                        new EyeOpen(), '/Education/Certificate/Prepare/Certificate/Show',
+//                                        null,
+//                                        array(
+//                                            'PrepareId' => $tblPrepare->getId(),
+//                                            'GroupId' => $tblGroup ? $tblGroup->getId() : null,
+//                                            'PersonId' => $tblPerson->getId(),
+//                                            'Route' => 'Diploma'
+//                                        )
+//                                    ))
                                     . (new External(
                                         '',
                                         '/Api/Education/Certificate/Generator/Preview',
