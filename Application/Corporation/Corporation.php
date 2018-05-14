@@ -46,45 +46,9 @@ class Corporation implements IClusterInterface
     }
 
     /**
-     * @return Panel
-     */
-    public static function widgetCorporationGroupList()
-    {
-
-        $tblGroupAll = Group::useService()->getGroupAll();
-        if ($tblGroupAll) {
-            /** @var TblGroup $tblGroup */
-            foreach ((array)$tblGroupAll as $Index => $tblGroup) {
-                $tblGroupAll[$tblGroup->getName()] =
-                    new Layout(new LayoutGroup(new LayoutRow(array(
-                            new LayoutColumn(
-                                $tblGroup->getName()
-                                .new Muted(new Small('<br/>'.$tblGroup->getDescription()))
-                                , array(9, 0, 7)),
-                            new LayoutColumn(
-                                new Muted(new Small(Group::useService()->countMemberByGroup($tblGroup).'&nbsp;Mitglieder'))
-                                , 2, array(LayoutColumn::GRID_OPTION_HIDDEN_SM, LayoutColumn::GRID_OPTION_HIDDEN_XS)),
-                            new LayoutColumn(
-                                new PullRight(
-                                    new Standard('', '/Corporation/Search/Group',
-                                        new \SPHERE\Common\Frontend\Icon\Repository\Group(),
-                                        array('Id' => $tblGroup->getId()),
-                                        'zur Gruppe')
-                                ), array(3, 0, 3))
-                        )
-                    )));
-                $tblGroupAll[$Index] = false;
-            }
-            $tblGroupAll = array_filter($tblGroupAll);
-        }
-
-        return new Panel('Institutionen in Gruppen', $tblGroupAll);
-    }
-
-    /**
      * @return Layout
      */
-    public static function widgetPersonGroupList()
+    public static function widgetCorporationGroupList()
     {
 
         $tblGroupAll = Group::useService()->getGroupAll();
@@ -106,7 +70,7 @@ class Corporation implements IClusterInterface
                                 , 6),
                             new LayoutColumn(
                                 new PullRight(
-                                    new Standard('', '/People/Search/Group',
+                                    new Standard('', '/Corporation/Search/Group',
                                         new \SPHERE\Common\Frontend\Icon\Repository\Group(),
                                         array('Id' => $tblGroup->getId()))
                                 ), 1)
@@ -140,7 +104,7 @@ class Corporation implements IClusterInterface
         $Stage = new Stage('Dashboard', 'Institutionen');
 
 //        $Stage->setContent(Main::getDispatcher()->fetchDashboard('Institutionen'));
-        $Stage->setContent(self::widgetPersonGroupList());
+        $Stage->setContent(self::widgetCorporationGroupList());
 
         return $Stage;
     }
