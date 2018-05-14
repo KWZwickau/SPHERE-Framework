@@ -1929,6 +1929,10 @@ class Data extends AbstractData
                                 $this->createCertificateField($tblCertificate, $FieldName, 1400);
                             }
                         }
+                        // Kopfnoten Setzen
+                        if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+                            $this->setCertificateGradeAllStandard($tblCertificate);
+                        }
                         //Fächer setzen
                         if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
                             $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
@@ -1965,6 +1969,10 @@ class Data extends AbstractData
                             $this->createCertificateField($tblCertificate, $FieldName, 850);
                         }
 
+                        // Kopfnoten Setzen
+                        if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+                            $this->setCertificateGradeAllStandard($tblCertificate);
+                        }
                         //Fächer setzen
                         if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
                             $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
@@ -3343,7 +3351,7 @@ class Data extends AbstractData
     public function getCertificateGradeAll(TblCertificate $tblCertificate)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+        return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblCertificateGrade', array(
                 TblCertificateGrade::ATTR_TBL_CERTIFICATE => $tblCertificate->getId()
             ));

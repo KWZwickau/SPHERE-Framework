@@ -74,6 +74,8 @@ class EssGsJTwo extends Certificate
                     )
                     ->addElementColumn((new Element())
                         ->setContent('JAHRESZEUGNIS')
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleTextSize('24px')
                         ->styleMarginTop('7px')
                         ->styleMarginBottom('20px')
