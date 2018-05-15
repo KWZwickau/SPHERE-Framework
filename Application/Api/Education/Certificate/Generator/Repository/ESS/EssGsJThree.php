@@ -139,17 +139,17 @@ class EssGsJThree extends EssStyle
                         , '3%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Einschätzung <br/> Lern-, Arbeits- und<br/> Sozialverhalten ⁴ ⁵')
+                        ->setContent('Einschätzung <br/> Lern-, Arbeits- und<br/> Sozialverhalten')
                         ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
-                        ->styleMarginTop('15px')
+                        ->styleMarginTop('17px')
                         ->styleTextBold()
                         , '22%'
                     )
                     ->addSliceColumn(
                         self::getESSHeadGrade($personId)
-                            ->styleMarginTop('15px')
+                            ->styleMarginTop('2px')
 //                        $this->getGradeLanes($personId)
                         , '72%'
                     )
@@ -195,15 +195,32 @@ class EssGsJThree extends EssStyle
                 )
             )
             ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('Leistungen in den einzelnen Fächern:')
-                    ->styleTextBold()
-                    ->stylePaddingBottom('10px')
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '3%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('Leistungen in den<br/>einzelnen Fächern')
+                        ->styleTextSize(self::TEXT_SIZE)
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
+                        ->styleMarginTop('15px')
+                        ->styleTextBold()
+                        , '22%'
+                    )
+                    ->addSliceColumn(
+                        self::getESSSubjectLanes($personId)
+                            ->styleMarginTop('15px')
+//                        $this->getGradeLanes($personId)
+                        , '72%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '3%'
+                    )
                 )
             )
-            ->addSlice(
-//                self::getESSSubjectLanes($personId) )
-                $this->getSubjectLanes($personId))
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())

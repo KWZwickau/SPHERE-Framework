@@ -9,6 +9,12 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 
 abstract class EssStyle extends Certificate
 {
+
+    const TEXT_SIZE = '12pt';
+    const TEXT_SIZE_SMALL = '11pt';
+    const TEXT_SIZE_VERY_SMALL = '10pt';
+    const TEXT_FAMILY = 'MyriadPro';
+
     /**
      * @param $personId
      *
@@ -65,21 +71,27 @@ abstract class EssStyle extends Certificate
                     }
                     $GradeSection->addElementColumn((new Element())
                         ->setContent($Grade['GradeName'])
+                        ->styleTextSize(self::TEXT_SIZE)
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
                         ->stylePaddingTop()
-                        ->styleMarginTop('8px')
-                        , '28%');
+                        ->styleMarginTop('15px')
+                        , '35%');
                     $GradeSection->addElementColumn((new Element())
                         ->setContent('{% if(Content.P'.$personId.'.Input["'.$Grade['GradeAcronym'].'"] is not empty) %}
                                  {{ Content.P'.$personId.'.Input["'.$Grade['GradeAcronym'].'"] }}
                              {% else %}
                                  &ndash;
                              {% endif %}')
-                        ->styleAlignCenter()
-                        ->styleBackgroundColor('#CCC')
+                        ->styleTextSize(self::TEXT_SIZE)
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
+//                        ->styleAlignCenter()
+//                        ->styleBackgroundColor('#CCC')
                         ->stylePaddingTop('1px')
                         ->stylePaddingBottom('1px')
-                        ->styleMarginTop('8px')
-                        , '20%');
+                        ->styleMarginTop('15px')
+                        , '12%');
                 }
 
                 if (count($GradeList) == 1 && isset($GradeList[1])) {
@@ -93,14 +105,20 @@ abstract class EssStyle extends Certificate
         return $GradeSlice;
     }
 
+
+//    public function getESSSubjectLanes($personId, $Height = '175px')
     /**
-     * @param        $personId
-     * @param string $Height
+     * @param $personId
+     * @param bool|true $isSlice
+     * @param string $TextSize
      *
-     * @return Slice
+     * @return Section[]|Slice
      */
-    public function getESSSubjectLanes($personId, $Height = '175px')
-    {
+    protected function getESSSubjectLanes(
+    $personId,
+    $isSlice = true,
+    $TextSize = self::TEXT_SIZE
+    ) {
 
         $SubjectSlice = (new Slice());
 
@@ -145,16 +163,30 @@ abstract class EssStyle extends Certificate
             }
             $SubjectStructure = $SubjectLayout;
 
+            $isShrinkMarginTop = false;
+
+            // Zeugnisnoten im Wortlaut auf Abschlusszeugnissen --> breiter Zensurenfelder
+            if (($tblCertificate = $this->getCertificateEntity())
+                && ($tblCertificateType = $tblCertificate->getTblCertificateType())
+                && ($tblCertificateType->getIdentifier() == 'DIPLOMA')
+                && ($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                    'Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnDiploma'))
+                && $tblSetting->getValue()
+            ) {
+                $subjectWidth = 36;
+                $gradeWidth = 11;
+                $TextSizeSmall = '13px';
+                $paddingTopShrinking = '4px';
+                $paddingBottomShrinking = '4px';
+            } else {
+                $subjectWidth = 37;
+                $gradeWidth = 11;
+                $TextSizeSmall = '8.5px';
+                $paddingTopShrinking = '5px';
+                $paddingBottomShrinking = '6px';
+            }
+
             $count = 0;
-
-            $HeaderSection = (new Section());
-            $HeaderSection->addElementColumn((new Element())
-                ->setContent('Leistungen in den einzelnen Fächern:')
-                ->styleTextSize('10pt')
-                ->styleTextBold()
-            );
-            $SectionList[] = $HeaderSection;
-
             foreach ($SubjectStructure as $SubjectList) {
                 $count++;
                 // Sort Lane-Ranking (1,2...)
@@ -167,41 +199,98 @@ abstract class EssStyle extends Certificate
                 }
 
                 foreach ($SubjectList as $Lane => $Subject) {
-
                     if ($Lane > 1) {
                         $SubjectSection->addElementColumn((new Element())
                             , '4%');
                     }
-                    $SubjectSection->addElementColumn((new Element())
-                        ->setContent($Subject['SubjectName'])
-                        ->stylePaddingTop()
-                        ->styleMarginTop('8px')
-                        , '28%');
+                    if ($isShrinkMarginTop) {
+                        $SubjectSection->addElementColumn((new Element())
+                            ->setContent($Subject['SubjectName'])
+                            ->styleTextSize($TextSize)
+                            ->styleLineHeight('105%')
+                            ->styleFontFamily(self::TEXT_FAMILY)
+                            ->stylePaddingTop()
+                            ->styleMarginTop('0px')
+                            , (string)$subjectWidth . '%');
+                    } elseif ($Subject['SubjectName'] == 'Evangelische Religionslehre') {
+                        $SubjectSection->addElementColumn((new Element())
+                            ->setContent('Evangelische Religionslehre')
+                            ->styleTextSize(self::TEXT_SIZE_SMALL)
+                            ->styleLineHeight('105%')
+                            ->styleFontFamily(self::TEXT_FAMILY)
+                            ->stylePaddingTop()
+                            ->styleMarginTop('10px')
+                            , (string)$subjectWidth . '%');
+                    } else {
+                        $SubjectSection->addElementColumn((new Element())
+                            ->setContent($Subject['SubjectName'])
+                            ->styleTextSize($TextSize)
+                            ->styleLineHeight('105%')
+                            ->styleFontFamily(self::TEXT_FAMILY)
+                            ->stylePaddingTop()
+                            ->styleMarginTop('10px')
+                            , (string)$subjectWidth . '%');
+                    }
 
-
                     $SubjectSection->addElementColumn((new Element())
-                        ->setContent('{% if(Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] is not empty) %}
-                                             {{ Content.P'.$personId.'.Grade.Data["'.$Subject['SubjectAcronym'].'"] }}
-                                         {% else %}
-                                             &ndash;
-                                         {% endif %}')
-                        ->styleAlignCenter()
-                        ->styleBackgroundColor('#CCC')
-                        ->stylePaddingTop('1px')
-                        ->stylePaddingBottom('1px')
-                        ->styleMarginTop('8px')
-                        , '20%');
+                        ->setContent('{% if(Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+                                 {{ Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] }}
+                             {% else %}
+                                 &ndash;
+                             {% endif %}')
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
+//                        ->styleAlignCenter()
+//                        ->styleBackgroundColor('#BBB')
+                        ->stylePaddingTop(
+                            '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                                and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                            ) %}
+                                ' . $paddingTopShrinking . ' 
+                            {% else %}
+                                2px
+                            {% endif %}'
+                        )
+                        ->stylePaddingBottom(
+                            '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                                and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                            ) %}
+                               ' . $paddingBottomShrinking . ' 
+                             {% else %}
+                                 2px
+                             {% endif %}'
+                        )
+                        ->styleMarginTop($isShrinkMarginTop ? '0px' : '10px')
+                        ->styleTextSize(
+                            '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                                and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
+                            ) %}
+                                 ' . $TextSizeSmall . '
+                             {% else %}
+                                 ' . $TextSize . '
+                             {% endif %}'
+                        )
+                        , (string)$gradeWidth . '%');
+
+                    if ($isShrinkMarginTop && $Lane == 2) {
+                        $isShrinkMarginTop = false;
+                    }
                 }
 
                 if (count($SubjectList) == 1 && isset($SubjectList[1])) {
                     $SubjectSection->addElementColumn((new Element()), '52%');
+                    $isShrinkMarginTop = false;
                 }
+
+                $SubjectSlice->addSection($SubjectSection);
                 $SectionList[] = $SubjectSection;
             }
-            return $SubjectSlice->addSectionList($SectionList)
-                ->styleHeight($Height);
         }
 
-        return $SubjectSlice;
+        if ($isSlice) {
+            return $SubjectSlice;
+        } else {
+            return $SectionList;
+        }
     }
 }
