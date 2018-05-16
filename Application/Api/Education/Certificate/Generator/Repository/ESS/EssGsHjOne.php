@@ -139,19 +139,11 @@ class EssGsHjOne extends Certificate
                     ->stylePaddingRight('40px')
                     ->stylePaddingLeft('40px')
                     ->stylePaddingBottom('20px')
-                    ->styleHeight('430px')
+                    ->styleHeight('450px')
                 )
             )
 
             ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('Für das 2. Schulhalbjahr wünsche ich dir recht viel Freude und Erfolg beim Lernen.')
-                    ->styleTextSize(self::TEXT_SIZE)
-                    ->styleLineHeight('105%')
-                    ->styleFontFamily(self::TEXT_FAMILY)
-                    ->stylePaddingRight('40px')
-                    ->stylePaddingLeft('40px')
-                )
                 ->addElement((new Element())
                     ->setContent('
                             {% if(Content.P' . $personId . '.DivisionTeacher.Gender is not empty) %}

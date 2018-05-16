@@ -62,7 +62,9 @@ class EssGsHjTwo extends Certificate
                         , '25%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('HALBJAHRESINFORMATION')
+                        ->setContent('H A L B J A H R E S I N F O R M A T I O N')
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleTextSize('24px')
                         ->styleMarginTop('7px')
                         ->styleMarginBottom('20px')
@@ -196,6 +198,7 @@ class EssGsHjTwo extends Certificate
                         ->styleTextSize(self::TEXT_SIZE_SMALL)
                         ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
+                        ->styleAlignJustify()
                         ->styleHeight('323px')
                         , '72%'
                     )
@@ -236,18 +239,6 @@ class EssGsHjTwo extends Certificate
                         , '25%')
                     ->addElementColumn((new Element())
                         ->setContent('
-                            {% if(Content.P' . $personId . '.Headmaster.Description is not empty) %}
-                                {{ Content.P' . $personId . '.Headmaster.Description }}
-                            {% else %}
-                                Schulleiter(in)
-                            {% endif %}
-                            ')
-                        ->styleTextSize(self::TEXT_SIZE_VERY_SMALL)
-                        ->styleLineHeight('105%')
-                        ->styleFontFamily(self::TEXT_FAMILY)
-                        , '25%')
-                    ->addElementColumn((new Element())
-                        ->setContent('
                             {% if(Content.P' . $personId . '.DivisionTeacher.Description is not empty) %}
                                 {{ Content.P' . $personId . '.DivisionTeacher.Description }}
                             {% else %}
@@ -257,7 +248,7 @@ class EssGsHjTwo extends Certificate
                         ->styleTextSize(self::TEXT_SIZE_VERY_SMALL)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
-                        , '25%')
+                        , '50%')
                     ->addElementColumn((new Element())
                         ->setContent('Dienstsiegel')
                         ->styleTextSize(self::TEXT_SIZE_VERY_SMALL)

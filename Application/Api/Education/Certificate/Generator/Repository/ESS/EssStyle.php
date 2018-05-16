@@ -16,11 +16,12 @@ abstract class EssStyle extends Certificate
     const TEXT_FAMILY = 'MyriadPro';
 
     /**
-     * @param $personId
+     * @param        $personId
+     * @param string $marginTop
      *
      * @return Slice
      */
-    protected function getESSHeadGrade($personId)
+    protected function getESSHeadGrade($personId, $marginTop = '15px')
     {
 
         $GradeSlice = (new Slice());
@@ -75,7 +76,7 @@ abstract class EssStyle extends Certificate
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->stylePaddingTop()
-                        ->styleMarginTop('15px')
+                        ->styleMarginTop($marginTop)
                         , '35%');
                     $GradeSection->addElementColumn((new Element())
                         ->setContent('{% if(Content.P'.$personId.'.Input["'.$Grade['GradeAcronym'].'"] is not empty) %}
@@ -90,7 +91,7 @@ abstract class EssStyle extends Certificate
 //                        ->styleBackgroundColor('#CCC')
                         ->stylePaddingTop('1px')
                         ->stylePaddingBottom('1px')
-                        ->styleMarginTop('15px')
+                        ->styleMarginTop($marginTop)
                         , '12%');
                 }
 
@@ -105,17 +106,17 @@ abstract class EssStyle extends Certificate
         return $GradeSlice;
     }
 
-
-//    public function getESSSubjectLanes($personId, $Height = '175px')
     /**
-     * @param $personId
+     * @param           $personId
+     * @param string    $marginTop
      * @param bool|true $isSlice
-     * @param string $TextSize
+     * @param string    $TextSize
      *
      * @return Section[]|Slice
      */
     protected function getESSSubjectLanes(
     $personId,
+    $marginTop = '10px',
     $isSlice = true,
     $TextSize = self::TEXT_SIZE
     ) {
@@ -182,7 +183,7 @@ abstract class EssStyle extends Certificate
                 $subjectWidth = 37;
                 $gradeWidth = 11;
                 $TextSizeSmall = '8.5px';
-                $paddingTopShrinking = '5px';
+                $paddingTopShrinking = '0px';
                 $paddingBottomShrinking = '6px';
             }
 
@@ -219,7 +220,7 @@ abstract class EssStyle extends Certificate
                             ->styleLineHeight('105%')
                             ->styleFontFamily(self::TEXT_FAMILY)
                             ->stylePaddingTop()
-                            ->styleMarginTop('10px')
+                            ->styleMarginTop($marginTop)
                             , (string)$subjectWidth . '%');
                     } else {
                         $SubjectSection->addElementColumn((new Element())
@@ -228,7 +229,7 @@ abstract class EssStyle extends Certificate
                             ->styleLineHeight('105%')
                             ->styleFontFamily(self::TEXT_FAMILY)
                             ->stylePaddingTop()
-                            ->styleMarginTop('10px')
+                            ->styleMarginTop($marginTop)
                             , (string)$subjectWidth . '%');
                     }
 
@@ -260,7 +261,7 @@ abstract class EssStyle extends Certificate
                                  2px
                              {% endif %}'
                         )
-                        ->styleMarginTop($isShrinkMarginTop ? '0px' : '10px')
+                        ->styleMarginTop($isShrinkMarginTop ? '0px' : $marginTop)
                         ->styleTextSize(
                             '{% if((Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty)
                                 and (Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty)
