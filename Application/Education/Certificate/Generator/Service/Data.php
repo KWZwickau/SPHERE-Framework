@@ -951,6 +951,11 @@ class Data extends AbstractData
         }
         // todo gym sekII
 
+        /*
+         * Abitur Zeugnis
+         */
+        $this->createCertificate('Gymnasium Abitur', '', 'GymAbitur',
+            null, false, false, false, $tblCertificateTypeDiploma, $tblSchoolTypeGym);
 
         $tblConsumer = Consumer::useService()->getConsumerBySession();
         if ($tblConsumer) {
