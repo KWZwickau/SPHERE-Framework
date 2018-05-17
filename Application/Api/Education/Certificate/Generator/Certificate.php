@@ -806,7 +806,6 @@ abstract class Certificate extends Extension
                     $SubjectSlice->addSection($SubjectSection);
                     $SectionList[] = $SubjectSection;
                 }
-
             }
         }
 

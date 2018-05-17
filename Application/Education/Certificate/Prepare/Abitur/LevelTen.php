@@ -60,7 +60,7 @@ class LevelTen extends AbstractBlock
         'PH' => 'Physik',
         'SPO' => 'Sport',
         'RELIGION' => 'Religion',
-        'TC' => 'Technik/Computer',
+//        'TC' => 'Technik/Computer',  -	Das Fach Technik Computer wird ab Klasse 7 nicht mehr unterrichtet und somit nicht im Zeugnis angezeigt.
         'INF' => 'Informatik'
     );
 

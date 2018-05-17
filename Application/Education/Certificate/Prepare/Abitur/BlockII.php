@@ -184,6 +184,11 @@ class BlockII extends AbstractBlock
             )
         );
 
+        $checkbox = new CheckBox('Data[IsBellUsed]', 'Die besondere Lernleistung ersetzt das 5. Prüfungsfach', 1);
+        if ($this->tblPrepareStudent && $this->tblPrepareStudent->isApproved()) {
+            $checkbox->setDisabled();
+        }
+
         $form = new Form(array(
             new FormGroup(array(
                 new FormRow(array(
@@ -196,7 +201,7 @@ class BlockII extends AbstractBlock
                         new Panel(
                             'Besondere Lernleistung',
                             array(
-                                new CheckBox('Data[IsBellUsed]', 'Die besondere Lernleistung ersetzt das 5. Prüfungsfach', 1),
+                                $checkbox,
                                 $tableBELL
                             ),
                             Panel::PANEL_TYPE_PRIMARY
@@ -231,17 +236,25 @@ class BlockII extends AbstractBlock
             $resultBlockII = new Warning(new Disable() . ' ' . $resultBlockII . ' von mindestens 100 Punkten erreicht.');
         }
 
+        $columnsContent[] =  new Panel(
+            'Schüler',
+            $this->tblPerson ? $this->tblPerson->getLastFirstName() : '',
+            Panel::PANEL_TYPE_INFO
+        );
+        $columnsContent[] = $resultBlockII;
+
+        if (($warnings = Prepare::useService()->checkAbiturExams($this->tblPrepareCertificate, $this->tblPerson))) {
+            foreach ($warnings as $warning) {
+                $columnsContent[] = $warning;
+            }
+        }
+
         return new Layout(array(
             new LayoutGroup(array(
                 new LayoutRow(array(
-                    new LayoutColumn(array(
-                        new Panel(
-                            'Schüler',
-                            $this->tblPerson ? $this->tblPerson->getLastFirstName() : '',
-                            Panel::PANEL_TYPE_INFO
-                        ),
-                        $resultBlockII
-                    ))
+                    new LayoutColumn(
+                        $columnsContent
+                    )
                 )),
                 new LayoutRow(array(
                     new LayoutColumn(array(
@@ -275,7 +288,11 @@ class BlockII extends AbstractBlock
                 $availableSubjects = $this->AvailableSubjectsP4P5;
             }
 
-            $exam = new SelectBox('Data[' .  $i . '][Subject]', '', array('Name' => $availableSubjects));
+            $selectBoxSubject =  new SelectBox('Data[' .  $i . '][Subject]', '', array('Name' => $availableSubjects));
+            if ($this->tblPrepareStudent && $this->tblPrepareStudent->isApproved()) {
+                $selectBoxSubject->setDisabled();
+            }
+            $exam = $selectBoxSubject;
         }
 
         if ($i < 4) {
@@ -355,7 +372,6 @@ class BlockII extends AbstractBlock
                 );
             }
         }
-
 
         $dataList[] = array(
             'Number' => $number,
