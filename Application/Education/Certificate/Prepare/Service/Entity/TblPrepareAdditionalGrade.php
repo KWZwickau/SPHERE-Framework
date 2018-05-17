@@ -32,6 +32,7 @@ class TblPrepareAdditionalGrade extends Element
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
     const ATTR_RANKING = 'Ranking';
+    const ATTR_IS_SELECTED = 'IsSelected';
 
     /**
      * @Column(type="bigint")
@@ -57,6 +58,16 @@ class TblPrepareAdditionalGrade extends Element
      * @Column(type="integer")
      */
     protected $Ranking;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsSelected;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsLocked;
 
     /**
      * @Column(type="bigint")
@@ -183,5 +194,41 @@ class TblPrepareAdditionalGrade extends Element
     {
 
         $this->tblPrepareAdditionalGradeType = (null === $tblPrepareAdditionalGradeType ? null : $tblPrepareAdditionalGradeType->getId());
+    }
+
+    /**
+     * @return bool
+     */
+    public function isSelected()
+    {
+
+        return $this->IsSelected;
+    }
+
+    /**
+     * @param bool $IsSelected
+     */
+    public function setSelected($IsSelected)
+    {
+
+        $this->IsSelected = (bool)$IsSelected;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isLocked()
+    {
+
+        return $this->IsLocked;
+    }
+
+    /**
+     * @param bool $IsLocked
+     */
+    public function setLocked($IsLocked)
+    {
+
+        $this->IsLocked = (bool)$IsLocked;
     }
 }
