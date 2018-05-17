@@ -562,15 +562,14 @@ class Service extends AbstractService
                 $tblPerson = $tblUserAccount->getServiceTblPerson();
                 $tblAccount = $tblUserAccount->getServiceTblAccount();
 
-                $item['Salutation'] = $tblPerson->getSalutation();
-                $item['Title'] = $tblPerson->getTitle();
-                $item['FirstName'] = $tblPerson->getFirstName();
-                $item['SecondName'] = $tblPerson->getSecondName();
-                $item['LastName'] = $tblPerson->getLastName();
+                $item['Salutation'] = '';
+                $item['Title'] = '';
+                $item['FirstName'] = '';
+                $item['SecondName'] = '';
+                $item['LastName'] = '';
                 $item['Gender'] = '';
-                $item['AccountName'] = $tblAccount->getUsername();
+                $item['AccountName'] = '';
                 $item['Password'] = $tblUserAccount->getUserPassword();
-
                 $item['StreetName'] = '';
                 $item['StreetNumber'] = '';
                 $item['CityCode'] = '';
@@ -580,33 +579,42 @@ class Service extends AbstractService
                 $item['Nation'] = '';
                 $item['Country'] = '';
 
-                $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
-                if ($tblCommon) {
-                    $tblBirthDates = $tblCommon->getTblCommonBirthDates();
-                    if ($tblBirthDates) {
-                        $tblGender = $tblBirthDates->getTblCommonGender();
-                        if ($tblGender) {
-                            $item['Gender'] = substr($tblGender->getName(), 0, 1);
+                if($tblPerson){
+                    $item['Salutation'] = $tblPerson->getSalutation();
+                    $item['Title'] = $tblPerson->getTitle();
+                    $item['FirstName'] = $tblPerson->getFirstName();
+                    $item['SecondName'] = $tblPerson->getSecondName();
+                    $item['LastName'] = $tblPerson->getLastName();
+                    $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
+                    if ($tblCommon) {
+                        $tblBirthDates = $tblCommon->getTblCommonBirthDates();
+                        if ($tblBirthDates) {
+                            $tblGender = $tblBirthDates->getTblCommonGender();
+                            if ($tblGender) {
+                                $item['Gender'] = substr($tblGender->getName(), 0, 1);
+                            }
                         }
                     }
+                    $tblAddress = $tblPerson->fetchMainAddress();
+                    if ($tblAddress) {
+                        $item['StreetName'] = $tblAddress->getStreetName();
+                        $item['StreetNumber'] = $tblAddress->getStreetNumber();
+                        $tblCity = $tblAddress->getTblCity();
+                        if ($tblCity) {
+                            $item['CityCode'] = $tblCity->getCode();
+                            $item['CityName'] = $tblCity->getName();
+                            $item['District'] = $tblCity->getDistrict();
+                        }
+                        $tblState = $tblAddress->getTblState();
+                        if ($tblState) {
+                            $item['State'] = $tblState->getName();
+                        }
+                        $item['Nation'] = $tblAddress->getNation();
+                        $item['Country'] = $tblAddress->getCounty();
+                    }
                 }
-
-                $tblAddress = $tblPerson->fetchMainAddress();
-                if ($tblAddress) {
-                    $item['StreetName'] = $tblAddress->getStreetName();
-                    $item['StreetNumber'] = $tblAddress->getStreetNumber();
-                    $tblCity = $tblAddress->getTblCity();
-                    if ($tblCity) {
-                        $item['CityCode'] = $tblCity->getCode();
-                        $item['CityName'] = $tblCity->getName();
-                        $item['District'] = $tblCity->getDistrict();
-                    }
-                    $tblState = $tblAddress->getTblState();
-                    if ($tblState) {
-                        $item['State'] = $tblState->getName();
-                    }
-                    $item['Nation'] = $tblAddress->getNation();
-                    $item['Country'] = $tblAddress->getCounty();
+                if($tblAccount){
+                    $item['AccountName'] = $tblAccount->getUsername();
                 }
 
                 array_push($result, $item);
