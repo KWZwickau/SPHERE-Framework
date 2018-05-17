@@ -68,7 +68,10 @@ class Data extends AbstractData
                     '');
             }
 
+            // Anzeige des Notendurchschnitts in der Eltern/Schüler-Übersicht
             $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsShownAverageInStudentOverview', TblSetting::TYPE_BOOLEAN, false);
+            // Anzeige des Notenspiegels und des Fach-Klassendurchschnitts in der Eltern/Schüler-Übersicht
+            $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsShownScoreInStudentOverview', TblSetting::TYPE_BOOLEAN, false);
 
             if ($tblConsumer->getAcronym() == 'ESZC') {
                 $this->createSetting(
@@ -134,6 +137,44 @@ class Data extends AbstractData
                     '0'
                 );
             }
+
+            if ($tblConsumer->getAcronym() == 'EVSC') {
+                // Notenbuch: Sortierung nach Großen (fettmarkiert) und Klein Noten
+                $this->createSetting(
+                    'Education',
+                    'Graduation',
+                    'Gradebook',
+                    'SortHighlighted',
+                    TblSetting::TYPE_BOOLEAN,
+                    '1'
+                );
+                // Notenbuch: Große Noten (fettmarkiert) rechts anordnen
+                $this->createSetting(
+                    'Education',
+                    'Graduation',
+                    'Gradebook',
+                    'IsHighlightedSortedRight',
+                    TblSetting::TYPE_BOOLEAN,
+                    '1'
+                );
+            } else {
+                $this->createSetting(
+                    'Education',
+                    'Graduation',
+                    'Gradebook',
+                    'SortHighlighted',
+                    TblSetting::TYPE_BOOLEAN,
+                    '0'
+                );
+                $this->createSetting(
+                    'Education',
+                    'Graduation',
+                    'Gradebook',
+                    'IsHighlightedSortedRight',
+                    TblSetting::TYPE_BOOLEAN,
+                    '1'
+                );
+            }
         }
         $this->createSetting(
             'Education',
@@ -157,6 +198,24 @@ class Data extends AbstractData
             'Graduation',
             'Evaluation',
             'HasBehaviorGradesForSubjectsWithNoGrading',
+            TblSetting::TYPE_BOOLEAN,
+            '0'
+        );
+        // automatische Bekanntgabe von Leistungsüberprüfungen nach x Tagen für die Notenübersicht für Schüler
+        $this->createSetting(
+            'Education',
+            'Graduation',
+            'Evaluation',
+            'AutoPublicationOfTestsAfterXDays',
+            TblSetting::TYPE_INTEGER,
+            '28'
+        );
+        // Zensuren im Wortlaut auf Abgangszeugnissen
+        $this->createSetting(
+            'Education',
+            'Certificate',
+            'Prepare',
+            'IsGradeVerbalOnLeave',
             TblSetting::TYPE_BOOLEAN,
             '0'
         );

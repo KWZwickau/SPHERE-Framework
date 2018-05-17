@@ -10,6 +10,7 @@ namespace SPHERE\Application\Api\Document\Custom;
 
 use SPHERE\Application\Api\Document\Custom\Lebenswelt\Lebenswelt;
 use SPHERE\Application\Api\Document\Custom\Radebeul\Radebeul;
+use SPHERE\Application\Api\Document\Custom\Zwickau\Zwickau;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
@@ -35,6 +36,10 @@ class Custom extends Extension implements IModuleInterface
         // Radebeul
         if ($consumerAcronym === 'EVSR' || $consumerAcronym === 'DEMO') {
             Radebeul::registerModule();
+        }
+        // Zwickau
+        if ($consumerAcronym === 'CMS' || $consumerAcronym === 'DEMO') {
+            Zwickau::registerModule();
         }
     }
 

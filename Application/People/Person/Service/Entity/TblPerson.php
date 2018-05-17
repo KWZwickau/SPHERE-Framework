@@ -24,6 +24,7 @@ class TblPerson extends Element
 
     const ATTR_FIRST_NAME = 'FirstName';
     const ATTR_LAST_NAME = 'LastName';
+    const ATTR_IMPORT_ID = 'ImportId';
 
     /**
      * @Column(type="bigint")
@@ -49,9 +50,13 @@ class TblPerson extends Element
      * @Column(type="string")
      */
     protected $BirthName;
+    /**
+     * @Column(type="string")
+     */
+    protected $ImportId;
 
     /**
-     * @return string
+     * @return string (Salutation Title FirstName SecondName LastName)
      */
     public function getFullName()
     {
@@ -61,6 +66,17 @@ class TblPerson extends Element
             .(preg_match('![a-zA-Z]!s', $this->FirstName) ? ' '.$this->getFirstName() : '')
         .( $this->getSecondName() ? ' '.$this->getSecondName() : '' )
         .( $this->getLastName() ? ' '.$this->getLastName() : '' );
+    }
+
+    /**
+     * @return string (Salutation Title LastName)
+     */
+    public function getFullNameWithoutFirstName()
+    {
+
+        return $this->getSalutation()
+            .( $this->getTitle() ? ' '.$this->getTitle() : '' )
+            .( $this->getLastName() ? ' '.$this->getLastName() : '' );
     }
 
     /**
@@ -186,6 +202,24 @@ class TblPerson extends Element
     {
 
         $this->BirthName = $BirthName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getImportId()
+    {
+
+        return $this->ImportId;
+    }
+
+    /**
+     * @param string $ImportId
+     */
+    public function setImportId($ImportId)
+    {
+
+        $this->ImportId = $ImportId;
     }
 
     /**

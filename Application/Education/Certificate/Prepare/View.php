@@ -18,4 +18,5 @@ abstract class View
     const TEACHER = 0;
     const HEADMASTER = 1;
     const DIPLOMA = 2;
+    const LEAVE = 3;
 }

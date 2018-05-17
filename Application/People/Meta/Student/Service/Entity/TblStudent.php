@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -347,5 +348,14 @@ class TblStudent extends Element
         }
 
         return false;
+    }
+
+    /**
+     * @return bool|TblCourse
+     */
+    public function getCourse()
+    {
+
+        return Student::useService()->getCourseByStudent($this);
     }
 }

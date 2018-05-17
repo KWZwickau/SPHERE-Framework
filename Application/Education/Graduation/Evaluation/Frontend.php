@@ -30,6 +30,7 @@ use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -84,6 +85,7 @@ use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Sorter;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 /**
@@ -894,8 +896,22 @@ class Frontend extends Extension implements IFrontendInterface
 
         $contentTable = array();
         if ($tblTestList) {
-            array_walk($tblTestList, function (TblTest &$tblTest) use (&$BasicRoute, &$contentTable) {
-
+            if (($tblSetting = Consumer::useService()->getSetting(
+                'Education', 'Graduation', 'Evaluation', 'AutoPublicationOfTestsAfterXDays'))
+            ) {
+                $days = intval($tblSetting->getValue());
+            } else {
+                $days = false;
+            }
+            if (($tblTestTypeAppointedDateTask = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK'))) {
+                $tblTaskList = Evaluation::useService()->getTaskAllByDivision($tblDivision, $tblTestTypeAppointedDateTask);
+                if ($tblTaskList) {
+                    $tblTaskList = $this->getSorter($tblTaskList)->sortObjectBy('Date', new DateTimeSorter(), Sorter::ORDER_DESC);
+                }
+            } else {
+                $tblTaskList = false;
+            }
+            array_walk($tblTestList, function (TblTest &$tblTest) use (&$BasicRoute, &$contentTable, $days, $tblTaskList) {
                 $tblTask = $tblTest->getTblTask();
 
                 if ($tblTest->getServiceTblGradeType()) {
@@ -930,7 +946,76 @@ class Frontend extends Extension implements IFrontendInterface
                 // modify with continues tests
                 if ($tblTest->getFinishDate()) {
                     $stringDate = $tblTest->getFinishDate();
-                    $stringReturnDate = $tblTest->getFinishDate();
+                    $stringReturnDate = ''; // $tblTest->getFinishDate();
+                }
+
+                // show autoReturnDate
+                if ($stringReturnDate == ''
+                    && $tblTest->getTblTestType()
+                    && $tblTest->getTblTestType()->getIdentifier() == 'TEST'
+                ){
+                    $autoReturnDateAppointedTask = false;
+                    // durch Stichtagsnotenauftrag
+                    $appointedDateTask = false;
+                    if ($tblTaskList) {
+                        /** @var TblTask $tblTaskItem */
+                        foreach ($tblTaskList as $tblTaskItem) {
+                            if (($date = $tblTaskItem->getDate())
+                                && ($tblPeriod = $tblTest->getServiceTblPeriod())
+                                && ($toDatePeriod = $tblPeriod->getToDate())
+                                && ($dateTimeTask = new \DateTime($date))
+                                && ($toDateTimePeriod = new \DateTime($toDatePeriod))
+                                && $dateTimeTask < $toDateTimePeriod
+                            ) {
+                                $appointedDateTask = $tblTaskItem;
+                                break;
+                            }
+                        }
+
+                        if ($appointedDateTask) {
+                            if ($tblTest->getDate()
+                                && ($testDate = (new \DateTime($tblTest->getDate())))
+                                && ($toDateTimeTask = new \DateTime($appointedDateTask->getToDate()))
+                                && ($nowDateTime = (new \DateTime('now')))
+                                && $testDate <= $toDateTimeTask
+                                && $toDateTimeTask < $nowDateTime
+                            ) {
+                                $autoReturnDateAppointedTask = $toDateTimeTask->add(new \DateInterval('P1D'));
+                            }
+                        }
+                    }
+
+                    // nach X Tagen
+                    $autoReturnDateDays = false;
+                    if ($days
+                        && $tblTest->getDate()
+                    ) {
+                        $testDate = (new \DateTime($tblTest->getDate()));
+                        $autoReturnDateDays = $testDate->add(
+                            new \DateInterval('P' . $days . 'D')
+                        );
+                    }
+
+                    if ($autoReturnDateAppointedTask && $autoReturnDateDays) {
+                        if ($autoReturnDateAppointedTask < $autoReturnDateDays) {
+                            $autoReturnDate = $autoReturnDateAppointedTask;
+                        } else {
+                            $autoReturnDate = $autoReturnDateDays;
+                        }
+                    } elseif ($autoReturnDateAppointedTask) {
+                        $autoReturnDate = $autoReturnDateAppointedTask;
+                    } else {
+                        $autoReturnDate = $autoReturnDateDays;
+                    }
+
+                    if ($autoReturnDate) {
+                        $stringReturnDate = $autoReturnDate->format('d.m.Y');
+                        $autoReturnDate = $autoReturnDate->format("Y-m-d");
+                        $now = (new \DateTime('now'))->format("Y-m-d");
+                        if ($autoReturnDate <= $now) {
+                            $stringReturnDate = new Success(new Bold($stringReturnDate));
+                        }
+                    }
                 }
 
                 $contentTable[] = array(
@@ -1965,9 +2050,7 @@ class Frontend extends Extension implements IFrontendInterface
                             );
                             if ($tblTestList) {
 
-                                // Sortierung der Tests nach Datum
-                                $tblTestList = $this->getSorter($tblTestList)->sortObjectBy('Date',
-                                    new DateTimeSorter());
+                                $tblTestList = Evaluation::useService()->sortTestList($tblTestList);
 
                                 /** @var TblTest $tblTestTemp */
                                 foreach ($tblTestList as $tblTestTemp) {
@@ -2731,6 +2814,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
+        $columnList[] = new FormColumn(new HiddenField('Data[IsSubmit]'));
 
         $form = new Form(array(
             $isBehaviorTask
@@ -2924,6 +3008,15 @@ class Frontend extends Extension implements IFrontendInterface
         foreach ($divisionList as $divisionId => $testList) {
             $tblDivision = Division::useService()->getDivisionById($divisionId);
             if ($tblDivision) {
+                if (($tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision))) {
+                    $count = 1;
+                    foreach ($tblDivisionStudentAll as $tblPerson) {
+                        $studentList[$tblDivision->getId()][$tblPerson->getId()]['Number'] = $count++;
+                        $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
+                            $tblPerson->getLastFirstName();
+                    }
+                }
+
                 // Stichtagsnote
                 if ($tblTask->getTblTestType()->getId() == Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')) {
                     if (!empty($testList)) {
@@ -2957,11 +3050,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         }
                                     }
                                 } else {
-                                    $tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision);
                                     if ($tblDivisionStudentAll) {
-                                        $count = 1;
                                         foreach ($tblDivisionStudentAll as $tblPerson) {
-                                            $studentList[$tblDivision->getId()][$tblPerson->getId()]['Number'] = $count++;
                                             $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
                                                 $tblTest, $tblSubject, $tblPerson, $studentList, null, $gradeList);
                                         }
@@ -3019,7 +3109,6 @@ class Frontend extends Extension implements IFrontendInterface
                     $tableHeaderList[$tblDivision->getId()]['Name'] = 'Schüler';
                     $grades = array();
 
-                    $count = 1;
                     if (!empty($testList)) {
                         /** @var TblTest $tblTest */
                         foreach ($testList as $tblTest) {
@@ -3045,7 +3134,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                 $tblPerson = $tblSubjectStudent->getServiceTblPerson();
                                                 if ($tblPerson) {
                                                     list($studentList, $grades) = $this->setTableContentForBehaviourTask($tblDivision,
-                                                        $tblTest, $tblPerson, $studentList, $grades, $count);
+                                                        $tblTest, $tblPerson, $studentList, $grades);
                                                 }
                                             }
                                         }
@@ -3054,7 +3143,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         if ($tblDivisionStudentAll) {
                                             foreach ($tblDivisionStudentAll as $tblPerson) {
                                                 list($studentList, $grades) = $this->setTableContentForBehaviourTask($tblDivision,
-                                                    $tblTest, $tblPerson, $studentList, $grades, $count);
+                                                    $tblTest, $tblPerson, $studentList, $grades);
                                             }
                                         }
                                     }
@@ -3137,8 +3226,7 @@ class Frontend extends Extension implements IFrontendInterface
         TblSubjectGroup $tblSubjectGroup = null,
         &$gradeList = array()
     ) {
-        $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
-            $tblPerson->getLastFirstName();
+
         $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
             $tblPerson);
 
@@ -3230,7 +3318,6 @@ class Frontend extends Extension implements IFrontendInterface
      * @param TblPerson $tblPerson
      * @param $studentList
      * @param $grades
-     * @param $count
      *
      * @return array
      */
@@ -3239,15 +3326,9 @@ class Frontend extends Extension implements IFrontendInterface
         TblTest $tblTest,
         TblPerson $tblPerson,
         $studentList,
-        $grades,
-        &$count
+        $grades
     ) {
 
-        if (!isset($studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'])) {
-            $studentList[$tblDivision->getId()][$tblPerson->getId()]['Number'] = $count++;
-            $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
-                $tblPerson->getLastFirstName();
-        }
         $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
             $tblPerson);
 

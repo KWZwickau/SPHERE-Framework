@@ -3,6 +3,7 @@ namespace SPHERE\Application\Contact;
 
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
+use SPHERE\Application\Contact\Web\Web;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\IClusterInterface;
 
@@ -20,6 +21,7 @@ class Contact implements IClusterInterface
         Address::registerApplication();
         Phone::registerApplication();
         Mail::registerApplication();
+        Web::registerApplication();
     }
 
 }

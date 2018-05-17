@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Education\Graduation\Gradebook;
 
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\Frontend as FrontendScoreRule;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
@@ -37,6 +38,7 @@ use SPHERE\Application\Setting\User\Account\Account as UserAccount;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -93,6 +95,7 @@ use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Repository\Sorter;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 /**
@@ -873,8 +876,7 @@ class Frontend extends FrontendScoreRule
                     );
                     if ($tblTestList) {
 
-                        // Sortierung der Tests nach Datum
-                        $tblTestList = $this->getSorter($tblTestList)->sortObjectBy('Date', new DateTimeSorter());
+                        $tblTestList = Evaluation::useService()->sortTestList($tblTestList);
 
                         /** @var TblTest $tblTest */
                         foreach ($tblTestList as $tblTest) {
@@ -1337,6 +1339,16 @@ class Frontend extends FrontendScoreRule
                 $isShownAverage = false;
             }
 
+            if (($tblSetting = Consumer::useService()->getSetting(
+                    'Education', 'Graduation', 'Gradebook', 'IsShownScoreInStudentOverview'
+                ))
+                && $tblSetting->getValue()
+            ) {
+                $hasScore = true;
+            } else {
+                $hasScore = false;
+            }
+
             $tableHeaderList = array();
             $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
             if ($tblPeriodList) {
@@ -1356,7 +1368,7 @@ class Frontend extends FrontendScoreRule
                         $tblPerson = Person::useService()->getPersonById($personId);
                         if ($tblPerson && is_array($divisionList)) {
                             $this->setGradeOverview($tblYear, $tblPerson, $divisionList, $rowList, $tblPeriodList,
-                                $tblTestType, $isShownAverage, $tableHeaderList, true);
+                                $tblTestType, $isShownAverage, $hasScore, $tableHeaderList, true);
                         }
                     }
                 }
@@ -1433,6 +1445,7 @@ class Frontend extends FrontendScoreRule
                             )
                         )
                     ),
+                    new FormColumn(new HiddenField('ParentAccount[IsSubmit]'))
                 ))
             )
         );
@@ -1834,6 +1847,9 @@ class Frontend extends FrontendScoreRule
                 }
             }
 
+            if (!empty($formGroupList)) {
+                $formGroupList[] = new FormGroup(new FormRow(new FormColumn(new HiddenField('Data[IsSubmit]'))));
+            }
 
             $Stage->setContent(
                 new Layout(array(
@@ -2296,9 +2312,9 @@ class Frontend extends FrontendScoreRule
      * @param TblGrade $tblGrade
      * @param $subTableHeaderList
      * @param $subTableDataList
-     * @param $isShownAverage
+     * @param bool $hasScore
      */
-    private function addTest(TblTest $tblTest,TblGrade $tblGrade, &$subTableHeaderList, &$subTableDataList, $isShownAverage)
+    private function addTest(TblTest $tblTest,TblGrade $tblGrade, &$subTableHeaderList, &$subTableDataList, $hasScore)
     {
         if ($tblTest->isContinues()) {
             if ($tblGrade->getDate()) {
@@ -2323,7 +2339,7 @@ class Frontend extends FrontendScoreRule
 
 
         $toolTip = $description ? 'Thema: ' . $description : '';
-        if ($isShownAverage) {
+        if ($hasScore) {
             if (!empty($gradeMirror)) {
                 $toolTip .= ($toolTip ? '<br />' : '');
                 $line[0] = '';
@@ -2370,6 +2386,7 @@ class Frontend extends FrontendScoreRule
      * @param $tblPeriodList
      * @param $tblTestType
      * @param $isShownAverage
+     * @param $hasScore
      * @param $tableHeaderList
      * @param $isParentView
      */
@@ -2381,6 +2398,7 @@ class Frontend extends FrontendScoreRule
         $tblPeriodList,
         $tblTestType,
         $isShownAverage,
+        $hasScore,
         $tableHeaderList,
         $isParentView
     ) {
@@ -2426,6 +2444,17 @@ class Frontend extends FrontendScoreRule
                                         $tableDataList[$tblDivisionSubject->getServiceTblSubject()->getId()]['Subject'] = $tblDivisionSubject->getServiceTblSubject()->getName();
 
                                         if ($tblPeriodList) {
+                                            if ($isParentView
+                                                && ($tblTestTypeAppointedDateTask = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK'))
+                                            ) {
+                                                $tblTaskList = Evaluation::useService()->getTaskAllByDivision($tblDivision, $tblTestTypeAppointedDateTask);
+                                                if ($tblTaskList) {
+                                                    $tblTaskList = $this->getSorter($tblTaskList)->sortObjectBy('Date', new DateTimeSorter(), Sorter::ORDER_DESC);
+                                                }
+                                            } else {
+                                                $tblTaskList = false;
+                                            }
+
                                             /**@var TblPeriod $tblPeriod **/
                                             foreach ($tblPeriodList as $tblPeriod) {
                                                 $tblGradeList = Gradebook::useService()->getGradesByStudent(
@@ -2443,36 +2472,91 @@ class Frontend extends FrontendScoreRule
                                                     // Sortieren der Zensuren
                                                     $gradeListSorted = $this->getSorter($tblGradeList)->sortObjectBy('DateForSorter', new DateTimeSorter());
 
+                                                    $appointedDateTask = false;
+                                                    if ($isParentView && $tblTaskList) {
+                                                        /** @var TblTask $tblTask */
+                                                        foreach ($tblTaskList as $tblTask) {
+                                                            if (($date = $tblTask->getDate())
+                                                                && ($toDatePeriod = $tblPeriod->getToDate())
+                                                                && ($dateTimeTask = new \DateTime($date))
+                                                                && ($toDateTimePeriod = new \DateTime($toDatePeriod))
+                                                                && $dateTimeTask < $toDateTimePeriod
+                                                            ) {
+                                                                $appointedDateTask = $tblTask;
+                                                                break;
+                                                            }
+                                                        }
+                                                    }
+
                                                     /**@var TblGrade $tblGrade **/
                                                     foreach ($gradeListSorted as $tblGrade) {
                                                         $tblTest = $tblGrade->getServiceTblTest();
                                                         if ($tblTest) {
                                                             $isAddTest = false;
                                                             if ($isParentView) {
-                                                                if ($tblTest->isContinues() && $tblGrade->getDate()) {
-                                                                    $gradeDate = (new \DateTime($tblGrade->getDate()))->format("Y-m-d");
-                                                                    $now = (new \DateTime('now'))->format("Y-m-d");
-                                                                    if ($gradeDate <= $now) {
+                                                                // fortlaufendes Datum
+                                                                if ($tblTest->isContinues()) {
+                                                                    if ($tblGrade->getDate()) {
+                                                                        $gradeDate = (new \DateTime($tblGrade->getDate()))->format("Y-m-d");
+                                                                        $now = (new \DateTime('now'))->format("Y-m-d");
+                                                                        if ($gradeDate <= $now) {
 
-                                                                        // Test anzeigen
-                                                                       $isAddTest = true;
+                                                                            // Test anzeigen
+                                                                            $isAddTest = true;
+                                                                        }
+                                                                    } elseif ($tblTest->getFinishDate()) {
+                                                                        // continues grades without date can be view if finish date is arrived
+                                                                        $testFinishDate = (new \DateTime($tblTest->getFinishDate()))->format("Y-m-d");
+                                                                        $now = (new \DateTime('now'))->format("Y-m-d");
+                                                                        if ($testFinishDate <= $now) {
+
+                                                                            // Test anzeigen
+                                                                            $isAddTest = true;
+                                                                        }
                                                                     }
-                                                                } elseif ($tblTest->isContinues() && $tblTest->getFinishDate()) {
-                                                                    // continues grades without date can be view if finish date is arrived
-                                                                    $testFinishDate = (new \DateTime($tblTest->getFinishDate()))->format("Y-m-d");
-                                                                    $now = (new \DateTime('now'))->format("Y-m-d");
-                                                                    if ($testFinishDate <= $now) {
+                                                                } elseif ($tblTest->getServiceTblGradeType()) {
+                                                                    if ($tblTest->getReturnDate()) {
+                                                                        $testReturnDate = (new \DateTime($tblTest->getReturnDate()))->format("Y-m-d");
+                                                                        $now = (new \DateTime('now'))->format("Y-m-d");
+                                                                        if ($testReturnDate <= $now) {
 
-                                                                        // Test anzeigen
-                                                                        $isAddTest = true;
-                                                                    }
-                                                                } elseif ($tblTest->getServiceTblGradeType() && $tblTest->getReturnDate()) {
-                                                                    $testReturnDate = (new \DateTime($tblTest->getReturnDate()))->format("Y-m-d");
-                                                                    $now = (new \DateTime('now'))->format("Y-m-d");
-                                                                    if ($testReturnDate <= $now) {
+                                                                            // Test anzeigen
+                                                                            $isAddTest = true;
+                                                                        }
+                                                                    } else {
+                                                                        // automatische Bekanntgabe durch den Stichtagsnotenauftrag
+                                                                        if ($appointedDateTask) {
+                                                                            if ($tblTest->getDate()
+                                                                                && ($testDate = (new \DateTime($tblTest->getDate())))
+                                                                                && ($toDateTimeTask = new \DateTime($appointedDateTask->getToDate()))
+                                                                                && ($nowDateTime = (new \DateTime('now')))
+                                                                                && $testDate <= $toDateTimeTask
+                                                                                && $toDateTimeTask < $nowDateTime
+                                                                            ) {
+                                                                                // Test anzeigen
+                                                                                $isAddTest = true;
+                                                                            }
+                                                                        }
+                                                                        // automatische Bekanntgabe nach X Tagen
+                                                                        if (!$isAddTest && ($tblSetting = Consumer::useService()->getSetting(
+                                                                            'Education', 'Graduation', 'Evaluation', 'AutoPublicationOfTestsAfterXDays'))
+                                                                        ) {
+                                                                            if (($days = intval($tblSetting->getValue()))
+                                                                                && $tblTest->getDate()
+                                                                            ) {
+                                                                                $testDate = (new \DateTime($tblTest->getDate()));
+                                                                                $autoTestReturnDate = $testDate->add(
+                                                                                    new \DateInterval('P' . $days . 'D')
+                                                                                );
+                                                                                $autoTestReturnDate = $autoTestReturnDate->format("Y-m-d");
+                                                                                $now = (new \DateTime('now'))->format("Y-m-d");
+                                                                                if ($autoTestReturnDate <= $now) {
 
-                                                                        // Test anzeigen
-                                                                        $isAddTest = true;
+                                                                                    // Test anzeigen
+                                                                                    $isAddTest = true;
+                                                                                }
+                                                                            }
+                                                                        }
                                                                     }
                                                                 }
                                                             } else {
@@ -2484,7 +2568,7 @@ class Frontend extends FrontendScoreRule
                                                                     $tblGrade,
                                                                     $subTableHeaderList,
                                                                     $subTableDataList,
-                                                                    $isShownAverage
+                                                                    $hasScore
                                                                 );
                                                             }
                                                         }
@@ -2912,7 +2996,7 @@ class Frontend extends FrontendScoreRule
                         if ($tblPerson && is_array($divisionList)) {
 
                             $this->setGradeOverview($tblYear, $tblPerson, $divisionList, $rowList, $tblPeriodList,
-                                $tblTestType, true, $tableHeaderList, false);
+                                $tblTestType, true, true, $tableHeaderList, false);
                         }
                     }
                 }

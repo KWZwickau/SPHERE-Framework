@@ -930,6 +930,9 @@ class Frontend extends Extension implements IFrontendInterface
 
                 array_push($AgreementPanel, new Aspect(new Bold($tblStudentAgreementCategory->getName())));
                 $tblAgreementTypeAll = Student::useService()->getStudentAgreementTypeAllByCategory($tblStudentAgreementCategory);
+                if ($tblAgreementTypeAll) {
+                    $tblAgreementTypeAll = $this->getSorter($tblAgreementTypeAll)->sortObjectBy('Name');
+                }
                 array_walk($tblAgreementTypeAll,
                     function (TblStudentAgreementType $tblStudentAgreementType) use (
                         &$AgreementPanel,
@@ -1203,6 +1206,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
+            $Node = 'Unterrichtsfächer';
             // activate MassReplace
             if ($Identifier == 'PROFILE'
                 || $Identifier == 'RELIGION'
@@ -1211,7 +1215,6 @@ class Frontend extends Extension implements IFrontendInterface
                 || $Identifier == 'ELECTIVE'
                 || $Identifier == 'TEAM'
             ) {
-                $Node = 'Unterrichtsfächer';
                 array_push($Panel,
                     ApiMassReplace::receiverField((
                     $Field = new SelectBox('Meta[Subject]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
@@ -1289,20 +1292,54 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
                 array_push($Panel,
-                    new SelectBox(
-                        'Meta[SubjectLevelFrom]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
-                        new Muted(new Small('von Klasse')),
-                        array('{{ Name }} {{ ServiceTblType.Name }}' => $useLevelFromList),
-                        new Time()
-                    )
+                    ApiMassReplace::receiverField((
+                    $Field = new SelectBox(
+                            'Meta[SubjectLevelFrom]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
+                            new Muted(new Small($tblStudentSubjectRanking->getName() . ' Fremdsprache von Klasse')),
+                            array('{{ Name }} {{ ServiceTblType.Name }}' => $useLevelFromList),
+                            new Time())))
+                    .ApiMassReplace::receiverModal($Field, $Node)
+                    .new PullRight((new Link('Massen-Änderung',
+                        ApiMassReplace::getEndpoint(), null, array(
+                            ApiMassReplace::SERVICE_CLASS                                   => MassReplaceSubject::CLASS_MASS_REPLACE_SUBJECT,
+                            ApiMassReplace::SERVICE_METHOD                                  => MassReplaceSubject::METHOD_REPLACE_LEVEL_FROM,
+                            ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                            MassReplaceSubject::ATTR_TYPE                                   => $tblStudentSubjectType->getId(),
+                            MassReplaceSubject::ATTR_RANKING                                => $tblStudentSubjectRanking->getId(),
+                            'Id'                                                            => $PersonId,
+                            'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                            'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                            'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                            'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                            'Node'                                                          => $Node,
+                        )))->ajaxPipelineOnClick(
+                        ApiMassReplace::pipelineOpen($Field, $Node)
+                    ))
                 );
                 array_push($Panel,
-                    new SelectBox(
+                    ApiMassReplace::receiverField((
+                    $Field = new SelectBox(
                         'Meta[SubjectLevelTill]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
-                        new Muted(new Small('bis Klasse')),
+                        new Muted(new Small($tblStudentSubjectRanking->getName() . ' Fremdsprache bis Klasse')),
                         array('{{ Name }} {{ ServiceTblType.Name }}' => $useLevelTillList),
-                        new Time()
-                    )
+                        new Time())))
+                    .ApiMassReplace::receiverModal($Field, $Node)
+                    .new PullRight((new Link('Massen-Änderung',
+                        ApiMassReplace::getEndpoint(), null, array(
+                            ApiMassReplace::SERVICE_CLASS                                   => MassReplaceSubject::CLASS_MASS_REPLACE_SUBJECT,
+                            ApiMassReplace::SERVICE_METHOD                                  => MassReplaceSubject::METHOD_REPLACE_LEVEL_TILL,
+                            ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                            MassReplaceSubject::ATTR_TYPE                                   => $tblStudentSubjectType->getId(),
+                            MassReplaceSubject::ATTR_RANKING                                => $tblStudentSubjectRanking->getId(),
+                            'Id'                                                            => $PersonId,
+                            'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                            'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                            'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                            'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                            'Node'                                                          => $Node,
+                        )))->ajaxPipelineOnClick(
+                        ApiMassReplace::pipelineOpen($Field, $Node)
+                    ))
                 );
             }
         }

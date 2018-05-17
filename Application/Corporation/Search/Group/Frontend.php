@@ -4,6 +4,7 @@ namespace SPHERE\Application\Corporation\Search\Group;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
@@ -46,6 +47,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Suche', 'nach Gruppe');
 
+        $Stage->addButton(new Standard('Zurück', '/Corporation', new ChevronLeft()));
         $tblGroupAll = Group::useService()->getGroupAll();
         if (!empty( $tblGroupAll )) {
             /** @noinspection PhpUnusedParameterInspection */

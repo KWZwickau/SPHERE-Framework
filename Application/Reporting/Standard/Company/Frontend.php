@@ -38,7 +38,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Auswertung', 'Institutionengruppenlisten');
         $tblGroupAll = Group::useService()->getGroupAll();
-        $groupList = array();
+        $companyList = array();
 
         if ($GroupId === null) {
             if ($tblGroupAll){
@@ -69,8 +69,8 @@ class Frontend extends Extension implements IFrontendInterface
             );
             $tblGroup = Group::useService()->getGroupById($GroupId);
             if ($tblGroup) {
-                $groupList = Company::useService()->createGroupList($tblGroup);
-                if ($groupList) {
+                $companyList = Company::useService()->createGroupList($tblGroup);
+                if ($companyList) {
                     $Stage->addButton(
                         new Primary('Herunterladen',
                             '/Api/Reporting/Standard/Company/GroupList/Download', new Download(),
@@ -94,12 +94,13 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(
-                                new TableData($groupList, null,
+                                new TableData($companyList, null,
                                     array(
                                         'Number'           => 'lfd. Nr.',
                                         'Name'             => 'Name',
                                         'ExtendedName'     => 'Zusatz',
                                         'Description'      => 'Beschreibung',
+                                        'ContactPerson'    => 'Ansprechpartner',
                                         'Address'          => 'Anschrift',
                                         'PhoneNumber'      => 'Telefon Festnetz',
                                         'MobilPhoneNumber' => 'Telefon Mobil',
@@ -113,15 +114,6 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     ),
-                    new LayoutGroup(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                new Panel('Anzahl', array(
-                                    'Gesamt: '.count($groupList),
-                                ), Panel::PANEL_TYPE_INFO)
-                                , 4)
-                        ))
-                    )
                 ))
             );
         }

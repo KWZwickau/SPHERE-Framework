@@ -21,6 +21,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -716,6 +717,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $Id
      * @param bool $IsHasGradingView
+     * @param null $Data
      *
      * @return Stage|string
      */
@@ -767,6 +769,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new FormColumn(
                             new Panel('Fächer werden benotet bzw. erhalten Zeugnistext' , $subjectList, Panel::PANEL_TYPE_INFO)
                             , 12),
+                        new FormColumn(new HiddenField('Data[IsSubmit]'))
                     )),
                 )));
             $form->appendFormButton(new Primary('Speichern', new Save()));
@@ -994,6 +997,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Schüler' . new Small(' (Bildungsgang)') , $tblStudentList, Panel::PANEL_TYPE_INFO)
                         , 12),
+                    new FormColumn(new HiddenField('Student[IsSubmit]'))
                 )),
             ))
         );

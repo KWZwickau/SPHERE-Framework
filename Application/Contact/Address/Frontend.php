@@ -78,7 +78,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblPerson = Person::useService()->getPersonById($Id);
 
         $Stage = new Stage('Adresse', 'Hinzufügen');
-        $Stage->addButton( new Backward(true) );
+        $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $Id)));
         $Stage->setMessage('Eine Adresse zur gewählten Person hinzufügen');
 
         if(!$tblPerson){
@@ -252,7 +252,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblToPerson = Address::useService()->getAddressToPersonById($Id);
 
         $Stage = new Stage('Adresse', 'Bearbeiten');
-        $Stage->addButton( new Backward(true) );
+        $Stage->addButton( new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $Id)) );
         $Stage->setMessage('Die Adresse der gewählten Person ändern');
 
         if (!$tblToPerson) {

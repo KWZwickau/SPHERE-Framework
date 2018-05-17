@@ -1,15 +1,9 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 09.09.2016
- * Time: 14:57
- */
-
 namespace SPHERE\Application\Document\Custom;
 
 use SPHERE\Application\Document\Custom\Lebenswelt\Lebenswelt;
 use SPHERE\Application\Document\Custom\Radebeul\Radebeul;
+use SPHERE\Application\Document\Custom\Zwickau\Zwickau;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Main;
@@ -34,6 +28,9 @@ class Custom implements IApplicationInterface
         }
         if ($consumerAcronym === 'EVSR' || $consumerAcronym === 'DEMO') {
             Radebeul::registerModule();
+        }
+        if ($consumerAcronym === 'CMS' || $consumerAcronym === 'DEMO') {
+            Zwickau::registerModule();
         }
 
         Main::getDisplay()->addApplicationNavigation(

@@ -40,20 +40,25 @@ class Creator extends Extension
     const PAPERORIENTATION_PORTRAIT = 'PORTRAIT';
     const PAPERORIENTATION_LANDSCAPE = 'LANDSCAPE';
     /**
-     * @param null $PersonId
-     * @param $DocumentClass
+     * @param null   $PersonId
+     * @param string $DocumentClass
      * @param string $paperOrientation
+     * @param array  $Data
      *
      * @return Stage|string
      */
-    public static function createPdf($PersonId, $DocumentClass, $paperOrientation = Creator::PAPERORIENTATION_PORTRAIT)
+    public static function createPdf($PersonId, $DocumentClass, $paperOrientation = Creator::PAPERORIENTATION_PORTRAIT, $Data = array())
     {
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
             && class_exists($DocumentClass)
         ) {
             /** @var AbstractDocument $Document */
-            $Document = new $DocumentClass();
+            if(!empty($Data)){
+                $Document = new $DocumentClass($Data);
+            } else {
+                $Document = new $DocumentClass();
+            }
 
             $Data['Person']['Id'] = $tblPerson->getId();
             if (strpos($DocumentClass, 'StudentCard') !== false ) {
@@ -68,7 +73,11 @@ class Creator extends Extension
         } elseif (class_exists($DocumentClass)) {
             // create PDF without Data and PersonId
             /** @var AbstractDocument $Document */
-            $Document = new $DocumentClass();
+            if(!empty($Data)){
+                $Document = new $DocumentClass($Data);
+            } else {
+                $Document = new $DocumentClass();
+            }
             $File = self::buildDummyFile($Document, array(), array(), $paperOrientation);
             $FileName = $Document->getName().' '.date("Y-m-d").".pdf";
 
