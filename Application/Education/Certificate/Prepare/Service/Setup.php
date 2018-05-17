@@ -204,6 +204,8 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'Grade', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Ranking', self::FIELD_TYPE_INTEGER);
+        $this->createColumn($Table, 'IsSelected', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($Table, 'IsLocked', self::FIELD_TYPE_BOOLEAN);
 
         $this->getConnection()->addForeignKey($Table, $tblPrepare, true);
         $this->getConnection()->addForeignKey($Table, $tblPrepareAdditionalGradeType, true);

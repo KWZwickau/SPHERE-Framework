@@ -17,9 +17,21 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 class EssGsJTwo extends Certificate
 {
 
-    const TEXT_SIZE = '11pt';
-    const TEXT_SIZE_SMALL = '10pt';
-    const TEXT_SIZE_VERY_SMALL = '8pt';
+    const TEXT_SIZE = '12pt';
+    const TEXT_SIZE_SMALL = '11pt';
+    const TEXT_SIZE_VERY_SMALL = '10pt';
+    const TEXT_FAMILY = 'MyriadPro';
+
+    /**
+     * @return array
+     */
+    public function selectValuesTransfer()
+    {
+        return array(
+            1 => "wird nach Klasse 3 versetzt.",
+            2 => "wird nicht versetzt."
+        );
+    }
 
     /**
      * @param TblPerson|null $tblPerson
@@ -50,88 +62,217 @@ class EssGsJTwo extends Certificate
         return (new Page())
             ->addSlice($Header)
             ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('JAHRESZEUGNIS')
-                    ->styleTextSize('24px')
+                ->addElement((new Element\Image('/Common/Style/Resource/Logo/ESS_Grundschule_Head.png', '700px'))
                     ->styleAlignCenter()
-                    ->styleMarginTop('60px')
                 )
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('Klasse {{ Content.P' . $personId . '.Division.Data.Level.Name }}')
-                        ->styleTextSize(self::TEXT_SIZE)
-                        ->styleTextBold()
+                        ->setContent('&nbsp;')
+                        , '25%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('J A H R E S Z E U G N I S')
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
+                        ->styleTextSize('24px')
+                        ->styleMarginTop('7px')
+                        ->styleMarginBottom('20px')
+                        , '75%'
                     )
                 )
+            )
+            ->addSlice((new Slice())
                 ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '3%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('Klasse {{ Content.P' . $personId . '.Division.Data.Level.Name }}')
+                        ->styleTextSize(self::TEXT_SIZE)
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
+                        ->styleTextBold()
+                        , '97%'
+                    )
+                )
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '3%'
+                    )
                     ->addElementColumn((new Element())
                         ->setContent('2. Schulhalbjahr')
                         ->styleTextSize(self::TEXT_SIZE)
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleTextBold()
-                        , '20%')
+                        , '22%')
                     ->addElementColumn((new Element())
                         ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
                                           {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
                         ->styleTextSize('15pt')
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleTextBold()
-                        , '57%')
+                        , '50%')
                     ->addElementColumn((new Element())
                         ->setContent('Schuljahr {{ Content.P' . $personId . '.Division.Data.Year }}')
                         ->styleTextSize(self::TEXT_SIZE)
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleTextBold()
-                        , '23%')
-                )->styleMarginTop('55px')
+                        ->styleAlignRight()
+                        , '22%')
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '3%'
+                    )
+                )
             )
             ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('Allgemeine <br/> Einschätzung:')
-                    ->styleTextBold()
-                )
-                ->addElement((new Element())
-                    ->setContent('{% if(Content.P'.$personId.'.Input.Rating is not empty) %}
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '3%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('Allgemeine <br/> Einschätzung:')
+                        ->styleTextSize(self::TEXT_SIZE)
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
+                        ->styleMarginTop('25px')
+                        ->styleTextBold()
+                        , '22%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('{% if(Content.P'.$personId.'.Input.Rating is not empty) %}
                                 {{ Content.P'.$personId.'.Input.Rating|nl2br }}
                             {% else %}
                                 &nbsp;
                             {% endif %}')
-                    ->styleTextSize('11pt')
-                    ->stylePaddingTop('10px')
-                    ->stylePaddingLeft('20px')
-                    ->stylePaddingRight('20px')
+                        ->styleTextSize(self::TEXT_SIZE_SMALL)
+                        ->styleLineHeight('90%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
+                        ->styleAlignJustify()
+                        ->styleMarginTop('25px')
+                        ->styleHeight('205px')
+                        , '72%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '3%'
+                    )
                 )
-                ->styleMarginTop('15px')
-                ->styleHeight('316px')
             )
             ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('Fachliche <br/> Einschätzung:')
-                    ->styleTextBold()
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '25%'
+                    )
+                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ESS_Grundschule_down.png', '500px'))
+                        ->styleAlignCenter()
+                        ->stylePaddingBottom('10px')
+                        , '72%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '3%'
+                    )
                 )
-                ->addElement((new Element())
-                    ->setContent('{% if(Content.P'.$personId.'.Input.TechnicalRating is not empty) %}
-                                {{ Content.P'.$personId.'.Input.TechnicalRating|nl2br }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}')
-                    ->styleTextSize('11pt')
-                    ->stylePaddingTop('10px')
-                    ->stylePaddingLeft('20px')
-                    ->stylePaddingRight('20px')
-                )
-                ->styleMarginTop('15px')
-                ->styleHeight('316px')
             )
             ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('Datum:
-                            {% if(Content.P' . $personId . '.Input.Date is not empty) %}
-                                {{ Content.P' . $personId . '.Input.Date }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}')
-                    ->styleTextSize(self::TEXT_SIZE_SMALL)
-                    ->stylePaddingBottom('25px')
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '3%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('Fachliche <br/> Einschätzung:')
+                        ->styleTextSize(self::TEXT_SIZE)
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
+                        ->styleTextBold()
+                        , '22%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('{% if(Content.P'.$personId.'.Input.TechnicalRating is not empty) %}
+                            {{ Content.P'.$personId.'.Input.TechnicalRating|nl2br }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}')
+                        ->styleTextSize(self::TEXT_SIZE_SMALL)
+                        ->styleLineHeight('90%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
+                        ->styleAlignJustify()
+                        ->styleHeight('283px')
+                        , '72%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '3%'
+                    )
+                )
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '3%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('Versetzungsvermerk')
+                        ->styleTextSize(self::TEXT_SIZE_VERY_SMALL)
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
+                        , '22%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('{% if(Content.P' . $personId . '.Input.Transfer) %}
+                            {{ Content.P' . $personId . '.Input.Transfer }}
+                        {% else %}
+                              &nbsp;
+                        {% endif %}')
+                        ->styleTextSize(self::TEXT_SIZE_VERY_SMALL)
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
+                        , '72%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '3%'
+                    )
+                )
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '3%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('Datum:
+                        {% if(Content.P' . $personId . '.Input.Date is not empty) %}
+                            {{ Content.P' . $personId . '.Input.Date }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}')
+                        ->styleTextSize(self::TEXT_SIZE_VERY_SMALL)
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
+                        ->stylePaddingBottom('20px')
+                        ->stylePaddingTop('20px')
+                        , '94%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '3%'
+                    )
                 )
             )
             ->addSlice((new Slice())
@@ -140,46 +281,68 @@ class EssGsJTwo extends Certificate
                         , '25%')
                     ->addElementColumn((new Element())
                         ->setContent('
-                                {% if(Content.P' . $personId . '.DivisionTeacher.Description is not empty) %}
-                                    {{ Content.P' . $personId . '.DivisionTeacher.Description }}
-                                {% else %}
-                                    Klassenlehrer(in)
-                                {% endif %}
+                            {% if(Content.P' . $personId . '.Headmaster.Description is not empty) %}
+                                {{ Content.P' . $personId . '.Headmaster.Description }}
+                            {% else %}
+                                Schulleiter(in)
+                            {% endif %}
                             ')
-                        ->styleTextSize(self::TEXT_SIZE_SMALL)
-                        , '50%')
+                        ->styleTextSize(self::TEXT_SIZE_VERY_SMALL)
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
+                        , '25%')
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if(Content.P' . $personId . '.DivisionTeacher.Description is not empty) %}
+                                {{ Content.P' . $personId . '.DivisionTeacher.Description }}
+                            {% else %}
+                                Klassenlehrer(in)
+                            {% endif %}
+                            ')
+                        ->styleTextSize(self::TEXT_SIZE_VERY_SMALL)
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
+                        , '25%')
                     ->addElementColumn((new Element())
                         ->setContent('Dienstsiegel')
-                        ->styleTextSize(self::TEXT_SIZE_SMALL)
+                        ->styleTextSize(self::TEXT_SIZE_VERY_SMALL)
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
                         , '25%')
                 )
-                ->stylePaddingBottom('40px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '3%'
+                    )
+                    ->addElementColumn((new Element())
                         ->setContent('Zur Kenntnis genommen:')
-                        ->styleTextSize(self::TEXT_SIZE_SMALL)
-                        , '30%')
+                        ->styleTextSize(self::TEXT_SIZE_VERY_SMALL)
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
+                        , '22%')
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
                         ->styleBorderBottom('1px', '#000', 'dotted')
                         , '40%')
                     ->addElementColumn((new Element())
-                        , '30%')
+                        , '35%')
                 )
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        , '30%')
+                        , '25%')
                     ->addElementColumn((new Element())
                         ->setContent('Eltern')
+                        ->styleTextSize(self::TEXT_SIZE_VERY_SMALL)
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleAlignCenter()
-                        ->stylePaddingTop('5px')
-                        ->styleTextSize(self::TEXT_SIZE_SMALL)
                         , '40%')
                     ->addElementColumn((new Element())
-                        , '30%')
-                )->styleMarginTop('10px')
+                        , '35%')
+                )->styleMarginTop('20px')
             );
     }
 }

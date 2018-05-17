@@ -377,6 +377,20 @@ class Data extends AbstractData
     }
 
     /**
+     * @param string $Name
+     *
+     * @return bool|TblSubject
+     */
+    public function getSubjectByName($Name)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSubject', array(
+            TblSubject::ATTR_NAME => $Name
+        ));
+    }
+
+
+    /**
      * @param TblSubject $tblSubject
      *
      * @return bool

@@ -18,8 +18,9 @@ class EssGsHjOne extends Certificate
 {
 
     const TEXT_SIZE = '12pt';
-    const TEXT_SIZE_SMALL = '9pt';
+    const TEXT_SIZE_SMALL = '10pt';
     const TEXT_SIZE_VERY_SMALL = '7pt';
+    const TEXT_FAMILY = 'MyriadPro';
 
     /**
      * @param TblPerson|null $tblPerson
@@ -50,114 +51,99 @@ class EssGsHjOne extends Certificate
         return (new Page())
             ->addSlice($Header)
             ->addSlice((new Slice())
+                ->addElement((new Element\Image('/Common/Style/Resource/Logo/ESS_Grundschule_Head.png', '700px'))
+                    ->styleAlignCenter()
+                )
+            )
+            ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('&nbsp;')
-                    ->stylePaddingTop('15px')
+                    ->stylePaddingTop('8px')
                 )
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        , '3%')
-                    ->addElementColumn((new Element())
-                        ->setContent('Klasse {{ Content.P' . $personId . '.Division.Data.Level.Name }}')
-                        ->styleTextSize(self::TEXT_SIZE_SMALL)
-                        , '15%'
+                        ->setContent('{{ Content.P' . $personId . '.Division.Data.DescriptionWithE }} Klasse {{ Content.P' . $personId . '.Division.Data.Level.Name }}')
+                        ->styleTextSize(self::TEXT_SIZE)
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
+                        , '25%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('1. Schulhalbjahr')
-                        ->styleTextSize(self::TEXT_SIZE_SMALL)
-                        , '15%'
-                    )
-                    ->addElementColumn((new Element())
-                        , '37%'
+                        ->styleTextSize(self::TEXT_SIZE)
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
+                        , '45%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('Schuljahr {{ Content.P' . $personId . '.Division.Data.Year }}')
-                        ->styleTextSize(self::TEXT_SIZE_SMALL)
-                        ->stylePaddingTop('10px')
+                        ->styleTextSize(self::TEXT_SIZE)
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
+                        ->styleAlignRight()
                         , '30%'
                     )
                 )
+                ->stylePaddingBottom('30px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        , '3%')
                     ->addElementColumn((new Element())
                         ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
                                       {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
-                        ->styleTextSize('15pt'))
+                        ->styleTextSize('15pt')
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
+//                        ->styleTextBold()
+                        , '55%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('Schneeberg, den 
+                            {% if(Content.P' . $personId . '.Input.Date is not empty) %}
+                                {{ Content.P' . $personId . '.Input.Date }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}')
+                        ->styleTextSize('15pt')
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
+                        ->styleAlignRight()
+//                        ->styleTextBold()
+                        , '45%'
+                    )
                 )
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        , '3%')
                     ->addElementColumn((new Element())
                         ->setContent('Vor- und Zuname')
-                        ->stylePaddingBottom('20px')
-                        ->styleTextSize(self::TEXT_SIZE_VERY_SMALL))
-                )
-            )
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        , '3%')
-                    ->addElementColumn((new Element())
-                        ->setContent('EVANGELISCHE GRUNDSCHULE')
-                        ->styleTextSize(self::TEXT_SIZE_SMALL)
-                        , '30%'
-                    )
-                    ->addElementColumn((new Element())
-                        , '37%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('SCHNEEBERG, DEN')
-                        ->styleTextSize(self::TEXT_SIZE_SMALL)
-                        , '30%'
+                        ->styleTextSize(self::TEXT_SIZE_VERY_SMALL)
+                        ->styleLineHeight('75%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
                     )
                 )
             )
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        , '70%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('
-                                {% if(Content.P' . $personId . '.Input.Date is not empty) %}
-                                    {{ Content.P' . $personId . '.Input.Date }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}')
-                        ->styleTextSize(self::TEXT_SIZE_SMALL)
-                        , '30%'
-                    )
-                )
-            )
+
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
-                                    {{ Content.P' . $personId . '.Input.Remark|nl2br }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}')
+                            {{ Content.P' . $personId . '.Input.Remark|nl2br }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}')
                     ->styleTextSize(self::TEXT_SIZE)
+                    ->styleLineHeight('105%')
+                    ->styleFontFamily(self::TEXT_FAMILY)
                     ->styleAlignJustify()
-                    ->stylePaddingTop('60px')
-                    ->stylePaddingRight('20px')
-                    ->stylePaddingLeft('20px')
+                    ->stylePaddingTop('25px')
+                    ->stylePaddingRight('40px')
+                    ->stylePaddingLeft('40px')
                     ->stylePaddingBottom('20px')
-//                        ->styleHeight('485px')
+                    ->styleHeight('450px')
                 )
             )
+
             ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('Für das 2. Schulhalbjahr wünsche ich dir recht viel Freude und Erfolg beim Lernen.')
-                    ->styleTextSize(self::TEXT_SIZE)
-                    ->stylePaddingTop('30px')
-                    ->stylePaddingLeft('25%')
-                    ->stylePaddingRight('20%')
-                )
                 ->addElement((new Element())
                     ->setContent('
                             {% if(Content.P' . $personId . '.DivisionTeacher.Gender is not empty) %}
@@ -175,43 +161,51 @@ class EssGsHjOne extends Certificate
                                 &nbsp;
                             {% endif %}')
                     ->styleTextSize(self::TEXT_SIZE)
-                    ->stylePaddingTop('30px')
-                    ->stylePaddingLeft('25%')
-                    ->stylePaddingRight('20%')
+                    ->styleLineHeight('105%')
+                    ->styleFontFamily(self::TEXT_FAMILY)
+                    ->stylePaddingTop('20px')
+                    ->stylePaddingRight('40px')
+                    ->stylePaddingLeft('40px')
                 )
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        , '25%'
+                        , '40%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('Zur Kenntnis genommen:')
-                        ->styleTextSize(self::TEXT_SIZE_SMALL)
-                        ->stylePaddingTop('100px')
-                        , '21%'
+                        ->styleTextSize(self::TEXT_SIZE)
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
+                        ->stylePaddingTop('20px')
+                        , '26%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
-                        ->stylePaddingTop('100px')
+                        ->stylePaddingTop('20px')
                         ->styleBorderBottom()
                         , '34%'
-                    )
-                    ->addElementColumn((new Element())
-                        , '20%'
                     )
                 )
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        , '46%'
+                        , '66%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Erziehungsberechtigten')
+                        ->setContent('Eltern')
                         ->styleTextSize(self::TEXT_SIZE_VERY_SMALL)
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
+                        ->stylePaddingTop('5px')
                         ->styleAlignCenter()
                         , '34%'
                     )
-                    ->addElementColumn((new Element())
-                        , '20%'
-                    )
+                )
+                ->addElement((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleHeight('15px')
+                )
+                ->addElement((new Element\Image('/Common/Style/Resource/Logo/ESS_Grundschule_down.png', '690px'))
+                    ->styleAlignCenter()
                 )
             );
     }

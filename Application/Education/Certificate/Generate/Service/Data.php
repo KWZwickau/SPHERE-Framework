@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Education\Certificate\Generate\Service;
 
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
+use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificateSetting;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateType;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
@@ -198,6 +199,102 @@ class Data extends AbstractData
 
             return true;
         }
+        return false;
+    }
+
+    /**
+     * @param TblGenerateCertificate $tblGenerateCertificate
+     * @param $Field
+     *
+     * @return false|TblGenerateCertificateSetting
+     * @throws \Exception
+     */
+    public function getGenerateCertificateSettingBy(TblGenerateCertificate $tblGenerateCertificate, $Field)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGenerateCertificateSetting',
+            array(
+                TblGenerateCertificateSetting::ATTR_TBL_GENERATE_CERTIFICATE => $tblGenerateCertificate->getId(),
+                TblGenerateCertificateSetting::ATTR_FIELD => $Field,
+            )
+        );
+    }
+
+    /**
+     * @param TblGenerateCertificate $tblGenerateCertificate
+     *
+     * @return false|TblGenerateCertificateSetting[]
+     */
+    public function getGenerateCertificateSettingAllByGenerateCertificate(TblGenerateCertificate $tblGenerateCertificate)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGenerateCertificateSetting',
+            array(
+                TblGenerateCertificateSetting::ATTR_TBL_GENERATE_CERTIFICATE => $tblGenerateCertificate->getId()
+            )
+        );
+    }
+
+    /**
+     * @param TblGenerateCertificate $tblGenerateCertificate
+     * @param $Field
+     * @param $Value
+     *
+     * @return TblGenerateCertificateSetting
+     */
+    public function createGenerateCertificateSetting(
+        TblGenerateCertificate $tblGenerateCertificate,
+        $Field,
+        $Value
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblGenerateCertificateSetting')->findOneBy(array(
+            TblGenerateCertificateSetting::ATTR_TBL_GENERATE_CERTIFICATE => $tblGenerateCertificate->getId(),
+            TblGenerateCertificateSetting::ATTR_FIELD => $Field,
+        ));
+        if ($Entity === null) {
+            $Entity = new TblGenerateCertificateSetting();
+            $Entity->setTblGenerateCertificate($tblGenerateCertificate);
+            $Entity->setField($Field);
+            $Entity->setValue($Value);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblGenerateCertificateSetting $tblGenerateCertificateSetting
+     * @param $Value
+     *
+     * @return bool
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     */
+    public function updateGenerateCertificateSetting(
+        TblGenerateCertificateSetting $tblGenerateCertificateSetting,
+        $Value
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblGenerateCertificateSetting $Entity */
+        $Entity = $Manager->getEntityById('TblGenerateCertificateSetting', $tblGenerateCertificateSetting->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setValue($Value);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
         return false;
     }
 }
