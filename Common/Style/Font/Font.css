@@ -58,3 +58,29 @@
     font-weight: bold;
     src: url("{{ UriPath }}/Common/Style/Font/trebucbi.ttf") format('truetype');
 }
+
+@font-face {
+    font-family: 'MyriadPro';
+    font-style: normal;
+    font-weight: normal;
+    src: url("{{ UriPath }}/Common/Style/Font/Myriad-Pro-Regular.ttf") format('truetype');
+}
+@font-face {
+    font-family: 'MyriadPro';
+    font-style: normal;
+    font-weight: bold;
+    src: url("{{ UriPath }}/Common/Style/Font/Myriad-Pro-Bold.ttf") format('truetype');
+}
+
+@font-face {
+    font-family: 'MyriadPro';
+    font-style: italic;
+    font-weight: normal;
+    src: url("{{ UriPath }}/Common/Style/Font/Myriad-Pro-Italic.ttf") format('truetype');
+}
+@font-face {
+    font-family: 'MyriadPro';
+    font-style: italic;
+    font-weight: bold;
+    src: url("{{ UriPath }}/Common/Style/Font/Myriad-Pro-BoldItalic.ttf") format('truetype');
+}
