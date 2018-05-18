@@ -41,7 +41,6 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -73,7 +72,6 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Beziehungen', 'Hinzufügen');
-//        $Stage->addButton(new Backward(true));
         $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $Id)));
         $Stage->setMessage(
             'Eine Beziehungen zur gewählten Person hinzufügen'
@@ -710,7 +708,6 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Beziehung', 'Löschen');
-        $Stage->addButton(new Backward(true));
         if ($Id) {
             $tblToPerson = Relationship::useService()->getRelationshipToPersonById($Id);
             $tblPersonFrom = $tblToPerson->getServiceTblPersonFrom();
@@ -720,6 +717,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             if (!$Confirm) {
+                $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $tblPersonFrom->getId())));
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
                         new Panel(new PersonIcon() . ' Person',
@@ -780,7 +778,6 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Beziehung', 'Löschen');
-        $Stage->addButton(new Backward(true));
         if ($Id) {
             $tblToCompany = Relationship::useService()->getRelationshipToCompanyById($Id);
             if (!$tblToCompany) {
@@ -794,6 +791,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             if (!$Confirm) {
+                $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $tblPerson->getId())));
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
                         new Panel(new PersonIcon() . ' Person',

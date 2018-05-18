@@ -62,7 +62,6 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger as DangerMessage;
 use SPHERE\Common\Frontend\Message\Repository\Info;
@@ -98,7 +97,6 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Klassen', 'Aktuelle Übersicht');
-        new Backward();
 
         $DivisionList = array();
         if (isset( $Year ) && $Year !== '0') {
@@ -434,7 +432,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Klassenlehrer', $Title);
         $Stage->setMessage('');
-//            $Stage->addButton(new Backward());
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
             array('Id' => $tblDivision->getId())));
 
@@ -586,7 +583,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Elternvertreter', $Title);
         $Stage->setMessage('');
-//            $Stage->addButton(new Backward());
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
             array('Id' => $tblDivision->getId())));
 
@@ -876,7 +872,6 @@ class Frontend extends Extension implements IFrontendInterface
                         array('Id' => $tblDivision->getId()));
             }
             $Stage = new Stage('Schüler', 'Klasse ' . new Bold($tblDivision->getDisplayName()));
-//                $Stage->addButton(new Backward());
             $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
                 array('Id' => $Id)));
             $Stage->setMessage(new WarningText('"Schüler in Gelb"')
@@ -1398,7 +1393,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage = new Stage('Fach-Gruppen', 'Bearbeiten');
-//        $Stage->addButton(new Backward());
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/SubjectGroup/Add', new ChevronLeft(),
             array(
                 'Id'                => $DivisionId,
@@ -1526,7 +1520,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Klasse', 'Bearbeiten');
-        $Stage->addButton(new Backward());
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
 //        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
         $tblDivision = Division::useService()->getDivisionById($Id);
         if (!$tblDivision) {
@@ -2066,9 +2060,8 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Lehrer', 'Auswahl');
         $tblDivision = Division::useService()->getDivisionById($Id);
         if ($tblDivision) {
-            $Stage->addButton(new Backward());
-//            $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
-//                array('Id' => $tblDivision->getId())));
+            $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
+                array('Id' => $tblDivision->getId())));
             $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
             if ($tblDivisionSubjectList) {
                 foreach ($tblDivisionSubjectList as &$tblDivisionSubject) {
@@ -2230,8 +2223,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Klasse', 'Kopieren');
-        $Stage->addButton(new Backward());
-//        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
         $tblDivision = $Id === null ? false : Division::useService()->getDivisionById($Id);
         if (!$tblDivision) {
             return $Stage->setContent(new DangerMessage('Klasse nicht gefunden.',

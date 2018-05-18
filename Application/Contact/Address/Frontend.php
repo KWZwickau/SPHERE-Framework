@@ -41,7 +41,6 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -256,7 +255,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('Die Adresse der gewählten Person ändern');
 
         if (!$tblToPerson) {
-            // Back to Person with Backward
+            // Error Message
             return $Stage.new Danger('Adresse nicht gefunden', new Ban());
 //            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
         }
@@ -405,7 +404,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Adresse', 'Löschen');
-        $Stage->addButton( new Backward(true) );
+        $Stage->addButton( new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $Id)) );
         if ($Id) {
             $tblToPerson = Address::useService()->getAddressToPersonById($Id);
             $tblPerson = $tblToPerson->getServiceTblPerson();
@@ -475,7 +474,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Adresse', 'Löschen');
-        $Stage->addButton( new Backward(true) );
+        $Stage->addButton( new Standard('Zurück', '/Corporation/Company', new ChevronLeft(), array('Id' => $Id)) );
         if ($Id) {
             $tblToCompany = Address::useService()->getAddressToCompanyById($Id);
 

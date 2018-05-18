@@ -39,7 +39,6 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\PhoneLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -550,7 +549,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Telefonnummer', 'Löschen');
-        $Stage->addButton(new Backward(true));
+        $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $Id)));
 
         if ($Id) {
             $tblToPerson = Phone::useService()->getPhoneToPersonById($Id);
