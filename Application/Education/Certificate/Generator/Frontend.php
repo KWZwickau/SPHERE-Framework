@@ -35,7 +35,6 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -53,7 +52,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Klasse', 'wählen');
-        $Stage->addButton(new Backward());
+        // Zurück button bei bedarf einbauen
 
         $tblYearAll = Term::useService()->getYearAllSinceYears($SinceYears);
 
@@ -110,7 +109,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Schüler', 'wählen');
-        $Stage->addButton(new Backward());
+        // Zurück button bei bedarf einbauen
         $Header = '';
 
         if ($Division) {
@@ -179,7 +178,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Zeugnisvorlage', 'wählen');
-        $Stage->addButton(new Backward());
+        // Zurück button bei bedarf einbauen
         $Header = array();
 
         if ($Division && $Person) {
@@ -282,7 +281,7 @@ class Frontend extends Extension implements IFrontendInterface
     ) {
 
         $Stage = new Stage('Zeugnisdaten', 'überprüfen');
-        $Stage->addButton(new Backward(true));
+        // Zurück button bei bedarf einbauen
 
         if (!$SaveAs) {
             $Global = $this->getGlobal();
