@@ -6,6 +6,7 @@ use SPHERE\Common\Frontend\Link\Repository\Backward\Session;
 use SPHERE\Common\Frontend\Link\Repository\Backward\Step;
 
 /**
+ * @deprecated
  * Class Backward
  *
  * @package SPHERE\Common\Frontend\Link\Repository
