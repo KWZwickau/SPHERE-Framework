@@ -55,7 +55,6 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Info;
@@ -93,7 +92,6 @@ class Frontend extends Extension implements IFrontendInterface
 //        $Stage->addButton(
 //            new Standard('Debitor anlegen', '/Billing/Accounting/Banking/Person', new Plus())
 //        );
-//        new Backward();
         $TableContent = array();
         $tblPersonAll = Person::useService()->getPersonAll();
         if ($tblPersonAll) {
@@ -161,7 +159,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Debitor', 'Anlegen');
         $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Banking', new ChevronLeft()));
-//        $Stage->addButton(new Backward());
         $tblPerson = $Id === null ? false : Person::useService()->getPersonById($Id);
         if (!$tblPerson) {
             $Stage->setContent(new Warning('Auf die Person konnte nicht zugegriffen werden'));
@@ -361,7 +358,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Banking/View', new ChevronLeft(), array('Id' => $tblPerson->getId())));
-//        $Stage->addButton(new Backward(true));
 
         $Global = $this->getGlobal();
         if (!isset( $Global->POST['Debtor'] )) {
@@ -499,7 +495,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Banking/View', new ChevronLeft(),
             array('Id' => $tblPerson->getId())));
-//        $Stage->addButton(new Backward());
 
         $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
         $PersonPanel = new Layout(
@@ -632,7 +627,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Content = array();
         $Content[] = 'Debitornummer: '.$tblDebtor->getDebtorNumber();
         if (!$Confirm) {
-            $Stage->addButton(new Backward());
+            $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Banking/View', new ChevronLeft(), array('Id' => $tblPerson->getId())));
             $Stage->setContent(
                 $PersonPanel
                 .new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
@@ -725,7 +720,6 @@ class Frontend extends Extension implements IFrontendInterface
         $Content[] = 'Datum: '.$tblBankReference->getReferenceDate();
         if (!$Confirm) {
             $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Banking/View', new ChevronLeft(), array('Id' => $tblPerson->getId())));
-//            $Stage->addButton(new Backward());
             $Stage->setContent(
                 $PersonPanel
                 .new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
@@ -1012,7 +1006,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Basket', new ChevronLeft()));
-//        $Stage->addButton(new Backward());
         $Global = $this->getGlobal();
 
         $TableContent = array();
@@ -1176,7 +1169,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Basket', new ChevronLeft()
             , array('Id' => $tblBasket->getId())));
-//        $Stage->addButton(new Backward(true));
 
         $TableContent = array();
         $tblDebtorSelectionList = array();
@@ -1306,7 +1298,6 @@ class Frontend extends Extension implements IFrontendInterface
         $PersonIdList = array();
         $tblPersonList = array();
         $TableContent = array();
-//        new Backward();
 
         if ($tblDebtorSelectionAll) {
             foreach ($tblDebtorSelectionAll as $tblDebtorSelection) {
@@ -1404,7 +1395,6 @@ class Frontend extends Extension implements IFrontendInterface
             .new Redirect('/Billing/Accounting/DebtorSelection', Redirect::TIMEOUT_ERROR);
         }
         $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/DebtorSelection', new ChevronLeft()));
-//        $Stage->addButton(new Backward());
         $Global = $this->getGlobal();
         $TableContent = array();
         $tblDebtorSelectionList = Banking::useService()->getDebtorSelectionByPerson($tblPerson);
@@ -1560,7 +1550,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
         $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/DebtorSelection/PaymentSelection', new ChevronLeft()
             , array('Id' => $tblPerson->getId())));
-//        $Stage->addButton(new Backward());
 
         $Global = $this->getGlobal();
 
@@ -1717,7 +1706,6 @@ class Frontend extends Extension implements IFrontendInterface
         if (!$Confirm) {
             $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/DebtorSelection/PaymentSelection', new ChevronLeft(),
                 array('Id' => $tblPerson->getId())));
-//            $Stage->addButton(new Backward());
             $Stage->setContent(
                 $PersonPanel
                 .new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(

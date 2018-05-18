@@ -439,8 +439,8 @@ class Frontend extends Extension implements IFrontendInterface
                         $PanelToken
                     ), 4),
                     new FormColumn(array(
-                        $PanelPerson,
                         new Panel(new Nameplate().' mit folgenden Berechtigungen', $tblRoleAll, Panel::PANEL_TYPE_INFO),
+                        $PanelPerson,
                     ), 8),
                 )),
             )),

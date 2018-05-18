@@ -38,7 +38,6 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -65,7 +64,6 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Artikel', 'Übersicht');
-//        new Backward();
         $tblItemAll = Item::useService()->getItemAll();
 
         $TableContent = array();
@@ -239,7 +237,6 @@ class Frontend extends Extension implements IFrontendInterface
                     $Content[] = 'Geschwister: '.$tblCalculation->getServiceTblSiblingRank()->getName();
                 }
                 if (!$Confirm) {
-//                    $Stage->addButton(new Backward());
                     $Stage->addButton(new Standard(
                         'Zurück', '/Billing/Inventory/Item/Calculation', new ChevronLeft(), array('Id' => $tblItem->getId())));
                     $Stage->setContent(
@@ -301,7 +298,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Artikel', 'Bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Item', new ChevronLeft()));
-//        $Stage->addButton(new Backward());
 
         $tblItem = Item::useService()->getItemById($Id);
         if (!$tblItem) {
@@ -347,7 +343,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Preise', 'mit Bedingungen');
         $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Item', new ChevronLeft()));
-//        $Stage->addButton(new Backward());
         $tblItem = Item::useService()->getItemById($Id);
         if (!$tblItem) {
             $Stage->setContent(new Warning('Kein Artikel gefunden'));
@@ -497,7 +492,6 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Item/Calculation', new ChevronLeft(),
                 array('Id' => $tblItem->getId())));
-//            $Stage->addButton(new Backward());
 
             $Global = $this->getGlobal();
             if (!isset( $Global->POST['Calculation'] )) {
