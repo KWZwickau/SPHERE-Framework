@@ -949,7 +949,8 @@ class Data extends AbstractData
                 $this->setCertificateSubject($tblCertificate, 'IN', $row, $column);
             }
         }
-        // todo gym sekII
+        $this->createCertificate('Gymnasium Abgangszeugnis', 'Sekundarstufe II', 'GymAbgSekII',
+            null, false, false, false, $tblCertificateTypeLeave, $tblSchoolTypeGym);
 
         /*
          * Abitur Zeugnis
