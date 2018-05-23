@@ -11,6 +11,7 @@ namespace SPHERE\Application\Education\Certificate\Prepare;
 use SPHERE\Application\Api\Education\Certificate\Generator\Repository\GymAbgSekI;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
+use SPHERE\Application\Education\Certificate\Prepare\Abitur\BlockIView;
 use SPHERE\Application\Education\Certificate\Prepare\Abitur\LeavePoints;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
@@ -4353,6 +4354,13 @@ class Frontend extends Extension implements IFrontendInterface
                                     $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GymAbgSekI');
                                 } else {
                                     $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GymAbgSekII');
+                                    if ($tblCertificate) {
+                                        $tblLeaveStudent = Prepare::useService()->createLeaveStudent(
+                                            $tblPerson,
+                                            $tblDivision,
+                                            $tblCertificate
+                                        );
+                                    }
                                 }
                             }
                         }
@@ -4366,9 +4374,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblLeaveStudent ? $tblLeaveStudent : null,
                     $tblDivision ? $tblDivision : null,
                     $tblPerson ? $tblPerson : null,
-                    $Data,
                     $stage,
-                    $subjectData,
                     $tblType ? $tblType : null,
                     $tblCourse ? $tblCourse : null);
 
@@ -4778,9 +4784,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param TblLeaveStudent|null $tblLeaveStudent
      * @param TblDivision|null $tblDivision
      * @param TblPerson|null $tblPerson
-     * @param $Data
      * @param Stage $stage
-     * @param $subjectData
      * @param TblType|null $tblType
      * @param TblCourse|null $tblCourse
      *
@@ -4791,20 +4795,15 @@ class Frontend extends Extension implements IFrontendInterface
         TblLeaveStudent $tblLeaveStudent = null,
         TblDivision $tblDivision = null,
         TblPerson $tblPerson = null,
-        $Data,
         Stage $stage,
-        $subjectData,
         TblType $tblType = null,
         TblCourse $tblCourse = null
     ) {
 
-        $isApproved = false;
         $form = false;
 
         if ($tblCertificate) {
             if ($tblLeaveStudent) {
-                $isApproved = $tblLeaveStudent->isApproved();
-
                 $stage->addButton(new External(
                     'Zeugnis als Muster herunterladen',
                     '/Api/Education/Certificate/Generator/PreviewLeave',
@@ -4861,13 +4860,23 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                     , 3)
             )),
-//            ($hasPreviewGrades
-//                ? new LayoutRow(new LayoutColumn(new Warning(
-//                    'Es wurden noch nicht alle Notenvorschläge gespeichert.', new Exclamation()
-//                )))
-//                : null
-//            )
         ));
+
+        if ($form && $tblLeaveStudent) {
+            $layoutGroups[] = new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(array(
+                        new Standard('Punkte bearbeiten',
+                            '/Education/Certificate/Prepare/Leave/Student/Abitur/Points',
+                            new Edit(), array(
+                                'Id' => $tblLeaveStudent->getId(),
+                            )
+                        ),
+                        '</br>'
+                    )),
+                )),
+            ));
+        }
 
         if ($tblCertificate) {
 //
@@ -4928,19 +4937,112 @@ class Frontend extends Extension implements IFrontendInterface
 
             /** @var Form $form */
             if ($form) {
-                if (!$isApproved) {
-                    $form->appendFormButton(new Primary('Speichern', new Save()));
-                }
+//                if (!$isApproved) {
+//                    $form->appendFormButton(new Primary('Speichern', new Save()));
+//                }
 
                 $layoutGroups[] = new LayoutGroup(new LayoutRow(new LayoutColumn(
-                    new Well(
+//                    new Well(
 //                    Prepare::useService()->updateLeaveContent($form, $tblPerson, $tblDivision, $tblCertificate, $Data)
                         $form
-                    )
+//                    )
                 )));
             }
         }
 
         return $layoutGroups;
+    }
+
+    /**
+     * @param null $Id
+     * @param null $Data
+     * @return Stage|string
+     */
+    public function frontendLeaveStudentAbiturPoints($Id = null, $Data = null)
+    {
+
+        if (($tblLeaveStudent = Prepare::useService()->getLeaveStudentById($Id))
+            && ($tblPerson = $tblLeaveStudent->getServiceTblPerson())
+        ) {
+            $stage = new Stage(new Stage('Zeugnisvorbereitung', 'Abgangszeugnis - Schüler'));
+
+            $tblDivision = $tblLeaveStudent->getServiceTblDivision();
+            $tblCertificate = $tblLeaveStudent->getServiceTblCertificate();
+
+            if ($tblDivision
+                && ($tblLevel = $tblDivision->getTblLevel())
+            ) {
+                $tblType = $tblLevel->getServiceTblType();
+            } else {
+                $tblType = false;
+            }
+
+            if (($tblStudent = $tblPerson->getStudent())){
+                $tblCourse = $tblStudent->getCourse();
+            } else {
+                $tblCourse = false;
+            }
+
+            $layoutGroups[] = new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new Panel(
+                            'Schüler',
+                            $tblPerson->getLastFirstName(),
+                            Panel::PANEL_TYPE_INFO
+                        )
+                        , 3),
+                    new LayoutColumn(
+                        new Panel(
+                            'Klasse',
+                            $tblDivision
+                                ? $tblDivision->getDisplayName()
+                                : new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation()
+                                . ' Keine aktuelle Klasse zum Schüler gefunden!'),
+                            $tblDivision ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_WARNING
+                        )
+                        , 3),
+                    new LayoutColumn(
+                        new Panel(
+                            'Schulart',
+                            $tblType
+                                ? $tblType->getName() . ($tblCourse ? ' - ' . $tblCourse->getName() : '')
+                                : new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation()
+                                . ' Keine aktuelle Schulart zum Schüler gefunden!'),
+                            $tblType ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_WARNING
+                        )
+                        , 3),
+                    new LayoutColumn(
+                        new Panel(
+                            'Zeugnisvorlage',
+                            $tblCertificate
+                                ? $tblCertificate->getName()
+                                . ($tblCertificate->getDescription()
+                                    ? new Muted(' - ' . $tblCertificate->getDescription()) : '')
+                                : new \SPHERE\Common\Frontend\Text\Repository\Warning(new Exclamation()
+                                . ' Keine Zeugnisvorlage verfügbar!'),
+                            $tblCertificate ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_WARNING
+                        )
+                        , 3)
+                )),
+            ));
+
+            $LeavePoints = new LeavePoints($tblLeaveStudent, BlockIView::EDIT_GRADES);
+            $form = $LeavePoints->getForm();
+
+            $layoutGroups[] = new LayoutGroup(new LayoutRow(new LayoutColumn(
+                new Well(
+                    Prepare::useService()->updateLeaveStudentAbiturPoints($form, $tblLeaveStudent, $Data)
+                )
+            )));
+
+            $stage->setContent(new Layout($layoutGroups));
+
+            return $stage;
+        } else {
+            return new Stage('Zeugnisvorbereitung', 'Abgangszeugnis - Schüler')
+                . new Danger('Schüler nicht gefunden', new Ban())
+                . new Redirect('/Education/Certificate/Prepare/Leave', Redirect::TIMEOUT_ERROR);
+        }
     }
 }

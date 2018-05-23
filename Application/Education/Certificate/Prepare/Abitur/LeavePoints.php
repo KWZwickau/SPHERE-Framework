@@ -94,10 +94,12 @@ class LeavePoints extends Extension
         'columnDefs' => array(
             array('width' => '35%', 'targets' => 0),
             array('width' => '5%', 'targets' => 1),
-            array('width' => '15%', 'targets' => array(2,3,4,5)),
+            array('width' => '10%', 'targets' => array(2,3,4,5,6,7)),
         ),
         'fixedHeader' => false
     );
+
+    // todo Durchschnittsnote & Abgangsnote
 
     private $columnDefinition = array(
         'Subject' => 'Fach',
@@ -106,6 +108,8 @@ class LeavePoints extends Extension
         '11-2' => '11/2',
         '12-1' => '12/1',
         '12-2' => '12/2',
+        'Average' => 'Durchschnitt¹',
+        'FinalGrade' => 'Abgangsnote²'
     );
 
     /**
@@ -294,7 +298,10 @@ class LeavePoints extends Extension
                             $grades[$midTerm] = $selectBox;
                         }
                     } elseif ($hasSubject && $this->View == BlockIView::PREVIEW && $tblPrepareAdditionalGradeType) {
-                        if ($tblLeaveAdditionalGrade) {
+                        if ($tblLeaveAdditionalGrade
+                            && $tblLeaveAdditionalGrade->getGrade() !== null
+                            && $tblLeaveAdditionalGrade->getGrade() !== ''
+                        ) {
                             $value = str_pad($tblLeaveAdditionalGrade->getGrade(),2, 0, STR_PAD_LEFT);
                             $grades[$midTerm] = $value;
                         }
@@ -310,6 +317,7 @@ class LeavePoints extends Extension
                 '11-2' => isset($grades['11-2']) ? $grades['11-2'] : '',
                 '12-1' => isset($grades['12-1']) ? $grades['12-1'] : '',
                 '12-2' => isset($grades['12-2']) ? $grades['12-2'] : '',
+                'Average' => $hasSubject ? Prepare::useService()->calcAbiturLeaveGradeBySubject($tblLeaveStudent, $tblSubject) : ''
             );
         }
 
