@@ -99,8 +99,6 @@ class LeavePoints extends Extension
         'fixedHeader' => false
     );
 
-    // todo Durchschnittsnote & Abgangsnote
-
     private $columnDefinition = array(
         'Subject' => 'Fach',
         'Course' => 'Kurs',
@@ -310,6 +308,8 @@ class LeavePoints extends Extension
             }
             $global->savePost();
 
+            $points = Prepare::useService()->calcAbiturLeaveGradePointsBySubject($tblLeaveStudent, $tblSubject);
+
             $array[] = array(
                 'Subject' => $subjectName,
                 'Course' => $course,
@@ -317,7 +317,8 @@ class LeavePoints extends Extension
                 '11-2' => isset($grades['11-2']) ? $grades['11-2'] : '',
                 '12-1' => isset($grades['12-1']) ? $grades['12-1'] : '',
                 '12-2' => isset($grades['12-2']) ? $grades['12-2'] : '',
-                'Average' => $hasSubject ? Prepare::useService()->calcAbiturLeaveGradeBySubject($tblLeaveStudent, $tblSubject) : ''
+                'Average' => $hasSubject ? $points : '',
+                'FinalGrade' => $hasSubject ? Prepare::useService()->getAbiturLeaveGradeBySubject($points) : ''
             );
         }
 

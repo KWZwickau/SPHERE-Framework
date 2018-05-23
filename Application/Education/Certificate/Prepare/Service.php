@@ -4127,7 +4127,7 @@ class Service extends AbstractService
      * @return string
      * @throws \Exception
      */
-    public function calcAbiturLeaveGradeBySubject(TblLeaveStudent $tblLeaveStudent, TblSubject $tblSubject)
+    public function calcAbiturLeaveGradePointsBySubject(TblLeaveStudent $tblLeaveStudent, TblSubject $tblSubject)
     {
 
         $sum = 0;
@@ -4153,6 +4153,51 @@ class Service extends AbstractService
             return str_pad($result, 2, 0, STR_PAD_LEFT);
         } else {
 
+            return '&ndash;';
+        }
+    }
+
+    /**
+     * @param $points
+     *
+     * @return string
+     */
+    public function getAbiturLeaveGradeBySubject($points)
+    {
+
+        if ($points === '15') {
+            return '1+';
+        } elseif ($points === '14') {
+            return '1';
+        } elseif ($points === '13') {
+            return '1-';
+        } elseif ($points === '12') {
+            return '2+';
+        } elseif ($points === '11') {
+            return '2';
+        } elseif ($points === '10') {
+            return '2-';
+        } elseif ($points === '09') {
+            return '3+';
+        } elseif ($points === '08') {
+            return '3';
+        } elseif ($points === '07') {
+            return '3-';
+        } elseif ($points === '06') {
+            return '4+';
+        } elseif ($points === '05') {
+            return '4';
+        } elseif ($points === '04') {
+            return '4-';
+        } elseif ($points === '03') {
+            return '5+';
+        } elseif ($points === '02') {
+            return '5';
+        } elseif ($points === '01') {
+            return '5-';
+        } elseif ($points === '00') {
+            return '6';
+        } else {
             return '&ndash;';
         }
     }
