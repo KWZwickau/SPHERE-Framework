@@ -10,6 +10,7 @@ namespace SPHERE\Application\Education\Certificate\Prepare;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Api\Education\Certificate\Generator\Repository\GymAbgSekI;
+use SPHERE\Application\Api\Education\Certificate\Generator\Repository\GymAbgSekII;
 use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
@@ -4200,5 +4201,64 @@ class Service extends AbstractService
         } else {
             return '&ndash;';
         }
+    }
+
+    /**
+     * @param IFormInterface|null $form
+     * @param TblLeaveStudent $tblLeaveStudent
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function updateAbiturLeaveInformation(
+        IFormInterface $form = null,
+        TblLeaveStudent $tblLeaveStudent,
+        $Data
+    ) {
+
+        if ($Data === null) {
+            return $form;
+        }
+
+        $error = false;
+        if (isset($Data['CertificateDate']) && empty($Data['CertificateDate'])) {
+            $form->setError('Data[InformationList][CertificateDate]', new Exclamation() . ' Bitte geben Sie ein Datum ein.');
+            $error = true;
+        }
+
+        if ($error) {
+            $form->prependGridGroup(
+                new FormGroup(new FormRow(new FormColumn(new Danger(
+                        'Es wurden nicht alle Pflichtfelder befüllt. Die Daten wurden nicht gespeichert.', new Exclamation())
+                ))));
+
+            return $form;
+        }
+
+        $leaveTerms = GymAbgSekII::getLeaveTerms();
+        $midTerms = GymAbgSekII::getMidTerms();
+
+        foreach ($Data as $field => $value) {
+            if ($field == 'LeaveTerm' && isset($leaveTerms[$value])) {
+                $saveValue = $leaveTerms[$value];
+            } elseif ($field == 'MidTerm' && isset($midTerms[$value])) {
+                $saveValue = $midTerms[$value];
+            } else {
+                $saveValue = $value;
+            }
+
+            if (($tblLeaveInformation = $this->getLeaveInformationBy($tblLeaveStudent, $field))) {
+                (new Data($this->getBinding()))->updateLeaveInformation($tblLeaveInformation, $saveValue);
+            } else {
+                (new Data($this->getBinding()))->createLeaveInformation($tblLeaveStudent, $field, $saveValue);
+            }
+        }
+
+        $tblPerson = $tblLeaveStudent->getServiceTblPerson();
+
+        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Informationen wurden erfolgreich gespeichert.')
+            . new Redirect('/Education/Certificate/Prepare/Leave/Student', Redirect::TIMEOUT_SUCCESS, array(
+                'PersonId' => $tblPerson ? $tblPerson->getId() : 0,
+            ));
     }
 }

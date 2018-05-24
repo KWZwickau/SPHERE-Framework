@@ -31,6 +31,30 @@ class GymAbgSekII extends Certificate
 {
 
     /**
+     * @return array
+     */
+    public static function getLeaveTerms()
+    {
+        return array(
+            1 => "während des Kurshalbjahres",
+            2 => "am Ende des Kurshalbjahres"
+        );
+    }
+
+    /**
+     * @return array
+     */
+    public static function getMidTerms()
+    {
+        return array(
+            1 => '11/1',
+            2 => '11/2',
+            3 => '12/1',
+            4 => '12/2'
+        );
+    }
+
+    /**
      * @var array|false
      */
     private $AdvancedCourses = false;
@@ -79,7 +103,7 @@ class GymAbgSekII extends Certificate
             );
 
         // todo informationList
-        $leaveTerm = 'während/am Ende';
+        $leaveTerm = 'während/am Ende des Kurshalbjahres';
         $period = '&nbsp;';
 
         $advancedSubjects = '&nbsp;';
@@ -156,7 +180,7 @@ class GymAbgSekII extends Certificate
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('verlässt das Gymnasium ' . $leaveTerm . ' des Kurshalbjahres')
+                        ->setContent('verlässt das Gymnasium ' . $leaveTerm)
                         ->styleMarginTop('40px')
                     )
                     ->addElementColumn((new Element())
