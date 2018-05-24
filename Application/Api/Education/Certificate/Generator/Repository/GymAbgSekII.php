@@ -14,10 +14,12 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Text\Repository\Sup;
 
 /**
@@ -27,6 +29,11 @@ use SPHERE\Common\Frontend\Text\Repository\Sup;
  */
 class GymAbgSekII extends Certificate
 {
+
+    /**
+     * @var array|false
+     */
+    private $AdvancedCourses = false;
 
     /**
      * @param TblPerson|null $tblPerson
@@ -40,103 +47,200 @@ class GymAbgSekII extends Certificate
 
         $Header = $this->getHead($this->isSample(), true, 'auto', '50px');
 
-        // todo letzte Seite einkommentieren
-//        $pageList[] = (new Page());
+        $pageList[] = (new Page());
 
-//        $pageList[] = (new Page())
-//            ->addSlice(
-//                $Header
-//            )
-//            ->addSlice((new Slice())
-//                ->addElement((new Element())
-//                    ->setContent('ABGANGSZEUGNIS')
-//                    ->styleTextSize('27px')
-//                    ->styleAlignCenter()
-//                    ->styleMarginTop('32%')
-//                    ->styleTextBold()
-//                )
-//            )
-//            ->addSlice((new Slice())
-//                ->addElement((new Element())
-//                    ->setContent('des Gymnasiums')
-//                    ->styleTextSize('22px')
-//                    ->styleAlignCenter()
-//                    ->styleMarginTop('20px')
-//                )
-//            )->addSlice((new Slice())
-//                ->addElement((new Element())
-//                    ->setContent('(gymnasiale Oberstufe)')
-//                    ->styleTextSize('22px')
-//                    ->styleAlignCenter()
-//                    ->styleMarginTop('20px')
-//                )
-//            );
-//
-//        $pageList[] = (new Page())
-//            ->addSlice((new Slice())
-//                ->addSection((new Section())
-//                    ->addElementColumn((new Element())
-//                        ->setContent('Vorname und Zuname')
-//                        , '22%')
-//                    ->addElementColumn((new Element())
-//                        ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
-//                                          {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
-//                        ->styleAlignCenter()
-//                        ->styleBorderBottom()
-//                    )
-//                )->styleMarginTop('60px')
-//            )
-//            ->addSlice((new Slice())
-//                ->addSection((new Section())
-//                    ->addElementColumn((new Element())
-//                        ->setContent('geboren am')
-//                        , '22%')
-//                    ->addElementColumn((new Element())
-//                        ->setContent('{% if(Content.P' . $personId . '.Person.Common.BirthDates.Birthday is not empty) %}
-//                                    {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthday|date("d.m.Y") }}
-//                                {% else %}
-//                                    &nbsp;
-//                                {% endif %}')
-//                        ->styleAlignCenter()
-//                        ->styleBorderBottom()
-//                        , '20%')
-//                    ->addElementColumn((new Element())
-//                        ->setContent('in')
-//                        ->styleAlignCenter()
-//                        , '5%')
-//                    ->addElementColumn((new Element())
-//                        ->setContent('{% if(Content.P' . $personId . '.Person.Common.BirthDates.Birthplace is not empty) %}
-//                                    {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthplace }}
-//                                {% else %}
-//                                    &nbsp;
-//                                {% endif %}')
-//                        ->styleAlignCenter()
-//                        ->styleBorderBottom()
-//                    )
-//                )->styleMarginTop('25px')
-//            )
-//            ->addSlice((new Slice())
-//                ->addSection((new Section())
-//                    ->addElementColumn((new Element())
-//                        ->setContent('wohnhaft in')
-//                        , '22%')
-//                    ->addElementColumn((new Element())
-//                        ->setContent('{% if(Content.P' . $personId . '.Person.Address.City.Name) %}
-//                                    {{ Content.P' . $personId . '.Person.Address.Street.Name }}
-//                                    {{ Content.P' . $personId . '.Person.Address.Street.Number }},
-//                                    {{ Content.P' . $personId . '.Person.Address.City.Code }}
-//                                    {{ Content.P' . $personId . '.Person.Address.City.Name }}
-//                                {% else %}
-//                                      &nbsp;
-//                                {% endif %}')
-//                        ->styleAlignCenter()
-//                        ->styleBorderBottom()
-//                    )
-//                )->styleMarginTop('25px')
-//
-//            );
+        $pageList[] = (new Page())
+            ->addSlice(
+                $Header
+            )
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('ABGANGSZEUGNIS')
+                    ->styleTextSize('27px')
+                    ->styleAlignCenter()
+                    ->styleMarginTop('28%')
+                    ->styleTextBold()
+                )
+            )
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('des Gymnasiums')
+                    ->styleTextSize('22px')
+                    ->styleAlignCenter()
+                    ->styleMarginTop('20px')
+                )
+            )->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('(gymnasiale Oberstufe)')
+                    ->styleTextSize('22px')
+                    ->styleAlignCenter()
+                    ->styleMarginTop('20px')
+                )
+            );
 
         // todo informationList
+        $leaveTerm = 'während/am Ende';
+        $period = '&nbsp;';
+
+        $advancedSubjects = '&nbsp;';
+        if ($tblPerson) {
+            $this->setCourses($tblPerson);
+            if ($this->AdvancedCourses) {
+                $advancedSubjects = implode(', ', $this->AdvancedCourses);
+            }
+        }
+
+        $pageList[] = (new Page())
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Vorname und Zuname')
+                        , '22%')
+                    ->addElementColumn((new Element())
+                        ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
+                                          {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
+                        ->styleAlignCenter()
+                        ->styleBorderBottom()
+                    )
+                )->styleMarginTop('60px')
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('geboren am')
+                        , '22%')
+                    ->addElementColumn((new Element())
+                        ->setContent('{% if(Content.P' . $personId . '.Person.Common.BirthDates.Birthday is not empty) %}
+                                    {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthday|date("d.m.Y") }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
+                        ->styleAlignCenter()
+                        ->styleBorderBottom()
+                        , '20%')
+                    ->addElementColumn((new Element())
+                        ->setContent('in')
+                        ->styleAlignCenter()
+                        , '5%')
+                    ->addElementColumn((new Element())
+                        ->setContent('{% if(Content.P' . $personId . '.Person.Common.BirthDates.Birthplace is not empty) %}
+                                    {{ Content.P' . $personId . '.Person.Common.BirthDates.Birthplace }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}')
+                        ->styleAlignCenter()
+                        ->styleBorderBottom()
+                    )
+                )->styleMarginTop('25px')
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('wohnhaft in')
+                        , '22%')
+                    ->addElementColumn((new Element())
+                        ->setContent('{% if(Content.P' . $personId . '.Person.Address.City.Name) %}
+                                    {{ Content.P' . $personId . '.Person.Address.Street.Name }}
+                                    {{ Content.P' . $personId . '.Person.Address.Street.Number }},
+                                    {{ Content.P' . $personId . '.Person.Address.City.Code }}
+                                    {{ Content.P' . $personId . '.Person.Address.City.Name }}
+                                {% else %}
+                                      &nbsp;
+                                {% endif %}')
+                        ->styleAlignCenter()
+                        ->styleBorderBottom()
+                    )
+                )->styleMarginTop('25px')
+
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('verlässt das Gymnasium ' . $leaveTerm . ' des Kurshalbjahres')
+                        ->styleMarginTop('40px')
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent($period)
+                        ->styleMarginTop('40px')
+                        ->styleBorderBottom()
+                        , '15%')
+                    ->addElementColumn((new Element())
+                        ->styleMarginTop('40px')
+                        , '25%')
+                )
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('und belegte in der gymnasialen Oberstufe Leistungskurse in den Fächern')
+                        ->styleMarginTop('30px')
+                    )
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent($advancedSubjects)
+                        ->styleBorderBottom()
+                        ->styleMarginTop('30px')
+                    , '99%')
+                    ->addElementColumn((new Element())
+                        ->setContent('.')
+                        ->styleMarginTop('30px')
+                    , '1%')
+                )
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
+                                Sie
+                            {% else %}
+                                {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
+                                    Er
+                                {% else %}
+                                    Sie/Er
+                                {% endif %}
+                            {% endif %}
+                            hat die Vollzeitschulpflicht gemäß § 28 Absatz 1 Nummer 1, Absatz 2 des Sächsischen
+                            Schulgesetzes erfüllt.
+                        ')
+                        ->styleMarginTop('30px')
+                    )
+                )
+            )
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
+                                Frau
+                            {% else %}
+                                {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
+                                    Herr
+                                {% else %}
+                                    Frau/Herr
+                                {% endif %}
+                            {% endif %}
+                            <u>&nbsp;&nbsp;&nbsp;&nbsp; {{ Content.P' . $personId . '.Person.Data.Name.First }} {{ Content.P' . $personId . '.Person.Data.Name.Last }} &nbsp;&nbsp;&nbsp;&nbsp;</u>
+                            hat gemäß § 7 Absatz 7 Satz 2 des Sächsischen Schulgesetzes mit dem Versetzungszeugnis von
+                            Klassenstufe 10 in die Jahrgangsstufe 11 des Gymnasiums
+                            einen dem Realschulabschluss gleichgestellten mittleren Schulabschluss erworben.
+                        ')
+                        ->styleMarginTop('40px')
+                    )
+                )
+            )
+            ->addSlice((new Slice)
+                ->addElement((new Element())
+                    ->setContent('Bemerkungen:')
+                    ->styleTextBold()
+                    ->styleMarginTop('50px')
+                )
+            )
+            ->addSlice($this->getDescriptionContent($personId, '200px'))
+            ->addSlice($this->getSchoolName($personId, '30px'))
+            ->addSlice($this->setPointsOverview('120px'))
+        ;
 
         $textSize = '13px';
         $padding = '8.5px';
@@ -698,5 +802,201 @@ class GymAbgSekII extends Certificate
             );
 
         return $section;
+    }
+
+    /**
+     * @param string $MarginTop
+     *
+     * @return Slice
+     */
+    private function setPointsOverview($MarginTop = '25px')
+    {
+
+        $textSize = '10px';
+        $slice = new Slice();
+        $slice
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Für die Umsetzung der Noten in Punkte gilt:')
+                    ->styleTextSize($textSize)
+                )
+            );
+
+        $section = new Section();
+        $this->setColumnElement($section, 'Notenstufen', $textSize);
+        $this->setColumnElement($section, 'sehr gut', $textSize);
+        $this->setColumnElement($section, 'gut', $textSize);
+        $this->setColumnElement($section, 'befriedigend', $textSize);
+        $this->setColumnElement($section, 'ausreichend', $textSize);
+        $this->setColumnElement($section, 'mangelhaft', $textSize);
+        $this->setColumnElement($section, 'ungenügend', $textSize, false, true);
+        $slice
+            ->addSection($section);
+
+        $section = new Section();
+        $this->setColumnElement($section, 'Noten', $textSize);
+        $this->setColumnElement($section, '+&nbsp;&nbsp;&nbsp;1&nbsp;&nbsp;&nbsp;-', $textSize);
+        $this->setColumnElement($section, '+&nbsp;&nbsp;&nbsp;2&nbsp;&nbsp;&nbsp;-', $textSize);
+        $this->setColumnElement($section, '+&nbsp;&nbsp;&nbsp;3&nbsp;&nbsp;&nbsp;-', $textSize);
+        $this->setColumnElement($section, '+&nbsp;&nbsp;&nbsp;4&nbsp;&nbsp;&nbsp;-', $textSize);
+        $this->setColumnElement($section, '+&nbsp;&nbsp;&nbsp;5&nbsp;&nbsp;&nbsp;-', $textSize);
+        $this->setColumnElement($section, '6', $textSize, false, true);
+        $slice
+            ->addSection($section);
+
+        $section = new Section();
+        $this->setColumnElement($section, 'Punkte', $textSize, true);
+        $this->setColumnElement($section, '15 14 13', $textSize, true);
+        $this->setColumnElement($section, '12 11 10', $textSize, true);
+        $this->setColumnElement($section, '09 08 07', $textSize, true);
+        $this->setColumnElement($section, '06 05 04', $textSize, true);
+        $this->setColumnElement($section, '03 02 01', $textSize, true);
+        $this->setColumnElement($section, '00', $textSize, true, true);
+        $slice
+            ->addSection($section);
+
+        return $slice
+            ->styleMarginTop($MarginTop);
+    }
+
+    /**
+     * @param Section $section
+     * @param string $name
+     * @param $textSize
+     * @param bool $isBorderBottom
+     * @param bool $isBorderRight
+     */
+    private function setColumnElement(
+        Section $section,
+        $name,
+        $textSize,
+        $isBorderBottom = false,
+        $isBorderRight = false
+    ) {
+
+        $section
+            ->addElementColumn((new Element())
+                ->setContent($name)
+                ->styleTextSize($textSize)
+                ->styleAlignCenter()
+                ->styleBorderLeft()
+                ->styleBorderTop()
+                ->styleBorderRight($isBorderRight ? '1px' : '0px')
+                ->styleBorderBottom($isBorderBottom ? '1px' : '0px')
+                , '14.28%');
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     */
+    private function setCourses(TblPerson $tblPerson = null)
+    {
+
+        $advancedCourses = array();
+        if ($tblPerson && ($tblDivision = $this->getTblDivision())
+            && ($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))
+        ) {
+            foreach ($tblDivisionSubjectList as $tblDivisionSubjectItem) {
+                if (($tblSubjectGroup = $tblDivisionSubjectItem->getTblSubjectGroup())) {
+
+                    if (($tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject(
+                        $tblDivisionSubjectItem))
+                    ) {
+                        foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                            if (($tblSubject = $tblDivisionSubjectItem->getServiceTblSubject())
+                                && ($tblPersonStudent = $tblSubjectStudent->getServiceTblPerson())
+                                && $tblPerson->getId() == $tblPersonStudent->getId()
+                            ) {
+                                if ($tblSubjectGroup->isAdvancedCourse()) {
+                                    if ($tblSubject->getName() == 'Deutsch' || $tblSubject->getName() == 'Mathematik') {
+                                        $advancedCourses[0] = $tblSubject->getName();
+                                    } else {
+                                        $advancedCourses[1] = $tblSubject->getName();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!empty($advancedCourses)) {
+            ksort($advancedCourses);
+            $this->AdvancedCourses = $advancedCourses;
+        }
+    }
+
+    /**
+     * @param $personId
+     * @param string $MarginTop
+     *
+     * @return Slice
+     */
+    protected function getSchoolName($personId, $MarginTop = '20px')
+    {
+
+        if (($tblSetting = Consumer::useService()->getSetting(
+                'Education', 'Certificate', 'Prepare', 'IsSchoolExtendedNameDisplayed'))
+            && $tblSetting->getValue()
+        ) {
+            $isSchoolExtendedNameDisplayed = true;
+        } else {
+            $isSchoolExtendedNameDisplayed = false;
+        }
+        if (($tblSetting = Consumer::useService()->getSetting(
+                'Education', 'Certificate', 'Prepare', 'SchoolExtendedNameSeparator'))
+            && $tblSetting->getValue()
+        ) {
+            $separator = $tblSetting->getValue();
+        } else {
+            $separator = false;
+        }
+        $name = '&nbsp;';
+        $address = '&nbsp;';
+        // get company name
+        if (($tblPerson = Person::useService()->getPersonById($personId))) {
+            if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
+                if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))) {
+                    $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                        $tblTransferType);
+                    if ($tblStudentTransfer) {
+                        if (($tblCompany = $tblStudentTransfer->getServiceTblCompany())) {
+                            $name = $isSchoolExtendedNameDisplayed ? $tblCompany->getName() .
+                                ($separator ? ' ' . $separator . ' ' : ' ') . $tblCompany->getExtendedName() : $tblCompany->getName();
+
+                            if (($mainAddress = $tblCompany->fetchMainAddress())) {
+                                $address = $mainAddress->getGuiString();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        $schoolSlice = (new Slice());
+        $schoolSlice
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent($name)
+                    ->styleAlignCenter()
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent($address)
+                    ->styleAlignCenter()
+                    ->styleBorderBottom()
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Name und Anschrift der Schule')
+                    ->styleAlignCenter()
+                )
+            )
+        ;
+
+        return $schoolSlice;
     }
 }
