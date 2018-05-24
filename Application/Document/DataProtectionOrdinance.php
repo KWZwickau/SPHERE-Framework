@@ -219,6 +219,7 @@ class DataProtectionOrdinance implements IClusterInterface, IApplicationInterfac
                                 hiermit widersprochen. Die Betreiber der Seiten behalten sich ausdrücklich rechtliche
                                 Schritte im Falle der unverlangten Zusendung von Werbeinformationen, etwa durch Spam-E-Mails, vor.
                             '),
+                            new Container('&nbsp;'),
                         ))
                     ), new Title(
                         'WIDERSPRUCH BEI WERBEMAILS'
