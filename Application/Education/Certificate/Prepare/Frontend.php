@@ -4893,6 +4893,40 @@ class Frontend extends Extension implements IFrontendInterface
                     $form
                 )));
             }
+
+            $panelList[] = array();
+            if (($leaveTermInformation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'LeaveTerm'))) {
+                $panelList[] = new Panel(
+                    'verlässt das Gymnasium',
+                    $leaveTermInformation->getValue()
+                );
+            }
+            if (($midTermInformation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'MidTerm'))) {
+                $panelList[] = new Panel(
+                    'Kurshalbjahr',
+                    $midTermInformation->getValue()
+                );
+            }
+            if (($dateInformation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'CertificateDate'))) {
+                $panelList[] = new Panel(
+                    'Zeugnisdatum',
+                    $dateInformation->getValue()
+                );
+            }
+            if (($remarkInformation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'Remark'))) {
+                $panelList[] = new Panel(
+                    'Bemerkungen',
+                    $remarkInformation->getValue()
+                );
+            }
+
+            $layoutGroups[] = new LayoutGroup(new LayoutRow(new LayoutColumn(
+                new Panel(
+                    'Sonstige Informationen',
+                    $panelList,
+                    Panel::PANEL_TYPE_PRIMARY
+                )
+            )));
         }
 
         return $layoutGroups;

@@ -102,9 +102,22 @@ class GymAbgSekII extends Certificate
                 )
             );
 
-        // todo informationList
         $leaveTerm = 'während/am Ende des Kurshalbjahres';
-        $period = '&nbsp;';
+        $leaveTermWidth = '58%';
+        $midTerm = '/';
+
+        if ($tblPerson
+            && ($tblDivision = $this->getTblDivision())
+            && ($tblLeaveStudent = Prepare::useService()->getLeaveStudentBy($tblPerson, $tblDivision))
+        ){
+            if (($leaveTermInformation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'LeaveTerm'))) {
+                $leaveTerm = $leaveTermInformation->getValue();
+                $leaveTermWidth = '50%';
+            }
+            if (($midTermInformation = Prepare::useService()->getLeaveInformationBy($tblLeaveStudent, 'MidTerm'))) {
+                $midTerm = $midTermInformation->getValue();
+            }
+        }
 
         $advancedSubjects = '&nbsp;';
         if ($tblPerson) {
@@ -182,15 +195,16 @@ class GymAbgSekII extends Certificate
                     ->addElementColumn((new Element())
                         ->setContent('verlässt das Gymnasium ' . $leaveTerm)
                         ->styleMarginTop('40px')
-                    )
+                    , $leaveTermWidth)
                     ->addElementColumn((new Element())
-                        ->setContent($period)
+                        ->setContent($midTerm)
+                        ->styleAlignCenter()
                         ->styleMarginTop('40px')
                         ->styleBorderBottom()
                         , '15%')
                     ->addElementColumn((new Element())
                         ->styleMarginTop('40px')
-                        , '25%')
+                    )
                 )
             )
             ->addSlice((new Slice())
@@ -257,7 +271,6 @@ class GymAbgSekII extends Certificate
             ->addSlice((new Slice)
                 ->addElement((new Element())
                     ->setContent('Bemerkungen:')
-                    ->styleTextBold()
                     ->styleMarginTop('50px')
                 )
             )
@@ -557,7 +570,13 @@ class GymAbgSekII extends Certificate
                 )
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('Schulleiter(in)')
+                        ->setContent('
+                            {% if(Content.P' . $personId . '.Headmaster.Description is not empty) %}
+                                {{ Content.P' . $personId . '.Headmaster.Description }}
+                            {% else %}
+                                Schulleiter(in)
+                            {% endif %}'
+                        )
                         ->styleTextSize($textSize)
                         , '35%')
                     ->addElementColumn((new Element())
@@ -567,6 +586,18 @@ class GymAbgSekII extends Certificate
                     )
                     ->addElementColumn((new Element())
                         , '35%')
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent(
+                            '{% if(Content.P' . $personId . '.Headmaster.Name is not empty) %}
+                                {{ Content.P' . $personId . '.Headmaster.Name }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}'
+                        )
+                        ->styleTextSize($textSize)
+                    , '35%')
                 )
                 ->styleMarginTop('20px')
             )
@@ -578,7 +609,7 @@ class GymAbgSekII extends Certificate
                     ->addElementColumn((new Element())
                         , '70%')
                 )
-                ->styleMarginTop('70px')
+                ->styleMarginTop('55px')
                 ->addSection($this->setInfoRow(1, 'Ist das arithmetische Mittel der in den Kurshalbjahren erreichten Punktzahlen nicht ganzzahlig, so wird auf die nächstgrößere ganze Zahl gerundet.'))
                 ->addSection($this->setInfoRow(2, 'Aus dem Punktzahldurchschnitt ergibt sich die Abgangsnote gemäß Tabelle auf Seite 2.'))
                 ->addSection($this->setInfoRow(3, 'An Gymnasien gemäß § 38 Absatz 2 der Schulordnung Gymnasien Abiturprüfung sind die Fächer Ev./Kath. Religion dem gesellschaftswissenschaftlichen
