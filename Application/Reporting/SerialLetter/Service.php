@@ -572,7 +572,7 @@ class Service extends AbstractService
         }
         $isCompany = false;
         $FilterCategory = SerialLetter::useService()->getFilterCategoryByName(TblFilterCategory::IDENTIFIER_COMPANY_GROUP);
-        if (( $tblFilterCategory = $tblSerialLetter->getFilterCategory() )) {
+        if ($FilterCategory && ( $tblFilterCategory = $tblSerialLetter->getFilterCategory() )) {
             if ($FilterCategory->getId() == $tblFilterCategory->getId()) {
                 $isCompany = true;
             }
