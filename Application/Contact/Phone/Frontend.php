@@ -549,7 +549,6 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Telefonnummer', 'Löschen');
-        $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $Id)));
 
         if ($Id) {
             $tblToPerson = Phone::useService()->getPhoneToPersonById($Id);
@@ -565,11 +564,11 @@ class Frontend extends Extension implements IFrontendInterface
                 . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
             }
 
-//            $Stage->addButton(
-//                new Standard('Zurück', '/People/Person', new ChevronLeft(),
-//                    array('Id' => $tblPerson->getId())
-//                )
-//            );
+            $Stage->addButton(
+                new Standard('Zurück', '/People/Person', new ChevronLeft(),
+                    array('Id' => $tblPerson->getId())
+                )
+            );
             if (!$Confirm) {
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(

@@ -11,6 +11,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
@@ -59,6 +60,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Gruppen', 'Übersicht');
+        $Stage->addButton(new Standard('Zurück', '/Corporation', new ChevronLeft()));
         $tblGroupAll = Group::useService()->getGroupAll();
         if ($tblGroupAll) {
             array_walk($tblGroupAll, function (TblGroup &$tblGroup) {

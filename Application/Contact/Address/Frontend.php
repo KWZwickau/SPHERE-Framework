@@ -251,13 +251,16 @@ class Frontend extends Extension implements IFrontendInterface
         $tblToPerson = Address::useService()->getAddressToPersonById($Id);
 
         $Stage = new Stage('Adresse', 'Bearbeiten');
-        $Stage->addButton( new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $Id)) );
         $Stage->setMessage('Die Adresse der gewählten Person ändern');
 
         if (!$tblToPerson) {
             // Error Message
             return $Stage.new Danger('Adresse nicht gefunden', new Ban());
 //            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
+        }
+
+        if (($tblPerson = $tblToPerson->getServiceTblPerson())) {
+            $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $tblPerson->getId())));
         }
 
         if(!$tblToPerson->getServiceTblPerson()){
@@ -404,13 +407,15 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Adresse', 'Löschen');
-        $Stage->addButton( new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $Id)) );
-        if ($Id) {
-            $tblToPerson = Address::useService()->getAddressToPersonById($Id);
+        if ($Id &&  $tblToPerson = Address::useService()->getAddressToPersonById($Id)) {
             $tblPerson = $tblToPerson->getServiceTblPerson();
             if (!$tblPerson) {
                 return $Stage . new Danger('Person nicht gefunden', new Ban())
                 . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
+            }
+
+            if ($tblPerson) {
+                $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $tblPerson->getId())));
             }
 
             if (!$Confirm) {
@@ -474,15 +479,14 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Adresse', 'Löschen');
-        $Stage->addButton( new Standard('Zurück', '/Corporation/Company', new ChevronLeft(), array('Id' => $Id)) );
-        if ($Id) {
-            $tblToCompany = Address::useService()->getAddressToCompanyById($Id);
-
+        if ($Id && ($tblToCompany = Address::useService()->getAddressToCompanyById($Id))) {
             $tblCompany = $tblToCompany->getServiceTblCompany();
             if(!$tblCompany){
                 return $Stage.new Danger('Institution nicht gefunden', new Ban())
                 . new Redirect('/Corporation/Search/Group', Redirect::TIMEOUT_ERROR);
             }
+
+            $Stage->addButton( new Standard('Zurück', '/Corporation/Company', new ChevronLeft(), array('Id' => $tblCompany->getId())) );
 
             if (!$Confirm) {
                 $Stage->setContent(
@@ -491,10 +495,7 @@ class Frontend extends Extension implements IFrontendInterface
                             array(
                                 new Bold($tblCompany->getName()),
                                 $tblCompany->getExtendedName()),
-                            Panel::PANEL_TYPE_SUCCESS,
-                            new Standard('Zurück zur Institution', '/Corporation/Company', new ChevronLeft(),
-                                array('Id' => $tblCompany->getId())
-                            )
+                            Panel::PANEL_TYPE_SUCCESS
                         ),
                         new Panel(new Question() . ' Diese Adresse wirklich löschen?', array(
                             $tblToCompany->getTblType()->getName() . ' ' . $tblToCompany->getTblType()->getDescription(),
