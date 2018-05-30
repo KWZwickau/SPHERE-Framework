@@ -17,6 +17,7 @@ use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
@@ -195,7 +196,14 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblTeacherList) {
                     $NameList = array();
                     foreach ($tblTeacherList as $tblPerson) {
-                        $NameList[] = $tblPerson->getLastName();
+                        if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))
+                            && ($acronym = $tblTeacher->getAcronym())
+                        ) {
+                            $name = $tblPerson->getLastName() . ' (' . $acronym . ')';
+                        } else {
+                            $name = $tblPerson->getLastName();
+                        }
+                        $NameList[] = $name;
                     }
 //                    $Temp['TeacherList'] = new Listing($NameList);
                     $Temp['TeacherList'] = implode('<br/>', $NameList);
