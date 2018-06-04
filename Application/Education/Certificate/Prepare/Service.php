@@ -10,12 +10,14 @@ namespace SPHERE\Application\Education\Certificate\Prepare;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
 use SPHERE\Application\Api\Education\Certificate\Generator\Repository\GymAbgSekI;
+use SPHERE\Application\Api\Education\Certificate\Generator\Repository\GymAbgSekII;
 use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generate\Service\Entity\TblGenerateCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Abitur\BlockIView;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Data;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveAdditionalGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveGrade;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveInformation;
 use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblLeaveStudent;
@@ -3198,6 +3200,48 @@ class Service extends AbstractService
         }
     }
 
+    public function copyAbiturLeaveGradesFromCertificates(
+        TblPrepareStudent $tblPrepareStudent,
+        TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
+        TblLeaveStudent $tblLeaveStudent
+    ) {
+        // Zensuren von Zeugnissen
+        if (($tblPreviousPrepare = $tblPrepareStudent->getTblPrepareCertificate())
+            && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+            && ($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK'))
+            && ($tblPrepareGradeList = Prepare::useService()->getPrepareGradeAllByPerson(
+                $tblPreviousPrepare,
+                $tblPerson,
+                $tblTestType))
+        ) {
+            foreach ($tblPrepareGradeList as $tblPrepareGrade) {
+                if (($tblSubject = $tblPrepareGrade->getServiceTblSubject())
+                ) {
+                    if (($tblLeaveAdditionalGrade = Prepare::useService()->getLeaveAdditionalGradeBy(
+                        $tblLeaveStudent,
+                        $tblSubject,
+                        $tblPrepareAdditionalGradeType
+                    ))) {
+                        if (($tblPrepareGrade->getGrade() !== $tblLeaveAdditionalGrade->getGrade())) {
+                            (new Data($this->getBinding()))->updateLeaveAdditionalGrade(
+                                $tblLeaveAdditionalGrade,
+                                $tblPrepareGrade->getGrade()
+                            );
+                        }
+                    } else {
+                        (new Data($this->getBinding()))->createLeaveAdditionalGrade(
+                            $tblLeaveStudent,
+                            $tblSubject,
+                            $tblPrepareAdditionalGradeType,
+                            $tblPrepareGrade->getGrade(),
+                            true
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     /**
      * @param TblPrepareCertificate $tblPrepareCertificate
      * @param TblPerson $tblPerson
@@ -3895,7 +3939,12 @@ class Service extends AbstractService
             ));
     }
 
-
+    /**
+     * @param TblPrepareCertificate $tblPrepareCertificate
+     * @param TblPerson $tblPerson
+     * @return array|bool
+     * @throws \Exception
+     */
     public function checkAbiturExams(TblPrepareCertificate $tblPrepareCertificate, TblPerson $tblPerson)
     {
 
@@ -3944,5 +3993,272 @@ class Service extends AbstractService
         }
 
         return $warnings;
+    }
+
+    /**
+     * @param TblLeaveStudent $tblLeaveStudent
+     * @param TblSubject $tblSubject
+     * @param TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType
+     * @param bool $isForced
+     * @return false|TblLeaveAdditionalGrade
+     * @throws \Exception
+     */
+    public function getLeaveAdditionalGradeBy(
+        TblLeaveStudent $tblLeaveStudent,
+        TblSubject $tblSubject,
+        TblPrepareAdditionalGradeType $tblPrepareAdditionalGradeType,
+        $isForced = false
+    ) {
+
+        return (new Data($this->getBinding()))->getLeaveAdditionalGradeBy($tblLeaveStudent, $tblSubject, $tblPrepareAdditionalGradeType, $isForced);
+    }
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param TblLeaveStudent $tblLeaveStudent
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function updateLeaveStudentAbiturPoints(
+        IFormInterface $Form = null,
+        TblLeaveStudent $tblLeaveStudent,
+        $Data
+    ) {
+
+        if ($Data === null) {
+            return $Form;
+        }
+
+        $error = false;
+
+        foreach ($Data as $midTerm => $subjects) {
+            if (is_array($subjects)
+                && (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier($midTerm)))
+            ) {
+                foreach ($subjects as $subjectId => $value) {
+                    if (trim($value) !== '') {
+                        if (!preg_match('!^([0-9]{1}|1[0-5]{1})$!is', trim($value))) {
+                            $error = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($error) {
+            $Form->prependGridGroup(
+                new FormGroup(new FormRow(new FormColumn(new Danger(
+                        'Nicht alle eingebenen Zensuren befinden sich im Wertebereich (0 - 15 Punkte).
+                            Die Daten wurden nicht gespeichert.', new Exclamation())
+                ))));
+
+            return $Form;
+        }
+
+        foreach ($Data as $midTerm => $subjects) {
+            if (is_array($subjects)
+                && (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier($midTerm)))
+            ) {
+                foreach ($subjects as $subjectId => $grade) {
+                    $grade = trim($grade);
+                    if (($tblSubject = Subject::useService()->getSubjectById($subjectId))) {
+                        if (($tblLeaveAdditionalGrade = $this->getLeaveAdditionalGradeBy(
+                            $tblLeaveStudent,
+                            $tblSubject,
+                            $tblPrepareAdditionalGradeType
+                        ))) {
+                            (new Data($this->getBinding()))->updateLeaveAdditionalGrade(
+                                $tblLeaveAdditionalGrade, $grade
+                            );
+                        } else {
+                            if ($grade !== null && $grade !== '') {
+                                (new Data($this->getBinding()))->createLeaveAdditionalGrade(
+                                    $tblLeaveStudent,
+                                    $tblSubject,
+                                    $tblPrepareAdditionalGradeType,
+                                    $grade,
+                                    false
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        $tblPerson =  $tblLeaveStudent->getServiceTblPerson();
+
+        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Informationen wurden erfolgreich gespeichert.')
+            . new Redirect('/Education/Certificate/Prepare/Leave/Student', Redirect::TIMEOUT_SUCCESS, array(
+                'PersonId' => $tblPerson ? $tblPerson->getId() : 0,
+            ));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
+     * @param TblCertificate $tblCertificate
+     * @param bool $IsApproved
+     * @param bool $IsPrinted
+     *
+     * @return null|TblLeaveStudent
+     */
+    public function createLeaveStudent(
+        TblPerson $tblPerson,
+        TblDivision $tblDivision,
+        TblCertificate $tblCertificate,
+        $IsApproved = false,
+        $IsPrinted = false
+    ) {
+
+        return (new Data($this->getBinding()))->createLeaveStudent(
+            $tblPerson,
+            $tblDivision,
+            $tblCertificate,
+            $IsApproved,
+            $IsPrinted
+        );
+    }
+
+    /**
+     * @param TblLeaveStudent $tblLeaveStudent
+     * @param TblSubject $tblSubject
+     * @return string
+     * @throws \Exception
+     */
+    public function calcAbiturLeaveGradePointsBySubject(TblLeaveStudent $tblLeaveStudent, TblSubject $tblSubject)
+    {
+
+        $sum = 0;
+        $count = 0;
+        for ($level = 11; $level < 13; $level++) {
+            for ($term = 1; $term < 3; $term++) {
+                $midTerm = $level . '-' . $term;
+                if (($tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier($midTerm))
+                    && ($tblLeaveAdditionalGrade = $this->getLeaveAdditionalGradeBy($tblLeaveStudent, $tblSubject, $tblPrepareAdditionalGradeType))
+                ) {
+                    $grade = $tblLeaveAdditionalGrade->getGrade();
+                    if ($grade !== null && $grade !== '') {
+                        $sum += floatval($grade);
+                        $count++;
+                    }
+                }
+            }
+        }
+
+        if ($count > 0) {
+            $result = ceil($sum/$count);
+
+            return str_pad($result, 2, 0, STR_PAD_LEFT);
+        } else {
+
+            return '&ndash;';
+        }
+    }
+
+    /**
+     * @param $points
+     *
+     * @return string
+     */
+    public function getAbiturLeaveGradeBySubject($points)
+    {
+
+        if ($points === '15') {
+            return '1+';
+        } elseif ($points === '14') {
+            return '1';
+        } elseif ($points === '13') {
+            return '1-';
+        } elseif ($points === '12') {
+            return '2+';
+        } elseif ($points === '11') {
+            return '2';
+        } elseif ($points === '10') {
+            return '2-';
+        } elseif ($points === '09') {
+            return '3+';
+        } elseif ($points === '08') {
+            return '3';
+        } elseif ($points === '07') {
+            return '3-';
+        } elseif ($points === '06') {
+            return '4+';
+        } elseif ($points === '05') {
+            return '4';
+        } elseif ($points === '04') {
+            return '4-';
+        } elseif ($points === '03') {
+            return '5+';
+        } elseif ($points === '02') {
+            return '5';
+        } elseif ($points === '01') {
+            return '5-';
+        } elseif ($points === '00') {
+            return '6';
+        } else {
+            return '&ndash;';
+        }
+    }
+
+    /**
+     * @param IFormInterface|null $form
+     * @param TblLeaveStudent $tblLeaveStudent
+     * @param $Data
+     *
+     * @return IFormInterface|string
+     */
+    public function updateAbiturLeaveInformation(
+        IFormInterface $form = null,
+        TblLeaveStudent $tblLeaveStudent,
+        $Data
+    ) {
+
+        if ($Data === null) {
+            return $form;
+        }
+
+        $error = false;
+        if (isset($Data['CertificateDate']) && empty($Data['CertificateDate'])) {
+            $form->setError('Data[InformationList][CertificateDate]', new Exclamation() . ' Bitte geben Sie ein Datum ein.');
+            $error = true;
+        }
+
+        if ($error) {
+            $form->prependGridGroup(
+                new FormGroup(new FormRow(new FormColumn(new Danger(
+                        'Es wurden nicht alle Pflichtfelder befüllt. Die Daten wurden nicht gespeichert.', new Exclamation())
+                ))));
+
+            return $form;
+        }
+
+        $leaveTerms = GymAbgSekII::getLeaveTerms();
+        $midTerms = GymAbgSekII::getMidTerms();
+
+        foreach ($Data as $field => $value) {
+            if ($field == 'LeaveTerm' && isset($leaveTerms[$value])) {
+                $saveValue = $leaveTerms[$value];
+            } elseif ($field == 'MidTerm' && isset($midTerms[$value])) {
+                $saveValue = $midTerms[$value];
+            } else {
+                $saveValue = $value;
+            }
+
+            if (($tblLeaveInformation = $this->getLeaveInformationBy($tblLeaveStudent, $field))) {
+                (new Data($this->getBinding()))->updateLeaveInformation($tblLeaveInformation, $saveValue);
+            } else {
+                (new Data($this->getBinding()))->createLeaveInformation($tblLeaveStudent, $field, $saveValue);
+            }
+        }
+
+        $tblPerson = $tblLeaveStudent->getServiceTblPerson();
+
+        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Informationen wurden erfolgreich gespeichert.')
+            . new Redirect('/Education/Certificate/Prepare/Leave/Student', Redirect::TIMEOUT_SUCCESS, array(
+                'PersonId' => $tblPerson ? $tblPerson->getId() : 0,
+            ));
     }
 }

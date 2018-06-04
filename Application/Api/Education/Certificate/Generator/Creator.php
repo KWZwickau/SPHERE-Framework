@@ -817,7 +817,7 @@ class Creator extends Extension
                             if (class_exists($CertificateClass)) {
 
                                 /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
-                                $Certificate = new $CertificateClass($tblDivision, false);
+                                $Certificate = new $CertificateClass($tblDivision, null, false);
 
                                 // get Content
                                 $Data = Prepare::useService()->getLeaveCertificateContent($tblLeaveStudent);
