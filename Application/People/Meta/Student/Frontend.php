@@ -158,7 +158,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                 ), Panel::PANEL_TYPE_INFO)
                                                 , 4),
                                             new FormColumn(
-                                                new Panel('Mitgration', array(
+                                                new Panel('Migration', array(
                                                     new CheckBox(
                                                         'Meta[Student][HasMigrationBackground]',
                                                         'Migrationshintergrund',
