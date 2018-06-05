@@ -159,6 +159,16 @@ class EnrollmentDocument extends Extension implements IModuleInterface
                 }
             }
 
+            // Prepare LeaveDate
+            $Now = new \DateTime('now');
+            // increase year if date after 31.07.20xx
+            if ($Now > new \DateTime('31.07.'.$Now->format('Y'))) {
+                $Now->add(new \DateInterval('P1Y'));
+            }
+            $MaxDate = new \DateTime('31.07.'.$Now->format('Y'));
+            $DateString = $MaxDate->format('d.m.Y');
+            $Global->POST['Data']['LeaveDate'] = $DateString;
+
             $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
             if ($tblStudent) {
                 // Schuldaten der Schule des Schülers
@@ -185,22 +195,16 @@ class EnrollmentDocument extends Extension implements IModuleInterface
                 $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('LEAVE');
                 $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
                     $tblStudentTransferType);
-                $Now = new \DateTime('now');
-                // increase year if date after 31.07.20xx
-                if ($Now > new \DateTime('31.07.'.$Now->format('Y'))) {
-                    $Now->add(new \DateInterval('P1Y'));
-                }
-                $MaxDate = new \DateTime('31.07.'.$Now->format('Y'));
-                $DateString = $MaxDate->format('d.m.Y');
                 if ($tblStudentTransfer) {
                     $transferDate = $tblStudentTransfer->getTransferDate();
                     if ($transferDate) {
                         if ($MaxDate > new \DateTime($transferDate)) {
                             $DateString = $transferDate;
+                            // correct leaveDate if necessary
+                            $Global->POST['Data']['LeaveDate'] = $DateString;
                         }
                     }
                 }
-                $Global->POST['Data']['LeaveDate'] = $DateString;
             }
 
             // Aktuelle Klasse
