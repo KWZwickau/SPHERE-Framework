@@ -36,9 +36,8 @@ class ViewGroupStudentIntegration extends AbstractView
     const TBL_STUDENT_INTEGRATION_COACHING_REQUIRED = 'TblStudentIntegration_CoachingRequired';
     const TBL_STUDENT_INTEGRATION_COACHING_TIME = 'TblStudentIntegration_CoachingTime';
     const TBL_STUDENT_INTEGRATION_COACHING_REMARK = 'TblStudentIntegration_CoachingRemark';
-    const TBL_SALUTATION_SALUTATION_COACH = 'TblSalutation_Salutation_Coach';
-    const TBL_PERSON_FIRST_NAME_COACH = 'TblPerson_FirstName_Coach';
-    const TBL_PERSON_LAST_NAME_COACH = 'TblPerson_LastName_Coach';
+//    const TBL_SALUTATION_SALUTATION_COACH = 'TblSalutation_Salutation_Coach';
+    const TBL_PERSON_COACH = 'TblPerson_Coach';
 
     /**
      * @return array
@@ -93,18 +92,14 @@ class ViewGroupStudentIntegration extends AbstractView
      * @Column(type="string")
      */
     protected $TblStudentIntegration_CoachingRemark;
+//    /**
+//     * @Column(type="string")
+//     */
+//    protected $TblSalutation_Salutation_Coach;
     /**
      * @Column(type="string")
      */
-    protected $TblSalutation_Salutation_Coach;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPerson_FirstName_Coach;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblPerson_LastName_Coach;
+    protected $TblPerson_Coach;
 
     /**
      * Use this method to set PropertyName to DisplayName conversions with "setNameDefinition()"
@@ -126,9 +121,8 @@ class ViewGroupStudentIntegration extends AbstractView
         $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_REQUIRED, 'Integration: Förderbedarf');
         $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_TIME, 'Integration: Stundenbedarf pro Woche');
         $this->setNameDefinition(self::TBL_STUDENT_INTEGRATION_COACHING_REMARK, 'Integration: Bemerkung');
-        $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_COACH, 'Integration: Anrede Schulbegleitung');
-        $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME_COACH, 'Integration: Vorname Schulbegleitung');
-        $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_COACH, 'Integration: NachName Schulbegleitung');
+//        $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_COACH, 'Integration: Anrede Schulbegleitung');
+        $this->setNameDefinition(self::TBL_PERSON_COACH, 'Integration: Schulbegleitung');
 
 //        //GroupDefinition
         $this->setGroupDefinition('&nbsp;', array(
@@ -141,9 +135,8 @@ class ViewGroupStudentIntegration extends AbstractView
             self::TBL_STUDENT_INTEGRATION_COACHING_REQUIRED,
             self::TBL_STUDENT_INTEGRATION_COACHING_TIME,
             self::TBL_STUDENT_INTEGRATION_COACHING_REMARK,
-            self::TBL_SALUTATION_SALUTATION_COACH,
-            self::TBL_PERSON_FIRST_NAME_COACH,
-            self::TBL_PERSON_LAST_NAME_COACH
+//            self::TBL_SALUTATION_SALUTATION_COACH,
+            self::TBL_PERSON_COACH,
         ));
     }
 
@@ -190,6 +183,11 @@ class ViewGroupStudentIntegration extends AbstractView
             case self::TBL_STUDENT_DISORDER_TYPE_NAME_LIST:
                 $Data = Common::useService()->getPropertyList(new TblStudentDisorderType(), TblStudentDisorderType::ATTR_NAME);
                 $Field = $this->getFormFieldAutoCompleter($Data, $PropertyName, $Label, $Icon, $doResetCount);
+                break;
+            case self::TBL_STUDENT_INTEGRATION_COACHING_REQUIRED:
+                $Data[1] = 'Ja';
+                $Data[2] = 'Nein';
+                $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount);
                 break;
             default:
                 $Field = parent::getFormField( $PropertyName, $Placeholder, $Label, ($Icon?$Icon:new Pencil()), $doResetCount );

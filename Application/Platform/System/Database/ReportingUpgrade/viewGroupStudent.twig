@@ -14,7 +14,8 @@ and vSA.TblStudent_Id =  vS.TblStudent_Id
 and vSA.TblStudentAgreementType_Name is not null
 ) TblStudent_PictureAgreement,
 
-viewStudentBaptism.TblStudentBaptism_Location,
+viewStudentBaptism.TblStudentBaptism_Location AS TblStudentBaptism_Location,
+DATE_FORMAT( viewStudentBaptism.TblStudentBaptism_BaptismDate, '%d.%m.%Y' ) AS TblStudentBaptism_BaptismDate,
 (select distinct
 group_concat(
 concat(
@@ -27,10 +28,6 @@ and vSA.TblStudent_Id =  vS.TblStudent_Id
 and vSA.TblStudentAgreementType_Name is not null
 ) TblStudent_NameAgreement,
 
-viewStudentLiberation.TblStudentLiberationType_Name AS TblStudentLiberationType_Name,
-viewStudentLiberation.TblStudentLiberationType_Description AS TblStudentLiberationType_Description,
-viewStudentLiberation.TblStudentLiberationCategory_Name AS TblStudentLiberationCategory_Name,
-viewStudentLiberation.TblStudentLiberationCategory_Description AS TblStudentLiberationCategory_Description,
 viewStudentLocker.TblStudentLocker_LockerNumber AS TblStudentLocker_LockerNumber,
 viewStudentLocker.TblStudentLocker_LockerLocation AS TblStudentLocker_LockerLocation,
 viewStudentLocker.TblStudentLocker_KeyNumber AS TblStudentLocker_KeyNumber,

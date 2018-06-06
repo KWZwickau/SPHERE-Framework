@@ -31,15 +31,20 @@ from PeopleMeta_{{ ConsumerAcronym }}.viewStudentDisorder vSD
 where vSD.TblStudent_Id =  vS.TblStudent_Id
 ) TblStudentDisorderType_NameList,
 
-viewStudentIntegration.TblStudentIntegration_CoachingRequestDate AS TblStudentIntegration_CoachingRequestDate,
-viewStudentIntegration.TblStudentIntegration_CoachingCounselDate AS TblStudentIntegration_CoachingCounselDate,
-viewStudentIntegration.TblStudentIntegration_CoachingDecisionDate AS TblStudentIntegration_CoachingDecisionDate,
-viewStudentIntegration.TblStudentIntegration_CoachingRequired AS TblStudentIntegration_CoachingRequired,
+DATE_FORMAT( viewStudentIntegration.TblStudentIntegration_CoachingRequestDate, '%d.%m.%Y' ) AS TblStudentIntegration_CoachingRequestDate,
+DATE_FORMAT( viewStudentIntegration.TblStudentIntegration_CoachingCounselDate, '%d.%m.%Y' ) AS TblStudentIntegration_CoachingCounselDate,
+DATE_FORMAT( viewStudentIntegration.TblStudentIntegration_CoachingDecisionDate, '%d.%m.%Y' ) AS TblStudentIntegration_CoachingDecisionDate,
+IF (viewStudentIntegration.TblStudentIntegration_CoachingRequired, 'Ja', 'Nein') AS TblStudentIntegration_CoachingRequired,
 viewStudentIntegration.TblStudentIntegration_CoachingTime AS TblStudentIntegration_CoachingTime,
 viewStudentIntegration.TblStudentIntegration_CoachingRemark AS TblStudentIntegration_CoachingRemark,
-viewPersonCoach.TblSalutation_Salutation AS TblSalutation_Salutation_Coach,
-viewPersonCoach.TblPerson_FirstName AS TblPerson_FirstName_Coach,
-viewPersonCoach.TblPerson_LastName AS TblPerson_LastName_Coach
+-- viewPersonCoach.TblSalutation_Salutation AS TblSalutation_Salutation_Coach,
+
+concat(
+viewPersonCoach.TblPerson_FirstName,
+' ',
+viewPersonCoach.TblPerson_LastName
+) as TblPerson_Coach
+
 
 FROM PeopleMeta_{{ ConsumerAcronym }}.viewStudent vS
 LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.viewStudentIntegration ON vS.TblStudent_Id = viewStudentIntegration.TblStudent_Id
