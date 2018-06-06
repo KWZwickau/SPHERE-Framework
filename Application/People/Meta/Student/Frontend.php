@@ -1490,10 +1490,10 @@ class Frontend extends Extension implements IFrontendInterface
         $Division[ViewDivisionStudent::TBL_DIVISION_NAME] = '';
         $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE] = '';
         // #SSW-1598 Fehlerbehebung Massen-Änderung
-        if ($tblPerson
-            && ($tblStudent = $tblPerson->getStudent())
-            && ($tblDivision = $tblStudent->getCurrentMainDivision())
-        ) {
+
+        // get information without tblStudent information
+        $tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson);
+        if ($tblPerson && $tblDivision) {
             $Division[ViewDivisionStudent::TBL_DIVISION_NAME] = $tblDivision->getName();
             if (($tblLevel = $tblDivision->getTblLevel())) {
                 $Division[ViewDivisionStudent::TBL_LEVEL_ID] = $tblLevel->getId();

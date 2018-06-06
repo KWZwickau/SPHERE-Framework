@@ -567,7 +567,7 @@ class Service extends AbstractService
         /**
          * Skip to Frontend
          */
-        if (null === $Check && !isset($Global->POST['Button'])) {
+        if (null === $Check && !isset($Global->POST['SubmitCheck'])) {
             return $Form;
         }
         $isCompany = false;
