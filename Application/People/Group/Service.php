@@ -360,7 +360,6 @@ class Service extends AbstractService
                         $MaxIdentifier++;
                         Student::useService()->updateStudentIdentifier($tblStudent, $MaxIdentifier);
                     }
-
                 } else {
                     $MaxIdentifier = Student::useService()->getStudentMaxIdentifier();
                     $MaxIdentifier++;
