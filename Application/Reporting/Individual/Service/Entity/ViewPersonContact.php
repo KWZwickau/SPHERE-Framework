@@ -180,8 +180,8 @@ class ViewPersonContact extends AbstractView
 
         $this->setNameDefinition(self::TBL_PHONE_NUMBER, 'Person: Telefonnummer');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS, 'Person: E-Mail');
-        $this->setNameDefinition(self::TBL_MAIL_ADDRESS_PRIVATE, 'Person: Privat E-Mail');
-        $this->setNameDefinition(self::TBL_MAIL_ADDRESS_COMPANY, 'Person: Geschäftlich E-Mail');
+        $this->setNameDefinition(self::TBL_MAIL_ADDRESS_PRIVATE, 'Person: E-Mail Privat');
+        $this->setNameDefinition(self::TBL_MAIL_ADDRESS_COMPANY, 'Person: E-Mail Geschäftlich');
 
         $this->setGroupDefinition('Hauptadresse', array(
             self::TBL_ADDRESS_STREET_NAME,
