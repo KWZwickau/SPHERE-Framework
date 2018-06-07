@@ -52,6 +52,8 @@ class ViewPersonContact extends AbstractView
 
     const TBL_PHONE_NUMBER = 'TblPhone_Number';
     const TBL_MAIL_ADDRESS = 'TblMail_Address';
+    const TBL_MAIL_ADDRESS_PRIVATE = 'TblMail_AddressPrivate';
+    const TBL_MAIL_ADDRESS_COMPANY = 'TblMail_AddressCompany';
 
     /**
      * @return array
@@ -140,6 +142,14 @@ class ViewPersonContact extends AbstractView
      * @Column(type="string")
      */
     protected $TblMail_Address;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblMail_AddressPrivate;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblMail_AddressCompany;
 
     /**
      * Use this method to set PropertyName to DisplayName conversions with "setNameDefinition()"
@@ -170,6 +180,8 @@ class ViewPersonContact extends AbstractView
 
         $this->setNameDefinition(self::TBL_PHONE_NUMBER, 'Person: Telefonnummer');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS, 'Person: E-Mail');
+        $this->setNameDefinition(self::TBL_MAIL_ADDRESS_PRIVATE, 'Person: Privat E-Mail');
+        $this->setNameDefinition(self::TBL_MAIL_ADDRESS_COMPANY, 'Person: Geschäftlich E-Mail');
 
         $this->setGroupDefinition('Hauptadresse', array(
             self::TBL_ADDRESS_STREET_NAME,
@@ -196,6 +208,8 @@ class ViewPersonContact extends AbstractView
         $this->setGroupDefinition('Kontaktdaten', array(
             self::TBL_PHONE_NUMBER,
             self::TBL_MAIL_ADDRESS,
+            self::TBL_MAIL_ADDRESS_PRIVATE,
+            self::TBL_MAIL_ADDRESS_COMPANY,
         ));
 
         // Flag um Filter zu deaktivieren (nur Anzeige von Informationen)
