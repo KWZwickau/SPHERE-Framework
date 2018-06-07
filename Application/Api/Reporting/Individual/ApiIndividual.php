@@ -103,10 +103,12 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         'TblCommonInformation_IsAssistance',
         'TblStudent_HasMigrationBackground',
         'TblStudent_IsInPreparationDivisionForMigrants',
+        'TblLevel_Id',
         'TblGroup_Id',
     );
 
     private $IdSearchList = array(
+        'TblLevel_Id',
         'TblGroup_Id',
     );
 
