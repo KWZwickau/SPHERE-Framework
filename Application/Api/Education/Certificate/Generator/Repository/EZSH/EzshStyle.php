@@ -1325,30 +1325,37 @@ abstract class EzshStyle extends Certificate
     /**
      * @param $personId
      *
-     * @return Section
+     * @return Section[]
      */
-    public function getEZSHTransfer($personId)
+    public function getEZSHTransfer($personId, $height = '60px')
     {
+        $SectionList = array();
         $Section = new Section();
         $Section->addElementColumn((new Element())
-            ->setContent('Versetzungsvermerk:')
+            ->setContent('VERSETZUNGSVERMERK')
+            ->styleTextSize('10pt')
+            ->styleTextBold()
+            ->stylePaddingBottom('4px')
+            ->styleFontFamily(self::FONT_FAMILY_BOLD)
+            ->styleLineHeight(self::LINE_HEIGHT)
+        );
+        $SectionList[] = $Section;
+
+        $Section = new Section();
+        $Section->addElementColumn((new Element())
+            ->setContent('{% if(Content.P'.$personId.'.Input.Transfer is not empty) %}
+                    {{ Content.P'.$personId.'.Input.Transfer|nl2br }}
+                {% else %}
+                    &nbsp;
+                {% endif %}')
+//            ->styleAlignJustify()
+            ->styleHeight($height)
             ->styleFontFamily(self::FONT_FAMILY)
             ->styleLineHeight(self::LINE_HEIGHT)
-            , '21%')
-            ->addElementColumn((new Element())
-                ->setContent('{% if(Content.P'.$personId.'.Input.Transfer) %}
-                                        {{ Content.P'.$personId.'.Input.Transfer }}
-                                    {% else %}
-                                          &nbsp;
-                                    {% endif %}')
-                ->styleBorderBottom('1px')
-                ->stylePaddingLeft('7px')
-                ->styleFontFamily(self::FONT_FAMILY)
-                ->styleLineHeight(self::LINE_HEIGHT)
-                , '58%')
-            ->addElementColumn((new Element())
-                , '20%');
-        return $Section;
+        );
+        $SectionList[] = $Section;
+
+        return $SectionList;
     }
 
     /**
