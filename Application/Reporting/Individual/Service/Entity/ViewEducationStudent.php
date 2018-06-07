@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
@@ -29,6 +30,7 @@ class ViewEducationStudent extends AbstractView
     const TBL_TYPE_NAME = 'TblType_Name';
     const TBL_TYPE_DESCRIPTION = 'TblType_Description';
 
+    const TBL_LEVEL_ID = 'TblLevel_Id';
     const TBL_LEVEL_NAME = 'TblLevel_Name';
     const TBL_LEVEL_DESCRIPTION = 'TblLevel_Description';
     const TBL_LEVEL_IS_CHECKED = 'TblLevel_IsChecked';
@@ -52,6 +54,10 @@ class ViewEducationStudent extends AbstractView
      * @Column(type="string")
      */
     protected $TblPerson_Id;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblLevel_Id;
     /**
      * @Column(type="string")
      */
@@ -98,7 +104,8 @@ class ViewEducationStudent extends AbstractView
     {
 
         //NameDefinition
-        $this->setNameDefinition(self::TBL_LEVEL_NAME, 'Bildung: Klassenstufe');
+        $this->setNameDefinition(self::TBL_LEVEL_ID, 'Bildung: Klassenstufe');
+//        $this->setNameDefinition(self::TBL_LEVEL_NAME, 'Bildung: Klassenstufe');
         $this->setNameDefinition(self::TBL_LEVEL_DESCRIPTION, 'Bildung: Stufen Beschreibung');
         $this->setNameDefinition(self::TBL_LEVEL_IS_CHECKED, 'Bildung: Klasse ist Stufenübergreifend');
         $this->setNameDefinition(self::TBL_DIVISION_NAME, 'Bildung: Klassengruppe');
@@ -110,7 +117,7 @@ class ViewEducationStudent extends AbstractView
         //GroupDefinition
         $this->setGroupDefinition('Klasse', array(
             self::TBL_TYPE_NAME,
-            self::TBL_LEVEL_NAME,
+            self::TBL_LEVEL_ID,
             self::TBL_DIVISION_NAME,
             self::TBL_DIVISION_DESCRIPTION,
         ));
@@ -156,6 +163,25 @@ class ViewEducationStudent extends AbstractView
     {
 
         switch ($PropertyName) {
+            case self::TBL_LEVEL_ID:
+                // Test Address By Student
+                $Data = array();
+                $tblLevelList = Division::useService()->getLevelAll();
+                if($tblLevelList){
+                    foreach($tblLevelList as $tblLevel){
+                        // nur richtige Klassenstufen anzeigen
+                        if(!$tblLevel->getIsChecked()){
+                            $Type = '';
+                            // Schulart der Klassenstufe zusätzlich anzeigen
+                            if(($tblType = $tblLevel->getServiceTblType())){
+                                $Type = $tblType->getName();
+                            }
+                            $Data[$tblLevel->getId()] = $tblLevel->getName().' '.$Type;
+                        }
+                    }
+                }
+                $Field = $this->getFormFieldSelectBox( $Data, $PropertyName, $Label, $Icon, $doResetCount, false);
+                break;
             case self::TBL_TYPE_NAME:
                 $Data = Type::useService()->getPropertyList(new TblType(), TblType::ATTR_NAME);
                 $Field = $this->getFormFieldSelectBox($Data, $PropertyName, $Label, $Icon, $doResetCount, true);

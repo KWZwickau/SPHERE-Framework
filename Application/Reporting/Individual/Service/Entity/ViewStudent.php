@@ -33,16 +33,14 @@ class ViewStudent extends AbstractView
     const TBL_STUDENT_MEDICAL_RECORD_INSURANCE = 'TblStudentMedicalRecord_Insurance';
     // Taufe
     const TBL_STUDENT_BAPTISM_LOCATION = 'TblStudentBaptism_Location';
+    const TBL_STUDENT_BAPTISM_DATE = 'TblStudentBaptism_BaptismDate';
     // Schulbeförderung
     const TBL_STUDENT_TRANSPORT_ROUTE = 'TblStudentTransport_Route';
     const TBL_STUDENT_TRANSPORT_STATION_ENTRANCE = 'TblStudentTransport_StationEntrance';
     const TBL_STUDENT_TRANSPORT_STATION_EXIT = 'TblStudentTransport_StationExit';
     const TBL_STUDENT_TRANSPORT_REMARK = 'TblStudentTransport_Remark';
     // Unterrichtsbefreiung
-    const TBL_STUDENT_LIBERATION_TYPE_NAME = 'TblStudentLiberationType_Name';
-    const TBL_STUDENT_LIBERATION_TYPE_DESCRIPTION = 'TblStudentLiberationType_Description';
-    const TBL_STUDENT_LIBERATION_CATEGORY_NAME = 'TblStudentLiberationCategory_Name';
-    const TBL_STUDENT_LIBERATION_CATEGORY_DESCRIPTION = 'TblStudentLiberationCategory_Description';
+    // entfernt #SSW-2277
     // Schließfach
     const TBL_STUDENT_LOCKER_LOCKER_NUMBER = 'TblStudentLocker_LockerNumber';
     const TBL_STUDENT_LOCKER_LOCKER_LOCATION = 'TblStudentLocker_LockerLocation';
@@ -75,7 +73,7 @@ class ViewStudent extends AbstractView
     /**
      * @Column(type="string")
      */
-    protected $TblStudentLiberationType_Name;
+    protected $TblStudentBaptism_BaptismDate;
     /**
      * @Column(type="string")
      */
@@ -154,12 +152,8 @@ class ViewStudent extends AbstractView
     {
 
 //        //NameDefinition
-//        $this->setNameDefinition(self::TBL_STUDENT_BAPTISM_LOCATION, 'Schüler: Ort der Taufe');
-
-        $this->setNameDefinition(self::TBL_STUDENT_LIBERATION_TYPE_NAME, 'Allgemeines: Sportbefreiung');
-        // TBL_STUDENT_LIBERATION_TYPE_DESCRIPTION
-//        $this->setNameDefinition(self::TBL_STUDENT_LIBERATION_CATEGORY_NAME, 'Allgemeines: Unterrichtskategorie');
-        // TBL_STUDENT_LIBERATION_CATEGORY_DESCRIPTION
+        $this->setNameDefinition(self::TBL_STUDENT_BAPTISM_LOCATION, 'Allgemeines: Taufort');
+        $this->setNameDefinition(self::TBL_STUDENT_BAPTISM_DATE, 'Allgemeines: Taufedatum');
 
         $this->setNameDefinition(self::TBL_STUDENT_LOCKER_LOCKER_NUMBER, 'Allgemeines: Schließfachnummer');
         $this->setNameDefinition(self::TBL_STUDENT_LOCKER_LOCKER_LOCATION, 'Allgemeines: Schließfach Standort');
@@ -173,7 +167,7 @@ class ViewStudent extends AbstractView
         $this->setNameDefinition(self::TBL_STUDENT_TRANSPORT_ROUTE, 'Allgemeines: Buslinie');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSPORT_STATION_ENTRANCE, 'Allgemeines: Einstiegshaltestelle');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSPORT_STATION_EXIT, 'Allgemeines: Ausstiegshaltestelle');
-        $this->setNameDefinition(self::TBL_STUDENT_TRANSPORT_REMARK, 'Allgemeines: Bemerkung');
+        $this->setNameDefinition(self::TBL_STUDENT_TRANSPORT_REMARK, 'Allgemeines: Schulbeförderung Bemerkung');
 
         $this->setNameDefinition(self::SIBLINGS_COUNT, 'Allgemeines: Anzahl Geschwister');
 
@@ -183,11 +177,11 @@ class ViewStudent extends AbstractView
 //        //GroupDefinition
         $this->setGroupDefinition('&nbsp;', array(
             self::SIBLINGS_COUNT,
-            self::TBL_STUDENT_LIBERATION_TYPE_NAME,
-//            self::TBL_STUDENT_LIBERATION_CATEGORY_NAME,
             self::TBL_STUDENT_LOCKER_LOCKER_NUMBER,
             self::TBL_STUDENT_LOCKER_LOCKER_LOCATION,
             self::TBL_STUDENT_LOCKER_KEY_NUMBER,
+            self::TBL_STUDENT_BAPTISM_LOCATION,
+            self::TBL_STUDENT_BAPTISM_DATE,
             self::TBL_STUDENT_MEDICAL_RECORD_DISEASE,
             self::TBL_STUDENT_MEDICAL_RECORD_MEDICATION,
             self::TBL_STUDENT_MEDICAL_RECORD_INSURANCE_STATE,
