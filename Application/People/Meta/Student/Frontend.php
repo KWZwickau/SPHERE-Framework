@@ -158,7 +158,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                 ), Panel::PANEL_TYPE_INFO)
                                                 , 4),
                                             new FormColumn(
-                                                new Panel('Mitgration', array(
+                                                new Panel('Migration', array(
                                                     new CheckBox(
                                                         'Meta[Student][HasMigrationBackground]',
                                                         'Migrationshintergrund',
@@ -930,6 +930,9 @@ class Frontend extends Extension implements IFrontendInterface
 
                 array_push($AgreementPanel, new Aspect(new Bold($tblStudentAgreementCategory->getName())));
                 $tblAgreementTypeAll = Student::useService()->getStudentAgreementTypeAllByCategory($tblStudentAgreementCategory);
+                if ($tblAgreementTypeAll) {
+                    $tblAgreementTypeAll = $this->getSorter($tblAgreementTypeAll)->sortObjectBy('Name');
+                }
                 array_walk($tblAgreementTypeAll,
                     function (TblStudentAgreementType $tblStudentAgreementType) use (
                         &$AgreementPanel,
@@ -1487,10 +1490,10 @@ class Frontend extends Extension implements IFrontendInterface
         $Division[ViewDivisionStudent::TBL_DIVISION_NAME] = '';
         $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE] = '';
         // #SSW-1598 Fehlerbehebung Massen-Änderung
-        if ($tblPerson
-            && ($tblStudent = $tblPerson->getStudent())
-            && ($tblDivision = $tblStudent->getCurrentMainDivision())
-        ) {
+
+        // get information without tblStudent information
+        $tblDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson);
+        if ($tblPerson && $tblDivision) {
             $Division[ViewDivisionStudent::TBL_DIVISION_NAME] = $tblDivision->getName();
             if (($tblLevel = $tblDivision->getTblLevel())) {
                 $Division[ViewDivisionStudent::TBL_LEVEL_ID] = $tblLevel->getId();

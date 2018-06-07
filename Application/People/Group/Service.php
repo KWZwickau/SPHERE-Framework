@@ -372,6 +372,18 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblGroup $tblGroup
+     * @param TblPerson[] $tblPersonList
+     *
+     * @return bool
+     */
+    public function addGroupPersonList(TblGroup $tblGroup, $tblPersonList)
+    {
+
+        return (new Data($this->getBinding()))->addGroupPersonList($tblGroup, $tblPersonList);
+    }
+
+    /**
      * @param TblMember $tblMember
      *
      * @return bool
@@ -460,8 +472,7 @@ class Service extends AbstractService
         /**
          * Skip to Frontend
          */
-        $Global = $this->getGlobal();
-        if (!isset( $Global->POST['Button']['Submit'] )) {
+        if ($DataAddPerson === null && $DataRemovePerson === null) {
             return $Form;
         }
 
@@ -505,11 +516,12 @@ class Service extends AbstractService
     private function addPersonListToGroup(TblGroup $tblGroup, $DataAddPerson)
     {
 
+        $tblPersonList = array();
         foreach ($DataAddPerson as $personId => $value) {
-            $tblPerson = Person::useService()->getPersonById($personId);
-            if ($tblPerson && !$this->existsGroupPerson($tblGroup, $tblPerson)) {
-                $this->addGroupPerson($tblGroup, $tblPerson);
-            }
+            $tblPersonList[] = Person::useService()->getPersonById($personId);
+        }
+        if(!empty($tblPersonList)){
+            $this->addGroupPersonList($tblGroup, $tblPersonList);
         }
     }
 

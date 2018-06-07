@@ -32,6 +32,7 @@ class Setup extends AbstractSetup
         $tblSerialLetter = $this->setTableSerialLetter($Schema, $tblFilterCategory);
         $this->setTableFilterField($Schema, $tblFilterCategory, $tblSerialLetter);
         $this->setTableSerialPerson($Schema, $tblSerialLetter);
+        $this->setTableSerialCompany($Schema, $tblSerialLetter);
         $this->setTableAddressPerson($Schema, $tblSerialLetter);
 
         /**
@@ -121,6 +122,34 @@ class Setup extends AbstractSetup
         $this->getConnection()->removeIndex($Table, array('serviceTblPerson'));
         if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
             $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
+        }
+        $this->getConnection()->addForeignKey($Table, $tblSerialLetter, true);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblSerialLetter
+     *
+     * @return Table
+     */
+    private function setTableSerialCompany(Schema $Schema, Table $tblSerialLetter)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblSerialCompany');
+        if (!$this->getConnection()->hasColumn('tblSerialCompany', 'serviceTblCompany')) {
+            $Table->addColumn('serviceTblCompany', 'bigint');
+        }
+        if (!$this->getConnection()->hasColumn('tblSerialCompany', 'serviceTblPerson')) {
+            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
+        }
+        $this->getConnection()->removeIndex($Table, array('serviceTblPerson'));
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
+            $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
+        }
+        if (!$this->getConnection()->hasColumn('tblSerialCompany', 'isIgnore')) {
+            $Table->addColumn('isIgnore', 'boolean');
         }
         $this->getConnection()->addForeignKey($Table, $tblSerialLetter, true);
 

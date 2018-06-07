@@ -9,6 +9,7 @@ use SPHERE\Application\Billing\Billing;
 use SPHERE\Application\Contact\Contact;
 use SPHERE\Application\Corporation\Corporation;
 use SPHERE\Application\Dispatcher;
+use SPHERE\Application\Document\DataProtectionOrdinance;
 use SPHERE\Application\Document\Document;
 use SPHERE\Application\Document\LegalNotice;
 use SPHERE\Application\Document\License;
@@ -249,6 +250,9 @@ class Main extends Extension
                     if (!$Error) {
                         return;
                     }
+                    if (preg_match('!apc_store.*?was.*?on.*?gc-list.*?for!is', $Error['message'])) {
+                        return;
+                    }
                     $Display = new Display();
                     $Display->addServiceNavigation(
                         new Link(new Link\Route('/'), new Link\Name('Zurück zur Anwendung'))
@@ -352,5 +356,6 @@ class Main extends Extension
         Document::registerCluster();
         License::registerCluster();
         LegalNotice::registerCluster();
+        DataProtectionOrdinance::registerCluster();
     }
 }

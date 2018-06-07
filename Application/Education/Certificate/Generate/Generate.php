@@ -53,6 +53,9 @@ class Generate implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Destroy' , __NAMESPACE__ . '\Frontend::frontendDestroyGenerate')
         );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Setting' , __NAMESPACE__ . '\Frontend::frontendGenerateSetting')
+        );
     }
 
     /**

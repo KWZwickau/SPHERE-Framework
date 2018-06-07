@@ -1,0 +1,170 @@
+-- ViewGroupStudentTransfer
+SELECT
+    vS.TblStudent_serviceTblPerson AS TblPerson_Id,
+    vS.TblStudent_Id AS TblStudent_Id,
+--    (select distinct
+--        group_concat(
+--            concat(
+--                vC.TblCompany_Name,
+--                vC.TblCompany_ExtendedName,
+--                vC.TblCompany_Description
+--            ) separator '\n'
+--        )
+--        from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
+--        LEFT JOIN CorporationCompany_{{ ConsumerAcronym }}.viewCompany vC ON vST.TblStudentTransfer_serviceTblCompany = vC.TblCompany_Id
+--        where vST.TblStudent_Id =  vS.TblStudent_Id
+--        and vST.TblStudentTransferType_Identifier = 'ENROLLMENT'
+--        ) TblStudentTransferEnrollment_CompanySummary,
+
+    -- Company Einschulung
+    (select vC.TblCompany_Name
+        from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
+        LEFT JOIN CorporationCompany_{{ ConsumerAcronym }}.viewCompany vC ON vST.TblStudentTransfer_serviceTblCompany = vC.TblCompany_Id
+        where vST.TblStudent_Id =  vS.TblStudent_Id
+        and vST.TblStudentTransferType_Identifier = 'ENROLLMENT'
+    ) TblCompanyEnrollment_Name,
+    (select vC.TblCompany_ExtendedName
+        from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
+        LEFT JOIN CorporationCompany_{{ ConsumerAcronym }}.viewCompany vC ON vST.TblStudentTransfer_serviceTblCompany = vC.TblCompany_Id
+        where vST.TblStudent_Id =  vS.TblStudent_Id
+        and vST.TblStudentTransferType_Identifier = 'ENROLLMENT'
+    ) TblCompanyEnrollment_ExtendedName,
+    (select vC.TblCompany_Description
+        from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
+        LEFT JOIN CorporationCompany_{{ ConsumerAcronym }}.viewCompany vC ON vST.TblStudentTransfer_serviceTblCompany = vC.TblCompany_Id
+        where vST.TblStudent_Id =  vS.TblStudent_Id
+        and vST.TblStudentTransferType_Identifier = 'ENROLLMENT'
+    ) TblCompanyEnrollment_Description,
+    -- other infos
+    (select distinct
+        tT.Name
+        from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
+        LEFT JOIN EducationSchoolType_{{ ConsumerAcronym }}.tblType tT ON vST.TblStudentTransfer_serviceTblType = tT.Id
+        where vST.TblStudent_Id =  vS.TblStudent_Id
+        and vST.TblStudentTransferType_Identifier = 'ENROLLMENT'
+    ) TblStudentTransferEnrollment_Type,
+    (select distinct
+        tC.Name
+        from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
+        LEFT JOIN EducationSchoolCourse_{{ ConsumerAcronym }}.tblCourse tC ON vST.TblStudentTransfer_serviceTblCourse = tC.Id
+        where vST.TblStudent_Id =  vS.TblStudent_Id
+        and vST.TblStudentTransferType_Identifier = 'ENROLLMENT'
+    ) TblStudentTransferEnrollment_Course,
+    (select distinct
+        DATE_FORMAT( vST.TblStudentTransfer_TransferDate, '%d.%m.%Y' ) AS TblStudentTransfer_TransferDate
+        from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
+        where vST.TblStudent_Id =  vS.TblStudent_Id
+        and vST.TblStudentTransferType_Identifier = 'ENROLLMENT'
+    ) TblStudentTransferEnrollment_TransferDate,
+
+    -- Company Abgebende Schule
+    (select vC.TblCompany_Name
+        from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
+        LEFT JOIN CorporationCompany_{{ ConsumerAcronym }}.viewCompany vC ON vST.TblStudentTransfer_serviceTblCompany = vC.TblCompany_Id
+        where vST.TblStudent_Id =  vS.TblStudent_Id
+        and vST.TblStudentTransferType_Identifier = 'ARRIVE'
+    ) TblCompanyArrive_Name,
+    (select vC.TblCompany_ExtendedName
+        from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
+        LEFT JOIN CorporationCompany_{{ ConsumerAcronym }}.viewCompany vC ON vST.TblStudentTransfer_serviceTblCompany = vC.TblCompany_Id
+        where vST.TblStudent_Id =  vS.TblStudent_Id
+        and vST.TblStudentTransferType_Identifier = 'ARRIVE'
+    ) TblCompanyArrive_ExtendedName,
+    (select vC.TblCompany_Description
+        from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
+        LEFT JOIN CorporationCompany_{{ ConsumerAcronym }}.viewCompany vC ON vST.TblStudentTransfer_serviceTblCompany = vC.TblCompany_Id
+        where vST.TblStudent_Id =  vS.TblStudent_Id
+        and vST.TblStudentTransferType_Identifier = 'ARRIVE'
+    ) TblCompanyArrive_Description,
+    -- other infos
+    (select distinct
+        tT.Name
+        from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
+        LEFT JOIN EducationSchoolType_{{ ConsumerAcronym }}.tblType tT ON vST.TblStudentTransfer_serviceTblType = tT.Id
+        where vST.TblStudent_Id =  vS.TblStudent_Id
+        and vST.TblStudentTransferType_Identifier = 'ARRIVE'
+    ) TblStudentTransferArrive_Type,
+    (select distinct
+        tC.Name
+        from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
+        LEFT JOIN EducationSchoolCourse_{{ ConsumerAcronym }}.tblCourse tC ON vST.TblStudentTransfer_serviceTblCourse = tC.Id
+        where vST.TblStudent_Id =  vS.TblStudent_Id
+        and vST.TblStudentTransferType_Identifier = 'ARRIVE'
+    ) TblStudentTransferArrive_Course,
+    (select distinct
+        DATE_FORMAT( vST.TblStudentTransfer_TransferDate, '%d.%m.%Y' ) AS TblStudentTransfer_TransferDate
+        from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
+        where vST.TblStudent_Id =  vS.TblStudent_Id
+        and vST.TblStudentTransferType_Identifier = 'ARRIVE'
+    ) TblStudentTransferArrive_TransferDate,
+
+    -- Company weiterführende Schule
+    (select vC.TblCompany_Name
+        from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
+        LEFT JOIN CorporationCompany_{{ ConsumerAcronym }}.viewCompany vC ON vST.TblStudentTransfer_serviceTblCompany = vC.TblCompany_Id
+        where vST.TblStudent_Id =  vS.TblStudent_Id
+        and vST.TblStudentTransferType_Identifier = 'LEAVE'
+    ) TblCompanyLeave_Name,
+    (select vC.TblCompany_ExtendedName
+        from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
+        LEFT JOIN CorporationCompany_{{ ConsumerAcronym }}.viewCompany vC ON vST.TblStudentTransfer_serviceTblCompany = vC.TblCompany_Id
+        where vST.TblStudent_Id =  vS.TblStudent_Id
+        and vST.TblStudentTransferType_Identifier = 'LEAVE'
+    ) TblCompanyLeave_ExtendedName,
+    (select vC.TblCompany_Description
+        from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
+        LEFT JOIN CorporationCompany_{{ ConsumerAcronym }}.viewCompany vC ON vST.TblStudentTransfer_serviceTblCompany = vC.TblCompany_Id
+        where vST.TblStudent_Id =  vS.TblStudent_Id
+        and vST.TblStudentTransferType_Identifier = 'LEAVE'
+    ) TblCompanyLeave_Description,
+    -- other infos
+    (select distinct
+        tT.Name
+        from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
+        LEFT JOIN EducationSchoolType_{{ ConsumerAcronym }}.tblType tT ON vST.TblStudentTransfer_serviceTblType = tT.Id
+        where vST.TblStudent_Id =  vS.TblStudent_Id
+        and vST.TblStudentTransferType_Identifier = 'LEAVE'
+    ) TblStudentTransferLeave_Type,
+    (select distinct
+        tC.Name
+        from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
+        LEFT JOIN EducationSchoolCourse_{{ ConsumerAcronym }}.tblCourse tC ON vST.TblStudentTransfer_serviceTblCourse = tC.Id
+        where vST.TblStudent_Id =  vS.TblStudent_Id
+        and vST.TblStudentTransferType_Identifier = 'LEAVE'
+    ) TblStudentTransferLeave_Course,
+    (select distinct
+        DATE_FORMAT( vST.TblStudentTransfer_TransferDate, '%d.%m.%Y' ) AS TblStudentTransfer_TransferDate
+        from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
+        where vST.TblStudent_Id =  vS.TblStudent_Id
+        and vST.TblStudentTransferType_Identifier = 'LEAVE'
+    ) TblStudentTransferLeave_TransferDate,
+
+    -- Company aktuelle Schule
+    (select vC.TblCompany_Name
+        from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
+        LEFT JOIN CorporationCompany_{{ ConsumerAcronym }}.viewCompany vC ON vST.TblStudentTransfer_serviceTblCompany = vC.TblCompany_Id
+        where vST.TblStudent_Id =  vS.TblStudent_Id
+        and vST.TblStudentTransferType_Identifier = 'PROCESS'
+    ) TblCompanyProcess_Name,
+    (select vC.TblCompany_ExtendedName
+        from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
+        LEFT JOIN CorporationCompany_{{ ConsumerAcronym }}.viewCompany vC ON vST.TblStudentTransfer_serviceTblCompany = vC.TblCompany_Id
+        where vST.TblStudent_Id =  vS.TblStudent_Id
+        and vST.TblStudentTransferType_Identifier = 'PROCESS'
+    ) TblCompanyProcess_ExtendedName,
+    (select vC.TblCompany_Description
+        from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
+        LEFT JOIN CorporationCompany_{{ ConsumerAcronym }}.viewCompany vC ON vST.TblStudentTransfer_serviceTblCompany = vC.TblCompany_Id
+        where vST.TblStudent_Id =  vS.TblStudent_Id
+        and vST.TblStudentTransferType_Identifier = 'PROCESS'
+    ) TblCompanyProcess_Description,
+    -- other infos
+    (select distinct
+        tC.Name
+        from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
+        LEFT JOIN EducationSchoolCourse_{{ ConsumerAcronym }}.tblCourse tC ON vST.TblStudentTransfer_serviceTblCourse = tC.Id
+        where vST.TblStudent_Id =  vS.TblStudent_Id
+        and vST.TblStudentTransferType_Identifier = 'PROCESS'
+    ) TblStudentTransferProcess_Course
+
+    FROM PeopleMeta_{{ ConsumerAcronym }}.viewStudent vS

@@ -193,15 +193,22 @@ abstract class Student extends AbstractData
 
     /**
      * @param string $Identifier
+     * @param bool   $isWithRemoved -> true = get also EntityRemove
      *
      * @return bool|TblStudent
      */
-    public function getStudentByIdentifier($Identifier)
+    public function getStudentByIdentifier($Identifier, $isWithRemoved = false)
     {
 
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblStudent', array(
-            TblStudent::ATTR_TBL_IDENTIFIER => $Identifier
-        ));
+        if($isWithRemoved) {
+            return $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblStudent', array(
+                TblStudent::ATTR_TBL_IDENTIFIER => $Identifier
+            ));
+        } else {
+            return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblStudent', array(
+                TblStudent::ATTR_TBL_IDENTIFIER => $Identifier
+            ));
+        }
     }
 
     /**

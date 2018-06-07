@@ -42,43 +42,57 @@ class Corporation implements IClusterInterface
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
         ));
 
-        Main::getDispatcher()->registerWidget('Institutionen', array(__CLASS__, 'widgetCorporationGroupList'), 4, 6);
+//        Main::getDispatcher()->registerWidget('Institutionen', array(__CLASS__, 'widgetCorporationGroupList'), 4, 6);
     }
 
     /**
-     * @return Panel
+     * @return Layout
      */
     public static function widgetCorporationGroupList()
     {
 
         $tblGroupAll = Group::useService()->getGroupAll();
+        $tblGroupLockedList = array();
+        $tblGroupCustomList = array();
         if ($tblGroupAll) {
             /** @var TblGroup $tblGroup */
             foreach ((array)$tblGroupAll as $Index => $tblGroup) {
-                $tblGroupAll[$tblGroup->getName()] =
+
+                $countContent = new Muted(new Small(Group::useService()->countMemberByGroup($tblGroup) . '&nbsp;Institutionen'));
+                $content =
                     new Layout(new LayoutGroup(new LayoutRow(array(
                             new LayoutColumn(
                                 $tblGroup->getName()
-                                .new Muted(new Small('<br/>'.$tblGroup->getDescription()))
-                                , array(9, 0, 7)),
+                                . new Muted(new Small('<br/>' . $tblGroup->getDescription()))
+                                , 5),
                             new LayoutColumn(
-                                new Muted(new Small(Group::useService()->countMemberByGroup($tblGroup).'&nbsp;Mitglieder'))
-                                , 2, array(LayoutColumn::GRID_OPTION_HIDDEN_SM, LayoutColumn::GRID_OPTION_HIDDEN_XS)),
+                                $countContent
+                                , 6),
                             new LayoutColumn(
                                 new PullRight(
                                     new Standard('', '/Corporation/Search/Group',
                                         new \SPHERE\Common\Frontend\Icon\Repository\Group(),
-                                        array('Id' => $tblGroup->getId()),
-                                        'zur Gruppe')
-                                ), array(3, 0, 3))
+                                        array('Id' => $tblGroup->getId()))
+                                ), 1)
                         )
                     )));
-                $tblGroupAll[$Index] = false;
+
+                if ($tblGroup->isLocked()) {
+                    $tblGroupLockedList[] = $content;
+                } else {
+                    $tblGroupCustomList[] = $content;
+                }
             }
-            $tblGroupAll = array_filter($tblGroupAll);
         }
 
-        return new Panel('Institutionen in Gruppen', $tblGroupAll);
+        return new Layout(new LayoutGroup(new LayoutRow(array(
+            new LayoutColumn(
+                new Panel('Institutionen in festen Gruppen', $tblGroupLockedList), 6
+            ),
+            !empty($tblGroupCustomList) ?
+                new LayoutColumn(
+                    new Panel('Institutionen in individuellen Gruppen', $tblGroupCustomList), 6) : null
+        ))));
     }
 
     /**
@@ -89,7 +103,8 @@ class Corporation implements IClusterInterface
 
         $Stage = new Stage('Dashboard', 'Institutionen');
 
-        $Stage->setContent(Main::getDispatcher()->fetchDashboard('Institutionen'));
+//        $Stage->setContent(Main::getDispatcher()->fetchDashboard('Institutionen'));
+        $Stage->setContent(self::widgetCorporationGroupList());
 
         return $Stage;
     }

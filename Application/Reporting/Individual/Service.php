@@ -47,26 +47,29 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string $ViewType
+     *
      * @return bool|TblWorkSpace[]
-     * TblWorkSpace list by Account
+     * TblWorkSpace list by Account and Type
      */
-    public function getWorkSpaceAll()
+    public function getWorkSpaceAll($ViewType = TblWorkSpace::VIEW_TYPE_ALL)
     {
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount) {
-            return (new Data($this->getBinding()))->getWorkSpaceAllByAccount($tblAccount);
+            return (new Data($this->getBinding()))->getWorkSpaceAllByAccount($tblAccount, $ViewType);
         }
         return false;
     }
 
     /**
      * @param TblAccount $tblAccount
+     * @param string     $ViewType
      *
      * @return bool|TblWorkSpace[]
      */
-    public function getWorkSpaceAllByAccount(TblAccount $tblAccount)
+    public function getWorkSpaceAllByAccount(TblAccount $tblAccount, $ViewType = TblWorkSpace::VIEW_TYPE_ALL)
     {
-        return (new Data($this->getBinding()))->getWorkSpaceAllByAccount($tblAccount);
+        return (new Data($this->getBinding()))->getWorkSpaceAllByAccount($tblAccount, $ViewType);
     }
 
     /**
@@ -105,30 +108,31 @@ class Service extends AbstractService
 
     /**
      * @param TblPreset $tblPreset
+     * @param string    $ViewType
      *
      * @return false|TblPresetSetting[]
      */
-    public function getPresetSettingAllByPreset(TblPreset $tblPreset)
+    public function getPresetSettingAllByPreset(TblPreset $tblPreset, $ViewType = TblWorkSpace::VIEW_TYPE_ALL)
     {
 
-        return (new Data($this->getBinding()))->getPresetSettingAllByPreset($tblPreset);
+        return (new Data($this->getBinding()))->getPresetSettingAllByPreset($tblPreset, $ViewType);
     }
 
     /**
      * @param string         $Field
      * @param string         $View
      * @param int            $Position
-     *
      * @param TblPreset|null $tblPreset
+     * @param string         $ViewType
      *
      * @return bool|TblWorkSpace
      */
-    public function addWorkSpaceField($Field, $View, $Position, TblPreset $tblPreset = null)
+    public function addWorkSpaceField($Field, $View, $Position, $ViewType, TblPreset $tblPreset = null)
     {
 
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount) {
-            return (new Data($this->getBinding()))->createWorkSpace($tblAccount, $Field, $View, $Position, $tblPreset);
+            return (new Data($this->getBinding()))->createWorkSpace($tblAccount, $Field, $View, $Position, $ViewType, $tblPreset);
         }
         return false;
     }
@@ -157,14 +161,14 @@ class Service extends AbstractService
     public function createPresetSetting(TblPreset $tblPreset, TblWorkSpace $tblWorkSpace)
     {
 
-
         $FieldName = $tblWorkSpace->getField();
         $View = $tblWorkSpace->getView();
+        $ViewType = $tblWorkSpace->getViewType();
         $Position = $tblWorkSpace->getPosition();
 
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount) {
-            return (new Data($this->getBinding()))->createPresetSetting($tblPreset, $FieldName, $View, $Position);
+            return (new Data($this->getBinding()))->createPresetSetting($tblPreset, $FieldName, $View, $ViewType, $Position);
         }
         return false;
     }
@@ -205,10 +209,15 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->removeWorkSpace($tblWorkSpace);
     }
 
-    public function removeWorkSpaceAll()
+    /**
+     * @param string $ViewType
+     *
+     * @return bool
+     */
+    public function removeWorkSpaceAll($ViewType = TblWorkSpace::VIEW_TYPE_ALL)
     {
 
-        $tblWorkspaceList = Individual::useService()->getWorkSpaceAll();
+        $tblWorkspaceList = Individual::useService()->getWorkSpaceAll($ViewType);
         if ($tblWorkspaceList) {
             foreach ($tblWorkspaceList as $tblWorkspace) {
                 (new Data($this->getBinding()))->removeWorkSpace($tblWorkspace);
@@ -220,13 +229,14 @@ class Service extends AbstractService
 
     /**
      * @param TblPreset $tblPreset
+     * @param string    $ViewType
      *
      * @return bool
      */
-    public function removePreset(TblPreset $tblPreset)
+    public function removePreset(TblPreset $tblPreset, $ViewType = TblWorkSpace::VIEW_TYPE_ALL)
     {
 
-        $tblPresetSettingList = Individual::useService()->getPresetSettingAllByPreset($tblPreset);
+        $tblPresetSettingList = Individual::useService()->getPresetSettingAllByPreset($tblPreset, $ViewType);
         if ($tblPresetSettingList) {
             foreach ($tblPresetSettingList as $tblPresetSetting) {
                 (new Data($this->getBinding()))->removePresetSetting($tblPresetSetting);

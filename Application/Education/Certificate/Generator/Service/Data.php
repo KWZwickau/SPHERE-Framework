@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\Certificate\Generator\Service;
 
+use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateField;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificateGrade;
@@ -52,8 +53,10 @@ class Data extends AbstractData
         if ($tblCertificate) {
             if ($tblSchoolTypePrimary) {
                 $this->updateCertificate($tblCertificate, $tblCertificateTypeRecommendation, $tblSchoolTypePrimary);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                if (!$this->getCertificateLevelAllByCertificate($tblCertificate)){
+                    if ($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4')) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
                 }
             }
         }
@@ -73,14 +76,16 @@ class Data extends AbstractData
             if ($tblSchoolTypeSecondary && $tblCourseMain) {
                 $this->updateCertificate($tblCertificate, $tblCertificateTypeRecommendation, $tblSchoolTypeSecondary,
                     $tblCourseMain);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
                 }
             }
         }
@@ -98,14 +103,16 @@ class Data extends AbstractData
         if ($tblCertificate) {
             if ($tblSchoolTypePrimary) {
                 $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary, null, true);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
                 }
             }
             // Begrenzung des Bemerkungsfeld
@@ -136,8 +143,10 @@ class Data extends AbstractData
         if ($tblCertificate) {
             if ($tblSchoolTypePrimary) {
                 $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary, null, true);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
                 }
             }
             // Begrenzung des Bemerkungsfeld
@@ -152,14 +161,16 @@ class Data extends AbstractData
         if ($tblCertificate) {
             if ($tblSchoolTypePrimary) {
                 $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
                 }
             }
             // Begrenzung des Bemerkungsfelds
@@ -194,8 +205,10 @@ class Data extends AbstractData
         if ($tblCertificate) {
             if ($tblSchoolTypePrimary) {
                 $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
                 }
             }
             // Begrenzung des Bemerkungsfeld
@@ -206,49 +219,32 @@ class Data extends AbstractData
 //            }
         }
 
-        $tblCertificate = $this->createCertificate('Gymnasium Abgangszeugnis', 'Hauptschulabschluss Klasse 9',
-            'GymAbgHs');
-        if ($tblCertificate) {
-            if ($tblSchoolTypeGym) {
-                $this->updateCertificate($tblCertificate, $tblCertificateTypeLeave, $tblSchoolTypeGym);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '9'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-            }
-        }
-
-        $tblCertificate = $this->createCertificate('Gymnasium Abgangszeugnis', 'Realschulabschluss Klasse 10',
-            'GymAbgRs');
-        if ($tblCertificate) {
-            if ($tblSchoolTypeGym) {
-                $this->updateCertificate($tblCertificate, $tblCertificateTypeLeave, $tblSchoolTypeGym);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '10'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-            }
-        }
-
         $tblCertificate = $this->createCertificate('Gymnasium Halbjahresinformation', '', 'GymHjInfo');
         if ($tblCertificate) {
             if ($tblSchoolTypeGym) {
                 $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeGym, null, true);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '5'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '5'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '6'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '7'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '8'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '9'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
                 }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '6'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '7'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '8'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '9'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '10'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                // todo Remove nach DB - Update
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '10'))
+                    && ($tblCertificateLevel = $this->getCertificateLevelBy($tblCertificate, $tblLevel))
+                ) {
+                    $this->destroyCertificateLevel($tblCertificateLevel);
                 }
             }
             // Begrenzung des Bemerkungsfeld
@@ -284,11 +280,22 @@ class Data extends AbstractData
         if ($tblCertificate) {
             if ($tblSchoolTypeGym) {
                 $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeGym);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '11'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                // todo einkommentieren nach DB - Update
+//                if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '10'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+//                }
+                // todo Remove nach DB - Update
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '11'))
+                    && ($tblCertificateLevel = $this->getCertificateLevelBy($tblCertificate, $tblLevel))
+                ) {
+                    $this->destroyCertificateLevel($tblCertificateLevel);
                 }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '12'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '12'))
+                    && ($tblCertificateLevel = $this->getCertificateLevelBy($tblCertificate, $tblLevel))
+                ) {
+                    $this->destroyCertificateLevel($tblCertificateLevel);
                 }
             }
             // Begrenzung des Bemerkungsfeld
@@ -321,23 +328,25 @@ class Data extends AbstractData
         if ($tblCertificate) {
             if ($tblSchoolTypeGym) {
                 $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypeGym);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '5'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '6'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '7'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '8'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '9'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '10'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '5'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '6'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '7'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '8'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '9'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '10'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
                 }
             }
             // Begrenzung des Einschätzungfelds
@@ -374,18 +383,6 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
         }
 
-        $tblCertificate = $this->createCertificate('Mittelschule Abgangszeugnis', 'Hauptschule', 'MsAbgHs');
-        if ($tblCertificate && $tblCourseMain) {
-            $this->updateCertificate($tblCertificate, $tblCertificateTypeLeave, $tblSchoolTypeSecondary,
-                $tblCourseMain);
-        }
-
-        $tblCertificate = $this->createCertificate('Mittelschule Abgangszeugnis', 'Realschule', 'MsAbgRs');
-        if ($tblCertificate && $tblCourseReal) {
-            $this->updateCertificate($tblCertificate, $tblCertificateTypeLeave, $tblSchoolTypeSecondary,
-                $tblCourseReal);
-        }
-
         $tblCertificate = $this->createCertificate('Mittelschule Abschlusszeugnis', 'Hauptschule', 'MsAbsHs');
         if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
             $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
@@ -409,8 +406,10 @@ class Data extends AbstractData
             if ($tblSchoolTypeSecondary && $tblCourseMain) {
                 $this->updateCertificate($tblCertificate, $tblCertificateTypeDiploma, $tblSchoolTypeSecondary,
                     $tblCourseMain);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
                 }
             }
         }
@@ -439,8 +438,10 @@ class Data extends AbstractData
             if ($tblSchoolTypeSecondary && $tblCourseMain) {
                 $this->updateCertificate($tblCertificate, $tblCertificateTypeDiploma, $tblSchoolTypeSecondary,
                     $tblCourseMain);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
                 }
             }
         }
@@ -467,8 +468,10 @@ class Data extends AbstractData
             if ($tblSchoolTypeSecondary && $tblCourseReal) {
                 $this->updateCertificate($tblCertificate, $tblCertificateTypeDiploma, $tblSchoolTypeSecondary,
                     $tblCourseReal);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '10'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '10'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
                 }
             }
         }
@@ -478,11 +481,13 @@ class Data extends AbstractData
             if ($tblSchoolTypeSecondary && $tblCourseMain) {
                 $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary,
                     $tblCourseMain, true);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
                 }
             }
             // Begrenzung des Bemerkungsfeld
@@ -518,11 +523,13 @@ class Data extends AbstractData
         if ($tblCertificate) {
             if ($tblSchoolTypeSecondary) {
                 $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary, null, true);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
                 }
             }
             // Begrenzung des Bemerkungsfeld
@@ -559,14 +566,16 @@ class Data extends AbstractData
             if ($tblSchoolTypeSecondary && $tblCourseReal) {
                 $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary,
                     $tblCourseReal, true);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
                 }
             }
             // Begrenzung des Bemerkungsfeld
@@ -603,8 +612,10 @@ class Data extends AbstractData
             if ($tblSchoolTypeSecondary && $tblCourseMain) {
                 $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary,
                     $tblCourseMain);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
                 }
             }
             // Begrenzung des Bemerkungsfeld
@@ -647,8 +658,10 @@ class Data extends AbstractData
             if ($tblSchoolTypeSecondary && $tblCourseReal) {
                 $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary,
                     $tblCourseReal);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '10'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '10'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
                 }
             }
             // Begrenzung des Bemerkungsfeld
@@ -685,11 +698,13 @@ class Data extends AbstractData
             if ($tblSchoolTypeSecondary && $tblCourseMain) {
                 $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypeSecondary,
                     $tblCourseMain);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
                 }
             }
             // Begrenzung des Einschätzungfelds
@@ -730,11 +745,13 @@ class Data extends AbstractData
         if ($tblCertificate) {
             if ($tblSchoolTypeSecondary) {
                 $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypeSecondary);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
                 }
             }
             // Begrenzung des Einschätzungfelds
@@ -776,14 +793,16 @@ class Data extends AbstractData
             if ($tblSchoolTypeSecondary && $tblCourseReal) {
                 $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypeSecondary,
                     $tblCourseReal);
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
-                }
-                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
-                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
+                    if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                        $this->createCertificateLevel($tblCertificate, $tblLevel);
+                    }
                 }
             }
             // Begrenzung des Einschätzungfelds
@@ -907,6 +926,89 @@ class Data extends AbstractData
         if (($tblCertificate = $this->getCertificateByCertificateClassName('GsJ'))) {
             $this->destroyCertificate($tblCertificate);
         }
+
+        /**
+         * Abgangszeugnisse - Leave
+         */
+        // Alt-Last löschen - Delete alte Abgangszeugnisse
+        if (($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GymAbgHs'))) {
+            $this->destroyCertificate($tblCertificate);
+        }
+        if (($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GymAbgRs'))) {
+            $this->destroyCertificate($tblCertificate);
+        }
+        if (($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('MsAbgHs'))) {
+            $this->destroyCertificate($tblCertificate);
+        }
+        if (($tblCertificate = Generator::useService()->getCertificateByCertificateClassName('MsAbgRs'))) {
+            $this->destroyCertificate($tblCertificate);
+        }
+        // create Abgangzeugnisse
+        $tblCertificate = $this->createCertificate('Mittelschule Abgangszeugnis', '', 'MsAbg',
+            null, false, false, false, $tblCertificateTypeLeave, $tblSchoolTypeSecondary);
+        if ($tblCertificate) {
+            if (!$this->getCertificateSubjectAll($tblCertificate)) {
+                $row = 1;
+                $column = 1;
+                $this->setCertificateSubject($tblCertificate, 'DE', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'EN', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'KU', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'MU', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GE', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GK', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GEO', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'WTH', $row, $column);
+
+                $row = 2;
+                $column = 1;
+                $this->setCertificateSubject($tblCertificate, 'MA', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'BIO', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'CH', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'PH', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'SPO', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'REE', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'REK', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'ETH', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'IN', $row, $column);
+            }
+        }
+        $tblCertificate = $this->createCertificate('Gymnasium Abgangszeugnis', 'Sekundarstufe I', 'GymAbgSekI',
+            null, false, false, false, $tblCertificateTypeLeave, $tblSchoolTypeGym);
+        if ($tblCertificate) {
+            if (!$this->getCertificateSubjectAll($tblCertificate)) {
+                $row = 1;
+                $column = 1;
+                $this->setCertificateSubject($tblCertificate, 'DE', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'EN', $row, $column++);
+                $column++;
+                $this->setCertificateSubject($tblCertificate, 'KU', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'MU', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GE', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GRW', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'GEO', $row, $column);
+
+                $row = 2;
+                $column = 1;
+                $this->setCertificateSubject($tblCertificate, 'MA', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'BIO', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'CH', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'PH', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'SPO', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'REE', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'REK', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'ETH', $row, $column++, false);
+                $this->setCertificateSubject($tblCertificate, 'TC', $row, $column++);
+                $this->setCertificateSubject($tblCertificate, 'IN', $row, $column);
+            }
+        }
+        $this->createCertificate('Gymnasium Abgangszeugnis', 'Sekundarstufe II', 'GymAbgSekII',
+            null, false, false, false, $tblCertificateTypeLeave, $tblSchoolTypeGym);
+
+        /*
+         * Abitur Zeugnis
+         */
+        $this->createCertificate('Gymnasium Abitur', '', 'GymAbitur',
+            null, false, false, false, $tblCertificateTypeDiploma, $tblSchoolTypeGym);
 
         $tblConsumer = Consumer::useService()->getConsumerBySession();
         if ($tblConsumer) {
@@ -1213,14 +1315,16 @@ class Data extends AbstractData
                     if ($tblCertificate) {
                         if ($tblSchoolTypePrimary) {
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                         // Begrenzung des Einschätzungfelds
@@ -1256,8 +1360,10 @@ class Data extends AbstractData
                     if ($tblCertificate) {
                         if ($tblSchoolTypePrimary) {
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
 
@@ -1274,14 +1380,16 @@ class Data extends AbstractData
                     if ($tblCertificate) {
                         if ($tblSchoolTypePrimary) {
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary, null, true);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
 
@@ -1314,8 +1422,10 @@ class Data extends AbstractData
                         if ($tblSchoolTypePrimary) {
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary
                                 , null, true);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
 
@@ -1384,30 +1494,30 @@ class Data extends AbstractData
                 $this->destroyCertificate($tblCertificate);
             }
 
-            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESS\EssGsHjOne'))) {
-                $this->destroyCertificate($tblCertificate);
-            }
-            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESS\EssGsJOne'))) {
-                $this->destroyCertificate($tblCertificate);
-            }
-            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESS\EssGsHjTwo'))) {
-                $this->destroyCertificate($tblCertificate);
-            }
-            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESS\EssGsJTwo'))) {
-                $this->destroyCertificate($tblCertificate);
-            }
-            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESS\EssGsHjThree'))) {
-                $this->destroyCertificate($tblCertificate);
-            }
-            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESS\EssGsJThree'))) {
-                $this->destroyCertificate($tblCertificate);
-            }
-            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESS\EssGsHjFour'))) {
-                $this->destroyCertificate($tblCertificate);
-            }
-            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESS\EssGsJFour'))) {
-                $this->destroyCertificate($tblCertificate);
-            }
+//            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESS\EssGsHjOne'))) {
+//                $this->destroyCertificate($tblCertificate);
+//            }
+//            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESS\EssGsJOne'))) {
+//                $this->destroyCertificate($tblCertificate);
+//            }
+//            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESS\EssGsHjTwo'))) {
+//                $this->destroyCertificate($tblCertificate);
+//            }
+//            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESS\EssGsJTwo'))) {
+//                $this->destroyCertificate($tblCertificate);
+//            }
+//            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESS\EssGsHjThree'))) {
+//                $this->destroyCertificate($tblCertificate);
+//            }
+//            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESS\EssGsJThree'))) {
+//                $this->destroyCertificate($tblCertificate);
+//            }
+//            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESS\EssGsHjFour'))) {
+//                $this->destroyCertificate($tblCertificate);
+//            }
+//            if (($tblCertificate = $this->getCertificateByCertificateClassName('ESS\EssGsJFour'))) {
+//                $this->destroyCertificate($tblCertificate);
+//            }
 
             if ($tblConsumer->getAcronym() == 'EVSC' || $tblConsumer->getAcronym() == 'DEMO') {
                 $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('EVSC');
@@ -1445,20 +1555,22 @@ class Data extends AbstractData
                         if ($tblSchoolTypeSecondary) {
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary,
                                 null, true);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                     }
@@ -1488,8 +1600,10 @@ class Data extends AbstractData
                     if ($tblCertificate) {
                         if ($tblSchoolTypeSecondary) {
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '10'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '10'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                     }
@@ -1577,14 +1691,16 @@ class Data extends AbstractData
                         if ($tblSchoolTypePrimary) {
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary,
                                 null, true);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                     }
@@ -1611,8 +1727,10 @@ class Data extends AbstractData
                         if ($tblSchoolTypePrimary) {
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary,
                                 null, true);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                     }
@@ -1623,14 +1741,16 @@ class Data extends AbstractData
                     if ($tblCertificate) {
                         if ($tblSchoolTypePrimary) {
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                     }
@@ -1656,8 +1776,10 @@ class Data extends AbstractData
                     if ($tblCertificate) {
                         if ($tblSchoolTypePrimary) {
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                     }
@@ -1795,147 +1917,164 @@ class Data extends AbstractData
 //                }
 //            }
 
-//            // ToDO Zeugnisse wurden entfernt beachten beim erneuten einkommentieren
-//            if ($tblConsumer->getAcronym() == 'ESS' || $tblConsumer->getAcronym() == 'DEMO') {
-//                $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('ESS');
-//                if ($tblConsumerCertificate) {
-//                    $tblCertificate = $this->createCertificate(
-//                        'Halbjahresinformation', '1. Klasse', 'ESS\EssGsHjOne', $tblConsumerCertificate
-//                    );
-//                    if ($tblCertificate) {
-//                        if ($tblSchoolTypePrimary) {
-//                            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear,
-//                                $tblSchoolTypePrimary,
-//                                null, true);
-//                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
-//                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-//                            }
-//                        }
-//                    }
-//                    $tblCertificate = $this->createCertificate(
-//                        'Jahreszeugnis', '1. Klasse', 'ESS\EssGsJOne', $tblConsumerCertificate
-//                    );
-//                    if ($tblCertificate) {
-//                        if ($tblSchoolTypePrimary) {
-//                            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear,
-//                                $tblSchoolTypePrimary,
-//                                null, false);
-//                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
-//                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-//                            }
-//                        }
-//                    }
-//                    $tblCertificate = $this->createCertificate(
-//                        'Halbjahresinformation', '2. Klasse', 'ESS\EssGsHjTwo', $tblConsumerCertificate
-//                    );
-//                    if ($tblCertificate) {
-//                        if ($tblSchoolTypePrimary) {
-//                            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear,
-//                                $tblSchoolTypePrimary,
-//                                null, true);
-//                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
-//                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-//                            }
-//                        }
-//                        // Begrenzung des Bemerkungsfelds
-//                        $FieldName = 'Rating';
-//                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-//                            $this->createCertificateField($tblCertificate, $FieldName, 1250);
-//                        }
-//                        $FieldName = 'TechnicalRating';
-//                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-//                            $this->createCertificateField($tblCertificate, $FieldName, 1250);
-//                        }
-//                    }
-//                    $tblCertificate = $this->createCertificate(
-//                        'Jahreszeugnis', '2. Klasse', 'ESS\EssGsJTwo', $tblConsumerCertificate
-//                    );
-//                    if ($tblCertificate) {
-//                        if ($tblSchoolTypePrimary) {
-//                            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear,
-//                                $tblSchoolTypePrimary,
-//                                null, false);
-//                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
-//                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-//                            }
-//                        }
-//                        // Begrenzung des Bemerkungsfelds
-//                        $FieldName = 'Rating';
-//                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-//                            $this->createCertificateField($tblCertificate, $FieldName, 1250);
-//                        }
-//                        $FieldName = 'TechnicalRating';
-//                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-//                            $this->createCertificateField($tblCertificate, $FieldName, 1250);
-//                        }
-//                    }
-//                    $tblCertificate = $this->createCertificate(
-//                        'Halbjahresinformation', '3. Klasse', 'ESS\EssGsHjThree', $tblConsumerCertificate
-//                    );
-//                    if ($tblCertificate) {
-//                        if ($tblSchoolTypePrimary) {
-//                            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear,
-//                                $tblSchoolTypePrimary,
-//                                null, true);
-//                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
-//                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-//                            }
-//                            // Begrenzung des Bemerkungsfelds
-//                            $FieldName = 'Rating';
-//                            if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-//                                $this->createCertificateField($tblCertificate, $FieldName, 1400);
-//                            }
-//                        }
-//                        //Fächer setzen
-//                        if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-//                            $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
-//                            $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
-//                            $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
-//                            $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
-//                            $this->setCertificateSubject($tblCertificate, 'EN', 1, 5);
-//
-//                            $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-//                            $this->setCertificateSubject($tblCertificate, 'WE', 2, 2);
-//                            $this->setCertificateSubject($tblCertificate, 'REV', 2, 3);
-//                            $this->setCertificateSubject($tblCertificate, 'SPO', 2, 4);
-//                        }
-//                    }
-//                    $tblCertificate = $this->createCertificate(
-//                        'Jahreszeugnis', '3. Klasse', 'ESS\EssGsJThree', $tblConsumerCertificate
-//                    );
-//                    if ($tblCertificate) {
-//                        if ($tblSchoolTypePrimary) {
-//                            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear,
-//                                $tblSchoolTypePrimary,
-//                                null, false);
-//                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
-//                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-//                            }
-//                        }
-//                        // Begrenzung des Bemerkungsfelds
-//                        $FieldName = 'Rating';
-//                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-//                            $this->createCertificateField($tblCertificate, $FieldName, 650);
-//                        }
-//                        $FieldName = 'TechnicalRating';
-//                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-//                            $this->createCertificateField($tblCertificate, $FieldName, 850);
-//                        }
-//
-//                        //Fächer setzen
-//                        if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
-//                            $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
-//                            $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
-//                            $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
-//                            $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
-//                            $this->setCertificateSubject($tblCertificate, 'EN', 1, 5);
-//
-//                            $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
-//                            $this->setCertificateSubject($tblCertificate, 'WE', 2, 2);
-//                            $this->setCertificateSubject($tblCertificate, 'REV', 2, 3);
-//                            $this->setCertificateSubject($tblCertificate, 'SPO', 2, 4);
-//                        }
-//                    }
+            if ($tblConsumer->getAcronym() == 'ESS' || $tblConsumer->getAcronym() == 'DEMO') {
+                $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('ESS');
+                if ($tblConsumerCertificate) {
+                    $tblCertificate = $this->createCertificate(
+                        'Halbjahresinformation', '1. Klasse', 'ESS\EssGsHjOne', $tblConsumerCertificate
+                    );
+                    if ($tblCertificate) {
+                        if ($tblSchoolTypePrimary) {
+                            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear,
+                                $tblSchoolTypePrimary,
+                                null, true);
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                        }
+                        // Begrenzung des Bemerkungsfelds
+                        $FieldName = 'Remark';
+                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                            $this->createCertificateField($tblCertificate, $FieldName, 2000);
+                        }
+                    }
+                    $tblCertificate = $this->createCertificate(
+                        'Jahreszeugnis', '1. Klasse', 'ESS\EssGsJOne', $tblConsumerCertificate
+                    );
+                    if ($tblCertificate) {
+                        if ($tblSchoolTypePrimary) {
+                            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear,
+                                $tblSchoolTypePrimary,
+                                null, false);
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                        }
+                        // Begrenzung des Bemerkungsfelds
+                        $FieldName = 'Remark';
+                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                            $this->createCertificateField($tblCertificate, $FieldName, 1650);
+                        }
+                    }
+                    $tblCertificate = $this->createCertificate(
+                        'Halbjahresinformation', '2. Klasse', 'ESS\EssGsHjTwo', $tblConsumerCertificate
+                    );
+                    if ($tblCertificate) {
+                        if ($tblSchoolTypePrimary) {
+                            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear,
+                                $tblSchoolTypePrimary,
+                                null, true);
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                        }
+                        // Begrenzung des Bemerkungsfelds
+                        $FieldName = 'Rating';
+                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                            $this->createCertificateField($tblCertificate, $FieldName, 900);
+                        }
+                        $FieldName = 'TechnicalRating';
+                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                            $this->createCertificateField($tblCertificate, $FieldName, 1350);
+                        }
+                    }
+                    $tblCertificate = $this->createCertificate(
+                        'Jahreszeugnis', '2. Klasse', 'ESS\EssGsJTwo', $tblConsumerCertificate
+                    );
+                    if ($tblCertificate) {
+                        if ($tblSchoolTypePrimary) {
+                            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear,
+                                $tblSchoolTypePrimary,
+                                null, false);
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                        }
+                        // Begrenzung des Bemerkungsfelds
+                        $FieldName = 'Rating';
+                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                            $this->createCertificateField($tblCertificate, $FieldName, 850);
+                        }
+                        $FieldName = 'TechnicalRating';
+                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                            $this->createCertificateField($tblCertificate, $FieldName, 1150);
+                        }
+                    }
+                    $tblCertificate = $this->createCertificate(
+                        'Halbjahresinformation', '3. Klasse', 'ESS\EssGsHjThree', $tblConsumerCertificate
+                    );
+                    if ($tblCertificate) {
+                        if ($tblSchoolTypePrimary) {
+                            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear,
+                                $tblSchoolTypePrimary,
+                                null, true);
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                            // Begrenzung des Bemerkungsfelds
+                            $FieldName = 'Rating';
+                            if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                                $this->createCertificateField($tblCertificate, $FieldName, 200);
+                            }
+                        }
+                        // Kopfnoten Setzen
+                        if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+                            $this->setCertificateGradeAllStandard($tblCertificate);
+                        }
+                        //Fächer setzen
+                        if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+                            $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+                            $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
+                            $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+                            $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+                            $this->setCertificateSubject($tblCertificate, 'EN', 1, 5);
+
+                            $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                            $this->setCertificateSubject($tblCertificate, 'WE', 2, 2);
+                            $this->setCertificateSubject($tblCertificate, 'REV', 2, 3);
+                            $this->setCertificateSubject($tblCertificate, 'SPO', 2, 4);
+                        }
+                    }
+                    $tblCertificate = $this->createCertificate(
+                        'Jahreszeugnis', '3. Klasse', 'ESS\EssGsJThree', $tblConsumerCertificate
+                    );
+                    if ($tblCertificate) {
+                        if ($tblSchoolTypePrimary) {
+                            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear,
+                                $tblSchoolTypePrimary,
+                                null, false);
+                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            }
+                        }
+                        // Begrenzung des Bemerkungsfelds
+                        $FieldName = 'Rating';
+                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                            $this->createCertificateField($tblCertificate, $FieldName, 550);
+                        }
+                        $FieldName = 'TechnicalRating';
+                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
+                            $this->createCertificateField($tblCertificate, $FieldName, 600);
+                        }
+
+                        // Kopfnoten Setzen
+                        if ($tblCertificate && !$this->getCertificateGradeAll($tblCertificate)) {
+                            $this->setCertificateGradeAllStandard($tblCertificate);
+                        }
+                        //Fächer setzen
+                        if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+                            $this->setCertificateSubject($tblCertificate, 'DE', 1, 1);
+                            $this->setCertificateSubject($tblCertificate, 'SU', 1, 2);
+                            $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+                            $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
+                            $this->setCertificateSubject($tblCertificate, 'EN', 1, 5);
+
+                            $this->setCertificateSubject($tblCertificate, 'MA', 2, 1);
+                            $this->setCertificateSubject($tblCertificate, 'WE', 2, 2);
+                            $this->setCertificateSubject($tblCertificate, 'REV', 2, 3);
+                            $this->setCertificateSubject($tblCertificate, 'SPO', 2, 4);
+                        }
+                    }
 //                    //ToDO Zeugnissvorlagen der Klasse 4 erstellen
 ////                    $tblCertificate = $this->createCertificate(
 ////                        'Halbjahresinformation', '4. Klasse', 'ESS\EssGsHjFour', $tblConsumerCertificate
@@ -1999,8 +2138,8 @@ class Data extends AbstractData
 ////                            $this->setCertificateSubject($tblCertificate, 'SPO', 2, 4);
 ////                        }
 ////                    }
-//                }
-//            }
+                }
+            }
 
             if ($tblConsumer->getAcronym() == 'EVAMTL' || $tblConsumer->getAcronym() == 'DEMO') {
                 $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('EVAMTL');
@@ -2009,26 +2148,28 @@ class Data extends AbstractData
                         $tblConsumerCertificate);
                     if ($tblCertificate) {
                         if ($tblSchoolTypeGym) {
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '5'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '6'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '7'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '8'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '9'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '10'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '11'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '5'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '6'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '7'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '8'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '9'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '10'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '11'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                         // Begrenzung des Einschätzungfelds
@@ -2079,8 +2220,10 @@ class Data extends AbstractData
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear,
                                 $tblSchoolTypePrimary,
                                 null, true);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                         // Begrenzung des Bemerkungsfelds
@@ -2097,8 +2240,10 @@ class Data extends AbstractData
                         if ($tblSchoolTypePrimary) {
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary,
                                 null, false);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                         // Begrenzung des Bemerkungsfelds
@@ -2116,14 +2261,16 @@ class Data extends AbstractData
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear,
                                 $tblSchoolTypePrimary,
                                 null, true);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                         // Begrenzung des Bemerkungsfelds
@@ -2159,14 +2306,16 @@ class Data extends AbstractData
                         if ($tblSchoolTypePrimary) {
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary,
                                 null, false);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '2'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '3'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '4'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '2'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '3'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '4'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                         // Begrenzung des Bemerkungsfelds
@@ -2207,11 +2356,13 @@ class Data extends AbstractData
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear,
                                 $tblSchoolTypePrimary,
                                 null, true);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                         // Begrenzung des Bemerkungsfelds
@@ -2229,11 +2380,13 @@ class Data extends AbstractData
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear,
                                 $tblSchoolTypePrimary,
                                 null, true);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                         // Begrenzung des Bemerkungsfelds
@@ -2253,11 +2406,13 @@ class Data extends AbstractData
                     if ($tblCertificate) {
                         if ($tblSchoolTypePrimary) {
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                         // Begrenzung des Bemerkungsfelds
@@ -2272,11 +2427,13 @@ class Data extends AbstractData
                     if ($tblCertificate) {
                         if ($tblSchoolTypePrimary) {
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '2'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                         // Begrenzung des Bemerkungsfelds
@@ -2298,11 +2455,13 @@ class Data extends AbstractData
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear,
                                 $tblSchoolTypePrimary,
                                 null, true);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                         // Begrenzung des Bemerkungsfelds
@@ -2330,11 +2489,13 @@ class Data extends AbstractData
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear,
                                 $tblSchoolTypePrimary,
                                 null, true);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                         // Begrenzung des Bemerkungsfelds
@@ -2364,11 +2525,13 @@ class Data extends AbstractData
                     if ($tblCertificate) {
                         if ($tblSchoolTypePrimary) {
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                         // Begrenzung des Bemerkungsfelds
@@ -2393,11 +2556,13 @@ class Data extends AbstractData
                     if ($tblCertificate) {
                         if ($tblSchoolTypePrimary) {
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '3'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '4'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                         // Begrenzung des Bemerkungsfelds
@@ -2429,20 +2594,22 @@ class Data extends AbstractData
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear,
                                 $tblSchoolTypeSecondary,
                                 null, true);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                         // Begrenzung des Bemerkungsfelds
@@ -2484,20 +2651,22 @@ class Data extends AbstractData
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear,
                                 $tblSchoolTypeSecondary,
                                 null, true);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                         // Begrenzung des Bemerkungsfelds
@@ -2542,11 +2711,13 @@ class Data extends AbstractData
                         if ($tblSchoolTypeSecondary) {
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear,
                                 $tblSchoolTypeSecondary);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '10'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '10'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                         // Begrenzung des Bemerkungsfelds
@@ -2586,11 +2757,13 @@ class Data extends AbstractData
                         if ($tblSchoolTypeSecondary) {
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear,
                                 $tblSchoolTypeSecondary);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '10'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '10'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                         // Begrenzung des Bemerkungsfelds
@@ -2634,20 +2807,22 @@ class Data extends AbstractData
                     if ($tblCertificate) {
                         if ($tblSchoolTypeSecondary) {
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypeSecondary);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                         // Begrenzung des Bemerkungsfelds
@@ -2686,20 +2861,22 @@ class Data extends AbstractData
                     if ($tblCertificate) {
                         if ($tblSchoolTypeSecondary) {
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypeSecondary);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                         // Begrenzung des Bemerkungsfelds
@@ -2749,20 +2926,22 @@ class Data extends AbstractData
                         if ($tblSchoolTypeSecondary) {
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear,
                                 $tblSchoolTypeSecondary);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '7'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '8'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '9'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                         // Begrenzung der Einschätzung
@@ -2801,20 +2980,22 @@ class Data extends AbstractData
                         if ($tblSchoolTypeGym) {
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear,
                                 $tblSchoolTypeGym);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '5'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '6'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '7'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '8'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '9'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '5'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '6'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '7'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '8'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '9'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                         // Begrenzung der Einschätzung
@@ -2856,8 +3037,10 @@ class Data extends AbstractData
                         if ($tblSchoolTypeGym) {
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear,
                                 $tblSchoolTypeGym);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '10'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeGym, '10'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                         // Begrenzung der Einschätzung
@@ -2906,11 +3089,13 @@ class Data extends AbstractData
                         if ($tblSchoolTypeSecondary) {
                             $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear,
                                 $tblSchoolTypeSecondary, null, true);
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
-                            }
-                            if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
-                                $this->createCertificateLevel($tblCertificate, $tblLevel);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '5'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypeSecondary, '6'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
                             }
                         }
                         // Begrenzung des Bemerkungsfeld
@@ -2926,6 +3111,7 @@ class Data extends AbstractData
                         $this->setCertificateSubject($tblCertificate, 'D', 1, 1);
                         $this->setCertificateSubject($tblCertificate, 'EN', 1, 2);
                         $this->setCertificateSubject($tblCertificate, 'KU', 1, 3);
+                        $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
                         $this->setCertificateSubject($tblCertificate, 'MU', 1, 4);
                         $this->setCertificateSubject($tblCertificate, 'GE', 1, 5);
                         $this->setCertificateSubject($tblCertificate, 'GK', 1, 6);
@@ -2947,15 +3133,18 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string           $Name
-     * @param string           $Description
-     * @param string           $Certificate
+     * @param string $Name
+     * @param string $Description
+     * @param string $Certificate
      * @param TblConsumer|null $tblConsumer
-     * @param bool             $IsGradeInformation
-     * @param bool             $IsInformation
-     * @param bool             $IsChosenDefault
+     * @param bool $IsGradeInformation
+     * @param bool $IsInformation
+     * @param bool $IsChosenDefault
+     * @param TblCertificateType|null $tblCertificateType
+     * @param TblType|null $tblSchoolType
+     * @param TblCourse|null $tblCourse
      *
-     * @return null|object|TblCertificate
+     * @return TblCertificate
      */
     public function createCertificate(
         $Name,
@@ -2964,7 +3153,10 @@ class Data extends AbstractData
         TblConsumer $tblConsumer = null,
         $IsGradeInformation = false,
         $IsInformation = false,
-        $IsChosenDefault = false
+        $IsChosenDefault = false,
+        TblCertificateType $tblCertificateType = null,
+        TblType $tblSchoolType = null,
+        TblCourse $tblCourse = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -2982,6 +3174,9 @@ class Data extends AbstractData
             $Entity->setIsGradeInformation($IsGradeInformation);
             $Entity->setIsInformation($IsInformation);
             $Entity->setIsChosenDefault($IsChosenDefault);
+            $Entity->setTblCertificateType($tblCertificateType);
+            $Entity->setServiceTblSchoolType($tblSchoolType);
+            $Entity->setServiceTblCourse($tblCourse);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -3291,7 +3486,7 @@ class Data extends AbstractData
     public function getCertificateGradeAll(TblCertificate $tblCertificate)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+        return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblCertificateGrade', array(
                 TblCertificateGrade::ATTR_TBL_CERTIFICATE => $tblCertificate->getId()
             ));
@@ -3381,8 +3576,11 @@ class Data extends AbstractData
             if (!$tblSubject) {
                 $tblSubject = Subject::useService()->getSubjectByAcronym('REE');
             }
-        } elseif ($SubjectAcronym == 'IN' || $SubjectAcronym == 'INFO') {
-            $tblSubject = Subject::useService()->getSubjectByAcronym('IN');
+        } elseif ($SubjectAcronym == 'IN' || $SubjectAcronym == 'INFO' || $SubjectAcronym == 'INF') {
+            $tblSubject = Subject::useService()->getSubjectByAcronym('INF');
+            if (!$tblSubject) {
+                $tblSubject = Subject::useService()->getSubjectByAcronym('IN');
+            }
             if (!$tblSubject) {
                 $tblSubject = Subject::useService()->getSubjectByAcronym('INFO');
             }
@@ -3874,5 +4072,20 @@ class Data extends AbstractData
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param TblCertificate $tblCertificate
+     * @param TblLevel $tblLevel
+     *
+     * @return false|TblCertificateLevel
+     */
+    public function getCertificateLevelBy(TblCertificate $tblCertificate, TblLevel $tblLevel)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblCertificateLevel', array(
+            TblCertificateLevel::ATTR_TBL_CERTIFICATE => $tblCertificate->getId(),
+            TblCertificateLevel::SERVICE_TBL_LEVEL => $tblLevel->getId()
+        ));
     }
 }

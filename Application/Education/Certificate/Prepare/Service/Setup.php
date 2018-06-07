@@ -38,6 +38,10 @@ class Setup extends AbstractSetup
         $this->setTablePrepareStudent($Schema, $tblPrepare);
         $this->setTablePrepareInformation($Schema, $tblPrepare);
         $this->setTablePrepareAdditionalGrade($Schema, $tblPrepare, $tblPrepareAdditionalGradeType);
+        $tblLeaveStudent = $this->setTableLeaveStudent($Schema);
+        $this->setTableLeaveGrade($Schema,$tblLeaveStudent);
+        $this->setTableLeaveInformation($Schema,$tblLeaveStudent);
+        $this->setTableLeaveAdditionalGrade($Schema, $tblLeaveStudent, $tblPrepareAdditionalGradeType);
 
         /**
          * Migration & Protocol
@@ -201,6 +205,8 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'Grade', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Ranking', self::FIELD_TYPE_INTEGER);
+        $this->createColumn($Table, 'IsSelected', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($Table, 'IsLocked', self::FIELD_TYPE_BOOLEAN);
 
         $this->getConnection()->addForeignKey($Table, $tblPrepare, true);
         $this->getConnection()->addForeignKey($Table, $tblPrepareAdditionalGradeType, true);
@@ -220,6 +226,86 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Identifier', self::FIELD_TYPE_STRING);
         $this->createIndex($Table, array('Identifier'));
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableLeaveStudent(Schema &$Schema)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblLeaveStudent');
+        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'serviceTblDivision', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'serviceTblCertificate', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'IsApproved', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($Table, 'IsPrinted', self::FIELD_TYPE_BOOLEAN);
+
+        $this->createIndex($Table, array('serviceTblPerson' , 'serviceTblDivision'));
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblLeaveStudent
+     *
+     * @return Table
+     */
+    private function setTableLeaveGrade(Schema &$Schema, Table $tblLeaveStudent)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblLeaveGrade');
+        $this->createColumn($Table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'Grade', self::FIELD_TYPE_STRING);
+
+        $this->getConnection()->addForeignKey($Table, $tblLeaveStudent);
+        $this->createIndex($Table, array('serviceTblSubject' , 'tblLeaveStudent'));
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblLeaveStudent
+     *
+     * @return Table
+     */
+    private function setTableLeaveInformation(Schema &$Schema, Table $tblLeaveStudent)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblLeaveInformation');
+        $this->createColumn($Table, 'Field', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Value', self::FIELD_TYPE_TEXT);
+
+        $this->getConnection()->addForeignKey($Table, $tblLeaveStudent);
+        $this->createIndex($Table, array('Field' , 'tblLeaveStudent'));
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblLeaveStudent
+     * @param Table $tblPrepareAdditionalGradeType
+     *
+     * @return Table
+     */
+    private function setTableLeaveAdditionalGrade(Schema &$Schema, Table $tblLeaveStudent, Table $tblPrepareAdditionalGradeType)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblLeaveAdditionalGrade');
+
+        $this->createColumn($Table, 'serviceTblSubject', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'Grade', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'IsLocked', self::FIELD_TYPE_BOOLEAN);
+
+        $this->getConnection()->addForeignKey($Table, $tblLeaveStudent, true);
+        $this->getConnection()->addForeignKey($Table, $tblPrepareAdditionalGradeType, true);
 
         return $Table;
     }

@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Title as FormTitle;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -26,6 +27,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Star;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -322,20 +324,21 @@ class Frontend extends Extension implements IFrontendInterface
 
         $form = new Form(
             new FormGroup(
-                new FormRow(
+                new FormRow(array(
                     new FormColumn(
                         new Panel(
                             'Zeugnistypen automatisch freigeben',
                             $certificateTypeList,
                             Panel::PANEL_TYPE_PRIMARY
                         )
-                    )
-                )
+                    ),
+                    new FormColumn(new HiddenField('Data[IsSubmit]'))
+                ))
             )
         );
         $form->appendFormButton(new Primary('Speichern', new Save()));
 
-        $Stage->setContent(Generator::useService()->updateCertificateType($form, $Data));
+        $Stage->setContent(new Well(Generator::useService()->updateCertificateType($form, $Data)));
 
         return $Stage;
     }

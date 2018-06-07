@@ -53,7 +53,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTab;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTabs;
-use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -88,7 +87,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Person', 'Datenblatt '.( $Id ? 'bearbeiten' : 'anlegen' ));
-        $Stage->addButton( new Backward() );
+        $Stage->addButton( new Standard('Zurück', '/People', new ChevronLeft()) );
 
         if (!$Id) {
 

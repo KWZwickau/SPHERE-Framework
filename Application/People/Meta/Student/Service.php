@@ -963,6 +963,44 @@ class Service extends Integration
 
     /**
      * @param TblPerson $tblPerson
+     *
+     * @return false|TblDivision
+     */
+    public function getCurrentMainDivisionByPerson(TblPerson $tblPerson)
+    {
+
+        if (Group::useService()->existsGroupPerson(Group::useService()->getGroupByMetaTable('STUDENT'),
+            $tblPerson)
+        ) {
+            $tblYearList = Term::useService()->getYearByNow();
+            if ($tblYearList) {
+                $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
+                if ($tblDivisionStudentList) {
+                    foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                        foreach ($tblYearList as $tblYear) {
+                            if ($tblDivisionStudent->getTblDivision()) {
+                                $divisionYear = $tblDivisionStudent->getTblDivision()->getServiceTblYear();
+                                if ($divisionYear && $divisionYear->getId() == $tblYear->getId()) {
+                                    if(($tblDivision = $tblDivisionStudent->getTblDivision())){
+                                        if (($tblLevel = $tblDivision->getTblLevel())
+                                            && !$tblLevel->getIsChecked()
+                                        ) {
+                                            return $tblDivision;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
      * @param string $Prefix
      *
      * @return string

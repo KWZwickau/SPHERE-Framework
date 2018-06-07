@@ -17,10 +17,12 @@ use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -61,7 +63,6 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger as DangerMessage;
 use SPHERE\Common\Frontend\Message\Repository\Info;
@@ -97,7 +98,6 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Klassen', 'Aktuelle Übersicht');
-        new Backward();
 
         $DivisionList = array();
         if (isset( $Year ) && $Year !== '0') {
@@ -196,7 +196,14 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblTeacherList) {
                     $NameList = array();
                     foreach ($tblTeacherList as $tblPerson) {
-                        $NameList[] = $tblPerson->getLastName();
+                        if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))
+                            && ($acronym = $tblTeacher->getAcronym())
+                        ) {
+                            $name = $tblPerson->getLastName() . ' (' . $acronym . ')';
+                        } else {
+                            $name = $tblPerson->getLastName();
+                        }
+                        $NameList[] = $name;
                     }
 //                    $Temp['TeacherList'] = new Listing($NameList);
                     $Temp['TeacherList'] = implode('<br/>', $NameList);
@@ -433,7 +440,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Klassenlehrer', $Title);
         $Stage->setMessage('');
-//            $Stage->addButton(new Backward());
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
             array('Id' => $tblDivision->getId())));
 
@@ -585,7 +591,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Elternvertreter', $Title);
         $Stage->setMessage('');
-//            $Stage->addButton(new Backward());
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
             array('Id' => $tblDivision->getId())));
 
@@ -716,6 +721,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $Id
      * @param bool $IsHasGradingView
+     * @param null $Data
      *
      * @return Stage|string
      */
@@ -767,6 +773,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new FormColumn(
                             new Panel('Fächer werden benotet bzw. erhalten Zeugnistext' , $subjectList, Panel::PANEL_TYPE_INFO)
                             , 12),
+                        new FormColumn(new HiddenField('Data[IsSubmit]'))
                     )),
                 )));
             $form->appendFormButton(new Primary('Speichern', new Save()));
@@ -873,7 +880,6 @@ class Frontend extends Extension implements IFrontendInterface
                         array('Id' => $tblDivision->getId()));
             }
             $Stage = new Stage('Schüler', 'Klasse ' . new Bold($tblDivision->getDisplayName()));
-//                $Stage->addButton(new Backward());
             $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
                 array('Id' => $Id)));
             $Stage->setMessage(new WarningText('"Schüler in Gelb"')
@@ -994,6 +1000,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Schüler' . new Small(' (Bildungsgang)') , $tblStudentList, Panel::PANEL_TYPE_INFO)
                         , 12),
+                    new FormColumn(new HiddenField('Student[IsSubmit]'))
                 )),
             ))
         );
@@ -1394,7 +1401,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage = new Stage('Fach-Gruppen', 'Bearbeiten');
-//        $Stage->addButton(new Backward());
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/SubjectGroup/Add', new ChevronLeft(),
             array(
                 'Id'                => $DivisionId,
@@ -1522,7 +1528,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Klasse', 'Bearbeiten');
-        $Stage->addButton(new Backward());
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
 //        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
         $tblDivision = Division::useService()->getDivisionById($Id);
         if (!$tblDivision) {
@@ -2062,9 +2068,8 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Lehrer', 'Auswahl');
         $tblDivision = Division::useService()->getDivisionById($Id);
         if ($tblDivision) {
-            $Stage->addButton(new Backward());
-//            $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
-//                array('Id' => $tblDivision->getId())));
+            $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
+                array('Id' => $tblDivision->getId())));
             $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
             if ($tblDivisionSubjectList) {
                 foreach ($tblDivisionSubjectList as &$tblDivisionSubject) {
@@ -2226,8 +2231,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Klasse', 'Kopieren');
-        $Stage->addButton(new Backward());
-//        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
         $tblDivision = $Id === null ? false : Division::useService()->getDivisionById($Id);
         if (!$tblDivision) {
             return $Stage->setContent(new DangerMessage('Klasse nicht gefunden.',

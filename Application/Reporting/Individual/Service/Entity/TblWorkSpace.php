@@ -19,10 +19,17 @@ use SPHERE\System\Database\Fitting\Element;
 class TblWorkSpace extends Element
 {
 
+    const VIEW_TYPE_ALL = 'All';
+    const VIEW_TYPE_STUDENT = 'Student';
+    const VIEW_TYPE_PROSPECT = 'Prospect';
+    const VIEW_TYPE_CUSTODY = 'Custody';
+    const VIEW_TYPE_TEACHER = 'Teacher';
+
     const ATTR_TBL_PRESET = 'tblPreset';
     const ATTR_SERVICE_TBL_ACCOUNT = 'serviceTblAccount';
     const ATTR_FIELD = 'Field';
     const ATTR_VIEW = 'View';
+    const ATTR_VIEW_TYPE = 'ViewType';
     const ATTR_POSITION = 'Position';
     const ATTR_FIELD_COUNT = 'FieldCount';
 
@@ -42,6 +49,10 @@ class TblWorkSpace extends Element
      * @Column(type="string")
      */
     protected $View;
+    /**
+     * @Column(type="string")
+     */
+    protected $ViewType;
     /**
      * @Column(type="integer")
      */
@@ -127,6 +138,22 @@ class TblWorkSpace extends Element
     public function setView($View)
     {
         $this->View = $View;
+    }
+
+    /**
+     * @return string
+     */
+    public function getViewType()
+    {
+        return $this->ViewType;
+    }
+
+    /**
+     * @param string $ViewType
+     */
+    public function setViewType($ViewType)
+    {
+        $this->ViewType = $ViewType;
     }
 
     /**

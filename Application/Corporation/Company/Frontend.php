@@ -4,6 +4,7 @@ namespace SPHERE\Application\Corporation\Company;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Contact\Web\Web;
 use SPHERE\Application\Corporation\Company\Service\Entity\ViewCompany;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
@@ -403,8 +404,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Institutionen', 'Datenblatt '.( $Id ? 'bearbeiten' : 'anlegen' ));
 
-        $Stage->addButton(new Standard('Zurück', '/Corporation/Search/Group', new ChevronLeft(),
-            array('Group' => $Group)));
+        $Stage->addButton(new Standard('Zurück', '/Corporation', new ChevronLeft()));
 
         if (!$Id) {
 
@@ -428,8 +428,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             if ($tblCompany) {
                 $Stage->addButton(new Standard('Ansprechpartner hinzufügen', '/Corporation/Company/Contact/Create', new PlusSign(), array(
-                    'Id' => $tblCompany->getId(),
-                    'Group' => $Group
+                    'Id' => $tblCompany->getId()
                 )));
 
                 $Global = $this->getGlobal();
@@ -530,6 +529,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutRow(new LayoutColumn(
                                 Phone::useFrontend()->frontendLayoutCompany($tblCompany)
                                 . Mail::useFrontend()->frontendLayoutCompany($tblCompany)
+                                . Web::useFrontend()->frontendLayoutCompany($tblCompany)
                             )),
                         ), ( new Title(new TagList().' Kontaktdaten', 'der Institution') )
                             ->addButton(
@@ -539,6 +539,11 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                             ->addButton(
                                 new Standard('E-Mail Adresse hinzufügen', '/Corporation/Company/Mail/Create',
+                                    new ChevronDown(), array('Id' => $tblCompany->getId())
+                                )
+                            )
+                            ->addButton(
+                                new Standard('Internet Adresse hinzufügen', '/Corporation/Company/Web/Create',
                                     new ChevronDown(), array('Id' => $tblCompany->getId())
                                 )
                             )

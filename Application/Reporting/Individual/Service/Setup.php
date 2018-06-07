@@ -60,6 +60,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'serviceTblAccount', self::FIELD_TYPE_BIGINT);
         $this->createColumn($Table, 'Field', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'View', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'ViewType', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Position', self::FIELD_TYPE_INTEGER);
         $this->createColumn($Table, 'FieldCount', self::FIELD_TYPE_INTEGER);
         $this->createColumn($Table, 'IsExpanded', self::FIELD_TYPE_BOOLEAN);
@@ -81,6 +82,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'serviceTblAccount', self::FIELD_TYPE_BIGINT);
         $this->createColumn($Table, 'Field', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'View', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'ViewType', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Position', self::FIELD_TYPE_INTEGER);
         $this->getConnection()->addForeignKey($Table, $tblPreset);
 
