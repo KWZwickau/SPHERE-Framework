@@ -87,31 +87,31 @@ class StudentGroupSelectWithFilter extends Extension implements IApiInterface
         return (new BlockReceiver($Content))->setIdentifier('ServiceReceiver');
     }
 
-    /**
-     * @param TblDivisionSubject $tblDivisionSubject
-     *
-     * @return array
-     */
-    public static function getTableContentUsed(TblDivisionSubject $tblDivisionSubject)
-    {
-
-        $tblSubjectStudentList = DivisionApplication::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
-        $tblDivision = $tblDivisionSubject->getTblDivision();
-
-        $usedList = array();
-        if ($tblSubjectStudentList && $tblDivision) {
-            foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                if (($tblPerson = $tblSubjectStudent->getServiceTblPerson())) {
-                    $usedList[] = array(
-                        'Id' => $tblPerson->getId(),
-                        'Name' => $tblPerson->getLastFirstName(),
-                    );
-                }
-            }
-        }
-
-        return $usedList;
-    }
+//    /**
+//     * @param TblDivisionSubject $tblDivisionSubject
+//     *
+//     * @return array
+//     */
+//    public static function getTableContentUsed(TblDivisionSubject $tblDivisionSubject)
+//    {
+//
+//        $tblSubjectStudentList = DivisionApplication::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
+//        $tblDivision = $tblDivisionSubject->getTblDivision();
+//
+//        $usedList = array();
+//        if ($tblSubjectStudentList && $tblDivision) {
+//            foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+//                if (($tblPerson = $tblSubjectStudent->getServiceTblPerson())) {
+//                    $usedList[] = array(
+//                        'Id' => $tblPerson->getId(),
+//                        'Name' => $tblPerson->getLastFirstName(),
+//                    );
+//                }
+//            }
+//        }
+//
+//        return $usedList;
+//    }
 
     /**
      * @param TblDivisionSubject $tblDivisionSubject
@@ -165,52 +165,59 @@ class StudentGroupSelectWithFilter extends Extension implements IApiInterface
 
         // get Content
         $tblDivisionSubject = DivisionApplication::useService()->getDivisionSubjectById($DivisionSubjectId);
-        $ContentList = false;
-        $ContentListAvailable = false;
-        $personAdvancedCourses = array();
-        if ($tblDivisionSubject) {
-            $ContentList = self::getTableContentUsed($tblDivisionSubject);
-            $ContentListAvailable = self::getTableContentAvailable($tblDivisionSubject);
-        }
+        if ($tblDivisionSubject && ($tblDivision = $tblDivisionSubject->getTblDivision())) {
+            // filter
+            $filter = new Filter($Filtered, $tblDivision);
+            $header = array(
+                'Name' => 'Name'
+            );
+            $filterHeader = $filter->getHeader();
+            if (!empty($filterHeader)) {
+                $header = array_merge($header, $filterHeader);
+            }
+            $header['Option'] = ' ';
 
-        $filter = new Filter($Filtered);
-
-        $header = array(
-            'Name' => 'Name'
-        );
-        $filterHeader = $filter->getHeader();
-        if (!empty($filterHeader)) {
-            $header = array_merge($header, $filterHeader);
-        }
-        $header['Option'] = ' ';
-
-        // Selected
-        $Table = array();
-        if (is_array($ContentList)) {
-            if (!empty($ContentList)) {
-
-                foreach ($ContentList as $Person) {
+            // left selected persons
+            if (($tblPersonSelectedList = DivisionApplication::useService()->getStudentByDivisionSubject($tblDivisionSubject))) {
+                $tableSelected = array();
+                foreach ($tblPersonSelectedList as $tblPerson) {
                     $item = array();
-                    $item['Name'] =  $Person['Name'];
-                    if (($tblPerson = Person::useService()->getPersonById($Person['Id']))) {
-                        if ($filter->getTblGroup()) {
-                            $item['Group'] = $filter->getTblGroupsStringByPerson($tblPerson);
-                        }
-                        if ($filter->getTblGender()) {
-                            $item['Gender'] = $filter->getTblGenderStringByPerson($tblPerson);
-                        }
+                    $item['Name'] = $tblPerson->getLastFirstName();
 
-                        //  todo weitere filter
+                    if ($filter->getTblGroup()) {
+//                        $item['Group'] = $filter->getTblGroupsStringByPerson($tblPerson);
+                        $item['Group'] = $filter->getTblGroup()->getName();
                     }
-                    $item['Option'] = (new Standard('', self::getEndpoint(), new MinusSign(),
-                        array('Id' => $Person['Id'], 'DivisionSubjectId' => $DivisionSubjectId), 'Entfernen'))
-                        ->ajaxPipelineOnClick(self::pipelineMinus($Person['Id'], $DivisionSubjectId));
+                    if ($filter->getTblGender()) {
+                        $item['Gender'] = $filter->getTblGenderStringByPerson($tblPerson);
+                    }
+                    if ($filter->getTblCourse()) {
+                        $item['Course'] = $filter->getTblCourseStringByPerson($tblPerson);
+                    }
+                    if ($filter->getTblSubjectOrientation()) {
+                        $item['SubjectOrientation'] = $filter->getTblSubjectOrientationStringByPerson($tblPerson);
+                    }
+                    if ($filter->getTblSubjectProfile()) {
+                        $item['SubjectProfile'] = $filter->getTblSubjectProfileStringByPerson($tblPerson);
+                    }
+                    if ($filter->getTblSubjectForeignLanguage()) {
+                        $item['SubjectForeignLanguage'] = $filter->getTblSubjectForeignLanguagesStringByPerson($tblPerson);
+                    }
+                    if ($filter->getTblSubjectReligion()) {
+                        $item['SubjectReligion'] = $filter->getTblSubjectReligionStringByPerson($tblPerson);
+                    }
+                    if ($filter->getTblSubjectElective()) {
+                        $item['SubjectElective'] = $filter->getTblSubjectElectivesStringByPerson($tblPerson);
+                    }
 
-                    $Table[$Person['Id']] = $item;
+                    $item['Option'] = (new Standard('', self::getEndpoint(), new MinusSign(),
+                        array('Id' => $tblPerson->getId(), 'DivisionSubjectId' => $DivisionSubjectId), 'Entfernen'))
+                        ->ajaxPipelineOnClick(self::pipelineMinus($tblPerson->getId(), $DivisionSubjectId));
+
+                    $tableSelected[$tblPerson->getId()] = $item;
                 }
 
-                // Anzeige
-                $left = (new TableData($Table, new Title('Ausgewählte', 'Schüler'), $header,
+                $left = (new TableData($tableSelected, new Title('Ausgewählte', 'Schüler'), $header,
                     array(
                         'columnDefs' => array(
                             array('width' => '1%', 'targets' => array(-1))
@@ -220,80 +227,77 @@ class StudentGroupSelectWithFilter extends Extension implements IApiInterface
             } else {
                 $left = new Info('Keine Schüler ausgewählt');
             }
-        } else {
-            $left = new Warning('Klasse nicht gefunden');
-        }
 
-        // Available
-        $TableAvailable = array();
-        if (is_array($ContentListAvailable)) {
-            if (!empty($ContentListAvailable)) {
-                foreach ($ContentListAvailable as $Person) {
-                    $TableAvailable[] = array(
-                        'Name' => $Person['Name'],
-                        'AdvancedCourse1' => isset($personAdvancedCourses[0][$Person['Id']])
-                            ? $personAdvancedCourses[0][$Person['Id']] : '',
-                        'AdvancedCourse2' => isset($personAdvancedCourses[1][$Person['Id']])
-                            ? $personAdvancedCourses[1][$Person['Id']] : '',
-                        'Option' => (new Standard('', self::getEndpoint(), new PlusSign(),
-                            array('Id' => $Person['Id'], 'DivisionSubjectId' => $DivisionSubjectId), 'Hinzufügen'))
-                            ->ajaxPipelineOnClick(self::pipelinePlus($Person['Id'], $DivisionSubjectId))
-                    );
+            // right available persons
+            $tableAvailable = array();
+            if (($tblPersonList = DivisionApplication::useService()->getStudentAllByDivision($tblDivision))) {
+                foreach ($tblPersonList as $tblPerson) {
+                    if (!isset($tableSelected[$tblPerson->getId()])
+                        && $filter->isFilterFulfilledByPerson($tblPerson)
+                    ) {
+                        $item = array();
+                        $item['Name'] = $tblPerson->getLastFirstName();
+
+                        if ($filter->getTblGroup()) {
+//                            $item['Group'] = $filter->getTblGroupsStringByPerson($tblPerson);
+                            $item['Group'] = $filter->getTblGroup()->getName();
+                        }
+                        if ($filter->getTblGender()) {
+                            $item['Gender'] = $filter->getTblGenderStringByPerson($tblPerson);
+                        }
+                        if ($filter->getTblCourse()) {
+                            $item['Course'] = $filter->getTblCourseStringByPerson($tblPerson);
+                        }
+                        if ($filter->getTblSubjectOrientation()) {
+                            $item['SubjectOrientation'] = $filter->getTblSubjectOrientationStringByPerson($tblPerson);
+                        }
+                        if ($filter->getTblSubjectProfile()) {
+                            $item['SubjectProfile'] = $filter->getTblSubjectProfileStringByPerson($tblPerson);
+                        }
+                        if ($filter->getTblSubjectForeignLanguage()) {
+                            $item['SubjectForeignLanguage'] = $filter->getTblSubjectForeignLanguagesStringByPerson($tblPerson);
+                        }
+                        if ($filter->getTblSubjectReligion()) {
+                            $item['SubjectReligion'] = $filter->getTblSubjectReligionStringByPerson($tblPerson);
+                        }
+                        if ($filter->getTblSubjectElective()) {
+                            $item['SubjectElective'] = $filter->getTblSubjectElectivesStringByPerson($tblPerson);
+                        }
+
+                        $item['Option'] = (new Standard('', self::getEndpoint(), new PlusSign(),
+                            array('Id' => $tblPerson->getId(), 'DivisionSubjectId' => $DivisionSubjectId), 'Hinzufügen'))
+                            ->ajaxPipelineOnClick(self::pipelinePlus($tblPerson->getId(), $DivisionSubjectId));
+
+                        $tableAvailable[$tblPerson->getId()] = $item;
+                    }
                 }
-                // Anzeige
-                $right = (new TableData($TableAvailable, new Title('Verfügbare', 'Schüler'), array(
-                    'Name' => 'Name',
-                    'AdvancedCourse1' => '1. LK',
-                    'AdvancedCourse2' => '2. LK',
-                    'Option' => ''
-                ),
+            }
+            if (empty($tableAvailable)) {
+                $right = new Info('Keine weiteren Schüler verfügbar');
+            } else {
+                $right = (new TableData($tableAvailable, new Title('Verfügbare', 'Schüler'), $header,
                     array(
                         'columnDefs' => array(
                             array('width' => '1%', 'targets' => array(-1))
                         ),
                     )
                 ))->setHash(__NAMESPACE__ . 'StudentGroupSelectWithFilter' . 'Available');
-            } else {
-                $right = new Info('Keine weiteren Schüler verfügbar');
             }
+
         } else {
+            $left = new Warning('Klasse nicht gefunden');
             $right = new Warning('Klasse nicht gefunden');
         }
 
-//        if ($tblDivisionSubject) {
-//            $layoutGroup = new LayoutGroup(
-//                new LayoutRow(
-//                    new LayoutColumn(
-//                        new Panel('Fach - Gruppe', array(
-//                            'Fach: ' . new Bold($tblDivisionSubject->getServiceTblSubject()
-//                                ? $tblDivisionSubject->getServiceTblSubject()->getName() : ''),
-//                            'Gruppe: ' . new Bold($tblDivisionSubject->getTblSubjectGroup()->getName())
-//                        ), Panel::PANEL_TYPE_INFO)
-//                    )
-//                )
-//            );
-//        } else {
-//            $layoutGroup = new LayoutGroup(
-//                new LayoutRow(
-//                    new LayoutColumn(
-//                        new Warning('Fach - Gruppe nicht gefunden', new Ban())
-//                    )
-//                )
-//            );
-//        }
-
         return
             new Layout(array(
-//                $layoutGroup,
-                new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn(
-                        $left
-                        , 6),
-                    new LayoutColumn(
-                        $right
-                        , 6)
-                )))));
-
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn($left, 6),
+                        new LayoutColumn($right, 6)
+                    ))
+                ))
+            ));
     }
 
     /**

@@ -9,70 +9,82 @@
 namespace SPHERE\Application\Education\Lesson\Division\Filter;
 
 
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Course\Course;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Filter
  *
  * @package SPHERE\Application\Education\Lesson\Division\Filter
  */
-class Filter
+class Filter extends Extension
 {
 
     /**
-     * @var bool|\SPHERE\Application\People\Group\Service\Entity\TblGroup
+     * @var bool|TblGroup
      */
     protected $tblGroup = false;
 
     /**
-     * @var bool|\SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender
+     * @var bool|TblCommonGender
      */
     protected $tblGender = false;
 
     /**
-     * @var bool|\SPHERE\Application\Education\School\Course\Service\Entity\TblCourse
+     * @var bool|TblCourse
      */
     protected $tblCourse = false;
 
     /**
-     * @var bool|\SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject
+     * @var bool|TblSubject
      */
     protected $tblSubjectOrientation = false;
 
     /**
-     * @var bool|\SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject
+     * @var bool|TblSubject
      */
     protected $tblSubjectProfile = false;
 
     /**
-     * @var bool|\SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject
+     * @var bool|TblSubject
      */
     protected $tblSubjectForeignLanguage = false;
 
     /**
-     * @var bool|\SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject
+     * @var bool|TblSubject
      */
     protected $tblSubjectReligion = false;
 
     /**
-     * @var bool|\SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject
+     * @var bool|TblSubject
      */
     protected $tblSubjectElective = false;
+
+    /**
+     * @var bool|TblDivision
+     */
+    protected $tblDivision = false;
 
     /**
      * @var array
      */
     protected $header = array();
 
-    public function __construct($Filtered) {
+    public function __construct($Filtered, TblDivision $tblDivision) {
 
         $header = array();
+        $this->tblDivision = $tblDivision;
         if (isset($Filtered['Group'])
             && ($tblGroup = Group::useService()->getGroupById($Filtered['Group']))
         ) {
@@ -133,6 +145,41 @@ class Filter
     }
 
     /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool
+     */
+    public function isFilterFulfilledByPerson(TblPerson $tblPerson)
+    {
+        if ($this->getTblGroup() && !$this->hasGroup($tblPerson)) {
+            return false;
+        }
+        if ($this->getTblGender() && !$this->hasGender($tblPerson)) {
+            return false;
+        }
+        if ($this->getTblCourse() && !$this->hasCourse($tblPerson)) {
+            return false;
+        }
+        if ($this->getTblSubjectOrientation() && !$this->hasSubjectOrientation($tblPerson)) {
+            return false;
+        }
+        if ($this->getTblSubjectProfile() && !$this->hasSubjectProfile($tblPerson)) {
+            return false;
+        }
+        if ($this->getTblSubjectForeignLanguage() && !$this->hasSubjectForeignLanguage($tblPerson)) {
+            return false;
+        }
+        if ($this->getTblSubjectReligion() && !$this->hasSubjectReligion($tblPerson)) {
+            return false;
+        }
+        if ($this->getTblSubjectElective() && !$this->hasSubjectElective($tblPerson)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * @return array
      */
     public function getHeader()
@@ -141,7 +188,7 @@ class Filter
     }
 
     /**
-     * @return bool|\SPHERE\Application\People\Group\Service\Entity\TblGroup
+     * @return bool|TblGroup
      */
     public function getTblGroup()
     {
@@ -156,6 +203,8 @@ class Filter
     public function getTblGroupsStringByPerson(TblPerson $tblPerson) {
         if (($tblGroupAllByPerson = Group::useService()->getGroupAllByPerson($tblPerson))) {
             $groups = array();
+            $tblGroupAllByPerson = $this->getSorter($tblGroupAllByPerson)->sortObjectBy('Name');
+            /** @var TblGroup $tblGroupItem */
             foreach ($tblGroupAllByPerson as $tblGroupItem) {
                 $groups[] = $tblGroupItem->getName();
             }
@@ -181,7 +230,7 @@ class Filter
     }
 
     /**
-     * @return bool|\SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender
+     * @return bool|TblCommonGender
      */
     public function getTblGender()
     {
@@ -191,9 +240,9 @@ class Filter
     /**
      * @param TblPerson $tblPerson
      *
-     * @return bool|\SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender
+     * @return bool|TblCommonGender
      */
-    public function getTblGenderByPerson(TblPerson $tblPerson)
+    private function getTblGenderByPerson(TblPerson $tblPerson)
     {
         return $tblPerson->getGender();
     }
@@ -221,7 +270,7 @@ class Filter
     }
 
     /**
-     * @return bool|\SPHERE\Application\Education\School\Course\Service\Entity\TblCourse
+     * @return bool|TblCourse
      */
     public function getTblCourse()
     {
@@ -231,9 +280,9 @@ class Filter
     /**
      * @param TblPerson $tblPerson
      *
-     * @return bool|\SPHERE\Application\Education\School\Course\Service\Entity\TblCourse
+     * @return bool|TblCourse
      */
-    public function getTblCourseByPerson(TblPerson $tblPerson)
+    private function getTblCourseByPerson(TblPerson $tblPerson)
     {
         if (($tblStudent = $tblPerson->getStudent())) {
             return Student::useService()->getCourseByStudent($tblStudent);
@@ -275,7 +324,7 @@ class Filter
     }
 
     /**
-     * @return bool|\SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject
+     * @return bool|TblSubject
      */
     public function getTblSubjectOrientation()
     {
@@ -286,9 +335,9 @@ class Filter
     /**
      * @param TblPerson $tblPerson
      *
-     * @return bool|\SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject
+     * @return bool|TblSubject
      */
-    public function getTblSubjectOrientationByPerson(TblPerson $tblPerson)
+    private function getTblSubjectOrientationByPerson(TblPerson $tblPerson)
     {
         if (($tblStudent = $tblPerson->getStudent())
             && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))
@@ -313,7 +362,7 @@ class Filter
     {
 
         if (($tblSubjectOrientation = $this->getTblSubjectOrientationByPerson($tblPerson))) {
-            return $tblSubjectOrientation->getAcronym() . ' ' . $tblSubjectOrientation->getName();
+            return $tblSubjectOrientation->getAcronym();
         }
 
         return '';
@@ -338,7 +387,7 @@ class Filter
     }
 
     /**
-     * @return bool|\SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject
+     * @return bool|TblSubject
      */
     public function getTblSubjectProfile()
     {
@@ -346,7 +395,61 @@ class Filter
     }
 
     /**
-     * @return bool|\SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|TblSubject
+     */
+    private function getTblSubjectProfileByPerson(TblPerson $tblPerson)
+    {
+        if (($tblStudent = $tblPerson->getStudent())
+            && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE'))
+            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                $tblStudentSubjectType))
+        ) {
+            /** @var TblStudentSubject $tblStudentSubject */
+            $tblStudentSubject = current($tblStudentSubjectList);
+
+            return $tblStudentSubject->getServiceTblSubject();
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return string
+     */
+    public function getTblSubjectProfileStringByPerson(TblPerson $tblPerson)
+    {
+
+        if (($tblSubjectProfile = $this->getTblSubjectProfileByPerson($tblPerson))) {
+            return $tblSubjectProfile->getAcronym();
+        }
+
+        return '';
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool
+     */
+    public function hasSubjectProfile(TblPerson $tblPerson)
+    {
+
+        if ($this->getTblSubjectProfile()
+            && ($tblSubjectProfile = $this->getTblSubjectProfileByPerson($tblPerson))
+            && $this->getTblSubjectProfile()->getId() == $tblSubjectProfile->getId()
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @return bool|TblSubject
      */
     public function getTblSubjectForeignLanguage()
     {
@@ -354,7 +457,91 @@ class Filter
     }
 
     /**
-     * @return bool|\SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|TblSubject[]
+     */
+    private function getTblSubjectForeignLanguagesByPerson(TblPerson $tblPerson)
+    {
+        $result = array();
+        if (($tblStudent = $tblPerson->getStudent())
+            && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                $tblStudentSubjectType))
+        ) {
+            $tblStudentSubjectList = $this->getSorter($tblStudentSubjectList)->sortObjectBy('TblStudentSubjectRanking');
+
+            /** @var TblStudentSubject $tblStudentSubject */
+            foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                    $from = $tblStudentSubject->getServiceTblLevelFrom();
+                    $till = $tblStudentSubject->getServiceTblLevelTill();
+
+                    $fromName = ' ';
+                    $tillName = ' ';
+                    $hasLevel = false;
+                    if ($from) {
+                        $hasLevel = true;
+                        $fromName = $from->getName();
+                        if (floatval($this->getLevelName()) < floatval($fromName)) {
+                            continue;
+                        }
+                    }
+                    if ($till) {
+                        $hasLevel = true;
+                        $tillName = $till->getName();
+                        if (floatval($this->getLevelName()) > floatval($tillName)) {
+                            continue;
+                        }
+                    }
+
+                    $result[$tblSubject->getId()] = $tblSubject->getAcronym()
+                        . ($hasLevel
+                            ? ' (' . $fromName . '-' . $tillName . ')'
+                            : ''
+                        );
+                }
+            }
+        }
+
+        return empty($result) ? false : $result;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return string
+     */
+    public function getTblSubjectForeignLanguagesStringByPerson(TblPerson $tblPerson)
+    {
+
+        if (($tblSubjectForeignLanguages = $this->getTblSubjectForeignLanguagesByPerson($tblPerson))) {
+            return implode(', ', $tblSubjectForeignLanguages);
+        }
+
+        return '';
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool
+     */
+    public function hasSubjectForeignLanguage(TblPerson $tblPerson)
+    {
+
+        if ($this->getTblSubjectForeignLanguage()
+            && ($tblSubjectForeignLanguages = $this->getTblSubjectForeignLanguagesByPerson($tblPerson))
+            && isset($tblSubjectForeignLanguages[$this->getTblSubjectForeignLanguage()->getId()])
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @return bool|TblSubject
      */
     public function getTblSubjectReligion()
     {
@@ -362,10 +549,134 @@ class Filter
     }
 
     /**
-     * @return bool|\SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|TblSubject
+     */
+    private function getTblSubjectReligionByPerson(TblPerson $tblPerson)
+    {
+        if (($tblStudent = $tblPerson->getStudent())
+            && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('RELIGION'))
+            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                $tblStudentSubjectType))
+        ) {
+            /** @var TblStudentSubject $tblStudentSubject */
+            $tblStudentSubject = current($tblStudentSubjectList);
+
+            return $tblStudentSubject->getServiceTblSubject();
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return string
+     */
+    public function getTblSubjectReligionStringByPerson(TblPerson $tblPerson)
+    {
+
+        if (($tblSubjectReligion = $this->getTblSubjectReligionByPerson($tblPerson))) {
+            return $tblSubjectReligion->getAcronym();
+        }
+
+        return '';
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool
+     */
+    public function hasSubjectReligion(TblPerson $tblPerson)
+    {
+
+        if ($this->getTblSubjectReligion()
+            && ($tblSubjectReligion = $this->getTblSubjectReligionByPerson($tblPerson))
+            && $this->getTblSubjectReligion()->getId() == $tblSubjectReligion->getId()
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @return bool|TblSubject
      */
     public function getTblSubjectElective()
     {
         return $this->tblSubjectElective;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|TblSubject[]
+     */
+    private function getTblSubjectElectivesByPerson(TblPerson $tblPerson)
+    {
+        $result = array();
+        if (($tblStudent = $tblPerson->getStudent())
+            && ($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ELECTIVE'))
+            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+                $tblStudentSubjectType))
+        ) {
+            foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                if (($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                    $result[$tblSubject->getId()] = $tblSubject->getAcronym();
+                }
+            }
+        }
+
+        return empty($result) ? false : $result;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return string
+     */
+    public function getTblSubjectElectivesStringByPerson(TblPerson $tblPerson)
+    {
+
+        if (($tblSubjectElectives = $this->getTblSubjectElectivesByPerson($tblPerson))) {
+            return implode(', ', $tblSubjectElectives);
+        }
+
+        return '';
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool
+     */
+    public function hasSubjectElective(TblPerson $tblPerson)
+    {
+
+        if ($this->getTblSubjectElective()
+            && ($tblSubjectElectives = $this->getTblSubjectElectivesByPerson($tblPerson))
+            && isset($tblSubjectElectives[$this->getTblSubjectElective()->getId()])
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLevelName()
+    {
+        if ($this->tblDivision
+            && ($tblLevel = $this->tblDivision->getTblLevel())
+        ) {
+            return $tblLevel->getName();
+        }
+
+        return '';
     }
 }

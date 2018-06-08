@@ -68,7 +68,7 @@ class Frontend
                     $tblSchoolType && $tblSchoolType->getName() == 'Gymnasium'
                     ? new FormColumn(
                         new Panel('Schülerakte: Profil', array(
-                            new SelectBox('Filter[SubjectProfile]', '', array('Name' => $tblProfileAll))
+                            new SelectBox('Filter[SubjectProfile]', '', array('{{ Acronym }} - {{ Name }}' => $tblProfileAll))
                         ),
                             Panel::PANEL_TYPE_INFO)
                         , 3)
@@ -77,26 +77,26 @@ class Frontend
                     $tblSchoolType && $tblSchoolType->getName() == 'Mittelschule / Oberschule'
                         ? new FormColumn(
                         new Panel('Schülerakte: Neigungskurs', array(
-                            new SelectBox('Filter[SubjectOrientation]', '', array('Name' => $tblOrientationAll))
+                            new SelectBox('Filter[SubjectOrientation]', '', array('{{ Acronym }} - {{ Name }}' => $tblOrientationAll))
                         ),
                             Panel::PANEL_TYPE_INFO)
                         , 3)
                         : null,
                     new FormColumn(
                         new Panel('Schülerakte: Fremdsprache', array(
-                            new SelectBox('Filter[SubjectForeignLanguage]', '', array('Name' => $tblForeignLanguageAll))
+                            new SelectBox('Filter[SubjectForeignLanguage]', '', array('{{ Acronym }} - {{ Name }}' => $tblForeignLanguageAll))
                         ),
                             Panel::PANEL_TYPE_INFO)
                         , 3),
                     new FormColumn(
                         new Panel('Schülerakte: Religion', array(
-                            new SelectBox('Filter[SubjectReligion]', '', array('Name' => $tblReligionAll))
+                            new SelectBox('Filter[SubjectReligion]', '', array('{{ Acronym }} - {{ Name }}' => $tblReligionAll))
                         ),
                             Panel::PANEL_TYPE_INFO)
                         , 3),
                     new FormColumn(
                         new Panel('Schülerakte: Wahlfach', array(
-                            new SelectBox('Filter[SubjectElective]', '', array('Name' => $tblElectiveAll))
+                            new SelectBox('Filter[SubjectElective]', '', array('{{ Acronym }} - {{ Name }}' => $tblElectiveAll))
                         ),
                             Panel::PANEL_TYPE_INFO)
                         , 3)
