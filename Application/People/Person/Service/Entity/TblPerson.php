@@ -272,4 +272,30 @@ class TblPerson extends Element
 
         return Student::useService()->getStudentByPerson($this);
     }
+
+    /**
+     * @return bool|string
+     */
+    public function getGenderString()
+    {
+       if (($tblGender = $this->getGender())) {
+            return $tblGender->getName();
+       }
+
+       return '';
+    }
+
+    /**
+     * @return bool|\SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender
+     */
+    public function getGender()
+    {
+        if (($tblCommon = $this->getCommon())) {
+            if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
+                return $tblCommonBirthDates->getTblCommonGender();
+            }
+        }
+
+        return false;
+    }
 }

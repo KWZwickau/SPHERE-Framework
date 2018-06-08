@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Education\Lesson\Division;
 
 use SPHERE\Application\Api\Education\Division\StudentGroupSelect;
+use SPHERE\Application\Api\Education\Division\StudentGroupSelectWithFilter;
 use SPHERE\Application\Api\Education\Division\StudentSelect;
 use SPHERE\Application\Api\Education\Division\SubjectSelect as SubjectSelectAPI;
 use SPHERE\Application\Api\Education\Division\SubjectSelect;
@@ -39,6 +40,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
+use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\MoreItems;
@@ -78,6 +80,8 @@ use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\Application\Education\Lesson\Division\Filter\Frontend as FilterFrontend;
+use SPHERE\Application\Education\Lesson\Division\Filter\Service as FilterService;
 
 /**
  * Class Frontend
@@ -830,11 +834,34 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $Id
      * @param null $DivisionSubjectId
      * @param null $Student
+     * @param null $Filter
+     *
+     * @param null $FilteredCourseId
+     * @param null $FilteredGroupId
+     * @param null $FilteredGenderId
+     * @param null $FilteredReligionId
+     * @param null $FilteredProfileId
+     * @param null $FilteredOrientationId
+     * @param null $FilteredElectiveId
+     * @param null $FilteredForeignLanguageId
      *
      * @return Stage|string
      */
-    public function frontendSubjectStudentAdd($Id = null, $DivisionSubjectId = null, $Student = null)
-    {
+    public function frontendSubjectStudentAdd(
+        $Id = null,
+        $DivisionSubjectId = null,
+        $Student = null,
+        $Filter = null,
+
+        $FilteredCourseId = null,
+        $FilteredGroupId = null,
+        $FilteredGenderId = null,
+        $FilteredReligionId = null,
+        $FilteredProfileId = null,
+        $FilteredOrientationId = null,
+        $FilteredElectiveId = null,
+        $FilteredForeignLanguageId = null
+    ) {
 
         $tblDivision = $Id === null ? false : Division::useService()->getDivisionById($Id);
         if (!$tblDivision) {
@@ -844,6 +871,7 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage.new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
         }
 
+        $tblType = false;
         if (($tblLevel = $tblDivision->getTblLevel())
             && ($tblType = $tblLevel->getServiceTblType())
             && $tblType->getName() == 'Gymnasium'
@@ -871,6 +899,28 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage;
 
         } else {
+            // todo filter
+            // post for filter
+            $global = $this->getGlobal();
+            $global->POST['Filter']['Course'] = $FilteredCourseId;
+            $global->POST['Filter']['Group'] = $FilteredGroupId;
+            $global->POST['Filter']['Gender'] = $FilteredGenderId;
+            $global->POST['Filter']['SubjectReligion'] = $FilteredReligionId;
+            $global->POST['Filter']['SubjectProfile'] = $FilteredProfileId;
+            $global->POST['Filter']['SubjectOrientation'] = $FilteredOrientationId;
+            $global->POST['Filter']['SubjectElective'] = $FilteredElectiveId;
+            $global->POST['Filter']['SubjectForeignLanguage'] = $FilteredForeignLanguageId;
+            $global->savePost();
+
+            $Filtered['Course'] = $FilteredCourseId;
+            $Filtered['Group'] = $FilteredGroupId;
+            $Filtered['Gender'] = $FilteredGenderId;
+            $Filtered['SubjectReligion'] = $FilteredReligionId;
+            $Filtered['SubjectProfile'] = $FilteredProfileId;
+            $Filtered['SubjectOrientation'] = $FilteredOrientationId;
+            $Filtered['SubjectElective'] = $FilteredElectiveId;
+            $Filtered['SubjectForeignLanguage'] = $FilteredForeignLanguageId;
+
             $tblDivisionSubject = $DivisionSubjectId === null ? false : Division::useService()->getDivisionSubjectById($DivisionSubjectId);
             if (!$tblDivisionSubject) {
                 $Stage = new Stage('Schüler', 'auswählen');
@@ -879,6 +929,7 @@ class Frontend extends Extension implements IFrontendInterface
                 return $Stage . new Redirect('/Education/Lesson/Division/Show', Redirect::TIMEOUT_ERROR,
                         array('Id' => $tblDivision->getId()));
             }
+
             $Stage = new Stage('Schüler', 'Klasse ' . new Bold($tblDivision->getDisplayName()));
             $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
                 array('Id' => $Id)));
@@ -886,7 +937,7 @@ class Frontend extends Extension implements IFrontendInterface
                 . ' sind bereits in einer anderen Gruppe in diesem Fach angelegt.');
 
             $Stage->setContent(
-                new Layout(
+                new Layout(array(
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(
@@ -897,24 +948,37 @@ class Frontend extends Extension implements IFrontendInterface
                                 ), Panel::PANEL_TYPE_INFO)
                             )
                         )
-                    )
-                )
+                    ),
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Well(
+                                    FilterService::getFilter(
+                                        FilterFrontend::getFilterForm($tblType ? $tblType : null),
+                                        $Id,
+                                        $DivisionSubjectId,
+                                        $Filter
+                                    )
+                                )
+                            )
+                        ))
+                    ), new Title(new Filter() . ' Filtern'))
+                ))
                 . new Layout(
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(
-                                new Well(
-                                    Division::useService()->addSubjectStudent(
-                                        $this->formSubjectStudentAdd($tblDivisionSubject)
-                                            ->appendFormButton(new Primary('Speichern', new Save))
-                                            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                        , $DivisionSubjectId, $Student, $Id
+                                StudentGroupSelectWithFilter::receiverUsed(
+                                    StudentGroupSelectWithFilter::tablePerson(
+                                        $tblDivisionSubject->getId(),
+                                        $Filtered
                                     )
                                 )
                             )
                         ), new Title(new Check() . ' Zuordnen')
                     )
-                ));
+                )
+            );
 
             return $Stage;
         }
