@@ -395,7 +395,7 @@ class Service extends Extension
                     }
                     $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                     if ($tblStudent) {
-                        $Item['StudentNumber'] = $tblStudent->getIdentifier();
+                        $Item['StudentNumber'] = $tblStudent->getIdentifierComplete();
                     }
                 }
                 if (($tblToPersonAddressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
@@ -803,7 +803,7 @@ class Service extends Extension
                         if ($tblStudent->getTblStudentMedicalRecord()) {
                             $Item['MedicalInsurance'] = $tblStudent->getTblStudentMedicalRecord()->getInsurance();
                         }
-                        $Item['StudentNumber'] = $tblStudent->getIdentifier();
+                        $Item['StudentNumber'] = $tblStudent->getIdentifierComplete();
                     }
                 }
                 $Item['Name'] = $tblPerson->getLastFirstName();
@@ -1185,7 +1185,7 @@ class Service extends Extension
                             }
                         }
                         $Item['Division'] = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson);
-                        $Item['Identifier'] = $tblStudent->getIdentifier();
+                        $Item['Identifier'] = $tblStudent->getIdentifierComplete();
                         $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
                         if (($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
                             $tblStudentTransferType))) {
@@ -2266,7 +2266,7 @@ class Service extends Extension
 
                     $DataPerson['StudentNumber'] = '';
                     if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
-                        $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
+                        $DataPerson['StudentNumber'] = $tblStudent->getIdentifierComplete();
                     }
 
                     $DataPerson['FirstName'] = '';

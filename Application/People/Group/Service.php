@@ -363,7 +363,8 @@ class Service extends AbstractService
                 } else {
                     $MaxIdentifier = Student::useService()->getStudentMaxIdentifier();
                     $MaxIdentifier++;
-                    Student::useService()->createStudent($tblPerson, $MaxIdentifier);
+                    $Prefix = '';
+                    Student::useService()->createStudent($tblPerson, $Prefix, $MaxIdentifier);
                 }
             }
         }

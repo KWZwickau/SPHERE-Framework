@@ -1065,7 +1065,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
             $DataPerson['StudentNumber'] = new Small(new Muted('-NA-'));
             if (isset($tblStudent) && $tblStudent && $DataPerson['Name']) {
-                $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
+                $DataPerson['StudentNumber'] = $tblStudent->getIdentifierComplete();
             }
 
             if (!isset($DataPerson['ProspectYear'])) {
@@ -1792,7 +1792,7 @@ class Frontend extends Extension implements IFrontendInterface
                       'Route'    => '/Reporting/SerialLetter/Address'));
             $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
             if ($tblStudent) {
-                $Item['StudentNumber'] = $tblStudent->getIdentifier();
+                $Item['StudentNumber'] = $tblStudent->getIdentifierComplete();
             }
             if ($tblFilterCategory && $tblFilterCategory->getName() == TblFilterCategory::IDENTIFIER_COMPANY_GROUP) {
                 $tblRelationshipCompanyList = Relationship::useService()->getCompanyRelationshipAllByPerson($tblPerson);
@@ -2724,8 +2724,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                 $StudentNumber = new Small(new Muted('-NA-'));
                                                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                                                 if ($tblStudent) {
-                                                    if ($tblStudent->getIdentifier() != '') {
-                                                        $StudentNumber = $tblStudent->getIdentifier();
+                                                    if ($tblStudent->getIdentifierComplete() != '') {
+                                                        $StudentNumber = $tblStudent->getIdentifierComplete();
                                                     }
                                                 }
 
@@ -2800,8 +2800,8 @@ class Frontend extends Extension implements IFrontendInterface
                             $StudentNumber = new Small(new Muted('-NA-'));
                             $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                             if ($tblStudent) {
-                                if ($tblStudent->getIdentifier() != '') {
-                                    $StudentNumber = $tblStudent->getIdentifier();
+                                if ($tblStudent->getIdentifierComplete() != '') {
+                                    $StudentNumber = $tblStudent->getIdentifierComplete();
                                 }
                             }
                             $DivisionString = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, '');

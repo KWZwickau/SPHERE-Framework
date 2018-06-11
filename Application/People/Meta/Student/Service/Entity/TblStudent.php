@@ -267,6 +267,15 @@ class TblStudent extends Element
     }
 
     /**
+     * @return string $Prefix.$Identifier
+     */
+    public function getIdentifierComplete()
+    {
+
+        return $this->getPrefix().$this->getIdentifier();
+    }
+
+    /**
      * @return string
      */
     public function getSchoolAttendanceStartDate()

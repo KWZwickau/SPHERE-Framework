@@ -410,7 +410,7 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                     $DataPerson['StudentNumber'] = new Small(new Muted('-NA-'));
                     if (isset($tblStudent) && $tblStudent && $DataPerson['Name']) {
-                        $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
+                        $DataPerson['StudentNumber'] = $tblStudent->getIdentifierComplete();
                     }
 
                     if (!isset($DataPerson['ProspectYear'])) {

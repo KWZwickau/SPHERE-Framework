@@ -205,7 +205,7 @@ abstract class AbstractDocument
 
             if (($tblStudent = Student::useService()->getStudentByPerson($this->getTblPerson()))) {
 
-                $Data['Student']['Identifier'] = $tblStudent->getIdentifier();
+                $Data['Student']['Identifier'] = $tblStudent->getIdentifierComplete();
 
                 if (( $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT') )) {
                     if (( $tblTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblTransferType) )) {

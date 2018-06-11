@@ -909,7 +909,7 @@ class Service extends AbstractService
                                             Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, '');
                                         $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                                         if ($tblStudent) {
-                                            $AddressList[$tblPerson->getId().$tblAddress->getId()]['StudentNumber'] = $tblStudent->getIdentifier();
+                                            $AddressList[$tblPerson->getId().$tblAddress->getId()]['StudentNumber'] = $tblStudent->getIdentifierComplete();
                                         } else {
                                             $AddressList[$tblPerson->getId().$tblAddress->getId()]['StudentNumber'] = '';
                                         }

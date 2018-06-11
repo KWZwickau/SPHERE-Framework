@@ -298,6 +298,10 @@ class StudentFilter extends Extension
 //                    $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
                     $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                     if ($tblStudent) {
+                        // Grunddaten
+                        if($Label == 'Prefix'){
+                            $DataPerson['Edit'] = $tblStudent->getPrefix();
+                        }
                         // Transfer
                         if ($tblStudentTransferType) {
 //                        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
@@ -468,7 +472,7 @@ class StudentFilter extends Extension
 //                }
                 $DataPerson['StudentNumber'] = '';
                 if (isset($tblStudent) && $tblStudent && $DataPerson['Name']) {
-                    $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
+                    $DataPerson['StudentNumber'] = $tblStudent->getIdentifierComplete();
                 }
 
                 if (!isset($DataPerson['ProspectYear'])) {

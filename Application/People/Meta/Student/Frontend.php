@@ -5,6 +5,7 @@ namespace SPHERE\Application\People\Meta\Student;
 use SPHERE\Application\Api\MassReplace\ApiMassReplace;
 use SPHERE\Application\Api\MassReplace\StudentFilter;
 use SPHERE\Application\Api\People\Meta\Student\ApiStudent;
+use SPHERE\Application\Api\People\Meta\Student\MassReplaceStudent;
 use SPHERE\Application\Api\People\Meta\Subject\MassReplaceSubject;
 use SPHERE\Application\Api\People\Meta\Transfer\MassReplaceTransfer;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
@@ -31,6 +32,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Aspect;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -85,6 +87,7 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 /**
@@ -121,6 +124,30 @@ class Frontend extends Extension implements IFrontendInterface
 
         $this->setYearAndDivisionForMassReplace($tblPerson, $Year, $Division);
 
+        $isIdentifierAuto = false;
+        $tblSetting = Consumer::useService()->getSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber');
+        if($tblSetting && $tblSetting->getValue()){
+            $isIdentifierAuto = true;
+        }
+
+        if (null !== $tblPerson) {
+            $Global = $this->getGlobal();
+            /** @var TblStudent $tblStudent */
+            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+            if ($tblStudent) {
+
+                $Global->POST['Meta']['Student']['Prefix'] = $tblStudent->getPrefix();
+                $Global->POST['Meta']['Student']['Identifier'] = $tblStudent->getIdentifier();
+                $Global->POST['Meta']['Student']['SchoolAttendanceStartDate'] = $tblStudent->getSchoolAttendanceStartDate();
+
+                $Global->POST['Meta']['Student']['HasMigrationBackground'] = $tblStudent->getHasMigrationBackground();
+                $Global->POST['Meta']['Student']['IsInPreparationDivisionForMigrants'] = $tblStudent->isInPreparationDivisionForMigrants();
+            }
+            $Global->savePost();
+        }
+
+        $NodePrefix = 'Grunddaten - Prefix der Schülernummer';
+
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(
@@ -144,11 +171,53 @@ class Frontend extends Extension implements IFrontendInterface
                                         new FormRow(array(
                                             new FormColumn(
                                                 new Panel('Identifikation', array(
-                                                    (new TextField('Meta[Student][Identifier]', 'Schülernummer',
-                                                        'Schülernummer'))
-                                                        ->ajaxPipelineOnKeyUp(ApiStudent::pipelineCompareIdentifier($tblPerson->getId()))
+                                                    new Layout(
+                                                        new LayoutGroup(
+                                                            new LayoutRow(array(
+                                                                new LayoutColumn(
+                                                                    ApiMassReplace::receiverField((
+                                                                    $Field = new TextField('Meta[Student][Prefix]',
+                                                                        'Prefix', 'Prefix')
+                                                                    ))
+                                                                    .ApiMassReplace::receiverModal($Field, $NodePrefix)
+
+                                                                    .new PullRight((new Link('Massen-Änderung',
+                                                                        ApiMassReplace::getEndpoint(), null, array(
+                                                                            ApiMassReplace::SERVICE_CLASS                                   => MassReplaceStudent::CLASS_MASS_REPLACE_STUDENT,
+                                                                            ApiMassReplace::SERVICE_METHOD                                  => MassReplaceStudent::METHOD_REPLACE_PREFIX,
+                                                                            ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                                                            'Id'                                                            => $tblPerson->getId(),
+                                                                            'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                                                            'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                                                            'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                                                            'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                                                            'Node'                                                          => $NodePrefix,
+                                                                        )))->ajaxPipelineOnClick(
+                                                                        ApiMassReplace::pipelineOpen($Field, $NodePrefix)
+                                                                    ))
+                                                                    , 4)
+                                                            ,
+                                                                new LayoutColumn(
+                                                                    ($isIdentifierAuto
+                                                                        ?
+                                                                        (new TextField('Meta[Student][Identifier]', 'Schülernummer',
+                                                                            'Schülernummer'))->setDisabled()
+                                                                            ->ajaxPipelineOnKeyUp(ApiStudent::pipelineCompareIdentifier($tblPerson->getId()))
+                                                                        :
+                                                                        (new TextField('Meta[Student][Identifier]', 'Schülernummer',
+                                                                            'Schülernummer'))
+                                                                            ->ajaxPipelineOnKeyUp(ApiStudent::pipelineCompareIdentifier($tblPerson->getId()))
+                                                                    )
+                                                                    , 8)
+                                                            ))
+                                                        )
+                                                    )
                                                 ,
-                                                    ApiStudent::receiverControlIdentifier()
+                                                    ($isIdentifierAuto
+                                                        ? ''
+                                                        : ApiStudent::receiverControlIdentifier()
+                                                    )
+
                                                 ), Panel::PANEL_TYPE_INFO)
                                                 , 4),
                                             new FormColumn(
@@ -847,13 +916,6 @@ class Frontend extends Extension implements IFrontendInterface
                 /** @var TblStudent $tblStudent */
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 if ($tblStudent) {
-
-                    $Global->POST['Meta']['Student']['Identifier'] = $tblStudent->getIdentifier();
-                    $Global->POST['Meta']['Student']['SchoolAttendanceStartDate'] = $tblStudent->getSchoolAttendanceStartDate();
-
-                    $Global->POST['Meta']['Student']['HasMigrationBackground'] = $tblStudent->getHasMigrationBackground();
-                    $Global->POST['Meta']['Student']['IsInPreparationDivisionForMigrants'] = $tblStudent->isInPreparationDivisionForMigrants();
-
 
                     /** @var TblStudentMedicalRecord $tblStudentMedicalRecord */
                     $tblStudentMedicalRecord = $tblStudent->getTblStudentMedicalRecord();
