@@ -12,10 +12,8 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Lesson\Division\Division as DivisionApplication;
 use SPHERE\Application\Education\Lesson\Division\Filter\Filter;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -87,73 +85,6 @@ class StudentGroupSelectWithFilter extends Extension implements IApiInterface
         return (new BlockReceiver($Content))->setIdentifier('ServiceReceiver');
     }
 
-//    /**
-//     * @param TblDivisionSubject $tblDivisionSubject
-//     *
-//     * @return array
-//     */
-//    public static function getTableContentUsed(TblDivisionSubject $tblDivisionSubject)
-//    {
-//
-//        $tblSubjectStudentList = DivisionApplication::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
-//        $tblDivision = $tblDivisionSubject->getTblDivision();
-//
-//        $usedList = array();
-//        if ($tblSubjectStudentList && $tblDivision) {
-//            foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-//                if (($tblPerson = $tblSubjectStudent->getServiceTblPerson())) {
-//                    $usedList[] = array(
-//                        'Id' => $tblPerson->getId(),
-//                        'Name' => $tblPerson->getLastFirstName(),
-//                    );
-//                }
-//            }
-//        }
-//
-//        return $usedList;
-//    }
-
-    /**
-     * @param TblDivisionSubject $tblDivisionSubject
-     *
-     * @return array
-     */
-    public static function getTableContentAvailable(TblDivisionSubject $tblDivisionSubject)
-    {
-
-        $tblPersonUsedList = array();
-        if ($tblSubjectStudentList = DivisionApplication::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject)) {
-            foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                if ($tblSubjectStudent->getServiceTblPerson()) {
-                    $tblPersonUsedList[] = $tblSubjectStudent->getServiceTblPerson();
-                }
-            }
-        }
-
-        if (($tblDivision = $tblDivisionSubject->getTblDivision())
-            && ($tblStudentList = DivisionApplication::useService()->getStudentAllByDivision($tblDivision))
-        ) {
-            $tblStudentList = array_udiff($tblStudentList, $tblPersonUsedList,
-                function (TblPerson $tblPersonA, TblPerson $tblPersonB) {
-                    return $tblPersonA->getId() - $tblPersonB->getId();
-                });
-        } else {
-            $tblStudentList = false;
-        }
-
-        $availableList = array();
-        if ($tblStudentList) {
-            /** @var TblPerson $tblPerson */
-            foreach ($tblStudentList as $tblPerson) {
-                $availableList[] = array(
-                    'Id' => $tblPerson->getId(),
-                    'Name' => $tblPerson->getLastFirstName(),
-                );
-            }
-        }
-        return $availableList;
-    }
-
     /**
      * @param null $DivisionSubjectId
      * @param null $Filtered
@@ -175,6 +106,44 @@ class StudentGroupSelectWithFilter extends Extension implements IApiInterface
             if (!empty($filterHeader)) {
                 $header = array_merge($header, $filterHeader);
             }
+            // SekII zusätzliche Anzeige der Leistungskurse
+            $isSekII = false;
+            $personAdvancedCourses = array();
+            if (($levelName = $filter->getLevelName())
+                && $levelName == '11' || $levelName == '12'
+            ) {
+                $isSekII = true;
+
+                if (($tblDivision = $tblDivisionSubject->getTblDivision())
+                    && ($tblDivisionSubjectList = DivisionApplication::useService()->getDivisionSubjectByDivision($tblDivision))) {
+                    foreach ($tblDivisionSubjectList as $tblDivisionSubjectItem) {
+                        if (($tblSubjectGroup = $tblDivisionSubjectItem->getTblSubjectGroup())
+                            && $tblSubjectGroup->isAdvancedCourse()
+                        ) {
+                            if (($tblSubjectStudentList = DivisionApplication::useService()->getSubjectStudentByDivisionSubject(
+                                $tblDivisionSubjectItem))
+                            ) {
+                                foreach ($tblSubjectStudentList  as $tblSubjectStudent) {
+                                    if (($tblSubject = $tblDivisionSubjectItem->getServiceTblSubject())
+                                        && ($tblPerson = $tblSubjectStudent->getServiceTblPerson())
+                                    ) {
+                                        if ($tblSubject->getName() == 'Deutsch' || $tblSubject->getName() == 'Mathematik') {
+                                            $personAdvancedCourses[0][$tblPerson->getId()] = $tblSubject->getAcronym();
+                                        } else {
+                                            $personAdvancedCourses[1][$tblPerson->getId()] = $tblSubject->getAcronym();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if ($isSekII) {
+                $header['AdvancedCourse1'] = '1. LK';
+                $header['AdvancedCourse2'] = '2. LK';
+            }
             $header['Option'] = ' ';
 
             // left selected persons
@@ -185,7 +154,6 @@ class StudentGroupSelectWithFilter extends Extension implements IApiInterface
                     $item['Name'] = $tblPerson->getLastFirstName();
 
                     if ($filter->getTblGroup()) {
-//                        $item['Group'] = $filter->getTblGroupsStringByPerson($tblPerson);
                         $item['Group'] = $filter->getTblGroup()->getName();
                     }
                     if ($filter->getTblGender()) {
@@ -208,6 +176,13 @@ class StudentGroupSelectWithFilter extends Extension implements IApiInterface
                     }
                     if ($filter->getTblSubjectElective()) {
                         $item['SubjectElective'] = $filter->getTblSubjectElectivesStringByPerson($tblPerson);
+                    }
+
+                    if ($isSekII) {
+                        $item['AdvancedCourse1'] = isset($personAdvancedCourses[0][$tblPerson->getId()])
+                            ? $personAdvancedCourses[0][$tblPerson->getId()] : '';
+                        $item['AdvancedCourse2'] = isset($personAdvancedCourses[1][$tblPerson->getId()])
+                            ? $personAdvancedCourses[1][$tblPerson->getId()] : '';
                     }
 
                     $item['Option'] = (new Standard('', self::getEndpoint(), new MinusSign(),
@@ -239,7 +214,6 @@ class StudentGroupSelectWithFilter extends Extension implements IApiInterface
                         $item['Name'] = $tblPerson->getLastFirstName();
 
                         if ($filter->getTblGroup()) {
-//                            $item['Group'] = $filter->getTblGroupsStringByPerson($tblPerson);
                             $item['Group'] = $filter->getTblGroup()->getName();
                         }
                         if ($filter->getTblGender()) {
@@ -262,6 +236,13 @@ class StudentGroupSelectWithFilter extends Extension implements IApiInterface
                         }
                         if ($filter->getTblSubjectElective()) {
                             $item['SubjectElective'] = $filter->getTblSubjectElectivesStringByPerson($tblPerson);
+                        }
+
+                        if ($isSekII) {
+                            $item['AdvancedCourse1'] = isset($personAdvancedCourses[0][$tblPerson->getId()])
+                                ? $personAdvancedCourses[0][$tblPerson->getId()] : '';
+                            $item['AdvancedCourse2'] = isset($personAdvancedCourses[1][$tblPerson->getId()])
+                                ? $personAdvancedCourses[1][$tblPerson->getId()] : '';
                         }
 
                         $item['Option'] = (new Standard('', self::getEndpoint(), new PlusSign(),

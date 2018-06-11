@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Division;
 
-use SPHERE\Application\Api\Education\Division\StudentGroupSelect;
 use SPHERE\Application\Api\Education\Division\StudentGroupSelectWithFilter;
 use SPHERE\Application\Api\Education\Division\StudentSelect;
 use SPHERE\Application\Api\Education\Division\SubjectSelect as SubjectSelectAPI;
@@ -833,7 +832,6 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $Id
      * @param null $DivisionSubjectId
-     * @param null $Student
      * @param null $Filter
      *
      * @param null $FilteredCourseId
@@ -850,7 +848,6 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendSubjectStudentAdd(
         $Id = null,
         $DivisionSubjectId = null,
-        $Student = null,
         $Filter = null,
 
         $FilteredCourseId = null,
@@ -872,116 +869,92 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tblType = false;
-        if (($tblLevel = $tblDivision->getTblLevel())
-            && ($tblType = $tblLevel->getServiceTblType())
-            && $tblType->getName() == 'Gymnasium'
-            && ($tblLevel->getName() == '11'
-                || $tblLevel->getName() == '12')
-        ) {
-            $IsSekTwo = true;
-        } else {
-            $IsSekTwo = false;
+        if (($tblLevel = $tblDivision->getTblLevel())) {
+            $tblType = $tblLevel->getServiceTblType();
         }
 
-        if ($IsSekTwo) {
-            $Stage = new Stage('Schüler', 'Klasse ' . new Bold($tblDivision->getDisplayName()));
-            $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
-                array('Id' => $Id)));
+        // todo filter
+        // post for filter
+        $global = $this->getGlobal();
+        $global->POST['Filter']['Course'] = $FilteredCourseId;
+        $global->POST['Filter']['Group'] = $FilteredGroupId;
+        $global->POST['Filter']['Gender'] = $FilteredGenderId;
+        $global->POST['Filter']['SubjectReligion'] = $FilteredReligionId;
+        $global->POST['Filter']['SubjectProfile'] = $FilteredProfileId;
+        $global->POST['Filter']['SubjectOrientation'] = $FilteredOrientationId;
+        $global->POST['Filter']['SubjectElective'] = $FilteredElectiveId;
+        $global->POST['Filter']['SubjectForeignLanguage'] = $FilteredForeignLanguageId;
+        $global->savePost();
 
-            if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
-                $Stage->setContent(
-                    StudentGroupSelect::receiverUsed(StudentGroupSelect::tablePerson($tblDivisionSubject->getId()))
-                );
-            } else {
-                $Stage->setContent(new Warning('Fach-Klasse nicht gefunden'));
-            }
+        $Filtered['Course'] = $FilteredCourseId;
+        $Filtered['Group'] = $FilteredGroupId;
+        $Filtered['Gender'] = $FilteredGenderId;
+        $Filtered['SubjectReligion'] = $FilteredReligionId;
+        $Filtered['SubjectProfile'] = $FilteredProfileId;
+        $Filtered['SubjectOrientation'] = $FilteredOrientationId;
+        $Filtered['SubjectElective'] = $FilteredElectiveId;
+        $Filtered['SubjectForeignLanguage'] = $FilteredForeignLanguageId;
 
-            return $Stage;
+        $tblDivisionSubject = $DivisionSubjectId === null ? false : Division::useService()->getDivisionSubjectById($DivisionSubjectId);
+        if (!$tblDivisionSubject) {
+            $Stage = new Stage('Schüler', 'auswählen');
+            $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
+            $Stage->setContent(new Warning('Fach nicht gefunden'));
+            return $Stage . new Redirect('/Education/Lesson/Division/Show', Redirect::TIMEOUT_ERROR,
+                    array('Id' => $tblDivision->getId()));
+        }
 
-        } else {
-            // todo filter
-            // post for filter
-            $global = $this->getGlobal();
-            $global->POST['Filter']['Course'] = $FilteredCourseId;
-            $global->POST['Filter']['Group'] = $FilteredGroupId;
-            $global->POST['Filter']['Gender'] = $FilteredGenderId;
-            $global->POST['Filter']['SubjectReligion'] = $FilteredReligionId;
-            $global->POST['Filter']['SubjectProfile'] = $FilteredProfileId;
-            $global->POST['Filter']['SubjectOrientation'] = $FilteredOrientationId;
-            $global->POST['Filter']['SubjectElective'] = $FilteredElectiveId;
-            $global->POST['Filter']['SubjectForeignLanguage'] = $FilteredForeignLanguageId;
-            $global->savePost();
+        $Stage = new Stage('Schüler', 'Klasse ' . new Bold($tblDivision->getDisplayName()));
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
+            array('Id' => $Id)));
+        $Stage->setMessage(new WarningText('"Schüler in Gelb"')
+            . ' sind bereits in einer anderen Gruppe in diesem Fach angelegt.');
 
-            $Filtered['Course'] = $FilteredCourseId;
-            $Filtered['Group'] = $FilteredGroupId;
-            $Filtered['Gender'] = $FilteredGenderId;
-            $Filtered['SubjectReligion'] = $FilteredReligionId;
-            $Filtered['SubjectProfile'] = $FilteredProfileId;
-            $Filtered['SubjectOrientation'] = $FilteredOrientationId;
-            $Filtered['SubjectElective'] = $FilteredElectiveId;
-            $Filtered['SubjectForeignLanguage'] = $FilteredForeignLanguageId;
-
-            $tblDivisionSubject = $DivisionSubjectId === null ? false : Division::useService()->getDivisionSubjectById($DivisionSubjectId);
-            if (!$tblDivisionSubject) {
-                $Stage = new Stage('Schüler', 'auswählen');
-                $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
-                $Stage->setContent(new Warning('Fach nicht gefunden'));
-                return $Stage . new Redirect('/Education/Lesson/Division/Show', Redirect::TIMEOUT_ERROR,
-                        array('Id' => $tblDivision->getId()));
-            }
-
-            $Stage = new Stage('Schüler', 'Klasse ' . new Bold($tblDivision->getDisplayName()));
-            $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
-                array('Id' => $Id)));
-            $Stage->setMessage(new WarningText('"Schüler in Gelb"')
-                . ' sind bereits in einer anderen Gruppe in diesem Fach angelegt.');
-
-            $Stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new Panel('Fach - Gruppe', array(
-                                    'Fach: ' . new Bold($tblDivisionSubject->getServiceTblSubject()
-                                        ? $tblDivisionSubject->getServiceTblSubject()->getName() : ''),
-                                    'Gruppe: ' . new Bold($tblDivisionSubject->getTblSubjectGroup()->getName())
-                                ), Panel::PANEL_TYPE_INFO)
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel('Fach - Gruppe', array(
+                                'Fach: ' . new Bold($tblDivisionSubject->getServiceTblSubject()
+                                    ? $tblDivisionSubject->getServiceTblSubject()->getName() : ''),
+                                'Gruppe: ' . new Bold($tblDivisionSubject->getTblSubjectGroup()->getName())
+                            ), Panel::PANEL_TYPE_INFO)
+                        )
+                    )
+                ),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Well(
+                                FilterService::getFilter(
+                                    FilterFrontend::getFilterForm($tblType ? $tblType : null),
+                                    $Id,
+                                    $DivisionSubjectId,
+                                    $Filter
+                                )
                             )
                         )
-                    ),
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                new Well(
-                                    FilterService::getFilter(
-                                        FilterFrontend::getFilterForm($tblType ? $tblType : null),
-                                        $Id,
-                                        $DivisionSubjectId,
-                                        $Filter
-                                    )
+                    ))
+                ), new Title(new Filter() . ' Filtern'))
+            ))
+            . new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            StudentGroupSelectWithFilter::receiverUsed(
+                                StudentGroupSelectWithFilter::tablePerson(
+                                    $tblDivisionSubject->getId(),
+                                    $Filtered
                                 )
                             )
-                        ))
-                    ), new Title(new Filter() . ' Filtern'))
-                ))
-                . new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                StudentGroupSelectWithFilter::receiverUsed(
-                                    StudentGroupSelectWithFilter::tablePerson(
-                                        $tblDivisionSubject->getId(),
-                                        $Filtered
-                                    )
-                                )
-                            )
-                        ), new Title(new Check() . ' Zuordnen')
-                    )
+                        )
+                    ), new Title(new Check() . ' Zuordnen')
                 )
-            );
+            )
+        );
 
-            return $Stage;
-        }
+        return $Stage;
     }
 
     /**
