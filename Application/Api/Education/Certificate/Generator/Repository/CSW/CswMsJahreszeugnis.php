@@ -2,8 +2,8 @@
 /**
  * Created by PhpStorm.
  * User: Kauschke
- * Date: 19.01.2018
- * Time: 13:24
+ * Date: 11.06.2018
+ * Time: 09:20
  */
 
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository\CSW;
@@ -16,17 +16,28 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
- * Class CswMsHalbjahresinformation
+ * Class CswMsJahreszeugnis
  *
  * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository\CSW
  */
-class CswMsHalbjahresinformation extends Certificate
+class CswMsJahreszeugnis extends Certificate
 {
+    /**
+     * @return array
+     */
+    public function selectValuesTransfer()
+    {
+        return array(
+            1 => "wird versetzt",
+            2 => "wird nicht versetzt"
+        );
+    }
 
     /**
      * @param TblPerson|null $tblPerson
-     *
      * @return Page
+     * @internal param bool $IsSample
+     *
      */
     public function buildPages(TblPerson $tblPerson = null)
     {
@@ -62,9 +73,9 @@ class CswMsHalbjahresinformation extends Certificate
             ->addSlice(
                 $Header
             )
-            ->addSlice($this->getIndividualSchoolLine($personId))
-            ->addSlice($this->getCertificateHead('Halbjahresinformation'))
-            ->addSlice($this->getDivisionAndYear($personId, '20px', '1. Schulhalbjahr'))
+            ->addSlice(CswMsHalbjahresinformation::getIndividualSchoolLine($personId))
+            ->addSlice($this->getCertificateHead('Jahreszeugnis'))
+            ->addSlice($this->getDivisionAndYear($personId, '20px'))
             ->addSlice($this->getStudentName($personId))
             ->addSlice((new Slice())
                 ->addElement((new Element())
@@ -75,69 +86,39 @@ class CswMsHalbjahresinformation extends Certificate
             )
             ->addSlice($this->getGradeLanes($personId))
             ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Einschätzung: {% if(Content.P'.$personId.'.Input.Rating is not empty) %}
+                                {{ Content.P'.$personId.'.Input.Rating|nl2br }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}')
+                        ->styleHeight('50px')
+                    )
+                )
+                ->styleMarginTop('15px')
+            )
+            ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('Leistungen in den einzelnen Fächern:')
                     ->styleMarginTop('15px')
                     ->styleTextBold()
                 )
             )
-            ->addSlice($this->getSubjectLanes($personId)->styleHeight('270px'))
+            ->addSlice($this->getSubjectLanes($personId)
+                ->styleHeight('270px')
+            )
             ->addSlice($this->getOrientationStandard($personId))
             ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '85px', '15px'))
-            ->addSlice($this->getDateLine($personId))
-            ->addSlice($this->getSignPart($personId, false))
-            ->addSlice($this->getParentSign())
-            ->addSlice($this->getInfo('25px',
+            ->addSlice($this->getDescriptionContent($personId, '55px', '8px'))
+            ->addSlice($this->getTransfer($personId, '13px'))
+            ->addSlice($this->getDateLine($personId, '10px'))
+            ->addSlice($this->getSignPart($personId, true, '15px'))
+            ->addSlice($this->getParentSign('15px'))
+            ->addSlice($this->getInfo('5px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend 
-                    (6 = ungenügend nur bei der Bewertung der Leistungen)')
-            );
-    }
-
-    /**
-     * @param $personId
-     *
-     * @return Slice
-     */
-    public static function getIndividualSchoolLine($personId)
-    {
-
-        $slice = (new Slice());
-            $slice->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Name der Schule:')
-                    , '18%')
-                ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if(Content.P'.$personId.'.Company.Data.Name) %}
-                            <strong> {{ Content.P'.$personId.'.Company.Data.Name }} </strong>
-                            {% if(Content.P'.$personId.'.Company.Data.ExtendedName) %}
-                                <br>
-                                - {{ Content.P'.$personId.'.Company.Data.ExtendedName }} -
-                            {% else %}
-                                &nbsp;
-                            {% endif %}
-                        {% else %}
-                              &nbsp;
-                        {% endif %}    
-                    ')
-                    ->styleAlignCenter()
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '18%')
-            )->styleMarginTop('5px');
-
-        $slice->addSection((new Section())
-            ->addElementColumn((new Element())
-                , '18%')
-            ->addElementColumn((new Element())
-                ->styleBorderBottom()
-                ->styleMarginTop('2px')
-            )
+                (6 = ungenügend nur bei der Bewertung der Leistungen)')
         );
-
-        return $slice;
     }
 }
