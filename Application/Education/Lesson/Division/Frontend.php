@@ -1,7 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Division;
 
-use SPHERE\Application\Api\Education\Division\StudentGroupSelectWithFilter;
+use SPHERE\Application\Api\Education\Division\StudentGroupSelect;
 use SPHERE\Application\Api\Education\Division\StudentSelect;
 use SPHERE\Application\Api\Education\Division\SubjectSelect as SubjectSelectAPI;
 use SPHERE\Application\Api\Education\Division\SubjectSelect;
@@ -942,8 +942,8 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            StudentGroupSelectWithFilter::receiverUsed(
-                                StudentGroupSelectWithFilter::tablePerson(
+                            StudentGroupSelect::receiverUsed(
+                                StudentGroupSelect::tablePerson(
                                     $tblDivisionSubject->getId(),
                                     $Filtered
                                 )

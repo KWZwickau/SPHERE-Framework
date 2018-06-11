@@ -27,6 +27,5 @@ class Education implements IApplicationInterface
         SubjectSelect::registerApi();
         StudentSelect::registerApi();
         StudentGroupSelect::registerApi();
-        StudentGroupSelectWithFilter::registerApi();
     }
 }
