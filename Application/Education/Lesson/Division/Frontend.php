@@ -872,7 +872,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblType = $tblLevel->getServiceTblType();
         }
 
-        // todo filter
+        // todo filter meldung welche Schüler den Filter nicht entsprechen
         // post for filter
         $global = $this->getGlobal();
         $global->POST['Filter']['Course'] = $FilteredCourseId;

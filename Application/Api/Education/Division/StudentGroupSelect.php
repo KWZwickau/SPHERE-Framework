@@ -193,6 +193,7 @@ class StudentGroupSelect extends Extension implements IApiInterface
                         } else {
                             $hasFilterError = true;
                             $item['Gender'] = new Danger($text);
+//                                '<div class="alert alert-danger" style="Margin-Bottom:2px;Padding-Top:2px;Padding-Bottom:2px">' . $text . '</div>';
                         }
                     }
                     if ($filter->getTblCourse()) {
