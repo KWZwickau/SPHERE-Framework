@@ -8,6 +8,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubje
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionTeacher;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroupFilter;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectTeacher;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision;
@@ -2276,6 +2277,117 @@ class Data extends AbstractData
                 $Entity);
             return true;
         }
+        return false;
+    }
+
+    /**
+     * @param TblSubjectGroup $tblSubjectGroup
+     * @param $field
+     *
+     * @return false|TblSubjectGroupFilter
+     * @throws \Exception
+     */
+    public function getSubjectGroupFilterBy(TblSubjectGroup $tblSubjectGroup, $field)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getEntityManager(), 'TblSubjectGroupFilter', array(
+            TblSubjectGroupFilter::ATTR_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId(),
+            TblSubjectGroupFilter::ATTR_FIELD => $field
+        ));
+    }
+
+    /**
+     * @param TblSubjectGroup $tblSubjectGroup
+     *
+     * @return false|TblSubjectGroupFilter[]
+     */
+    public function getSubjectGroupFilterAllBySubjectGroup(TblSubjectGroup $tblSubjectGroup)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblSubjectGroupFilter', array(
+            TblSubjectGroupFilter::ATTR_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId(),
+        ));
+    }
+
+    /**
+     * @param TblSubjectGroup $tblSubjectGroup
+     * @param $field
+     * @param $value
+     *
+     * @return null|TblSubjectGroupFilter
+     */
+    public function createSubjectGroupFilter(TblSubjectGroup $tblSubjectGroup, $field, $value)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager(false);
+        $Entity = $Manager->getEntity('TblSubjectGroupFilter')->findOneBy(array(
+            TblSubjectGroupFilter::ATTR_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId(),
+            TblSubjectGroupFilter::ATTR_FIELD => $field
+        ));
+        /** @var TblSubjectGroupFilter $Entity */
+        if (null === $Entity) {
+            $Entity = new TblSubjectGroupFilter();
+            $Entity->setTblSubjectGroup($tblSubjectGroup);
+            $Entity->setField($field);
+            $Entity->setValue($value);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
+            return $Entity;
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblSubjectGroupFilter $tblSubjectGroupFilter
+     * @param $value
+     *
+     * @return bool
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     */
+    public function updateSubjectGroupFilter(TblSubjectGroupFilter $tblSubjectGroupFilter, $value)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager(false);
+
+        /** @var TblSubjectGroupFilter $Entity */
+        $Entity = $Manager->getEntityById('TblSubjectGroupFilter', $tblSubjectGroupFilter->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setValue($value);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblSubjectGroupFilter $tblSubjectGroupFilter
+     *
+     * @return bool
+     */
+    public function destroySubjectGroupFilter(TblSubjectGroupFilter $tblSubjectGroupFilter)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblSubjectGroupFilter')->findOneBy(array('Id' => $tblSubjectGroupFilter->getId()));
+        if (null !== $Entity) {
+            /** @var Element $Entity */
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
+
+            return true;
+        }
+
         return false;
     }
 }

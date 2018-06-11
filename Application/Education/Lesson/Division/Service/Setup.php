@@ -37,9 +37,11 @@ class Setup extends AbstractSetup
         $this->setTableDivisionStudent($Schema, $tblDivision);
         $this->setTableDivisionTeacher($Schema, $tblDivision);
         $this->setTableDivisionCustody($Schema, $tblDivision);
-        $this->setTableSubjectGroup($Schema);
+        $tblSubjectGroup = $this->setTableSubjectGroup($Schema);
         $this->setTableSubjectStudent($Schema, $tblDivisionSubject);
         $this->setTableSubjectTeacher($Schema, $tblDivisionSubject);
+        $this->setTableSubjectGroupFilter($Schema, $tblSubjectGroup);
+
         /**
          * Migration & Protocol
          */
@@ -272,5 +274,24 @@ class Setup extends AbstractSetup
         }
         $this->getConnection()->addForeignKey($Table, $tblDivisionSubject);
         return $Table;
+    }
+
+    /**
+     * @param Schema $schema
+     * @param Table $tblSubjectGroup
+     *
+     * @return Table
+     */
+    private function setTableSubjectGroupFilter(Schema &$schema, Table $tblSubjectGroup)
+    {
+
+        $table = $this->createTable($schema, 'tblSubjectGroupFilter');
+        $this->createColumn($table, 'Field', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'Value', self::FIELD_TYPE_STRING);
+
+        $this->getConnection()->addForeignKey($table, $tblSubjectGroup);
+        $this->createIndex($table, array('Field', 'tblSubjectGroup'));
+
+        return $table;
     }
 }

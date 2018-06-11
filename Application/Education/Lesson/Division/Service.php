@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubje
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionTeacher;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroupFilter;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectTeacher;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision;
@@ -2515,5 +2516,64 @@ class Service extends AbstractService
         return new Success('Die Zuordnung, welche Fächer benotet werden sollen, wurden erfolgreich gespeichert.')
             . new Redirect('/Education/Lesson/Division/Subject/Add', Redirect::TIMEOUT_SUCCESS,
                 array('Id' => $tblDivision->getId(), 'IsHasGradingView' => true));
+    }
+
+    /**
+     * @param TblSubjectGroup $tblSubjectGroup
+     * @param $field
+     *
+     * @return false|TblSubjectGroupFilter
+     */
+    public function getSubjectGroupFilterBy(TblSubjectGroup $tblSubjectGroup, $field)
+    {
+
+        return (new Data($this->getBinding()))->getSubjectGroupFilterBy($tblSubjectGroup, $field);
+    }
+
+    /**
+     * @param TblSubjectGroup $tblSubjectGroup
+     *
+     * @return false|TblSubjectGroupFilter[]
+     */
+    public function getSubjectGroupFilterAllBySubjectGroup(TblSubjectGroup $tblSubjectGroup)
+    {
+
+        return (new Data($this->getBinding()))->getSubjectGroupFilterAllBySubjectGroup($tblSubjectGroup);
+    }
+
+    /**
+     * @param TblSubjectGroup $tblSubjectGroup
+     * @param $field
+     * @param $value
+     *
+     * @return null|TblSubjectGroupFilter
+     */
+    public function createSubjectGroupFilter(TblSubjectGroup $tblSubjectGroup, $field, $value)
+    {
+
+        return (new Data($this->getBinding()))->createSubjectGroupFilter($tblSubjectGroup, $field, $value);
+    }
+
+    /**
+     * @param TblSubjectGroupFilter $tblSubjectGroupFilter
+     * @param $value
+     *
+     * @return bool
+     */
+    public function updateSubjectGroupFilter(TblSubjectGroupFilter $tblSubjectGroupFilter, $value)
+    {
+
+        return (new Data($this->getBinding()))->updateSubjectGroupFilter($tblSubjectGroupFilter, $value);
+    }
+
+    /**
+     * @param TblSubjectGroupFilter $tblSubjectGroupFilter
+     *
+     * @return bool
+     */
+    public function destroySubjectGroupFilter(TblSubjectGroupFilter $tblSubjectGroupFilter)
+    {
+
+        return (new Data($this->getBinding()))->destroySubjectGroupFilter($tblSubjectGroupFilter);
     }
 }

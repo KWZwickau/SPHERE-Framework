@@ -87,19 +87,17 @@ class StudentGroupSelect extends Extension implements IApiInterface
     }
 
     /**
-     * @param null $DivisionSubjectId
-     * @param null $Filtered
+     * @param Filter $filter
      *
      * @return Layout
      */
-    public static function tablePerson($DivisionSubjectId = null, $Filtered = null)
+    public static function tablePerson(Filter $filter)
     {
 
         // get Content
-        $tblDivisionSubject = DivisionApplication::useService()->getDivisionSubjectById($DivisionSubjectId);
+        $tblDivisionSubject = $filter->getTblDivisionSubject();
         if ($tblDivisionSubject && ($tblDivision = $tblDivisionSubject->getTblDivision())) {
-            // filter
-            $filter = new Filter($Filtered, $tblDivision);
+
             $header = array(
                 'Name' => 'Name'
             );
@@ -115,8 +113,7 @@ class StudentGroupSelect extends Extension implements IApiInterface
             ) {
                 $isSekII = true;
 
-                if (($tblDivision = $tblDivisionSubject->getTblDivision())
-                    && ($tblDivisionSubjectList = DivisionApplication::useService()->getDivisionSubjectByDivision($tblDivision))) {
+                if (($tblDivisionSubjectList = DivisionApplication::useService()->getDivisionSubjectByDivision($tblDivision))) {
                     foreach ($tblDivisionSubjectList as $tblDivisionSubjectItem) {
                         if (($tblSubjectGroup = $tblDivisionSubjectItem->getTblSubjectGroup())
                             && $tblSubjectGroup->isAdvancedCourse()
@@ -268,8 +265,8 @@ class StudentGroupSelect extends Extension implements IApiInterface
                     }
 
                     $item['Option'] = (new Standard('', self::getEndpoint(), new MinusSign(),
-                        array('Id' => $tblPerson->getId(), 'DivisionSubjectId' => $DivisionSubjectId), 'Entfernen'))
-                        ->ajaxPipelineOnClick(self::pipelineMinus($tblPerson->getId(), $DivisionSubjectId));
+                        array('Id' => $tblPerson->getId(), 'DivisionSubjectId' => $tblDivisionSubject->getId()), 'Entfernen'))
+                        ->ajaxPipelineOnClick(self::pipelineMinus($tblPerson->getId(), $tblDivisionSubject->getId()));
 
                     $tableSelected[$tblPerson->getId()] = $item;
                 }
@@ -332,8 +329,8 @@ class StudentGroupSelect extends Extension implements IApiInterface
                         }
 
                         $item['Option'] = (new Standard('', self::getEndpoint(), new PlusSign(),
-                            array('Id' => $tblPerson->getId(), 'DivisionSubjectId' => $DivisionSubjectId), 'Hinzufügen'))
-                            ->ajaxPipelineOnClick(self::pipelinePlus($tblPerson->getId(), $DivisionSubjectId));
+                            array('Id' => $tblPerson->getId(), 'DivisionSubjectId' => $tblDivisionSubject->getId()), 'Hinzufügen'))
+                            ->ajaxPipelineOnClick(self::pipelinePlus($tblPerson->getId(), $tblDivisionSubject->getId()));
 
                         $tableAvailable[$tblPerson->getId()] = $item;
                     }
@@ -424,6 +421,8 @@ class StudentGroupSelect extends Extension implements IApiInterface
      */
     public static function pipelinePlus($Id = null, $DivisionSubjectId = null)
     {
+
+        // todo filter übergeben statt $DivisionSubjectId
 
         $Pipeline = new Pipeline();
 

@@ -8,8 +8,10 @@
 
 namespace SPHERE\Application\Education\Lesson\Division\Filter;
 
-
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Course\Course;
@@ -21,6 +23,7 @@ use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\System\Database\Fitting\Element;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -77,71 +80,157 @@ class Filter extends Extension
     protected $tblDivision = false;
 
     /**
+     * @var bool|TblDivisionSubject
+     */
+    protected $tblDivisionSubject = false;
+
+    /**
      * @var array
      */
     protected $header = array();
 
-    public function __construct($Filtered, TblDivision $tblDivision) {
+    public function __construct(TblDivisionSubject $tblDivisionSubject)
+    {
+        $this->tblDivisionSubject = $tblDivisionSubject;
+        if (($tblDivision = $tblDivisionSubject->getTblDivision())) {
+            $this->tblDivision = $tblDivision;
+        }
+    }
+
+    public function setFilter($Filter)
+    {
 
         $header = array();
-        $this->tblDivision = $tblDivision;
-        if (isset($Filtered['Group'])
-            && ($tblGroup = Group::useService()->getGroupById($Filtered['Group']))
+
+        if (isset($Filter['Group'])
+            && ($tblGroup = Group::useService()->getGroupById($Filter['Group']))
         ) {
             $this->tblGroup = $tblGroup;
             $header['Group'] = 'Personengruppe';
         }
 
-        if (isset($Filtered['Gender'])
-            && ($tblGender = Common::useService()->getCommonGenderById($Filtered['Gender']))
+        if (isset($Filter['Gender'])
+            && ($tblGender = Common::useService()->getCommonGenderById($Filter['Gender']))
         ) {
             $this->tblGender = $tblGender;
             $header['Gender'] = 'Geschlecht';
         }
 
-        if (isset($Filtered['Course'])
-            && ($tblCourse = Course::useService()->getCourseById($Filtered['Course']))
+        if (isset($Filter['Course'])
+            && ($tblCourse = Course::useService()->getCourseById($Filter['Course']))
         ) {
             $this->tblCourse = $tblCourse;
             $header['Course'] = 'Bildungsgang';
         }
 
-        if (isset($Filtered['SubjectOrientation'])
-            && ($tblSubjectOrientation = Subject::useService()->getSubjectById($Filtered['SubjectOrientation']))
+        if (isset($Filter['SubjectOrientation'])
+            && ($tblSubjectOrientation = Subject::useService()->getSubjectById($Filter['SubjectOrientation']))
         ) {
             $this->tblSubjectOrientation = $tblSubjectOrientation;
             $header['SubjectOrientation'] = 'Neigungskurs';
         }
 
-        if (isset($Filtered['SubjectProfile'])
-            && ($tblSubjectProfile = Subject::useService()->getSubjectById($Filtered['SubjectProfile']))
+        if (isset($Filter['SubjectProfile'])
+            && ($tblSubjectProfile = Subject::useService()->getSubjectById($Filter['SubjectProfile']))
         ) {
             $this->tblSubjectProfile = $tblSubjectProfile;
             $header['SubjectProfile'] = 'Profil';
         }
 
-        if (isset($Filtered['SubjectForeignLanguage'])
-            && ($tblSubjectForeignLanguage = Subject::useService()->getSubjectById($Filtered['SubjectForeignLanguage']))
+        if (isset($Filter['SubjectForeignLanguage'])
+            && ($tblSubjectForeignLanguage = Subject::useService()->getSubjectById($Filter['SubjectForeignLanguage']))
         ) {
             $this->tblSubjectForeignLanguage = $tblSubjectForeignLanguage;
             $header['SubjectForeignLanguage'] = 'Fremdsprache';
         }
 
-        if (isset($Filtered['SubjectReligion'])
-            && ($tblSubjectReligion = Subject::useService()->getSubjectById($Filtered['SubjectReligion']))
+        if (isset($Filter['SubjectReligion'])
+            && ($tblSubjectReligion = Subject::useService()->getSubjectById($Filter['SubjectReligion']))
         ) {
             $this->tblSubjectReligion = $tblSubjectReligion;
             $header['SubjectReligion'] = 'Religion';
         }
 
-        if (isset($Filtered['SubjectElective'])
-            && ($tblSubjectElective = Subject::useService()->getSubjectById($Filtered['SubjectElective']))
+        if (isset($Filter['SubjectElective'])
+            && ($tblSubjectElective = Subject::useService()->getSubjectById($Filter['SubjectElective']))
         ) {
             $this->tblSubjectElective = $tblSubjectElective;
             $header['SubjectElective'] = 'Wahlfach';
         }
 
         $this->header = $header;
+    }
+
+    /**
+     * @return bool|TblSubjectGroup
+     */
+    private function getTblSubjectGroup()
+    {
+        if (($tblDivisionSubject = $this->tblDivisionSubject)
+            && ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
+        ) {
+            return $tblSubjectGroup;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     *
+     */
+    public function save()
+    {
+
+        if (($tblSubjectGroup =$this->getTblSubjectGroup())) {
+
+            $this->saveFilter($tblSubjectGroup, $this->getTblGroup(), 'Group');
+            $this->saveFilter($tblSubjectGroup, $this->getTblGender(), 'Gender');
+            $this->saveFilter($tblSubjectGroup, $this->getTblCourse(), 'Course');
+            $this->saveFilter($tblSubjectGroup, $this->getTblSubjectOrientation(), 'SubjectOrientation');
+            $this->saveFilter($tblSubjectGroup, $this->getTblSubjectProfile(), 'SubjectProfile');
+            $this->saveFilter($tblSubjectGroup, $this->getTblSubjectForeignLanguage(), 'SubjectForeignLanguage');
+            $this->saveFilter($tblSubjectGroup, $this->getTblSubjectReligion(), 'SubjectReligion');
+            $this->saveFilter($tblSubjectGroup, $this->getTblSubjectElective(), 'SubjectElective');
+        }
+    }
+
+    /**
+     * @param TblSubjectGroup $tblSubjectGroup
+     * @param $property
+     * @param $field
+     */
+    private function saveFilter(TblSubjectGroup $tblSubjectGroup, $property, $field)
+    {
+        $tblSubjectGroupFilter = Division::useService()->getSubjectGroupFilterBy($tblSubjectGroup, $field);
+        /** @var Element $property */
+        if ($property) {
+            if ($tblSubjectGroupFilter) {
+                Division::useService()->updateSubjectGroupFilter($tblSubjectGroupFilter, $property->getId());
+            } else {
+                Division::useService()->createSubjectGroupFilter($tblSubjectGroup, $field, $property->getId());
+            }
+        } else {
+            if ($tblSubjectGroupFilter) {
+                Division::useService()->destroySubjectGroupFilter($tblSubjectGroupFilter);
+            }
+        }
+    }
+
+    /**
+     *
+     */
+    public function load()
+    {
+        $Filter = array();
+        if (($tblSubjectGroup = $this->getTblSubjectGroup())
+            && ($tblSubjectGroupFilterList = Division::useService()->getSubjectGroupFilterAllBySubjectGroup($tblSubjectGroup))
+        ) {
+            foreach ($tblSubjectGroupFilterList as $tblSubjectGroupFilter) {
+                $Filter[$tblSubjectGroupFilter->getField()] = $tblSubjectGroupFilter->getValue();
+            }
+        }
+
+        $this->setFilter($Filter);
     }
 
     /**
@@ -678,5 +767,13 @@ class Filter extends Extension
         }
 
         return '';
+    }
+
+    /**
+     * @return bool|TblDivisionSubject
+     */
+    public function getTblDivisionSubject()
+    {
+        return $this->tblDivisionSubject;
     }
 }
