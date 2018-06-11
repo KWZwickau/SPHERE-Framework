@@ -25,14 +25,11 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
-use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -902,79 +899,6 @@ class Service extends AbstractService
             return ( new Data($this->getBinding()) )->addDivisionSubject($tblDivision, $tblSubject, $tblSubjectGroup);
         }
         return false;
-    }
-
-    /**
-     * @param IFormInterface $Form
-     * @param int $DivisionSubject
-     * @param array $Student
-     * @param int $DivisionId
-     *
-     * @return IFormInterface|string
-     */
-    public
-    function addSubjectStudent(
-        IFormInterface $Form,
-        $DivisionSubject,
-        $Student,
-        $DivisionId
-    ) {
-
-        /**
-         * Skip to Frontend
-         */
-        if ($Student === null) {
-            return $Form;
-        }
-
-        $Error = false;
-        if (empty($DivisionSubject)) {
-            $Form .= new Warning('Keine Zuordnung ohne Fach möglich');
-            $Error = true;
-        }
-
-        if (!$Error) {
-
-            // Remove old Link
-            $tblDivision = Division::useService()->getDivisionById($DivisionId);
-            if (!$tblDivision) {
-                return new Danger('Klasse nicht gefunden.', new Ban())
-                . new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
-            }
-
-            $tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubject);
-            $tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
-            if (is_array($tblSubjectStudentList)) {
-                array_walk($tblSubjectStudentList, function ($tblSubjectStudentList) {
-                    $this->removeSubjectStudent($tblSubjectStudentList);
-                });
-            }
-
-            // Add new Link
-            if (is_array($Student)) {
-                array_walk($Student, function ($Student) use ($tblDivisionSubject, &$Error) {
-
-                    $tblPerson = Person::useService()->getPersonById($Student);
-                    if ($tblPerson) {
-                        if (!(new Data($this->getBinding()))->addSubjectStudent($tblDivisionSubject, $tblPerson)
-                        ) {
-                            $Error = false;
-                        }
-                    }
-                });
-            }
-
-            if (!$Error) {
-                return new Success('Die Gruppe mit Personen wurden erfolgreich angelegt')
-                . new Redirect('/Education/Lesson/Division/Show', Redirect::TIMEOUT_SUCCESS,
-                    array('Id' => $tblDivision->getId()));
-            } else {
-                return new Danger('Einige Personen konnte nicht in der Gruppe angelegt werden')
-                . new Redirect('/Education/Lesson/Division/Show', Redirect::TIMEOUT_ERROR,
-                    array('Id' => $tblDivision->getId()));
-            }
-        }
-        return $Form;
     }
 
     /**

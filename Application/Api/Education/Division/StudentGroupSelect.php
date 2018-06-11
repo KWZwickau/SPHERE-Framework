@@ -28,6 +28,7 @@ use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -146,37 +147,117 @@ class StudentGroupSelect extends Extension implements IApiInterface
             }
             $header['Option'] = ' ';
 
+            // Schüler die in einer weiteren Gruppe in diesem Fach sind --> gelber Text
+            $personInAnotherGroupList = array();
+            if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())) {
+                $tblDivisionSubjectControlList = DivisionApplication::useService()->getDivisionSubjectBySubjectAndDivision(
+                    $tblSubject,
+                    $tblDivision
+                );
+                if ($tblDivisionSubjectControlList) {
+                    foreach ($tblDivisionSubjectControlList as $tblDivisionSubjectControl) {
+                        if ($tblDivisionSubjectControl->getId() !== $tblDivisionSubject->getId()) {
+                            $tblSubjectStudentList = DivisionApplication::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubjectControl);
+                            if ($tblSubjectStudentList) {
+                                foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                                    if (($tblPersonItem = $tblSubjectStudent->getServiceTblPerson())) {
+                                        $personInAnotherGroupList[$tblPersonItem->getId()] = $tblPersonItem;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             // left selected persons
             if (($tblPersonSelectedList = DivisionApplication::useService()->getStudentByDivisionSubject($tblDivisionSubject))) {
                 $tableSelected = array();
                 foreach ($tblPersonSelectedList as $tblPerson) {
                     $item = array();
-                    $item['Name'] = $tblPerson->getLastFirstName();
 
+                    $hasFilterError = false;
                     if ($filter->getTblGroup()) {
-                        $item['Group'] = $filter->getTblGroup()->getName();
+                        $text = $filter->getTblGroup()->getName();
+                        if ($filter->hasGroup($tblPerson)) {
+                            $item['Group'] = $text;
+                        } else {
+                            $hasFilterError = true;
+                            $item['Group'] = new Danger($text);
+                        }
                     }
                     if ($filter->getTblGender()) {
-                        $item['Gender'] = $filter->getTblGenderStringByPerson($tblPerson);
+                        $text = $filter->getTblGenderStringByPerson($tblPerson);
+                        if ($filter->hasGender($tblPerson)) {
+                            $item['Gender'] = $text;
+                        } else {
+                            $hasFilterError = true;
+                            $item['Gender'] = new Danger($text);
+                        }
                     }
                     if ($filter->getTblCourse()) {
-                        $item['Course'] = $filter->getTblCourseStringByPerson($tblPerson);
+                        $text = $filter->getTblCourseStringByPerson($tblPerson);
+                        if ($filter->hasCourse($tblPerson)) {
+                            $item['Course'] = $text;
+                        } else {
+                            $hasFilterError = true;
+                            $item['Course'] = new Danger($text);
+                        }
                     }
                     if ($filter->getTblSubjectOrientation()) {
-                        $item['SubjectOrientation'] = $filter->getTblSubjectOrientationStringByPerson($tblPerson);
+                        $text = $filter->getTblSubjectOrientationStringByPerson($tblPerson);
+                        if ($filter->hasSubjectOrientation($tblPerson)) {
+                            $item['SubjectOrientation'] = $text;
+                        } else {
+                            $hasFilterError = true;
+                            $item['SubjectOrientation'] = new Danger($text);
+                        }
                     }
                     if ($filter->getTblSubjectProfile()) {
-                        $item['SubjectProfile'] = $filter->getTblSubjectProfileStringByPerson($tblPerson);
+                        $text = $filter->getTblSubjectProfileStringByPerson($tblPerson);
+                        if ($filter->hasSubjectProfile($tblPerson)) {
+                            $item['SubjectProfile'] = $text;
+                        } else {
+                            $hasFilterError = true;
+                            $item['SubjectProfile'] = new Danger($text);
+                        }
                     }
                     if ($filter->getTblSubjectForeignLanguage()) {
-                        $item['SubjectForeignLanguage'] = $filter->getTblSubjectForeignLanguagesStringByPerson($tblPerson);
+                        $text = $filter->getTblSubjectForeignLanguagesStringByPerson($tblPerson);
+                        if ($filter->hasSubjectForeignLanguage($tblPerson)) {
+                            $item['SubjectForeignLanguage'] = $text;
+                        } else {
+                            $hasFilterError = true;
+                            $item['SubjectForeignLanguage'] = new Danger($text);
+                        }
                     }
                     if ($filter->getTblSubjectReligion()) {
-                        $item['SubjectReligion'] = $filter->getTblSubjectReligionStringByPerson($tblPerson);
+                        $text = $filter->getTblSubjectReligionStringByPerson($tblPerson);
+                        if ($filter->hasSubjectReligion($tblPerson)) {
+                            $item['SubjectReligion'] = $text;
+                        } else {
+                            $hasFilterError = true;
+                            $item['SubjectReligion'] = new Danger($text);
+                        }
                     }
                     if ($filter->getTblSubjectElective()) {
-                        $item['SubjectElective'] = $filter->getTblSubjectElectivesStringByPerson($tblPerson);
+                        $text = $filter->getTblSubjectElectivesStringByPerson($tblPerson);
+                        if ($filter->hasSubjectElective($tblPerson)) {
+                            $item['SubjectElective'] = $text;
+                        } else {
+                            $hasFilterError = true;
+                            $item['SubjectElective'] = new Danger($text);
+                        }
                     }
+
+                    $name = $tblPerson->getLastFirstName();
+                    if ($hasFilterError) {
+                        $name = new Danger($name);
+                    }
+                    elseif (isset($personInAnotherGroupList[$tblPerson->getId()])) {
+                        $name = new \SPHERE\Common\Frontend\Text\Repository\Warning($name);
+                    }
+                    $item['Name'] = $name;
 
                     if ($isSekII) {
                         $item['AdvancedCourse1'] = isset($personAdvancedCourses[0][$tblPerson->getId()])
@@ -211,7 +292,11 @@ class StudentGroupSelect extends Extension implements IApiInterface
                         && $filter->isFilterFulfilledByPerson($tblPerson)
                     ) {
                         $item = array();
-                        $item['Name'] = $tblPerson->getLastFirstName();
+                        $name = $tblPerson->getLastFirstName();
+                        if (isset($personInAnotherGroupList[$tblPerson->getId()])) {
+                            $name = new \SPHERE\Common\Frontend\Text\Repository\Warning($name);
+                        }
+                        $item['Name'] = $name;
 
                         if ($filter->getTblGroup()) {
                             $item['Group'] = $filter->getTblGroup()->getName();

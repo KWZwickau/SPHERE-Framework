@@ -9,7 +9,6 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectStudent;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -955,92 +954,6 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         return $Stage;
-    }
-
-    /**
-     * @param TblDivisionSubject $tblDivisionSubject
-     *
-     * @return Form
-     */
-    public function formSubjectStudentAdd(TblDivisionSubject $tblDivisionSubject)
-    {
-
-        $tblSubjectStudentAllSelected = $tblDivisionSubject === null ? false : Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
-        if ($tblSubjectStudentAllSelected) {
-            $Global = $this->getGlobal();
-            array_walk($tblSubjectStudentAllSelected, function (TblSubjectStudent &$tblSubjectStudent) use (&$Global) {
-
-                if ($tblSubjectStudent->getServiceTblPerson()) {
-                    $Global->POST['Student'][$tblSubjectStudent->getServiceTblPerson()->getId()] = $tblSubjectStudent->getServiceTblPerson()->getId();
-                }
-            });
-            $Global->savePost();
-        }
-
-        if ($tblDivisionSubject->getTblDivision()) {
-            $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivisionSubject->getTblDivision());  // Alle Schüler der Klasse
-        } else {
-            $tblStudentList = false;
-        }
-
-        if ($tblStudentList) {
-            if ($tblDivisionSubject->getServiceTblSubject() && $tblDivisionSubject->getTblDivision()) {
-                $tblDivisionSubjectControlList = Division::useService()->
-                getDivisionSubjectBySubjectAndDivision($tblDivisionSubject->getServiceTblSubject(),
-                    $tblDivisionSubject->getTblDivision());
-                if ($tblDivisionSubjectControlList) {
-                    /** @var TblDivisionSubject $tblDivisionSubjectControl */
-                    $PersonId = array();
-                    foreach ($tblDivisionSubjectControlList as $tblDivisionSubjectControl) {
-                        if ($tblDivisionSubjectControl->getId() !== $tblDivisionSubject->getId()) {
-                            $tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubjectControl);
-                            if ($tblSubjectStudentList) {
-                                foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                                    if ($tblSubjectStudent->getServiceTblPerson()) {
-                                        $PersonId[] = $tblSubjectStudent->getServiceTblPerson()->getId();
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            foreach ($tblStudentList as &$tblPerson) {
-                $trigger = false;
-                if (isset( $PersonId )) {
-                    foreach ($PersonId as $Person) {
-
-                        if ($Person === $tblPerson->getId()) {
-                            $trigger = true;
-                        }
-                    }
-                }
-                $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
-                $display = $tblPerson->getLastFirstName() . ($tblCourse ? new Small(' (' . $tblCourse->getName() . ')') : '');
-
-                $tblPerson = new CheckBox(
-                    'Student['.$tblPerson->getId().']',
-                    ( ( $trigger ) ? new WarningText($display)
-                        : $display )
-                    ,
-                    $tblPerson->getId()
-                );
-            }
-        } else {
-            $tblStudentList = new Warning('Es sind noch keine Schüler für die Klasse hinterlegt');
-        }
-
-        return new Form(
-            new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(
-                        new Panel('Schüler' . new Small(' (Bildungsgang)') , $tblStudentList, Panel::PANEL_TYPE_INFO)
-                        , 12),
-                    new FormColumn(new HiddenField('Student[IsSubmit]'))
-                )),
-            ))
-        );
     }
 
     /**
