@@ -151,13 +151,14 @@ class LevelTen extends AbstractBlock
                         $tblSubject,
                         $tblPrepareAdditionalGradeType
                     ))) {
-                        if ($tblPrepareAdditionalGrade->getGrade() !== $tblPrepareGradeLevelTen->getGrade()) {
-                            Prepare::useService()->updatePrepareAdditionalGrade(
-                                $tblPrepareAdditionalGrade,
-                                $tblPrepareGradeLevelTen->getGrade(),
-                                $tblPrepareAdditionalGrade->isSelected()
-                            );
-                        }
+                        // #SSW-132 Es sollen nicht immer alle Fächer ausgewiesen werden.
+//                        if ($tblPrepareAdditionalGrade->getGrade() !== $tblPrepareGradeLevelTen->getGrade()) {
+//                            Prepare::useService()->updatePrepareAdditionalGrade(
+//                                $tblPrepareAdditionalGrade,
+//                                $tblPrepareGradeLevelTen->getGrade(),
+//                                $tblPrepareAdditionalGrade->isSelected()
+//                            );
+//                        }
                     } else {
                         Prepare::useService()->createPrepareAdditionalGrade(
                             $tblPrepareCertificate,

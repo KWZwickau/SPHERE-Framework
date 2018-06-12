@@ -3895,6 +3895,7 @@ class Service extends AbstractService
         ) {
             $ranking = 1;
             foreach ($Data['Grades'] as $subjectId => $value) {
+                $value = trim($value);
                 if (($tblSubject = Subject::useService()->getSubjectById($subjectId))) {
                     if (($tblPrepareAdditionalGrade = $this->getPrepareAdditionalGradeBy(
                         $tblPrepare,
@@ -3907,16 +3908,20 @@ class Service extends AbstractService
                             $value
                         );
                     } else {
-                        (new Data($this->getBinding()))->createPrepareAdditionalGrade(
-                            $tblPrepare,
-                            $tblPerson,
-                            $tblSubject,
-                            $tblPrepareAdditionalGradeType,
-                            $ranking++,
-                            $value
-                        );
+                        if ($value !== '') {
+                            (new Data($this->getBinding()))->createPrepareAdditionalGrade(
+                                $tblPrepare,
+                                $tblPerson,
+                                $tblSubject,
+                                $tblPrepareAdditionalGradeType,
+                                $ranking,
+                                $value
+                            );
+                        }
                     }
                 }
+
+                $ranking++;
             }
         }
 

@@ -1539,57 +1539,83 @@ class GymAbitur extends Certificate
             $levelTenGradesAreNotShown = false;
         }
 
+        $i = 1;
         $tblPrepareAdditionalGradeType = Prepare::useService()->getPrepareAdditionalGradeTypeByIdentifier('LEVEL-10');
-        for ($i = 1; $i < 8; $i++) {
+        if (($tblPrepareAdditionalGradeList = Prepare::useService()->getPrepareAdditionalGradeListBy(
+            $this->getTblPrepareCertificate(),
+            $tblPerson,
+            $tblPrepareAdditionalGradeType
+        ))) {
+            foreach ($tblPrepareAdditionalGradeList as $tblPrepareAdditionalGrade) {
+                $subject = '&ndash;';
+                $grade = '&ndash;';
+                $gradeText = '&ndash;';
+
+                if (($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())) {
+                    $subject = $tblSubject->getName();
+                    if (!$levelTenGradesAreNotShown) {
+                        $grade = $tblPrepareAdditionalGrade->getGrade();
+                        // #SSW-132
+                        if ($grade === '') {
+                            continue;
+                        }
+                        if (isset($this->gradeTextList[$tblPrepareAdditionalGrade->getGrade()])) {
+                            $gradeText = $this->gradeTextList[$tblPrepareAdditionalGrade->getGrade()];
+                        }
+                    }
+                }
+
+                $this->setLevelTenRow($slice, $subject, $i, $grade, $gradeText);
+                $i++;
+            }
+        }
+
+        for ($i; $i < 8; $i++) {
             $subject = '&ndash;';
             $grade = '&ndash;';
             $gradeText = '&ndash;';
 
-            if ($tblPrepareAdditionalGradeType
-                && ($tblPrepareAdditionalGrade = Prepare::useService()->getPrepareAdditionalGradeByRanking(
-                    $this->getTblPrepareCertificate(),
-                    $tblPerson,
-                    $tblPrepareAdditionalGradeType,
-                    $i
-                ))
-                && ($tblSubject = $tblPrepareAdditionalGrade->getServiceTblSubject())
-            ) {
-                $subject = $tblSubject->getName();
-                if (!$levelTenGradesAreNotShown) {
-                    $grade = $tblPrepareAdditionalGrade->getGrade();
-                    if (isset($this->gradeTextList[$tblPrepareAdditionalGrade->getGrade()])) {
-                        $gradeText = $this->gradeTextList[$tblPrepareAdditionalGrade->getGrade()];
-                    }
-                }
-            }
-            $slice
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent($subject)
-                        ->stylePaddingLeft('5px')
-                        ->styleBorderLeft()
-                        ->styleBorderTop()
-                        ->styleBorderBottom($i == 7 ? '1px' : '0px')
-                        , '50%')
-                    ->addElementColumn((new Element())
-                        ->setContent($grade)
-                        ->styleAlignCenter()
-                        ->styleBorderLeft()
-                        ->styleBorderTop()
-                        ->styleBorderBottom($i == 7 ? '1px' : '0px')
-                        , '20%')
-                    ->addElementColumn((new Element())
-                        ->setContent($gradeText)
-                        ->styleAlignCenter()
-                        ->styleBorderLeft()
-                        ->styleBorderTop()
-                        ->styleBorderRight()
-                        ->styleBorderBottom($i == 7 ? '1px' : '0px')
-                        , '30%')
-                );
+            $this->setLevelTenRow($slice, $subject, $i, $grade, $gradeText);
         }
 
         return $slice;
+    }
+
+
+    /**
+     * @param $slice
+     * @param $subject
+     * @param $i
+     * @param $grade
+     * @param $gradeText
+     */
+    private function setLevelTenRow(Slice $slice, $subject, $i, $grade, $gradeText)
+    {
+        $slice
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent($subject)
+                    ->stylePaddingLeft('5px')
+                    ->styleBorderLeft()
+                    ->styleBorderTop()
+                    ->styleBorderBottom($i == 7 ? '1px' : '0px')
+                    , '50%')
+                ->addElementColumn((new Element())
+                    ->setContent($grade)
+                    ->styleAlignCenter()
+                    ->styleBorderLeft()
+                    ->styleBorderTop()
+                    ->styleBorderBottom($i == 7 ? '1px' : '0px')
+                    , '20%')
+                ->addElementColumn((new Element())
+                    ->setContent($gradeText)
+                    ->styleAlignCenter()
+                    ->styleBorderLeft()
+                    ->styleBorderTop()
+                    ->styleBorderRight()
+                    ->styleBorderBottom($i == 7 ? '1px' : '0px')
+                    , '30%')
+            );
     }
 
     private function getForeignLanguages(TblPerson $tblPerson = null)
