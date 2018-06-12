@@ -61,6 +61,21 @@ class Prepare implements IModuleInterface
             __NAMESPACE__ . '\Prepare\Diploma\Setting' , __NAMESPACE__ . '\Frontend::frontendPrepareDiplomaSetting')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Prepare\Diploma\Abitur\Preview' , __NAMESPACE__ . '\Abitur\Frontend::frontendPrepareDiplomaAbiturPreview')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Prepare\Diploma\Abitur\BlockI' , __NAMESPACE__ . '\Abitur\Frontend::frontendPrepareDiplomaAbiturBlockI')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Prepare\Diploma\Abitur\BlockII' , __NAMESPACE__ . '\Abitur\Frontend::frontendPrepareDiplomaAbiturBlockII')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Prepare\Diploma\Abitur\LevelTen' , __NAMESPACE__ . '\Abitur\Frontend::frontendPrepareDiplomaAbiturLevelTen')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Prepare\Diploma\Abitur\OtherInformation' , __NAMESPACE__ . '\Abitur\Frontend::frontendPrepareDiplomaAbiturOtherInformation')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Prepare\Preview', __NAMESPACE__ . '\Frontend::frontendPreparePreview')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -80,6 +95,12 @@ class Prepare implements IModuleInterface
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Leave\Student', __NAMESPACE__ . '\Frontend::frontendLeaveStudentTemplate')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Leave\Student\Abitur\Points', __NAMESPACE__ . '\Frontend::frontendLeaveStudentAbiturPoints')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Leave\Student\Abitur\Information', __NAMESPACE__ . '\Frontend::frontendLeaveStudentAbiturInformation')
         );
     }
 

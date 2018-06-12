@@ -244,6 +244,9 @@ class Script extends Extension
             'Bootbox.js', '/Library/Bootbox.js/4.4.0/js/bootbox.min.js',
             "'undefined' !== typeof bootbox"
         );
+        $this->setSource('CookieScript', '/Library/CookieScript/CookieScript.js',
+            "'undefined' !== typeof window.hasCookieConsent"
+        );
 
         /**
          * Module (jQuery plugin)
@@ -344,6 +347,9 @@ class Script extends Extension
         );
         $this->setModule(
             'ModCleanStorage', array('jQuery')
+        );
+        $this->setModule(
+            'ModCookie', array('CookieScript')
         );
     }
 

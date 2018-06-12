@@ -19,6 +19,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -141,6 +142,7 @@ class EnrollmentDocument extends Extension implements IModuleInterface
     {
 
         $Stage = new Stage('Schulbescheinigung', 'Erstellen');
+        $Stage->addButton(new Standard('Zurück', '/Document/Standard/EnrollmentDocument', new ChevronLeft()));
         $tblPerson = Person::useService()->getPersonById($PersonId);
         $Global = $this->getGlobal();
         $Gender = false;
@@ -158,6 +160,16 @@ class EnrollmentDocument extends Extension implements IModuleInterface
                     }
                 }
             }
+
+            // Prepare LeaveDate
+            $Now = new \DateTime('now');
+            // increase year if date after 31.07.20xx
+            if ($Now > new \DateTime('31.07.'.$Now->format('Y'))) {
+                $Now->add(new \DateInterval('P1Y'));
+            }
+            $MaxDate = new \DateTime('31.07.'.$Now->format('Y'));
+            $DateString = $MaxDate->format('d.m.Y');
+            $Global->POST['Data']['LeaveDate'] = $DateString;
 
             $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
             if ($tblStudent) {
@@ -185,22 +197,16 @@ class EnrollmentDocument extends Extension implements IModuleInterface
                 $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('LEAVE');
                 $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
                     $tblStudentTransferType);
-                $Now = new \DateTime('now');
-                // increase year if date after 31.07.20xx
-                if ($Now > new \DateTime('31.07.'.$Now->format('Y'))) {
-                    $Now->add(new \DateInterval('P1Y'));
-                }
-                $MaxDate = new \DateTime('31.07.'.$Now->format('Y'));
-                $DateString = $MaxDate->format('d.m.Y');
                 if ($tblStudentTransfer) {
                     $transferDate = $tblStudentTransfer->getTransferDate();
                     if ($transferDate) {
                         if ($MaxDate > new \DateTime($transferDate)) {
                             $DateString = $transferDate;
+                            // correct leaveDate if necessary
+                            $Global->POST['Data']['LeaveDate'] = $DateString;
                         }
                     }
                 }
-                $Global->POST['Data']['LeaveDate'] = $DateString;
             }
 
             // Aktuelle Klasse

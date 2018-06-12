@@ -456,6 +456,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string $Name
+     *
+     * @return bool|TblSubject
+     */
+    public function getSubjectByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getSubjectByName($Name);
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param                $Subject
      * @param                $Id

@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
@@ -48,11 +49,17 @@ abstract class Certificate extends Extension
     private $tblDivision = null;
 
     /**
+     * @var TblPrepareCertificate|null
+     */
+    private $tblPrepareCertificate = null;
+
+    /**
      * @param TblDivision $tblDivision
+     * @param TblPrepareCertificate|null $tblPrepareCertificate
      * @param bool|true $IsSample
      * @param array $pageList
      */
-    public function __construct(TblDivision $tblDivision = null, $IsSample = true, $pageList = array())
+    public function __construct(TblDivision $tblDivision = null, TblPrepareCertificate $tblPrepareCertificate = null, $IsSample = true, $pageList = array())
     {
 
         // Twig as string wouldn't be cached (used function getTwigTemplateString)
@@ -61,6 +68,7 @@ abstract class Certificate extends Extension
         $this->setGrade(false);
         $this->setAdditionalGrade(false);
         $this->tblDivision = $tblDivision;
+        $this->tblPrepareCertificate = $tblPrepareCertificate;
         $this->IsSample = (bool)$IsSample;
 
         // need for Preview frontend (getTemplateInformationForPreview)
@@ -150,6 +158,18 @@ abstract class Certificate extends Extension
             return false;
         } else {
             return $this->tblDivision;
+        }
+    }
+
+    /**
+     * @return false|TblPrepareCertificate
+     */
+    public function getTblPrepareCertificate()
+    {
+        if (null === $this->tblPrepareCertificate) {
+            return false;
+        } else {
+            return $this->tblPrepareCertificate;
         }
     }
 
@@ -786,7 +806,6 @@ abstract class Certificate extends Extension
                     $SubjectSlice->addSection($SubjectSection);
                     $SectionList[] = $SubjectSection;
                 }
-
             }
         }
 

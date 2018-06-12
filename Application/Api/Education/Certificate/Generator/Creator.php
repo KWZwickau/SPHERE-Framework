@@ -55,7 +55,7 @@ class Creator extends Extension
 
                         $tblDivision = $tblPrepare->getServiceTblDivision();
                         /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
-                        $Certificate = new $CertificateClass($tblDivision ? $tblDivision : null, false);
+                        $Certificate = new $CertificateClass($tblDivision ? $tblDivision : null, $tblPrepare, false);
 
                         // get Content
                         $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
@@ -164,7 +164,7 @@ class Creator extends Extension
 
                         $tblDivision = $tblPrepare->getServiceTblDivision();
                         /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
-                        $Certificate = new $CertificateClass($tblDivision ? $tblDivision : null);
+                        $Certificate = new $CertificateClass($tblDivision ? $tblDivision : null, $tblPrepare);
 
                         // get Content
                         $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
@@ -284,7 +284,7 @@ class Creator extends Extension
                         if (class_exists($CertificateClass)) {
 
                             /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
-                            $Certificate = new $CertificateClass($tblDivision);
+                            $Certificate = new $CertificateClass($tblDivision, $tblPrepare);
 
                             // get Content
                             $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
@@ -363,7 +363,7 @@ class Creator extends Extension
                         if (class_exists($CertificateClass)) {
 
                             /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
-                            $Certificate = new $CertificateClass($tblDivision, false);
+                            $Certificate = new $CertificateClass($tblDivision, $tblPrepare, false);
 
                             // get Content
                             $Content = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
@@ -568,7 +568,7 @@ class Creator extends Extension
                                 if (class_exists($CertificateClass)) {
 
                                     /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
-                                    $Certificate = new $CertificateClass($tblDivision);
+                                    $Certificate = new $CertificateClass($tblDivision, $tblPrepare);
 
                                     // get Content
                                     $Content = Prepare::useService()->getCertificateContent($tblPrepareItem,
@@ -712,7 +712,7 @@ class Creator extends Extension
                         if (class_exists($CertificateClass)) {
 
                             /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
-                            $Certificate = new $CertificateClass($tblDivision, false);
+                            $Certificate = new $CertificateClass($tblDivision, $tblPrepare, false);
 
                             // get Content
                             $Data = Prepare::useService()->getCertificateContent($tblPrepare, $tblPerson);
@@ -817,7 +817,7 @@ class Creator extends Extension
                             if (class_exists($CertificateClass)) {
 
                                 /** @var \SPHERE\Application\Api\Education\Certificate\Generator\Certificate $Certificate */
-                                $Certificate = new $CertificateClass($tblDivision, false);
+                                $Certificate = new $CertificateClass($tblDivision, null, false);
 
                                 // get Content
                                 $Data = Prepare::useService()->getLeaveCertificateContent($tblLeaveStudent);

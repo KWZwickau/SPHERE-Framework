@@ -274,6 +274,7 @@ class Frontend
             '/Platform/Assistance/Error/Shutdown',
             '/Platform/Assistance/Support',
             '/Platform/Gatekeeper/Authentication/Offline',
+            '/Document/DataProtectionOrdinance',
         );
         if ($PublicRouteAll) {
             array_walk($PublicRouteAll, function (&$Route) use (&$publicRightList, $publicRouteList) {
@@ -310,7 +311,10 @@ class Frontend
                     , new Primary('Hinzufügen')
                 ), $Name
             )
-            .new TableData($publicRightList, new Title('Öffentliche Routen', 'PUBLIC ACCESS'))
+            .(!empty($publicRightList)
+            ? new TableData($publicRightList, new Title('Öffentliche Routen', 'PUBLIC ACCESS'))
+            :new Warning('Keine neuen Routen vorhanden')
+            )
         );
         return $Stage;
     }

@@ -384,18 +384,25 @@ abstract class AbstractView extends Element
      * @param bool $doKeyConvertToText
      * @return SelectBox
      */
-    protected function getFormFieldSelectBox( $Data, $PropertyName, $Label = null, $Icon = null, $doResetCount = false, $doKeyConvertToText = true ) {
+    protected function getFormFieldSelectBox( $Data, $PropertyName, $Label = null, $Icon = null, $doResetCount = false, $doKeyConvertToText = true) {
         $PropertyCount = $this->calculateFormFieldCount( $PropertyName, $doResetCount );
         // Make Value == Key for selecting Text-Value not Id
         if( $doKeyConvertToText ) {
             $Data = array_combine($Data, $Data);
         }
         // Add "ALL" Option
-        if( $PropertyCount == 1 ) {
-            $Data = array_merge(array('' => 'Alle'), $Data);
+        if( $PropertyCount == 1) {
+            $Data[''] = '-[ Alle ]-';
         } else {
-            $Data = array_merge(array('' => 'ODER'), $Data);
+            $Data[''] = '-[ Oder ]-';
         }
+//        following part destroy IdKeys
+//        // Add "ALL" Option
+//        if( $PropertyCount == 1 ) {
+//            $Data = array_merge(array('' => 'Alle'), $Data);
+//        } else {
+//            $Data = array_merge(array('' => 'ODER'), $Data);
+//        }
         return new SelectBox( $PropertyName.'['.$PropertyCount.']',
             $Label, $Data, ($Icon?$Icon:new More()), $doKeyConvertToText ? true : false
         );

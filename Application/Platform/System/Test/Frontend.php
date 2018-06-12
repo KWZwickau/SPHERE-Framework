@@ -3,6 +3,7 @@ namespace SPHERE\Application\Platform\System\Test;
 
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Platform\Test\ApiSystemTest;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Element\Ruler;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Platform\System\Test\Service\Entity\TblTestPicture;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -62,6 +63,7 @@ use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
@@ -184,7 +186,24 @@ class Frontend extends Extension implements IFrontendInterface
                             new RadioBox('RadioBox1', 'RadioBox1b', '1b'),
                             new RadioBox('RadioBox2', 'RadioBox2', '2'),
                             new RadioBox('RadioBox3', 'RadioBox3', '3'),
-                        ), 3),
+                        ), 1),
+                        new FormColumn(
+                            new Panel('Farben bei RadioBox',
+                                new RadioBox('RadioBoxColor1', 'Standard', 1, RadioBox::RADIO_BOX_TYPE_DEFAULT)
+                                    .new RadioBox('RadioBoxColor2', 'Black', 2, RadioBox::RADIO_BOX_TYPE_BLACK)
+                                    .new RadioBox('RadioBoxColor3', 'Info', 3, RadioBox::RADIO_BOX_TYPE_INFO)
+                                    .new RadioBox('RadioBoxColor4', 'Success', 4, RadioBox::RADIO_BOX_TYPE_SUCCESS)
+                                    .new RadioBox('RadioBoxColor5', 'Warning', 5, RadioBox::RADIO_BOX_TYPE_WARNING)
+                                    .new RadioBox('RadioBoxColor6', 'Danger', 6, RadioBox::RADIO_BOX_TYPE_DANGER)
+                                )
+                        , 1),
+                        new FormColumn(
+                            new Panel('ToolTip',
+                                new ToolTip('Test mit Umbruch', 'Text der umbricht bei Platzmangel')
+                                .new Ruler()
+                                .new Container(new ToolTip('Test ohne Umbruch (benötigt bei z.B. kleinen spalten in Tabellen)', 'Text der nicht umbrechen kann', false))
+                            )
+                        , 1),
                     )),
                     new FormRow(array(
                         new FormColumn(array(

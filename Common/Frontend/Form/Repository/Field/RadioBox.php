@@ -12,15 +12,24 @@ use SPHERE\Common\Frontend\Form\Repository\AbstractField;
 class RadioBox extends AbstractField implements IFieldInterface
 {
 
+    const RADIO_BOX_TYPE_DEFAULT = 'radio-primary';
+    const RADIO_BOX_TYPE_BLACK = 'radio-default';
+    const RADIO_BOX_TYPE_SUCCESS = 'radio-success';
+    const RADIO_BOX_TYPE_WARNING = 'radio-warning';
+    const RADIO_BOX_TYPE_INFO = 'radio-info';
+    const RADIO_BOX_TYPE_DANGER = 'radio-danger';
+
     /**
      * @param string $Name
      * @param string $Label
      * @param mixed  $Value
+     * @param mixed  $Type
      */
     public function __construct(
         $Name,
         $Label,
-        $Value
+        $Value,
+        $Type = RadioBox::RADIO_BOX_TYPE_DEFAULT
     ) {
 
         $this->Name = $Name;
@@ -28,6 +37,7 @@ class RadioBox extends AbstractField implements IFieldInterface
         $this->Template->setVariable('ElementName', $Name);
         $this->Template->setVariable('ElementLabel', $Label);
         $this->Template->setVariable('ElementValue', $Value);
+        $this->Template->setVariable('ElementType', $Type);
         $this->Template->setVariable('ElementHash', md5($Name . $Label . $Value . (new \DateTime())->getTimestamp()));
         if ($this->isChecked($this->getName(), $Value)) {
             $this->Template->setVariable('ElementChecked', 'checked="checked"');

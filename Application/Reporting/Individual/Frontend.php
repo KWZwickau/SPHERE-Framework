@@ -3,22 +3,24 @@
 namespace SPHERE\Application\Reporting\Individual;
 
 use SPHERE\Application\Api\Reporting\Individual\ApiIndividual;
-use SPHERE\Common\Frontend\Icon\Repository\Download;
+use SPHERE\Application\Reporting\Individual\Service\Entity\TblWorkSpace;
+use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Paragraph;
-use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
-use SPHERE\Common\Frontend\Layout\Repository\PullClear;
-use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
-use SPHERE\Common\Frontend\Layout\Repository\PullRight;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
-use SPHERE\Common\Frontend\Table\Structure\TableData;
-use SPHERE\Common\Window\RedirectScript;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -36,52 +38,293 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendDashboard()
     {
 
-        $Stage = new Stage('Flexible Auswertung', '');
+        $Stage = new Stage('Flexible Auswertung', 'Auswahl der Kategorie');
+
+        $Stage->setContent(
+            new Container('&nbsp;')
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn('&nbsp;', 3),
+                        new LayoutColumn(
+                            new Panel('Kategorien:', new \SPHERE\Common\Frontend\Layout\Repository\Listing(
+                                array(
+                                    new Center('Allgemeine Auswertung für '.new Bold('Personen').'<br/>')
+                                    .new Center(new Standard('', __NAMESPACE__.'/Group', new Listing())),
+                                    new Center('Spezifische Auswertung für '.new Bold('Schüler').'<br/>')
+                                    .new Center(new Standard('', __NAMESPACE__.'/Student', new Listing())),
+                                    new Center('Spezifische Auswertung für '.new Bold('Interessenten').'<br/>')
+                                    .new Center(new Standard('', __NAMESPACE__.'/Prospect', new Listing())),
+                                    new Center('Spezifische Auswertung für '.new Bold('Sorgeberechtigte').'<br/>')
+                                    .new Center(new Standard('', __NAMESPACE__.'/Custody', new Listing())),
+                                    new Center('Spezifische Auswertung für '.new Bold('Lehrer').'<br/>')
+                                    .new Center(new Standard('', __NAMESPACE__.'/Teacher', new Listing())),
+                                )))
+                        , 6),
+                    ))
+                )
+            )
+        );
 
         // $Content = Individual::useService()->getView();
 
+        return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendGroup()
+    {
+
+        $Stage = new Stage('Auswertung von Personen und Gruppen');
+        $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+
         $Stage->setContent(
-            new Layout(array(
-                new LayoutGroup(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                            ApiIndividual::receiverService(),
-                            ApiIndividual::receiverModal(),
-                            ApiIndividual::receiverNavigation(),
-                            ApiIndividual::pipelineNavigation(false)
-                        ), 3),
-                        new LayoutColumn(
-                            new Layout(
+            new Form(
+                new FormGroup(
+                    new FormRow(
+                        new FormColumn(
+                            new Layout(array(
                                 new LayoutGroup(
                                     new LayoutRow(array(
-//                                        new LayoutColumn(
-//                                            new Title('Filteroptionen')
-//                                        ),
                                         new LayoutColumn(array(
-                                            ApiIndividual::receiverFilter(),
-                                            ApiIndividual::pipelineDisplayFilter()
-                                        )),
-                                        new LayoutColumn(new Title('Suchergebnis')),
-                                        new LayoutColumn(ApiIndividual::receiverResult()),
+                                            ApiIndividual::receiverService(),
+                                            ApiIndividual::receiverModal(),
+                                            ApiIndividual::receiverNavigation(),
+                                            ApiIndividual::pipelineNavigation(false, TblWorkSpace::VIEW_TYPE_ALL)
+                                        ), 3),
+                                        new LayoutColumn(
+                                            new Layout(
+                                                new LayoutGroup(
+                                                    new LayoutRow(array(
+                                                        new LayoutColumn(array(
+                                                            ApiIndividual::receiverFilter(),
+                                                            ApiIndividual::pipelineDisplayFilter(TblWorkSpace::VIEW_TYPE_ALL)
+                                                        )),
+                                                        new LayoutColumn(new Title('Suchergebnis')),
+                                                        new LayoutColumn(ApiIndividual::receiverResult()),
+                                                    ))
+                                                )
+                                            )
+                                        , 9)
                                     ))
                                 )
-                            )
-                            , 9)
-                    ))
+                            ))
+                        )
+                    )
                 )
-            ))
+            )
         );
 
         return $Stage;
     }
 
     /**
-     * @return string
+     * @return Stage
      */
-    public function frontendDownload()
+    public function frontendStudent()
     {
 
-        return (new ApiIndividual())->downloadFile();
+        $Stage = new Stage('Auswertung Schüler');
+        $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+
+        $Stage->setContent(
+            new Form(
+                new FormGroup(
+                    new FormRow(
+                        new FormColumn(
+                            new Layout(array(
+                                new LayoutGroup(
+                                    new LayoutRow(array(
+                                        new LayoutColumn(array(
+                                            ApiIndividual::receiverService(),
+                                            ApiIndividual::receiverModal(),
+                                            ApiIndividual::receiverNavigation(),
+                                            ApiIndividual::pipelineNavigation(false, TblWorkSpace::VIEW_TYPE_STUDENT)
+                                        ), 3),
+                                        new LayoutColumn(
+                                            new Layout(
+                                                new LayoutGroup(
+                                                    new LayoutRow(array(
+                                                        new LayoutColumn(array(
+                                                            ApiIndividual::receiverFilter(),
+                                                            ApiIndividual::pipelineDisplayFilter(TblWorkSpace::VIEW_TYPE_STUDENT)
+                                                        )),
+                                                        new LayoutColumn(new Title('Suchergebnis')),
+                                                        new LayoutColumn(ApiIndividual::receiverResult()),
+                                                    ))
+                                                )
+                                            )
+                                        , 9)
+                                    ))
+                                )
+                            ))
+                        )
+                    )
+                )
+            )
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendProspect()
+    {
+
+        $Stage = new Stage('Auswertung Interessent');
+        $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+
+        $Stage->setContent(
+            new Form(
+                new FormGroup(
+                    new FormRow(
+                        new FormColumn(
+                            new Layout(array(
+                                new LayoutGroup(
+                                    new LayoutRow(array(
+                                        new LayoutColumn(array(
+                                            ApiIndividual::receiverService(),
+                                            ApiIndividual::receiverModal(),
+                                            ApiIndividual::receiverNavigation(),
+                                            ApiIndividual::pipelineNavigation(false, TblWorkSpace::VIEW_TYPE_PROSPECT)
+                                        ), 3),
+                                        new LayoutColumn(
+                                            new Layout(
+                                                new LayoutGroup(
+                                                    new LayoutRow(array(
+                                                        new LayoutColumn(array(
+                                                            ApiIndividual::receiverFilter(),
+                                                            ApiIndividual::pipelineDisplayFilter(TblWorkSpace::VIEW_TYPE_PROSPECT)
+                                                        )),
+                                                        new LayoutColumn(new Title('Suchergebnis')),
+                                                        new LayoutColumn(ApiIndividual::receiverResult()),
+                                                    ))
+                                                )
+                                            )
+                                        , 9)
+                                    ))
+                                )
+                            ))
+                        )
+                    )
+                )
+            )
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendCustody()
+    {
+
+        $Stage = new Stage('Auswertung Sorgeberechtigte');
+        $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+
+        $Stage->setContent(
+            new Form(
+                new FormGroup(
+                    new FormRow(
+                        new FormColumn(
+                            new Layout(array(
+                                new LayoutGroup(
+                                    new LayoutRow(array(
+                                        new LayoutColumn(array(
+                                            ApiIndividual::receiverService(),
+                                            ApiIndividual::receiverModal(),
+                                            ApiIndividual::receiverNavigation(),
+                                            ApiIndividual::pipelineNavigation(false, TblWorkSpace::VIEW_TYPE_CUSTODY)
+                                        ), 3),
+                                        new LayoutColumn(
+                                            new Layout(
+                                                new LayoutGroup(
+                                                    new LayoutRow(array(
+                                                        new LayoutColumn(array(
+                                                            ApiIndividual::receiverFilter(),
+                                                            ApiIndividual::pipelineDisplayFilter(TblWorkSpace::VIEW_TYPE_CUSTODY)
+                                                        )),
+                                                        new LayoutColumn(new Title('Suchergebnis')),
+                                                        new LayoutColumn(ApiIndividual::receiverResult()),
+                                                    ))
+                                                )
+                                            )
+                                        , 9)
+                                    ))
+                                )
+                            ))
+                        )
+                    )
+                )
+            )
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendTeacher()
+    {
+
+        $Stage = new Stage('Auswertung Lehrer');
+        $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+
+        $Stage->setContent(
+            new Form(
+                new FormGroup(
+                    new FormRow(
+                        new FormColumn(
+                            new Layout(array(
+                                new LayoutGroup(
+                                    new LayoutRow(array(
+                                        new LayoutColumn(array(
+                                            ApiIndividual::receiverService(),
+                                            ApiIndividual::receiverModal(),
+                                            ApiIndividual::receiverNavigation(),
+                                            ApiIndividual::pipelineNavigation(false, TblWorkSpace::VIEW_TYPE_TEACHER)
+                                        ), 3),
+                                        new LayoutColumn(
+                                            new Layout(
+                                                new LayoutGroup(
+                                                    new LayoutRow(array(
+                                                        new LayoutColumn(array(
+                                                            ApiIndividual::receiverFilter(),
+                                                            ApiIndividual::pipelineDisplayFilter(TblWorkSpace::VIEW_TYPE_TEACHER)
+                                                        )),
+                                                        new LayoutColumn(new Title('Suchergebnis')),
+                                                        new LayoutColumn(ApiIndividual::receiverResult()),
+                                                    ))
+                                                )
+                                            )
+                                        , 9)
+                                    ))
+                                )
+                            ))
+                        )
+                    )
+                )
+            )
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param string $ViewType
+     *
+     * @return string
+     */
+    public function frontendDownload($ViewType = TblWorkSpace::VIEW_TYPE_ALL)
+    {
+
+        return (new ApiIndividual())->downloadFile($ViewType);
 //        $Stage = new Stage('Dokument wird vorbereitet');
 //        $Stage->setContent(new Layout(new LayoutGroup(array(
 //                new LayoutRow(array(
