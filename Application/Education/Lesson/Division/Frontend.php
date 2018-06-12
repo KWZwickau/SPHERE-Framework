@@ -921,7 +921,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 StudentGroupSelect::receiverUsed(
                                     StudentGroupSelect::tablePerson(
-                                        $filter
+                                        $DivisionSubjectId
                                     )
                                 )
                             )

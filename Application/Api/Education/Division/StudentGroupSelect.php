@@ -87,17 +87,19 @@ class StudentGroupSelect extends Extension implements IApiInterface
     }
 
     /**
-     * @param Filter $filter
+     * @param null $DivisionSubjectId
      *
      * @return Layout
      */
-    public static function tablePerson(Filter $filter)
+    public static function tablePerson($DivisionSubjectId = null)
     {
 
         // get Content
-        $tblDivisionSubject = $filter->getTblDivisionSubject();
+        $tblDivisionSubject = DivisionApplication::useService()->getDivisionSubjectById($DivisionSubjectId);
         if ($tblDivisionSubject && ($tblDivision = $tblDivisionSubject->getTblDivision())) {
 
+            $filter = new Filter($tblDivisionSubject);
+            $filter->load();
             $header = array(
                 'Name' => 'Name'
             );
@@ -421,8 +423,6 @@ class StudentGroupSelect extends Extension implements IApiInterface
      */
     public static function pipelinePlus($Id = null, $DivisionSubjectId = null)
     {
-
-        // todo filter übergeben statt $DivisionSubjectId
 
         $Pipeline = new Pipeline();
 
