@@ -4351,7 +4351,13 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('MsAbg');
                         } elseif ($tblType->getName() == 'Gymnasium') {
                             if ($tblLevel) {
-                                if (intval($tblLevel->getName()) <= 10) {
+                                // Herrnhut hat ein individuelles Abgangszeugnis
+                                if (($tblConsumer = Consumer::useService()->getConsumerBySession())
+                                    && ($tblConsumer->getAcronym() == 'EZSH')
+                                    && intval($tblLevel->getName()) == 10
+                                ){
+                                    $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('EZSH\EzshGymAbg');
+                                } elseif (intval($tblLevel->getName()) <= 10) {
                                     $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GymAbgSekI');
                                 } else {
                                     $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GymAbgSekII');
