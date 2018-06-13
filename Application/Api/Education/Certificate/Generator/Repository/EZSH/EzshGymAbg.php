@@ -231,8 +231,163 @@ class EzshGymAbg extends EzshStyle
                         ->setContent('und verlässt nach Erfüllung der Vollzeitschulpflicht gemäß § 28 Abs.1 Nr.1 SchulG das Gymnasium.')
                         ->styleFontFamily(self::FONT_FAMILY)
                         ->styleMarginTop('30px')
+                        ->styleMarginBottom('35px')
                     )
-                    // todo checkboxen mit inhalt
+                    ->addSection((new Section())
+                        ->addSliceColumn(
+                            $this->setCheckBox(
+                                '{% if(Content.P' . $personId . '.Input.EqualGraduation.RS is not empty) %}
+                                X
+                            {% else %}
+                                &nbsp;
+                            {% endif %}'
+                            )
+                            ->styleMarginTop('22px')
+                            , '4.5%')
+                        ->addSliceColumn((new Slice())
+                            ->addElement((new Element()))
+                            , '15%')
+                        ->addSliceColumn((new Slice())
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('
+                                        {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
+                                            Frau
+                                        {% else %}
+                                            {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
+                                                Herr
+                                            {% else %}
+                                                Frau/Herr
+                                            {% endif %}
+                                        {% endif %}
+                                    ')
+                                    ->styleFontFamily(self::FONT_FAMILY)
+                                    ->styleLineHeight(self::LINE_HEIGHT)
+                                    , '10%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('
+                                        {{ Content.P' . $personId . '.Person.Data.Name.First }}
+                                        {{ Content.P' . $personId . '.Person.Data.Name.Last }}
+                                    ')
+                                    ->styleBorderBottom('1px', '#BBB')
+                                    ->stylePaddingLeft('7px')
+                                    ->styleFontFamily(self::FONT_FAMILY)
+                                    ->styleLineHeight(self::LINE_HEIGHT)
+                                    , '60%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('hat,')
+                                    ->stylePaddingLeft('10px')
+                                    ->styleFontFamily(self::FONT_FAMILY)
+                                    ->styleLineHeight(self::LINE_HEIGHT)
+                                )
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('gemäß § 7 Abs. 7 SchulG, mit der Versetzung von Klassenstufe 10 nach')
+                                    ->styleFontFamily(self::FONT_FAMILY)
+                                    ->styleLineHeight(self::LINE_HEIGHT)
+                                )
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('Jahrgangsstufe 11 des Gymnasiums einen dem Realschulabschluss')
+                                    ->styleFontFamily(self::FONT_FAMILY)
+                                    ->styleLineHeight(self::LINE_HEIGHT)
+                                )
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('gleichgestellten Schulabschluss erworben.¹')
+                                    ->styleFontFamily(self::FONT_FAMILY)
+                                    ->styleLineHeight(self::LINE_HEIGHT)
+                                )
+                            )
+                        )
+                    )
+                    ->addElement((new Element())
+                        ->styleMarginTop('25px')
+                    )
+                    ->addSection((new Section())
+                        ->addSliceColumn(
+                            $this->setCheckBox(
+                                '{% if(Content.P' . $personId . '.Input.EqualGraduation.HS is not empty) %}
+                                    X
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}'
+                            )
+                            ->styleMarginTop('22px')
+                            , '4.5%')
+                        ->addSliceColumn((new Slice())
+                            ->addElement((new Element()))
+                            , '15%')
+                        ->addSliceColumn((new Slice())
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('
+                                        {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 2 %}
+                                            Frau
+                                        {% else %}
+                                            {% if Content.P' . $personId . '.Person.Common.BirthDates.Gender == 1 %}
+                                                Herr
+                                            {% else %}
+                                                Frau/Herr
+                                            {% endif %}
+                                        {% endif %}
+                                    ')
+                                    ->styleFontFamily(self::FONT_FAMILY)
+                                    ->styleLineHeight(self::LINE_HEIGHT)
+                                    , '10%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('
+                                        {{ Content.P' . $personId . '.Person.Data.Name.First }}
+                                        {{ Content.P' . $personId . '.Person.Data.Name.Last }}
+                                    ')
+                                    ->styleBorderBottom('1px', '#BBB')
+                                    ->stylePaddingLeft('7px')
+                                    ->styleFontFamily(self::FONT_FAMILY)
+                                    ->styleLineHeight(self::LINE_HEIGHT)
+                                    , '60%')
+                                ->addElementColumn((new Element())
+                                    ->setContent('hat,')
+                                    ->stylePaddingLeft('10px')
+                                    ->styleFontFamily(self::FONT_FAMILY)
+                                    ->styleLineHeight(self::LINE_HEIGHT)
+                                )
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('gemäß § 26 Abs. 7 Satz 3 SOGYA, mit der Versetzung von Klassenstufe 9 nach')
+                                    ->styleFontFamily(self::FONT_FAMILY)
+                                    ->styleLineHeight(self::LINE_HEIGHT)
+                                )
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('Klassenstufe 10 des Gymnasiums einen dem Hauptschulabschluss')
+                                    ->styleFontFamily(self::FONT_FAMILY)
+                                    ->styleLineHeight(self::LINE_HEIGHT)
+                                )
+                            )
+                            ->addSection((new Section())
+                                ->addElementColumn((new Element())
+                                    ->setContent('gleichgestellten Schulabschluss erworben.¹')
+                                    ->styleFontFamily(self::FONT_FAMILY)
+                                    ->styleLineHeight(self::LINE_HEIGHT)
+                                )
+                            )
+                        )
+                    )
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('¹ Zutreffendes ist anzukreuzen')
+                            ->styleTextSize('9.5px')
+                            ->styleBorderTop('1px', '#BBB')
+                            ->styleMarginTop('105px')
+                            ->styleFontFamily(self::FONT_FAMILY)
+                            ->styleLineHeight(self::LINE_HEIGHT)
+                        )
+                    )
             );
         return $Page;
     }
@@ -251,7 +406,7 @@ class EzshGymAbg extends EzshStyle
                     ->stylePaddingRight('50px')
                     ->addElement((new Element())
                         ->setContent('&nbsp;')
-                        ->stylePaddingTop('75px')
+                        ->stylePaddingTop('30px')
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
@@ -286,7 +441,7 @@ class EzshGymAbg extends EzshStyle
                         ->setContent('LEISTUNGEN in den einzelnen Fächern')
                         ->styleTextBold()
                         ->styleFontFamily(self::FONT_FAMILY_BOLD)
-                        ->styleMarginTop('30px')
+                        ->styleMarginTop('40px')
                         ->styleMarginBottom('15px')
                     )
                     ->addSection((new Section())
