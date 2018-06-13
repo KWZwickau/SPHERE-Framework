@@ -4,7 +4,8 @@ namespace SPHERE\Application\Setting\User\Account;
 use SPHERE\Application\Api\Contact\ApiContactAddress;
 use SPHERE\Application\Api\Setting\UserAccount\ApiUserAccount;
 use SPHERE\Application\Contact\Address\Address;
-use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Contact\Web\Web;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
@@ -13,7 +14,6 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -1001,7 +1001,7 @@ class Frontend extends Extension implements IFrontendInterface
                     }
 
                     $item['Option'] = new External('', '/Api/Setting/UserAccount/Download', new Download()
-                            , array('GroupByTime' => $GroupByTime))
+                            , array('GroupByTime' => $GroupByTime), false)
                         .$PdfButton
                         .new Standard('', '/Setting/User/Account/Clear', new Remove(),
                             array('GroupByTime' => $GroupByTime),
@@ -1126,110 +1126,118 @@ class Frontend extends Extension implements IFrontendInterface
         $tblSchoolAll = School::useService()->getSchoolAll();
 //        $tblSchoolAll = false;
         // use school if only one exist
+        $tblCompany = false;
+        $CompanyId = '';
+        $CompanyName = '';
+        $CompanyExtendedName = '';
+        $CompanyDistrict = '';
+        $CompanyStreet = '';
+        $CompanyCity = '';
+        $CompanyPhone = '';
+        $CompanyFax = '';
+        $CompanyMail = '';
+        $CompanyWeb = '';
         if($tblSchoolAll && count($tblSchoolAll) == 1){
-            $tblStudentCompanyId = $tblSchoolAll[0]->getId();
-            $tblCompany = Company::useService()->getCompanyById($tblStudentCompanyId);
-            if($tblCompany){
-                $tblCompanyAddress = Address::useService()->getAddressByCompany($tblCompany);
-            }
+            $tblCompany = $tblSchoolAll[0]->getServiceTblCompany();
         // get school from student
         } elseif($tblSchoolAll && count($tblSchoolAll) > 1) {
-            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-            if($tblStudent){
-                $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::PROCESS);
-                if(($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType))){
-                    if(($tblTransferCompany = $tblStudentTransfer->getServiceTblCompany())){
-                        $tblStudentCompanyId = $tblTransferCompany->getId();
-                        $tblCompany = Company::useService()->getCompanyById($tblStudentCompanyId);
-                        if($tblCompany){
-                            $tblCompanyAddress = Address::useService()->getAddressByCompany($tblCompany);
-                        }
-                    }
-                }
+            if($tblPerson){
+                $tblCompany = Account::useService()->getCompanySchoolByPerson($tblPerson, $IsParent);
             }
-//        // display error if no option exist
+            // old method
+//            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+//            if($tblStudent){
+//                $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::PROCESS);
+//                if(($tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblStudentTransferType))){
+//                    if(($tblTransferCompany = $tblStudentTransfer->getServiceTblCompany())){
+//                        $tblCompany = $tblTransferCompany;
+//                    }
+//                }
+//            }
+
+        // display error if no option exist
 //        } elseif(!$tblSchoolAll){
 //            $Warning = new WarningMessage('Es sind keine Schulen in den Mandanteneinstellungen hinterlegt.
 //            Um diese Funktionalität nutzen zu können ist dies zwingend erforderlich.');
         }
-
-        $CompanyPlace = '';
-        if(isset($tblCompanyAddress) && ($tblCity = $tblCompanyAddress->getTblCity())){
-            if($tblCity){
-                $CompanyPlace = $tblCity->getName();
+        if($tblCompany){
+            $CompanyId = $tblCompany->getId();
+            $CompanyName = $tblCompany->getName();
+            $CompanyExtendedName = $tblCompany->getExtendedName();
+            if(($tblCompanyAddress = Address::useService()->getAddressByCompany($tblCompany))){
+                $CompanyStreet = $tblCompanyAddress->getStreetName().' '.$tblCompanyAddress->getStreetNumber();
+                if(($tblCity = $tblCompanyAddress->getTblCity())){
+                    $CompanyDistrict = $tblCity->getDistrict();
+                    $CompanyPLZCity = $tblCity->getCode().' '.$tblCity->getName();
+                    $CompanyCity = $tblCity->getName();
+                }
+            }
+            if(($tblPhoneToCompanyList = Phone::useService()->getPhoneAllByCompany($tblCompany))){
+                $tblPhone = false;
+                $tblFax = false;
+                foreach($tblPhoneToCompanyList as $tblPhoneToCompany){
+                    if(($tblType = $tblPhoneToCompany->getTblType())
+                        && $tblType->getName() == 'Geschäftlich'){
+                        $tblPhone = $tblPhoneToCompany->getTblPhone();
+                    }
+                    if(($tblType = $tblPhoneToCompany->getTblType())
+                        && $tblType->getName() == 'Fax'){
+                        $tblFax = $tblPhoneToCompany->getTblPhone();
+                    }
+                }
+                if($tblPhone){
+                    $CompanyPhone = $tblPhone->getNumber();
+                }
+                if($tblFax){
+                    $CompanyFax = $tblFax->getNumber();
+                }
+            }
+            if(($tblMailToCompanyList = \SPHERE\Application\Contact\Mail\Mail::useService()->getMailAllByCompany($tblCompany))){
+                $tblMail = false;
+                foreach($tblMailToCompanyList as $tblMailToCompany){
+                    if(($tblType = $tblMailToCompany->getTblType())
+                        && $tblType->getName() == 'Geschäftlich'){
+                        $tblMail = $tblMailToCompany->getTblMail();
+                    }
+                }
+                if($tblMail){
+                    $CompanyMail = $tblMail->getAddress();
+                }
+            }
+            if(($tblWebToCompanyList = Web::useService()->getWebAllByCompany($tblCompany))){
+                $tblWebToCompany = current($tblWebToCompanyList);
+                if(($tblWeb = $tblWebToCompany->getTblWeb())){
+                    $CompanyWeb = $tblWeb->getAddress();
+                }
             }
         }
 
         if(!isset($Data)){
             $Global = $this->getGlobal();
+            // HiddenField
             $Global->POST['Data']['PersonId'] = $tblPerson->getId();
             $Global->POST['Data']['UserAccountId'] = $tblUserAccount->getId();
             $Global->POST['Data']['IsParent'] = $IsParent;
-//            $Global->POST['Data']['Company'] = $tblStudentCompanyId;
+            $Global->POST['Data']['CompanyId'] = $CompanyId;
+            // School
+            $Global->POST['Data']['CompanyName']= $CompanyName;
+            $Global->POST['Data']['CompanyExtendedName'] = $CompanyExtendedName;
+            $Global->POST['Data']['CompanyDistrict'] = $CompanyDistrict;
+            $Global->POST['Data']['CompanyStreet'] = $CompanyStreet;
+            $Global->POST['Data']['CompanyCity'] = $CompanyPLZCity;
+            $Global->POST['Data']['Phone'] = $CompanyPhone;
+            $Global->POST['Data']['Fax'] = $CompanyFax;
+            $Global->POST['Data']['Mail'] = $CompanyMail;
+            $Global->POST['Data']['Web'] = $CompanyWeb;
+            // Signer
             $Global->POST['Data']['SignerType'] = 'Geschäftsführer';
             $Global->POST['Data']['Date'] = (new \DateTime())->format('d.m.Y');
-            $Global->POST['Data']['Place'] = $CompanyPlace;
+            $Global->POST['Data']['Place'] = $CompanyCity;
             $Global->savePost();
         }
 
-//        $SelectBoxList = array();
-//        $SelectBoxList[] = new FormColumn(
-//            new \SPHERE\Common\Frontend\Form\Repository\Title(new TileBig().' Auswahl Schule')
-//        );
-//        if(isset($Warning)){
-//            $SelectBoxList[] = new FormColumn($Warning);
-//        } else {
-//            $CompanyStudentList = array();
-//            if($IsParent){
-//                $tblRelationshipType = Relationship::useService()->getTypeByName('Sorgeberechtigt');
-//                $tblPersonRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType);
-//                if($tblPersonRelationshipList){
-//                    foreach($tblPersonRelationshipList as $tblPersonRelationship){
-//                        if(($tblStudentPerson = $tblPersonRelationship->getServiceTblPersonTo())){
-//                            if(($tblStudentByCustody = Student::useService()->getStudentByPerson($tblStudentPerson))){
-//                                $tblStudentByCustodyTransferType =
-//                                    Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::PROCESS);
-//                                if(($tblStudentByCustodyTransfer =
-//                                    Student::useService()->getStudentTransferByType($tblStudentByCustody, $tblStudentByCustodyTransferType))){
-//                                    if(($TblCompanyByStudentCustody = $tblStudentByCustodyTransfer->getServiceTblCompany())){
-//                                        $CompanyStudentList[$TblCompanyByStudentCustody->getId()][] = $tblStudentPerson->getFullName();
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//            foreach($tblSchoolAll as $tblSchool){
-//                $tblCompany = $tblSchool->getServiceTblCompany();
-//                if($tblCompany){
-//                    $StudentString = '';
-//                    if(isset($CompanyStudentList[$tblCompany->getId()])){
-//                        $StudentString = new Bold(implode('<br/>', $CompanyStudentList[$tblCompany->getId()]));
-//                    }
-//
-//                    $tblCompanyAddress = Address::useService()->getAddressByCompany($tblCompany);
-//                    $SelectBoxList[] = new FormColumn(
-//                        new Panel('Schule',
-//                            new RadioBox('Data[Company]',
-//                                $tblCompany->getName()
-//                                .( $tblCompany->getExtendedName() != '' ?
-//                                    new Container($tblCompany->getExtendedName()) : null )
-//                                .( $tblCompanyAddress ?
-//                                    new Container($tblCompanyAddress->getGuiTwoRowString()) : null )
-//                                .$StudentString
-//                                , $tblCompany->getId())
-//                            , Panel::PANEL_TYPE_INFO)
-//                    , 4);
-//                }
-//            }
-//        }
-
         return new Form(
             new FormGroup(array(
-//                new FormRow(
-//                    $SelectBoxList
-//                ),
                 new FormRow(array(
                     new FormColumn(
                         new HiddenField('Data[PersonId]')
@@ -1240,16 +1248,33 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new HiddenField('Data[IsParent]')
                     , 1),
+                    new FormColumn(
+                        new HiddenField('Data[CompanyId]')
+                    , 1),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new \SPHERE\Common\Frontend\Form\Repository\Title(new TileBig().' Informationen Schule')
+                    ),
+                    new FormColumn(
+                        new Panel('Name der Schule',array(
+                            new TextField('Data[CompanyName]', '', 'Name'),
+                            new TextField('Data[CompanyExtendedName]', '', 'Namenszusatz')
+                            ),Panel::PANEL_TYPE_INFO)
+                        , 4
+                    ),
+                    new FormColumn(
+                        new Panel('Kontaktinformation der Schule',array(
+                            new TextField('Data[CompanyDistrict]', '', 'Ortsteil'),
+                            new TextField('Data[CompanyStreet]', '', 'Straße'),
+                            new TextField('Data[CompanyCity]', '', 'PLZ/Ort'),
+                        ),Panel::PANEL_TYPE_INFO)
+                        , 4
+                    ),
                 )),
                 new FormRow(array(
                     new FormColumn(
                         new \SPHERE\Common\Frontend\Form\Repository\Title(new TileBig().' Informationen Ansprechpartner')
-                    ),
-                    new FormColumn(
-                        new Panel('Person',
-                            new TextField('Data[ContactPerson]', '', 'Name')
-                            ,Panel::PANEL_TYPE_INFO)
-                        , 4
                     ),
                     new FormColumn(
                         new Panel('Kontaktinformation',array(
@@ -1268,7 +1293,7 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
                 new FormRow(array(
                     new FormColumn(
-                        new \SPHERE\Common\Frontend\Form\Repository\Title(new TileBig().' Informationen Unterzeichner')
+                        new \SPHERE\Common\Frontend\Form\Repository\Title(new TileBig().' Informationen Signatur')
                     ),
                     new FormColumn(
                         new Panel('Unterzeichner', array(

@@ -41,7 +41,6 @@ class MultiPassword extends AbstractDocument
      */
     private $FieldValue = array();
 
-
     /**
      * @param array $DataPost
      *
@@ -1181,6 +1180,12 @@ class MultiPassword extends AbstractDocument
 
         return $value ? $value : '120px';
     }
+
+    /**
+     * @param string $Height
+     *
+     * @return Slice
+     */
     private function getEmptyHeight($Height = '10px')
     {
         $Slice = new Slice();

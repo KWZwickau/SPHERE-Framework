@@ -3,28 +3,22 @@ namespace SPHERE\Application\Api\Document\Standard\Repository\PasswordChange;
 
 use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Contact\Address\Address;
-use SPHERE\Application\Corporation\Company\Company;
-use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Document\Generator\Repository\Document;
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
-use SPHERE\Application\Education\School\Type\Type;
-use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Relationship\Relationship;
-use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Application\Setting\Authorization\Account\Account as AccountAuthorization;
 use SPHERE\Application\Setting\Consumer\Consumer;
-use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Application\Setting\User\Account\Account;
 
 class PasswordChange extends AbstractDocument
 {
 
-    const BLOCK_SPACE = '10px';
+    const BLOCK_SPACE = '30px';
 
     /**
      * PasswordChange constructor.
@@ -37,11 +31,6 @@ class PasswordChange extends AbstractDocument
      */
     function __construct($Data)
     {
-
-//        echo '<pre>';
-//        print_r($Data);
-//        echo '</pre>';
-//        exit;
 
         $this->setFieldValue($Data);
     }
@@ -65,18 +54,24 @@ class PasswordChange extends AbstractDocument
 
         $tblAccount = false;
         // Common
-        $this->FieldValue['PersonName'] = '';
+        $this->FieldValue['PersonSalutation'] = '';
+        $this->FieldValue['PersonFirstLastName'] = '';
+        $this->FieldValue['PersonTitle'] = '';
+        $this->FieldValue['PersonLastName'] = '';
+        $this->FieldValue['Gender'] = false;
         $this->FieldValue['UserAccount'] = '';
         $this->FieldValue['Street'] = '';
         $this->FieldValue['District'] = '';
         $this->FieldValue['City'] = '';
         // Text choose decision
         $this->FieldValue['IsParent'] = (isset($DataPost['IsParent']) ? $DataPost['IsParent'] : false);
+        $this->FieldValue['ChildCount'] = false;
         // School
-        $this->FieldValue['CompanyDisplay'] = '';
-        $this->FieldValue['CompanyStreet'] = '';
-        $this->FieldValue['CompanyDistrict'] = '';
-        $this->FieldValue['CompanyCity'] = '';
+        $this->FieldValue['CompanyName'] = (isset($DataPost['CompanyName']) && $DataPost['CompanyName'] != '' ? $DataPost['CompanyName'] : '&nbsp;');
+        $this->FieldValue['CompanyExtendedName'] = (isset($DataPost['CompanyExtendedName']) && $DataPost['CompanyExtendedName'] != '' ? $DataPost['CompanyExtendedName'] : '&nbsp;');
+        $this->FieldValue['CompanyStreet'] = (isset($DataPost['CompanyStreet']) && $DataPost['CompanyStreet'] != '' ? $DataPost['CompanyStreet'] : '&nbsp;');
+        $this->FieldValue['CompanyDistrict'] = (isset($DataPost['CompanyDistrict']) && $DataPost['CompanyDistrict'] != '' ? $DataPost['CompanyDistrict'] : '&nbsp;');
+        $this->FieldValue['CompanyCity'] = (isset($DataPost['CompanyCity']) && $DataPost['CompanyCity'] != '' ? $DataPost['CompanyCity'] : '&nbsp;');
         // Contact
         $this->FieldValue['ContactPerson'] = (isset($DataPost['ContactPerson']) && $DataPost['ContactPerson'] != '' ? $DataPost['ContactPerson'] : '&nbsp;');
         $this->FieldValue['Phone'] = (isset($DataPost['Phone']) && $DataPost['Phone'] != '' ? $DataPost['Phone'] : '&nbsp;');
@@ -103,40 +98,35 @@ class PasswordChange extends AbstractDocument
         $this->FieldValue['PersonId'] = (isset($DataPost['PersonId']) && $DataPost['PersonId'] != '' ? $DataPost['PersonId'] : false);
         if ($this->FieldValue['PersonId'] && ($tblPerson = Person::useService()->getPersonById($this->FieldValue['PersonId']))) {
 
-            if(!isset($DataPost['CompanyId'])){
-                if($this->FieldValue['IsParent']){
-                    $tblRelationshipType = Relationship::useService()->getTypeByName( TblType::IDENTIFIER_GUARDIAN );
-                    if(($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType))){
-                        foreach($tblRelationshipList as $tblRelationship){  //ToDO Mehrer Schüler auswahl nach "höherer Bildungsgang"
-                            if(($tblPersonStudent = $tblRelationship->getServiceTblPersonTo())){
-                                if(($tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPersonStudent))){
-                                    if(($tblSchoolType = Type::useService()->getTypeByName($tblDivision->getTypeName()))){
-                                        if(($tblSchoolCompany = School::useService()->getSchoolByType($tblSchoolType))){
-                                            $tblCompany = $tblSchoolCompany->getServiceTblCompany();
-                                            $DataPost['tblCompany'] = $tblCompany;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    if(($tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPerson))){
-                        if(($tblSchoolType = Type::useService()->getTypeByName($tblDivision->getTypeName()))){
-                            if(($tblSchoolCompany = School::useService()->getSchoolByType($tblSchoolType))){
-                                $tblCompany = $tblSchoolCompany->getServiceTblCompany();
-                                $DataPost['tblCompany'] = $tblCompany;
-                            }
+            $ChildCount = 0;
+            if($this->FieldValue['IsParent']){
+                if(($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson))){
+                    foreach($tblRelationshipList as $tblRelationship){
+                        $tblType = $tblRelationship->getTblType();
+                        if($tblType->getName() == 'Sorgeberechtigt'){
+                            $ChildCount++;
                         }
                     }
                 }
-            } else {
-                if(($tblCompany = Company::useService()->getCompanyById($DataPost['CompanyId']))){
-                    $DataPost['tblCompany'] = $tblCompany;
+            }
+            if($ChildCount == 1){
+                $this->FieldValue['ChildCount'] = 1;
+            }elseif($ChildCount > 1){
+                $this->FieldValue['ChildCount'] = 2;
+            }
+
+            if(($tblCommon = $tblPerson->getCommon())) {
+                if(($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())){
+                    if(($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())){
+                        $this->FieldValue['Gender'] = $tblCommonGender->getName();
+                    }
                 }
             }
 
-            $this->FieldValue['PersonName'] = $tblPerson->getFullName();
+            $this->FieldValue['PersonTitle'] = $tblPerson->getTitle();
+            $this->FieldValue['PersonLastName'] = $tblPerson->getLastName();
+            $this->FieldValue['PersonSalutation'] = $tblPerson->getSalutation();
+            $this->FieldValue['PersonFirstLastName'] = $tblPerson->getFirstName().' '.$tblPerson->getLastName();
             $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
             if($tblAddress){
                 $this->FieldValue['Street'] = $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber();
@@ -148,26 +138,6 @@ class PasswordChange extends AbstractDocument
             }
         }
 
-        //School information
-        /** @var TblCompany $tblCompany */
-        if(isset($DataPost['tblCompany'])
-            && ($tblCompany = $DataPost['tblCompany'])){
-            $this->FieldValue['CompanyDisplay'] = $tblCompany->getName().
-                ($tblCompany->getExtendedName() ? '</br>'.$tblCompany->getExtendedName() : '');
-            $tblAddress = Address::useService()->getAddressByCompany($tblCompany);
-            if($tblAddress){
-                $this->FieldValue['CompanyStreet'] = $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber();
-                $tblCity = $tblAddress->getTblCity();
-                if($tblCity){
-//                    if(!isset($this->FieldValue['Place'])){
-//                        $this->FieldValue['Place'] = $tblCity->getName().', den ';
-//                    }
-                    $this->FieldValue['CompanyDistrict'] = $tblCity->getDistrict();
-                    $this->FieldValue['CompanyCity'] = $tblCity->getName().' '.$tblCity->getCode();
-                }
-            }
-        }
-
         //generate new Password
         $this->FieldValue['Password'] = $Password = Account::useService()->generatePassword();
         // remove tblAccount
@@ -175,8 +145,6 @@ class PasswordChange extends AbstractDocument
             AccountAuthorization::useService()->changePassword($Password, $tblAccount);
             Account::useService()->changePassword($tblAccount, $Password);
         };
-
-
 
         return $this;
     }
@@ -199,7 +167,6 @@ class PasswordChange extends AbstractDocument
     {
         return (new Frame())->addDocument((new Document())
             ->addPage($this->buildPageOne())
-            ->addPage($this->buildPageTwo())
         );
     }
 
@@ -209,12 +176,34 @@ class PasswordChange extends AbstractDocument
     private function getAddressHead()
     {
         $Slice = new Slice();
+
         $Slice->addElement((new Element())
-            ->setContent('Empfänger')
+            ->setContent($this->FieldValue['CompanyName'])
             ->styleTextSize('8pt')
         );
+        if($this->FieldValue['CompanyExtendedName']){
+            $Slice->addElement((new Element())
+                ->setContent($this->FieldValue['CompanyExtendedName'])
+                ->styleTextSize('8pt')
+            );
+        }
         $Slice->addElement((new Element())
-            ->setContent($this->FieldValue['PersonName'])
+            ->setContent($this->FieldValue['CompanyDistrict'].' '
+                .$this->FieldValue['CompanyStreet'].' '
+                .$this->FieldValue['CompanyCity'])
+            ->styleTextSize('8pt')
+            ->stylePaddingBottom('15px')
+        );
+
+//        $Slice->addElement((new Element())
+//            ->setContent('Empfänger')
+//            ->styleTextSize('8pt')
+//        );
+        $Slice->addElement((new Element())
+            ->setContent($this->FieldValue['PersonSalutation'])
+        );
+        $Slice->addElement((new Element())
+            ->setContent($this->FieldValue['PersonFirstLastName'])
         );
         if($this->FieldValue['District']){
             $Slice->addElement((new Element())
@@ -238,16 +227,6 @@ class PasswordChange extends AbstractDocument
     {
 
         $Slice = new Slice();
-        $Slice->addSection((new Section())
-            ->addElementColumn((new Element())
-                ->setContent('Name:')
-                ->styleTextSize('8pt')
-            , '20%')
-            ->addElementColumn((new Element())
-                ->setContent($this->FieldValue['ContactPerson'])
-                ->styleTextSize('8pt')
-            , '80%')
-        );
         $Slice->addSection((new Section())
             ->addElementColumn((new Element())
                 ->setContent('Telefon:')
@@ -301,78 +280,6 @@ class PasswordChange extends AbstractDocument
         return $Slice;
     }
 
-    /**
-     * @return Slice
-     */
-    private function getPasswordFooter()
-    {
-
-        $Slice = new Slice();
-        $Slice->addSection((new Section())
-            ->addSliceColumn((new Slice())
-                ->addElement((new Element())
-                    ->setContent($this->FieldValue['CompanyDisplay'])
-                    ->styleTextSize('7pt')
-                )
-                ->addElement((new Element())
-                    ->setContent('e.V. - gemeinnütziger Trägerverein')
-                    ->styleTextSize('7pt')
-                )
-                ->addElement((new Element())
-                    ->setContent('Vorstand §26 BGB:')
-                    ->styleTextSize('7pt')
-                    ->stylePaddingTop('8px')
-                )
-                ->addElement((new Element())
-                    ->setContent('- Name Vorstand(Vors.)')
-                    ->styleTextSize('7pt')
-                )
-                ->addElement((new Element())
-                    ->setContent('- (stv.Vors.)')
-                    ->styleTextSize('7pt')
-                )
-                ->addElement((new Element())
-                    ->setContent('- (GF)')
-                    ->styleTextSize('7pt')
-                )
-                , '70%'
-            )
-            ->addSliceColumn((new Slice())
-                ->addElement((new Element())
-                    ->setContent('Anschrift Geschäftsstelle / Sekretariat:')
-                    ->styleTextSize('7pt')
-                )
-                ->addElement((new Element())
-                    ->setContent($this->FieldValue['CompanyDistrict'])
-                    ->styleTextSize('7pt')
-                )
-                ->addElement((new Element())
-                    ->setContent($this->FieldValue['CompanyStreet'])
-                    ->styleTextSize('7pt')
-                )
-                ->addElement((new Element())
-                    ->setContent($this->FieldValue['CompanyCity'])
-                    ->styleTextSize('7pt')
-                )
-                ->addElement((new Element())
-                    ->setContent('Steuernummer:')
-                    ->styleTextSize('7pt')
-                    ->stylePaddingTop('8px')
-                )
-                ->addElement((new Element())
-                    ->setContent('Vereinssitz:')
-                    ->styleTextSize('7pt')
-                )
-                ->addElement((new Element())
-                    ->setContent('Vereinsregister:')
-                    ->styleTextSize('7pt')
-                )
-                , '30%'
-            )
-        );
-        return $Slice;
-    }
-
     private function getFirstLetterContent($Height = '500px')
     {
 
@@ -384,106 +291,216 @@ class PasswordChange extends AbstractDocument
                     , '4%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Liebe Eltern,')
+                    ->setContent('
+                    {% if '.$this->FieldValue['Gender'].' == Männlich %}
+                        Lieber 
+                    {% elseif '.$this->FieldValue['Gender'].' == Weiblich %}
+                        Liebe 
+                    {% else %}
+                        Liebe(r) 
+                    {% endif %}'
+                        . $this->FieldValue['PersonSalutation'].' '
+                        . $this->FieldValue['PersonTitle'].' '
+                        . $this->FieldValue['PersonLastName'].',')
                 )
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
                     , '4%'
                 )
             )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('ab sofort stellen wir eine elektronische Notenübersicht zur Nutzung bereit. 
-                        Dadurch erhalten Sie die Möglichkeit, sämtliche Noten Ihres Kindes einzusehen und über seine 
-                        schulische Leistungsentwicklung mit unseren Lehrkräften gezielter zu kommunizieren.')
-                        ->stylePaddingTop('12px')
-                        ->styleAlignJustify()
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
                 )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Die Schulstiftung der Ev.-Luth. Landeskirche Sachsens hat eine neue Schulsoftware 
-                        entwickeln lassen, die für alle evangelischen Schulen in Sachsen nutzbar ist. Auch wir als 
-                        >>Schule<< nutzen diese im Alltag.')
-                        ->stylePaddingTop(self::BLOCK_SPACE)
-                        ->styleAlignJustify()
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
+                ->addElementColumn((new Element())
+                    ->setContent('Sollten Sie das Passwort vergessen, bestehen zwei Möglichkeiten, das Passwort zurückzusetzen:')
+                    ->stylePaddingTop('12px')
+                    ->styleAlignJustify()
                 )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Die neue Schulsoftware bietet eine elektronische Notenübersicht für alle Schüler 
-                        und deren Sorgeberechtigte, zu deren Nutzung Sie hiermit die notwendigen 
-                        Sicherheitsinformationen und Zugangsdaten erhalten.')
-                        ->stylePaddingTop(self::BLOCK_SPACE)
-                        ->styleAlignJustify()
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
                 )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Die Entwicklung der neuen Softwarelösung erfolgte in enger Abstimmung mit dem 
-                        Datenschutzbeauftragten der Ev.-Luth. Landeskirche. Er hat die elektronische Notenübersicht 
-                        datenschutzrechtlich überprüft und zur Nutzung freigegeben. Die Kommunikation zwischen Ihrem 
-                        Internetbrowser und der Schulsoftware erfolgt ausschließlich über eine verschlüsselte HTTPS-Verbindung ')
-                        ->stylePaddingTop(self::BLOCK_SPACE)
-                        ->styleAlignJustify()
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
                 )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Der Betrieb der Softwarelösung erfolgt in einem zertifizierten deutschen 
-                        Rechenzentrum und wird durch die dortigen Mitarbeiter sowie durch die mit der Entwicklung 
-                        beauftragte Firma permanent überwacht und gewartet, um sie vor Cyberangriffen zu schützen. 
-                        Da hier personenbezogene vertrauliche Daten verarbeitet werden, gelten vergleichbar hohe 
-                        Sicherheitsanforderungen wie beim Onlinebanking. Beispielsweise sind Änderungen an Stammdaten 
-                        oder die Eintragung von Benotungen nur für Mitarbeiter der Schule möglich, die über die 
-                        entsprechenden Zugriffsberechtigungen verfügen und sich per Zweifaktor-Authentifizierung 
-                        (Name, Passwort und Security-Token) anmelden müssen. Für die elektronische Notenübersicht 
-                        reicht hingegen die Anmeldung mit Name und Passwort aus')
-                        ->stylePaddingTop(self::BLOCK_SPACE)
-                        ->styleAlignJustify()
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
+                ->addElementColumn((new Element())
+                    ->setContent('1. Wir setzen das Passwort auf das Initialpasswort zurück. Diese Möglichkeit ist für Sie kostenfrei.')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                    ->styleAlignJustify()
+                    ->stylePaddingLeft('35px')
                 )
-                ->styleHeight($Height);
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('2. Wir generieren neue Zugangsdaten für Sie und übersenden Ihnen diese. Hierfür erheben
+                    wir einen Unkostenbeitrag von 5 €, der Ihnen bei der nächsten Abrechnung belastet wird.')
+                    ->stylePaddingTop('5px')
+                    ->styleAlignJustify()
+                    ->stylePaddingLeft('35px')
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Wunschgemäß übersenden wir Ihnen Ihre neuen Zugangsdaten zur Einsicht der Noten 
+                    {% if '.$this->FieldValue['ChildCount'].' == 1 %}
+                        Ihres Kindes.
+                    {% elseif '.$this->FieldValue['ChildCount'].' == 2 %}
+                        Ihrer Kinder.
+                    {% else %}
+                        Ihres Kindes / Ihrer Kinder.
+                    {% endif %}')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                    ->styleAlignJustify()
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Benutzername:')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                    ->stylePaddingLeft('35px')
+                    , '22%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent($this->FieldValue['UserAccount'])
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                    ->stylePaddingLeft('10px')
+                    , '70%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Passwort:')
+                    ->stylePaddingTop()
+                    ->stylePaddingLeft('35px')
+                    , '22%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent($this->FieldValue['Password'])
+                    ->stylePaddingTop()
+                    ->stylePaddingLeft('10px')
+                    , '70%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Bitte ändern Sie das Initialpasswort und notieren Sie sich das neue Passwort hier:')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                    , '73%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                    ->styleBorderBottom()
+                    , '19%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Hierfür erheben wir einen Unkostenbeitrag von 5 €, der Ihnen bei der nächsten Abrechnung be-lastet wird.')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Bitte heben Sie sich dieses Schreiben gut auf.')
+                    ->styleTextBold()
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Für Rückfragen stehen wir Ihnen gern zur Verfügung.')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Dieses Schreiben wurde maschinell erstellt und ist auch ohne Unterschrift rechtsgültig.')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->styleHeight($Height);
         } else {
             $Slice->addSection((new Section())
                 ->addElementColumn((new Element())
@@ -491,103 +508,206 @@ class PasswordChange extends AbstractDocument
                     , '4%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Liebe Schülerinnen und Schüler,')
+                    ->setContent('
+                    {% if '.$this->FieldValue['Gender'].' == Männlich %}
+                        Lieber 
+                    {% elseif '.$this->FieldValue['Gender'].' == Weiblich %}
+                        Liebe 
+                    {% else %}
+                        Liebe(r) 
+                    {% endif %}'
+                    . $this->FieldValue['PersonFirstLastName'].',')
                 )
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
                     , '4%'
                 )
             )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Ab sofort stellen wir eine elektronische Notenübersicht zur Nutzung bereit. Damit 
-                        können Eltern und Schüler per Internetzugang Benotungen einsehen und sich über den aktuellen 
-                        Leistungsstand informieren.')
-                        ->stylePaddingTop('12px')
-                        ->styleAlignJustify()
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
                 )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Die Schulstiftung der Ev.-Luth. Landeskirche Sachsens hat eine neue Schulsoftware 
-                        entwickeln lassen, die für alle evangelischen Schulen in Sachsen nutzbar ist. Mit diesem Brief 
-                        möchten wir Euch über Eure Zugangsdaten und einige Sicherheitshinweise informieren.')
-                        ->stylePaddingTop(self::BLOCK_SPACE)
-                        ->styleAlignJustify()
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
+                ->addElementColumn((new Element())
+                    ->setContent('Solltest Du das Passwort vergessen, bestehen zwei Möglichkeiten, das Passwort zurückzusetzen:')
+                    ->stylePaddingTop('12px')
+                    ->styleAlignJustify()
                 )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Die Entwicklung der neuen Softwarelösung erfolgte in enger Abstimmung mit dem 
-                        Datenschutzbeauftragten der Ev.-Luth. Landeskirche Sachsens. Er hat die elektronische 
-                        Notenübersicht datenschutzrechtlich überprüft und zur Nutzung freigegeben. Der Betrieb der 
-                        Softwarelösung erfolgt in einem zertifizierten deutschen Rechenzentrum und wird durch die 
-                        dortigen Mitarbeiter sowie durch die mit der Entwicklung beauftragte Firma permanent überwacht 
-                        und gewartet, um sie vor Cyberangriffen zu schützen.')
-                        ->stylePaddingTop(self::BLOCK_SPACE)
-                        ->styleAlignJustify()
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
                 )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Die Kommunikation zwischen Eurem Internetbrowser und der Schulsoftware erfolgt 
-                        ausschließlich über eine verschlüsselte HTTPs-Verbindung.')
-                        ->stylePaddingTop(self::BLOCK_SPACE)
-                        ->styleAlignJustify()
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
                 )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Für die Sicherheit Eurer gespeicherten Daten ist es wichtig, ein möglichst gutes 
-                        Passwort mit einer Mindestlänge von 8 Zeichen und einer Mischung aus Großbuchstaben, 
-                        Kleinbuchstaben, Ziffern und evtl. auch noch Sonderzeichen zu verwenden. <u>Bitte gebt Eure 
-                        Zugangsdaten nicht weiter, denn es erhält jeder sorgeberechtigte Elternteil und jeder Schüler 
-                        einen eigenen personengebundenen Nutzerzugang.</u>')
-                        ->stylePaddingTop(self::BLOCK_SPACE)
-                        ->styleAlignJustify()
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
+                ->addElementColumn((new Element())
+                    ->setContent('1. Wir setzen das Passwort auf das Initialpasswort zurück. Diese Möglichkeit ist für Deine Eltern kostenfrei.')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                    ->styleAlignJustify()
+                    ->stylePaddingLeft('35px')
                 )
-                ->styleHeight($Height);
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('2. Wir generieren neue Zugangsdaten für Dich und übersenden Dir diese. Hierfür erheben wir einen Unkostenbeitrag von 5 €, der Deinen Eltern berechnet wird.')
+                    ->stylePaddingTop('5px')
+                    ->styleAlignJustify()
+                    ->stylePaddingLeft('35px')
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Wunschgemäß übersenden wir Dir neue Zugangsdaten zur Einsicht Deiner Noten.')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                    ->styleAlignJustify()
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Benutzername:')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                    ->stylePaddingLeft('35px')
+                    , '22%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent($this->FieldValue['UserAccount'])
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                    ->stylePaddingLeft('10px')
+                    , '70%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Passwort:')
+                    ->stylePaddingTop()
+                    ->stylePaddingLeft('35px')
+                    , '22%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent($this->FieldValue['Password'])
+                    ->stylePaddingTop()
+                    ->stylePaddingLeft('10px')
+                    , '70%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Bitte ändere das Initialpasswort und notiere das neue Passwort hier:')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                    , '61%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                    ->styleBorderBottom()
+                    , '31%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Hierfür erheben wir einen Unkostenbeitrag von 5 €, der Deinen Eltern berechnet wird.')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Bitte hebe dieses Schreiben gut auf.')
+                    ->styleTextBold()
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Falls Du Rückfragen oder Probleme mit der Anwendung hast, so wende Dich bitte an unser Sekretariat.')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Dieses Schreiben wurde maschinell erstellt und ist auch ohne Unterschrift rechtsgültig.')
+                    ->stylePaddingTop(self::BLOCK_SPACE)
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->styleHeight($Height);
         }
         return $Slice;
     }
@@ -608,9 +728,10 @@ class PasswordChange extends AbstractDocument
                     ->addElementColumn(
                         $this->getPicturePasswordChange()
                             ->styleAlignCenter()
+                            ->stylePaddingTop('15px')
                         , '50%')
                 )
-                ->styleHeight('120px')
+                ->styleHeight('150px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
@@ -639,7 +760,7 @@ class PasswordChange extends AbstractDocument
                         , '4%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Neue Schulsoftware und neue elektronische Notenübersicht')
+                        ->setContent('Deine neuen Zugangsdaten zur Notenübersicht ')
                         ->styleTextBold()
                     )
                     ->addElementColumn((new Element())
@@ -647,22 +768,6 @@ class PasswordChange extends AbstractDocument
                         , '4%'
                     )
                 )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Sicherheitsinformationen und Zugangsdaten')
-                        ->styleTextBold()
-                        ->stylePaddingTop('5px')
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                )
-//                ->styleBorderAll()
             )
             ->addSlice((new Slice())
                 ->addElement((new Element())
@@ -670,458 +775,7 @@ class PasswordChange extends AbstractDocument
                     ->styleHeight('40px')
                 )
             )
-            ->addSlice($this->getFirstLetterContent())
-            ->addSlice($this->getEmptyHeight('40px'))
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addSliceColumn(
-                        $this->getPasswordFooter()
-                        , '92%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                )
-//                ->styleBorderAll()
-            );
-    }
-
-    private function getSecondLetterContent()
-    {
-
-        $Slice = new Slice();
-        if ($this->FieldValue['IsParent']) {
-            $Slice->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Für die Sicherheit Ihrer Daten ist es allerdings wichtig, ein möglichst gutes Passwort 
-                    mit einer Mindestlänge von 8 Zeichen und einer Mischung aus Großbuchstaben, Kleinbuchstaben, Ziffern 
-                    und evtl. auch noch Sonderzeichen zu verwenden. <u>Bitte geben Sie Ihre Zugangsdaten nicht weiter, es 
-                    erhält jeder Sorgeberechtigte und jeder Schüler einen eigenen personengebundenen Nutzerzugang.</u>')
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Für den Zugriff auf die elektronische Notenübersicht verwenden Sie bitte nachfolgende
-                     Zugangsdaten:')
-                    ->stylePaddingTop('12px')
-                    ->styleAlignJustify()
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Adresse: https://schulsoftware.schule')
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                    , '45%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Benutzername:')
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                    ->stylePaddingRight('25px')
-                    ->styleAlignRight()
-                    , '17%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent($this->FieldValue['UserAccount'])
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                    ->stylePaddingLeft('10px')
-                    , '30%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Für das erstmalige Login verwenden Sie bitte folgendes Passwort:')
-                        ->stylePaddingTop()
-                        , '62%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent($this->FieldValue['Password'])
-                        ->stylePaddingTop()
-                        ->stylePaddingLeft('10px')
-                        , '30%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Lesen Sie sich die Datenschutzbestimmungen und Nutzungsbedingungen genau durch. Wenn 
-                    Sie einverstanden sind und die elektronische Notenübersicht nutzen möchten, so vergeben Sie bitte 
-                    Ihr zukünftiges Passwort für den Zugang und bestätigen Sie Ihre Eingaben.')
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                    ->styleAlignJustify()
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Notieren Sie sich bitte sofort Ihr vergebenes Passwort:')
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                    , '49%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                    ->styleBorderBottom()
-                    , '43%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('und <b>bewahren Sie bitte den Brief an sicherer Stelle und leicht zu finden auf</b>, 
-                    damit ihre Zugangsdaten verfügbar bleiben! Sie ersparen uns damit unnötige Arbeit, denn das 
-                    Zurücksetzen vergessener Passwörter und die Zusendung neuer Passwortbriefe verursachen nicht 
-                    unerhebliche Aufwände und Kosten.')
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                    ->styleAlignJustify()
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Nach Ihrer Bestätigung sollte Ihnen die Notenübersicht für alle Ihre Kinder an unserer 
-                    Schule angezeigt werden. Sofern Sie sich gegen die Nutzung der elektronischen Notenübersicht 
-                    entscheiden, bleibt Ihr Zugang deaktiviert. Falls Sie noch Rückfragen oder Probleme mit der 
-                    Anwendung haben, so können Sie uns gerne kontaktieren.')
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                    ->styleAlignJustify()
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Wir haben vor, unser Serviceangebot schrittweise zu erweitern, sofern das von Ihnen 
-                    gewünscht ist. Bitte teilen Sie uns Ihre Anregungen und Verbesserungsvorschläge dazu mit!')
-                    ->stylePaddingTop('12px')
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Mit freundlichen Grüßen')
-                    ->stylePaddingTop('12px')
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent($this->FieldValue['SignerName'])
-                    ->stylePaddingTop('35px')
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent($this->FieldValue['SignerType'])
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            );
-        } else {
-            $Slice
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Verwendet bitte für den Zugriff auf die elektronische Notenübersicht folgende Zugangsdaten:')
-                        ->stylePaddingTop('12px')
-                        ->styleAlignJustify()
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Adresse: https://schulsoftware.schule')
-                        ->stylePaddingTop(self::BLOCK_SPACE)
-                        , '45%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Benutzername:')
-                        ->stylePaddingTop(self::BLOCK_SPACE)
-                        ->stylePaddingRight('25px')
-                        ->styleAlignRight()
-                        , '17%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent($this->FieldValue['UserAccount'])
-                        ->stylePaddingTop(self::BLOCK_SPACE)
-                        ->stylePaddingLeft('10px')
-                        , '30%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Passwort (für erstmaliges Login):')
-                        ->stylePaddingTop()
-                        ->styleAlignRight()
-                        , '62%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent($this->FieldValue['Password'])
-                        ->stylePaddingTop()
-                        ->stylePaddingLeft('10px')
-                        , '30%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Lies Dir bitte die Datenschutzbestimmungen und Nutzungsbedingungen genau durch. 
-                        Wenn Du einverstanden bist und die elektronische Notenübersicht nutzen möchtest, so gib Dein 
-                        zukünftiges Passwort für den Zugang ein und bestätige Deine Eingaben.')
-                        ->stylePaddingTop(self::BLOCK_SPACE)
-                        ->styleAlignJustify()
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Notieren Dir bitte sofort das vergebene Passwort:')
-                        ->stylePaddingTop(self::BLOCK_SPACE)
-                        , '49%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        ->stylePaddingTop(self::BLOCK_SPACE)
-                        ->styleBorderBottom()
-                        , '43%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('und <b>bewahre den Brief an sicherer Stelle und leicht zu finden auf</b>, 
-                    damit Deine Zugangsdaten verfügbar bleiben! Das Zurücksetzen vergessener Passwörter und die 
-                    Zusendung neuer Passwortbriefe verursachen nicht unerhebliche Aufwände und Kosten für die Schule.')
-                        ->stylePaddingTop(self::BLOCK_SPACE)
-                        ->styleAlignJustify()
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Nach Deiner Bestätigung wird eine Startseite mit dem Verweis auf die Notenübersicht 
-                        angezeigt. Alternativ kann man auch die Menüleiste nutzen. Falls Du Dich gegen die Nutzung der 
-                        elektronischen Notenübersicht entscheidest, bleibt Dein Zugang deaktiviert. Falls Du Rückfragen 
-                        oder Probleme mit der Anwendung hast, so wende Dich bitte an unser Sekretariat.')
-                        ->stylePaddingTop(self::BLOCK_SPACE)
-                        ->styleAlignJustify()
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Wir haben vor, unser Serviceangebot im Internet schrittweise zu erweitern, sofern 
-                        das von Euch gewünscht ist. Anregungen und Verbesserungsvorschläge dazu nimmt unser Sekretariat 
-                        gerne entgegen! ')
-                        ->stylePaddingTop('12px')
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Mit freundlichen Grüßen')
-                        ->stylePaddingTop('12px')
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent($this->FieldValue['SignerName'])
-                        ->stylePaddingTop('35px')
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent($this->FieldValue['SignerType'])
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                );
-        }
-        return $Slice;
-    }
-
-    /**
-     * @return Page
-     */
-    private function buildPageTwo()
-    {
-
-        return (new Page())
-            ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleHeight('250px')
-                )
-            )
-            ->addSlice($this->getSecondLetterContent());
+            ->addSlice($this->getFirstLetterContent());
     }
 
     /**
@@ -1171,14 +825,5 @@ class PasswordChange extends AbstractDocument
         }
 
         return $value ? $value : '120px';
-    }
-    private function getEmptyHeight($Height = '10px')
-    {
-        $Slice = new Slice();
-        $Slice->addElement((new Element())
-            ->setContent('&nbsp;')
-            ->styleHeight($Height)
-        );
-        return $Slice;
     }
 }

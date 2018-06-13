@@ -6,7 +6,6 @@ use MOC\V\Component\Document\Component\Exception\Repository\TypeFileException;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use MOC\V\Component\Document\Exception\DocumentTypeException;
-use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
@@ -33,7 +32,6 @@ use SPHERE\Application\Setting\User\Account\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
-use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -41,7 +39,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Filter\Link\Pile;
@@ -206,30 +203,40 @@ class Service extends AbstractService
 
         $changePath = '/Setting/User/Account/Password/Generation';
 
-        $tblCompany = false;
-        if(($tblPerson = Person::useService()->getPersonById($Data['PersonId']))){
-            $tblCompany = $this->getCompanySchoolByPerson($tblPerson, $Data['IsParent']);
-        }
-        $CityString = '';
-        $SchoolPanel = new Panel('Schule', new Warning('Schule nicht gefunden'));
-        $tblCompanyAddress = Address::useService()->getAddressByCompany($tblCompany);
-        if($tblCompany){
-            $SchoolPanel = new Panel('Schule',
-                $tblCompany->getName()
-                .( $tblCompany->getExtendedName() != '' ?
-                    new Container($tblCompany->getExtendedName()) : null )
-                .( $tblCompanyAddress ?
-                    new Container($tblCompanyAddress->getGuiTwoRowString()) : null )
-                );
-            if(($tblCity = $tblCompanyAddress->getTblCity())){
-                $CityString = $tblCity->getName();
-            }
-        }
+        $SchoolPanel = new Panel('Schule', array(
+            new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn('Name', 4),
+                    new LayoutColumn($Data['CompanyName'], 8)
+                )),
+            ))),
+            new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn('Namenszusatz', 4),
+                    new LayoutColumn($Data['CompanyExtendedName'], 8)
+                )),
+            ))),
+            new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn('Ortsteil', 4),
+                    new LayoutColumn($Data['CompanyDistrict'], 8)
+                )),
+            ))),
+            new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn('Straße', 4),
+                    new LayoutColumn($Data['CompanyStreet'], 8)
+                )),
+            ))),
+            new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn('Ort', 4),
+                    new LayoutColumn($Data['CompanyCity'], 8)
+                ))
+            ))),
+        ));
+
         $ContactPersonPanel = new Panel('Ansprechparter', array(
-            new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn('Ansprechpartner: ', 4),
-                new LayoutColumn($Data['ContactPerson'], 8),
-            )))),
             new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn('Telefon: ', 4),
                 new LayoutColumn($Data['Phone'], 8),
@@ -258,7 +265,7 @@ class Service extends AbstractService
             )))),
             new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn('Ort: ', 4),
-                new LayoutColumn(($Data['Place'] ? $Data['Place'] : $CityString), 8),
+                new LayoutColumn(($Data['Place'] ? $Data['Place'] : ''), 8),
             )))),
             new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn('Datum: ', 4),

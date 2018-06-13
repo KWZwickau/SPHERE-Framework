@@ -352,7 +352,7 @@ class ApiUserAccount extends Extension implements IApiInterface
                 )),
                 new FormRow(array(
                     new FormColumn(
-                        new Title(new TileBig().' Informationen Unterzeichner')
+                        new Title(new TileBig().' Informationen Signatur')
                     ),
                     new FormColumn(
                         new Panel('Unterzeichner', array(
