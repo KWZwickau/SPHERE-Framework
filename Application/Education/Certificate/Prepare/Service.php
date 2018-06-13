@@ -2347,7 +2347,7 @@ class Service extends AbstractService
             foreach ($Data as $personGrades) {
                 if (is_array($personGrades)) {
                     foreach ($personGrades as $identifier => $value) {
-                        if (trim($value) !== '') {
+                        if (trim($value) !== '' && $identifier !== 'Text') {
                             if (!preg_match('!^[1-6]{1}$!is', trim($value))) {
                                 $error = true;
                                 break;
@@ -2377,7 +2377,21 @@ class Service extends AbstractService
                     ) {
                         $this->setSignerFromSignedInPerson($tblPrepareStudent);
 
+                        $hasGradeText = false;
+                        $gradeText = '';
+                        if ((isset($personGrades['Text']))
+                            && ($tblGradeText = Gradebook::useService()->getGradeTextById($personGrades['Text']))
+                        ) {
+                            $hasGradeText = true;
+                            $gradeText = $tblGradeText->getName();
+                        }
+
                         foreach ($personGrades as $identifier => $value) {
+                            // GradeText als Endnote speichern
+                            if ($identifier == 'EN' && $hasGradeText) {
+                                $value = $gradeText;
+                            }
+
                             if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier($identifier))) {
                                 if ($tblPrepareAdditionalGrade = $this->getPrepareAdditionalGradeBy(
                                     $tblPrepareItem, $tblPerson, $tblCurrentSubject, $tblPrepareAdditionalGradeType
