@@ -75,7 +75,7 @@ class Service extends AbstractService
             return $Form;
         }
 
-        $tblCommon = $this->getCommonByPerson($tblPerson);
+        $tblCommon = $this->getCommonByPerson($tblPerson, true);
         if ($tblCommon) {
             (new Data($this->getBinding()))->updateCommonBirthDates(
                 $tblCommon->getTblCommonBirthDates(),
@@ -118,15 +118,15 @@ class Service extends AbstractService
     }
 
     /**
-     *
      * @param TblPerson $tblPerson
+     * @param bool      $IsForced
      *
      * @return bool|TblCommon
      */
-    public function getCommonByPerson(TblPerson $tblPerson)
+    public function getCommonByPerson(TblPerson $tblPerson, $IsForced = false)
     {
 
-        return (new Data($this->getBinding()))->getCommonByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getCommonByPerson($tblPerson, $IsForced);
     }
 
     /**
@@ -247,7 +247,7 @@ class Service extends AbstractService
      * @param TblCommon $tblCommon
      * @param string $Remark
      *
-     * @return TblCommon
+     * @return bool
      */
     public function updateCommon(TblCommon $tblCommon, $Remark){
 
@@ -260,7 +260,7 @@ class Service extends AbstractService
      * @param string              $Birthplace
      * @param int                 $Gender
      *
-     * @return TblCommonBirthDates
+     * @return bool
      */
     public function updateCommonBirthDates(
         TblCommonBirthDates $tblCommonBirthDates,
