@@ -100,7 +100,7 @@ class GymJ extends Certificate
             ->addSlice($this->getTransfer($personId))
             ->addSlice($this->getDateLine($personId, '15px'))
             ->addSlice($this->getSignPart($personId, true))
-            ->addSlice($this->getParentSign('15px'))
+            ->addSlice($this->getParentSign('33px'))
             ->addSlice($this->getInfo('5px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft;
