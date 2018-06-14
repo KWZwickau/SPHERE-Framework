@@ -23,6 +23,9 @@ use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\System\Database\Fitting\Element;
 use SPHERE\System\Extension\Extension;
 
@@ -266,6 +269,45 @@ class Filter extends Extension
         }
 
         return true;
+    }
+
+    /**
+     * @return array|bool
+     */
+    public function getPersonAllWhereFilterIsNotFulfilled()
+    {
+        $list = array();
+
+
+
+        return empty($list) ? false : $list;
+    }
+
+    /**
+     * @return bool|Danger
+     */
+    public function getMessageForSubjectGroup()
+    {
+        $list = array();
+        if (($tblDivisionSubject = $this->tblDivisionSubject)
+            && ($tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject))
+        ) {
+            foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                if (($tblPerson = $tblSubjectStudent->getServiceTblPerson())
+                    && !$this->isFilterFulfilledByPerson($tblPerson)
+                ) {
+                    $list[$tblPerson->getId()] = $tblPerson->getLastFirstName();
+                }
+            }
+        }
+
+        return empty($list)
+            ? false
+            : new Danger(
+                new Bold(new Exclamation() . ' Folgende Schüler in dieser Fach-Gruppe stimmen nicht mit der Filterung überein:')
+                . '</br>'
+                . implode('</br>', $list)
+            );
     }
 
     /**
