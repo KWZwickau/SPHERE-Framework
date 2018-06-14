@@ -273,7 +273,16 @@ class StudentGroupSelect extends Extension implements IApiInterface
                     $tableSelected[$tblPerson->getId()] = $item;
                 }
 
-                $left = (new TableData($tableSelected, new Title('Ausgewählte', 'Schüler'), $header,
+                $left[] = new Standard(
+                    'Alle Schüler entfernen',
+                    '/Education/Lesson/Division/SubjectStudent/RemoveAll',
+                    new MinusSign(),
+                    array(
+                        'Id' => $tblDivision->getId(),
+                        'DivisionSubjectId' => $DivisionSubjectId
+                    )
+                );
+                $left[] = (new TableData($tableSelected, new Title('Ausgewählte', 'Schüler'), $header,
                     array(
                         'columnDefs' => array(
                             array('width' => '1%', 'targets' => array(-1))
@@ -341,7 +350,16 @@ class StudentGroupSelect extends Extension implements IApiInterface
             if (empty($tableAvailable)) {
                 $right = new Info('Keine weiteren Schüler verfügbar');
             } else {
-                $right = (new TableData($tableAvailable, new Title('Verfügbare', 'Schüler'), $header,
+                $right[] = new Standard(
+                    'Alle Schüler hinzufügen',
+                    '/Education/Lesson/Division/SubjectStudent/AddAll',
+                    new PlusSign(),
+                    array(
+                        'Id' => $tblDivision->getId(),
+                        'DivisionSubjectId' => $DivisionSubjectId
+                    )
+                );
+                $right[] = (new TableData($tableAvailable, new Title('Verfügbare', 'Schüler'), $header,
                     array(
                         'columnDefs' => array(
                             array('width' => '1%', 'targets' => array(-1))

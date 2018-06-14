@@ -2275,4 +2275,78 @@ class Frontend extends Extension implements IFrontendInterface
 
         return $Stage;
     }
+
+    /**
+     * @param null $Id
+     * @param null $DivisionSubjectId
+     *
+     * @return string
+     */
+    public function frontendSubjectStudentAddAll(
+        $Id = null,
+        $DivisionSubjectId = null
+    ) {
+         if (($tblDivision = Division::useService()->getDivisionById($Id))
+            && ($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))
+         ) {
+
+             Division::useService()->addAllAvailableStudentsToSubjectGroup($tblDivisionSubject);
+
+             return new Stage('Schüler', 'Alle Schüler hinzufügen')
+                 . new Success(
+                     'Alle Schüler wurden erfolgreich zur Fachgruppe hinzugefügt.',
+                     new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                 ) . new Redirect(
+                     '/Education/Lesson/Division/SubjectStudent/Add',
+                     Redirect::TIMEOUT_SUCCESS,
+                     array(
+                        'Id' => $Id,
+                        'DivisionSubjectId' => $DivisionSubjectId
+                     )
+                 );
+         } else {
+             $Stage = new Stage('Schüler', 'Alle Schüler hinzufügen');
+             $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
+             $Stage->setContent(new Warning('Klasse nicht gefunden'));
+
+             return $Stage . new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
+         }
+    }
+
+    /**
+     * @param null $Id
+     * @param null $DivisionSubjectId
+     *
+     * @return string
+     */
+    public function frontendSubjectStudentRemoveAll(
+        $Id = null,
+        $DivisionSubjectId = null
+    ) {
+        if (($tblDivision = Division::useService()->getDivisionById($Id))
+            && ($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))
+        ) {
+
+            Division::useService()->removeAllSelectedStudentsFromSubjectGroup($tblDivisionSubject);
+
+            return new Stage('Schüler', 'Alle Schüler entfernen')
+                . new Success(
+                    'Alle Schüler wurden erfolgreich von der Fachgruppe entfernt.',
+                    new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                ) . new Redirect(
+                    '/Education/Lesson/Division/SubjectStudent/Add',
+                    Redirect::TIMEOUT_SUCCESS,
+                    array(
+                        'Id' => $Id,
+                        'DivisionSubjectId' => $DivisionSubjectId
+                    )
+                );
+        } else {
+            $Stage = new Stage('Schüler', 'Alle Schüler entfernen');
+            $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
+            $Stage->setContent(new Warning('Klasse nicht gefunden'));
+
+            return $Stage . new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
+        }
+    }
 }

@@ -2390,4 +2390,63 @@ class Data extends AbstractData
 
         return false;
     }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     * @param TblPerson[] $personData
+     *
+     * @return bool
+     */
+    public function addAllAvailableStudentsToSubjectGroup(TblDivisionSubject $tblDivisionSubject, $personData)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        foreach ($personData as $tblPerson) {
+            $Entity = $Manager->getEntity('TblSubjectStudent')
+                ->findOneBy(array(
+                    TblSubjectStudent::ATTR_SERVICE_TBL_PERSON   => $tblPerson->getId(),
+                    TblSubjectStudent::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId(),
+                ));
+
+            if (null === $Entity) {
+                $Entity = new TblSubjectStudent();
+                $Entity->setServiceTblPerson($tblPerson);
+                $Entity->setTblDivisionSubject($tblDivisionSubject);
+
+                $Manager->bulkSaveEntity($Entity);
+                Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool
+     */
+    public function removeAllSelectedStudentsFromSubjectGroup(TblDivisionSubject $tblDivisionSubject)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        if (($tblStudentSubjectList = $this->getSubjectStudentByDivisionSubject($tblDivisionSubject))) {
+            foreach ($tblStudentSubjectList as $tblSubjectStudent) {
+                $Entity = $Manager->getEntityById('TblSubjectStudent', $tblSubjectStudent->getId());
+                if (null !== $Entity) {
+                    /** @var TblSubjectStudent $Entity */
+                    $Manager->bulkKillEntity($Entity);
+                    Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+                }
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
 }

@@ -3,6 +3,7 @@ namespace SPHERE\Application\Education\Lesson\Division;
 
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Lesson\Division\Filter\Filter;
 use SPHERE\Application\Education\Lesson\Division\Service\Data;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionCustody;
@@ -2575,5 +2576,45 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->destroySubjectGroupFilter($tblSubjectGroupFilter);
+    }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool
+     */
+    public function addAllAvailableStudentsToSubjectGroup(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        $filter = new Filter($tblDivisionSubject);
+        $filter->load();
+
+        $personData = array();
+        if (($tblDivision = $tblDivisionSubject->getTblDivision())
+            && ($tblPersonList = $this->getStudentAllByDivision($tblDivision))) {
+            foreach ($tblPersonList as $tblPerson) {
+
+                if (!$this->getSubjectStudentByDivisionSubjectAndPerson($tblDivisionSubject, $tblPerson)
+                    && $filter->isFilterFulfilledByPerson($tblPerson)
+                ) {
+                    $personData[$tblPerson->getId()] = $tblPerson;
+                }
+            }
+
+            (new Data($this->getBinding()))->addAllAvailableStudentsToSubjectGroup($tblDivisionSubject, $personData);
+        }
+
+        return true;
+    }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool
+     */
+    public function removeAllSelectedStudentsFromSubjectGroup(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        return (new Data($this->getBinding()))->removeAllSelectedStudentsFromSubjectGroup($tblDivisionSubject);
     }
 }
