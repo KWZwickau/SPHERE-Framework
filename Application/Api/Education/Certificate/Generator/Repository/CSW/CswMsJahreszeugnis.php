@@ -106,7 +106,7 @@ class CswMsJahreszeugnis extends Certificate
                 )
             )
             ->addSlice($this->getSubjectLanes($personId)
-                ->styleHeight('270px')
+                ->styleHeight('265px')
             )
             ->addSlice($this->getOrientationStandard($personId))
             ->addSlice($this->getDescriptionHead($personId, true))
