@@ -169,13 +169,26 @@ class Filter extends Extension
      */
     private function getTblSubjectGroup()
     {
-        if (($tblDivisionSubject = $this->tblDivisionSubject)
+        if (($tblDivisionSubject = $this->getTblDivisionSubject())
             && ($tblSubjectGroup = $tblDivisionSubject->getTblSubjectGroup())
         ) {
             return $tblSubjectGroup;
         } else {
             return false;
         }
+    }
+
+    /**
+     * @return bool|TblSubject
+     */
+    public function getTblSubject()
+    {
+        if (($tblDivisionSubject = $this->getTblDivisionSubject())) {
+            return $tblDivisionSubject->getServiceTblSubject();
+        } else {
+            return false;
+        }
+
     }
 
     /**
@@ -225,11 +238,47 @@ class Filter extends Extension
     public function load()
     {
         $Filter = array();
-        if (($tblSubjectGroup = $this->getTblSubjectGroup())
-            && ($tblSubjectGroupFilterList = Division::useService()->getSubjectGroupFilterAllBySubjectGroup($tblSubjectGroup))
-        ) {
-            foreach ($tblSubjectGroupFilterList as $tblSubjectGroupFilter) {
-                $Filter[$tblSubjectGroupFilter->getField()] = $tblSubjectGroupFilter->getValue();
+        if (($tblSubjectGroup = $this->getTblSubjectGroup())) {
+            // gespeicherten Filter laden
+            if (($tblSubjectGroupFilterList = Division::useService()->getSubjectGroupFilterAllBySubjectGroup($tblSubjectGroup))) {
+                foreach ($tblSubjectGroupFilterList as $tblSubjectGroupFilter) {
+                    $Filter[$tblSubjectGroupFilter->getField()] = $tblSubjectGroupFilter->getValue();
+                }
+            }
+            // automatischen Filter setzen z.B. bei NK, PRO, FS
+            elseif (($tblDivisionSubject = $this->getTblDivisionSubject())
+             && ($tblSubject = $this->getTblSubject())
+            ) {
+                // Profil
+                if (($tblCategoryProfile = Subject::useService()->getCategoryByIdentifier('PROFILE'))
+                    && Subject::useService()->existsCategorySubject($tblCategoryProfile, $tblSubject)
+                ) {
+                    $Filter['SubjectProfile'] = $tblSubject->getId();
+                }
+
+                // Fremdsprache
+                if (($tblCategoryForeignLanguage = Subject::useService()->getCategoryByIdentifier('FOREIGNLANGUAGE'))
+                    && Subject::useService()->existsCategorySubject($tblCategoryForeignLanguage, $tblSubject)
+                ) {
+                    $Filter['SubjectForeignLanguage'] = $tblSubject->getId();
+                }
+
+                // Religion
+                if (($tblCategoryReligion = Subject::useService()->getCategoryByIdentifier('RELIGION'))
+                    && Subject::useService()->existsCategorySubject($tblCategoryReligion, $tblSubject)
+                ) {
+                    $Filter['SubjectReligion'] = $tblSubject->getId();
+                }
+
+                // Wahlfach
+                if (Subject::useService()->isElective($tblSubject)) {
+                    $Filter['SubjectElective'] = $tblSubject->getId();
+                }
+
+                // Neigungskurs
+                if (Subject::useService()->isOrientation($tblSubject)) {
+                    $Filter['SubjectOrientation'] = $tblSubject->getId();
+                }
             }
         }
 
@@ -289,7 +338,7 @@ class Filter extends Extension
     public function getMessageForSubjectGroup()
     {
         $list = array();
-        if (($tblDivisionSubject = $this->tblDivisionSubject)
+        if (($tblDivisionSubject = $this->getTblDivisionSubject())
             && ($tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject))
         ) {
             foreach ($tblSubjectStudentList as $tblSubjectStudent) {

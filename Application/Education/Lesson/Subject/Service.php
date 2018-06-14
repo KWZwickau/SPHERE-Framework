@@ -996,4 +996,42 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->existsCategorySubject($tblCategory, $tblSubject);
     }
+
+    /**
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function isOrientation(TblSubject $tblSubject)
+    {
+        if (($tblSubjectOrientationAll = $this->getSubjectOrientationAll())) {
+            foreach ($tblSubjectOrientationAll as $tblSubjectOrientation) {
+                if ($tblSubjectOrientation->getId() == $tblSubject->getId()) {
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function isElective(TblSubject $tblSubject)
+    {
+        if (($tblSubjectElectiveAll = $this->getSubjectElectiveAll())) {
+            foreach ($tblSubjectElectiveAll as $tblSubjectElective) {
+                if ($tblSubjectElective->getId() == $tblSubject->getId()) {
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 }
