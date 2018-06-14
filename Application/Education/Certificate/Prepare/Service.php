@@ -1311,6 +1311,18 @@ class Service extends AbstractService
             }
             $Content['P' . $personId]['Input']['Remark'] = $remark;
 
+            $remarkWithoutTeam = '---';
+            if (($tblLeaveInformationRemarkWithoutTeam = $this->getLeaveInformationBy($tblLeaveStudent, 'RemarkWithoutTeam'))) {
+                $remarkWithoutTeam = $tblLeaveInformationRemarkWithoutTeam->getValue() ? $tblLeaveInformationRemarkWithoutTeam->getValue() : $remarkWithoutTeam;
+            }
+            $Content['P' . $personId]['Input']['RemarkWithoutTeam'] = $remarkWithoutTeam;
+
+            $arrangement = '---';
+            if (($tblLeaveInformationArrangement = $this->getLeaveInformationBy($tblLeaveStudent, 'Arrangement'))) {
+                $arrangement = $tblLeaveInformationArrangement->getValue() ? $tblLeaveInformationArrangement->getValue() : $arrangement;
+            }
+            $Content['P' . $personId]['Input']['Arrangement'] = $arrangement;
+
             // Zeugnisdatum
             if (($tblLeaveInformationCertificateDate = $this->getLeaveInformationBy($tblLeaveStudent, 'CertificateDate'))) {
                 $Content['P' . $personId]['Input']['Date'] = $tblLeaveInformationCertificateDate->getValue();

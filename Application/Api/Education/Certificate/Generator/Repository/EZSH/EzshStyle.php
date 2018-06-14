@@ -25,9 +25,11 @@ abstract class EzshStyle extends Certificate
     const LINE_HEIGHT = '85%';
 
     /**
+     * @param string $height
+     *
      * @return Slice
      */
-    public function getEZSHSample()
+    public function getEZSHSample($height = '110px')
     {
 
         if ($this->isSample()) {
@@ -35,7 +37,7 @@ abstract class EzshStyle extends Certificate
                 ->addElementColumn((new Element\Sample())
                     ->styleTextSize('30px')
                     ->stylePaddingTop('20px')
-                    ->styleHeight('110px')
+                    ->styleHeight($height)
                 )
             );
 
@@ -43,7 +45,7 @@ abstract class EzshStyle extends Certificate
             $Header = (new Slice)->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
-                    ->styleHeight('110px')
+                    ->styleHeight($height)
                 )
             );
         }
@@ -294,15 +296,18 @@ abstract class EzshStyle extends Certificate
      * @param array $languagesWithStartLevel
      * @param bool $isTitle
      * @param bool $showThirdForeignLanguage
+     * @param bool $setTitle
      *
      * @return Section[]|Slice
+     * @throws \Exception
      */
     protected function getEZSHSubjectLanes(
         $personId,
         $isSlice = true,
         $languagesWithStartLevel = array(),
         $isTitle = true,
-        $showThirdForeignLanguage = false
+        $showThirdForeignLanguage = false,
+        $setTitle = true
     ) {
 
         $tblPerson = Person::useService()->getPersonById($personId);
@@ -395,18 +400,20 @@ abstract class EzshStyle extends Certificate
             $SubjectStructure = $SubjectLayout;
 
             // headline for grades
-            $HeaderSection = (new Section());
-            $HeaderSection->addElementColumn((new Element())
-                ->setContent('LEISTUNGEN in den einzelnen Fächern')
-                ->styleTextSize('10pt')
-                ->styleTextBold()
-                ->stylePaddingTop('10px')
-                ->stylePaddingBottom(($isTitle ? '0px': '26px'))
-                ->styleFontFamily(self::FONT_FAMILY_BOLD)
-                ->styleLineHeight(self::LINE_HEIGHT)
-            );
-            $SectionList[] = $HeaderSection;
-            $SubjectSlice->addSection($HeaderSection);
+            if ($setTitle) {
+                $HeaderSection = (new Section());
+                $HeaderSection->addElementColumn((new Element())
+                    ->setContent('LEISTUNGEN in den einzelnen Fächern')
+                    ->styleTextSize('10pt')
+                    ->styleTextBold()
+                    ->stylePaddingTop('10px')
+                    ->stylePaddingBottom(($isTitle ? '0px' : '26px'))
+                    ->styleFontFamily(self::FONT_FAMILY_BOLD)
+                    ->styleLineHeight(self::LINE_HEIGHT)
+                );
+                $SectionList[] = $HeaderSection;
+                $SubjectSlice->addSection($HeaderSection);
+            }
             if($isTitle){
                 $HeaderSectionTwo = (new Section());
                 $HeaderSectionTwo->addElementColumn((new Element())
@@ -1228,17 +1235,18 @@ abstract class EzshStyle extends Certificate
     }
 
     /**
-     * @param int    $personId
+     * @param int $personId
      * @param string $Height
+     * @param string $text
      *
      * @return Section[]
      */
-    public function getEZSHRemark($personId, $Height = '170px')
+    public function getEZSHRemark($personId, $Height = '170px', $text = 'BEMERKUNGEN')
     {
         $SectionList = array();
         $Section = new Section();
         $Section->addElementColumn((new Element())
-            ->setContent('BEMERKUNGEN')
+            ->setContent($text)
             ->styleTextSize('10pt')
             ->styleTextBold()
             ->stylePaddingBottom('4px')
@@ -1325,30 +1333,37 @@ abstract class EzshStyle extends Certificate
     /**
      * @param $personId
      *
-     * @return Section
+     * @return Section[]
      */
-    public function getEZSHTransfer($personId)
+    public function getEZSHTransfer($personId, $height = '60px')
     {
+        $SectionList = array();
         $Section = new Section();
         $Section->addElementColumn((new Element())
-            ->setContent('Versetzungsvermerk:')
+            ->setContent('VERSETZUNGSVERMERK')
+            ->styleTextSize('10pt')
+            ->styleTextBold()
+            ->stylePaddingBottom('4px')
+            ->styleFontFamily(self::FONT_FAMILY_BOLD)
+            ->styleLineHeight(self::LINE_HEIGHT)
+        );
+        $SectionList[] = $Section;
+
+        $Section = new Section();
+        $Section->addElementColumn((new Element())
+            ->setContent('{% if(Content.P'.$personId.'.Input.Transfer is not empty) %}
+                    {{ Content.P'.$personId.'.Input.Transfer|nl2br }}
+                {% else %}
+                    &nbsp;
+                {% endif %}')
+//            ->styleAlignJustify()
+            ->styleHeight($height)
             ->styleFontFamily(self::FONT_FAMILY)
             ->styleLineHeight(self::LINE_HEIGHT)
-            , '21%')
-            ->addElementColumn((new Element())
-                ->setContent('{% if(Content.P'.$personId.'.Input.Transfer) %}
-                                        {{ Content.P'.$personId.'.Input.Transfer }}
-                                    {% else %}
-                                          &nbsp;
-                                    {% endif %}')
-                ->styleBorderBottom('1px')
-                ->stylePaddingLeft('7px')
-                ->styleFontFamily(self::FONT_FAMILY)
-                ->styleLineHeight(self::LINE_HEIGHT)
-                , '58%')
-            ->addElementColumn((new Element())
-                , '20%');
-        return $Section;
+        );
+        $SectionList[] = $Section;
+
+        return $SectionList;
     }
 
     /**

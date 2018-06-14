@@ -4351,7 +4351,13 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('MsAbg');
                         } elseif ($tblType->getName() == 'Gymnasium') {
                             if ($tblLevel) {
-                                if (intval($tblLevel->getName()) <= 10) {
+                                // Herrnhut hat ein individuelles Abgangszeugnis
+                                if (($tblConsumer = Consumer::useService()->getConsumerBySession())
+                                    && ($tblConsumer->getAcronym() == 'EZSH')
+                                    && intval($tblLevel->getName()) == 10
+                                ){
+                                    $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('EZSH\EzshGymAbg');
+                                } elseif (intval($tblLevel->getName()) <= 10) {
                                     $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GymAbgSekI');
                                 } else {
                                     $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GymAbgSekII');
@@ -4679,16 +4685,34 @@ class Frontend extends Extension implements IFrontendInterface
 
             $datePicker = (new DatePicker('Data[InformationList][CertificateDate]', '', 'Zeugnisdatum',
                 new Calendar()))->setRequired();
-            $remarkTextArea = new TextArea('Data[InformationList][Remark]', '', 'Bemerkungen');
-            if ($isApproved) {
-                $datePicker->setDisabled();
-                $remarkTextArea->setDisabled();
+            if ($tblCertificate->getCertificate() == 'EZSH\EzshGymAbg') {
+                $arrangementTextArea = new TextArea('Data[InformationList][Arrangement]', '', 'Besonderes Engagement an den Zinzendorfschulen');
+                $remarkTextArea = new TextArea('Data[InformationList][RemarkWithoutTeam]', '', 'Bemerkungen');
+
+                if ($isApproved) {
+                    $datePicker->setDisabled();
+                    $arrangementTextArea->setDisabled();
+                    $remarkTextArea->setDisabled();
+                }
+                $otherInformationList = array(
+                    $datePicker,
+                    $arrangementTextArea,
+                    $remarkTextArea
+                );
+            } else {
+                $remarkTextArea = new TextArea('Data[InformationList][Remark]', '', 'Bemerkungen');
+
+                if ($isApproved) {
+                    $datePicker->setDisabled();
+                    $remarkTextArea->setDisabled();
+                }
+                $otherInformationList = array(
+                    $datePicker,
+                    $remarkTextArea
+                );
             }
-            $otherInformationList = array(
-                $datePicker,
-                $remarkTextArea
-            );
-            if ($tblCertificate->getCertificate() == 'GymAbgSekI') {
+
+            if ($tblCertificate->getCertificate() == 'GymAbgSekI' || $tblCertificate->getCertificate() == 'EZSH\EzshGymAbg') {
                 $radio1 = (new RadioBox(
                     'Data[InformationList][EqualGraduation]',
                     'gemäß § 7 Abs. 7 SchulG, mit der Versetzung von Klassenstufe 10 nach Jahrgangsstufe
