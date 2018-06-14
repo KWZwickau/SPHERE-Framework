@@ -749,6 +749,7 @@ class Service extends AbstractService
         if ($tblDivisionSubject->getTblSubjectGroup()->getId() === $tblSubjectGroup->getId()) {
             (new Data($this->getBinding()))->removeSubjectStudentByDivisionSubject($tblDivisionSubject);
             (new Data($this->getBinding()))->removeSubjectTeacherByDivisionSubject($tblDivisionSubject);
+            (new Data($this->getBinding()))->removeSubjectGroupFilterByDivisionSubject($tblDivisionSubject);
         }
 
         return (new Data($this->getBinding()))->removeSubjectGroup($tblSubjectGroup);

@@ -2449,4 +2449,33 @@ class Data extends AbstractData
 
         return true;
     }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool
+     */
+    public function removeSubjectGroupFilterByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        if (($tblSubjectGroup =$tblDivisionSubject->getTblSubjectGroup())) {
+            $Manager = $this->getConnection()->getEntityManager();
+            $EntityList = $Manager->getEntity('TblSubjectGroupFilter')->findBy(
+                array(
+                    TblSubjectGroupFilter::ATTR_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId()
+                )
+            );
+            if ($EntityList) {
+                foreach ($EntityList as $Entity) {
+                    /** @var Element $Entity */
+                    Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                        $Entity);
+                    $Manager->killEntity($Entity);
+                }
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
