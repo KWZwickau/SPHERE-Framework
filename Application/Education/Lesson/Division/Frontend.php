@@ -1944,6 +1944,8 @@ class Frontend extends Extension implements IFrontendInterface
                     'Student'        => 'Gruppen Schüler',
                 ), array("bPaginate" => false));
 
+            $filterMessageTable = FilterService::getDivisionMessageTable($tblDivision);
+
             $Stage->setContent(
                 new Layout(array(
                     new LayoutGroup(
@@ -1951,6 +1953,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(array(
                                 new Standard('Zu den Lehraufträgen und Fachgruppen springen', '', new ChevronDown(), array(),
                                     false, $table->getHash()),
+                                $filterMessageTable ? '</br></br>' . $filterMessageTable : null
                             ))
                         ))
                     ),

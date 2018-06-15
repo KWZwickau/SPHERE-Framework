@@ -51,20 +51,20 @@ class Frontend
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new Panel('Personengruppe', array(
+                        new Panel(Filter::DESCRIPTION_GROUP, array(
                             new SelectBox('Data[Group]', '', array('Name' => $tblGroupAll))
                         ),
                             Panel::PANEL_TYPE_INFO)
                         , 3),
                     new FormColumn(
-                        new Panel('Personendaten: Geschlecht', array(
+                        new Panel(Filter::DESCRIPTION_GENDER, array(
                             new SelectBox('Data[Gender]', '', array('Name' => $tblGenderAll))
                         ),
                             Panel::PANEL_TYPE_INFO)
                         , 3),
                     $tblSchoolType && $tblSchoolType->getName() == 'Mittelschule / Oberschule'
                         ? new FormColumn(
-                        new Panel('Schülerakte: Bildungsgang', array(
+                        new Panel(Filter::DESCRIPTION_COURSE, array(
                             new SelectBox('Data[Course]', '', array('Name' => $tblCourseAll))
                         ),
                             Panel::PANEL_TYPE_INFO)
@@ -72,7 +72,7 @@ class Frontend
                         : null,
                     $tblSchoolType && $tblSchoolType->getName() == 'Gymnasium'
                     ? new FormColumn(
-                        new Panel('Schülerakte: Profil', array(
+                        new Panel(Filter::DESCRIPTION_SUBJECT_PROFILE, array(
                             new SelectBox('Data[SubjectProfile]', '', array('{{ Acronym }} - {{ Name }}' => $tblProfileAll))
                         ),
                             Panel::PANEL_TYPE_INFO)
@@ -81,26 +81,26 @@ class Frontend
 
                     $tblSchoolType && $tblSchoolType->getName() == 'Mittelschule / Oberschule'
                         ? new FormColumn(
-                        new Panel('Schülerakte: Neigungskurs', array(
+                        new Panel(Filter::DESCRIPTION_SUBJECT_ORIENTATION, array(
                             new SelectBox('Data[SubjectOrientation]', '', array('{{ Acronym }} - {{ Name }}' => $tblOrientationAll))
                         ),
                             Panel::PANEL_TYPE_INFO)
                         , 3)
                         : null,
                     new FormColumn(
-                        new Panel('Schülerakte: Fremdsprache', array(
+                        new Panel(Filter::DESCRIPTION_SUBJECT_FOREIGN_LANGUAGE, array(
                             new SelectBox('Data[SubjectForeignLanguage]', '', array('{{ Acronym }} - {{ Name }}' => $tblForeignLanguageAll))
                         ),
                             Panel::PANEL_TYPE_INFO)
                         , 3),
                     new FormColumn(
-                        new Panel('Schülerakte: Religion', array(
+                        new Panel(Filter::DESCRIPTION_SUBJECT_RELIGION, array(
                             new SelectBox('Data[SubjectReligion]', '', array('{{ Acronym }} - {{ Name }}' => $tblReligionAll))
                         ),
                             Panel::PANEL_TYPE_INFO)
                         , 3),
                     new FormColumn(
-                        new Panel('Schülerakte: Wahlfach', array(
+                        new Panel(Filter::DESCRIPTION_SUBJECT_ELECTIVE, array(
                             new SelectBox('Data[SubjectElective]', '', array('{{ Acronym }} - {{ Name }}' => $tblElectiveAll))
                         ),
                             Panel::PANEL_TYPE_INFO)
