@@ -346,85 +346,8 @@ class Filter extends Extension
             foreach ($tblSubjectStudentList as $tblSubjectStudent) {
                 if (($tblPerson = $tblSubjectStudent->getServiceTblPerson())) {
 
-                    if (($tblGroup = $this->getTblGroup()) && !$this->hasGroup($tblPerson)) {
-                        $list[$tblPerson->getId()]['Filters']['Group']['Field'] = Filter::DESCRIPTION_GROUP;
-                        $list[$tblPerson->getId()]['Filters']['Group']['Value'] = $this->getTblGroupsStringByPerson($tblPerson);
-
-                        $list[$tblPerson->getId()]['Filters']['Group']['DivisionSubjects'][$tblDivisionSubject->getId()]
-                            = 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
-                            . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
-                            . 'Filter: ' . $tblGroup->getName();
-                    }
-
-                    if (($tblGender = $this->getTblGender()) && !$this->hasGender($tblPerson)) {
-                        $list[$tblPerson->getId()]['Filters']['Gender']['Field'] = Filter::DESCRIPTION_GENDER;
-                        $list[$tblPerson->getId()]['Filters']['Gender']['Value'] = $this->getTblGenderStringByPerson($tblPerson);
-
-                        $list[$tblPerson->getId()]['Filters']['Gender']['DivisionSubjects'][$tblDivisionSubject->getId()]
-                            = 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
-                            . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
-                            . 'Filter: ' . $tblGender->getName();
-                    }
-
-                    if (($tblCourse = $this->getTblCourse()) && !$this->hasCourse($tblPerson)) {
-                        $list[$tblPerson->getId()]['Filters']['Course']['Field'] = Filter::DESCRIPTION_COURSE;
-                        $list[$tblPerson->getId()]['Filters']['Course']['Value'] = $this->getTblCourseStringByPerson($tblPerson);
-
-                        $list[$tblPerson->getId()]['Filters']['Course']['DivisionSubjects'][$tblDivisionSubject->getId()]
-                            = 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
-                            . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
-                            . 'Filter: ' . $tblCourse->getName();
-                    }
-
-                    if (($tblSubjectOrientation = $this->getTblSubjectOrientation()) && !$this->hasSubjectOrientation($tblPerson)) {
-                        $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Field'] = Filter::DESCRIPTION_SUBJECT_ORIENTATION;
-                        $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Value'] = $this->getTblSubjectOrientationStringByPerson($tblPerson);
-
-                        $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['DivisionSubjects'][$tblDivisionSubject->getId()]
-                            = 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
-                            . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
-                            . 'Filter: ' . $tblSubjectOrientation->getName();
-                    }
-
-                    if (($tblSubjectProfile = $this->getTblSubjectProfile()) && !$this->hasSubjectProfile($tblPerson)) {
-                        $list[$tblPerson->getId()]['Filters']['SubjectProfile']['Field'] = Filter::DESCRIPTION_SUBJECT_PROFILE;
-                        $list[$tblPerson->getId()]['Filters']['SubjectProfile']['Value'] = $this->getTblSubjectProfileStringByPerson($tblPerson);
-
-                        $list[$tblPerson->getId()]['Filters']['SubjectProfile']['DivisionSubjects'][$tblDivisionSubject->getId()]
-                            = 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
-                            . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
-                            . 'Filter: ' . $tblSubjectProfile->getName();
-                    }
-
-                    if (($tblSubjectForeignLanguage = $this->getTblSubjectForeignLanguage()) && !$this->hasSubjectForeignLanguage($tblPerson)) {
-                        $list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['Field'] = Filter::DESCRIPTION_SUBJECT_FOREIGN_LANGUAGE;
-                        $list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['Value'] = $this->getTblSubjectForeignLanguagesStringByPerson($tblPerson);
-
-                        $list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['DivisionSubjects'][$tblDivisionSubject->getId()]
-                            = 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
-                            . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
-                            . 'Filter: ' . $tblSubjectForeignLanguage->getName();
-                    }
-
-                    if (($tblSubjectReligion = $this->getTblSubjectReligion()) && !$this->hasSubjectReligion($tblPerson)) {
-                        $list[$tblPerson->getId()]['Filters']['SubjectReligion']['Field'] = Filter::DESCRIPTION_SUBJECT_RELIGION;
-                        $list[$tblPerson->getId()]['Filters']['SubjectReligion']['Value'] = $this->getTblSubjectReligionStringByPerson($tblPerson);
-
-                        $list[$tblPerson->getId()]['Filters']['SubjectReligion']['DivisionSubjects'][$tblDivisionSubject->getId()]
-                            = 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
-                            . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
-                            . 'Filter: ' . $tblSubjectReligion->getName();
-                    }
-
-                    if (($tblSubjectElective = $this->getTblSubjectElective()) && !$this->hasSubjectElective($tblPerson)) {
-                        $list[$tblPerson->getId()]['Filters']['SubjectElective']['Field'] = Filter::DESCRIPTION_SUBJECT_ELECTIVE;
-                        $list[$tblPerson->getId()]['Filters']['SubjectElective']['Value'] = $this->getTblSubjectElectivesStringByPerson($tblPerson);
-
-                        $list[$tblPerson->getId()]['Filters']['SubjectElective']['DivisionSubjects'][$tblDivisionSubject->getId()]
-                            = 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
-                            . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
-                            . 'Filter: ' . $tblSubjectElective->getName();
-                    }
+                    $list = $this->getIsNotFulfilledByPerson($tblPerson, $tblSubject, $tblSubjectGroup,
+                        $tblDivisionSubject, $list);
                 }
             }
         }
@@ -966,5 +889,118 @@ class Filter extends Extension
     public function getTblDivisionSubject()
     {
         return $this->tblDivisionSubject;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblSubject $tblSubject
+     * @param TblSubjectGroup $tblSubjectGroup
+     * @param TblDivisionSubject $tblDivisionSubject
+     * @param $list
+     * @param bool $showDivision
+     *
+     * @return mixed
+     */
+    public function getIsNotFulfilledByPerson(
+        TblPerson $tblPerson,
+        TblSubject $tblSubject,
+        TblSubjectGroup $tblSubjectGroup,
+        TblDivisionSubject $tblDivisionSubject,
+        $list,
+        $showDivision = false
+    ) {
+
+        $prefix = '';
+        if ($showDivision && ($tblDivision = $tblDivisionSubject->getTblDivision())) {
+            $prefix = 'Klasse: ' . $tblDivision->getDisplayName() . '&nbsp;&nbsp;&nbsp;';
+        }
+        if (($tblGroup = $this->getTblGroup()) && !$this->hasGroup($tblPerson)) {
+            $list[$tblPerson->getId()]['Filters']['Group']['Field'] = Filter::DESCRIPTION_GROUP;
+            $list[$tblPerson->getId()]['Filters']['Group']['Value'] = $this->getTblGroupsStringByPerson($tblPerson);
+
+            $list[$tblPerson->getId()]['Filters']['Group']['DivisionSubjects'][$tblDivisionSubject->getId()]
+                = $prefix
+                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Filter: ' . $tblGroup->getName();
+        }
+
+        if (($tblGender = $this->getTblGender()) && !$this->hasGender($tblPerson)) {
+            $list[$tblPerson->getId()]['Filters']['Gender']['Field'] = Filter::DESCRIPTION_GENDER;
+            $list[$tblPerson->getId()]['Filters']['Gender']['Value'] = $this->getTblGenderStringByPerson($tblPerson);
+
+            $list[$tblPerson->getId()]['Filters']['Gender']['DivisionSubjects'][$tblDivisionSubject->getId()]
+                = $prefix
+                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Filter: ' . $tblGender->getName();
+        }
+
+        if (($tblCourse = $this->getTblCourse()) && !$this->hasCourse($tblPerson)) {
+            $list[$tblPerson->getId()]['Filters']['Course']['Field'] = Filter::DESCRIPTION_COURSE;
+            $list[$tblPerson->getId()]['Filters']['Course']['Value'] = $this->getTblCourseStringByPerson($tblPerson);
+
+            $list[$tblPerson->getId()]['Filters']['Course']['DivisionSubjects'][$tblDivisionSubject->getId()]
+                = $prefix
+                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Filter: ' . $tblCourse->getName();
+        }
+
+        if (($tblSubjectOrientation = $this->getTblSubjectOrientation()) && !$this->hasSubjectOrientation($tblPerson)) {
+            $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Field'] = Filter::DESCRIPTION_SUBJECT_ORIENTATION;
+            $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Value'] = $this->getTblSubjectOrientationStringByPerson($tblPerson);
+
+            $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['DivisionSubjects'][$tblDivisionSubject->getId()]
+                = $prefix
+                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Filter: ' . $tblSubjectOrientation->getName();
+        }
+
+        if (($tblSubjectProfile = $this->getTblSubjectProfile()) && !$this->hasSubjectProfile($tblPerson)) {
+            $list[$tblPerson->getId()]['Filters']['SubjectProfile']['Field'] = Filter::DESCRIPTION_SUBJECT_PROFILE;
+            $list[$tblPerson->getId()]['Filters']['SubjectProfile']['Value'] = $this->getTblSubjectProfileStringByPerson($tblPerson);
+
+            $list[$tblPerson->getId()]['Filters']['SubjectProfile']['DivisionSubjects'][$tblDivisionSubject->getId()]
+                = $prefix
+                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Filter: ' . $tblSubjectProfile->getName();
+        }
+
+        if (($tblSubjectForeignLanguage = $this->getTblSubjectForeignLanguage()) && !$this->hasSubjectForeignLanguage($tblPerson)) {
+            $list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['Field'] = Filter::DESCRIPTION_SUBJECT_FOREIGN_LANGUAGE;
+            $list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['Value'] = $this->getTblSubjectForeignLanguagesStringByPerson($tblPerson);
+
+            $list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['DivisionSubjects'][$tblDivisionSubject->getId()]
+                = $prefix
+                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Filter: ' . $tblSubjectForeignLanguage->getName();
+        }
+
+        if (($tblSubjectReligion = $this->getTblSubjectReligion()) && !$this->hasSubjectReligion($tblPerson)) {
+            $list[$tblPerson->getId()]['Filters']['SubjectReligion']['Field'] = Filter::DESCRIPTION_SUBJECT_RELIGION;
+            $list[$tblPerson->getId()]['Filters']['SubjectReligion']['Value'] = $this->getTblSubjectReligionStringByPerson($tblPerson);
+
+            $list[$tblPerson->getId()]['Filters']['SubjectReligion']['DivisionSubjects'][$tblDivisionSubject->getId()]
+                = $prefix
+                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Filter: ' . $tblSubjectReligion->getName();
+        }
+
+        if (($tblSubjectElective = $this->getTblSubjectElective()) && !$this->hasSubjectElective($tblPerson)) {
+            $list[$tblPerson->getId()]['Filters']['SubjectElective']['Field'] = Filter::DESCRIPTION_SUBJECT_ELECTIVE;
+            $list[$tblPerson->getId()]['Filters']['SubjectElective']['Value'] = $this->getTblSubjectElectivesStringByPerson($tblPerson);
+
+            $list[$tblPerson->getId()]['Filters']['SubjectElective']['DivisionSubjects'][$tblDivisionSubject->getId()]
+                = $prefix
+                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Filter: ' . $tblSubjectElective->getName();
+        }
+        return $list;
     }
 }
