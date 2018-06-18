@@ -3,6 +3,8 @@ namespace SPHERE\Application\People\Search\Group;
 
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Filter\Service as FilterService;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -18,10 +20,12 @@ use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
@@ -80,18 +84,50 @@ class Frontend extends Extension implements IFrontendInterface
                 new TblDivision(),
                 new TblDivisionStudent(),
             ));
-            if (null === ($Result = $Cache->getData())) {
 
-                if ($tblGroup->getMetaTable() == 'STUDENT') {
-                    $tblYearList = Term::useService()->getYearByNow();
-                } else {
-                    $tblYearList = false;
+            $accordion = false;
+            if ($tblGroup->getMetaTable() == 'STUDENT') {
+                $validationTable = array();
+                $tblYearList = Term::useService()->getYearByNow();
+
+                // Validierung mit dem Bildungsmodul
+                $tblDivisionList = array();
+                if (!empty( $tblYearList )) {
+                    foreach ($tblYearList as $tblYear) {
+                        $TempList = Division::useService()->getDivisionByYear($tblYear);
+                        if ($TempList) {
+                            foreach ($TempList as $Temp) {
+                                $tblDivisionList[] = $Temp;
+                            }
+                        }
+                    }
+                }
+                if (!empty($tblDivisionList)) {
+                    foreach ($tblDivisionList as $tblDivision) {
+                        if (($table = FilterService::getDivisionMessageTable($tblDivision, true))) {
+                            $validationTable[$tblDivision->getDisplayName()] = $table;
+                        }
+                    }
                 }
 
+                if (!empty($validationTable)) {
+                    $accordion = new Accordion();
+                    ksort($validationTable, SORT_NATURAL);
+                    foreach ($validationTable as $divisionId => $item) {
+                        if (isset($item['Header']) && isset($item['Content'])) {
+                            $accordion->addItem($item['Header'], $item['Content']);
+                        }
+                    }
+                }
+            } else {
+                $tblYearList = false;
+            }
+
+            if (null === ($Result = $Cache->getData())) {
                 $Result = array();
                 if ($tblPersonAll) {
                     array_walk($tblPersonAll,
-                        function (TblPerson &$tblPerson) use ($tblGroup, &$Result, $Acronym, $tblYearList) {
+                        function (TblPerson &$tblPerson) use ($tblGroup, &$Result, $Acronym, $tblYearList, &$validationTable) {
 
                             // Division && Identification
                             $displayDivisionList = false;
@@ -235,6 +271,12 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $Stage->setContent(
+                ($accordion
+                    ? new \SPHERE\Common\Frontend\Message\Repository\Warning(new Exclamation()
+                        . new Bold(' Folgende Einstellungen stimmen nicht mit der Personenverwaltung überein:')
+                        . '</br></br>'
+                        . $accordion)
+                    : '') .
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(
                         new Panel(new PersonGroup() . ' Gruppe', array(

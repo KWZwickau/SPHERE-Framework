@@ -162,8 +162,13 @@ class Frontend extends Extension implements IFrontendInterface
         $StudentCountBySchoolType = array();
 
         $TableContent = array();
+        $validationTable = array();
         if ($tblDivisionAll) {
-            array_walk($tblDivisionAll, function (TblDivision $tblDivision) use (&$TableContent, &$StudentCountBySchoolType) {
+            array_walk($tblDivisionAll, function (TblDivision $tblDivision) use (&$TableContent, &$StudentCountBySchoolType, &$validationTable) {
+                // validierung mit Schülerakte
+                if (($table = FilterService::getDivisionMessageTable($tblDivision, true))) {
+                    $validationTable[$tblDivision->getDisplayName()] = $table;
+                }
 
                 $Temp['Year'] = $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '';
                 $Temp['SchoolType'] = $tblDivision->getTypeName();
@@ -250,8 +255,24 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $accordion = false;
+        if (!empty($validationTable)) {
+            $accordion = new Accordion();
+            ksort($validationTable, SORT_NATURAL);
+            foreach ($validationTable as $divisionId => $item) {
+                if (isset($item['Header']) && isset($item['Content'])) {
+                    $accordion->addItem($item['Header'], $item['Content']);
+                }
+            }
+        }
 
         $Stage->setContent(
+            ($accordion
+                ? new Warning(new Exclamation()
+                    . new Bold(' Folgende Einstellungen stimmen nicht mit der Personenverwaltung überein:')
+                    . '</br></br>'
+                    . $accordion)
+                : '') .
             new Panel('Anzahl Schüler', (!empty($tblStudentCounterBySchoolType)) ? $tblStudentCounterBySchoolType : '').
             new Layout(array(
                 new LayoutGroup(

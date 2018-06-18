@@ -59,10 +59,11 @@ class Service
 
     /**
      * @param TblDivision $tblDivision
+     * @param bool $isAccordion
      *
-     * @return bool|Warning
+     * @return array|bool|Warning
      */
-    public static function getDivisionMessageTable(TblDivision $tblDivision)
+    public static function getDivisionMessageTable(TblDivision $tblDivision, $isAccordion = false)
     {
 
         $list = array();
@@ -79,6 +80,7 @@ class Service
 
         $contentTable = array();
         $count = 1;
+        $countMessages = 0;
         if (!empty($list)) {
             foreach ($list as $personId => $filters) {
                 if (($tblPerson = Person::useService()->getPersonById($personId))
@@ -101,8 +103,10 @@ class Service
                                     $contentTable[$count]['Value'] = '';
                                 }
 
+                                // todo links zu gruppen
                                 if (isset($item['DivisionSubjects']) && is_array($item['DivisionSubjects'])) {
                                     foreach ($item['DivisionSubjects'] as $divisionSubjectId => $text) {
+                                        $countMessages++;
                                         if (isset($contentTable[$count]['DivisionSubjects'])) {
                                             $contentTable[$count]['DivisionSubjects'] .= new Container($text);
                                         } else {
@@ -120,10 +124,10 @@ class Service
                 }
             }
 
-            return new Warning(
-                new Exclamation() . new Bold(' Folgende Einstellungen stimmen nicht mit der Personenverwaltung überein:')
-                . '</br></br>'
-                . new TableData(
+            if ($isAccordion) {
+                return array(
+                    'Header' => 'Klasse ' . $tblDivision->getDisplayName() . ' (' . $countMessages . ' Meldungen)',
+                    'Content' => new TableData(
                     $contentTable,
                     null,
                     array(
@@ -133,8 +137,25 @@ class Service
                         'DivisionSubjects' => 'Bildungsmodul'
                     ),
                     false
-                )
-            );
+                    )
+                );
+            } else {
+                return new Warning(
+                    new Exclamation() . new Bold(' Folgende Einstellungen stimmen nicht mit der Personenverwaltung überein:')
+                    . '</br></br>'
+                    . new TableData(
+                        $contentTable,
+                        null,
+                        array(
+                            'Name' => 'Schüler',
+                            'Field' => 'Eigenschaft / Feld',
+                            'Value' => 'Personenverwaltung',
+                            'DivisionSubjects' => 'Bildungsmodul'
+                        ),
+                        false
+                    )
+                );
+            }
         }
 
         return false;
