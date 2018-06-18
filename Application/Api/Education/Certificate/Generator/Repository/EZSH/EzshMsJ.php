@@ -130,7 +130,7 @@ class EzshMsJ extends EzshStyle
                         self::getEZSHDateSign($personId)
                     )
                     ->addElement((new Element())
-                        ->styleMarginTop('63px')
+                        ->styleMarginTop('55px')
                     )
                     ->addSectionList(
                         self::getEZSHCustody()
