@@ -38,8 +38,6 @@ class RadebeulLernentwicklungsbericht extends Certificate
 
         return (new Page())
             ->addSlice((new Slice())
-                ->stylePaddingLeft('30px')
-                ->stylePaddingRight('30px')
                 ->addSection((new Section())
                     ->addElementColumn(
                         $this->isSample()
@@ -156,22 +154,24 @@ class RadebeulLernentwicklungsbericht extends Certificate
                         ->styleTextBold()
                     )
                 )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('
-                            {% if(Content.P' . $personId . '.Input.Rating is not empty) %}
-                                {{ Content.P' . $personId . '.Input.Rating|nl2br }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}
-                        ')
-                        ->styleAlignJustify()
-                        ->styleFontFamily($fontFamily)
-                        ->styleTextSize($textSize)
-                        ->styleLineHeight('80%')
-                        ->styleMarginTop('30px')
-                    )
+            )
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('
+                    {% if(Content.P' . $personId . '.Input.Rating is not empty) %}
+                        {{ Content.P' . $personId . '.Input.Rating|nl2br }}
+                    {% else %}
+                        &nbsp;
+                    {% endif %}
+                ')
+                    ->styleAlignJustify()
+                    ->styleFontFamily($fontFamily)
+                    ->styleTextSize($textSize)
+                    ->styleLineHeight('80%')
+                    ->styleMarginTop('30px')
                 )
+            )
+            ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('Versäumte Tage:')
@@ -196,7 +196,7 @@ class RadebeulLernentwicklungsbericht extends Certificate
                         ->styleFontFamily($fontFamily)
                         ->styleTextSize($textSize)
                         ->styleMarginTop('40px')
-                        , '27%')
+                        , '25%')
                     ->addElementColumn((new Element())
                         ->setContent('
                                         {% if(Content.P' . $personId . '.Input.Bad.Missing is not empty) %}
@@ -209,7 +209,7 @@ class RadebeulLernentwicklungsbericht extends Certificate
                         ->styleTextSize($textSize)
                         ->styleMarginTop('40px')
                         ->styleAlignRight()
-                        , '4%')
+                        , '8%')
                     ->addElementColumn((new Element()))
                 )
                 ->addSection((new Section())
@@ -309,13 +309,14 @@ class RadebeulLernentwicklungsbericht extends Certificate
                         ->styleTextSize($textSize)
                         ->setContent('Zur Kenntnis genommen:')
                         ->styleMarginTop('25px')
-                        , '35%')
+                        , '30%')
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
                         ->styleMarginTop('35px')
                         ->styleBorderBottom()
                         , '50%')
-                    ->addElementColumn((new Element()))
+                    ->addElementColumn((new Element())
+                        , '20%')
                 )
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
