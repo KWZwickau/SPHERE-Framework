@@ -73,14 +73,11 @@ class PasswordChange extends AbstractDocument
         $this->FieldValue['CompanyDistrict'] = (isset($DataPost['CompanyDistrict']) && $DataPost['CompanyDistrict'] != '' ? $DataPost['CompanyDistrict'] : '&nbsp;');
         $this->FieldValue['CompanyCity'] = (isset($DataPost['CompanyCity']) && $DataPost['CompanyCity'] != '' ? $DataPost['CompanyCity'] : '&nbsp;');
         // Contact
-        $this->FieldValue['ContactPerson'] = (isset($DataPost['ContactPerson']) && $DataPost['ContactPerson'] != '' ? $DataPost['ContactPerson'] : '&nbsp;');
         $this->FieldValue['Phone'] = (isset($DataPost['Phone']) && $DataPost['Phone'] != '' ? $DataPost['Phone'] : '&nbsp;');
         $this->FieldValue['Fax'] = (isset($DataPost['Fax']) && $DataPost['Fax'] != '' ? $DataPost['Fax'] : '&nbsp;');
         $this->FieldValue['Mail'] = (isset($DataPost['Mail']) && $DataPost['Mail'] != '' ? $DataPost['Mail'] : '&nbsp;');
         $this->FieldValue['Web'] = (isset($DataPost['Web']) && $DataPost['Web'] != '' ? $DataPost['Web'] : '&nbsp;');
         //Signer
-        $this->FieldValue['SignerName'] = (isset($DataPost['SignerName']) && $DataPost['SignerName'] != '' ? $DataPost['SignerName'] : '&nbsp;');
-        $this->FieldValue['SignerType'] = (isset($DataPost['SignerType']) && $DataPost['SignerType'] != '' ? $DataPost['SignerType'] : '&nbsp;');
         $this->FieldValue['Place'] = (isset($DataPost['Place']) && $DataPost['Place'] != '' ? $DataPost['Place'].', den ' : '');
         $this->FieldValue['Date'] = (isset($DataPost['Date']) && $DataPost['Date'] != '' ? $DataPost['Date'] : '&nbsp;');
 
@@ -449,7 +446,7 @@ class PasswordChange extends AbstractDocument
                     , '4%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Hierfür erheben wir einen Unkostenbeitrag von 5 €, der Ihnen bei der nächsten Abrechnung be-lastet wird.')
+                    ->setContent('Hierfür erheben wir einen Unkostenbeitrag von 5 €, der Ihnen bei der nächsten Abrechnung belastet wird.')
                     ->stylePaddingTop(self::BLOCK_SPACE)
                 )
                 ->addElementColumn((new Element())
@@ -760,7 +757,14 @@ class PasswordChange extends AbstractDocument
                         , '4%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Deine neuen Zugangsdaten zur Notenübersicht ')
+                        ->setContent('Ihre neuen Zugangsdaten zur Notenübersicht
+                        {% if '.$this->FieldValue['ChildCount'].' == 1 %}
+                            Ihres Kindes
+                        {% elseif '.$this->FieldValue['ChildCount'].' == 2 %}
+                            Ihrer Kinder
+                        {% else %}
+                            Ihres Kindes / Ihrer Kinder
+                        {% endif %}')
                         ->styleTextBold()
                     )
                     ->addElementColumn((new Element())

@@ -236,7 +236,7 @@ class Service extends AbstractService
             ))),
         ));
 
-        $ContactPersonPanel = new Panel('Ansprechparter', array(
+        $ContactPersonPanel = new Panel('Kontakt', array(
             new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn('Telefon: ', 4),
                 new LayoutColumn($Data['Phone'], 8),
@@ -254,15 +254,7 @@ class Service extends AbstractService
                 new LayoutColumn($Data['Web'], 8),
             )))),
         ));
-        $SignerPanel = new Panel('Unterzeichner', array(
-            new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn('Name: ', 4),
-                new LayoutColumn($Data['SignerName'], 8),
-            )))),
-            new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn('Funktion: ', 4),
-                new LayoutColumn($Data['SignerType'], 8),
-            )))),
+        $SignerPanel = new Panel('Ort/Datum', array(
             new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn('Ort: ', 4),
                 new LayoutColumn(($Data['Place'] ? $Data['Place'] : ''), 8),

@@ -3,21 +3,14 @@ namespace SPHERE\Application\Api\Document\Standard\Repository\MultiPassword;
 
 use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Contact\Address\Address;
-use SPHERE\Application\Corporation\Company\Company;
-use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Document\Generator\Repository\Document;
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
-use SPHERE\Application\Education\School\Type\Type;
-use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Application\People\Relationship\Relationship;
-use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Setting\Consumer\Consumer;
-use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Application\Setting\User\Account\Account;
 
 class MultiPassword extends AbstractDocument
@@ -50,18 +43,28 @@ class MultiPassword extends AbstractDocument
     {
 
         // Text choose decision
+        //
         $this->FieldValue['GroupByTime'] = (isset($DataPost['GroupByTime']) ? $DataPost['GroupByTime'] : false);
         $this->FieldValue['GroupByCount'] = (isset($DataPost['GroupByCount']) ? $DataPost['GroupByCount'] : false);
+
+        $this->FieldValue['Gender'] = false;
+        $this->FieldValue['UserAccount'] = '';
+        $this->FieldValue['Street'] = '';
+        $this->FieldValue['District'] = '';
+        $this->FieldValue['City'] = '';
 //        $this->FieldValue['IsParent'] = (isset($DataPost['IsParent']) ? $DataPost['IsParent'] : false);
+        // School
+        $this->FieldValue['CompanyName'] = (isset($DataPost['CompanyName']) && $DataPost['CompanyName'] != '' ? $DataPost['CompanyName'] : '&nbsp;');
+        $this->FieldValue['CompanyExtendedName'] = (isset($DataPost['CompanyExtendedName']) && $DataPost['CompanyExtendedName'] != '' ? $DataPost['CompanyExtendedName'] : '&nbsp;');
+        $this->FieldValue['CompanyStreet'] = (isset($DataPost['CompanyStreet']) && $DataPost['CompanyStreet'] != '' ? $DataPost['CompanyStreet'] : '&nbsp;');
+        $this->FieldValue['CompanyDistrict'] = (isset($DataPost['CompanyDistrict']) && $DataPost['CompanyDistrict'] != '' ? $DataPost['CompanyDistrict'] : '&nbsp;');
+        $this->FieldValue['CompanyCity'] = (isset($DataPost['CompanyCity']) && $DataPost['CompanyCity'] != '' ? $DataPost['CompanyCity'] : '&nbsp;');
         // Contact
-        $this->FieldValue['ContactPerson'] = (isset($DataPost['ContactPerson']) && $DataPost['ContactPerson'] != '' ? $DataPost['ContactPerson'] : '&nbsp;');
         $this->FieldValue['Phone'] = (isset($DataPost['Phone']) && $DataPost['Phone'] != '' ? $DataPost['Phone'] : '&nbsp;');
         $this->FieldValue['Fax'] = (isset($DataPost['Fax']) && $DataPost['Fax'] != '' ? $DataPost['Fax'] : '&nbsp;');
         $this->FieldValue['Mail'] = (isset($DataPost['Mail']) && $DataPost['Mail'] != '' ? $DataPost['Mail'] : '&nbsp;');
         $this->FieldValue['Web'] = (isset($DataPost['Web']) && $DataPost['Web'] != '' ? $DataPost['Web'] : '&nbsp;');
         //Signer
-        $this->FieldValue['SignerName'] = (isset($DataPost['SignerName']) && $DataPost['SignerName'] != '' ? $DataPost['SignerName'] : '&nbsp;');
-        $this->FieldValue['SignerType'] = (isset($DataPost['SignerType']) && $DataPost['SignerType'] != '' ? $DataPost['SignerType'] : '&nbsp;');
         $this->FieldValue['Place'] = (isset($DataPost['Place']) && $DataPost['Place'] != '' ? $DataPost['Place'].', den ' : '');
         $this->FieldValue['Date'] = (isset($DataPost['Date']) && $DataPost['Date'] != '' ? $DataPost['Date'] : '&nbsp;');
 
@@ -78,76 +81,24 @@ class MultiPassword extends AbstractDocument
                         }
 
                         // default value
-
+                        $this->FieldValue['PersonSalutation'][$tblAccount->getId()] = '';
+                        $this->FieldValue['PersonFirstLastName'][$tblAccount->getId()] = '';
+                        $this->FieldValue['PersonTitle'][$tblAccount->getId()] = '';
+                        $this->FieldValue['PersonLastName'][$tblAccount->getId()] = '';
                         $this->FieldValue['PersonName'][$tblAccount->getId()] = '';
                         $this->FieldValue['Street'][$tblAccount->getId()] = '';
                         $this->FieldValue['District'][$tblAccount->getId()] = '';
                         $this->FieldValue['City'][$tblAccount->getId()] = '';
 
+                        $this->FieldValue['Gender'][$tblAccount->getId()] = false;
+
                         $this->FieldValue['tblAccountList'][] = $tblAccount->getId();
                         $this->FieldValue['UserAccountNameList'][$tblAccount->getId()] = $tblAccount->getUsername();
                         $this->FieldValue['Password'][$tblAccount->getId()] = $tblUserAccount->getUserPassword();
 
-                        // School
-                        $this->FieldValue['CompanyDisplay'][$tblAccount->getId()] = '';
-                        $this->FieldValue['CompanyDistrict'][$tblAccount->getId()] = '';
-                        $this->FieldValue['CompanyStreet'][$tblAccount->getId()] = '';
-                        $this->FieldValue['CompanyCity'][$tblAccount->getId()] = '';
 
                         // School choose
                         if(($tblPerson = $tblUserAccount->getServiceTblPerson())){
-                            if(!isset($DataPost['CompanyId'])){
-                                if($this->FieldValue['IsParent']){
-                                    $tblRelationshipType = Relationship::useService()->getTypeByName( TblType::IDENTIFIER_GUARDIAN );
-                                    if(($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType))){
-                                        foreach($tblRelationshipList as $tblRelationship){  //ToDO Mehrer Schüler auswahl nach "höherer Bildungsgang"
-                                            if(($tblPersonStudent = $tblRelationship->getServiceTblPersonTo())){
-                                                if(($tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPersonStudent))){
-                                                    if(($tblSchoolType = Type::useService()->getTypeByName($tblDivision->getTypeName()))){
-                                                        if(($tblSchoolCompany = School::useService()->getSchoolByType($tblSchoolType))){
-                                                            $tblCompany = $tblSchoolCompany->getServiceTblCompany();
-                                                            $DataPost['tblCompany'][$tblAccount->getId()] = $tblCompany;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    if(($tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPerson))){
-                                        if(($tblSchoolType = Type::useService()->getTypeByName($tblDivision->getTypeName()))){
-                                            if(($tblSchoolCompany = School::useService()->getSchoolByType($tblSchoolType))){
-                                                $tblCompany = $tblSchoolCompany->getServiceTblCompany();
-                                                $DataPost['tblCompany'][$tblAccount->getId()] = $tblCompany;
-                                            }
-                                        }
-                                    }
-                                }
-                            } else {
-                                if(($tblCompany = Company::useService()->getCompanyById($DataPost['CompanyId']))){
-                                    $DataPost['tblCompany'][$tblAccount->getId()] = $tblCompany;
-                                }
-                            }
-
-                            //School information
-                            /** @var TblCompany $tblCompany */
-                            if(isset($DataPost['tblCompany'][$tblAccount->getId()])
-                                && ($tblCompany = $DataPost['tblCompany'][$tblAccount->getId()])){
-                                $this->FieldValue['CompanyDisplay'][$tblAccount->getId()] = $tblCompany->getName().
-                                    ($tblCompany->getExtendedName() ? '</br>'.$tblCompany->getExtendedName() : '');
-                                $tblAddress = Address::useService()->getAddressByCompany($tblCompany);
-                                if($tblAddress){
-                                    $this->FieldValue['CompanyStreet'][$tblAccount->getId()] = $tblAddress->getStreetName().' '.$tblAddress->getStreetNumber();
-                                    $tblCity = $tblAddress->getTblCity();
-                                    if($tblCity){
-                                        if(!isset($this->FieldValue['Place'])){
-                                            $this->FieldValue['Place'] = $tblCity->getName().', den ';
-                                        }
-                                        $this->FieldValue['CompanyDistrict'][$tblAccount->getId()] = $tblCity->getDistrict();
-                                        $this->FieldValue['CompanyCity'][$tblAccount->getId()] = $tblCity->getName().' '.$tblCity->getCode();
-                                    }
-                                }
-                            }
 
                             $this->FieldValue['PersonName'][$tblAccount->getId()] = $tblPerson->getFullName();
                             //Address
@@ -215,8 +166,21 @@ class MultiPassword extends AbstractDocument
     {
         $Slice = new Slice();
         $Slice->addElement((new Element())
-            ->setContent('Empfänger')
+            ->setContent($this->FieldValue['CompanyName'])
             ->styleTextSize('8pt')
+        );
+        if($this->FieldValue['CompanyExtendedName']){
+            $Slice->addElement((new Element())
+                ->setContent($this->FieldValue['CompanyExtendedName'])
+                ->styleTextSize('8pt')
+            );
+        }
+        $Slice->addElement((new Element())
+            ->setContent($this->FieldValue['CompanyDistrict'].' '
+                .$this->FieldValue['CompanyStreet'].' '
+                .$this->FieldValue['CompanyCity'])
+            ->styleTextSize('8pt')
+            ->stylePaddingBottom('15px')
         );
         $Slice->addElement((new Element())
             ->setContent($this->FieldValue['PersonName'][$AccountId])
@@ -243,16 +207,6 @@ class MultiPassword extends AbstractDocument
     {
 
         $Slice = new Slice();
-        $Slice->addSection((new Section())
-            ->addElementColumn((new Element())
-                ->setContent('Name:')
-                ->styleTextSize('8pt')
-            , '20%')
-            ->addElementColumn((new Element())
-                ->setContent($this->FieldValue['ContactPerson'])
-                ->styleTextSize('8pt')
-            , '80%')
-        );
         $Slice->addSection((new Section())
             ->addElementColumn((new Element())
                 ->setContent('Telefon:')
@@ -303,80 +257,6 @@ class MultiPassword extends AbstractDocument
 
         $Slice->stylePaddingTop('10px');
 
-        return $Slice;
-    }
-
-    /**
-     * @param int $AccountId
-     *
-     * @return Slice
-     */
-    private function getPasswordFooter($AccountId)
-    {
-
-        $Slice = new Slice();
-        $Slice->addSection((new Section())
-            ->addSliceColumn((new Slice())
-                ->addElement((new Element())
-                    ->setContent($this->FieldValue['CompanyDisplay'][$AccountId])
-                    ->styleTextSize('7pt')
-                )
-                ->addElement((new Element())
-                    ->setContent('e.V. - gemeinnütziger Trägerverein')
-                    ->styleTextSize('7pt')
-                )
-                ->addElement((new Element())
-                    ->setContent('Vorstand §26 BGB:')
-                    ->styleTextSize('7pt')
-                    ->stylePaddingTop('8px')
-                )
-                ->addElement((new Element())
-                    ->setContent('- Name Vorstand(Vors.)')
-                    ->styleTextSize('7pt')
-                )
-                ->addElement((new Element())
-                    ->setContent('- (stv.Vors.)')
-                    ->styleTextSize('7pt')
-                )
-                ->addElement((new Element())
-                    ->setContent('- (GF)')
-                    ->styleTextSize('7pt')
-                )
-                , '70%'
-            )
-            ->addSliceColumn((new Slice())
-                ->addElement((new Element())
-                    ->setContent('Anschrift Geschäftsstelle / Sekretariat:')
-                    ->styleTextSize('7pt')
-                )
-                ->addElement((new Element())
-                    ->setContent($this->FieldValue['CompanyDistrict'][$AccountId])
-                    ->styleTextSize('7pt')
-                )
-                ->addElement((new Element())
-                    ->setContent($this->FieldValue['CompanyStreet'][$AccountId])
-                    ->styleTextSize('7pt')
-                )
-                ->addElement((new Element())
-                    ->setContent($this->FieldValue['CompanyCity'][$AccountId])
-                    ->styleTextSize('7pt')
-                )
-                ->addElement((new Element())
-                    ->setContent('Steuernummer:')
-                    ->styleTextSize('7pt')
-                    ->stylePaddingTop('8px')
-                )
-                ->addElement((new Element())
-                    ->setContent('Vereinssitz:')
-                    ->styleTextSize('7pt')
-                )
-                ->addElement((new Element())
-                    ->setContent('Vereinsregister:')
-                    ->styleTextSize('7pt')
-                )
-                , '30%'
-            )
-        );
         return $Slice;
     }
 
@@ -678,25 +558,14 @@ class MultiPassword extends AbstractDocument
                 )
             )
             ->addSlice($this->getFirstLetterContent())
-            ->addSlice($this->getEmptyHeight('40px'))
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addSliceColumn(
-                        $this->getPasswordFooter($AccountId)
-                        , '92%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                )
-            );
+            ->addSlice($this->getEmptyHeight('40px'));
     }
 
+    /**
+     * @param $AccountId
+     *
+     * @return Slice
+     */
     private function getSecondLetterContent($AccountId)
     {
 
@@ -724,8 +593,7 @@ class MultiPassword extends AbstractDocument
                     , '4%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Für den Zugriff auf die elektronische Notenübersicht verwenden Sie bitte nachfolgende
-                     Zugangsdaten:')
+                    ->setContent('Verwendet bitte für den Zugriff auf die elektronische Notenübersicht folgende Zugangsdaten:')
                     ->stylePaddingTop('12px')
                     ->styleAlignJustify()
                 )
@@ -742,20 +610,7 @@ class MultiPassword extends AbstractDocument
                 ->addElementColumn((new Element())
                     ->setContent('Adresse: https://schulsoftware.schule')
                     ->stylePaddingTop(self::BLOCK_SPACE)
-                    , '45%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Benutzername:')
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                    ->stylePaddingRight('25px')
-                    ->styleAlignRight()
-                    , '17%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent($this->FieldValue['UserAccountNameList'][$AccountId])
-                    ->stylePaddingTop(self::BLOCK_SPACE)
-                    ->stylePaddingLeft('10px')
-                    , '30%'
+                    , '92%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
@@ -768,15 +623,8 @@ class MultiPassword extends AbstractDocument
                     , '4%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Für das erstmalige Login verwenden Sie bitte folgendes Passwort:')
-                    ->stylePaddingTop()
-                    , '62%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent($this->FieldValue['Password'][$AccountId])
-                    ->stylePaddingTop()
-                    ->stylePaddingLeft('10px')
-                    , '30%'
+                    ->setContent('Benutzername: '. $this->FieldValue['UserAccountNameList'][$AccountId])
+                    , '92%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
@@ -789,9 +637,25 @@ class MultiPassword extends AbstractDocument
                     , '4%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Lesen Sie sich die Datenschutzbestimmungen und Nutzungsbedingungen genau durch. Wenn 
-                    Sie einverstanden sind und die elektronische Notenübersicht nutzen möchten, so vergeben Sie bitte 
-                    Ihr zukünftiges Passwort für den Zugang und bestätigen Sie Ihre Eingaben.')
+                    ->setContent('Für das erstmalige Login verwenden Sie bitte folgendes Passwort: '
+                        .$this->FieldValue['Password'][$AccountId])
+                    ->stylePaddingTop()
+                    , '92%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Lesen Sie sich die Datenschutzbestimmungen und Nutzungsbedingungen genau durch.
+                    Wenn Sie einverstanden sind und die elektronische Notenübersicht nutzen möchten, so vergeben Sie 
+                    bitte Ihr zukünftiges Passwort für den Zugang und bestätigen Sie Ihre Eingaben.')
                     ->stylePaddingTop(self::BLOCK_SPACE)
                     ->styleAlignJustify()
                 )
@@ -863,50 +727,8 @@ class MultiPassword extends AbstractDocument
                     , '4%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('Wir haben vor, unser Serviceangebot schrittweise zu erweitern, sofern das von Ihnen 
-                    gewünscht ist. Bitte teilen Sie uns Ihre Anregungen und Verbesserungsvorschläge dazu mit!')
+                    ->setContent('Dieses Schreiben wurde maschinell erstellt und ist auch ohne Unterschrift rechtsgültig.')
                     ->stylePaddingTop('12px')
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('Mit freundlichen Grüßen')
-                    ->stylePaddingTop('12px')
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent($this->FieldValue['SignerName'])
-                    ->stylePaddingTop('35px')
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-            )
-            ->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('&nbsp;')
-                    , '4%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent($this->FieldValue['SignerType'])
                 )
                 ->addElementColumn((new Element())
                     ->setContent('&nbsp;')
@@ -938,20 +760,7 @@ class MultiPassword extends AbstractDocument
                     ->addElementColumn((new Element())
                         ->setContent('Adresse: https://schulsoftware.schule')
                         ->stylePaddingTop(self::BLOCK_SPACE)
-                        , '45%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Benutzername:')
-                        ->stylePaddingTop(self::BLOCK_SPACE)
-                        ->stylePaddingRight('25px')
-                        ->styleAlignRight()
-                        , '17%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent($this->FieldValue['UserAccountNameList'][$AccountId])
-                        ->stylePaddingTop(self::BLOCK_SPACE)
-                        ->stylePaddingLeft('10px')
-                        , '30%'
+                        , '92%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
@@ -964,16 +773,24 @@ class MultiPassword extends AbstractDocument
                         , '4%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Passwort (für erstmaliges Login):')
-                        ->stylePaddingTop()
-                        ->styleAlignRight()
-                        , '62%'
+                        ->setContent('Benutzername: '. $this->FieldValue['UserAccountNameList'][$AccountId])
+                        , '92%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent($this->FieldValue['Password'][$AccountId])
+                        ->setContent('&nbsp;')
+                        , '4%'
+                    )
+                )
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '4%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('Für das erstmalige Login verwenden Sie bitte folgendes Passwort: '
+                        .$this->FieldValue['Password'][$AccountId])
                         ->stylePaddingTop()
-                        ->stylePaddingLeft('10px')
-                        , '30%'
+                        , '92%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
@@ -1059,51 +876,8 @@ class MultiPassword extends AbstractDocument
                         , '4%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Wir haben vor, unser Serviceangebot im Internet schrittweise zu erweitern, sofern 
-                        das von Euch gewünscht ist. Anregungen und Verbesserungsvorschläge dazu nimmt unser Sekretariat 
-                        gerne entgegen! ')
+                        ->setContent('Dieses Schreiben wurde maschinell erstellt und ist auch ohne Unterschrift rechtsgültig.')
                         ->stylePaddingTop('12px')
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Mit freundlichen Grüßen')
-                        ->stylePaddingTop('12px')
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent($this->FieldValue['SignerName'])
-                        ->stylePaddingTop('35px')
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent($this->FieldValue['SignerType'])
                     )
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')

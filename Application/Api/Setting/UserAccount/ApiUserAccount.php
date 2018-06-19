@@ -3,8 +3,13 @@ namespace SPHERE\Application\Api\Setting\UserAccount;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Contact\Web\Web;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Application\Setting\User\Account\Account;
+use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -14,13 +19,12 @@ use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
-use SPHERE\Common\Frontend\Form\Repository\Title;
+use SPHERE\Common\Frontend\Form\Repository\Title as FormTitle;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
-use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
@@ -235,77 +239,120 @@ class ApiUserAccount extends Extension implements IApiInterface
     {
 
         $SelectBoxContent = array();
+
+        $tblCompany = false;
+        $CompanyName = '';
+        $CompanyExtendedName = '';
+        $CompanyDistrict = '';
+        $CompanyStreet = '';
+        $CompanyCity = '';
+        $CompanyPLZCity = '';
+        $CompanyPhone = '';
+        $CompanyFax = '';
+        $CompanyMail = '';
+        $CompanyWeb = '';
+
+        $tblSchoolAll = School::useService()->getSchoolAll();
+        if($tblSchoolAll && count($tblSchoolAll) == 1){
+            $tblCompany = $tblSchoolAll[0]->getServiceTblCompany();
+            // get school from student
+        }
+
         if($GroupByTime){
             $tblUserAccountGroup = Account::useService()->getUserAccountByTimeGroupLimitList(new \DateTime($GroupByTime));
-            foreach ($tblUserAccountGroup as $GroupIdentifier =>$tblUserAccountList){
-                $SelectBoxContent[$GroupIdentifier] = $GroupIdentifier.'.te Liste aus maximal 30 Personen';
+            $tblPerson = false;
+            if(!$tblCompany){
+                foreach ($tblUserAccountGroup as $GroupIdentifier => $tblUserAccountList){
+                    $SelectBoxContent[$GroupIdentifier] = $GroupIdentifier.'.te Liste aus maximal 30 Personen';
+                    /** @var TblUserAccount $tblUserAccount */
+                    foreach($tblUserAccountList as $tblUserAccount){
+                        if($tblUserAccount->getType() == 'CUSTODY'){
+                            $IsParent = true;
+                        }
+                        if( !$tblPerson && ($tblPersonByAccount = $tblUserAccount->getServiceTblPerson())){
+                            if(Account::useService()->getCompanySchoolByPerson($tblPersonByAccount, $IsParent)){
+                                $tblCompany = Account::useService()->getCompanySchoolByPerson($tblPersonByAccount, $IsParent);
+                                break;
+                            }
+                        }
+                    }
+                }
             }
-        } else {
-            return new WarningMessage(new WarningIcon().' Form konnte nicht geladen werden.');
         }
 
 
-//        $tblSchoolAll = School::useService()->getSchoolAll();
-//        if(!$tblSchoolAll){
-//            $Warning = new WarningMessage('Es sind keine Schulen in den Mandanteneinstellungen hinterlegt.
-//            Um diese Funktionalität nutzen zu können ist dies zwingend erforderlich.');
-//        }
-
-        $CompanyPlace = '';
+        if($tblCompany){
+            $CompanyName = $tblCompany->getName();
+            $CompanyExtendedName = $tblCompany->getExtendedName();
+            if(($tblCompanyAddress = Address::useService()->getAddressByCompany($tblCompany))){
+                $CompanyStreet = $tblCompanyAddress->getStreetName().' '.$tblCompanyAddress->getStreetNumber();
+                if(($tblCity = $tblCompanyAddress->getTblCity())){
+                    $CompanyDistrict = $tblCity->getDistrict();
+                    $CompanyCity = $tblCity->getName();
+                    $CompanyPLZCity = $tblCity->getCode().' '.$tblCity->getName();
+                }
+            }
+            if(($tblPhoneToCompanyList = Phone::useService()->getPhoneAllByCompany($tblCompany))){
+                $tblPhone = false;
+                $tblFax = false;
+                foreach($tblPhoneToCompanyList as $tblPhoneToCompany){
+                    if(($tblType = $tblPhoneToCompany->getTblType())
+                        && $tblType->getName() == 'Geschäftlich'){
+                        $tblPhone = $tblPhoneToCompany->getTblPhone();
+                    }
+                    if(($tblType = $tblPhoneToCompany->getTblType())
+                        && $tblType->getName() == 'Fax'){
+                        $tblFax = $tblPhoneToCompany->getTblPhone();
+                    }
+                }
+                if($tblPhone){
+                    $CompanyPhone = $tblPhone->getNumber();
+                }
+                if($tblFax){
+                    $CompanyFax = $tblFax->getNumber();
+                }
+            }
+            if(($tblMailToCompanyList = \SPHERE\Application\Contact\Mail\Mail::useService()->getMailAllByCompany($tblCompany))){
+                $tblMail = false;
+                foreach($tblMailToCompanyList as $tblMailToCompany){
+                    if(($tblType = $tblMailToCompany->getTblType())
+                        && $tblType->getName() == 'Geschäftlich'){
+                        $tblMail = $tblMailToCompany->getTblMail();
+                    }
+                }
+                if($tblMail){
+                    $CompanyMail = $tblMail->getAddress();
+                }
+            }
+            if(($tblWebToCompanyList = Web::useService()->getWebAllByCompany($tblCompany))){
+                $tblWebToCompany = current($tblWebToCompanyList);
+                if(($tblWeb = $tblWebToCompany->getTblWeb())){
+                    $CompanyWeb = $tblWeb->getAddress();
+                }
+            }
+        }
 
         if(!isset($Data)){
             $Global = $this->getGlobal();
+            // HiddenField
             $Global->POST['Data']['GroupByTime'] = $GroupByTime;
             $Global->POST['Data']['IsParent'] = $IsParent;
-//
-            $Global->POST['Data']['SignerType'] = 'Geschäftsführer';
+//            $Global->POST['Data']['PersonId'] = $tblPerson->getId();
+            // School
+            $Global->POST['Data']['CompanyName']= $CompanyName;
+            $Global->POST['Data']['CompanyExtendedName'] = $CompanyExtendedName;
+            $Global->POST['Data']['CompanyDistrict'] = $CompanyDistrict;
+            $Global->POST['Data']['CompanyStreet'] = $CompanyStreet;
+            $Global->POST['Data']['CompanyCity'] = $CompanyPLZCity;
+            $Global->POST['Data']['Phone'] = $CompanyPhone;
+            $Global->POST['Data']['Fax'] = $CompanyFax;
+            $Global->POST['Data']['Mail'] = $CompanyMail;
+            $Global->POST['Data']['Web'] = $CompanyWeb;
+            // Signer
             $Global->POST['Data']['Date'] = (new \DateTime())->format('d.m.Y');
-            $Global->POST['Data']['Place'] = $CompanyPlace;
+            $Global->POST['Data']['Place'] = $CompanyCity;
             $Global->savePost();
         }
-
-//        $SelectBoxList = array();
-//        $SelectBoxList[] = new FormColumn(
-//            new Title(new TileBig().' Auswahl Schule')
-//        );
-//        if(isset($Warning)){
-//            $SelectBoxList[] = new FormColumn($Warning);
-//        } else {
-//            foreach($tblSchoolAll as $tblSchool){
-//                $tblCompany = $tblSchool->getServiceTblCompany();
-//                if($tblCompany){
-//
-//                    $tblCompanyAddress = Address::useService()->getAddressByCompany($tblCompany);
-//                    if(count($SelectBoxList) == 1){
-//                        $Global->POST['Data']['Company'] = $tblCompany->getId();
-//                        $Global->savePost();
-//                        $SelectBoxList[] = new FormColumn(
-//                            new Panel('Schule',
-//                                (new RadioBox('Data[Company]',
-//                                    $tblCompany->getName()
-//                                    .( $tblCompany->getExtendedName() != '' ?
-//                                        new Container($tblCompany->getExtendedName()) : null )
-//                                    .( $tblCompanyAddress ?
-//                                        new Container($tblCompanyAddress->getGuiTwoRowString()) : null )
-//                                    , $tblCompany->getId()))
-//                                , Panel::PANEL_TYPE_INFO)
-//                            , 4);
-//                    } else {
-//                        $SelectBoxList[] = new FormColumn(
-//                            new Panel('Schule',
-//                                new RadioBox('Data[Company]',
-//                                    $tblCompany->getName()
-//                                    .( $tblCompany->getExtendedName() != '' ?
-//                                        new Container($tblCompany->getExtendedName()) : null )
-//                                    .( $tblCompanyAddress ?
-//                                        new Container($tblCompanyAddress->getGuiTwoRowString()) : null )
-//                                    , $tblCompany->getId())
-//                                , Panel::PANEL_TYPE_INFO)
-//                            , 4);
-//                    }
-//                }
-//            }
-//        }
 
         return new Form(
             new FormGroup(array(
@@ -327,47 +374,47 @@ class ApiUserAccount extends Extension implements IApiInterface
                 )),
                 new FormRow(array(
                     new FormColumn(
-                        new Title(new TileBig().' Informationen Ansprechpartner')
-                    ),
+                        new FormTitle(new TileBig().' Informationen Schule')
+                        , 12)
+                )),
+                new FormRow(array(
                     new FormColumn(
-                        new Panel('Person',
-                            new TextField('Data[ContactPerson]', '', 'Name')
-                            ,Panel::PANEL_TYPE_INFO)
-                        , 4
-                    ),
+                        new Panel('Name der Schule',array(
+                            new TextField('Data[CompanyName]', '', 'Name'),
+                            new TextField('Data[CompanyExtendedName]', '', 'Namenszusatz')
+                        ),Panel::PANEL_TYPE_INFO)
+                        , 6),
+                    new FormColumn(
+                        new Panel('Kontaktinformation der Schule',array(
+                            new TextField('Data[CompanyDistrict]', '', 'Ortsteil'),
+                            new TextField('Data[CompanyStreet]', '', 'Straße'),
+                            new TextField('Data[CompanyCity]', '', 'PLZ/Ort'),
+                        ),Panel::PANEL_TYPE_INFO)
+                        , 6),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new FormTitle(new TileBig().' Informationen Briefkontakt')
+                        , 12)
+                )),
+                new FormRow(array(
                     new FormColumn(
                         new Panel('Kontaktinformation',array(
                             new TextField('Data[Phone]', '', 'Telefon'),
                             new TextField('Data[Fax]', '', 'Fax'),
-                        ),Panel::PANEL_TYPE_INFO)
-                        , 4
-                    ),
+                        ),Panel::PANEL_TYPE_INFO), 4),
                     new FormColumn(
                         new Panel('Internet Präsenz',array(
                             new TextField('Data[Mail]', '', 'E-Mail'),
                             new TextField('Data[Web]', '', 'Internet')
                         ), Panel::PANEL_TYPE_INFO)
-                        , 4
-                    ),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        new Title(new TileBig().' Informationen Signatur')
-                    ),
-                    new FormColumn(
-                        new Panel('Unterzeichner', array(
-                            new TextField('Data[SignerName]', '', 'Name'),
-                            new TextField('Data[SignerType]', '', 'Funktion'),
-                        ), Panel::PANEL_TYPE_INFO)
-                        , 4
-                    ),
+                        , 4),
                     new FormColumn(
                         new Panel('Ort, Datum', array(
                             new TextField('Data[Place]', '', 'Ort'),
                             new TextField('Data[Date]', '', 'Datum')
                         ), Panel::PANEL_TYPE_INFO)
-                        , 4
-                    ),
+                        , 4),
                 )),
             )), new Primary('Überprüfen & Weiter', null, true) , '\Api\Document\Standard\MultiPassword\Create'
         );

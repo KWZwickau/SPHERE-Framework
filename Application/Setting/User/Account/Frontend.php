@@ -1139,9 +1139,9 @@ class Frontend extends Extension implements IFrontendInterface
         $CompanyWeb = '';
         if($tblSchoolAll && count($tblSchoolAll) == 1){
             $tblCompany = $tblSchoolAll[0]->getServiceTblCompany();
-        // get school from student
         } elseif($tblSchoolAll && count($tblSchoolAll) > 1) {
             if($tblPerson){
+                // get school from student
                 $tblCompany = Account::useService()->getCompanySchoolByPerson($tblPerson, $IsParent);
             }
             // old method
@@ -1230,7 +1230,6 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->POST['Data']['Mail'] = $CompanyMail;
             $Global->POST['Data']['Web'] = $CompanyWeb;
             // Signer
-            $Global->POST['Data']['SignerType'] = 'Geschäftsführer';
             $Global->POST['Data']['Date'] = (new \DateTime())->format('d.m.Y');
             $Global->POST['Data']['Place'] = $CompanyCity;
             $Global->savePost();
@@ -1241,74 +1240,60 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(
                         new HiddenField('Data[PersonId]')
-                    , 4),
+                    , 1),
                     new FormColumn(
                         new HiddenField('Data[UserAccountId]')
                     , 1),
                     new FormColumn(
                         new HiddenField('Data[IsParent]')
                     , 1),
-                    new FormColumn(
-                        new HiddenField('Data[CompanyId]')
-                    , 1),
+//                    new FormColumn(
+//                        new HiddenField('Data[CompanyId]')
+//                    , 1),
                 )),
                 new FormRow(array(
                     new FormColumn(
                         new \SPHERE\Common\Frontend\Form\Repository\Title(new TileBig().' Informationen Schule')
-                    ),
+                    , 12)
+                )),
+                new FormRow(array(
                     new FormColumn(
                         new Panel('Name der Schule',array(
                             new TextField('Data[CompanyName]', '', 'Name'),
                             new TextField('Data[CompanyExtendedName]', '', 'Namenszusatz')
-                            ),Panel::PANEL_TYPE_INFO)
-                        , 4
-                    ),
+                        ),Panel::PANEL_TYPE_INFO)
+                    , 6),
                     new FormColumn(
                         new Panel('Kontaktinformation der Schule',array(
                             new TextField('Data[CompanyDistrict]', '', 'Ortsteil'),
                             new TextField('Data[CompanyStreet]', '', 'Straße'),
                             new TextField('Data[CompanyCity]', '', 'PLZ/Ort'),
                         ),Panel::PANEL_TYPE_INFO)
-                        , 4
-                    ),
+                    , 6),
                 )),
                 new FormRow(array(
                     new FormColumn(
-                        new \SPHERE\Common\Frontend\Form\Repository\Title(new TileBig().' Informationen Ansprechpartner')
-                    ),
+                        new \SPHERE\Common\Frontend\Form\Repository\Title(new TileBig().' Informationen Briefkontakt')
+                    , 12)
+                )),
+                new FormRow(array(
                     new FormColumn(
                         new Panel('Kontaktinformation',array(
                             new TextField('Data[Phone]', '', 'Telefon'),
                             new TextField('Data[Fax]', '', 'Fax'),
-                            ),Panel::PANEL_TYPE_INFO)
-                        , 4
-                    ),
+                        ),Panel::PANEL_TYPE_INFO), 4),
                     new FormColumn(
                         new Panel('Internet Präsenz',array(
                             new TextField('Data[Mail]', '', 'E-Mail'),
                             new TextField('Data[Web]', '', 'Internet')
                         ), Panel::PANEL_TYPE_INFO)
-                        , 4
-                    ),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        new \SPHERE\Common\Frontend\Form\Repository\Title(new TileBig().' Informationen Signatur')
-                    ),
-                    new FormColumn(
-                        new Panel('Unterzeichner', array(
-                            new TextField('Data[SignerName]', '', 'Name'),
-                            new TextField('Data[SignerType]', '', 'Funktion'),
-                        ), Panel::PANEL_TYPE_INFO)
-                        , 4
-                    ),
+                    , 4),
                     new FormColumn(
                         new Panel('Ort, Datum', array(
                             new TextField('Data[Place]', '', 'Ort'),
                             new TextField('Data[Date]', '', 'Datum')
                         ), Panel::PANEL_TYPE_INFO)
-                        , 4
-                    ),
+                    , 4),
                 )),
                 new FormRow(
                     new FormColumn(
