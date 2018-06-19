@@ -2721,7 +2721,8 @@ abstract class Certificate extends Extension
                             , $widthText);
                     }
 
-                    $TextSizeSmall = '8px';
+                    // Zeugnistext soll nicht verkleinert werden SSW-2331
+//                    $TextSizeSmall = '8px';
 
                     $SubjectSection->addElementColumn((new Element())
                         ->setContent('{% if(Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
@@ -2732,28 +2733,31 @@ abstract class Certificate extends Extension
                         ->styleAlignCenter()
                         ->styleBackgroundColor('#E9E9E9')
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
-                        ->stylePaddingTop(
-                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
-                                 4px
-                             {% else %}
-                                 2px
-                             {% endif %}'
-                        )
-                        ->stylePaddingBottom(
-                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
-                                 5px
-                             {% else %}
-                                 2px
-                             {% endif %}'
-                        )
+//                        ->stylePaddingTop(
+//                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+//                                 4px
+//                             {% else %}
+//                                 2px
+//                             {% endif %}'
+//                        )
+//                        ->stylePaddingBottom(
+//                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+//                                 5px
+//                             {% else %}
+//                                 2px
+//                             {% endif %}'
+//                        )
+                        ->stylePaddingTop('2px')
+                        ->stylePaddingBottom('2px')
                         ->styleMarginTop($isShrinkMarginTop ? '0px' : $marginTop)
-                        ->styleTextSize(
-                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
-                                 ' . $TextSizeSmall . '
-                             {% else %}
-                                 ' . $TextSize . '
-                             {% endif %}'
-                        )
+                        ->styleTextSize($TextSize)
+//                        ->styleTextSize(
+//                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+//                                 ' . $TextSizeSmall . '
+//                             {% else %}
+//                                 ' . $TextSize . '
+//                             {% endif %}'
+//                        )
                         , $widthGrade);
 
                     if ($isShrinkMarginTop && $Lane == 2) {
