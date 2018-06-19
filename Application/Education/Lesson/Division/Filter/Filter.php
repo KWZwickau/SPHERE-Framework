@@ -23,6 +23,7 @@ use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -341,14 +342,23 @@ class Filter extends Extension
         if (($tblDivisionSubject = $this->getTblDivisionSubject())
             && ($tblSubjectGroup = $this->getTblSubjectGroup())
             && ($tblSubject = $this->getTblSubject())
-            && ($tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject))
+//            && ($tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject))
+            && ($tblDivision = $tblDivisionSubject->getTblDivision())
+            && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
         ) {
-            foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                if (($tblPerson = $tblSubjectStudent->getServiceTblPerson())) {
+            foreach ($tblPersonList as $tblPerson) {
+                // Validierung Bildungsmodul -> Schülerakte
+                if (Division::useService()->exitsSubjectStudent($tblDivisionSubject, $tblPerson)) {
 
                     $list = $this->getIsNotFulfilledByPerson($tblPerson, $tblSubject, $tblSubjectGroup,
                         $tblDivisionSubject, $list);
                 }
+                // Validierung Bildungsmodul -> Schülerakte
+                else {
+                    $list = $this->getIsFulfilledButNotInGroupByPerson($tblPerson, $tblSubject, $tblSubjectGroup,
+                        $tblDivisionSubject, $list);
+                }
+                // todo Validierung "Stundentaffel"
             }
         }
 
@@ -360,18 +370,35 @@ class Filter extends Extension
      */
     public function getMessageForSubjectGroup()
     {
+        // todo wird nicht aktualisiert
         $list = array();
-        if (($tblDivisionSubject = $this->getTblDivisionSubject())
-            && ($tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject))
-        ) {
-            foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                if (($tblPerson = $tblSubjectStudent->getServiceTblPerson())
-                    && !$this->isFilterFulfilledByPerson($tblPerson)
-                ) {
-                    $list[$tblPerson->getId()] = $tblPerson->getLastFirstName();
-                }
-            }
-        }
+//        if (($tblDivisionSubject = $this->getTblDivisionSubject())
+////            && ($tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject))
+//            && ($tblDivision = $tblDivisionSubject->getTblDivision())
+//            && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
+//        ) {
+////            foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+////                if (($tblPerson = $tblSubjectStudent->getServiceTblPerson())
+////                    && !$this->isFilterFulfilledByPerson($tblPerson)
+////                ) {
+////                    $list[$tblPerson->getId()] = $tblPerson->getLastFirstName();
+////                }
+////            }
+//            foreach ($tblPersonList as $tblPerson) {
+//                // Validierung Bildungsmodul -> Schülerakte
+//                // todo
+//                if (Division::useService()->exitsSubjectStudent($tblDivisionSubject, $tblPerson)) {
+//
+//                    $list[$tblPerson->getId()] =  new Exclamation() . ' ' . $tblPerson->getLastFirstName() . ' ist in dieser Fach-Gruppe';
+//                }
+//                // Validierung Bildungsmodul -> Schülerakte
+//                // todo
+//                else {
+//                    $list[$tblPerson->getId()] =  new Ban() . ' ' . $tblPerson->getLastFirstName() . ' ist '. new Bold('nicht') . ' in dieser Fach-Gruppe';
+//                }
+//                // todo Validierung "Stundentaffel"
+//            }
+//        }
 
         return empty($list)
             ? false
@@ -910,9 +937,9 @@ class Filter extends Extension
         $showDivision = false
     ) {
 
-        $prefix = '';
+        $prefix = new Exclamation() . ' ist in ';
         if ($showDivision && ($tblDivision = $tblDivisionSubject->getTblDivision())) {
-            $prefix = 'Klasse: ' . $tblDivision->getDisplayName() . '&nbsp;&nbsp;&nbsp;';
+            $prefix .= 'Klasse: ' . $tblDivision->getDisplayName() . '&nbsp;&nbsp;&nbsp;';
         }
         if (($tblGroup = $this->getTblGroup()) && !$this->hasGroup($tblPerson)) {
             $list[$tblPerson->getId()]['Filters']['Group']['Field'] = Filter::DESCRIPTION_GROUP;
@@ -1001,6 +1028,123 @@ class Filter extends Extension
                 . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
                 . 'Filter: ' . $tblSubjectElective->getName();
         }
+
+        return $list;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblSubject $tblSubject
+     * @param TblSubjectGroup $tblSubjectGroup
+     * @param TblDivisionSubject $tblDivisionSubject
+     * @param $list
+     * @param bool $showDivision
+     *
+     * @return mixed
+     */
+    public function getIsFulfilledButNotInGroupByPerson(
+        TblPerson $tblPerson,
+        TblSubject $tblSubject,
+        TblSubjectGroup $tblSubjectGroup,
+        TblDivisionSubject $tblDivisionSubject,
+        $list,
+        $showDivision = false
+    ) {
+
+        // todo multi-filter
+
+        $prefix = new Ban() .  ' ist ' . new Bold('nicht') . ' in ';
+        if ($showDivision && ($tblDivision = $tblDivisionSubject->getTblDivision())) {
+            $prefix .= 'Klasse: ' . $tblDivision->getDisplayName() . '&nbsp;&nbsp;&nbsp;';
+        }
+        if (($tblGroup = $this->getTblGroup()) && $this->hasGroup($tblPerson)) {
+            $list[$tblPerson->getId()]['Filters']['Group']['Field'] = Filter::DESCRIPTION_GROUP;
+            $list[$tblPerson->getId()]['Filters']['Group']['Value'] = $this->getTblGroupsStringByPerson($tblPerson);
+
+            $list[$tblPerson->getId()]['Filters']['Group']['DivisionSubjects'][$tblDivisionSubject->getId()]
+                = $prefix
+                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Filter: ' . $tblGroup->getName();
+        }
+
+        if (($tblGender = $this->getTblGender()) && $this->hasGender($tblPerson)) {
+            $list[$tblPerson->getId()]['Filters']['Gender']['Field'] = Filter::DESCRIPTION_GENDER;
+            $list[$tblPerson->getId()]['Filters']['Gender']['Value'] = $this->getTblGenderStringByPerson($tblPerson);
+
+            $list[$tblPerson->getId()]['Filters']['Gender']['DivisionSubjects'][$tblDivisionSubject->getId()]
+                = $prefix
+                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Filter: ' . $tblGender->getName();
+        }
+
+        if (($tblCourse = $this->getTblCourse()) && $this->hasCourse($tblPerson)) {
+            $list[$tblPerson->getId()]['Filters']['Course']['Field'] = Filter::DESCRIPTION_COURSE;
+            $list[$tblPerson->getId()]['Filters']['Course']['Value'] = $this->getTblCourseStringByPerson($tblPerson);
+
+            $list[$tblPerson->getId()]['Filters']['Course']['DivisionSubjects'][$tblDivisionSubject->getId()]
+                = $prefix
+                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Filter: ' . $tblCourse->getName();
+        }
+
+        if (($tblSubjectOrientation = $this->getTblSubjectOrientation()) && $this->hasSubjectOrientation($tblPerson)) {
+            $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Field'] = Filter::DESCRIPTION_SUBJECT_ORIENTATION;
+            $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Value'] = $this->getTblSubjectOrientationStringByPerson($tblPerson);
+
+            $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['DivisionSubjects'][$tblDivisionSubject->getId()]
+                = $prefix
+                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Filter: ' . $tblSubjectOrientation->getName();
+        }
+
+        if (($tblSubjectProfile = $this->getTblSubjectProfile()) && $this->hasSubjectProfile($tblPerson)) {
+            $list[$tblPerson->getId()]['Filters']['SubjectProfile']['Field'] = Filter::DESCRIPTION_SUBJECT_PROFILE;
+            $list[$tblPerson->getId()]['Filters']['SubjectProfile']['Value'] = $this->getTblSubjectProfileStringByPerson($tblPerson);
+
+            $list[$tblPerson->getId()]['Filters']['SubjectProfile']['DivisionSubjects'][$tblDivisionSubject->getId()]
+                = $prefix
+                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Filter: ' . $tblSubjectProfile->getName();
+        }
+
+        if (($tblSubjectForeignLanguage = $this->getTblSubjectForeignLanguage()) && $this->hasSubjectForeignLanguage($tblPerson)) {
+            $list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['Field'] = Filter::DESCRIPTION_SUBJECT_FOREIGN_LANGUAGE;
+            $list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['Value'] = $this->getTblSubjectForeignLanguagesStringByPerson($tblPerson);
+
+            $list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['DivisionSubjects'][$tblDivisionSubject->getId()]
+                = $prefix
+                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Filter: ' . $tblSubjectForeignLanguage->getName();
+        }
+
+        if (($tblSubjectReligion = $this->getTblSubjectReligion()) && $this->hasSubjectReligion($tblPerson)) {
+            $list[$tblPerson->getId()]['Filters']['SubjectReligion']['Field'] = Filter::DESCRIPTION_SUBJECT_RELIGION;
+            $list[$tblPerson->getId()]['Filters']['SubjectReligion']['Value'] = $this->getTblSubjectReligionStringByPerson($tblPerson);
+
+            $list[$tblPerson->getId()]['Filters']['SubjectReligion']['DivisionSubjects'][$tblDivisionSubject->getId()]
+                = $prefix
+                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Filter: ' . $tblSubjectReligion->getName();
+        }
+
+        if (($tblSubjectElective = $this->getTblSubjectElective()) && $this->hasSubjectElective($tblPerson)) {
+            $list[$tblPerson->getId()]['Filters']['SubjectElective']['Field'] = Filter::DESCRIPTION_SUBJECT_ELECTIVE;
+            $list[$tblPerson->getId()]['Filters']['SubjectElective']['Value'] = $this->getTblSubjectElectivesStringByPerson($tblPerson);
+
+            $list[$tblPerson->getId()]['Filters']['SubjectElective']['DivisionSubjects'][$tblDivisionSubject->getId()]
+                = $prefix
+                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Filter: ' . $tblSubjectElective->getName();
+        }
+
         return $list;
     }
 }

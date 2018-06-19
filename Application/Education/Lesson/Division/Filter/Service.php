@@ -144,14 +144,23 @@ class Service
                             $filter = new Filter($tblDivisionSubject);
                             $filter->load();
 
-                            $list = $filter->getIsNotFulfilledByPerson(
-                                $tblPerson,
-                                $tblSubject,
-                                $tblSubjectGroup,
-                                $tblDivisionSubject,
-                                $list,
-                                true
-                            );
+                            // Validierung Bildungsmodul -> Schülerakte
+                            if (Division::useService()->exitsSubjectStudent($tblDivisionSubject, $tblPerson)) {
+                                $list = $filter->getIsNotFulfilledByPerson(
+                                    $tblPerson,
+                                    $tblSubject,
+                                    $tblSubjectGroup,
+                                    $tblDivisionSubject,
+                                    $list,
+                                    true
+                                );
+                            }
+                            // Validierung Bildungsmodul -> Schülerakte
+                            else {
+                                $list = $filter->getIsFulfilledButNotInGroupByPerson($tblPerson, $tblSubject, $tblSubjectGroup,
+                                    $tblDivisionSubject, $list);
+                            }
+                            // todo Validierung "Stundentaffel"
                         }
                     }
                 }
