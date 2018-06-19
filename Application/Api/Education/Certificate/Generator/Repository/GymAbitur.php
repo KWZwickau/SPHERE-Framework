@@ -1729,7 +1729,9 @@ class GymAbitur extends Certificate
         $firstMemberName = '&nbsp;';
         $secondMemberName = '&nbsp;';
 
-        if (($tblGenerateCertificate = $this->getTblPrepareCertificate()->getServiceTblGenerateCertificate())) {
+        if ($this->getTblPrepareCertificate()
+            && ($tblGenerateCertificate = $this->getTblPrepareCertificate()->getServiceTblGenerateCertificate())
+        ) {
 
             if (($tblGenerateCertificateSettingLeader = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'Leader'))
                 && ($tblPersonLeader = Person::useService()->getPersonById($tblGenerateCertificateSettingLeader->getValue()))
