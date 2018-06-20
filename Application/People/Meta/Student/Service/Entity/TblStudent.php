@@ -358,4 +358,80 @@ class TblStudent extends Element
 
         return Student::useService()->getCourseByStudent($this);
     }
+
+    /**
+     * @return bool|\SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject
+     */
+    public function getTblSubjectOrientation()
+    {
+        if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION'))
+            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($this,
+                $tblStudentSubjectType))
+        ) {
+            /** @var TblStudentSubject $tblStudentSubject */
+            $tblStudentSubject = current($tblStudentSubjectList);
+
+            return $tblStudentSubject->getServiceTblSubject();
+        }
+
+        return false;
+    }
+
+    /**
+     * @param $Ranking
+     *
+     * @return bool|\SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject
+     */
+    public function getTblSubjectForeignLanguage($Ranking)
+    {
+        if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'))
+            && ($tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($Ranking))
+            && ($tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking(
+                $this,
+                $tblStudentSubjectType,
+                $tblStudentSubjectRanking
+            ))
+        ) {
+
+            return $tblStudentSubject->getServiceTblSubject();
+        }
+
+        return false;
+    }
+
+    /**
+     * @return bool|\SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject
+     */
+    public function getTblSubjectProfile()
+    {
+        if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('PROFILE'))
+            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($this,
+                $tblStudentSubjectType))
+        ) {
+            /** @var TblStudentSubject $tblStudentSubject */
+            $tblStudentSubject = current($tblStudentSubjectList);
+
+            return $tblStudentSubject->getServiceTblSubject();
+        }
+
+        return false;
+    }
+
+    /**
+     * @return bool|\SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject
+     */
+    public function getTblSubjectReligion()
+    {
+        if (($tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('RELIGION'))
+            && ($tblStudentSubjectList = Student::useService()->getStudentSubjectAllByStudentAndSubjectType($this,
+                $tblStudentSubjectType))
+        ) {
+            /** @var TblStudentSubject $tblStudentSubject */
+            $tblStudentSubject = current($tblStudentSubjectList);
+
+            return $tblStudentSubject->getServiceTblSubject();
+        }
+
+        return false;
+    }
 }

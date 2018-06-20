@@ -357,7 +357,6 @@ class Filter extends Extension
                     $list = $this->getIsFulfilledButNotInGroupByPerson($tblPerson, $tblSubject, $tblSubjectGroup,
                         $tblDivisionSubject, $list);
                 }
-                // todo Validierung "Stundentaffel"
             }
         }
 
@@ -387,7 +386,6 @@ class Filter extends Extension
                         $list[$tblPerson->getId()] = new Ban() . ' ' . $tblPerson->getLastFirstName() . ' ist ' . new Bold('nicht') . ' in dieser Fach-Gruppe';
                     }
                 }
-                // todo Validierung "Stundentaffel"
             }
         }
 
