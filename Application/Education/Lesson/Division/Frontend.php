@@ -908,18 +908,15 @@ class Frontend extends Extension implements IFrontendInterface
             . new Container(new Danger('"Schüler in Rot"') . ' stimmen nicht mit der Filterung in dieser Fach-Gruppe überein.')
         );
 
-        $message = $filter->getMessageForSubjectGroup();
-
         $Stage->setContent(
             new Layout(array(
-                $message ?
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                $message
-                            )
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            StudentGroupSelect::receiverMessage(StudentGroupSelect::getMessage($DivisionSubjectId))
                         )
-                    ) : null,
+                    )
+                ),
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(

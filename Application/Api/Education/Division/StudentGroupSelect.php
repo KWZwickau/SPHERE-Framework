@@ -11,6 +11,7 @@ namespace SPHERE\Application\Api\Education\Division;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Lesson\Division\Division as DivisionApplication;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Filter\Filter;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
@@ -50,6 +51,7 @@ class StudentGroupSelect extends Extension implements IApiInterface
         $Dispatcher = new Dispatcher(__CLASS__);
 
         $Dispatcher->registerMethod('tablePerson');
+        $Dispatcher->registerMethod('getMessage');
         $Dispatcher->registerMethod('serviceAddPerson');
         $Dispatcher->registerMethod('serviceRemovePerson');
 
@@ -64,6 +66,16 @@ class StudentGroupSelect extends Extension implements IApiInterface
     public static function receiverUsed($Content = '')
     {
         return (new BlockReceiver($Content))->setIdentifier('UsedReceiver');
+    }
+
+    /**
+     * @param string $Content
+     *
+     * @return BlockReceiver
+     */
+    public static function receiverMessage($Content = '')
+    {
+        return (new BlockReceiver($Content))->setIdentifier('MessageReceiver');
     }
 
     /**
@@ -385,6 +397,23 @@ class StudentGroupSelect extends Extension implements IApiInterface
     }
 
     /**
+     * @param null $DivisionSubjectId
+     *
+     * @return bool|null|\SPHERE\Common\Frontend\Message\Repository\Danger
+     */
+    public static function getMessage($DivisionSubjectId = null)
+    {
+        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
+            $filter = new Filter($tblDivisionSubject);
+            $filter->load();
+
+            return $filter->getMessageForSubjectGroup();
+        }
+
+        return null;
+    }
+
+    /**
      * @param null $Id
      * @param null $DivisionSubjectId
      *
@@ -408,6 +437,14 @@ class StudentGroupSelect extends Extension implements IApiInterface
         $Emitter = new ServerEmitter(self::receiverUsed(), self::getEndpoint());
         $Emitter->setPostPayload(array(
             self::API_TARGET => 'tablePerson',
+            'DivisionSubjectId' => $DivisionSubjectId
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        // refresh Message
+        $Emitter = new ServerEmitter(self::receiverMessage(), self::getEndpoint());
+        $Emitter->setPostPayload(array(
+            self::API_TARGET => 'getMessage',
             'DivisionSubjectId' => $DivisionSubjectId
         ));
         $Pipeline->appendEmitter($Emitter);
@@ -457,6 +494,14 @@ class StudentGroupSelect extends Extension implements IApiInterface
         $Emitter = new ServerEmitter(self::receiverUsed(), self::getEndpoint());
         $Emitter->setPostPayload(array(
             self::API_TARGET => 'tablePerson',
+            'DivisionSubjectId' => $DivisionSubjectId
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        // refresh Message
+        $Emitter = new ServerEmitter(self::receiverMessage(), self::getEndpoint());
+        $Emitter->setPostPayload(array(
+            self::API_TARGET => 'getMessage',
             'DivisionSubjectId' => $DivisionSubjectId
         ));
         $Pipeline->appendEmitter($Emitter);

@@ -342,7 +342,6 @@ class Filter extends Extension
         if (($tblDivisionSubject = $this->getTblDivisionSubject())
             && ($tblSubjectGroup = $this->getTblSubjectGroup())
             && ($tblSubject = $this->getTblSubject())
-//            && ($tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject))
             && ($tblDivision = $tblDivisionSubject->getTblDivision())
             && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
         ) {
@@ -370,38 +369,30 @@ class Filter extends Extension
      */
     public function getMessageForSubjectGroup()
     {
-        // todo wird nicht aktualisiert
         $list = array();
-//        if (($tblDivisionSubject = $this->getTblDivisionSubject())
-////            && ($tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject))
-//            && ($tblDivision = $tblDivisionSubject->getTblDivision())
-//            && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
-//        ) {
-////            foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-////                if (($tblPerson = $tblSubjectStudent->getServiceTblPerson())
-////                    && !$this->isFilterFulfilledByPerson($tblPerson)
-////                ) {
-////                    $list[$tblPerson->getId()] = $tblPerson->getLastFirstName();
-////                }
-////            }
-//            foreach ($tblPersonList as $tblPerson) {
-//                // Validierung Bildungsmodul -> Schülerakte
-//                // todo
-//                if (Division::useService()->exitsSubjectStudent($tblDivisionSubject, $tblPerson)) {
-//
-//                    $list[$tblPerson->getId()] =  new Exclamation() . ' ' . $tblPerson->getLastFirstName() . ' ist in dieser Fach-Gruppe';
-//                }
-//                // Validierung Bildungsmodul -> Schülerakte
-//                // todo
-//                else {
-//                    $list[$tblPerson->getId()] =  new Ban() . ' ' . $tblPerson->getLastFirstName() . ' ist '. new Bold('nicht') . ' in dieser Fach-Gruppe';
-//                }
-//                // todo Validierung "Stundentaffel"
-//            }
-//        }
+        if (($tblDivisionSubject = $this->getTblDivisionSubject())
+            && ($tblDivision = $tblDivisionSubject->getTblDivision())
+            && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
+        ) {
+            foreach ($tblPersonList as $tblPerson) {
+                // Validierung Bildungsmodul -> Schülerakte
+                if (Division::useService()->exitsSubjectStudent($tblDivisionSubject, $tblPerson)) {
+                    if (!$this->isFilterFulfilledByPerson($tblPerson)) {
+                        $list[$tblPerson->getId()] = new Exclamation() . ' ' . $tblPerson->getLastFirstName() . ' ist in dieser Fach-Gruppe';
+                    }
+                }
+                // Validierung Bildungsmodul -> Schülerakte
+                else {
+                    if ($this->isFilterFulfilledByPerson($tblPerson)) {
+                        $list[$tblPerson->getId()] = new Ban() . ' ' . $tblPerson->getLastFirstName() . ' ist ' . new Bold('nicht') . ' in dieser Fach-Gruppe';
+                    }
+                }
+                // todo Validierung "Stundentaffel"
+            }
+        }
 
         return empty($list)
-            ? false
+            ? null
             : new Danger(
                 new Bold(new Exclamation() . ' Folgende Schüler in dieser Fach-Gruppe stimmen nicht mit der Filterung überein:')
                 . '</br>'
