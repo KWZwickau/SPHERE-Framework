@@ -996,12 +996,13 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $PdfButton = '';
                     if($tblUserAccountTarget->getGroupByCount()){
-                        $PdfButton = (new Standard('', ApiUserAccount::getEndpoint(), new Mail()
+                        $PdfButton = (new Standard('', ApiUserAccount::getEndpoint(), new Mail(), array()
+                            , 'Download als PDF'
                             ))->ajaxPipelineOnClick(ApiUserAccount::pipelineShowLoad($GroupByTime));
                     }
 
                     $item['Option'] = new External('', '/Api/Setting/UserAccount/Download', new Download()
-                            , array('GroupByTime' => $GroupByTime), false)
+                            , array('GroupByTime' => $GroupByTime), 'Download als Excel')
                         .$PdfButton
                         .new Standard('', '/Setting/User/Account/Clear', new Remove(),
                             array('GroupByTime' => $GroupByTime),
@@ -1072,7 +1073,7 @@ class Frontend extends Extension implements IFrontendInterface
                 return $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
                         new Panel('Person', new WarningMessage('Person wurde nicht gefunden')
-                        . new DangerMessage('Account ohne Person kann nicht gangeschrieben werden.'))
+                        . new DangerMessage('Account ohne Person kann nicht angeschrieben werden.'))
                         .new Redirect($Path, Redirect::TIMEOUT_ERROR)
                     )
                 )))));

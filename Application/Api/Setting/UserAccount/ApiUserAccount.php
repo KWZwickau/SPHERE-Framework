@@ -40,6 +40,8 @@ use SPHERE\Common\Frontend\Message\Repository\Success as SuccessMessage;
 use SPHERE\Common\Frontend\Message\Repository\Warning as WarningMessage;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -258,12 +260,24 @@ class ApiUserAccount extends Extension implements IApiInterface
             // get school from student
         }
 
+        $ErrorAccountList = array();
         if($GroupByTime){
             $tblUserAccountGroup = Account::useService()->getUserAccountByTimeGroupLimitList(new \DateTime($GroupByTime));
             $tblPerson = false;
             if(!$tblCompany){
                 foreach ($tblUserAccountGroup as $GroupIdentifier => $tblUserAccountList){
-                    $SelectBoxContent[$GroupIdentifier] = $GroupIdentifier.'.te Liste aus maximal 30 Personen';
+                    $IsError = false;
+                    /** @var TblUserAccount $tblUserAccount */
+                    foreach($tblUserAccountList as $tblUserAccount) {
+                        if(!$tblUserAccount->getServiceTblPerson()){
+                            if(($tblAccount = $tblUserAccount->getServiceTblAccount())){
+                                $ErrorAccountList[] = $tblAccount->getUsername();
+                                $IsError = true;
+                            }
+                        }
+                    }
+                    $SelectBoxContent[$GroupIdentifier] = $GroupIdentifier.'.te Liste aus '.count($tblUserAccountList).' Personen'.
+                        ($IsError ? new Small(' Hinweis siehe Oben') : '');
                     /** @var TblUserAccount $tblUserAccount */
                     foreach($tblUserAccountList as $tblUserAccount){
                         if($tblUserAccount->getType() == 'CUSTODY'){
@@ -356,14 +370,38 @@ class ApiUserAccount extends Extension implements IApiInterface
 
         return new Form(
             new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new FormTitle(new TileBig().' Listenauswahl für den Download')
+                        , 12)
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new DangerMessage('Bitte achten Sie darauf, den nächsten PDF-Download erst zu starten,
+                        wenn der vorherige abgeschlossen ist')
+                    ),
+                    new FormColumn(
+                        new Layout(
+                            new LayoutGroup(
+                                new LayoutRow(
+                                    new LayoutColumn(
+                                        (!empty($ErrorAccountList)
+                                            ? new WarningMessage('Hinweis: Accounts ohne Person: '.implode(', ', $ErrorAccountList))
+                                            : ''
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                ))
+                ,
                 new FormRow(
                     new FormColumn(
-                        new SelectBox('Data[GroupByCount]', 'Listenauswahl für den Download', $SelectBoxContent)
+                        new Panel('Listen Auswahl '.new Muted(new Small('(Max 30 Personen)')), new SelectBox('Data[GroupByCount]', '', $SelectBoxContent),
+                            Panel::PANEL_TYPE_INFO)
                     )
                 ),
-//                new FormRow(
-//                    $SelectBoxList
-//                ),
                 new FormRow(array(
                     new FormColumn(
                         new HiddenField('Data[GroupByTime]')

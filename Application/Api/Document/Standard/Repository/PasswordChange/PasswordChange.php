@@ -58,14 +58,14 @@ class PasswordChange extends AbstractDocument
         $this->FieldValue['PersonFirstLastName'] = '';
         $this->FieldValue['PersonTitle'] = '';
         $this->FieldValue['PersonLastName'] = '';
-        $this->FieldValue['Gender'] = false;
+        $this->FieldValue['Gender'] = '';
         $this->FieldValue['UserAccount'] = '';
         $this->FieldValue['Street'] = '';
         $this->FieldValue['District'] = '';
         $this->FieldValue['City'] = '';
         // Text choose decision
         $this->FieldValue['IsParent'] = (isset($DataPost['IsParent']) ? $DataPost['IsParent'] : false);
-        $this->FieldValue['ChildCount'] = false;
+        $this->FieldValue['ChildCount'] = 0;
         // School
         $this->FieldValue['CompanyName'] = (isset($DataPost['CompanyName']) && $DataPost['CompanyName'] != '' ? $DataPost['CompanyName'] : '&nbsp;');
         $this->FieldValue['CompanyExtendedName'] = (isset($DataPost['CompanyExtendedName']) && $DataPost['CompanyExtendedName'] != '' ? $DataPost['CompanyExtendedName'] : '&nbsp;');

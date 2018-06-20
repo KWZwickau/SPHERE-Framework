@@ -275,7 +275,7 @@ class Creator extends Extension
             if ($Document) {
                 $File = self::buildDummyFile($Document, array(), array(), $paperOrientation);
 
-                $FileName = $Document->getName().' '.date("Y-m-d").".pdf";
+                $FileName = $Document->getName().'_'.date("Y-m-d").".pdf";
                 if ($DocumentName == 'MultiPassword') {
                     $FileName = $Document->getName().".pdf";
                 }
