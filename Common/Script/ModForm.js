@@ -18,7 +18,7 @@
          * Autocomplete Attribute OFF
          */
         thisForm.attr('autocomplete', 'off');
-        thisForm.find('input[type="password"]').attr('autocomplete', 'off');
+        thisForm.find('input[type="password"]').attr('autocomplete', 'new-password');
         thisForm.find('input[type="text"]').attr('autocomplete', 'off');
         thisForm.find('input[type="number"]').attr('autocomplete', 'off');
         /**
