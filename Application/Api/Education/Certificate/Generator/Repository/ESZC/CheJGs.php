@@ -255,8 +255,8 @@ class CheJGs extends Certificate
                         ->styleTextSize(self::TEXT_SIZE)
                         , '25%')
                     ->addElementColumn((new Element())
-                        ->setContent('{% if(Content.P' . $personId . '.Input.Transfer) %}
-                                    {{ Content.P' . $personId . '.Input.Transfer }}
+                        ->setContent('{% if(Content.P' . $personId . '.Input.IndividualTransfer) %}
+                                    {{ Content.P' . $personId . '.Input.IndividualTransfer }}
                                 {% else %}
                                       &nbsp;
                                 {% endif %}')
