@@ -35,7 +35,7 @@ class DataCacheHandler extends AbstractHandler
     {
 
         $this->Identifier = $Identifier;
-        $this->Handler = (new CacheFactory())->createHandler(new MemcachedHandler());
+        $this->Handler = (new CacheFactory())->createHandler((new MemcachedHandler())->setHashKey(false));
         if (!empty( $Dependencies )) {
             foreach ($Dependencies as $Element) {
                 $this->addDependency($Element);

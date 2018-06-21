@@ -1,4 +1,5 @@
 <?php
+
 namespace SPHERE\System\Cache\Handler;
 
 use SPHERE\System\Cache\CacheFactory;
@@ -22,6 +23,18 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
 
     private $Host = '';
     private $Port = '';
+    /** @var bool $HashKey */
+    private $HashKey = true;
+
+    /**
+     * @param bool $HashKey
+     * @return MemcachedHandler
+     */
+    public function setHashKey($HashKey)
+    {
+        $this->HashKey = $HashKey;
+        return $this;
+    }
 
     /**
      * @param                 $Name
@@ -162,16 +175,19 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
      * @internal
      *
      * @param mixed $Key
-     * @return int
+     * @return mixed
      */
     private function getKey($Key)
     {
-        // Fix array-to-string notice
-        if( is_array( $Key ) ){
-            $Key = serialize($Key);
+        if( $this->HashKey ) {
+            // Fix array-to-string notice
+            if( is_array( $Key ) ){
+                $Key = serialize($Key);
+            }
+            // Fix long keys resulting in wrong serialisation data
+            return crc32($Key);
         }
-        // Fix long keys resulting in wrong serialisation data
-        return crc32($Key);
+        return $Key;
     }
 
     /**
