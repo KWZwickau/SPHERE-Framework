@@ -3570,6 +3570,7 @@ class Frontend extends Extension implements IFrontendInterface
             if ($IsFinalGrade) {
                 $columnTable['Average'] = '&#216;';
                 $columnTable['EN'] = 'Jn (Jahresnote)';
+                $columnTable['Text'] = 'oder Zeugnistext';
                 $tableTitle = 'Jahresnote';
                 if ($tblNextSubject) {
                     $textSaveButton = 'Speichern und weiter zum nächsten Fach';
@@ -3598,6 +3599,7 @@ class Frontend extends Extension implements IFrontendInterface
             if ($IsFinalGrade) {
                 $columnTable['Average'] = '&#216;';
                 $columnTable['EN'] = 'En (Endnote)';
+                $columnTable['Text'] = 'oder Zeugnistext';
                 $tableTitle = 'Endnote';
                 if ($tblNextSubject) {
                     $textSaveButton = 'Speichern und weiter zum nächsten Fach';
@@ -3974,10 +3976,18 @@ class Frontend extends Extension implements IFrontendInterface
                                                 && ($tblPrepareAdditionalGradeType = $tblPrepareAdditionalGrade->getTblPrepareAdditionalGradeType())
                                                 && $tblPrepareAdditionalGradeType->getIdentifier() != 'PRIOR_YEAR_GRADE'
                                             ) {
-                                                $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareAdditionalGradeType->getIdentifier()]
-                                                    = $tblPrepareAdditionalGrade->getGrade();
-                                                if ($tblPrepareAdditionalGrade->getGrade()) {
-                                                    $gradeList[$tblPrepareAdditionalGradeType->getIdentifier()] = $tblPrepareAdditionalGrade->getGrade();
+                                                // Zeugnistext
+                                                if ($tblPrepareAdditionalGradeType->getIdentifier() == 'EN'
+                                                    && ($tblGradeText = Gradebook::useService()->getGradeTextByName($tblPrepareAdditionalGrade->getGrade()))
+                                                ) {
+                                                    $Global->POST['Data'][$tblPrepareStudent->getId()]['Text']
+                                                        = $tblGradeText->getId();
+                                                } else {
+                                                    $Global->POST['Data'][$tblPrepareStudent->getId()][$tblPrepareAdditionalGradeType->getIdentifier()]
+                                                        = $tblPrepareAdditionalGrade->getGrade();
+                                                    if ($tblPrepareAdditionalGrade->getGrade()) {
+                                                        $gradeList[$tblPrepareAdditionalGradeType->getIdentifier()] = $tblPrepareAdditionalGrade->getGrade();
+                                                    }
                                                 }
                                             }
                                         }
@@ -4062,6 +4072,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 }
                             }
 
+                            $tblGradeTextList = Gradebook::useService()->getGradeTextAll();
+
                             if ($isCourseMainDiploma && $tblPrepareStudent) {
                                 // Klasse 9 Hauptschule
                                 if (!$isMuted && $hasSubject) {
@@ -4088,7 +4100,17 @@ class Frontend extends Extension implements IFrontendInterface
                                         if ($isApproved) {
                                             $studentTable[$tblPerson->getId()]['EN'] =
                                                 (new NumberField('Data[' . $tblPrepareStudent->getId() . '][EN]'))->setDisabled();
+                                            if ($tblGradeTextList) {
+                                                $studentTable[$tblPerson->getId()]['Text'] = (new SelectBox('Data[' . $tblPrepareStudent->getId() . '][Text]',
+                                                    '',
+                                                    array(TblGradeText::ATTR_NAME => $tblGradeTextList)))->setDisabled();
+                                            }
                                         } else {
+                                            if ($tblGradeTextList) {
+                                                $studentTable[$tblPerson->getId()]['Text'] = (new SelectBox('Data[' . $tblPrepareStudent->getId() . '][Text]',
+                                                    '',
+                                                    array(TblGradeText::ATTR_NAME => $tblGradeTextList)))->setTabIndex($tabIndex++);
+                                            }
                                             $studentTable[$tblPerson->getId()]['EN'] =
                                                 (new NumberField('Data[' . $tblPrepareStudent->getId() . '][EN]'))->setTabIndex($tabIndex++);
                                         }
@@ -4129,9 +4151,19 @@ class Frontend extends Extension implements IFrontendInterface
                                         if ($isApproved) {
                                             $studentTable[$tblPerson->getId()]['EN'] =
                                                 (new NumberField('Data[' . $tblPrepareStudent->getId() . '][EN]'))->setDisabled();
+                                            if ($tblGradeTextList) {
+                                                $studentTable[$tblPerson->getId()]['Text'] = (new SelectBox('Data[' . $tblPrepareStudent->getId() . '][Text]',
+                                                    '',
+                                                    array(TblGradeText::ATTR_NAME => $tblGradeTextList)))->setDisabled();
+                                            }
                                         } else {
                                             $studentTable[$tblPerson->getId()]['EN'] =
                                                 (new NumberField('Data[' . $tblPrepareStudent->getId() . '][EN]'))->setTabIndex($tabIndex++);
+                                            if ($tblGradeTextList) {
+                                                $studentTable[$tblPerson->getId()]['Text'] = (new SelectBox('Data[' . $tblPrepareStudent->getId() . '][Text]',
+                                                    '',
+                                                    array(TblGradeText::ATTR_NAME => $tblGradeTextList)))->setTabIndex($tabIndex++);
+                                            }
                                         }
                                     }
                                 } else {
@@ -4139,7 +4171,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         = $studentTable[$tblPerson->getId()]['PS']
                                         = $studentTable[$tblPerson->getId()]['PM']
                                         = $studentTable[$tblPerson->getId()]['PZ']
-                                        = $studentTable[$tblPerson->getId()]['EN'] = '';
+                                        = $studentTable[$tblPerson->getId()]['EN']
+                                        = $studentTable[$tblPerson->getId()]['Text'] = '';
                                 }
                             }
                         }
@@ -4351,7 +4384,13 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('MsAbg');
                         } elseif ($tblType->getName() == 'Gymnasium') {
                             if ($tblLevel) {
-                                if (intval($tblLevel->getName()) <= 10) {
+                                // Herrnhut hat ein individuelles Abgangszeugnis
+                                if (($tblConsumer = Consumer::useService()->getConsumerBySession())
+                                    && ($tblConsumer->getAcronym() == 'EZSH')
+                                    && intval($tblLevel->getName()) == 10
+                                ){
+                                    $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('EZSH\EzshGymAbg');
+                                } elseif (intval($tblLevel->getName()) <= 10) {
                                     $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GymAbgSekI');
                                 } else {
                                     $tblCertificate = Generator::useService()->getCertificateByCertificateClassName('GymAbgSekII');
@@ -4679,16 +4718,34 @@ class Frontend extends Extension implements IFrontendInterface
 
             $datePicker = (new DatePicker('Data[InformationList][CertificateDate]', '', 'Zeugnisdatum',
                 new Calendar()))->setRequired();
-            $remarkTextArea = new TextArea('Data[InformationList][Remark]', '', 'Bemerkungen');
-            if ($isApproved) {
-                $datePicker->setDisabled();
-                $remarkTextArea->setDisabled();
+            if ($tblCertificate->getCertificate() == 'EZSH\EzshGymAbg') {
+                $arrangementTextArea = new TextArea('Data[InformationList][Arrangement]', '', 'Besonderes Engagement an den Zinzendorfschulen');
+                $remarkTextArea = new TextArea('Data[InformationList][RemarkWithoutTeam]', '', 'Bemerkungen');
+
+                if ($isApproved) {
+                    $datePicker->setDisabled();
+                    $arrangementTextArea->setDisabled();
+                    $remarkTextArea->setDisabled();
+                }
+                $otherInformationList = array(
+                    $datePicker,
+                    $arrangementTextArea,
+                    $remarkTextArea
+                );
+            } else {
+                $remarkTextArea = new TextArea('Data[InformationList][Remark]', '', 'Bemerkungen');
+
+                if ($isApproved) {
+                    $datePicker->setDisabled();
+                    $remarkTextArea->setDisabled();
+                }
+                $otherInformationList = array(
+                    $datePicker,
+                    $remarkTextArea
+                );
             }
-            $otherInformationList = array(
-                $datePicker,
-                $remarkTextArea
-            );
-            if ($tblCertificate->getCertificate() == 'GymAbgSekI') {
+
+            if ($tblCertificate->getCertificate() == 'GymAbgSekI' || $tblCertificate->getCertificate() == 'EZSH\EzshGymAbg') {
                 $radio1 = (new RadioBox(
                     'Data[InformationList][EqualGraduation]',
                     'gemäß § 7 Abs. 7 SchulG, mit der Versetzung von Klassenstufe 10 nach Jahrgangsstufe

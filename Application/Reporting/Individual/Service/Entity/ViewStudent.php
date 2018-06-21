@@ -152,8 +152,8 @@ class ViewStudent extends AbstractView
     {
 
 //        //NameDefinition
-        $this->setNameDefinition(self::TBL_STUDENT_BAPTISM_LOCATION, 'Schüler: Ort der Taufe');
-        $this->setNameDefinition(self::TBL_STUDENT_BAPTISM_DATE, 'Schüler: Datum der Taufe');
+        $this->setNameDefinition(self::TBL_STUDENT_BAPTISM_LOCATION, 'Allgemeines: Taufort');
+        $this->setNameDefinition(self::TBL_STUDENT_BAPTISM_DATE, 'Allgemeines: Taufedatum');
 
         $this->setNameDefinition(self::TBL_STUDENT_LOCKER_LOCKER_NUMBER, 'Allgemeines: Schließfachnummer');
         $this->setNameDefinition(self::TBL_STUDENT_LOCKER_LOCKER_LOCATION, 'Allgemeines: Schließfach Standort');

@@ -19,6 +19,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -151,6 +152,7 @@ class SignOutCertificate extends Extension
     {
 
         $Stage = new Stage('Schülerüberweisung', 'Erstellen');
+        $Stage->addButton(new Standard('Zurück', '/Document/Standard/SignOutCertificate', new ChevronLeft()));
         $tblPerson = Person::useService()->getPersonById($Id);
         $Global = $this->getGlobal();
         if ($tblPerson) {

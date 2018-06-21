@@ -1311,6 +1311,18 @@ class Service extends AbstractService
             }
             $Content['P' . $personId]['Input']['Remark'] = $remark;
 
+            $remarkWithoutTeam = '---';
+            if (($tblLeaveInformationRemarkWithoutTeam = $this->getLeaveInformationBy($tblLeaveStudent, 'RemarkWithoutTeam'))) {
+                $remarkWithoutTeam = $tblLeaveInformationRemarkWithoutTeam->getValue() ? $tblLeaveInformationRemarkWithoutTeam->getValue() : $remarkWithoutTeam;
+            }
+            $Content['P' . $personId]['Input']['RemarkWithoutTeam'] = $remarkWithoutTeam;
+
+            $arrangement = '---';
+            if (($tblLeaveInformationArrangement = $this->getLeaveInformationBy($tblLeaveStudent, 'Arrangement'))) {
+                $arrangement = $tblLeaveInformationArrangement->getValue() ? $tblLeaveInformationArrangement->getValue() : $arrangement;
+            }
+            $Content['P' . $personId]['Input']['Arrangement'] = $arrangement;
+
             // Zeugnisdatum
             if (($tblLeaveInformationCertificateDate = $this->getLeaveInformationBy($tblLeaveStudent, 'CertificateDate'))) {
                 $Content['P' . $personId]['Input']['Date'] = $tblLeaveInformationCertificateDate->getValue();
@@ -2347,7 +2359,7 @@ class Service extends AbstractService
             foreach ($Data as $personGrades) {
                 if (is_array($personGrades)) {
                     foreach ($personGrades as $identifier => $value) {
-                        if (trim($value) !== '') {
+                        if (trim($value) !== '' && $identifier !== 'Text') {
                             if (!preg_match('!^[1-6]{1}$!is', trim($value))) {
                                 $error = true;
                                 break;
@@ -2377,7 +2389,21 @@ class Service extends AbstractService
                     ) {
                         $this->setSignerFromSignedInPerson($tblPrepareStudent);
 
+                        $hasGradeText = false;
+                        $gradeText = '';
+                        if ((isset($personGrades['Text']))
+                            && ($tblGradeText = Gradebook::useService()->getGradeTextById($personGrades['Text']))
+                        ) {
+                            $hasGradeText = true;
+                            $gradeText = $tblGradeText->getName();
+                        }
+
                         foreach ($personGrades as $identifier => $value) {
+                            // GradeText als Endnote speichern
+                            if ($identifier == 'EN' && $hasGradeText) {
+                                $value = $gradeText;
+                            }
+
                             if (($tblPrepareAdditionalGradeType = $this->getPrepareAdditionalGradeTypeByIdentifier($identifier))) {
                                 if ($tblPrepareAdditionalGrade = $this->getPrepareAdditionalGradeBy(
                                     $tblPrepareItem, $tblPerson, $tblCurrentSubject, $tblPrepareAdditionalGradeType
@@ -3895,6 +3921,7 @@ class Service extends AbstractService
         ) {
             $ranking = 1;
             foreach ($Data['Grades'] as $subjectId => $value) {
+                $value = trim($value);
                 if (($tblSubject = Subject::useService()->getSubjectById($subjectId))) {
                     if (($tblPrepareAdditionalGrade = $this->getPrepareAdditionalGradeBy(
                         $tblPrepare,
@@ -3907,16 +3934,20 @@ class Service extends AbstractService
                             $value
                         );
                     } else {
-                        (new Data($this->getBinding()))->createPrepareAdditionalGrade(
-                            $tblPrepare,
-                            $tblPerson,
-                            $tblSubject,
-                            $tblPrepareAdditionalGradeType,
-                            $ranking++,
-                            $value
-                        );
+                        if ($value !== '') {
+                            (new Data($this->getBinding()))->createPrepareAdditionalGrade(
+                                $tblPrepare,
+                                $tblPerson,
+                                $tblSubject,
+                                $tblPrepareAdditionalGradeType,
+                                $ranking,
+                                $value
+                            );
+                        }
                     }
                 }
+
+                $ranking++;
             }
         }
 

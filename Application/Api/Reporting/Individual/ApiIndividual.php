@@ -1784,7 +1784,8 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 }
 
                 $Query->useQueryCache(true);
-                $Query->useResultCache(true, 300);
+                // der Cache soll Testweise auskommentiert werden #SSW-103
+//                $Query->useResultCache(true, 300);
                 $Query->setMaxResults(10000);
 
                 $this->getLogger( new QueryLogger() )->addLog( $Query->getSQL() );

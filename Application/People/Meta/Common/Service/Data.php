@@ -38,15 +38,23 @@ class Data extends AbstractData
     /**
      *
      * @param TblPerson $tblPerson
+     * @param bool      $IsForced
      *
      * @return bool|TblCommon
      */
-    public function getCommonByPerson(TblPerson $tblPerson)
+    public function getCommonByPerson(TblPerson $tblPerson, $IsForced = false)
     {
 
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCommon', array(
-            TblCommon::SERVICE_TBL_PERSON => $tblPerson->getId()
-        ));
+        if($IsForced){
+            return $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCommon', array(
+                TblCommon::SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+        } else {
+            return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCommon', array(
+                TblCommon::SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+        }
+
     }
 
     /**

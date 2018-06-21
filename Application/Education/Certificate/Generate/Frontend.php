@@ -116,21 +116,12 @@ class Frontend extends Extension
             && ($tblGenerateCertificateAllByYear = Generate::useService()->getGenerateCertificateAllByYear($tblYear))
         ) {
             foreach ($tblGenerateCertificateAllByYear as $tblGenerateCertificate) {
-                // Zusatz Option für Abiturzeugnisse
-                $hasAbiturCertificate = false;
+                // Zusatz Option für Abschlusszeugnisse
+                $hasDiplomaCertificate = false;
                 if (($tblGenerateCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
                     && $tblGenerateCertificateType->getIdentifier() == 'DIPLOMA'
-                    && ($tblPrepareCertificateList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))
                 ) {
-                    foreach ($tblPrepareCertificateList as $tblPrepareCertificate) {
-                        if (($tblDivision = $tblPrepareCertificate->getServiceTblDivision())
-                            && ($tblLevel = $tblDivision->getTblLevel())
-                            && $tblLevel->getName() == '12'
-                        ) {
-                            $hasAbiturCertificate = true;
-                            break;
-                        }
-                    }
+                    $hasDiplomaCertificate = true;
                 }
 
                 $tableData[] = array(
@@ -160,7 +151,7 @@ class Frontend extends Extension
                             )
                             , 'Zeugnisvorlagen zuordnen'
                         ))
-                        . ($hasAbiturCertificate
+                        . ($hasDiplomaCertificate
                             ? (new Standard(
                                 '', '/Education/Certificate/Generate/Setting', new Cog(),
                                 array(

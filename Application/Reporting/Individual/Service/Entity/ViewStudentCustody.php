@@ -41,6 +41,8 @@ class ViewStudentCustody extends AbstractView
     const TBL_ADDRESS_NATION_S1 = 'TblAddress_Nation_S1';
     const TBL_PHONE_NUMBER_S1 = 'TblPhone_Number_S1';
     const TBL_MAIL_ADDRESS_S1 = 'TblMail_Address_S1';
+    const TBL_MAIL_ADDRESS_PRIVATE_S1 = 'TblMail_AddressPrivate_S1';
+    const TBL_MAIL_ADDRESS_COMPANY_S1 = 'TblMail_AddressCompany_S1';
 
     // S2
     const TBL_SALUTATION_SALUTATION_S2 = 'TblSalutation_Salutation_S2';
@@ -59,6 +61,8 @@ class ViewStudentCustody extends AbstractView
     const TBL_ADDRESS_NATION_S2 = 'TblAddress_Nation_S2';
     const TBL_PHONE_NUMBER_S2 = 'TblPhone_Number_S2';
     const TBL_MAIL_ADDRESS_S2 = 'TblMail_Address_S2';
+    const TBL_MAIL_ADDRESS_PRIVATE_S2 = 'TblMail_AddressPrivate_S2';
+    const TBL_MAIL_ADDRESS_COMPANY_S2 = 'TblMail_AddressCompany_S2';
 
     // S3
     const TBL_SALUTATION_SALUTATION_S3 = 'TblSalutation_Salutation_S3';
@@ -77,6 +81,8 @@ class ViewStudentCustody extends AbstractView
     const TBL_ADDRESS_NATION_S3 = 'TblAddress_Nation_S3';
     const TBL_PHONE_NUMBER_S3 = 'TblPhone_Number_S3';
     const TBL_MAIL_ADDRESS_S3 = 'TblMail_Address_S3';
+    const TBL_MAIL_ADDRESS_PRIVATE_S3 = 'TblMail_AddressPrivate_S3';
+    const TBL_MAIL_ADDRESS_COMPANY_S3 = 'TblMail_AddressCompany_S3';
 
     /**
      * @return array
@@ -159,6 +165,14 @@ class ViewStudentCustody extends AbstractView
      * @Column(type="string")
      */
     protected $TblMail_Address_S1;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblMail_AddressPrivate_S1;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblMail_AddressCompany_S1;
 
     /**
      * @Column(type="string")
@@ -224,6 +238,14 @@ class ViewStudentCustody extends AbstractView
      * @Column(type="string")
      */
     protected $TblMail_Address_S2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblMail_AddressPrivate_S2;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblMail_AddressCompany_S2;
 
     /**
      * @Column(type="string")
@@ -289,6 +311,14 @@ class ViewStudentCustody extends AbstractView
      * @Column(type="string")
      */
     protected $TblMail_Address_S3;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblMail_AddressPrivate_S3;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblMail_AddressCompany_S3;
 
     /**
      * Use this method to set PropertyName to DisplayName conversions with "setNameDefinition()"
@@ -315,6 +345,8 @@ class ViewStudentCustody extends AbstractView
         $this->setNameDefinition(self::TBL_ADDRESS_NATION_S1, 'S1: Land');
         $this->setNameDefinition(self::TBL_PHONE_NUMBER_S1, 'S1: Telefon');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S1, 'S1: E-Mail');
+        $this->setNameDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_S1, 'S1: E-Mail Privat');
+        $this->setNameDefinition(self::TBL_MAIL_ADDRESS_COMPANY_S1, 'S1: E-Mail Geschäftlich');
         // S2
         $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_S2, 'S2: Anrede');
         $this->setNameDefinition(self::TBL_PERSON_TITLE_S2, 'S2: Titel');
@@ -332,6 +364,8 @@ class ViewStudentCustody extends AbstractView
         $this->setNameDefinition(self::TBL_ADDRESS_NATION_S2, 'S2: Land');
         $this->setNameDefinition(self::TBL_PHONE_NUMBER_S2, 'S2: Telefon');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S2, 'S2: E-Mail');
+        $this->setNameDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_S2, 'S2: E-Mail Privat');
+        $this->setNameDefinition(self::TBL_MAIL_ADDRESS_COMPANY_S2, 'S2: E-Mail Geschäftlich');
         // S3
         $this->setNameDefinition(self::TBL_SALUTATION_SALUTATION_S3, 'S3: Anrede');
         $this->setNameDefinition(self::TBL_PERSON_TITLE_S3, 'S3: Titel');
@@ -349,6 +383,8 @@ class ViewStudentCustody extends AbstractView
         $this->setNameDefinition(self::TBL_ADDRESS_NATION_S3, 'S3: Land');
         $this->setNameDefinition(self::TBL_PHONE_NUMBER_S3, 'S3: Telefon');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_S3, 'S3: E-Mail');
+        $this->setNameDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_S3, 'S3: E-Mail Privat');
+        $this->setNameDefinition(self::TBL_MAIL_ADDRESS_COMPANY_S3, 'S3: E-Mail Geschäftlich');
 
         //GroupDefinition
 
@@ -368,7 +404,9 @@ class ViewStudentCustody extends AbstractView
             self::TBL_ADDRESS_STATE_S1,
             self::TBL_ADDRESS_NATION_S1,
             self::TBL_PHONE_NUMBER_S1,
-            self::TBL_MAIL_ADDRESS_S1
+            self::TBL_MAIL_ADDRESS_S1,
+            self::TBL_MAIL_ADDRESS_PRIVATE_S1,
+            self::TBL_MAIL_ADDRESS_COMPANY_S1
         ));
         $this->setGroupDefinition('Sorge. S2 (Zusatzinfo)', array(
             self::TBL_SALUTATION_SALUTATION_S2,
@@ -386,7 +424,9 @@ class ViewStudentCustody extends AbstractView
             self::TBL_ADDRESS_STATE_S2,
             self::TBL_ADDRESS_NATION_S2,
             self::TBL_PHONE_NUMBER_S2,
-            self::TBL_MAIL_ADDRESS_S2
+            self::TBL_MAIL_ADDRESS_S2,
+            self::TBL_MAIL_ADDRESS_PRIVATE_S2,
+            self::TBL_MAIL_ADDRESS_COMPANY_S2
         ));
         $this->setGroupDefinition('Sorge. S3 (Zusatzinfo)', array(
             self::TBL_SALUTATION_SALUTATION_S3,
@@ -405,6 +445,8 @@ class ViewStudentCustody extends AbstractView
             self::TBL_ADDRESS_NATION_S3,
             self::TBL_PHONE_NUMBER_S3,
             self::TBL_MAIL_ADDRESS_S3,
+            self::TBL_MAIL_ADDRESS_PRIVATE_S3,
+            self::TBL_MAIL_ADDRESS_COMPANY_S3
         ));
 
         // Flag um Filter zu deaktivieren (nur Anzeige von Informationen)
@@ -424,6 +466,8 @@ class ViewStudentCustody extends AbstractView
         $this->setDisableDefinition(self::TBL_ADDRESS_NATION_S1);
         $this->setDisableDefinition(self::TBL_PHONE_NUMBER_S1);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_S1);
+        $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_S1);
+        $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_COMPANY_S1);
         $this->setDisableDefinition(self::TBL_SALUTATION_SALUTATION_S2);
         $this->setDisableDefinition(self::TBL_PERSON_TITLE_S2);
         $this->setDisableDefinition(self::TBL_PERSON_FIRST_NAME_S2);
@@ -440,6 +484,8 @@ class ViewStudentCustody extends AbstractView
         $this->setDisableDefinition(self::TBL_ADDRESS_NATION_S2);
         $this->setDisableDefinition(self::TBL_PHONE_NUMBER_S2);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_S2);
+        $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_S2);
+        $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_COMPANY_S2);
         $this->setDisableDefinition(self::TBL_SALUTATION_SALUTATION_S3);
         $this->setDisableDefinition(self::TBL_PERSON_TITLE_S3);
         $this->setDisableDefinition(self::TBL_PERSON_FIRST_NAME_S3);
@@ -456,6 +502,8 @@ class ViewStudentCustody extends AbstractView
         $this->setDisableDefinition(self::TBL_ADDRESS_NATION_S3);
         $this->setDisableDefinition(self::TBL_PHONE_NUMBER_S3);
         $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_S3);
+        $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_PRIVATE_S3);
+        $this->setDisableDefinition(self::TBL_MAIL_ADDRESS_COMPANY_S3);
     }
 
     /**
