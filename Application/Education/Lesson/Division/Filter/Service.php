@@ -94,13 +94,21 @@ class Service
             $count = 1;
             $countMessages = 0;
 
+            $tableOption = array(
+                "paging" => false, // Deaktivieren Blättern
+                "iDisplayLength" => -1,    // Alle Einträge zeigen
+                "info" => false,  // Deaktivieren Such-Info
+                "sort" => false,
+                "responsive" => false
+            );
+
             list($contentTable, $countMessages) = self::formatFilterListMessages($list, $contentTable, $count,
                 $countMessages);
 
             if ($isAccordion) {
                 return array(
                     'Header' => 'Klasse ' . $tblDivision->getDisplayName() . ' (' . $countMessages . ' Meldungen)',
-                    'Content' => new TableData(
+                    'Content' => (new TableData(
                     $contentTable,
                     null,
                     array(
@@ -109,8 +117,8 @@ class Service
                         'Value' => 'Personenverwaltung',
                         'DivisionSubjects' => 'Bildungsmodul'
                     ),
-                    false
-                    )
+                    $tableOption
+                    ))->setHash('/Education/Lesson/Division' . 'InterfaceMessages' . $tblDivision->getName() . $tblDivision->getId())
                 );
             } else {
                 return new Warning(
@@ -125,7 +133,7 @@ class Service
                             'Value' => 'Personenverwaltung',
                             'DivisionSubjects' => 'Bildungsmodul'
                         ),
-                        false
+                        $tableOption
                     )
                 );
             }
