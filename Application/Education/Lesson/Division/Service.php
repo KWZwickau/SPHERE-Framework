@@ -2080,6 +2080,19 @@ class Service extends AbstractService
                         if ($tblSubjectGroup) {
                             $tblSubjectGroupCopy = (new Data($this->getBinding()))->createSubjectGroup($tblSubjectGroup->getName(),
                                 $tblSubjectGroup->getDescription(), $tblSubjectGroup->isAdvancedCourse() !== null ? $tblSubjectGroup->isAdvancedCourse() : null);
+
+                            // Filter (Schnittstelle) für die Fach-Gruppe kopieren
+                            if ($tblSubjectGroupCopy
+                                && ($tblSubjectGroupFilterList = $this->getSubjectGroupFilterAllBySubjectGroup($tblSubjectGroup))
+                            ) {
+                                foreach ($tblSubjectGroupFilterList as $tblSubjectGroupFilter) {
+                                    $this->createSubjectGroupFilter(
+                                        $tblSubjectGroupCopy,
+                                        $tblSubjectGroupFilter->getField(),
+                                        $tblSubjectGroupFilter->getValue()
+                                    );
+                                }
+                            }
                         }
 
                         if ($tblDivisionSubject->getServiceTblSubject()) {
