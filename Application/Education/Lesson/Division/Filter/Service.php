@@ -13,11 +13,16 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -188,6 +193,7 @@ class Service
                 $count = 1;
                 $countMessages = 0;
 
+                /** @noinspection PhpUnusedLocalVariableInspection */
                 list($contentTable, $countMessages) = self::formatFilterListMessages($list, $contentTable, $count,
                     $countMessages);
 
@@ -254,7 +260,11 @@ class Service
                 $list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['Value'] = $value;
                 $list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['DivisionSubjects'] = '';
             } else {
-                $list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['Value'] .= '</br>' . $value;
+                $list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['Value'] .=
+                    (empty($list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['Value'])
+                        ? ''
+                        : '</br>')
+                    . $value;
             }
         }
 
@@ -269,7 +279,11 @@ class Service
                 $list[$tblPerson->getId()]['Filters']['SubjectReligion']['Value'] = $value;
                 $list[$tblPerson->getId()]['Filters']['SubjectReligion']['DivisionSubjects'] = '';
             } else {
-                $list[$tblPerson->getId()]['Filters']['SubjectReligion']['Value'] .= '</br>' . $value;
+                $list[$tblPerson->getId()]['Filters']['SubjectReligion']['Value'] .=
+                    (empty($list[$tblPerson->getId()]['Filters']['SubjectReligion']['Value'])
+                        ? ''
+                        : '</br>')
+                    . $value;
             }
         }
 
@@ -287,7 +301,32 @@ class Service
                         $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Value'] = $value;
                         $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['DivisionSubjects'] = '';
                     } else {
-                        $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Value'] .= '</br>' . $value;
+                        $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Value'] .=
+                            (empty($list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Value'])
+                                ? ''
+                                : '</br>')
+                            . $value;
+                    }
+                }
+            }
+
+            // OS/MS in Klassen 7-9 muss ein Neigungskurs oder eine 2. Fremdsprache hinterlegt sein
+            if (preg_match('!(0?(7|8|9|10))!is', $tblLevel->getName())) {
+                if (!$tblStudent
+                    || (!$tblStudent->getCourse())
+                ) {
+                    $field = Filter::DESCRIPTION_COURSE;
+                    $value = new Exclamation() . ' Kein Bildungsgang hinterlegt.';
+                    if (!isset($list[$tblPerson->getId()]['Filters']['Course'])) {
+                        $list[$tblPerson->getId()]['Filters']['Course']['Field'] = $field;
+                        $list[$tblPerson->getId()]['Filters']['Course']['Value'] = $value;
+                        $list[$tblPerson->getId()]['Filters']['Course']['DivisionSubjects'] = '';
+                    } else {
+                        $list[$tblPerson->getId()]['Filters']['Course']['Value'] .=
+                            (empty($list[$tblPerson->getId()]['Filters']['Course']['Value'])
+                                ? ''
+                                : '</br>')
+                            . $value;
                     }
                 }
             }
@@ -309,7 +348,11 @@ class Service
                         $list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['Value'] = $value;
                         $list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['DivisionSubjects'] = '';
                     } else {
-                        $list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['Value'] .= '</br>' . $value;
+                        $list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['Value'] .=
+                            (empty($list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['Value'])
+                                ? ''
+                                : '</br>')
+                            . $value;
                     }
                 }
             }
@@ -326,7 +369,11 @@ class Service
                         $list[$tblPerson->getId()]['Filters']['SubjectProfile']['Value'] = $value;
                         $list[$tblPerson->getId()]['Filters']['SubjectProfile']['DivisionSubjects'] = '';
                     } else {
-                        $list[$tblPerson->getId()]['Filters']['SubjectProfile']['Value'] .= '</br>' . $value;
+                        $list[$tblPerson->getId()]['Filters']['SubjectProfile']['Value'] .=
+                            (empty($list[$tblPerson->getId()]['Filters']['SubjectProfile']['Value'])
+                                ? ''
+                                : '</br>')
+                            . $value;
                     }
                 }
             }
@@ -346,6 +393,8 @@ class Service
     private static function formatFilterListMessages($list, $contentTable, &$count, $countMessages)
     {
 
+        $hasEditButton = true;
+        $tblStudentGroup = Group::useService()->getGroupByMetaTable('STUDENT');
         foreach ($list as $personId => $filters) {
             if (($tblPerson = Person::useService()->getPersonById($personId))
                 && is_array($filters)
@@ -353,7 +402,19 @@ class Service
                 foreach ($filters as $identifier => $filterArray) {
                     if (is_array($filterArray)) {
                         foreach ($filterArray as $item) {
-                            $contentTable[$count]['Name'] = $tblPerson->getLastFirstName();
+                            $contentTable[$count]['Name'] = $tblPerson->getLastFirstName()
+                                . ($hasEditButton
+                                    ? new PullRight(new Standard(
+                                        '',
+                                        '/People/Person',
+                                        new \SPHERE\Common\Frontend\Icon\Repository\Person(),
+                                        array(
+                                            'Id' => $tblPerson->getId(),
+                                            'Group' => $tblStudentGroup ? $tblStudentGroup->getId() : 0
+                                        ),
+                                        'Zur Person wechseln'
+                                    ))
+                                    : '');
 
                             if (isset($item['Field'])) {
                                 $contentTable[$count]['Field'] = $item['Field'];
@@ -367,9 +428,27 @@ class Service
                                 $contentTable[$count]['Value'] = '';
                             }
 
-                            // todo links zu gruppen
                             if (isset($item['DivisionSubjects']) && is_array($item['DivisionSubjects'])) {
                                 foreach ($item['DivisionSubjects'] as $divisionSubjectId => $text) {
+                                    // links zu den Gruppen
+                                    if($hasEditButton
+                                        && ($tblDivisionSubject = Division::useService()->getDivisionSubjectById($divisionSubjectId))
+                                        && ($tblDivision = $tblDivisionSubject->getTblDivision())
+                                    ){
+                                        $text .= new PullRight(new Standard(
+                                            '',
+                                            '/Education/Lesson/Division/SubjectStudent/Add',
+                                            new Edit(),
+                                            array(
+                                                'Id' => $tblDivision->getId(),
+                                                'DivisionSubjectId' => $tblDivisionSubject->getId()
+                                            ),
+                                            'Schüler zuordnen'
+                                        ));
+
+                                        $text = new PullClear($text);
+                                    }
+
                                     $countMessages++;
                                     if (isset($contentTable[$count]['DivisionSubjects'])) {
                                         $contentTable[$count]['DivisionSubjects'] .= new Container($text);

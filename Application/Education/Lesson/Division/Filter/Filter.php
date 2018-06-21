@@ -1041,6 +1041,7 @@ class Filter extends Extension
     ) {
 
         // todo multi-filter
+        // todo meldung bei mehrer Gruppen und der Schüler ist bereits in einer Gruppe (gerade bei SEKII)
 
         $prefix = new Ban() .  ' ist ' . new Bold('nicht') . ' in ';
         if ($showDivision && ($tblDivision = $tblDivisionSubject->getTblDivision())) {
