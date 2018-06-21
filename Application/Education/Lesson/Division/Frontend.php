@@ -903,10 +903,10 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Schüler', 'Klasse ' . new Bold($tblDivision->getDisplayName()));
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
             array('Id' => $Id)));
-        $Stage->setMessage(
-            new Container(new WarningText('"Schüler in Gelb"') . ' sind bereits in einer anderen Gruppe in diesem Fach angelegt.')
-            . new Container(new Danger('"Schüler in Rot"') . ' stimmen nicht mit der Filterung in dieser Fach-Gruppe überein.')
-        );
+//        $Stage->setMessage(
+//            new Container(new WarningText('"Schüler in Gelb"') . ' sind bereits in einer anderen Gruppe in diesem Fach angelegt.')
+//            . new Container(new Danger('"Schüler in Rot"') . ' stimmen nicht mit der Filterung in dieser Fach-Gruppe überein.')
+//        );
 
         $Stage->setContent(
             new Layout(array(

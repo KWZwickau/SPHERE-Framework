@@ -310,7 +310,7 @@ class Service
                 }
             }
 
-            // OS/MS in Klassen 7-9 muss ein Neigungskurs oder eine 2. Fremdsprache hinterlegt sein
+            // OS/MS in Klassen 7-10 muss ein Bildungsgang hinterlegt sein
             if (preg_match('!(0?(7|8|9|10))!is', $tblLevel->getName())) {
                 if (!$tblStudent
                     || (!$tblStudent->getCourse())

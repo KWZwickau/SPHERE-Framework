@@ -25,7 +25,7 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
-use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\System\Database\Fitting\Element;
 use SPHERE\System\Extension\Extension;
@@ -255,7 +255,7 @@ class Filter extends Extension
                     $Filter[$tblSubjectGroupFilter->getField()] = $tblSubjectGroupFilter->getValue();
                 }
             }
-            // todo Möglichkeit bei diesen Fächern den Filter komplett zu löschen
+            // bei diesen Fächern kann der Filter nicht komplett gelöscht werden
             // automatischen Filter setzen z.B. bei NK, PRO, FS
             elseif (($tblDivisionSubject = $this->getTblDivisionSubject())
              && ($tblSubject = $this->getTblSubject())
@@ -364,7 +364,7 @@ class Filter extends Extension
     }
 
     /**
-     * @return bool|Danger
+     * @return bool|Warning
      */
     public function getMessageForSubjectGroup()
     {
@@ -373,11 +373,39 @@ class Filter extends Extension
             && ($tblDivision = $tblDivisionSubject->getTblDivision())
             && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
         ) {
+            $personInAnotherGroupList = array();
+            if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())) {
+                $tblDivisionSubjectControlList = Division::useService()->getDivisionSubjectBySubjectAndDivision(
+                    $tblSubject,
+                    $tblDivision
+                );
+                if ($tblDivisionSubjectControlList) {
+                    foreach ($tblDivisionSubjectControlList as $tblDivisionSubjectControl) {
+                        if ($tblDivisionSubjectControl->getId() !== $tblDivisionSubject->getId()) {
+                            $tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubjectControl);
+                            if ($tblSubjectStudentList) {
+                                foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                                    if (($tblPersonItem = $tblSubjectStudent->getServiceTblPerson())) {
+                                        $personInAnotherGroupList[$tblPersonItem->getId()] = $tblPersonItem;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             foreach ($tblPersonList as $tblPerson) {
                 // Validierung Bildungsmodul -> Schülerakte
                 if (Division::useService()->exitsSubjectStudent($tblDivisionSubject, $tblPerson)) {
                     if (!$this->isFilterFulfilledByPerson($tblPerson)) {
-                        $list[$tblPerson->getId()] = new Exclamation() . ' ' . $tblPerson->getLastFirstName() . ' ist in dieser Fach-Gruppe';
+                        $list[$tblPerson->getId()] = new Exclamation() . ' ' . $tblPerson->getLastFirstName() . ' ist in dieser Fach-Gruppe'
+                            . (isset($personInAnotherGroupList[$tblPerson->getId()])
+                                ? ' und ist in einer weiteren Fach-Gruppe'
+                                : ''
+                            );
+                    } elseif (isset($personInAnotherGroupList[$tblPerson->getId()])) {
+                        $list[$tblPerson->getId()] = new Exclamation() . ' ' . $tblPerson->getLastFirstName() . ' ist in einer weiteren Fach-Gruppe';
                     }
                 }
                 // Validierung Bildungsmodul -> Schülerakte
@@ -391,7 +419,7 @@ class Filter extends Extension
 
         return empty($list)
             ? null
-            : new Danger(
+            : new Warning(
                 new Bold(new Exclamation() . ' Folgende Schüler in dieser Fach-Gruppe stimmen nicht mit der Filterung überein:')
                 . '</br>'
                 . implode('</br>', $list)
@@ -1040,8 +1068,8 @@ class Filter extends Extension
         $showDivision = false
     ) {
 
-        // todo multi-filter
         // todo meldung bei mehrer Gruppen und der Schüler ist bereits in einer Gruppe (gerade bei SEKII)
+        // todo Bildung mehrere NK und Co belegt.
 
         $prefix = new Ban() .  ' ist ' . new Bold('nicht') . ' in ';
         if ($showDivision && ($tblDivision = $tblDivisionSubject->getTblDivision())) {

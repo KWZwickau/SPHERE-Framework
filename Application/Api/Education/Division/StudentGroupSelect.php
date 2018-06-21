@@ -29,7 +29,6 @@ use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
-use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -159,27 +158,27 @@ class StudentGroupSelect extends Extension implements IApiInterface
             $header['Option'] = ' ';
 
             // Schüler die in einer weiteren Gruppe in diesem Fach sind --> gelber Text
-            $personInAnotherGroupList = array();
-            if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())) {
-                $tblDivisionSubjectControlList = DivisionApplication::useService()->getDivisionSubjectBySubjectAndDivision(
-                    $tblSubject,
-                    $tblDivision
-                );
-                if ($tblDivisionSubjectControlList) {
-                    foreach ($tblDivisionSubjectControlList as $tblDivisionSubjectControl) {
-                        if ($tblDivisionSubjectControl->getId() !== $tblDivisionSubject->getId()) {
-                            $tblSubjectStudentList = DivisionApplication::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubjectControl);
-                            if ($tblSubjectStudentList) {
-                                foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                                    if (($tblPersonItem = $tblSubjectStudent->getServiceTblPerson())) {
-                                        $personInAnotherGroupList[$tblPersonItem->getId()] = $tblPersonItem;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+//            $personInAnotherGroupList = array();
+//            if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())) {
+//                $tblDivisionSubjectControlList = DivisionApplication::useService()->getDivisionSubjectBySubjectAndDivision(
+//                    $tblSubject,
+//                    $tblDivision
+//                );
+//                if ($tblDivisionSubjectControlList) {
+//                    foreach ($tblDivisionSubjectControlList as $tblDivisionSubjectControl) {
+//                        if ($tblDivisionSubjectControl->getId() !== $tblDivisionSubject->getId()) {
+//                            $tblSubjectStudentList = DivisionApplication::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubjectControl);
+//                            if ($tblSubjectStudentList) {
+//                                foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+//                                    if (($tblPersonItem = $tblSubjectStudent->getServiceTblPerson())) {
+//                                        $personInAnotherGroupList[$tblPersonItem->getId()] = $tblPersonItem;
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
 
             // left selected persons
             if (($tblPersonSelectedList = DivisionApplication::useService()->getStudentByDivisionSubject($tblDivisionSubject))) {
@@ -194,7 +193,7 @@ class StudentGroupSelect extends Extension implements IApiInterface
                             $item['Group'] = $text;
                         } else {
                             $hasFilterError = true;
-                            $item['Group'] = new Danger($text);
+                            $item['Group'] = new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
                         }
                     }
                     if ($filter->getTblGender()) {
@@ -203,7 +202,7 @@ class StudentGroupSelect extends Extension implements IApiInterface
                             $item['Gender'] = $text;
                         } else {
                             $hasFilterError = true;
-                            $item['Gender'] = new Danger($text);
+                            $item['Gender'] = new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
 //                                '<div class="alert alert-danger" style="Margin-Bottom:2px;Padding-Top:2px;Padding-Bottom:2px">' . $text . '</div>';
                         }
                     }
@@ -213,7 +212,7 @@ class StudentGroupSelect extends Extension implements IApiInterface
                             $item['Course'] = $text;
                         } else {
                             $hasFilterError = true;
-                            $item['Course'] = new Danger($text);
+                            $item['Course'] = new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
                         }
                     }
                     if ($filter->getTblSubjectOrientation()) {
@@ -222,7 +221,7 @@ class StudentGroupSelect extends Extension implements IApiInterface
                             $item['SubjectOrientation'] = $text;
                         } else {
                             $hasFilterError = true;
-                            $item['SubjectOrientation'] = new Danger($text);
+                            $item['SubjectOrientation'] = new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
                         }
                     }
                     if ($filter->getTblSubjectProfile()) {
@@ -231,7 +230,7 @@ class StudentGroupSelect extends Extension implements IApiInterface
                             $item['SubjectProfile'] = $text;
                         } else {
                             $hasFilterError = true;
-                            $item['SubjectProfile'] = new Danger($text);
+                            $item['SubjectProfile'] = new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
                         }
                     }
                     if ($filter->getTblSubjectForeignLanguage()) {
@@ -240,7 +239,7 @@ class StudentGroupSelect extends Extension implements IApiInterface
                             $item['SubjectForeignLanguage'] = $text;
                         } else {
                             $hasFilterError = true;
-                            $item['SubjectForeignLanguage'] = new Danger($text);
+                            $item['SubjectForeignLanguage'] = new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
                         }
                     }
                     if ($filter->getTblSubjectReligion()) {
@@ -249,7 +248,7 @@ class StudentGroupSelect extends Extension implements IApiInterface
                             $item['SubjectReligion'] = $text;
                         } else {
                             $hasFilterError = true;
-                            $item['SubjectReligion'] = new Danger($text);
+                            $item['SubjectReligion'] = new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
                         }
                     }
                     if ($filter->getTblSubjectElective()) {
@@ -258,17 +257,17 @@ class StudentGroupSelect extends Extension implements IApiInterface
                             $item['SubjectElective'] = $text;
                         } else {
                             $hasFilterError = true;
-                            $item['SubjectElective'] = new Danger($text);
+                            $item['SubjectElective'] = new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
                         }
                     }
 
                     $name = $tblPerson->getLastFirstName();
                     if ($hasFilterError) {
-                        $name = new Danger($name);
-                    }
-                    elseif (isset($personInAnotherGroupList[$tblPerson->getId()])) {
                         $name = new \SPHERE\Common\Frontend\Text\Repository\Warning($name);
                     }
+//                    elseif (isset($personInAnotherGroupList[$tblPerson->getId()])) {
+//                        $name = new \SPHERE\Common\Frontend\Text\Repository\Warning($name);
+//                    }
                     $item['Name'] = $name;
 
                     if ($isSekII) {
@@ -314,9 +313,9 @@ class StudentGroupSelect extends Extension implements IApiInterface
                     ) {
                         $item = array();
                         $name = $tblPerson->getLastFirstName();
-                        if (isset($personInAnotherGroupList[$tblPerson->getId()])) {
-                            $name = new \SPHERE\Common\Frontend\Text\Repository\Warning($name);
-                        }
+//                        if (isset($personInAnotherGroupList[$tblPerson->getId()])) {
+//                            $name = new \SPHERE\Common\Frontend\Text\Repository\Warning($name);
+//                        }
                         $item['Name'] = $name;
 
                         if ($filter->getTblGroup()) {
