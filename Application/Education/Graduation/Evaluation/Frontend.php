@@ -913,6 +913,11 @@ class Frontend extends Extension implements IFrontendInterface
             }
             array_walk($tblTestList, function (TblTest &$tblTest) use (&$BasicRoute, &$contentTable, $days, $tblTaskList) {
                 $tblTask = $tblTest->getTblTask();
+                if ($tblTask) {
+                    $stringDate = $tblTask->getDate();
+                } else {
+                    $stringDate = $tblTest->getDate();
+                }
 
                 if ($tblTest->getServiceTblGradeType()) {
                     if ($tblTask) {
@@ -934,7 +939,6 @@ class Frontend extends Extension implements IFrontendInterface
                     new Warning($countGrades . ' von ' . $countStudents));
 
                 // standard
-                $stringDate = $tblTest->getDate();
                 $stringReturnDate = $tblTest->getReturnDate();
 
 //                // modify date if normal test where date is reached
