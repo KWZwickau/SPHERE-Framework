@@ -815,12 +815,14 @@ class Service extends AbstractService
             if ($tblPrepareInformationList) {
                 // Spezialfall Arbeitsgemeinschaften im Bemerkungsfeld
                 $team = '';
+                $teamChange = '';
                 $remark = '';
 
                 foreach ($tblPrepareInformationList as $tblPrepareInformation) {
                     if ($tblPrepareInformation->getField() == 'Team') {
                         if ($tblPrepareInformation->getValue() != '') {
                             $team = 'Arbeitsgemeinschaften: ' . $tblPrepareInformation->getValue();
+                            $teamChange = $tblPrepareInformation->getValue();
                         }
                     } elseif ($tblPrepareInformation->getField() == 'Remark') {
                         $remark = $tblPrepareInformation->getValue();
@@ -842,12 +844,18 @@ class Service extends AbstractService
 
                 if ($team || $remark) {
                     if ($team) {
+
                         if (($tblConsumer = Consumer::useService()->getConsumerBySession())
                             && $tblConsumer->getAcronym() == 'EVSR'
                         ) {
                             // Arbeitsgemeinschaften am Ende der Bemerkungnen
                             $remark = $remark . " \n\n " . $team;
-                        } else {
+                        }  elseif(($tblConsumer = Consumer::useService()->getConsumerBySession())
+                            && $tblConsumer->getAcronym() == 'ESZC'
+                            && $tblLevel && intval($tblLevel->getName()) <= 4
+                        ) {
+                            $remark = $teamChange . " \n " . $remark;
+                        }else{
                             $remark = $team . " \n\n " . $remark;
                         }
                     }

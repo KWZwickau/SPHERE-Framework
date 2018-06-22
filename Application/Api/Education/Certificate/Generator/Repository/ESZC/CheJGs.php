@@ -156,13 +156,13 @@ class CheJGs extends Certificate
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('Einschätzung: {% if(Content.P' . $personId . '.Input.Rating is not empty) %}
+                        ->setContent('{% if(Content.P' . $personId . '.Input.Rating is not empty) %}
                                     {{ Content.P' . $personId . '.Input.Rating }}
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
                         ->styleTextSize('11pt')
-                        ->styleHeight('95px')
+                        ->styleHeight('105px')
                     )
                 )
                 ->styleMarginTop('10px')
@@ -170,7 +170,7 @@ class CheJGs extends Certificate
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('Leistungen in den einzelnen Fächern:')
-                    ->styleMarginTop('20px')
+                    ->styleMarginTop('25px')
                     ->styleTextBold()
                     ->styleTextSize(self::TEXT_SIZE)
                 )
@@ -226,13 +226,7 @@ class CheJGs extends Certificate
                         ->styleTextSize(self::TEXT_SIZE)
                     )
                 )
-                ->styleMarginTop('15px')
-            )
-            ->addSlice((new Slice())
-                ->addElement((new Element())
-                    ->setContent('&nbsp;')
-                    ->styleHeight('5px')
-                )
+                ->styleMarginTop('10px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
@@ -242,7 +236,7 @@ class CheJGs extends Certificate
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
-                        ->styleHeight('110px')
+                        ->styleHeight('90px')
                         ->styleTextSize('11pt')
                     )
                 )
@@ -359,7 +353,7 @@ class CheJGs extends Certificate
                         ->styleAlignCenter()
                         , '30%')
                 )
-                ->styleMarginTop('20px')
+                ->styleMarginTop('30px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
@@ -384,7 +378,7 @@ class CheJGs extends Certificate
                         , '40%')
                     ->addElementColumn((new Element())
                         , '30%')
-                )->styleMarginTop('20px')
+                )->styleMarginTop('30px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
@@ -393,7 +387,7 @@ class CheJGs extends Certificate
                                           6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)')
                         ->styleTextSize('9.5px')
                     )
-                )->styleMarginTop('10px')
+                )->styleMarginTop('5px')
             );
     }
 }
