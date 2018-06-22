@@ -845,27 +845,23 @@ class Service extends AbstractService
                 if ($team || $remark) {
                     if ($team) {
 
-                        // Arbeitsgemeinschaften ohne Titel und mit einer Zeile weniger Abstand
-                        if(($tblConsumer = Consumer::useService()->getConsumerBySession())
-                            && $tblConsumer->getAcronym() == 'ESZC'
-                        ) {
-                            $teamChange = $teamChange . " \n " . $remark;
-                        }
-
                         if (($tblConsumer = Consumer::useService()->getConsumerBySession())
                             && $tblConsumer->getAcronym() == 'EVSR'
                         ) {
                             // Arbeitsgemeinschaften am Ende der Bemerkungnen
                             $remark = $remark . " \n\n " . $team;
-                        } else{
+                        }  elseif(($tblConsumer = Consumer::useService()->getConsumerBySession())
+                            && $tblConsumer->getAcronym() == 'ESZC'
+                            && $tblLevel && $tblLevel->getName() <= 4
+                        ) {
+                            $remark = $teamChange . " \n " . $remark;
+                        }else{
                             $remark = $team . " \n\n " . $remark;
                         }
                     }
                 }
-                $Content['P' . $personId]['Input']['RemarkGsESZC'] = $teamChange;
                 $Content['P' . $personId]['Input']['Remark'] = $remark;
             } else {
-                $Content['P' . $personId]['Input']['RemarkGsESZC'] = '---';
                 $Content['P' . $personId]['Input']['Remark'] = '---';
             }
         }

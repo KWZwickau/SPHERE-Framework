@@ -231,8 +231,8 @@ class CheJGs extends Certificate
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('{% if(Content.P' . $personId . '.Input.RemarkGsESZC is not empty) %}
-                                    {{ Content.P' . $personId . '.Input.RemarkGsESZC|nl2br }}
+                        ->setContent('{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
+                                    {{ Content.P' . $personId . '.Input.Remark|nl2br }}
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
