@@ -3,7 +3,7 @@ vS.TblStudent_serviceTblPerson AS TblPerson_Id,
 vS.TblStudent_Id AS TblStudent_Id,
 
 vS.TblStudent_Identifier AS TblStudent_Identifier,
-vS.TblStudent_SchoolAttendanceStartDate AS TblStudent_SchoolAttendanceStartDate,
+DATE_FORMAT( vS.TblStudent_SchoolAttendanceStartDate, '%d.%m.%Y' ) AS TblStudent_SchoolAttendanceStartDate,
 IF (vS.TblStudent_HasMigrationBackground, 'Ja', 'Nein') AS TblStudent_HasMigrationBackground,
 IF (vS.TblStudent_IsInPreparationDivisionForMigrants, 'Ja', 'Nein') AS TblStudent_IsInPreparationDivisionForMigrants
 

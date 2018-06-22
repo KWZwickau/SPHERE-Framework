@@ -112,6 +112,18 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         'TblGroup_Id',
     );
 
+    private $FieldNameSortByDate = array(
+        'Grunddaten:_Schulpflicht_beginn',
+        'Person:_Geburtstag',
+        'Einschulung:_Datum',
+        'Aufnahme:_Datum',
+        'Abgabe:_Datum',
+        'Allgemeines:_Taufedatum',
+        'Integration:_Datum_F_oE_rderantrag_Beratung',
+        'Integration:_Datum_F_oE_rderantrag',
+        'Integration:_Datum_F_oE_rderbescheid_SBA'
+    );
+
     use ApiTrait, AppTrait;
 
     public static function registerModule()
@@ -1964,15 +1976,22 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             if(!$Error && !empty($Result)) {
                 $ColumnDTNames = array();
                 $ColumnDBNames = array_keys(current($Result));
-                array_walk($ColumnDBNames, function ($Name) use (&$ColumnDTNames) {
+                $i = 0;
+                $DateOrder = array();
+                array_walk($ColumnDBNames, function ($Name) use (&$ColumnDTNames, &$i, &$DateOrder) {
                     $ColumnDTNames[$Name] = $this->decodeField($Name);
 //                    $ColumnDTNames[$Name] = preg_replace('!\_!is', ' ', $Name);
+                    if(in_array($Name, $this->FieldNameSortByDate)) {
+                        $DateOrder[] = array('type' => 'de_date', 'targets' => $i);
+                    }
+                    $i++;
                 });
                 $Result = (new TableData($Result, null, $ColumnDTNames,
 //                        false
                         array(
                         'responsive' => false,
-                        'fixedHeader'=> false
+                        'fixedHeader'=> false,
+                        'columnDefs' => $DateOrder
                     )
                 ))
 
