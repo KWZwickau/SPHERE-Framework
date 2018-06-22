@@ -652,6 +652,7 @@ class GymAbgSekII extends Certificate
         $tblLeaveStudent = false;
         $tblPerson = Person::useService()->getPersonById($personId);
 
+        $postFix = '';
         // tatsächliche Religion aus der Schülerakte bestimmen
         if ($subjectName == 'RELIGION') {
             $subjectName = 'Ev./Kath. Religion/Ethik';
@@ -663,7 +664,9 @@ class GymAbgSekII extends Certificate
                     $tblStudentSubjectType, $tblStudentSubjectRanking))
                 && ($tblReligionSubject = $tblStudentSubject->getServiceTblSubject())
             ) {
-                $subjectName = $tblReligionSubject->getName() . '³';
+                $subjectName = $tblReligionSubject->getName();
+
+                $postFix = '³';
             }
         }
 
@@ -678,6 +681,8 @@ class GymAbgSekII extends Certificate
         if (!$tblSubject && $subjectName == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft') {
             $tblSubject = Subject::useService()->getSubjectByAcronym('GRW');
         }
+
+        $subjectName .= $postFix;
 
         if ($tblPerson
             && ($tblDivision = $this->getTblDivision())
