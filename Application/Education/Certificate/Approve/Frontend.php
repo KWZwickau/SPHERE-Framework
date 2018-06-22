@@ -928,7 +928,7 @@ class Frontend extends Extension implements IFrontendInterface
                 && ($tblPerson = $tblLeaveStudent->getServiceTblPerson())
                 && ($tblDivision = $tblLeaveStudent->getServiceTblDivision())
             ) {
-                Prepare::useService()->updateLeaveStudent($tblLeaveStudent, false, $tblLeaveStudent->isPrinted());
+                Prepare::useService()->updateLeaveStudent($tblLeaveStudent, false, false);
 
                 return $Stage
                     . new \SPHERE\Common\Frontend\Message\Repository\Success('Zeugnisfreigabe wurde entfernt.',
@@ -1117,7 +1117,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if (($tblLeaveStudentList = Prepare::useService()->getLeaveStudentAllByDivision($tblDivision))) {
                     foreach ($tblLeaveStudentList as $tblLeaveStudent) {
                         if ($tblLeaveStudent->isApproved()) {
-                            Prepare::useService()->updateLeaveStudent($tblLeaveStudent, false, $tblLeaveStudent->isPrinted());
+                            Prepare::useService()->updateLeaveStudent($tblLeaveStudent, false, false);
                         }
                     }
                 }
