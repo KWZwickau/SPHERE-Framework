@@ -852,7 +852,7 @@ class Service extends AbstractService
                             $remark = $remark . " \n\n " . $team;
                         }  elseif(($tblConsumer = Consumer::useService()->getConsumerBySession())
                             && $tblConsumer->getAcronym() == 'ESZC'
-                            && $tblLevel && $tblLevel->getName() <= 4
+                            && $tblLevel && intval($tblLevel->getName()) <= 4
                         ) {
                             $remark = $teamChange . " \n " . $remark;
                         }else{
