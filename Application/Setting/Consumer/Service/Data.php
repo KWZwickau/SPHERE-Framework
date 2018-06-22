@@ -23,6 +23,9 @@ class Data extends AbstractData
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount && ($tblConsumer = $tblAccount->getServiceTblConsumer())) {
 
+            $this->createSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber',
+                TblSetting::TYPE_BOOLEAN, '0');
+
             $this->createSetting('Transfer', 'Indiware', 'Import', 'Lectureship_ConvertDivisionLatinToGreek',
                 TblSetting::TYPE_BOOLEAN, '0');
 

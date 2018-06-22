@@ -80,6 +80,7 @@ abstract class Student extends AbstractService
         if ($tblStudent) {
             (new Data($this->getBinding()))->updateStudent(
                 $tblStudent,
+                '',
                 $Identifier,
                 $tblStudentMedicalRecord,
                 $tblStudentTransport,

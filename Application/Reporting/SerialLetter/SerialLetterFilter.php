@@ -319,7 +319,7 @@ class SerialLetterFilter
                 }
                 $DataPerson['StudentNumber'] = new Small(new Muted('-NA-'));
                 if (isset($tblStudent) && $tblStudent && $DataPerson['Name']) {
-                    $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
+                    $DataPerson['StudentNumber'] = $tblStudent->getIdentifierComplete();
                 }
 
                 // ignore duplicated Person

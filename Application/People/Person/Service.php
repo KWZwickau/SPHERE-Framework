@@ -123,10 +123,13 @@ class Service extends AbstractService
             ) {
                 // Add to Group
                 if (isset( $Person['Group'] )) {
-                    foreach ((array)$Person['Group'] as $tblGroup) {
-                        Group::useService()->addGroupPerson(
-                            Group::useService()->getGroupById($tblGroup), $tblPerson
-                        );
+                    foreach ((array)$Person['Group'] as $GroupId) {
+                        $tblGroup = Group::useService()->getGroupById($GroupId);
+                        if($tblGroup){
+                            Group::useService()->addGroupPerson(
+                                $tblGroup, $tblPerson
+                            );
+                        }
                     }
                 }
                 return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Person wurde erfolgreich erstellt')

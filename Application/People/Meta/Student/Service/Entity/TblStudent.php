@@ -21,8 +21,13 @@ class TblStudent extends Element
 {
 
     const SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const ATTR_TBL_PREFIX = 'Prefix';
     const ATTR_TBL_IDENTIFIER = 'Identifier';
 
+    /**
+     * @Column(type="string")
+     */
+    protected $Prefix;
     /**
      * @Column(type="string")
      */
@@ -228,6 +233,24 @@ class TblStudent extends Element
     /**
      * @return string
      */
+    public function getPrefix()
+    {
+
+        return $this->Prefix;
+    }
+
+    /**
+     * @param string $Prefix
+     */
+    public function setPrefix($Prefix)
+    {
+
+        $this->Prefix = $Prefix;
+    }
+
+    /**
+     * @return string
+     */
     public function getIdentifier()
     {
 
@@ -241,6 +264,15 @@ class TblStudent extends Element
     {
 
         $this->Identifier = $Identifier;
+    }
+
+    /**
+     * @return string $Prefix.$Identifier
+     */
+    public function getIdentifierComplete()
+    {
+
+        return $this->getPrefix().$this->getIdentifier();
     }
 
     /**

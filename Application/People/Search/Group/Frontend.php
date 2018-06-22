@@ -101,7 +101,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                                 if ($tblStudent) {
-                                    $identification = $tblStudent->getIdentifier();
+                                    $identification = $tblStudent->getIdentifierComplete();
                                 }
 
                             }

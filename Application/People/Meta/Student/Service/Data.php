@@ -2,6 +2,7 @@
 namespace SPHERE\Application\People\Meta\Student\Service;
 
 use SPHERE\Application\People\Meta\Student\Service\Data\Integration;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
@@ -388,6 +389,42 @@ class Data extends Integration
             return true;
         }
         return false;
+    }
+
+//    /**
+//     * @return bool|int
+//     * @deprecated MAX don't display Highest Number
+//     */
+//    public function getStudentMaxIdentifier()
+//    {
+//
+//        $Manager = $this->getConnection()->getEntityManager();
+//
+//        // cast to int didn't work with QueryBuilder
+//        $Query = $Manager->getQueryBuilder()
+//            ->select('MAX(CAST(S.Identifier AS UNSIGNED))')
+//            ->from(__NAMESPACE__ . '\Entity\TblStudent', 'S')
+//            ->getQuery();
+//
+//        $result = $Query->getResult();
+//
+//        if(!empty($result)){
+//            if(isset($result[0][1])) {
+//                $result = $result[0][1];
+//            }
+//        }
+//        return ( $result ? $result : false );
+//    }
+
+    /**
+     * @return false|TblStudent[]
+     */
+    public function getStudentAll()
+    {
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(),
+//        return $this->getForceEntityList(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblStudent'
+        );
     }
 
     /**

@@ -96,8 +96,8 @@ class Service
                             $Item['Name'] = $tblPerson->getLastFirstName();
                             $Item['StudentNumber'] = 'keine';
                             $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                            if ($tblStudent && $tblStudent->getIdentifier() != '') {
-                                $Item['StudentNumber'] = $tblStudent->getIdentifier();
+                            if ($tblStudent && $tblStudent->getIdentifierComplete() != '') {
+                                $Item['StudentNumber'] = $tblStudent->getIdentifierComplete();
                             }
                             $Item['Date'] = $tblInvoice->getTargetTime();
 
@@ -363,7 +363,7 @@ class Service
                                 }
                                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                                 if ($tblStudent) {
-                                    $Item['StudentNumber'] = $tblStudent->getIdentifier();
+                                    $Item['StudentNumber'] = $tblStudent->getIdentifierComplete();
                                 }
                                 if ($BankName == 0) {
                                     unset( $Item['Bank'] );

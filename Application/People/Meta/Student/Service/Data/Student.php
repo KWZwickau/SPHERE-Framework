@@ -17,7 +17,8 @@ abstract class Student extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
-     * @param $Identifier
+     * @param string $Identifier
+     * @param string $Prefix
      * @param null $tblStudentMedicalRecord
      * @param null $tblStudentTransport
      * @param null $tblStudentBilling
@@ -32,6 +33,7 @@ abstract class Student extends AbstractData
      */
     public function createStudent(
         TblPerson $tblPerson,
+        $Prefix = '',
         $Identifier,
         $tblStudentMedicalRecord = null,
         $tblStudentTransport = null,
@@ -59,6 +61,7 @@ abstract class Student extends AbstractData
         if (!$Entity) {
             $Entity = new TblStudent();
             $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setPrefix($Prefix);
             if ($IsIdentifier) {
                 $Entity->setIdentifier($Identifier);
             }
@@ -80,7 +83,56 @@ abstract class Student extends AbstractData
 
     /**
      * @param TblStudent $tblStudent
+     * @param $Prefix
+     * @return bool|TblStudent
+     */
+    public function updateStudentPrefix(TblStudent $tblStudent, $Prefix)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblStudent')
+            ->findOneBy(array(
+                TblStudent::ENTITY_ID => $tblStudent->getId(),
+            ));
+        /** @var TblStudent $Entity */
+        if($Entity){
+            $Protocol = clone $Entity;
+            $Entity->setPrefix($Prefix);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+        }
+        return ($Entity ? $Entity : false);
+    }
+
+    /**
+     * @param TblStudent $tblStudent
      * @param $Identifier
+     * @return bool|TblStudent
+     */
+    public function updateStudentIdentifier(TblStudent $tblStudent, $Identifier)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblStudent')
+            ->findOneBy(array(
+                TblStudent::ENTITY_ID => $tblStudent->getId(),
+            ));
+        /** @var TblStudent $Entity */
+        if($Entity){
+            $Protocol = clone $Entity;
+            $Entity->setIdentifier($Identifier);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+        }
+        return ($Entity ? $Entity : false);
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param string $Identifier
+     * @param string $Prefix
      * @param null $tblStudentMedicalRecord
      * @param null $tblStudentTransport
      * @param null $tblStudentBilling
@@ -95,7 +147,8 @@ abstract class Student extends AbstractData
      */
     public function updateStudent(
         TblStudent $tblStudent,
-        $Identifier,
+        $Prefix = '',
+        $Identifier = '',
         $tblStudentMedicalRecord = null,
         $tblStudentTransport = null,
         $tblStudentBilling = null,
@@ -122,7 +175,7 @@ abstract class Student extends AbstractData
         $Entity = $Manager->getEntityById('TblStudent', $tblStudent->getId());
         if (null !== $Entity) {
             $Protocol = clone $Entity;
-
+            $Entity->setPrefix($Prefix);
             if ($IsIdentifier) {
                 $Entity->setIdentifier($Identifier);
             }

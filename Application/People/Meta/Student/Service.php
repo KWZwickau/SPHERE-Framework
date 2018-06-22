@@ -41,6 +41,7 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -319,7 +320,8 @@ class Service extends Integration
 
     /**
      * @param TblPerson                    $tblPerson
-     * @param                              $Identifier
+     * @param string                       $Prefix
+     * @param string                       $Identifier
      * @param TblStudentMedicalRecord|null $tblStudentMedicalRecord
      * @param TblStudentTransport|null     $tblStudentTransport
      * @param TblStudentBilling|null       $tblStudentBilling
@@ -332,6 +334,7 @@ class Service extends Integration
      */
     public function createStudent(
         TblPerson $tblPerson,
+        $Prefix = '',
         $Identifier = '',
         TblStudentMedicalRecord $tblStudentMedicalRecord = null,
         TblStudentTransport $tblStudentTransport = null,
@@ -343,6 +346,7 @@ class Service extends Integration
     ) {
 
         return (new Data($this->getBinding()))->createStudent($tblPerson,
+            $Prefix,
             $Identifier,
             $tblStudentMedicalRecord,
             $tblStudentTransport,
@@ -351,6 +355,28 @@ class Service extends Integration
             $tblStudentBaptism,
             $tblStudentIntegration,
             $SchoolAttendanceStartDate);
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param $Prefix
+     * @return bool|TblStudent
+     */
+    public function updateStudentPrefix(TblStudent $tblStudent, $Prefix)
+    {
+
+        return (new Data($this->getBinding()))->updateStudentPrefix($tblStudent,$Prefix);
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param $Identifier
+     * @return bool|TblStudent
+     */
+    public function updateStudentIdentifier(TblStudent $tblStudent, $Identifier)
+    {
+
+        return (new Data($this->getBinding()))->updateStudentIdentifier($tblStudent,$Identifier);
     }
 
     /**
@@ -378,8 +404,16 @@ class Service extends Integration
         $IntegrationCompany = Company::useService()->getCompanyById($Meta['Integration']['School']['Company']);
         $SiblingRank = Relationship::useService()->getSiblingRankById($Meta['Billing']);
 
-        if ($tblStudent) {
+        $Prefix = $Meta['Student']['Prefix'];
+        $Identifier = '';
+        $tblSetting = Consumer::useService()->getSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber');
+        if($tblSetting && $tblSetting->getValue()){
+            $biggestIdentifier = Student::useService()->getStudentMaxIdentifier();
+            $Identifier = $biggestIdentifier + 1;
+        }
 
+        if ($tblStudent) {
+            $Identifier = $tblStudent->getIdentifier();
             $tblStudentMedicalRecord = $tblStudent->getTblStudentMedicalRecord();
             if ($tblStudentMedicalRecord) {
                 (new Data($this->getBinding()))->updateStudentMedicalRecord(
@@ -488,7 +522,8 @@ class Service extends Integration
 
             (new Data($this->getBinding()))->updateStudent(
                 $tblStudent,
-                $Meta['Student']['Identifier'],
+                $Prefix,
+                $Identifier,
                 $tblStudentMedicalRecord,
                 $tblStudentTransport,
                 $tblStudentBilling,
@@ -545,7 +580,8 @@ class Service extends Integration
 
             $tblStudent = (new Data($this->getBinding()))->createStudent(
                 $tblPerson,
-                $Meta['Student']['Identifier'],
+                $Prefix,
+                $Identifier,
                 $tblStudentMedicalRecord,
                 $tblStudentTransport,
                 $tblStudentBilling,
@@ -836,6 +872,25 @@ class Service extends Integration
 
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Daten wurde erfolgreich gespeichert')
         .new Redirect(null, Redirect::TIMEOUT_SUCCESS);
+    }
+
+    /**
+     * @return bool|int
+     */
+    public function getStudentMaxIdentifier()
+    {
+
+        $tblStudentList = (new Data($this->getBinding()))->getStudentAll();
+        $result = 0;
+        if($tblStudentList) {
+            foreach($tblStudentList as $tblStudent){
+                if(is_numeric($tblStudent->getIdentifier()) && $tblStudent->getIdentifier() > $result){
+                    $result = $tblStudent->getIdentifier();
+                }
+            }
+        }
+//        return (new Data($this->getBinding()))->getStudentMaxIdentifier();
+        return $result;
     }
 
     /**
