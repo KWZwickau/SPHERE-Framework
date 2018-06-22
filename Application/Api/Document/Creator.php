@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 09.09.2016
- * Time: 10:35
- */
-
 namespace SPHERE\Application\Api\Document;
 
 use MOC\V\Component\Document\Component\Parameter\Repository\PaperOrientationParameter;
@@ -15,6 +8,8 @@ use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Document\Standard\Repository\AccidentReport\AccidentReport;
 use SPHERE\Application\Api\Document\Standard\Repository\EnrollmentDocument;
 use SPHERE\Application\Api\Document\Standard\Repository\GradebookOverview;
+use SPHERE\Application\Api\Document\Standard\Repository\MultiPassword\MultiPassword;
+use SPHERE\Application\Api\Document\Standard\Repository\PasswordChange\PasswordChange;
 use SPHERE\Application\Api\Document\Standard\Repository\SignOutCertificate\SignOutCertificate;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\AbstractStudentCard;
 use SPHERE\Application\Api\Document\Standard\Repository\StudentCard\GrammarSchool;
@@ -270,11 +265,20 @@ class Creator extends Extension
             if ($DocumentName == 'AccidentReport') {
                 $Document = new AccidentReport($Data);
             }
+            if ($DocumentName == 'PasswordChange') {
+                $Document = new PasswordChange($Data);
+            }
+            if ($DocumentName == 'MultiPassword') {
+                $Document = new MultiPassword($Data);
+            }
 
             if ($Document) {
                 $File = self::buildDummyFile($Document, array(), array(), $paperOrientation);
 
-                $FileName = $Document->getName().' '.date("Y-m-d").".pdf";
+                $FileName = $Document->getName().'_'.date("Y-m-d").".pdf";
+                if ($DocumentName == 'MultiPassword') {
+                    $FileName = $Document->getName().".pdf";
+                }
 
                 return self::buildDownloadFile($File, $FileName);
             }

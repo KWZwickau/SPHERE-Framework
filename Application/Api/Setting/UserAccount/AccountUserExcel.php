@@ -44,7 +44,7 @@ class AccountUserExcel implements IModuleInterface
     {
 
         if ($GroupByTime) {
-            $tblUserAccountList = Account::useService()->getUserAccountByTimeGroup((new \DateTime($GroupByTime)));
+            $tblUserAccountList = Account::useService()->getUserAccountByTime((new \DateTime($GroupByTime)));
             if ($tblUserAccountList) {
                 $tblUserAccount = current($tblUserAccountList);
                 $Type = 'Schüler';

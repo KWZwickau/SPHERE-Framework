@@ -29,6 +29,11 @@ class Data extends AbstractData
             $this->createSetting('Contact', 'Address', 'Address', 'Format_GuiString',
                 TblSetting::TYPE_STRING, TblAddress::VALUE_PLZ_ORT_OT_STR_NR);
 
+            $this->createSetting('Api', 'Document', 'Standard', 'PasswordChange_PictureAddress',
+                TblSetting::TYPE_STRING, '');
+            $this->createSetting('Api', 'Document', 'Standard', 'PasswordChange_PictureHeight',
+                TblSetting::TYPE_STRING, '');
+
             $this->createSetting('Api', 'Document', 'Standard', 'SignOutCertificate_PictureAddress',
                 TblSetting::TYPE_STRING, '');
             $this->createSetting('Api', 'Document', 'Standard', 'SignOutCertificate_PictureHeight',

@@ -30,7 +30,8 @@ class External extends Extension implements ILinkInterface
     /** @var int $RedirectTimeout */
     private $RedirectTimeout = -1;
 
-    const STYLE_BUTTON = 'btn btn-default';
+    const STYLE_BUTTON_DEFAULT = 'btn btn-default';
+    const STYLE_BUTTON_PRIMARY = 'btn btn-primary';
     const STYLE_LINK = '';
 
     /**
@@ -42,7 +43,7 @@ class External extends Extension implements ILinkInterface
      * @param string $Style
      */
     public function __construct(
-        $Name, $Path, IIconInterface $Icon = null, $Data = array(), $ToolTip = true, $Style = self::STYLE_BUTTON
+        $Name, $Path, IIconInterface $Icon = null, $Data = array(), $ToolTip = true, $Style = self::STYLE_BUTTON_DEFAULT
     )
     {
 

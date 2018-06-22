@@ -30,6 +30,7 @@ class TblUserAccount extends Element
     const ATTR_EXPORT_DATE = 'ExportDate';
     const ATTR_LAST_DOWNLOAD_ACCOUNT = 'LastDownloadAccount';
     const ATTR_GROUP_BY_TIME = 'GroupByTime';
+    const ATTR_GROUP_BY_COUNT = 'GroupByCount';
 
     /**
      * @Column(type="bigint")
@@ -63,6 +64,10 @@ class TblUserAccount extends Element
      * @Column(type="datetime")
      */
     protected $GroupByTime;
+    /**
+     * @Column(type="integer")
+     */
+    protected $GroupByCount;
 
     /**
      * @return false|TblPerson
@@ -218,5 +223,21 @@ class TblUserAccount extends Element
     {
 
         $this->GroupByTime = $DateTime;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getGroupByCount()
+    {
+        return $this->GroupByCount;
+    }
+
+    /**
+     * @param int|null $GroupByCount
+     */
+    public function setGroupByCount($GroupByCount)
+    {
+        $this->GroupByCount = $GroupByCount;
     }
 }

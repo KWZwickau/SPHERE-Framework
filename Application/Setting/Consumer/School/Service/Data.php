@@ -53,8 +53,23 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSchool',
-            array(TblSchool::ATTR_SERVICE_TBL_COMPANY => $tblCompany->getId(),
-                  TblSchool::ATTR_SERVICE_TBL_TYPE    => $tblType->getId()));
+            array(
+                TblSchool::ATTR_SERVICE_TBL_COMPANY => $tblCompany->getId(),
+                TblSchool::ATTR_SERVICE_TBL_TYPE    => $tblType->getId()
+            ));
+    }
+
+    /**
+     * @param TblType $tblType
+     *
+     * @return false|TblSchool
+     */
+    public function getSchoolByType(TblType $tblType){
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSchool',
+            array(
+                TblSchool::ATTR_SERVICE_TBL_TYPE    => $tblType->getId()
+            ));
     }
 
     /**

@@ -77,6 +77,7 @@ class Service extends AbstractService
 
     /**
      * @param TblCompany $tblCompany
+     * @param TblType    $tblType
      *
      * @return false|TblSchool
      */
@@ -84,6 +85,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getSchoolByCompanyAndType($tblCompany, $tblType);
+    }
+
+    /**
+     * @param TblType $tblType
+     *
+     * @return false|TblSchool
+     */
+    public function getSchoolByType(TblType $tblType)
+    {
+
+        return (new Data($this->getBinding()))->getSchoolByType($tblType);
     }
 
     /**
