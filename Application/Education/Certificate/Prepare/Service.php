@@ -943,6 +943,12 @@ class Service extends AbstractService
                 } else {
                     $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
                 }
+            } elseif ($tblConsumer
+                && $tblConsumer->getAcronym() == 'FESH'
+                && $isDivisionTeacherAvailable
+            ) {
+                $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getFirstName()
+                    . " " . $tblPersonSigner->getLastName());
             }
             else {
                 if ($isDivisionTeacherAvailable) {
