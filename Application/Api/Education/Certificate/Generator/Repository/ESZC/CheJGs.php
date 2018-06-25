@@ -157,7 +157,7 @@ class CheJGs extends Certificate
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('{% if(Content.P' . $personId . '.Input.Rating is not empty) %}
-                                    {{ Content.P' . $personId . '.Input.Rating }}
+                                    {{ Content.P' . $personId . '.Input.Rating|nl2br }}
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
