@@ -240,16 +240,19 @@ class Service extends AbstractService
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      * @param TblTestType $tblTestType
+     * @param bool $IsForced
      *
      * @return false|TblPrepareGrade[]
+     * @throws \Exception
      */
     public function getPrepareGradeAllByPerson(
         TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
-        TblTestType $tblTestType
+        TblTestType $tblTestType,
+        $IsForced = false
     ) {
 
-        return (new Data($this->getBinding()))->getPrepareGradeAllByPerson($tblPrepare, $tblPerson, $tblTestType);
+        return (new Data($this->getBinding()))->getPrepareGradeAllByPerson($tblPrepare, $tblPerson, $tblTestType, $IsForced);
     }
 
     /**
@@ -943,6 +946,12 @@ class Service extends AbstractService
                 } else {
                     $Content['P'.$personId]['DivisionTeacher']['Name'] = $tblPersonSigner->getFullName();
                 }
+            } elseif ($tblConsumer
+                && $tblConsumer->getAcronym() == 'FESH'
+                && $isDivisionTeacherAvailable
+            ) {
+                $Content['P' . $personId]['DivisionTeacher']['Name'] = trim($tblPersonSigner->getFirstName()
+                    . " " . $tblPersonSigner->getLastName());
             }
             else {
                 if ($isDivisionTeacherAvailable) {
@@ -983,7 +992,8 @@ class Service extends AbstractService
             $tblPrepareGradeBehaviorList = Prepare::useService()->getPrepareGradeAllByPerson(
                 $tblPrepare,
                 $tblPerson,
-                Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK')
+                Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK'),
+                true
             );
             $tblGenerateCertificate = $tblPrepare->getServiceTblGenerateCertificate();
             if ($tblPrepareGradeBehaviorList) {
@@ -1106,7 +1116,8 @@ class Service extends AbstractService
                 $tblPrepareGradeSubjectList = Prepare::useService()->getPrepareGradeAllByPerson(
                     $tblPrepare,
                     $tblPerson,
-                    Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')
+                    Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK'),
+                    true
                 );
                 if ($tblPrepareGradeSubjectList) {
                     foreach ($tblPrepareGradeSubjectList as $tblPrepareGrade) {
