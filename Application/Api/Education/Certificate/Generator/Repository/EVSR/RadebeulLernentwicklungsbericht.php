@@ -196,7 +196,7 @@ class RadebeulLernentwicklungsbericht extends Certificate
                         ->styleFontFamily($fontFamily)
                         ->styleTextSize($textSize)
                         ->styleMarginTop('40px')
-                        , '25%')
+                        , '26%')
                     ->addElementColumn((new Element())
                         ->setContent('
                                         {% if(Content.P' . $personId . '.Input.Bad.Missing is not empty) %}
@@ -209,7 +209,7 @@ class RadebeulLernentwicklungsbericht extends Certificate
                         ->styleTextSize($textSize)
                         ->styleMarginTop('40px')
                         ->styleAlignRight()
-                        , '8%')
+                        , '4%')
                     ->addElementColumn((new Element()))
                 )
                 ->addSection((new Section())
