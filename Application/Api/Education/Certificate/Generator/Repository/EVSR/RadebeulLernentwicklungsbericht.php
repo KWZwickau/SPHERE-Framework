@@ -209,7 +209,7 @@ class RadebeulLernentwicklungsbericht extends Certificate
                         ->styleTextSize($textSize)
                         ->styleMarginTop('40px')
                         ->styleAlignRight()
-                        , '4%')
+                        , '5%')
                     ->addElementColumn((new Element()))
                 )
                 ->addSection((new Section())
