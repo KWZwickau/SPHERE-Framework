@@ -174,22 +174,37 @@ class Data extends AbstractData
      * @param TblPrepareCertificate $tblPrepare
      * @param TblPerson $tblPerson
      * @param TblTestType $tblTestType
+     * @param bool $IsForced
      *
      * @return false|TblPrepareGrade[]
+     * @throws \Exception
      */
     public function getPrepareGradeAllByPerson(
         TblPrepareCertificate $tblPrepare,
         TblPerson $tblPerson,
-        TblTestType $tblTestType
+        TblTestType $tblTestType,
+        $IsForced = false
     ) {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrepareGrade',
-            array(
-                TblPrepareGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
-                TblPrepareGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-                TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
-            )
-        );
+        if ($IsForced) {
+            return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                'TblPrepareGrade',
+                array(
+                    TblPrepareGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
+                    TblPrepareGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                    TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
+                )
+            );
+        } else {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                'TblPrepareGrade',
+                array(
+                    TblPrepareGrade::ATTR_TBL_PREPARE_CERTIFICATE => $tblPrepare->getId(),
+                    TblPrepareGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                    TblPrepareGrade::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId(),
+                )
+            );
+        }
     }
 
     /**
@@ -875,7 +890,7 @@ class Data extends AbstractData
         // Fachnoten löschen
         if (($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK'))) {
             $tblPrepareGradeList = $this->getPrepareGradeAllByPerson(
-                $tblPrepare, $tblPerson, $tblTestType
+                $tblPrepare, $tblPerson, $tblTestType, true
             );
             if ($tblPrepareGradeList) {
                 foreach ($tblPrepareGradeList as $tblPrepareGrade) {
