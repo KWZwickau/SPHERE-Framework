@@ -1708,6 +1708,11 @@ abstract class Certificate extends Extension
                     ) {
                         $profileAppendText = 'Profil mit informatischer Bildung';
                     }
+                // Bei Annaberg bei keinem Profil (Youtrack: SSW-2355)
+                } elseif ($tblConsumer
+                    && $tblConsumer->getAcronym() == 'EGE'
+                ) {
+                    // keine Anpassung
                 } elseif (strpos(strtolower($tblSubject->getName()), 'wissen') !== false
                     && $this->getTblDivision()
                     && $this->getTblDivision()->getTblLevel()
