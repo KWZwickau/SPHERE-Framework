@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\System\Extension\Repository\Sorter;
 
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -40,6 +41,15 @@ class StringGermanOrderSorter extends AbstractSorter
     private function prepareString($String)
     {
 
+        $IsUmlautWithE = true;
+        if(($tblSetting = Consumer::useService()->getSetting('Setting', 'Consumer', 'Service', 'Sort_UmlautWithE'))){
+            $IsUmlautWithE = $tblSetting->getValue();
+        }
+        $IsSortWithShortWords = true;
+        if(($tblSetting = Consumer::useService()->getSetting('Setting', 'Consumer', 'Service', 'Sort_WithShortWords'))){
+            $IsSortWithShortWords = $tblSetting->getValue();
+        }
+
         $Cut = array(
             "der",
             "die",
@@ -66,12 +76,18 @@ class StringGermanOrderSorter extends AbstractSorter
         );
 
         $String = strtolower($String);
+        if($IsUmlautWithE){
+            $String = preg_replace(array('!ä!iu', '!ö!iu', '!ü!iu', '!ß!iu'), array('ae', 'oe', 'ue', 'ss'), $String);
+        } else {
+            $String = preg_replace(array('!ä!iu', '!ö!iu', '!ü!iu', '!ß!iu'), array('a', 'o', 'u', 'ss'), $String);
+        }
 
-        $String = preg_replace(array('!ä!iu', '!ö!iu', '!ü!iu', '!ß!iu'), array('ae', 'oe', 'ue', 'ss'), $String);
-        array_walk($Cut,function(&$V){
-            $V = '!^'.preg_quote($V, '!').'\s+!i';
-        });
-        $String = preg_replace( $Cut, '', $String );
+        if(!$IsSortWithShortWords){
+            array_walk($Cut,function(&$V){
+                $V = '!^'.preg_quote($V, '!').'\s+!i';
+            });
+            $String = preg_replace( $Cut, '', $String );
+        }
         return $String;
     }
 

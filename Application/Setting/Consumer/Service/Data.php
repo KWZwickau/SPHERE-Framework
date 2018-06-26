@@ -222,6 +222,11 @@ class Data extends AbstractData
             TblSetting::TYPE_BOOLEAN,
             '0'
         );
+        $this->createSetting('Setting', 'Consumer', 'Service', 'Sort_UmlautWithE',
+            TblSetting::TYPE_BOOLEAN, '1');
+
+        $this->createSetting('Setting', 'Consumer', 'Service', 'Sort_WithShortWords',
+            TblSetting::TYPE_BOOLEAN, '1');
     }
 
     /**
