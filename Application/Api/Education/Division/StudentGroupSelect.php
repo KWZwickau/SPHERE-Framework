@@ -187,77 +187,79 @@ class StudentGroupSelect extends Extension implements IApiInterface
                     $item = array();
 
                     $hasFilterError = false;
-                    if ($filter->getTblGroup()) {
-                        $text = $filter->getTblGroup()->getName();
-                        if ($filter->hasGroup($tblPerson)) {
-                            $item['Group'] = $text;
-                        } else {
-                            $hasFilterError = true;
-                            $item['Group'] = new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
+                    if ($filter->isFilterSet()) {
+                        if ($filter->getTblGroup()) {
+                            $text = $filter->getTblGroup()->getName();
+                            if ($filter->hasGroup($tblPerson)) {
+                                $item['Group'] = $text;
+                            } else {
+                                $hasFilterError = true;
+                                $item['Group'] = new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
+                            }
                         }
-                    }
-                    if ($filter->getTblGender()) {
-                        $text = $filter->getTblGenderStringByPerson($tblPerson);
-                        if ($filter->hasGender($tblPerson)) {
-                            $item['Gender'] = $text;
-                        } else {
-                            $hasFilterError = true;
-                            $item['Gender'] = new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
+                        if ($filter->getTblGender()) {
+                            $text = $filter->getTblGenderStringByPerson($tblPerson);
+                            if ($filter->hasGender($tblPerson)) {
+                                $item['Gender'] = $text;
+                            } else {
+                                $hasFilterError = true;
+                                $item['Gender'] = new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
 //                                '<div class="alert alert-danger" style="Margin-Bottom:2px;Padding-Top:2px;Padding-Bottom:2px">' . $text . '</div>';
+                            }
                         }
-                    }
-                    if ($filter->getTblCourse()) {
-                        $text = $filter->getTblCourseStringByPerson($tblPerson);
-                        if ($filter->hasCourse($tblPerson)) {
-                            $item['Course'] = $text;
-                        } else {
-                            $hasFilterError = true;
-                            $item['Course'] = new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
+                        if ($filter->getTblCourse()) {
+                            $text = $filter->getTblCourseStringByPerson($tblPerson);
+                            if ($filter->hasCourse($tblPerson)) {
+                                $item['Course'] = $text;
+                            } else {
+                                $hasFilterError = true;
+                                $item['Course'] = new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
+                            }
                         }
-                    }
-                    if ($filter->getTblSubjectOrientation()) {
-                        $text = $filter->getTblSubjectOrientationStringByPerson($tblPerson);
-                        if ($filter->hasSubjectOrientation($tblPerson)) {
-                            $item['SubjectOrientation'] = $text;
-                        } else {
-                            $hasFilterError = true;
-                            $item['SubjectOrientation'] = new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
+                        if ($filter->getTblSubjectOrientation()) {
+                            $text = $filter->getTblSubjectOrientationStringByPerson($tblPerson);
+                            if ($filter->hasSubjectOrientation($tblPerson)) {
+                                $item['SubjectOrientation'] = $text;
+                            } else {
+                                $hasFilterError = true;
+                                $item['SubjectOrientation'] = new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
+                            }
                         }
-                    }
-                    if ($filter->getTblSubjectProfile()) {
-                        $text = $filter->getTblSubjectProfileStringByPerson($tblPerson);
-                        if ($filter->hasSubjectProfile($tblPerson)) {
-                            $item['SubjectProfile'] = $text;
-                        } else {
-                            $hasFilterError = true;
-                            $item['SubjectProfile'] = new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
+                        if ($filter->getTblSubjectProfile()) {
+                            $text = $filter->getTblSubjectProfileStringByPerson($tblPerson);
+                            if ($filter->hasSubjectProfile($tblPerson)) {
+                                $item['SubjectProfile'] = $text;
+                            } else {
+                                $hasFilterError = true;
+                                $item['SubjectProfile'] = new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
+                            }
                         }
-                    }
-                    if ($filter->getTblSubjectForeignLanguage()) {
-                        $text = $filter->getTblSubjectForeignLanguagesStringByPerson($tblPerson);
-                        if ($filter->hasSubjectForeignLanguage($tblPerson)) {
-                            $item['SubjectForeignLanguage'] = $text;
-                        } else {
-                            $hasFilterError = true;
-                            $item['SubjectForeignLanguage'] = new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
+                        if ($filter->getTblSubjectForeignLanguage()) {
+                            $text = $filter->getTblSubjectForeignLanguagesStringByPerson($tblPerson);
+                            if ($filter->hasSubjectForeignLanguage($tblPerson)) {
+                                $item['SubjectForeignLanguage'] = $text;
+                            } else {
+                                $hasFilterError = true;
+                                $item['SubjectForeignLanguage'] = new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
+                            }
                         }
-                    }
-                    if ($filter->getTblSubjectReligion()) {
-                        $text = $filter->getTblSubjectReligionStringByPerson($tblPerson);
-                        if ($filter->hasSubjectReligion($tblPerson)) {
-                            $item['SubjectReligion'] = $text;
-                        } else {
-                            $hasFilterError = true;
-                            $item['SubjectReligion'] = new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
+                        if ($filter->getTblSubjectReligion()) {
+                            $text = $filter->getTblSubjectReligionStringByPerson($tblPerson);
+                            if ($filter->hasSubjectReligion($tblPerson)) {
+                                $item['SubjectReligion'] = $text;
+                            } else {
+                                $hasFilterError = true;
+                                $item['SubjectReligion'] = new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
+                            }
                         }
-                    }
-                    if ($filter->getTblSubjectElective()) {
-                        $text = $filter->getTblSubjectElectivesStringByPerson($tblPerson);
-                        if ($filter->hasSubjectElective($tblPerson)) {
-                            $item['SubjectElective'] = $text;
-                        } else {
-                            $hasFilterError = true;
-                            $item['SubjectElective'] = new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
+                        if ($filter->getTblSubjectElective()) {
+                            $text = $filter->getTblSubjectElectivesStringByPerson($tblPerson);
+                            if ($filter->hasSubjectElective($tblPerson)) {
+                                $item['SubjectElective'] = $text;
+                            } else {
+                                $hasFilterError = true;
+                                $item['SubjectElective'] = new \SPHERE\Common\Frontend\Text\Repository\Warning($text);
+                            }
                         }
                     }
 

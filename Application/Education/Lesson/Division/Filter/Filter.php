@@ -98,6 +98,11 @@ class Filter extends Extension
     protected $tblDivisionSubject = false;
 
     /**
+     * @var bool
+     */
+    protected $isFilterSet = false;
+
+    /**
      * @var array
      */
     protected $header = array();
@@ -110,6 +115,9 @@ class Filter extends Extension
         }
     }
 
+    /**
+     * @param $Filter
+     */
     public function setFilter($Filter)
     {
 
@@ -171,7 +179,20 @@ class Filter extends Extension
             $header['SubjectElective'] = 'Wahlfach';
         }
 
+        if (!empty($header)) {
+            $this->isFilterSet = true;
+        }
+
         $this->header = $header;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isFilterSet()
+    {
+
+        return $this->isFilterSet;
     }
 
     /**
@@ -372,7 +393,8 @@ class Filter extends Extension
     public function getMessageForSubjectGroup()
     {
         $list = array();
-        if (($tblDivisionSubject = $this->getTblDivisionSubject())
+        if ($this->isFilterSet()
+            && ($tblDivisionSubject = $this->getTblDivisionSubject())
             && ($tblDivision = $tblDivisionSubject->getTblDivision())
             && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
         ) {
@@ -411,7 +433,7 @@ class Filter extends Extension
                         $list[$tblPerson->getId()] = new Exclamation() . ' ' . $tblPerson->getLastFirstName() . ' ist in einer weiteren Fach-Gruppe';
                     }
                 }
-                // Validierung Bildungsmodul -> Schülerakte
+                // Validierung Schülerakte -> Bildungsmodul
                 else {
                     if ($this->isFilterFulfilledByPerson($tblPerson)) {
                         $list[$tblPerson->getId()] = new Ban() . ' ' . $tblPerson->getLastFirstName() . ' ist ' . new Bold('nicht') . ' in dieser Fach-Gruppe';

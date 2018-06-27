@@ -81,7 +81,9 @@ class Service
                     $filter = new Filter($tblDivisionSubject);
                     $filter->load();
 
-                    $list = $filter->getPersonAllWhereFilterIsNotFulfilled($list);
+                    if ($filter->isFilterSet()) {
+                        $list = $filter->getPersonAllWhereFilterIsNotFulfilled($list);
+                    }
                 }
             }
         }
@@ -162,21 +164,23 @@ class Service
                             $filter = new Filter($tblDivisionSubject);
                             $filter->load();
 
-                            // Validierung Bildungsmodul -> Schülerakte
-                            if (Division::useService()->exitsSubjectStudent($tblDivisionSubject, $tblPerson)) {
-                                $list = $filter->getIsNotFulfilledByPerson(
-                                    $tblPerson,
-                                    $tblSubject,
-                                    $tblSubjectGroup,
-                                    $tblDivisionSubject,
-                                    $list,
-                                    true
-                                );
-                            }
-                            // Validierung Bildungsmodul -> Schülerakte
-                            else {
-                                $list = $filter->getIsFulfilledButNotInGroupByPerson($tblPerson, $tblSubject, $tblSubjectGroup,
-                                    $tblDivisionSubject, $list);
+                            if ($filter->isFilterSet()) {
+                                // Validierung Bildungsmodul -> Schülerakte
+                                if (Division::useService()->exitsSubjectStudent($tblDivisionSubject, $tblPerson)) {
+                                    $list = $filter->getIsNotFulfilledByPerson(
+                                        $tblPerson,
+                                        $tblSubject,
+                                        $tblSubjectGroup,
+                                        $tblDivisionSubject,
+                                        $list,
+                                        true
+                                    );
+                                } // Validierung Schülerakte -> Bildungsmodul
+                                else {
+                                    $list = $filter->getIsFulfilledButNotInGroupByPerson($tblPerson, $tblSubject,
+                                        $tblSubjectGroup,
+                                        $tblDivisionSubject, $list);
+                                }
                             }
                         }
                     }
