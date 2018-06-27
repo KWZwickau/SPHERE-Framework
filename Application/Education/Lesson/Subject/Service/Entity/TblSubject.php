@@ -85,4 +85,14 @@ class TblSubject extends Element
 
         $this->Description = $Description;
     }
+
+    /**
+     * Acronym-Name
+     * @return string
+     */
+    public function getDisplayName()
+    {
+
+        return $this->getAcronym() . '-' . $this->getName();
+    }
 }

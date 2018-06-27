@@ -352,7 +352,7 @@ class Filter extends Extension
                     $list = $this->getIsNotFulfilledByPerson($tblPerson, $tblSubject, $tblSubjectGroup,
                         $tblDivisionSubject, $list);
                 }
-                // Validierung Bildungsmodul -> Schülerakte
+                // Validierung Schülerakte -> Bildungsmodul
                 else {
                     $list = $this->getIsFulfilledButNotInGroupByPerson($tblPerson, $tblSubject, $tblSubjectGroup,
                         $tblDivisionSubject, $list);
@@ -964,7 +964,7 @@ class Filter extends Extension
 
             $list[$tblPerson->getId()]['Filters']['Group']['DivisionSubjects'][$tblDivisionSubject->getId()]
                 = $prefix
-                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Fach: ' . $tblSubject->getDisplayName()  . '&nbsp;&nbsp;&nbsp;'
                 . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
                 . 'Filter: ' . $tblGroup->getName();
         }
@@ -975,7 +975,7 @@ class Filter extends Extension
 
             $list[$tblPerson->getId()]['Filters']['Gender']['DivisionSubjects'][$tblDivisionSubject->getId()]
                 = $prefix
-                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Fach: ' . $tblSubject->getDisplayName()  . '&nbsp;&nbsp;&nbsp;'
                 . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
                 . 'Filter: ' . $tblGender->getName();
         }
@@ -986,7 +986,7 @@ class Filter extends Extension
 
             $list[$tblPerson->getId()]['Filters']['Course']['DivisionSubjects'][$tblDivisionSubject->getId()]
                 = $prefix
-                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Fach: ' . $tblSubject->getDisplayName()  . '&nbsp;&nbsp;&nbsp;'
                 . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
                 . 'Filter: ' . $tblCourse->getName();
         }
@@ -997,9 +997,9 @@ class Filter extends Extension
 
             $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['DivisionSubjects'][$tblDivisionSubject->getId()]
                 = $prefix
-                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Fach: ' . $tblSubject->getDisplayName()  . '&nbsp;&nbsp;&nbsp;'
                 . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
-                . 'Filter: ' . $tblSubjectOrientation->getName();
+                . 'Filter: ' . $tblSubjectOrientation->getDisplayName();
         }
 
         if (($tblSubjectProfile = $this->getTblSubjectProfile()) && !$this->hasSubjectProfile($tblPerson)) {
@@ -1008,9 +1008,9 @@ class Filter extends Extension
 
             $list[$tblPerson->getId()]['Filters']['SubjectProfile']['DivisionSubjects'][$tblDivisionSubject->getId()]
                 = $prefix
-                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Fach: ' . $tblSubject->getDisplayName()  . '&nbsp;&nbsp;&nbsp;'
                 . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
-                . 'Filter: ' . $tblSubjectProfile->getName();
+                . 'Filter: ' . $tblSubjectProfile->getDisplayName();
         }
 
         if (($tblSubjectForeignLanguage = $this->getTblSubjectForeignLanguage()) && !$this->hasSubjectForeignLanguage($tblPerson)) {
@@ -1019,9 +1019,9 @@ class Filter extends Extension
 
             $list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['DivisionSubjects'][$tblDivisionSubject->getId()]
                 = $prefix
-                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Fach: ' . $tblSubject->getDisplayName()  . '&nbsp;&nbsp;&nbsp;'
                 . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
-                . 'Filter: ' . $tblSubjectForeignLanguage->getName();
+                . 'Filter: ' . $tblSubjectForeignLanguage->getDisplayName();
         }
 
         if (($tblSubjectReligion = $this->getTblSubjectReligion()) && !$this->hasSubjectReligion($tblPerson)) {
@@ -1030,9 +1030,9 @@ class Filter extends Extension
 
             $list[$tblPerson->getId()]['Filters']['SubjectReligion']['DivisionSubjects'][$tblDivisionSubject->getId()]
                 = $prefix
-                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Fach: ' . $tblSubject->getDisplayName()  . '&nbsp;&nbsp;&nbsp;'
                 . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
-                . 'Filter: ' . $tblSubjectReligion->getName();
+                . 'Filter: ' . $tblSubjectReligion->getDisplayName();
         }
 
         if (($tblSubjectElective = $this->getTblSubjectElective()) && !$this->hasSubjectElective($tblPerson)) {
@@ -1041,9 +1041,9 @@ class Filter extends Extension
 
             $list[$tblPerson->getId()]['Filters']['SubjectElective']['DivisionSubjects'][$tblDivisionSubject->getId()]
                 = $prefix
-                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Fach: ' . $tblSubject->getDisplayName()  . '&nbsp;&nbsp;&nbsp;'
                 . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
-                . 'Filter: ' . $tblSubjectElective->getName();
+                . 'Filter: ' . $tblSubjectElective->getDisplayName();
         }
 
         return $list;
@@ -1068,8 +1068,23 @@ class Filter extends Extension
         $showDivision = false
     ) {
 
-        // todo meldung bei mehrer Gruppen und der Schüler ist bereits in einer Gruppe (gerade bei SEKII)
         // todo Bildung mehrere NK und Co belegt.
+
+        // meldung bei mehrer Gruppen und der Schüler ist bereits in einer Gruppe ignorieren
+        // (z.B. wenn es mehrere Gruppen für eine Fremdsprache  gibt oder in der SEKII bei Kursen)
+        if (($tblDivision = $tblDivisionSubject->getTblDivision())
+            && ($tblDivisionSubjectList = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+            $tblDivision,
+            $tblSubject
+        ))) {
+            foreach ($tblDivisionSubjectList as $tblDivisionSubjectItem) {
+                if ($tblDivisionSubjectItem->getId() != $tblDivisionSubject->getId()
+                    && (Division::useService()->exitsSubjectStudent($tblDivisionSubjectItem, $tblPerson))
+                ) {
+                    return $list;
+                }
+            }
+        }
 
         $prefix = new Ban() .  ' ist ' . new Bold('nicht') . ' in ';
         if ($showDivision && ($tblDivision = $tblDivisionSubject->getTblDivision())) {
@@ -1081,7 +1096,7 @@ class Filter extends Extension
 
             $list[$tblPerson->getId()]['Filters']['Group']['DivisionSubjects'][$tblDivisionSubject->getId()]
                 = $prefix
-                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Fach: ' . $tblSubject->getDisplayName()  . '&nbsp;&nbsp;&nbsp;'
                 . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
                 . 'Filter: ' . $tblGroup->getName();
         }
@@ -1092,7 +1107,7 @@ class Filter extends Extension
 
             $list[$tblPerson->getId()]['Filters']['Gender']['DivisionSubjects'][$tblDivisionSubject->getId()]
                 = $prefix
-                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Fach: ' . $tblSubject->getDisplayName()  . '&nbsp;&nbsp;&nbsp;'
                 . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
                 . 'Filter: ' . $tblGender->getName();
         }
@@ -1103,7 +1118,7 @@ class Filter extends Extension
 
             $list[$tblPerson->getId()]['Filters']['Course']['DivisionSubjects'][$tblDivisionSubject->getId()]
                 = $prefix
-                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Fach: ' . $tblSubject->getDisplayName()  . '&nbsp;&nbsp;&nbsp;'
                 . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
                 . 'Filter: ' . $tblCourse->getName();
         }
@@ -1114,9 +1129,9 @@ class Filter extends Extension
 
             $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['DivisionSubjects'][$tblDivisionSubject->getId()]
                 = $prefix
-                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Fach: ' . $tblSubject->getDisplayName()  . '&nbsp;&nbsp;&nbsp;'
                 . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
-                . 'Filter: ' . $tblSubjectOrientation->getName();
+                . 'Filter: ' . $tblSubjectOrientation->getDisplayName();
         }
 
         if (($tblSubjectProfile = $this->getTblSubjectProfile()) && $this->hasSubjectProfile($tblPerson)) {
@@ -1125,9 +1140,9 @@ class Filter extends Extension
 
             $list[$tblPerson->getId()]['Filters']['SubjectProfile']['DivisionSubjects'][$tblDivisionSubject->getId()]
                 = $prefix
-                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Fach: ' . $tblSubject->getDisplayName()  . '&nbsp;&nbsp;&nbsp;'
                 . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
-                . 'Filter: ' . $tblSubjectProfile->getName();
+                . 'Filter: ' . $tblSubjectProfile->getDisplayName();
         }
 
         if (($tblSubjectForeignLanguage = $this->getTblSubjectForeignLanguage()) && $this->hasSubjectForeignLanguage($tblPerson)) {
@@ -1136,9 +1151,9 @@ class Filter extends Extension
 
             $list[$tblPerson->getId()]['Filters']['SubjectForeignLanguage']['DivisionSubjects'][$tblDivisionSubject->getId()]
                 = $prefix
-                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Fach: ' . $tblSubject->getDisplayName()  . '&nbsp;&nbsp;&nbsp;'
                 . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
-                . 'Filter: ' . $tblSubjectForeignLanguage->getName();
+                . 'Filter: ' . $tblSubjectForeignLanguage->getDisplayName();
         }
 
         if (($tblSubjectReligion = $this->getTblSubjectReligion()) && $this->hasSubjectReligion($tblPerson)) {
@@ -1147,9 +1162,9 @@ class Filter extends Extension
 
             $list[$tblPerson->getId()]['Filters']['SubjectReligion']['DivisionSubjects'][$tblDivisionSubject->getId()]
                 = $prefix
-                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Fach: ' . $tblSubject->getDisplayName()  . '&nbsp;&nbsp;&nbsp;'
                 . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
-                . 'Filter: ' . $tblSubjectReligion->getName();
+                . 'Filter: ' . $tblSubjectReligion->getDisplayName();
         }
 
         if (($tblSubjectElective = $this->getTblSubjectElective()) && $this->hasSubjectElective($tblPerson)) {
@@ -1158,9 +1173,9 @@ class Filter extends Extension
 
             $list[$tblPerson->getId()]['Filters']['SubjectElective']['DivisionSubjects'][$tblDivisionSubject->getId()]
                 = $prefix
-                . 'Fach: ' . $tblSubject->getName() . '&nbsp;&nbsp;&nbsp;'
+                . 'Fach: ' . $tblSubject->getDisplayName()  . '&nbsp;&nbsp;&nbsp;'
                 . 'Gruppe: ' . $tblSubjectGroup->getName() . '&nbsp;&nbsp;&nbsp;'
-                . 'Filter: ' . $tblSubjectElective->getName();
+                . 'Filter: ' . $tblSubjectElective->getDisplayName();
         }
 
         return $list;

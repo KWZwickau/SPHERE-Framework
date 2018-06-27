@@ -107,9 +107,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblYear = Term::useService()->getYearById($Year);
             $TempList = Division::useService()->getDivisionByYear($tblYear);
             if ($TempList) {
-                foreach ($TempList as $Temp) {
-                    $DivisionList[] = $Temp;
-                }
+                $DivisionList = $TempList;
             }
         } else {
             $tblYearList = Term::useService()->getYearByNow();

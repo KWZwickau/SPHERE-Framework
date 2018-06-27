@@ -370,7 +370,7 @@ class Service
                 if (!$tblStudent
                     || !$tblStudent->getTblSubjectProfile()
                 ) {
-                    $field = Filter::DESCRIPTION_SUBJECT_ORIENTATION;
+                    $field = Filter::DESCRIPTION_SUBJECT_PROFILE;
                     $value = new Exclamation() . ' Kein Profil hinterlegt.';
                     if (!isset($list[$tblPerson->getId()]['Filters']['SubjectProfile'])) {
                         $list[$tblPerson->getId()]['Filters']['SubjectProfile']['Field'] = $field;
