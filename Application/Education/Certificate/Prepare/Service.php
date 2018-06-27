@@ -1095,8 +1095,13 @@ class Service extends AbstractService
                                         'Education', 'Certificate', 'Radebeul', 'IsGradeVerbal'))
                                     && $tblSetting->getValue()
                                 ) {
-                                    $Content['P' . $personId]['Grade']['Data'][$tblTest->getServiceTblSubject()->getAcronym()]
-                                        = $this->getVerbalGrade($tblGradeItem->getGrade());;
+                                    if ($tblGradeItem->getTblGradeText()) {
+                                        $Content['P' . $personId]['Grade']['Data'][$tblTest->getServiceTblSubject()->getAcronym()]
+                                            = $tblGradeItem->getTblGradeText()->getName();
+                                    } else {
+                                        $Content['P' . $personId]['Grade']['Data'][$tblTest->getServiceTblSubject()->getAcronym()]
+                                            = $this->getVerbalGrade($tblGradeItem->getGrade());
+                                    }
                                 } else {
                                     $Content['P' . $personId]['Grade']['Data'][$tblTest->getServiceTblSubject()->getAcronym()]
                                         = $tblGradeItem->getDisplayGrade($withTrend);
