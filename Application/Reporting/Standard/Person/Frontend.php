@@ -10,6 +10,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Search\Group\Group;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -669,8 +670,8 @@ class Frontend extends Extension implements IFrontendInterface
             );
             // TableData standard sort definition
             $ColumnDef = array(
-                array('type' => 'german-string', 'targets' => 2),
-                array('type' => 'german-string', 'targets' => 3),
+                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
                 array('type' => 'de_date', 'targets' => 8)
             );
             $ColumnDefAdd = array();
@@ -1269,7 +1270,7 @@ class Frontend extends Extension implements IFrontendInterface
             array(
                 'order'      => array(array(1, 'asc')),
                 'columnDefs' => array(
-                    array('type' => 'german-string', 'targets' => 1),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
                 ),
 //                'pageLength' => -1,
 //                'paging'     => false,

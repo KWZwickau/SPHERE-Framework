@@ -16,6 +16,7 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -150,7 +151,7 @@ class AccidentReport extends Extension
                                 ),
                                 array(
                                     'columnDefs' => array(
-                                        array('type' => 'german-string', 'targets' => 0),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
                                         array('width' => '1%', 'targets' => -1),
                                     ),
                                 )

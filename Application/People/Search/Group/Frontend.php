@@ -16,6 +16,7 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
@@ -251,7 +252,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 array(0, 'asc')
                             ),
                             'columnDefs' => array(
-                                array('type' => 'german-string', 'targets' => 0),
+                                array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 0),
                             )
                         ))
                     )))

@@ -20,6 +20,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Setting\Authorization\Account\Account as AccountAuthorization;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -162,7 +163,7 @@ class Frontend extends Extension implements IFrontendInterface
             array(
                 'order'      => array(array(5, 'asc')),
                 'columnDefs' => array(
-                    array('type' => 'german-string', 'targets' => 1),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
 //                    array('width' => '1%', 'targets' => 0), //ToDO handle changing with
 //                    array('width' => '1%', 'targets' => -1),
                 ),
@@ -810,7 +811,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Option'            => ''
                                     ), array(
                                         'order'      => array(array(1, 'asc')),
-                                        'columnDefs' => array(array('type' => 'german-string', 'targets' => 1))
+                                        'columnDefs' => array(array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1))
                                     )
                                 )
                                 : new WarningMessage('Keine Benutzerzugänge vorhanden.')
@@ -917,7 +918,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Option'            => ''
                                     ), array(
                                         'order'      => array(array(1, 'asc')),
-                                        'columnDefs' => array(array('type' => 'german-string', 'targets' => 1))
+                                        'columnDefs' => array(array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1))
                                     )
                                 )
                                 : new WarningMessage('Keine Benutzerzugänge vorhanden.')
