@@ -281,8 +281,11 @@ class Filter extends Extension
                     $Filter['SubjectReligion'] = $tblSubject->getId();
                 }
 
-                // Wahlfach
-                if (Subject::useService()->isElective($tblSubject)) {
+                // Wahlfach nur bei Klasse 10 OS
+                if ($this->getTypeName() == 'Mittelschule / Oberschule'
+                    && floatval($this->getLevelName()) == 10
+                    && Subject::useService()->isElective($tblSubject)
+                ) {
                     $Filter['SubjectElective'] = $tblSubject->getId();
                 }
 
@@ -922,6 +925,21 @@ class Filter extends Extension
             && ($tblLevel = $this->tblDivision->getTblLevel())
         ) {
             return $tblLevel->getName();
+        }
+
+        return '';
+    }
+
+    /**
+     * @return string
+     */
+    public function getTypeName()
+    {
+        if ($this->tblDivision
+            && ($tblLevel = $this->tblDivision->getTblLevel())
+            && ($tblType = $tblLevel->getServiceTblType())
+        ) {
+            return $tblType->getName();
         }
 
         return '';
