@@ -38,6 +38,16 @@ class EzshGymJ extends EzshStyle
      */
     private function firstPage($personId)
     {
+
+        $showThirdForeignLanguage = false;
+        // bei der 10. Klasse soll die 3. FS statt der 2.FS angezeigt
+        if (($tblDivision = $this->getTblDivision())
+            && ($tblLevel = $tblDivision->getTblLevel())
+            && intval($tblLevel->getName()) == 10
+        ) {
+            $showThirdForeignLanguage = true;
+        }
+
         $Page = (new Page())
             ->addSlice(
                 (new Slice())
@@ -68,7 +78,7 @@ class EzshGymJ extends EzshStyle
                     )
                     ->addSection((new Section())
                         ->addSliceColumn(
-                            self::getEZSHSubjectLanes($personId, true, array('Lane' => 1, 'Rank' => 3), false)
+                            self::getEZSHSubjectLanes($personId, true, array('Lane' => 1, 'Rank' => 3), false, $showThirdForeignLanguage)
                                 ->styleHeight('360px')
                         )
                     )
