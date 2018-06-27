@@ -266,8 +266,12 @@ class EzshGymAbg extends EzshStyle
                                     , '10%')
                                 ->addElementColumn((new Element())
                                     ->setContent('
-                                        {{ Content.P' . $personId . '.Person.Data.Name.First }}
-                                        {{ Content.P' . $personId . '.Person.Data.Name.Last }}
+                                        {% if(Content.P' . $personId . '.Input.EqualGraduation.RS is not empty) %}
+                                            {{ Content.P' . $personId . '.Person.Data.Name.First }}
+                                            {{ Content.P' . $personId . '.Person.Data.Name.Last }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
                                     ')
                                     ->styleBorderBottom('1px', '#BBB')
                                     ->stylePaddingLeft('7px')
@@ -340,8 +344,12 @@ class EzshGymAbg extends EzshStyle
                                     , '10%')
                                 ->addElementColumn((new Element())
                                     ->setContent('
-                                        {{ Content.P' . $personId . '.Person.Data.Name.First }}
-                                        {{ Content.P' . $personId . '.Person.Data.Name.Last }}
+                                        {% if(Content.P' . $personId . '.Input.EqualGraduation.HS is not empty) %}
+                                            {{ Content.P' . $personId . '.Person.Data.Name.First }}
+                                            {{ Content.P' . $personId . '.Person.Data.Name.Last }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}
                                     ')
                                     ->styleBorderBottom('1px', '#BBB')
                                     ->stylePaddingLeft('7px')
@@ -383,7 +391,7 @@ class EzshGymAbg extends EzshStyle
                             ->setContent('¹ Zutreffendes ist anzukreuzen')
                             ->styleTextSize('9.5px')
                             ->styleBorderTop('1px', '#BBB')
-                            ->styleMarginTop('105px')
+                            ->styleMarginTop('70px')
                             ->styleFontFamily(self::FONT_FAMILY)
                             ->styleLineHeight(self::LINE_HEIGHT)
                         )
@@ -450,8 +458,16 @@ class EzshGymAbg extends EzshStyle
 //                                ->styleHeight('360px')
                         )
                     )
-                    ->addSectionList(
-                        self::getProfile($personId)
+//                    ->addSectionList(
+//                        self::getProfile($personId)
+//                    )
+                    ->addElement((new Element())
+                        ->styleMarginTop('20px')
+                    )
+                    ->addSection((new Section())
+                        ->addSliceColumn(
+                            self::getEZSHObligation($personId, '14px', true)
+                        )
                     )
                     ->addElement((new Element())
                         ->styleMarginTop('20px')
