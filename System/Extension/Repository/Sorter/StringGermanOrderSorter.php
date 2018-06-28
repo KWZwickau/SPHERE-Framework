@@ -72,7 +72,8 @@ class StringGermanOrderSorter extends AbstractSorter
             "une",
             "des",
             "l'",
-            "von"
+            "von",
+            "de"
         );
 
         $String = strtolower($String);

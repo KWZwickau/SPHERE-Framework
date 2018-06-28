@@ -45,7 +45,8 @@ jQuery.extend(jQuery.fn.dataTableExt.oSort, {
             "une",
             "des",
             "l'",
-            "von"
+            "von",
+            "de"
         ];
         //exclude html tags
 //         str = str.replace(//g, '');
