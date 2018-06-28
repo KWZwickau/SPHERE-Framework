@@ -13,6 +13,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -110,17 +111,19 @@ class Service extends AbstractService
      * @param IFormInterface    $Form
      * @param TblResponsibility $tblResponsibility
      * @param                   $CompanyNumber
+     * @param array             $Responsibility
      *
      * @return IFormInterface|string
      */
-    public function updateResponsibility(IFormInterface $Form, TblResponsibility $tblResponsibility, $CompanyNumber)
+    public function updateResponsibility(IFormInterface $Form, TblResponsibility $tblResponsibility, $CompanyNumber, $Responsibility)
     {
+
+        Debugger::screenDump($Responsibility);
 
         /**
          * Skip to Frontend
          */
-        $Global = $this->getGlobal();
-        if (!isset($Global->POST['Button'])) {
+        if (null === $Responsibility) {
             return $Form;
         }
 

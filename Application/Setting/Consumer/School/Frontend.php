@@ -14,6 +14,7 @@ use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblRespons
 use SPHERE\Application\Setting\Consumer\School\Service\Entity\TblSchool;
 use SPHERE\Common\Frontend\Form\Repository\Button\Danger;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -441,10 +442,11 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $Id
      * @param null $CompanyNumber
+     * @param null $School
      *
      * @return Stage
      */
-    public function frontendSchoolEdit($Id = null, $CompanyNumber = null)
+    public function frontendSchoolEdit($Id = null, $CompanyNumber = null, $School = null)
     {
 
         $Stage = new Stage('Unternehmensnr. des Unfallversicherungsträgers', 'Bearbeiten');
@@ -459,9 +461,10 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage->setContent(new Warning('Diese Schule wurde nicht gefunden.')
                 .new Redirect('/Setting/Consumer/School', Redirect::TIMEOUT_ERROR));
         }
-        $Form = new Form(new FormGroup(new FormRow(new FormColumn(
+        $Form = new Form(new FormGroup(new FormRow(array(new FormColumn(
             new Panel('Unternehmensnr. des Unfallversicherungsträgers', new TextField('CompanyNumber', '', ''),
-                Panel::PANEL_TYPE_SUCCESS)
+                Panel::PANEL_TYPE_SUCCESS)),
+            new FormColumn(new HiddenField('School[IsSubmit]'))
         ))));
         $Form->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
@@ -492,7 +495,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new Well(School::useService()->updateSchool(
-                                $Form, $tblSchool, $CompanyNumber
+                                $Form, $tblSchool, $CompanyNumber, $School
                             ))
                             , 6)
                     )
