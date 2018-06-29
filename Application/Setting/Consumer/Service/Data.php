@@ -178,6 +178,13 @@ class Data extends AbstractData
                     '1'
                 );
             }
+
+            // Anzeige des Schulnamens auf der Schülerkartei für die Grundschule
+            if ($tblConsumer->getAcronym() == 'ESRL') {
+                $this->createSetting('Api', 'Document', 'StudentCard_PrimarySchool', 'ShowSchoolName', TblSetting::TYPE_BOOLEAN, '0');
+            } else {
+                $this->createSetting('Api', 'Document', 'StudentCard_PrimarySchool', 'ShowSchoolName', TblSetting::TYPE_BOOLEAN, '1');
+            }
         }
         $this->createSetting(
             'Education',

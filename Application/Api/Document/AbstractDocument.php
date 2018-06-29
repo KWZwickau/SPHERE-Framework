@@ -278,15 +278,21 @@ abstract class AbstractDocument
 //
 //                                    $tblAddress->getGuiTwoRowString();
                             }
-                            if ($tblCompany->getName()) {
-                                $Data['Student']['Company'] = $tblCompany->getName();
-                                $this->tblAdressRowCount++;
-                            }
-                            if ($tblCompany->getExtendedName()) {
-                                $Data['Student']['Company2'] = $tblCompany->getExtendedName();
-                                $this->tblAdressRowCount++;
-                            }
 
+                            // StudentCard - PrimarySchool
+                            if (($tblSetting = Consumer::useService()->getSetting(
+                                    'Api', 'Document', 'StudentCard_PrimarySchool', 'ShowSchoolName'))
+                                && $tblSetting->getValue()
+                            ) {
+                                if ($tblCompany->getName()) {
+                                    $Data['Student']['Company'] = $tblCompany->getName();
+                                    $this->tblAdressRowCount++;
+                                }
+                                if ($tblCompany->getExtendedName()) {
+                                    $Data['Student']['Company2'] = $tblCompany->getExtendedName();
+                                    $this->tblAdressRowCount++;
+                                }
+                            }
                         }
                     }
                 }
