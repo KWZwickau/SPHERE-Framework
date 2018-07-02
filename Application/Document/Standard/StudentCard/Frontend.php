@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Document\Standard\StudentCard;
 
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\System\Extension\Extension;
@@ -150,6 +151,12 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @param null $Id
+     * @param null $Data
+     *
+     * @return Stage|string
+     */
     public function frontendStudentCardSubjects($Id = null, $Data = null)
     {
 
@@ -173,7 +180,63 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
+            $subjectList = array();
             $tblSubjectAll = Subject::useService()->getSubjectAll();
+            if (strpos($tblDocument->getName(), 'Mittelschule') !== false){
+                if (($tblSetting = Consumer::useService()->getSetting(
+                        'Api',
+                        'Education',
+                        'Certificate',
+                        'OrientationAcronym'
+                    ))
+                    && $tblSetting->getValue()
+                ) {
+                    $subjectList = $tblSubjectAll;
+                } else {
+                    $orientationSubject = Subject::useService()->getPseudoOrientationSubject();
+
+                    if ($tblSubjectAll) {
+                        foreach ($tblSubjectAll as $tblSubject) {
+                            // eigentliche NKs und Profile ausblenden
+                            if ((!Subject::useService()->isOrientation($tblSubject))
+                                && (!Subject::useService()->isProfile($tblSubject))
+                            ) {
+                                $subjectList[] = $tblSubject;
+                            }
+                        }
+                    }
+
+                    $subjectList[] = $orientationSubject;
+                }
+            }
+            if (strpos($tblDocument->getName(), 'Gymnasium') !== false){
+                if (($tblSetting = Consumer::useService()->getSetting(
+                        'Api',
+                        'Education',
+                        'Certificate',
+                        'ProfileAcronym'
+                    ))
+                    && $tblSetting->getValue()
+                ) {
+                    $subjectList = $tblSubjectAll;
+                } else {
+                    $profileSubject = Subject::useService()->getPseudoProfileSubject();
+
+                    if ($tblSubjectAll) {
+                        foreach ($tblSubjectAll as $tblSubject) {
+                            // eigentliche NKs und Profile ausblenden
+                            if ((!Subject::useService()->isOrientation($tblSubject))
+                                && (!Subject::useService()->isProfile($tblSubject))
+                            ) {
+                                $subjectList[] = $tblSubject;
+                            }
+                        }
+                    }
+
+                    $subjectList[] = $profileSubject;
+                }
+            }
+
             $contentList = array();
 
             for ($i = 1; $i <= 19; $i++) {
@@ -181,7 +244,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $i . '. Fach',
                     array(
                         new SelectBox('Data[' . $i . '][Subject]', 'Fach',
-                            array('{{ Acronym }} - {{ Name }}' => $tblSubjectAll)
+                            array('{{ Acronym }} - {{ Name }}' => $subjectList)
                         ),
                         new CheckBox('Data[' . $i . '][IsEssential]',
                             'Muss immer ausgewiesen werden', 1),

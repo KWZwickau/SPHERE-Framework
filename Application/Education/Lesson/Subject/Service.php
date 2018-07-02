@@ -870,7 +870,6 @@ class Service extends AbstractService
         /**
          * Skip to Frontend
          */
-        $Global = $this->getGlobal();
         if ($DataAddPerson === null && $DataRemovePerson === null) {
             return $Form;
         }
@@ -995,5 +994,72 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->existsCategorySubject($tblCategory, $tblSubject);
+    }
+
+
+    /**
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function isOrientation(TblSubject $tblSubject)
+    {
+        if (($tblSubjectOrientationAll = $this->getSubjectOrientationAll())) {
+            foreach ($tblSubjectOrientationAll as $tblSubjectOrientation) {
+                if ($tblSubjectOrientation->getId() == $tblSubject->getId()) {
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function isProfile(TblSubject $tblSubject)
+    {
+
+        if (($tblSubjectProfileAll = $this->getSubjectProfileAll())) {
+            foreach ($tblSubjectProfileAll as $tblSubjectProfile) {
+                if ($tblSubjectProfile->getId() == $tblSubject->getId())
+                {
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return TblSubject
+     */
+    public function getPseudoOrientationSubject()
+    {
+        $orientationSubject = new TblSubject();
+        $orientationSubject->setId(TblSubject::PSEUDO_ORIENTATION_ID);
+        $orientationSubject->setAcronym('NK');
+        $orientationSubject->setName('Neigungskurs');
+
+        return $orientationSubject;
+    }
+
+    /**
+     * @return TblSubject
+     */
+    public function getPseudoProfileSubject()
+    {
+        $profileSubject = new TblSubject();
+        $profileSubject->setId(TblSubject::PSEUDO_PROFILE_ID);
+        $profileSubject->setAcronym('PRO');
+        $profileSubject->setName('Profil');
+
+        return $profileSubject;
     }
 }

@@ -94,7 +94,18 @@ class TblDocumentSubject extends Element
         if (null === $this->serviceTblSubject) {
             return false;
         } else {
-            return Subject::useService()->getSubjectById($this->serviceTblSubject);
+            if ($this->serviceTblSubject == TblSubject::PSEUDO_ORIENTATION_ID) {
+
+                return Subject::useService()->getPseudoOrientationSubject();
+
+            } elseif ($this->serviceTblSubject == TblSubject::PSEUDO_PROFILE_ID) {
+
+                return Subject::useService()->getPseudoProfileSubject();
+
+            } else {
+
+                return Subject::useService()->getSubjectById($this->serviceTblSubject);
+            }
         }
     }
 
