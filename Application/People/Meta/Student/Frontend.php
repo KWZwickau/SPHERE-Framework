@@ -553,6 +553,25 @@ class Frontend extends Extension implements IFrontendInterface
                             )))->ajaxPipelineOnClick(
                             ApiMassReplace::pipelineOpen($Field, $NodeEnrollment)
                         )),
+                        ApiMassReplace::receiverField((
+                        $Field = new DatePicker('Meta[Transfer][' . $tblStudentTransferTypeEnrollment->getId() . '][Date]',
+                            'Datum', 'Datum', new Calendar())
+                        ))
+                        .ApiMassReplace::receiverModal($Field, $NodeEnrollment)
+                        .new PullRight((new Link('Massen-Änderung',
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ENROLLMENT_TRANSFER_DATE,
+                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                            => $tblPerson->getId(),
+                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeEnrollment,
+                            )))->ajaxPipelineOnClick(
+                            ApiMassReplace::pipelineOpen($Field, $NodeEnrollment)
+                        )),
 
 //                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeEnrollment->getId().'][School]',
 //                            'Schule', array(
@@ -566,8 +585,8 @@ class Frontend extends Extension implements IFrontendInterface
 //                            'Bildungsgang', array(
 //                                '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
 //                            ), new Education()),
-                        new DatePicker('Meta[Transfer]['.$tblStudentTransferTypeEnrollment->getId().'][Date]',
-                            'Datum', 'Datum', new Calendar()),
+//                        new DatePicker('Meta[Transfer]['.$tblStudentTransferTypeEnrollment->getId().'][Date]',
+//                            'Datum', 'Datum', new Calendar()),
                         new TextArea('Meta[Transfer]['.$tblStudentTransferTypeEnrollment->getId().'][Remark]',
                             'Bemerkungen', 'Bemerkungen', new Pencil()),
                     ), Panel::PANEL_TYPE_INFO),
@@ -639,6 +658,26 @@ class Frontend extends Extension implements IFrontendInterface
                             )))->ajaxPipelineOnClick(
                             ApiMassReplace::pipelineOpen($Field, $NodeArrive)
                         )),
+                        ApiMassReplace::receiverField((
+                        $Field = new DatePicker('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][Date]',
+                            'Datum',
+                            'Datum', new Calendar())
+                        ))
+                        .ApiMassReplace::receiverModal($Field, $NodeArrive)
+                        .new PullRight((new Link('Massen-Änderung',
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ARRIVE_TRANSFER_DATE,
+                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                      => $tblPerson->getId(),
+                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeArrive,
+                            )))->ajaxPipelineOnClick(
+                            ApiMassReplace::pipelineOpen($Field, $NodeArrive)
+                        )),
 //                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][School]',
 //                            'Abgebende Schule / Kita', array(
 //                                '{{ Name }} {{ Description }}' => $tblCompanyAllSchoolNursery
@@ -651,9 +690,9 @@ class Frontend extends Extension implements IFrontendInterface
 //                            'Letzter Bildungsgang', array(
 //                                '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
 //                            ), new Education()),
-                        new DatePicker('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][Date]',
-                            'Datum',
-                            'Datum', new Calendar()),
+//                        new DatePicker('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][Date]',
+//                            'Datum',
+//                            'Datum', new Calendar()),
                         new TextArea('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][Remark]',
                             'Bemerkungen', 'Bemerkungen', new Pencil()),
                     ), Panel::PANEL_TYPE_INFO),
@@ -725,6 +764,26 @@ class Frontend extends Extension implements IFrontendInterface
                             )))->ajaxPipelineOnClick(
                             ApiMassReplace::pipelineOpen($Field, $NodeLeave)
                         )),
+                        ApiMassReplace::receiverField((
+                        $Field = new DatePicker('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][Date]',
+                            'Datum',
+                            'Datum', new Calendar())
+                        ))
+                        .ApiMassReplace::receiverModal($Field, $NodeLeave)
+                        .new PullRight((new Link('Massen-Änderung',
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_LEAVE_TRANSFER_DATE,
+                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                      => $tblPerson->getId(),
+                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeLeave,
+                            )))->ajaxPipelineOnClick(
+                            ApiMassReplace::pipelineOpen($Field, $NodeLeave)
+                        )),
 //                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][School]',
 //                            'Aufnehmende Schule', array(
 //                                '{{ Name }} {{ Description }}' => $tblCompanyAllSchool
@@ -737,9 +796,9 @@ class Frontend extends Extension implements IFrontendInterface
 //                            'Letzter Bildungsgang', array(
 //                                '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
 //                            ), new Education()),
-                        new DatePicker('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][Date]',
-                            'Datum',
-                            'Datum', new Calendar()),
+//                        new DatePicker('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][Date]',
+//                            'Datum',
+//                            'Datum', new Calendar()),
                         new TextArea('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][Remark]',
                             'Bemerkungen', 'Bemerkungen', new Pencil()),
                     ), Panel::PANEL_TYPE_INFO),

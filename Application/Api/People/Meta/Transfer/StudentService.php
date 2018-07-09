@@ -175,4 +175,58 @@ class StudentService
         }
         return true;
     }
+
+    /**
+     * @param array $PersonIdArray
+     * @param $StudentTransferTypeIdentifier
+     * @param null $transferDate
+     *
+     * @return bool
+     */
+    public function createTransferDate(
+        $PersonIdArray = array(),
+        $StudentTransferTypeIdentifier,
+        $transferDate = null
+    ) {
+
+        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier($StudentTransferTypeIdentifier);
+        $BulkSave = array();
+        $BulkProtocol = array();
+
+        if (!empty($PersonIdArray)) {
+            foreach ($PersonIdArray as $PersonIdList) {
+                $tblStudent = false;
+                $tblPerson = Person::useService()->getPersonById($PersonIdList);
+                if ($tblPerson) {
+                    if ($tblPerson && $tblStudentTransferType) {
+                        $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                        if (!$tblStudent) {
+                            $tblStudent = Student::useService()->createStudent($tblPerson);
+                        }
+                    }
+                }
+                if ($tblStudent) {
+                    $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                        $tblStudentTransferType);
+                    if (!$tblStudentTransfer) {
+                        $tblStudentTransfer = new ServiceAPP\Entity\TblStudentTransfer();
+                        $BulkProtocol[] = false;
+                        $tblStudentTransfer->setTblStudent($tblStudent);
+                        $tblStudentTransfer->setTblStudentTransferType($tblStudentTransferType);
+                        $tblStudentTransfer->setRemark('');
+                    } else {
+                        $BulkProtocol[] = clone $tblStudentTransfer;
+                    }
+                    $tblStudentTransfer->setTransferDate($transferDate ? new \DateTime($transferDate) : null);
+
+                    $BulkSave[] = $tblStudentTransfer;
+                }
+            }
+            if (!empty($BulkSave)) {
+                return Student::useService()->bulkSaveEntityList($BulkSave, $BulkProtocol);
+            }
+            return false;
+        }
+        return true;
+    }
 }
