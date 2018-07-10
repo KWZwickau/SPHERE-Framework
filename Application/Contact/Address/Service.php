@@ -549,13 +549,14 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblToCompany   $tblToCompany
-     * @param array          $Street
-     * @param array          $City
-     * @param int            $State
-     * @param array          $Type
+     * @param TblToCompany $tblToCompany
+     * @param array $Street
+     * @param array $City
+     * @param int $State
+     * @param array $Type
      * @param                $County
      * @param                $Nation
+     * @param $Group
      *
      * @return IFormInterface|string
      */
@@ -567,7 +568,8 @@ class Service extends AbstractService
         $State,
         $Type,
         $County,
-        $Nation
+        $Nation,
+        $Group
     ) {
 
         /**
@@ -637,11 +639,11 @@ class Service extends AbstractService
                 ) {
                     return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Adresse wurde erfolgreich geändert')
                     .new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS,
-                        array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
+                        array('Id' => $tblToCompany->getServiceTblCompany()->getId(), 'Group' => $Group));
                 } else {
                     return new Danger(new Ban().' Die Adresse konnte nicht geändert werden')
                     .new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR,
-                        array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
+                        array('Id' => $tblToCompany->getServiceTblCompany()->getId(), 'Group' => $Group));
                 }
             } else {
                 new Danger('Institution nicht gefunden', new Ban());
@@ -652,13 +654,14 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblCompany     $tblCompany
-     * @param array          $Street
-     * @param array          $City
-     * @param integer        $State
-     * @param array          $Type
+     * @param TblCompany $tblCompany
+     * @param array $Street
+     * @param array $City
+     * @param integer $State
+     * @param array $Type
      * @param                $County
      * @param                $Nation
+     * @param $Group
      *
      * @return IFormInterface|string
      */
@@ -670,7 +673,8 @@ class Service extends AbstractService
         $State,
         $Type,
         $County,
-        $Nation
+        $Nation,
+        $Group
     ) {
 
         /**
@@ -735,11 +739,11 @@ class Service extends AbstractService
             ) {
                 return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Adresse wurde erfolgreich hinzugefügt')
                 .new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS,
-                    array('Id' => $tblCompany->getId()));
+                    array('Id' => $tblCompany->getId(), 'Group' => $Group));
             } else {
                 return new Danger(new Ban().' Die Adresse konnte nicht hinzugefügt werden')
                 .new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR,
-                    array('Id' => $tblCompany->getId()));
+                    array('Id' => $tblCompany->getId(), 'Group' => $Group));
             }
         }
         return $Form;
