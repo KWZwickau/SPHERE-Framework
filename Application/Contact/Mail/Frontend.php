@@ -60,12 +60,13 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param int $Id
+     * @param null $Group
      * @param string $Address
      * @param array $Type
      *
      * @return Stage|string
      */
-    public function frontendCreateToPerson($Id, $Address, $Type)
+    public function frontendCreateToPerson($Id, $Group = null, $Address, $Type)
     {
 
         $Stage = new Stage('E-Mail Adresse', 'Hinzufügen');
@@ -74,12 +75,12 @@ class Frontend extends Extension implements IFrontendInterface
         $tblPerson = Person::useService()->getPersonById($Id);
         if(!$tblPerson){
             return $Stage . new Danger('Person nicht gefunden', new Ban())
-            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
+            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR, array('Group' => $Group));
         }
 
         $Stage->addButton(
             new Standard('Zurück', '/People/Person', new ChevronLeft(),
-                array('Id' => $tblPerson->getId())
+                array('Id' => $tblPerson->getId(), 'Group' => $Group)
             )
         );
 
@@ -103,7 +104,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $this->formAddress()
                                         ->appendFormButton(new Primary('Speichern', new Save()))
                                         ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                    , $tblPerson, $Address, $Type
+                                    , $tblPerson, $Address, $Type, $Group
                                 )
                             )
                         )
@@ -209,12 +210,13 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param int $Id
+     * @param null $Group
      * @param string $Address
      * @param array $Type
      *
      * @return Stage|string
      */
-    public function frontendUpdateToPerson($Id, $Address, $Type)
+    public function frontendUpdateToPerson($Id, $Group = null, $Address, $Type)
     {
 
         $Stage = new Stage('E-Mail Adresse', 'Bearbeiten');
@@ -224,12 +226,12 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (!$tblToPerson->getServiceTblPerson()){
             return $Stage . new Danger('Person nicht gefunden', new Ban())
-            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
+            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR, array('Group' => $Group));
         }
 
         $Stage->addButton(
             new Standard('Zurück', '/People/Person', new ChevronLeft(),
-                array('Id' => $tblToPerson->getServiceTblPerson()->getId())
+                array('Id' => $tblToPerson->getServiceTblPerson()->getId(), 'Group' => $Group)
             )
         );
 
@@ -261,7 +263,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $this->formAddress()
                                         ->appendFormButton(new Primary('Speichern', new Save()))
                                         ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                    , $tblToPerson, $Address, $Type
+                                    , $tblToPerson, $Address, $Type, $Group
                                 )
                             )
                         )
@@ -340,16 +342,17 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblPerson $tblPerson
+     * @param null $Group
      *
      * @return Layout
      */
-    public function frontendLayoutPerson(TblPerson $tblPerson)
+    public function frontendLayoutPerson(TblPerson $tblPerson, $Group = null)
     {
 
         $mailExistsList = array();
         $tblMailAll = Mail::useService()->getMailAllByPerson($tblPerson);
         if ($tblMailAll !== false) {
-            array_walk($tblMailAll, function (TblToPerson &$tblToPerson) use ($mailExistsList) {
+            array_walk($tblMailAll, function (TblToPerson &$tblToPerson) use ($mailExistsList, $Group) {
 
                 if (array_key_exists($tblToPerson->getId(), $mailExistsList)){
                     $tblToPerson = false;
@@ -371,12 +374,12 @@ class Frontend extends Extension implements IFrontendInterface
 
                             new Standard(
                                 '', '/People/Person/Mail/Edit', new Edit(),
-                                array('Id' => $tblToPerson->getId()),
+                                array('Id' => $tblToPerson->getId(), 'Group' => $Group),
                                 'Bearbeiten'
                             )
                             . new Standard(
                                 '', '/People/Person/Mail/Destroy', new Remove(),
-                                array('Id' => $tblToPerson->getId()), 'Löschen'
+                                array('Id' => $tblToPerson->getId(), 'Group' => $Group), 'Löschen'
                             )
                         )
                         , 3);
@@ -502,11 +505,12 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param int $Id
+     * @param null $Group
      * @param bool $Confirm
      *
      * @return Stage|string
      */
-    public function frontendDestroyToPerson($Id, $Confirm = false)
+    public function frontendDestroyToPerson($Id, $Group = null, $Confirm = false)
     {
 
         $Stage = new Stage('E-Mail Adresse', 'Löschen');
@@ -516,12 +520,12 @@ class Frontend extends Extension implements IFrontendInterface
 
             if (!$tblPerson){
                 return $Stage . new Danger('Person nicht gefunden', new Ban())
-                . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
+                . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR, array('Group' => $Group));
             }
 
             $Stage->addButton(
                 new Standard('Zurück', '/People/Person', new ChevronLeft(),
-                    array('Id' => $tblPerson->getId())
+                    array('Id' => $tblPerson->getId(), 'Group' => $Group)
                 )
             );
             if (!$Confirm) {
@@ -539,11 +543,11 @@ class Frontend extends Extension implements IFrontendInterface
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
                                 'Ja', '/People/Person/Mail/Destroy', new Ok(),
-                                array('Id' => $Id, 'Confirm' => true)
+                                array('Id' => $Id, 'Confirm' => true, 'Group' => $Group)
                             )
                             . new Standard(
                                 'Nein', '/People/Person', new Disable(),
-                                array('Id' => $tblPerson->getId())
+                                array('Id' => $tblPerson->getId(), 'Group' => $Group)
                             )
                         )
                     )))))
@@ -557,7 +561,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 : new Danger(new Ban() . ' Die E-Mail Adresse konnte nicht gelöscht werden')
                             ),
                             new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
-                                array('Id' => $tblPerson->getId()))
+                                array('Id' => $tblPerson->getId(), 'Group' => $Group))
                         )))
                     )))
                 );
@@ -567,7 +571,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
                         new Danger(new Ban() . ' Die E-Mail Adresse konnte nicht gefunden werden'),
-                        new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR)
+                        new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR, array('Group' => $Group))
                     )))
                 )))
             );

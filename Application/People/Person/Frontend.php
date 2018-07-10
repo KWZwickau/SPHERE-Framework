@@ -87,7 +87,9 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Person', 'Datenblatt '.( $Id ? 'bearbeiten' : 'anlegen' ));
-        $Stage->addButton( new Standard('Zurück', '/People', new ChevronLeft()) );
+        $Stage->addButton(
+            new Standard('Zurück', '/People/Search/Group', new ChevronLeft(), array('Id' => $Group))
+        );
 
         if (!$Id) {
 
@@ -315,48 +317,48 @@ class Frontend extends Extension implements IFrontendInterface
                             'zur Person '.new Bold(new SuccessText($tblPerson->getFullName())))),
                         new LayoutGroup(array(
                             new LayoutRow(new LayoutColumn(
-                                Address::useFrontend()->frontendLayoutPerson($tblPerson)
+                                Address::useFrontend()->frontendLayoutPerson($tblPerson, $Group)
                             )),
                         ), (new Title(new TagList().' Adressdaten',
                             'der Person '.new Bold(new SuccessText($tblPerson->getFullName()))))
                             ->addButton(
                                 new Standard('Adresse hinzufügen', '/People/Person/Address/Create',
-                                    new ChevronDown(), array('Id' => $tblPerson->getId())
+                                    new ChevronDown(), array('Id' => $tblPerson->getId(), 'Group' => $Group)
                                 )
                             )
                         ),
                         new LayoutGroup(array(
                             new LayoutRow(new LayoutColumn(
-                                Phone::useFrontend()->frontendLayoutPerson($tblPerson)
-                                . Mail::useFrontend()->frontendLayoutPerson($tblPerson)
+                                Phone::useFrontend()->frontendLayoutPerson($tblPerson , $Group)
+                                . Mail::useFrontend()->frontendLayoutPerson($tblPerson, $Group)
                             )),
                         ), (new Title(new TagList().' Kontaktdaten',
                             'der Person '.new Bold(new SuccessText($tblPerson->getFullName()))))
                             ->addButton(
                                 new Standard('Telefonnummer hinzufügen', '/People/Person/Phone/Create',
-                                    new ChevronDown(), array('Id' => $tblPerson->getId())
+                                    new ChevronDown(), array('Id' => $tblPerson->getId(), 'Group' => $Group)
                                 )
                             )
                             ->addButton(
                                 new Standard('E-Mail Adresse hinzufügen', '/People/Person/Mail/Create',
-                                    new ChevronDown(), array('Id' => $tblPerson->getId())
+                                    new ChevronDown(), array('Id' => $tblPerson->getId(), 'Group' => $Group)
                                 )
                             )
                         ),
                         new LayoutGroup(array(
                             new LayoutRow(new LayoutColumn(array(
-                                Relationship::useFrontend()->frontendLayoutPerson($tblPerson),
-                                Relationship::useFrontend()->frontendLayoutCompany($tblPerson)
+                                Relationship::useFrontend()->frontendLayoutPerson($tblPerson, $Group),
+                                Relationship::useFrontend()->frontendLayoutCompany($tblPerson, $Group)
                             ))),
                         ), ( new Title(new TagList().' Beziehungen', new Bold(new SuccessText($tblPerson->getFullName())).' zu Personen und Institutionen') )
                             ->addButton(
                                 new Standard('Personenbeziehung hinzufügen', '/People/Person/Relationship/Create',
-                                    new ChevronDown(), array('Id' => $tblPerson->getId())
+                                    new ChevronDown(), array('Id' => $tblPerson->getId(), 'Group' => $Group)
                                 )
                             )
                             ->addButton(
                                 new Standard('Institutionenbeziehung hinzufügen', '/Corporation/Company/Relationship/Create',
-                                    new ChevronDown(), array('Id' => $tblPerson->getId())
+                                    new ChevronDown(), array('Id' => $tblPerson->getId(), 'Group' => $Group)
                                 )
                             )
                         ),
