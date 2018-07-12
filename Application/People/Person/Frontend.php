@@ -209,9 +209,10 @@ class Frontend extends Extension implements IFrontendInterface
 
                     return strnatcmp($ObjectA->getName(), $ObjectB->getName());
                 });
+                $IsStudent = false;
                 // Create Tabs
                 /** @noinspection PhpUnusedParameterInspection */
-                array_walk($MetaTabs, function (TblGroup &$tblGroup) use ($Group, $tblPerson) {
+                array_walk($MetaTabs, function (TblGroup &$tblGroup) use ($Group, $tblPerson, &$IsStudent) {
 
                     switch (strtoupper($tblGroup->getMetaTable())) {
                         case 'COMMON':
@@ -228,6 +229,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblGroup = new LayoutTab('Schülerakte', $tblGroup->getMetaTable(),
                                 array('Id' => $tblPerson->getId(), 'Group' => $Group)
                             );
+                            $IsStudent = true;
                             break;
                         case 'CUSTODY':
                             $tblGroup = new LayoutTab('Sorgerechtdaten', $tblGroup->getMetaTable(),
@@ -248,6 +250,11 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblGroup = false;
                     }
                 });
+                if($IsStudent){
+                    $MetaTabs[] = new LayoutTab('Integration', 'INTEGRATION',
+                        array('Id' => $tblPerson->getId(), 'Group' => $Group)
+                    );
+                }
                 /** @var LayoutTab[] $MetaTabs */
                 $MetaTabs = array_filter($MetaTabs);
                 // Folded ?
@@ -280,6 +287,9 @@ class Frontend extends Extension implements IFrontendInterface
                         break;
                     case 'STUDENT':
                         $MetaTable = Student::useFrontend()->frontendMeta($tblPerson, $Meta, $Group);
+                        break;
+                    case 'INTEGRATION':
+                        $MetaTable = Student::useFrontend()->frontendIntegration($tblPerson, $Group);
                         break;
                     case 'CUSTODY':
                         $MetaTable = Custody::useFrontend()->frontendMeta($tblPerson, $Meta, $Group);

@@ -7,8 +7,8 @@ use SPHERE\Application\Api\MassReplace\StudentFilter;
 use SPHERE\Application\Api\People\Meta\Student\ApiStudent;
 use SPHERE\Application\Api\People\Meta\Student\MassReplaceStudent;
 use SPHERE\Application\Api\People\Meta\Subject\MassReplaceSubject;
+use SPHERE\Application\Api\People\Meta\Support\ApiSupport;
 use SPHERE\Application\Api\People\Meta\Transfer\MassReplaceTransfer;
-use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
@@ -18,20 +18,21 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblSpecial;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementCategory;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementType;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentDisorderType;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentFocusType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationCategory;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblSupport;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
+use SPHERE\Application\Setting\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Aspect;
@@ -39,7 +40,6 @@ use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
-use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -51,8 +51,8 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Bus;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\Child;
-use SPHERE\Common\Frontend\Icon\Repository\Clock;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Heart;
 use SPHERE\Common\Frontend\Icon\Repository\Hospital;
@@ -62,7 +62,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Medicine;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
-use SPHERE\Common\Frontend\Icon\Repository\Person;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Shield;
 use SPHERE\Common\Frontend\Icon\Repository\Stethoscope;
@@ -71,24 +71,27 @@ use SPHERE\Common\Frontend\Icon\Repository\TempleChurch;
 use SPHERE\Common\Frontend\Icon\Repository\TileSmall;
 use SPHERE\Common\Frontend\Icon\Repository\Time;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Accordion;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
+use SPHERE\Common\Frontend\Layout\Repository\Ruler;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Link;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
-use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 /**
  * Class Frontend
@@ -246,7 +249,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $this->formGroupTransfer($tblPerson, $Year, $Division),
                                     $this->formGroupGeneral($tblPerson),
                                     $this->formGroupSubject($tblPerson, $Year, $Division),
-                                    $this->formGroupIntegration($tblPerson),
+//                                    $this->formGroupIntegration($tblPerson),
                                 ), (new Primary('Speichern', new Save()))->disableOnLoad())
                                 )->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.')
                                 , $tblPerson, $Meta, $Group
@@ -258,6 +261,176 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         return $Stage;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param null      $Group
+     *
+     * @return Stage
+     */
+    public function frontendIntegration(TblPerson $tblPerson = null, $Group = null)
+    {
+
+        $Stage = new Stage();
+
+//        $tblPersonAll = PeoplePerson::useService()->getPersonAll();
+        $tblSpecialList = Student::useService()->getSpecialByPerson($tblPerson);
+        $TableContent = array();
+        if($tblSpecialList){
+            array_walk($tblSpecialList, function(TblSpecial $tblSpecial) use (&$TableContent){
+                $Item['RequestDate'] = $tblSpecial->getDate();
+                $Item['Disorder'] = '';
+                $Item['Editor'] = $tblSpecial->getPersonEditor();
+                $Item['Option'] = new Standard('', '#', new Edit())
+                                .new Standard('', '#', new Remove());
+
+                $DisorderList = array();
+                $tblStudentDisorderTypeList = Student::useService()->getStudentDisorderTypeAllBySpecial($tblSpecial);
+                if($tblStudentDisorderTypeList){
+                    foreach($tblStudentDisorderTypeList as $tblStudentDisorderType){
+                        $DisorderList[] = $tblStudentDisorderType->getName();
+                    }
+                }
+                if(!empty($DisorderList)) {
+                    $Item['Disorder'] = new Listing($DisorderList);
+                }
+
+                array_push($TableContent, $Item);
+            });
+        }
+
+        $RequestContent = $this->getRequestTable($tblPerson); // ApiSupport::receiverInline()
+
+        $ProgressionContent = new TableData($TableContent, null,
+            array('RequestDate' => 'Datum',
+                'Disorder' => 'Entwicklungsbesonderheiten',
+                'Editor' => 'Bearbeiter',
+                'Option' => '',
+            ));
+        $AdverseContent = new TableData($TableContent, null,
+            array('RequestDate' => 'Datum',
+                'CoachingRequest' => 'Maßnahmen / Beschluss Klassenkonferenz',
+                'Editor' => 'Bearbeiter',
+                'Option' => '',
+            ));
+
+        $Accordion = new Accordion('');
+        $Accordion->addItem('Förderantrag/Förderbescheid', $RequestContent, true);
+        $Accordion->addItem('Entwicklungsbesonderheiten', $ProgressionContent, false);
+        $Accordion->addItem('Nachteilsaugleich', $AdverseContent, false);
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                                ApiSupport::receiverModal('Förderantrag/Förderbescheid hinzufügen'),
+                                (new Standard('Förderantrag/Förderbescheid hinzufügen', '#'))
+                            ->ajaxPipelineOnClick(ApiSupport::pipelineOpenCreateSupportModal($tblPerson->getId())),
+                                new Standard('Entwicklungsbesonderheiten hinzufügen', '#'),
+                                new Standard('Nachteilsausgleich hinzufügen', '#'),
+                                new Ruler()
+                            )
+                        )
+                    )
+                ),
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            $Accordion,
+                        ))
+                    )
+                ),
+            ))
+        );
+
+        return $Stage;
+    }
+
+    public function getRequestTable(TblPerson $tblPerson)
+    {
+
+        $tblSupportList = Student::useService()->getSupportByPerson($tblPerson);
+        $TableContent = array();
+        if($tblSupportList){
+            array_walk($tblSupportList, function(TblSupport $tblSupport) use (&$TableContent){
+                $Item['RequestDate'] = $tblSupport->getDate();
+                $Item['CoachingRequest'] = ($tblSupport->getTblSupportType() ? $tblSupport->getTblSupportType()->getName() : '');
+                $Item['Focus'] = '';
+                $Item['IntegrationCompany'] = '';
+                $Item['PersonSupport'] = '';
+                $Item['IntegrationTime'] = $tblSupport->getSupportTime();
+                $Item['IntegrationRemark'] = $tblSupport->getRemark();
+                $Item['Editor'] = '';
+                $Item['Option'] = new Standard('', '#', new Edit())
+                    .new Standard('', '#', new Remove());
+
+                $FocusList = array();
+                $PrimaryFocus = Student::useService()->getPrimaryFocusBySupport($tblSupport);
+                if($PrimaryFocus){
+                    $FocusList[] = new Bold($PrimaryFocus->getName());
+                }
+                $tblFocusList = Student::useService()->getFocusListBySupport($tblSupport);
+                if($tblFocusList){
+                    foreach($tblFocusList as $tblFocus){
+                        $FocusList[] = $tblFocus->getName();
+                    }
+                }
+                if(!empty($FocusList)) {
+                    $Item['Focus'] = new Listing($FocusList);
+                }
+
+                $tblCompany = $tblSupport->getServiceTblCompany();
+                if($tblCompany){
+                    $Item['IntegrationCompany'] = $tblCompany->getDisplayName();
+                }
+
+                $Item['PersonSupport'] = $tblSupport->getPersonSupport();
+
+                $tblAccount = Account::useService()->getAccountBySession();
+                if($tblAccount){
+                    $tblPersonList = Account::useService()->getPersonAllByAccount($tblAccount);
+                    if($tblPersonList){
+                        $tblPersonEditor = $tblPersonList[0];
+                        $tblTeacher = Teacher::useService()->getTeacherByPerson($tblPersonEditor);
+                        $Acronym = '';
+                        if($tblTeacher){
+                            $Acronym = $tblTeacher->getAcronym();
+                        }
+                        $Item['Editor'] = $tblPersonEditor->getLastFirstName().($Acronym ? ', '.$Acronym : '');
+                    }
+                }
+
+                array_push($TableContent, $Item);
+            });
+        }
+
+        return new TableData($TableContent, null,
+            array('RequestDate' => 'Datum',
+                  'CoachingRequest' => 'Förderantrag',
+                  'Focus' => 'Förderschwerpunkte',
+                  'IntegrationCompany' => 'Förderschule',
+                  'PersonSupport' => 'Schulbegleitung',
+                  'IntegrationTime' => 'Stundenbedarf',
+                  'IntegrationRemark' => 'Bemerkung',
+                  'Editor' => 'Bearbeiter',
+                  'Option' => '',
+            ), null, array(
+                "columnDefs" => array(
+                    array('type' => 'de_date', 'targets' => 0)
+//                    array(
+//                        "orderable" => false,
+//                        "targets"   => '_all',
+//                    ),
+//                    array('width' => '1%', 'targets' => 0),
+//                    array('width' => '2%', 'targets' => 2),
+                ),
+                'pageLength' => -1,
+                'paging' => false,
+                'info' => false,
+                'responsive' => false
+            ));
     }
 
     /**
@@ -1406,138 +1579,6 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
         return new Panel($Title, $Panel, Panel::PANEL_TYPE_INFO);
-    }
-
-    /**
-     * @param TblPerson|null $tblPerson
-     *
-     * @return FormGroup
-     */
-    private function formGroupIntegration(
-        TblPerson $tblPerson = null
-    ) {
-
-        if (null !== $tblPerson) {
-            $Global = $this->getGlobal();
-            if (!isset($Global->POST['Meta']['Integration'])) {
-
-                $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-
-                if ($tblStudent) {
-
-                    $tblStudentIntegration = $tblStudent->getTblStudentIntegration();
-                    if ($tblStudentIntegration) {
-
-                        $Global->POST['Meta']['Integration']['Coaching']['Required'] = $tblStudentIntegration->getCoachingRequired() ? 1 : 0;
-                        $Global->POST['Meta']['Integration']['Coaching']['CounselDate'] = $tblStudentIntegration->getCoachingCounselDate();
-                        $Global->POST['Meta']['Integration']['Coaching']['RequestDate'] = $tblStudentIntegration->getCoachingRequestDate();
-                        $Global->POST['Meta']['Integration']['Coaching']['DecisionDate'] = $tblStudentIntegration->getCoachingDecisionDate();
-
-                        $Global->POST['Meta']['Integration']['School']['Company'] =
-                            $tblStudentIntegration->getServiceTblCompany() ? $tblStudentIntegration->getServiceTblCompany()->getId() : 0;
-                        $Global->POST['Meta']['Integration']['School']['Person'] =
-                            $tblStudentIntegration->getServiceTblPerson() ? $tblStudentIntegration->getServiceTblPerson()->getId() : 0;
-                        $Global->POST['Meta']['Integration']['School']['Time'] = $tblStudentIntegration->getCoachingTime();
-                        $Global->POST['Meta']['Integration']['School']['Remark'] = $tblStudentIntegration->getCoachingRemark();
-                    }
-
-                    $tblStudentDisorderAll = Student::useService()->getStudentDisorderAllByStudent($tblStudent);
-                    if ($tblStudentDisorderAll) {
-                        foreach ($tblStudentDisorderAll as $tblStudentDisorder) {
-                            $Global->POST['Meta']['Integration']['Disorder'][$tblStudentDisorder->getTblStudentDisorderType()->getId()] = 1;
-                        }
-                    }
-
-                    $tblStudentFocusAll = Student::useService()->getStudentFocusAllByStudent($tblStudent);
-                    if ($tblStudentFocusAll) {
-                        foreach ($tblStudentFocusAll as $tblStudentFocus) {
-                            $Global->POST['Meta']['Integration']['Focus'][$tblStudentFocus->getTblStudentFocusType()->getId()] = 1;
-                            if ($tblStudentFocus->isPrimary()) {
-                                $Global->POST['Meta']['Integration']['PrimaryFocus'] = $tblStudentFocus->getTblStudentFocusType()->getId();
-                            }
-                        }
-                    }
-                }
-            }
-            $Global->savePost();
-        }
-
-        $tblCompanyAllSchool = Group::useService()->getCompanyAllByGroup(
-            Group::useService()->getGroupByMetaTable('SCHOOL')
-        );
-        if ($tblCompanyAllSchool) {
-            array_push($tblCompanyAllSchool, new TblCompany());
-        } else {
-            $tblCompanyAllSchool = array();
-            $tblCompanyAllSchool[] = new TblCompany();
-        }
-
-        $PanelDisorder = array();
-        $tblStudentDisorderType = Student::useService()->getStudentDisorderTypeAll();
-        $tblStudentDisorderType = $this->getSorter($tblStudentDisorderType)->sortObjectBy('Name',
-            new StringNaturalOrderSorter());
-        array_walk($tblStudentDisorderType,
-            function (TblStudentDisorderType $tblStudentDisorderType) use (&$PanelDisorder) {
-
-                array_push($PanelDisorder,
-                    new CheckBox('Meta[Integration][Disorder]['.$tblStudentDisorderType->getId().']',
-                        $tblStudentDisorderType->getName(), 1)
-                );
-            });
-        $PanelDisorder = new Panel('Förderbedarf: Teilleistungsstörungen', $PanelDisorder, Panel::PANEL_TYPE_INFO);
-
-        $tblStudentFocusType = Student::useService()->getStudentFocusTypeAll();
-        $tblStudentFocusType = $this->getSorter($tblStudentFocusType)->sortObjectBy('Name',
-            new StringNaturalOrderSorter());
-        $PanelFocus = array();
-        $PanelFocus[] = new SelectBox('Meta[Integration][PrimaryFocus]', 'Primär geförderter Schwerpunkt',
-            array('{{ Name}}' => $tblStudentFocusType));
-        array_walk($tblStudentFocusType,
-            function (TblStudentFocusType $tblStudentFocusType) use (&$PanelFocus) {
-
-                array_push($PanelFocus,
-                    new CheckBox('Meta[Integration][Focus]['.$tblStudentFocusType->getId().']',
-                        $tblStudentFocusType->getName(), 1)
-                );
-            });
-        $PanelFocus = new Panel('Förderbedarf: Schwerpunkte', $PanelFocus, Panel::PANEL_TYPE_INFO);
-
-        return new FormGroup(array(
-            new FormRow(array(
-                new FormColumn(
-                    new Panel('Förderantrag / Förderbescheid', array(
-                        new CheckBox('Meta[Integration][Coaching][Required]', 'Förderbedarf', 1),
-                        new DatePicker('Meta[Integration][Coaching][CounselDate]', 'Förderantrag Beratung',
-                            'Förderantrag Beratung',
-                            new Calendar()
-                        ),
-                        new DatePicker('Meta[Integration][Coaching][RequestDate]', 'Förderantrag',
-                            'Förderantrag',
-                            new Calendar()
-                        ),
-                        new DatePicker('Meta[Integration][Coaching][DecisionDate]', 'Förderbescheid SBA',
-                            'Förderbescheid SBA',
-                            new Calendar()
-                        )
-                    ), Panel::PANEL_TYPE_INFO), 3),
-                new FormColumn(
-                    new Panel('Förderschule', array(
-                        new SelectBox('Meta[Integration][School][Company]', 'Förderschule',
-                            array('{{ Name }} {{ Description }}' => $tblCompanyAllSchool),
-                            new Education()),
-                        new SelectBox('Meta[Integration][School][Person]',
-                            'Schulbegleitung '.new Small(new Muted('Integrationsbeauftragter')), array(),
-                            new Person()),
-                        new NumberField('Meta[Integration][School][Time]', 'Stundenbedarf pro Woche',
-                            'Stundenbedarf pro Woche', new Clock()),
-                        new TextArea('Meta[Integration][School][Remark]', 'Bemerkungen', 'Bemerkungen',
-                            new Pencil()),
-
-                    ), Panel::PANEL_TYPE_INFO), 3),
-                new FormColumn($PanelFocus, 3),
-                new FormColumn($PanelDisorder, 3),
-            )),
-        ), new Title(new TileSmall().' Integration', new Bold(new Success($tblPerson->getFullName()))));
     }
 
     /**

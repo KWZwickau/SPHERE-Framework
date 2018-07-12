@@ -35,7 +35,7 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentLocker;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransfer;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransport;
-use SPHERE\Application\People\Meta\Student\Service\Service\Integration;
+use SPHERE\Application\People\Meta\Student\Service\Service\Support;
 use SPHERE\Application\People\Meta\Student\Service\Setup;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -51,7 +51,7 @@ use SPHERE\Common\Window\Redirect;
  *
  * @package SPHERE\Application\People\Meta\Student
  */
-class Service extends Integration
+class Service extends Support
 {
 
     /**
@@ -400,8 +400,6 @@ class Service extends Integration
         $tblStudent = $this->getStudentByPerson($tblPerson);
 
         $AttendingDoctor = Person::useService()->getPersonById($Meta['MedicalRecord']['AttendingDoctor']);
-        $IntegrationPerson = Person::useService()->getPersonById($Meta['Integration']['School']['Person']);
-        $IntegrationCompany = Company::useService()->getCompanyById($Meta['Integration']['School']['Company']);
         $SiblingRank = Relationship::useService()->getSiblingRankById($Meta['Billing']);
 
         $Prefix = $Meta['Student']['Prefix'];
@@ -482,31 +480,7 @@ class Service extends Integration
                 );
             }
 
-            $tblStudentIntegration = $tblStudent->getTblStudentIntegration();
-            if ($tblStudentIntegration) {
-                (new Data($this->getBinding()))->updateStudentIntegration(
-                    $tblStudent->getTblStudentIntegration(),
-                    $IntegrationPerson ? $IntegrationPerson : null,
-                    $IntegrationCompany ? $IntegrationCompany : null,
-                    $Meta['Integration']['Coaching']['RequestDate'],
-                    $Meta['Integration']['Coaching']['CounselDate'],
-                    $Meta['Integration']['Coaching']['DecisionDate'],
-                    isset( $Meta['Integration']['Coaching']['Required'] ),
-                    $Meta['Integration']['School']['Time'],
-                    $Meta['Integration']['School']['Remark']
-                );
-            } else {
-                $tblStudentIntegration = (new Data($this->getBinding()))->createStudentIntegration(
-                    $IntegrationPerson ? $IntegrationPerson : null,
-                    $IntegrationCompany ? $IntegrationCompany : null,
-                    $Meta['Integration']['Coaching']['RequestDate'],
-                    $Meta['Integration']['Coaching']['CounselDate'],
-                    $Meta['Integration']['Coaching']['DecisionDate'],
-                    isset( $Meta['Integration']['Coaching']['Required'] ),
-                    $Meta['Integration']['School']['Time'],
-                    $Meta['Integration']['School']['Remark']
-                );
-            }
+            $tblStudentIntegration = null;
 
             $tblStudentBilling = $tblStudent->getTblStudentBilling();
             if ($tblStudentBilling) {
@@ -563,16 +537,7 @@ class Service extends Integration
                 $Meta['Transport']['Remark']
             );
 
-            $tblStudentIntegration = (new Data($this->getBinding()))->createStudentIntegration(
-                $IntegrationPerson ? $IntegrationPerson : null,
-                $IntegrationCompany ? $IntegrationCompany : null,
-                $Meta['Integration']['Coaching']['RequestDate'],
-                $Meta['Integration']['Coaching']['CounselDate'],
-                $Meta['Integration']['Coaching']['DecisionDate'],
-                isset( $Meta['Integration']['Coaching']['Required'] ),
-                $Meta['Integration']['School']['Time'],
-                $Meta['Integration']['School']['Remark']
-            );
+            $tblStudentIntegration = null;
 
             $tblStudentBilling = (new Data($this->getBinding()))->createStudentBilling(
                 $SiblingRank ? $SiblingRank : null

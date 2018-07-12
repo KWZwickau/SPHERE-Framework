@@ -1,7 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student\Service;
 
-use SPHERE\Application\People\Meta\Student\Service\Data\Integration;
+use SPHERE\Application\People\Meta\Student\Service\Data\Support;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
@@ -29,7 +29,7 @@ use SPHERE\System\Database\Fitting\Element;
  *
  * @package SPHERE\Application\People\Meta\Student\Service
  */
-class Data extends Integration
+class Data extends Support
 {
 
     /**
@@ -289,18 +289,56 @@ class Data extends Integration
         $this->createStudentFocusType('Sehen');
         $this->createStudentFocusType('Geistige Entwicklung');
         $this->createStudentFocusType('Lernen');
+        $this->createStudentFocusType('Unterricht kranker Schüler');
 
-        $this->createStudentDisorderType('LRS');
-        $this->createStudentDisorderType('Gehörschwierigkeiten');
-        $this->createStudentDisorderType('Augenleiden');
-        $this->createStudentDisorderType('Sprachfehler');
-        $this->createStudentDisorderType('Dyskalkulie');
-        $this->createStudentDisorderType('Autismus');
+        // update to new translation
+        $tblDisorderType = $this->getStudentDisorderTypeByName('Augenleiden');
+        if($tblDisorderType){
+            $this->updateStudentDisorder($tblDisorderType, 'Visuelle Wahrnehmungsstörungen', 'Augenleiden');
+        }
+        $tblDisorderType = $this->getStudentDisorderTypeByName('LRS');
+        if($tblDisorderType){
+            $this->updateStudentDisorder($tblDisorderType, 'Lese-/ Rechtschreibstörung', 'LRS');
+        }
+        $tblDisorderType = $this->getStudentDisorderTypeByName('Gehörschwierigkeiten');
+        if($tblDisorderType){
+            $this->updateStudentDisorder($tblDisorderType, 'Auditive Wahrnehmungsstörungen', 'Gehörschwierigkeiten');
+        }
+        $tblDisorderType = $this->getStudentDisorderTypeByName('Sprachfehler');
+        if($tblDisorderType){
+            $this->updateStudentDisorder($tblDisorderType, 'Sprach-/ Sprechstörungen', 'Sprachfehler');
+        }
+        $tblDisorderType = $this->getStudentDisorderTypeByName('Dyskalkulie');
+        if($tblDisorderType){
+            $this->updateStudentDisorder($tblDisorderType, 'Rechenschwäche', 'Dyskalkulie');
+        }
+        $tblDisorderType = $this->getStudentDisorderTypeByName('Autismus');
+        if($tblDisorderType){
+            $this->updateStudentDisorder($tblDisorderType, 'Störungen aus dem Autismusspektrum', 'Autismus');
+        }
+        $tblDisorderType = $this->getStudentDisorderTypeByName('Hochbegabung');
+        if($tblDisorderType){
+            $this->updateStudentDisorder($tblDisorderType, 'Sonstige Entwicklungsbesonderheiten', 'Hochbegabung');
+        }
+        $tblDisorderType = $this->getStudentDisorderTypeByName('Konzentrationsstörung');
+        if($tblDisorderType){
+            $this->updateStudentDisorder($tblDisorderType, 'Konzentrationsstörungen', 'Konzentrationsstörung');
+        }
+        $tblDisorderType = $this->getStudentDisorderTypeByName('Körperliche Beeinträchtigung');
+        if($tblDisorderType){
+            $this->updateStudentDisorder($tblDisorderType, 'Störung motorischer Funktionen', 'Körperliche Beeinträchtigung');
+        }
+        // Disorder with new Translation
         $this->createStudentDisorderType('ADS / ADHS');
+        $this->createStudentDisorderType('Auditive Wahrnehmungsstörungen');
+        $this->createStudentDisorderType('Konzentrationsstörungen');
+        $this->createStudentDisorderType('Störung motorischer Funktionen');
+        $this->createStudentDisorderType('Lese-/ Rechtschreibstörung');
         $this->createStudentDisorderType('Rechenschwäche');
-        $this->createStudentDisorderType('Hochbegabung');
-        $this->createStudentDisorderType('Konzentrationsstörung');
-        $this->createStudentDisorderType('Körperliche Beeinträchtigung');
+        $this->createStudentDisorderType('Sonstige Entwicklungsbesonderheiten');
+        $this->createStudentDisorderType('Sprach-/ Sprechstörungen');
+        $this->createStudentDisorderType('Störungen aus dem Autismusspektrum');
+        $this->createStudentDisorderType('Visuelle Wahrnehmungsstörungen');
 
         $this->createStudentTransferType('ENROLLMENT', 'Einschulung');
         $this->createStudentTransferType('ARRIVE', 'Aufnahme');
@@ -322,6 +360,14 @@ class Data extends Integration
         $this->createStudentSchoolEnrollmentType('PREMATURE', 'vorzeitige Einschulung');
         $this->createStudentSchoolEnrollmentType('REGULAR', 'fristgemäße Einschulung');
         $this->createStudentSchoolEnrollmentType('POSTPONED', 'Einschulung nach Zurückstellung');
+
+        // TblSupportType
+        $this->createSupportType('Beratung', '');
+        $this->createSupportType('Förderantrag', '');
+        $this->createSupportType('Förderbescheid', '');
+        $this->createSupportType('Änderung', '');
+        $this->createSupportType('Ablehnung', '');
+        $this->createSupportType('Wiederspruch', '');
     }
 
     /**

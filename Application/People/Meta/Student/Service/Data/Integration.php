@@ -192,6 +192,30 @@ abstract class Integration extends Subject
     }
 
     /**
+     * @param TblStudentDisorderType $tblStudentDisorderType
+     * @param string                 $Name
+     * @param string                 $Description
+     *
+     * @return bool
+     */
+    public function updateStudentDisorder(TblStudentDisorderType $tblStudentDisorderType, $Name, $Description = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var null|TblStudentDisorderType $Entity */
+        $Entity = $Manager->getEntityById('TblStudentDisorderType', $tblStudentDisorderType->getId());
+        if (null !== $Entity) {
+            $Protocol = clone $Entity;
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @return bool|TblStudentDisorderType[]
      */
     public function getStudentDisorderTypeAll()

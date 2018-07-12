@@ -82,6 +82,13 @@ class Setup extends AbstractSetup
         $tblStudentFocusType = $this->setTableStudentFocusType($Schema);
         $this->setTableStudentFocus($Schema, $tblStudent, $tblStudentFocusType);
 
+        $tblSupportType = $this->setTableSupportType($Schema);
+        $tblSupport = $this->setTableSupport($Schema, $tblSupportType);
+        $this->setTableSupportFocus($Schema, $tblSupport, $tblStudentFocusType);
+
+        $tblSpecial = $this->setTableSpecial($Schema);
+        $this->setTableSpecialDisorder($Schema, $tblSpecial, $tblStudentDisorderType);
+
         /**
          * Migration & Protocol
          */
@@ -665,16 +672,105 @@ class Setup extends AbstractSetup
     }
 
     /**
-     * @param Schema $schema
+     * @param Schema $Schema
      *
      * @return Table
      */
-    private function setTableStudentSchoolEnrollmentType(Schema &$schema)
+    private function setTableStudentSchoolEnrollmentType(Schema &$Schema)
     {
 
-        $table = $this->createTable($schema, 'tblStudentSchoolEnrollmentType');
+        $table = $this->createTable($Schema, 'tblStudentSchoolEnrollmentType');
         $this->createColumn($table, 'Name', self::FIELD_TYPE_STRING);
         $this->createColumn($table, 'Identifier', self::FIELD_TYPE_STRING);
+
+        return $table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableSupportType(Schema &$Schema)
+    {
+
+        $table = $this->createTable($Schema, 'tblSupportType');
+        $this->createColumn($table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'Description', self::FIELD_TYPE_STRING);
+
+        return $table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblSupportType
+     *
+     * @return Table
+     */
+    private function setTableSupport(Schema &$Schema, Table $tblSupportType)
+    {
+
+        $table = $this->createTable($Schema, 'tblSupport');
+        $this->createColumn($table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($table, 'Date', self::FIELD_TYPE_DATETIME);
+        $this->createForeignKey($table, $tblSupportType);
+        $this->createColumn($table, 'serviceTblCompany', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($table, 'PersonSupport', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'SupportTime', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'serviceTblPersonEditor', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($table, 'Remark', self::FIELD_TYPE_TEXT);
+
+        return $table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblSupport
+     * @param Table  $tblStudentFocusType
+     *
+     * @return Table
+     */
+    private function setTableSupportFocus(Schema &$Schema, Table $tblSupport, Table $tblStudentFocusType)
+    {
+
+        $table = $this->createTable($Schema, 'tblSupportFocus');
+        $this->createForeignKey($table, $tblSupport);
+        $this->createForeignKey($table, $tblStudentFocusType);
+        $this->createColumn($table, 'IsPrimary', self::FIELD_TYPE_BOOLEAN);
+
+        return $table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableSpecial(Schema &$Schema)
+    {
+
+        $table = $this->createTable($Schema, 'tblSpecial');
+        $this->createColumn($table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($table, 'Date', self::FIELD_TYPE_DATETIME);
+        $this->createColumn($table, 'PersonEditor', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'Remark', self::FIELD_TYPE_TEXT);
+
+        return $table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblSpecial
+     * @param Table  $tblStudentDisorderType
+     *
+     * @return Table
+     */
+    private function setTableSpecialDisorder(Schema &$Schema, Table $tblSpecial, Table $tblStudentDisorderType)
+    {
+
+        $table = $this->createTable($Schema, 'tblSpecialDisorder');
+        $this->createForeignKey($table, $tblSpecial);
+        $this->createForeignKey($table, $tblStudentDisorderType);
 
         return $table;
     }
