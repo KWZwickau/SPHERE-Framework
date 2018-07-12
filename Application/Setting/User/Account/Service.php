@@ -725,14 +725,14 @@ class Service extends AbstractService
         $addressMissCount = 0;
         $accountExistCount = 0;
 
-        $GroupByCount = 0;
+        $GroupByCount = 1;
         $CountAccount = 0;
 
         foreach ($PersonIdArray as $PersonId) {
-            if(!($CountAccount % 30)){
+            if ($CountAccount % 30 == 0
+                && $CountAccount != 0) {
                 $GroupByCount++;
             }
-            $CountAccount++;
             $tblPerson = Person::useService()->getPersonById($PersonId);
             if ($tblPerson) {
                 // ignore Person with Account
@@ -795,8 +795,9 @@ class Service extends AbstractService
                         $Type = TblUserAccount::VALUE_TYPE_STUDENT;
                     }
                     // add tblUserAccount
-                    $this->createUserAccount($tblAccount, $tblPerson, $TimeStamp, $password,
-                        $Type, $GroupByCount);
+                    if($this->createUserAccount($tblAccount, $tblPerson, $TimeStamp, $password, $Type, $GroupByCount)){
+                        $CountAccount++;
+                    }
                 }
             }
         }

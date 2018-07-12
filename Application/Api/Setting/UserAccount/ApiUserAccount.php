@@ -264,34 +264,39 @@ class ApiUserAccount extends Extension implements IApiInterface
         if($GroupByTime){
             $tblUserAccountGroup = Account::useService()->getUserAccountByTimeGroupLimitList(new \DateTime($GroupByTime));
             $tblPerson = false;
-            if(!$tblCompany){
-                foreach ($tblUserAccountGroup as $GroupIdentifier => $tblUserAccountList){
-                    $IsError = false;
-                    /** @var TblUserAccount $tblUserAccount */
-                    foreach($tblUserAccountList as $tblUserAccount) {
-                        if(!$tblUserAccount->getServiceTblPerson()){
-                            if(($tblAccount = $tblUserAccount->getServiceTblAccount())){
-                                $ErrorAccountList[] = $tblAccount->getUsername();
-                                $IsError = true;
-                            }
+            foreach ($tblUserAccountGroup as $GroupIdentifier => $tblUserAccountList){
+                $IsError = false;
+                /** @var TblUserAccount $tblUserAccount */
+                foreach($tblUserAccountList as $tblUserAccount) {
+                    if(!$tblUserAccount->getServiceTblPerson()){
+                        if(($tblAccount = $tblUserAccount->getServiceTblAccount())){
+                            $ErrorAccountList[] = $tblAccount->getUsername();
+                            $IsError = true;
                         }
                     }
-                    $SelectBoxContent[$GroupIdentifier] = $GroupIdentifier.'.te Liste aus '.count($tblUserAccountList).' Personen'.
-                        ($IsError ? new Small(' Hinweis siehe Oben') : '');
+                }
+                $SelectBoxContent[$GroupIdentifier] = $GroupIdentifier.'. Liste aus '.count($tblUserAccountList).' Personen'.
+                    ($IsError ? new Small(' Hinweis siehe Oben') : '');
+
+                // Suchen der Company wenn keine eindeutige gefunden wurde
+                if(!$tblCompany) {
                     /** @var TblUserAccount $tblUserAccount */
-                    foreach($tblUserAccountList as $tblUserAccount){
-                        if($tblUserAccount->getType() == 'CUSTODY'){
+                    foreach ($tblUserAccountList as $tblUserAccount) {
+                        if ($tblUserAccount->getType() == 'CUSTODY') {
                             $IsParent = true;
                         }
-                        if( !$tblPerson && ($tblPersonByAccount = $tblUserAccount->getServiceTblPerson())){
-                            if(Account::useService()->getCompanySchoolByPerson($tblPersonByAccount, $IsParent)){
-                                $tblCompany = Account::useService()->getCompanySchoolByPerson($tblPersonByAccount, $IsParent);
+                        if (!$tblPerson && ($tblPersonByAccount = $tblUserAccount->getServiceTblPerson())) {
+                            if (Account::useService()->getCompanySchoolByPerson($tblPersonByAccount, $IsParent)) {
+                                $tblCompany = Account::useService()->getCompanySchoolByPerson($tblPersonByAccount,
+                                    $IsParent);
+
                                 break;
                             }
                         }
                     }
                 }
             }
+
         }
 
 
@@ -372,7 +377,7 @@ class ApiUserAccount extends Extension implements IApiInterface
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new FormTitle(new TileBig().' Listenauswahl für den Download')
+                        new FormTitle(new TileBig().' Listenauswahl für den Download '.new Muted(new Small('Erstellung am: '.$GroupByTime)))
                         , 12)
                 )),
                 new FormRow(array(
