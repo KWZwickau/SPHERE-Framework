@@ -68,10 +68,11 @@ class Service
     /**
      * @param TblDivision $tblDivision
      * @param bool $isAccordion
+     * @param integer $totalCount
      *
      * @return array|bool|Warning
      */
-    public static function getDivisionMessageTable(TblDivision $tblDivision, $isAccordion = false)
+    public static function getDivisionMessageTable(TblDivision $tblDivision, $isAccordion = false, &$totalCount)
     {
 
         $list = array();
@@ -106,6 +107,8 @@ class Service
 
             list($contentTable, $countMessages) = self::formatFilterListMessages($list, $contentTable, $count,
                 $countMessages);
+
+            $totalCount += $countMessages;
 
             if ($isAccordion) {
                 return array(

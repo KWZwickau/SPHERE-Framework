@@ -5,6 +5,7 @@ use SPHERE\Application\Api\Education\Division\StudentGroupSelect;
 use SPHERE\Application\Api\Education\Division\StudentSelect;
 use SPHERE\Application\Api\Education\Division\SubjectSelect as SubjectSelectAPI;
 use SPHERE\Application\Api\Education\Division\SubjectSelect;
+use SPHERE\Application\Api\Education\Division\ValidationFilter;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Education\Lesson\Division\Filter\Filter;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -160,13 +161,10 @@ class Frontend extends Extension implements IFrontendInterface
         $StudentCountBySchoolType = array();
 
         $TableContent = array();
-        $validationTable = array();
+        // validierung mit Schülerakte
+        $filterWarning = ValidationFilter::receiverUsed(ValidationFilter::getContent());
         if ($tblDivisionAll) {
-            array_walk($tblDivisionAll, function (TblDivision $tblDivision) use (&$TableContent, &$StudentCountBySchoolType, &$validationTable) {
-                // validierung mit Schülerakte
-                if (($table = FilterService::getDivisionMessageTable($tblDivision, true))) {
-                    $validationTable[$tblDivision->getDisplayName()] = $table;
-                }
+            array_walk($tblDivisionAll, function (TblDivision $tblDivision) use (&$TableContent, &$StudentCountBySchoolType) {
 
                 $Temp['Year'] = $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getDisplayName() : '';
                 $Temp['SchoolType'] = $tblDivision->getTypeName();
@@ -253,26 +251,10 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $accordion = false;
-        if (!empty($validationTable)) {
-            $accordion = new Accordion();
-            ksort($validationTable, SORT_NATURAL);
-            foreach ($validationTable as $divisionId => $item) {
-                if (isset($item['Header']) && isset($item['Content'])) {
-                    $accordion->addItem($item['Header'], $item['Content']);
-                }
-            }
-        }
-
         $Stage->setContent(
-            ($accordion
-                ? new Warning(new Exclamation()
-                    . new Bold(' Folgende Einstellungen stimmen nicht mit der Personenverwaltung überein:')
-                    . '</br></br>'
-                    . $accordion)
-                : '') .
-            new Panel('Anzahl Schüler', (!empty($tblStudentCounterBySchoolType)) ? $tblStudentCounterBySchoolType : '').
-            new Layout(array(
+            ($filterWarning ? $filterWarning : '')
+            . new Panel('Anzahl Schüler', (!empty($tblStudentCounterBySchoolType)) ? $tblStudentCounterBySchoolType : '')
+            . new Layout(array(
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
@@ -1962,7 +1944,8 @@ class Frontend extends Extension implements IFrontendInterface
                     'Student'        => 'Gruppen Schüler',
                 ), array("bPaginate" => false));
 
-            $filterMessageTable = FilterService::getDivisionMessageTable($tblDivision);
+            $totalCount = 0;
+            $filterMessageTable = FilterService::getDivisionMessageTable($tblDivision, false, $totalCount);
 
             $Stage->setContent(
                 new Layout(array(
