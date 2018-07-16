@@ -1583,6 +1583,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setDescription('Übersicht '.new Bold($tblDivision->getDisplayName()));
             }
 
+            $totalCount = 0;
+            $filterMessageTable = FilterService::getDivisionMessageTable($tblDivision, false, $totalCount);
+
             $Stage->setMessage($tblDivision->getDescription());
             $Stage->addButton(new Standard('Fächer', '/Education/Lesson/Division/Subject/Add',
                 new Book(), array('Id' => $tblDivision->getId()), 'Auswählen'));
@@ -1933,7 +1936,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
-            ksort($missingCourseList);
+//            ksort($missingCourseList);
 
             $table = new TableData($tblDivisionSubjectList, null,
                 array(
@@ -1943,9 +1946,6 @@ class Frontend extends Extension implements IFrontendInterface
                     'GroupTeacher'   => 'Gruppenlehrer',
                     'Student'        => 'Gruppen Schüler',
                 ), array("bPaginate" => false));
-
-            $totalCount = 0;
-            $filterMessageTable = FilterService::getDivisionMessageTable($tblDivision, false, $totalCount);
 
             $Stage->setContent(
                 new Layout(array(
@@ -1959,14 +1959,14 @@ class Frontend extends Extension implements IFrontendInterface
                         ))
                     ),
                     new LayoutGroup(array(
-                        new LayoutRow(
-                            new LayoutColumn(!empty($missingCourseList)
-                                ? new Warning('Es wurden nicht für alle Fächer Kurse angelegt. Bitte legen Sie für die 
-                                folgenden Fächer Gruppen an. <br>'
-                                    . implode(', ', $missingCourseList) , new Exclamation())
-                                : null
-                            )
-                        ),
+//                        new LayoutRow(
+//                            new LayoutColumn(!empty($missingCourseList)
+//                                ? new Warning('Es wurden nicht für alle Fächer Kurse angelegt. Bitte legen Sie für die
+//                                folgenden Fächer Gruppen an. <br>'
+//                                    . implode(', ', $missingCourseList) , new Exclamation())
+//                                : null
+//                            )
+//                        ),
                         new LayoutRow(array(
                             new LayoutColumn(array(
                                 ( ( !empty( $tblDivisionStudentList ) ) ?

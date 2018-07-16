@@ -2631,4 +2631,21 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->removeAllSelectedStudentsFromSubjectGroup($tblDivisionSubject);
     }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function exitsSubjectGroup(TblDivision $tblDivision, TblSubject $tblSubject)
+    {
+        if (($tblDivisionSubjectList = $this->getDivisionSubjectBySubjectAndDivision($tblSubject, $tblDivision))) {
+            if (count($tblDivisionSubjectList) > 1) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

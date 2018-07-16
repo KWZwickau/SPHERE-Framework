@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
@@ -76,7 +77,36 @@ class Service
     {
 
         $list = array();
-        if (($tblDivisionSubjectAll = Division::useService()->getDivisionSubjectByDivision($tblDivision))) {
+        $missingGroupList = array();
+        $profileList = array();
+        $orientationList = array();
+
+        $isSekTwo = false;
+        $isLevelTen = false;
+        $checkOrientation = false;
+        $checkProfile = false;
+        if (($tblLevel = $tblDivision->getTblLevel())
+            && ($tblType = $tblLevel->getServiceTblType())
+        ) {
+            if ($tblType->getName() == 'Mittelschule / Oberschule') {
+                if (floatval($tblLevel->getName()) == 10) {
+                    $isLevelTen = true;
+                } elseif (preg_match('!(0?(7|8|9))!is', $tblLevel->getName())) {
+                    $checkOrientation = true;
+                }
+            } elseif ($tblType->getName() == 'Gymnasium') {
+                if (floatval($tblLevel->getName()) == 11
+                    || floatval($tblLevel->getName()) == 12
+                ) {
+                    $isSekTwo = true;
+                } elseif (preg_match('!(0?(8|9|10))!is', $tblLevel->getName())) {
+                    $checkProfile = true;
+                }
+            }
+        }
+
+        $divisionSubjectList = array();
+        if (($tblDivisionSubjectAll = Division::useService()->getDivisionSubjectByDivision($tblDivision, true))) {
             foreach ($tblDivisionSubjectAll as $tblDivisionSubject) {
                 if ($tblDivisionSubject->getTblSubjectGroup()) {
                     $filter = new Filter($tblDivisionSubject);
@@ -84,6 +114,75 @@ class Service
 
                     if ($filter->isFilterSet()) {
                         $list = $filter->getPersonAllWhereFilterIsNotFulfilled($list);
+                    }
+                } else {
+                    $divisionSubjectList[] = $tblDivisionSubject;
+                }
+            }
+        }
+
+        if (!empty($divisionSubjectList)) {
+            /** @var TblDivisionSubject $item */
+            foreach ($divisionSubjectList as $item) {
+                $tblSubject = $item->getServiceTblSubject();
+                // in der Sekundarstufe II müssen alle Fächer mindestens eine Gruppe besitzen -> da so die Unterscheidung zwischen
+                // Grundkurs und Leistungskurs erfolgt
+                if ($isSekTwo) {
+                    if ($tblSubject
+                        && !Division::useService()->exitsSubjectGroup($tblDivision, $tblSubject)
+                    ) {
+                        $missingGroupList[] = new Exclamation() .
+                            ($isAccordion ? ' In der Klasse ' . $tblDivision->getDisplayName()
+                                . ' im Fach ' . $tblSubject->getDisplayName() . ' wurde keine Gruppe angelegt.'
+                                : ' Im Fach ' . $tblSubject->getDisplayName() . ' wurde keine Gruppe angelegt.'
+                            );
+                    }
+                // in der Klasse 10 Oberschule müssen Gruppen bei den Wahlfächern angelegt sein
+                } elseif ($isLevelTen) {
+                    if ($tblSubject
+                        && Subject::useService()->isElective($tblSubject)
+                        && !Division::useService()->exitsSubjectGroup($tblDivision, $tblSubject)
+                    ) {
+                        $missingGroupList[] = new Exclamation() .
+                            ($isAccordion ? ' In der Klasse ' . $tblDivision->getDisplayName()
+                                . ' im Fach ' . $tblSubject->getDisplayName() . ' wurde keine Gruppe angelegt.'
+                                : ' Im Fach ' . $tblSubject->getDisplayName() . ' wurde keine Gruppe angelegt.'
+                            );
+                    }
+                }
+
+                if ($checkProfile && $tblSubject) {
+                    if (Subject::useService()->isProfile($tblSubject)) {
+                        $profileList[$tblSubject->getId()] = $tblSubject;
+                    }
+                }
+
+                if ($checkOrientation && $tblSubject) {
+                    if (Subject::useService()->isOrientation($tblSubject)) {
+                        $orientationList[$tblSubject->getId()] = $tblSubject;
+                    }
+                }
+            }
+
+            if ($checkProfile && !empty($profileList) && count($profileList) > 1) {
+                foreach ($profileList as $tblSubjectItem) {
+                    if (!Division::useService()->exitsSubjectGroup($tblDivision, $tblSubjectItem)) {
+                        $missingGroupList[] = new Exclamation() .
+                            ($isAccordion ? ' In der Klasse ' . $tblDivision->getDisplayName()
+                                . ' im Fach ' . $tblSubjectItem->getDisplayName() . ' wurde keine Gruppe angelegt.'
+                                : ' Im Fach ' . $tblSubjectItem->getDisplayName() . ' wurde keine Gruppe angelegt.'
+                            );
+                    }
+                }
+            }
+            if ($checkOrientation && !empty($orientationList) && count($orientationList) > 1) {
+                foreach ($orientationList as $tblSubjectItem) {
+                    if (!Division::useService()->exitsSubjectGroup($tblDivision, $tblSubjectItem)) {
+                        $missingGroupList[] = new Exclamation() .
+                            ($isAccordion ? ' In der Klasse ' . $tblDivision->getDisplayName()
+                                . ' im Fach ' . $tblSubjectItem->getDisplayName() . ' wurde keine Gruppe angelegt.'
+                                : ' Im Fach ' . $tblSubjectItem->getDisplayName() . ' wurde keine Gruppe angelegt.'
+                            );
                     }
                 }
             }
@@ -107,6 +206,19 @@ class Service
 
             list($contentTable, $countMessages) = self::formatFilterListMessages($list, $contentTable, $count,
                 $countMessages);
+
+            if (!empty($missingGroupList)) {
+                foreach ($missingGroupList as $value) {
+                    $contentTable[] = array(
+                        'Name' => '&nbsp;',
+                        'Field' => '&nbsp;',
+                        'Value' => '&nbsp;',
+                        'DivisionSubjects' => $value,
+                    );
+
+                    $countMessages++;
+                }
+            }
 
             $totalCount += $countMessages;
 

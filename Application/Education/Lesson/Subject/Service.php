@@ -870,7 +870,6 @@ class Service extends AbstractService
         /**
          * Skip to Frontend
          */
-        $Global = $this->getGlobal();
         if ($DataAddPerson === null && $DataRemovePerson === null) {
             return $Form;
         }
@@ -1030,6 +1029,22 @@ class Service extends AbstractService
                     return true;
                 }
             }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function isProfile(TblSubject $tblSubject)
+    {
+        if (($tblCategoryProfile = Subject::useService()->getCategoryByIdentifier('PROFILE'))
+            && Subject::useService()->existsCategorySubject($tblCategoryProfile, $tblSubject)
+        ) {
+            return true;
         }
 
         return false;
