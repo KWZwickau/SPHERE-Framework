@@ -5,8 +5,6 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Corporation\Company\Company;
-use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -21,8 +19,6 @@ class TblSupport extends Element
 {
 
     const SERVICE_TBL_PERSON = 'serviceTblPerson';
-    const ATTR_TBL_PREFIX = 'Prefix';
-    const ATTR_TBL_IDENTIFIER = 'Identifier';
 
     /**
      * @Column(type="bigint")
@@ -37,9 +33,9 @@ class TblSupport extends Element
      */
     protected $tblSupportType;
     /**
-     * @Column(type="bigint")
+     * @Column(type="string")
      */
-    protected $serviceTblCompany;
+    protected $Company;
     /**
      * @Column(type="bigint")
      */
@@ -51,7 +47,7 @@ class TblSupport extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblPersonEditor;
+    protected $PersonEditor;
     /**
      * @Column(type="string")
      */
@@ -131,23 +127,19 @@ class TblSupport extends Element
     }
 
     /**
-     * @return false|TblCompany
+     * @return string
      */
-    public function getServiceTblCompany()
+    public function getCompany()
     {
-        if (null === $this->serviceTblCompany) {
-            return false;
-        } else {
-            return Company::useService()->getCompanyById($this->serviceTblCompany);
-        }
+        return $this->Company;
     }
 
     /**
-     * @param null|TblCompany $serviceTblCompany
+     * @param string $Company
      */
-    public function setServiceTblCompany(TblCompany $serviceTblCompany = null)
+    public function setCompany($Company = '')
     {
-        $this->serviceTblCompany = ( null === $serviceTblCompany ? null : $serviceTblCompany->getId() );
+        $this->Company = $Company;
     }
 
     /**
@@ -187,25 +179,21 @@ class TblSupport extends Element
     }
 
     /**
-     * @return false|TblPerson
+     * @return string
      */
-    public function getServiceTblPersonEditor()
+    public function getPersonEditor()
     {
 
-        if (null === $this->serviceTblPersonEditor) {
-            return false;
-        } else {
-            return Person::useService()->getPersonById($this->serviceTblPersonEditor);
-        }
+        return $this->PersonEditor;
     }
 
     /**
-     * @param null|TblPerson $serviceTblPersonEditor
+     * @param string $PersonEditor
      */
-    public function setServiceTblPersonEditor(TblPerson $serviceTblPersonEditor = null)
+    public function setPersonEditor($PersonEditor = '')
     {
 
-        $this->serviceTblPersonEditor = ( null === $serviceTblPersonEditor ? null : $serviceTblPersonEditor->getId() );
+        $this->PersonEditor = $PersonEditor;
     }
 
     /**
@@ -214,7 +202,7 @@ class TblSupport extends Element
     public function getRemark()
     {
 
-        return $this->Remark;
+        return nl2br($this->Remark);
     }
 
     /**

@@ -5,40 +5,31 @@ namespace SPHERE\Application\Api\People\Meta\Support;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
-use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\IApiInterface;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentFocusType;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
-use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
-use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
-use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
-use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
-use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
-use SPHERE\Common\Frontend\Form\Structure\Form;
-use SPHERE\Common\Frontend\Form\Structure\FormColumn;
-use SPHERE\Common\Frontend\Form\Structure\FormGroup;
-use SPHERE\Common\Frontend\Form\Structure\FormRow;
-use SPHERE\Common\Frontend\Icon\Repository\Calendar;
-use SPHERE\Common\Frontend\Icon\Repository\Clock;
-use SPHERE\Common\Frontend\Icon\Repository\Edit;
-use SPHERE\Common\Frontend\Icon\Repository\Education;
-use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
-use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
-use SPHERE\Common\Frontend\Layout\Repository\Ruler;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Primary;
+use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\System\Extension\Extension;
 
 class ApiSupport extends Extension implements IApiInterface
@@ -55,21 +46,34 @@ class ApiSupport extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
         $Dispatcher->registerMethod('openCreateSupportModal');
+        $Dispatcher->registerMethod('openCreateSpecialModal');
+        $Dispatcher->registerMethod('openCreateHandyCapModal');
+        $Dispatcher->registerMethod('openCreateDeleteSupportModal');
         $Dispatcher->registerMethod('saveCreateSupportModal');
+        $Dispatcher->registerMethod('saveCreateSpecialModal');
+        $Dispatcher->registerMethod('saveCreateHandyCapModal');
+        $Dispatcher->registerMethod('deleteSupportModal');
+        $Dispatcher->registerMethod('loadSupportTable');
+        $Dispatcher->registerMethod('loadSpecialTable');
+        $Dispatcher->registerMethod('loadHandyCapTable');
+//        $Dispatcher->registerMethod('deleteSupportEntry');
 
         return $Dispatcher->callMethod($Method);
     }
 
     /**
-     * @param string $Header
-     * @param string $Footer
-     *
      * @return ModalReceiver
      */
-    public static function receiverModal($Header = '', $Footer = '')
+    public static function receiverModal()
     {
 
-        return (new ModalReceiver($Header, $Footer))->setIdentifier('SupportModal');
+        return (new ModalReceiver())->setIdentifier('ModalReciever');
+    }
+
+    public static function receiverTableBlock($Content = '', $Identifier = '')
+    {
+
+        return (new BlockReceiver($Content))->setIdentifier($Identifier);
     }
 
     /**
@@ -84,7 +88,37 @@ class ApiSupport extends Extension implements IApiInterface
         return (new BlockReceiver($Content))->setIdentifier($Identifier);
     }
 
+    public static function pipelineLoadTable($PersonId)
+    {
 
+        $TablePipeline = new Pipeline(false);
+        $TableEmitter = new ServerEmitter(ApiSupport::receiverTableBlock('', 'SupportTable'), ApiSupport::getEndpoint());
+        $TableEmitter->setGetPayload(array(
+            ApiSupport::API_TARGET => 'loadSupportTable',
+        ));
+        $TableEmitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $TablePipeline->appendEmitter($TableEmitter);
+        $TableEmitter = new ServerEmitter(ApiSupport::receiverTableBlock('', 'SpecialTable'), ApiSupport::getEndpoint());
+        $TableEmitter->setGetPayload(array(
+            ApiSupport::API_TARGET => 'loadSpecialTable',
+        ));
+        $TableEmitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $TablePipeline->appendEmitter($TableEmitter);
+        $TableEmitter = new ServerEmitter(ApiSupport::receiverTableBlock('', 'HandyCapTable'), ApiSupport::getEndpoint());
+        $TableEmitter->setGetPayload(array(
+            ApiSupport::API_TARGET => 'loadHandyCapTable',
+        ));
+        $TableEmitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $TablePipeline->appendEmitter($TableEmitter);
+
+        return $TablePipeline;
+    }
 
     /**
      * @param $PersonId
@@ -93,32 +127,165 @@ class ApiSupport extends Extension implements IApiInterface
      */
     public static function pipelineOpenCreateSupportModal($PersonId)
     {
-        $ComparePasswordPipeline = new Pipeline(false);
-        $ComparePasswordEmitter = new ServerEmitter(ApiSupport::receiverModal('Förderantrag/Förderbescheid hinzufügen'), ApiSupport::getEndpoint());
-        $ComparePasswordEmitter->setGetPayload(array(
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(ApiSupport::receiverModal(), ApiSupport::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
             ApiSupport::API_TARGET => 'openCreateSupportModal',
         ));
-        $ComparePasswordEmitter->setPostPayload(array(
+        $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId
         ));
-        $ComparePasswordPipeline->appendEmitter($ComparePasswordEmitter);
+        $Pipeline->appendEmitter($ModalEmitter);
 
-        return $ComparePasswordPipeline;
+        return $Pipeline;
     }
 
+    /**
+     * @param $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenCreateSpecialModal($PersonId)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(ApiSupport::receiverModal(), ApiSupport::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            ApiSupport::API_TARGET => 'openCreateSpecialModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenCreateHandyCapModal($PersonId)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(ApiSupport::receiverModal(), ApiSupport::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            ApiSupport::API_TARGET => 'openCreateHandyCapModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $PersonId
+     *
+     * @return Pipeline
+     */
     public static function pipelineCreateSupportSave($PersonId)
     {
 
         $Pipeline = new Pipeline();
-        $Emitter = new ServerEmitter(ApiSupport::receiverModal('Förderantrag/Förderbescheid hinzufügen'), self::getEndpoint());
-        $Emitter->setGetPayload(array(
+        $ModalEmitter = new ServerEmitter(ApiSupport::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'saveCreateSupportModal'
         ));
-        $Emitter->setPostPayload(array(
+        $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId
         ));
-        $Emitter->setLoadingMessage('Wird bearbeitet');
-        $Pipeline->appendEmitter($Emitter);
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+        return $Pipeline;
+    }
+
+    /**
+     * @param $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineCreateSpecialSave($PersonId)
+    {
+
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(ApiSupport::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveCreateSpecialModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+        return $Pipeline;
+    }
+
+    /**
+     * @param $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineCreateHandyCapSave($PersonId)
+    {
+
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(ApiSupport::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveCreateHandyCapModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+        return $Pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     * @param int $SupportId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenDeleteSupport($PersonId, $SupportId)
+    {
+
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(ApiSupport::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openCreateDeleteSupportModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId,
+            'SupportId' => $SupportId
+        ));
+//        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+        return $Pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     * @param int $SupportId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineDeleteSupport($PersonId, $SupportId)
+    {
+
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(ApiSupport::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'deleteSupportModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId,
+            'SupportId' => $SupportId
+        ));
+//        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
         return $Pipeline;
     }
 
@@ -130,12 +297,13 @@ class ApiSupport extends Extension implements IApiInterface
     public function openCreateSupportModal($PersonId)
     {
 
-        return new Layout(
+        return new Title('Förderantrag/ Förderbescheid hinzufügen')
+        .new Layout(
             new LayoutGroup(
                 new LayoutRow(
                     new LayoutColumn(
                         new Well(
-                            $this->formSupport($PersonId)
+                            Student::useFrontend()->formSupport($PersonId)
                         )
                     )
                 )
@@ -143,66 +311,58 @@ class ApiSupport extends Extension implements IApiInterface
         );
     }
 
+    /**
+     * @param $PersonId
+     *
+     * @return string
+     */
+    public function openCreateSpecialModal($PersonId)
+    {
+
+        return new Title('Entwicklungsbesonderheiten hinzufügen')
+        .new Layout(
+            new LayoutGroup(
+                new LayoutRow(
+                    new LayoutColumn(
+                        new Well(
+                            Student::useFrontend()->formSpecial($PersonId)
+                        )
+                    )
+                )
+            )
+        );
+    }
+
+    /**
+     * @param $PersonId
+     *
+     * @return string
+     */
+    public function openCreateHandyCapModal($PersonId)
+    {
+
+        return new Title('Nachteilsausgleich hinzufügen')
+        .new Layout(
+            new LayoutGroup(
+                new LayoutRow(
+                    new LayoutColumn(
+                        new Well(
+                            Student::useFrontend()->formHandyCap($PersonId)
+                        )
+                    )
+                )
+            )
+        );
+    }
+
+    /**
+     * @return Pipeline
+     */
     public static function pipelineClose()
     {
         $Pipeline = new Pipeline();
         $Pipeline->appendEmitter((new CloseModal(self::receiverModal()))->getEmitter());
         return $Pipeline;
-    }
-
-    private function formSupport($PersonId)
-    {
-
-        $tblStudentFocusList = Student::useService()->getStudentFocusTypeAll();
-        $SupportTypeList = Student::useService()->getSupportTypeAll();
-
-        $tblStudentFocusList = $this->getSorter($tblStudentFocusList)->sortObjectBy('Name');
-        $CheckboxList = array();
-        /** @var TblStudentFocusType $tblStudentFocus */
-        foreach($tblStudentFocusList as $tblStudentFocus){
-            $CheckboxList[] = new CheckBox('Data[CheckboxList]['.$tblStudentFocus->getName().']', $tblStudentFocus->getName(), $tblStudentFocus->getId());
-        }
-
-        //ToDO Company einschränken
-        $tblCompanyList = Company::useService()->getCompanyAll();
-
-        return new Form(
-            new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(
-                        (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired()
-                    , 6),
-                    new FormColumn(
-                        new SelectBox('Data[PrimaryFocus]', 'Primär geförderter Schwerpunkt', array('{{ Name }}' => $tblStudentFocusList))
-                    , 6),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        (new SelectBox('Data[SupportType]', 'Förderantrag', array('{{ Name }}' => $SupportTypeList), new Education()))->setRequired()
-                    , 6),
-                    new FormColumn(
-                        new Listing($CheckboxList)
-                    , 6),
-                )),
-                new FormRow(array(
-                    new FormColumn(array(
-                        new SelectBox('Data[Company]', 'Förderschule', array('{{ Name }}' => $tblCompanyList), new Education()),
-                        new Ruler(),
-                        new TextField('Data[PersonSupport]', 'Schulbegleitung', 'Schulbegleitung', new PersonIcon()),
-                        new Ruler(),
-                        new TextField('Data[SupportTime]', 'Stundenbedarf pro Woche', 'Stundenbedarf pro Woche', new Clock()),
-                        ), 6),
-                    new FormColumn(
-                        (new TextArea('Data[Remark]', 'Bemerkung', 'Bemerkung', new Edit()))
-                        , 6),
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        (new Primary('Speichern', ApiSupport::getEndpoint(), new Save()))->ajaxPipelineOnClick(self::pipelineCreateSupportSave($PersonId))
-                    )
-                )),
-            ))
-        );
     }
 
     /**
@@ -215,7 +375,7 @@ class ApiSupport extends Extension implements IApiInterface
 
         $Global = $this->getGlobal();
         $Data = $Global->POST['Data'];
-        if ($form = $this->checkInputSupport($PersonId, $Data)) {
+        if (($form = Student::useService()->checkInputSupport($PersonId, $Data))) {
             // display Errors on form
             return $form;
         }
@@ -224,34 +384,223 @@ class ApiSupport extends Extension implements IApiInterface
 //        return 'Alles ok für\'s speichern';
         if (Student::useService()->createSupport($PersonId, $Data)
         ) {
-             return new Success('Förderantrag wurde erfolgreich gespeichert.').self::pipelineClose();
+             return new Success('Förderantrag wurde erfolgreich gespeichert.')
+                 .self::pipelineLoadTable($PersonId)
+                 .self::pipelineClose();
         } else {
             return new Danger('Förderantrag konnte nicht gespeichert werden.').self::pipelineClose();
         }
     }
 
     /**
-     * @param int   $PersonId
-     * @param array $Data
+     * @param $PersonId
      *
-     * @return false|string|Form
+     * @return string
      */
-    private function checkInputSupport($PersonId, $Data)
+    public function saveCreateSpecialModal($PersonId)
     {
-        $Error = false;
-        $form = $this->formSupport($PersonId);
-        if (isset($Data['Date']) && empty($Data['Date'])) {
-            $form->setError('Data[Date]', 'Bitte geben Sie ein Datum an');
-            $Error = true;
-        }
-        if (isset($Data['SupportType']) && empty($Data['SupportType'])) {
-            $form->setError('Data[SupportType]', 'Bitte geben Sie ein Verhalten des Förderantrag an');
-            $Error = true;
-        }
-        if ($Error) {
-            return new Well($form);
+
+        $Global = $this->getGlobal();
+        $Data = $Global->POST['Data'];
+
+        if (($form = Student::useService()->checkInputSpecial($PersonId, $Data))) {
+            // display Errors on form
+            return $form;
         }
 
-        return $Error;
+        // do service
+        if (Student::useService()->createSpecial($PersonId, $Data)
+        ) {
+            return new Success('Entwicklungsbesonderheiten wurde erfolgreich gespeichert.')
+                .self::pipelineLoadTable($PersonId)
+                .self::pipelineClose();
+        } else {
+            return new Danger('Entwicklungsbesonderheiten konnte nicht gespeichert werden.').self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param $PersonId
+     *
+     * @return string
+     */
+    public function saveCreateHandyCapModal($PersonId)
+    {
+
+        $Global = $this->getGlobal();
+        $Data = $Global->POST['Data'];
+
+        if (($form = Student::useService()->checkInputHandyCap($PersonId, $Data))) {
+            // display Errors on form
+            return $form;
+        }
+
+        // do service
+        if (Student::useService()->createHandyCap($PersonId, $Data)
+        ) {
+            return new Success('Nachteilsausgleich wurde erfolgreich gespeichert.')
+                .self::pipelineLoadTable($PersonId)
+                .self::pipelineClose();
+        } else {
+            return new Danger('Nachteilsausgleich konnte nicht gespeichert werden.').self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param $PersonId
+     *
+     * @return Warning|TableData
+     */
+    public function loadSupportTable($PersonId)
+    {
+
+        $tblPerson = Person::useService()->getPersonById($PersonId);
+        if($tblPerson){
+            return Student::useFrontend()->getSupportTable($tblPerson);
+        }
+        return new Warning('Person nicht gefunden');
+    }
+
+    /**
+     * @param $PersonId
+     *
+     * @return Warning|TableData
+     */
+    public function loadSpecialTable($PersonId)
+    {
+
+        $tblPerson = Person::useService()->getPersonById($PersonId);
+        if($tblPerson){
+            return Student::useFrontend()->getSpecialTable($tblPerson);
+        }
+        return new Warning('Person nicht gefunden');
+    }
+
+    /**
+     * @param $PersonId
+     *
+     * @return Warning|TableData
+     */
+    public function loadHandyCapTable($PersonId)
+    {
+
+        $tblPerson = Person::useService()->getPersonById($PersonId);
+        if($tblPerson){
+            return Student::useFrontend()->getHandyCapTable($tblPerson);
+        }
+        return new Warning('Person nicht gefunden');
+    }
+
+    /**
+     * @param int $PersonId
+     * @param int $SupportId
+     *
+     * @return Danger|string
+     */
+    public function openCreateDeleteSupportModal($PersonId, $SupportId)
+    {
+        $tblSupport = Student::useService()->getSupportById($SupportId);
+        if(!$tblSupport){
+            return new Danger('Eintrag nicht gefunden.');
+        }
+
+        $SupportType = '';
+        if(($tblSupportType = $tblSupport->getTblSupportType())){
+            $SupportType = $tblSupportType->getName() ;
+        }
+        $FocusList = array();
+        $tblFocusType = Student::useService()->getPrimaryFocusBySupport($tblSupport);
+        if($tblFocusType){
+            $FocusList[] = new Bold($tblFocusType->getName());
+        }
+        $tblFocusTypeList = Student::useService()->getFocusListBySupport($tblSupport);
+        if($tblFocusTypeList){
+            foreach($tblFocusTypeList as $tblFocusTypeSingle){
+                $FocusList[] = $tblFocusTypeSingle->getName();
+            }
+        }
+
+        $Person = '';
+        if(($tblPerson = $tblSupport->getServiceTblPerson())){
+            $Person = $tblPerson->getLastFirstName();
+        }
+
+        $Focus = implode('<br/>', $FocusList);
+
+        $Content = new Listing(array(
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Person:', 4),
+                new LayoutColumn($Person, 8),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Datum:', 4),
+                    new LayoutColumn($tblSupport->getDate(), 8),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Förderantrag/bescheid:', 4),
+                    new LayoutColumn($SupportType, 8),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Schwerpunkte:', 4),
+                    new LayoutColumn($Focus, 8),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Förderschule:', 4),
+                    new LayoutColumn($tblSupport->getCompany(), 8),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Schulbegleitung:', 4),
+                    new LayoutColumn($tblSupport->getPersonSupport(), 8),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Stundenbedarf:', 4),
+                    new LayoutColumn($tblSupport->getSupportTime(), 8),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Bemerkung:', 4),
+                    new LayoutColumn($tblSupport->getRemark(), 8),
+            ))))
+        ));
+
+        return new Title('Förderantrag entfernen')
+        .new Layout(
+            new LayoutGroup(
+                new LayoutRow(
+                    new LayoutColumn(
+                        new Panel('Soll der Eintrag wirklich gelöscht werden?',
+                            $Content, Panel::PANEL_TYPE_DANGER
+                        )
+                        .(new DangerLink('Ja', '#', new Ok()))
+                            ->ajaxPipelineOnClick(ApiSupport::pipelineDeleteSupport($PersonId, $SupportId))
+                        .(new Standard('Nein', '#', new Remove()))
+                            ->ajaxPipelineOnClick(ApiSupport::pipelineClose())
+                    )
+                )
+            )
+        );
+    }
+
+    /**
+     * @param $PersonId
+     * @param $SupportId
+     *
+     * @return Danger|string
+     */
+    public function deleteSupportModal($PersonId, $SupportId)
+    {
+
+        if(!($tblSupport = Student::useService()->getSupportById($SupportId))) {
+            return new Danger('Der Förderantrag konnte nicht gefunden werden.');
+        }
+        if (Student::useService()->deleteSupport($tblSupport)
+        ) {
+            return new Success('Der Förderantrag wurde erfolgreich gelöscht.')
+                .self::pipelineLoadTable($PersonId)
+                .self::pipelineClose();
+        } else {
+            return new Danger('Förderantrag konnte nicht gelöscht werden.')
+                .self::pipelineLoadTable($PersonId)
+                .self::pipelineClose();
+        }
     }
 }

@@ -17,7 +17,7 @@ class TblSpecialDisorder extends Element
 {
 
     const ATTR_TBL_SPECIAL = 'tblSpecial';
-    const ATTR_TBL_DISORDER = 'tblStudentDisorderType';
+    const ATTR_TBL_DISORDER = 'tblSpecialDisorderType';
 
     /**
      * @Column(type="bigint")
@@ -26,7 +26,7 @@ class TblSpecialDisorder extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $tblStudentDisorderType;
+    protected $tblSpecialDisorderType;
 
     /**
      * @return false|TblSpecial
@@ -50,24 +50,24 @@ class TblSpecialDisorder extends Element
     }
 
     /**
-     * @return false|TblStudentDisorderType
+     * @return false|TblSpecialDisorderType
      */
-    public function getTblStudentDisorderType()
+    public function getTblSpecialDisorderType()
     {
-        if (null === $this->tblStudentDisorderType) {
+        if (null === $this->tblSpecialDisorderType) {
             return false;
         } else {
-            return Student::useService()->getStudentDisorderTypeById($this->tblStudentDisorderType);
+            return Student::useService()->getSpecialDisorderTypeById($this->tblSpecialDisorderType);
         }
     }
 
     /**
-     * @param TblStudentDisorderType $tblStudentDisorderType
+     * @param TblSpecialDisorderType $tblSpecialDisorderType
      */
-    public function setTblStudentDisorderType(TblStudentDisorderType $tblStudentDisorderType)
+    public function setTblSpecialDisorderType(TblSpecialDisorderType $tblSpecialDisorderType)
     {
 
-        $this->tblStudentDisorderType = $tblStudentDisorderType->getId();
+        $this->tblSpecialDisorderType = $tblSpecialDisorderType->getId();
     }
 
 }

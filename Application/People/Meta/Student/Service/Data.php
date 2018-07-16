@@ -282,6 +282,7 @@ class Data extends Support
         $this->createStudentSubjectRanking('8', '8.');
         $this->createStudentSubjectRanking('9', '9.');
 
+        // old Table
         $this->createStudentFocusType('Sprache');
         $this->createStudentFocusType('Körperlich-motorische Entwicklung');
         $this->createStudentFocusType('Sozial-emotionale Entwicklung');
@@ -289,56 +290,41 @@ class Data extends Support
         $this->createStudentFocusType('Sehen');
         $this->createStudentFocusType('Geistige Entwicklung');
         $this->createStudentFocusType('Lernen');
-        $this->createStudentFocusType('Unterricht kranker Schüler');
 
-        // update to new translation
-        $tblDisorderType = $this->getStudentDisorderTypeByName('Augenleiden');
-        if($tblDisorderType){
-            $this->updateStudentDisorder($tblDisorderType, 'Visuelle Wahrnehmungsstörungen', 'Augenleiden');
-        }
-        $tblDisorderType = $this->getStudentDisorderTypeByName('LRS');
-        if($tblDisorderType){
-            $this->updateStudentDisorder($tblDisorderType, 'Lese-/ Rechtschreibstörung', 'LRS');
-        }
-        $tblDisorderType = $this->getStudentDisorderTypeByName('Gehörschwierigkeiten');
-        if($tblDisorderType){
-            $this->updateStudentDisorder($tblDisorderType, 'Auditive Wahrnehmungsstörungen', 'Gehörschwierigkeiten');
-        }
-        $tblDisorderType = $this->getStudentDisorderTypeByName('Sprachfehler');
-        if($tblDisorderType){
-            $this->updateStudentDisorder($tblDisorderType, 'Sprach-/ Sprechstörungen', 'Sprachfehler');
-        }
-        $tblDisorderType = $this->getStudentDisorderTypeByName('Dyskalkulie');
-        if($tblDisorderType){
-            $this->updateStudentDisorder($tblDisorderType, 'Rechenschwäche', 'Dyskalkulie');
-        }
-        $tblDisorderType = $this->getStudentDisorderTypeByName('Autismus');
-        if($tblDisorderType){
-            $this->updateStudentDisorder($tblDisorderType, 'Störungen aus dem Autismusspektrum', 'Autismus');
-        }
-        $tblDisorderType = $this->getStudentDisorderTypeByName('Hochbegabung');
-        if($tblDisorderType){
-            $this->updateStudentDisorder($tblDisorderType, 'Sonstige Entwicklungsbesonderheiten', 'Hochbegabung');
-        }
-        $tblDisorderType = $this->getStudentDisorderTypeByName('Konzentrationsstörung');
-        if($tblDisorderType){
-            $this->updateStudentDisorder($tblDisorderType, 'Konzentrationsstörungen', 'Konzentrationsstörung');
-        }
-        $tblDisorderType = $this->getStudentDisorderTypeByName('Körperliche Beeinträchtigung');
-        if($tblDisorderType){
-            $this->updateStudentDisorder($tblDisorderType, 'Störung motorischer Funktionen', 'Körperliche Beeinträchtigung');
-        }
-        // Disorder with new Translation
+        // new Table
+        $this->createSupportFocusType('Sprache');
+        $this->createSupportFocusType('Körperlich-motorische Entwicklung');
+        $this->createSupportFocusType('Sozial-emotionale Entwicklung');
+        $this->createSupportFocusType('Hören');
+        $this->createSupportFocusType('Sehen');
+        $this->createSupportFocusType('Geistige Entwicklung');
+        $this->createSupportFocusType('Lernen');
+        $this->createSupportFocusType('Unterricht kranker Schüler');
+
+        // old Table
+        $this->createStudentDisorderType('LRS');
+        $this->createStudentDisorderType('Gehörschwierigkeiten');
+        $this->createStudentDisorderType('Augenleiden');
+        $this->createStudentDisorderType('Sprachfehler');
+        $this->createStudentDisorderType('Dyskalkulie');
+        $this->createStudentDisorderType('Autismus');
         $this->createStudentDisorderType('ADS / ADHS');
-        $this->createStudentDisorderType('Auditive Wahrnehmungsstörungen');
-        $this->createStudentDisorderType('Konzentrationsstörungen');
-        $this->createStudentDisorderType('Störung motorischer Funktionen');
-        $this->createStudentDisorderType('Lese-/ Rechtschreibstörung');
         $this->createStudentDisorderType('Rechenschwäche');
-        $this->createStudentDisorderType('Sonstige Entwicklungsbesonderheiten');
-        $this->createStudentDisorderType('Sprach-/ Sprechstörungen');
-        $this->createStudentDisorderType('Störungen aus dem Autismusspektrum');
-        $this->createStudentDisorderType('Visuelle Wahrnehmungsstörungen');
+        $this->createStudentDisorderType('Hochbegabung');
+        $this->createStudentDisorderType('Konzentrationsstörung');
+        $this->createStudentDisorderType('Körperliche Beeinträchtigung');
+
+        // new Table Disorder with new Translation
+        $this->createSpecialDisorderType('ADS / ADHS');
+        $this->createSpecialDisorderType('Auditive Wahrnehmungsstörungen');
+        $this->createSpecialDisorderType('Konzentrationsstörungen');
+        $this->createSpecialDisorderType('Störung motorischer Funktionen');
+        $this->createSpecialDisorderType('Lese-/ Rechtschreibstörung');
+        $this->createSpecialDisorderType('Rechenschwäche');
+        $this->createSpecialDisorderType('Sonstige Entwicklungsbesonderheiten');
+        $this->createSpecialDisorderType('Sprach-/ Sprechstörungen');
+        $this->createSpecialDisorderType('Störungen aus dem Autismusspektrum');
+        $this->createSpecialDisorderType('Visuelle Wahrnehmungsstörungen');
 
         $this->createStudentTransferType('ENROLLMENT', 'Einschulung');
         $this->createStudentTransferType('ARRIVE', 'Aufnahme');

@@ -11,10 +11,10 @@ use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity
- * @Table(name="tblSpecial")
+ * @Table(name="tblHandyCap")
  * @Cache(usage="READ_ONLY")
  */
-class TblSpecial extends Element
+class TblHandyCap extends Element
 {
 
     const SERVICE_TBL_PERSON = 'serviceTblPerson';

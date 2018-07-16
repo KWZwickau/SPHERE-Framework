@@ -17,7 +17,7 @@ class TblSupportFocus extends Element
 {
 
     const ATTR_TBL_SUPPORT = 'tblSupport';
-    const ATTR_TBL_FOCUS = 'tblStudentFocusType';
+    const ATTR_TBL_SUPPORT_FOCUS_TYPE = 'tblSupportFocusType';
 
     /**
      * @Column(type="bigint")
@@ -26,7 +26,7 @@ class TblSupportFocus extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $tblStudentFocusType;
+    protected $tblSupportFocusType;
     /**
      * @Column(type="boolean")
      */
@@ -53,21 +53,21 @@ class TblSupportFocus extends Element
     }
 
     /**
-     * @return TblStudentFocusType
+     * @return TblSupportFocusType
      */
-    public function getTblStudentFocusType()
+    public function getTblSupportFocusType()
     {
 
-        return Student::useService()->getStudentFocusTypeById($this->tblStudentFocusType);
+        return Student::useService()->getSupportFocusTypeById($this->tblSupportFocusType);
     }
 
     /**
-     * @param TblStudentFocusType $tblStudentFocusType
+     * @param TblSupportFocusType $tblSupportFocusType
      */
-    public function setTblStudentFocusType(TblStudentFocusType $tblStudentFocusType)
+    public function setTblSupportFocusType(TblSupportFocusType $tblSupportFocusType)
     {
 
-        $this->tblStudentFocusType = $tblStudentFocusType->getId();
+        $this->tblSupportFocusType = $tblSupportFocusType->getId();
     }
 
     /**

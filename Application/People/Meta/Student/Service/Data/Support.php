@@ -1,13 +1,13 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student\Service\Data;
 
-use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblHandyCap;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblSpecial;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblSpecialDisorder;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentDisorderType;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentFocusType;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblSpecialDisorderType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblSupport;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblSupportFocus;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblSupportFocusType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblSupportType;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -19,6 +19,52 @@ use SPHERE\Application\Platform\System\Protocol\Protocol;
  */
 abstract class Support extends Integration
 {
+
+    /**
+     * @param string $Name
+     * @param string $Description
+     *
+     * @return TblSupportFocusType
+     */
+    public function createSupportFocusType($Name, $Description = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblSupportFocusType')->findOneBy(array(
+            TblSupportFocusType::ATTR_NAME => $Name
+        ));
+        if (null === $Entity) {
+            $Entity = new TblSupportFocusType();
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+        return $Entity;
+    }
+
+    /**
+     * @param string $Name
+     * @param string $Description
+     *
+     * @return TblSpecialDisorderType
+     */
+    public function createSpecialDisorderType($Name, $Description = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblSpecialDisorderType')->findOneBy(array(
+            TblSpecialDisorderType::ATTR_NAME => $Name
+        ));
+        if (null === $Entity) {
+            $Entity = new TblSpecialDisorderType();
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+        return $Entity;
+    }
 
     /**
      * @param string $Name
@@ -46,8 +92,8 @@ abstract class Support extends Integration
      * @param TblPerson       $serviceTblPerson
      * @param TblSupportType  $tblSupportType
      * @param \DateTime       $Date
-     * @param TblPerson|null  $serviceTblPersonEditor
-     * @param TblCompany|null $serviceTblCompany
+     * @param string          $PersonEditor
+     * @param string          $Company
      * @param string          $PersonSupport
      * @param string          $SupportTime
      * @param string          $Remark
@@ -57,8 +103,8 @@ abstract class Support extends Integration
     public function createSupport(TblPerson $serviceTblPerson,
         TblSupportType $tblSupportType,
         $Date,
-        TblPerson $serviceTblPersonEditor = null,
-        TblCompany $serviceTblCompany = null,
+        $PersonEditor = '',
+        $Company = '',
         $PersonSupport = '',
         $SupportTime = '',
         $Remark = '')
@@ -69,9 +115,9 @@ abstract class Support extends Integration
         $Entity = new TblSupport();
         $Entity->setDate($Date);
         $Entity->setServiceTblPerson($serviceTblPerson);
-        $Entity->setServiceTblPersonEditor($serviceTblPersonEditor);
+        $Entity->setPersonEditor($PersonEditor);
         $Entity->setTblSupportTyp($tblSupportType);
-        $Entity->setServiceTblCompany($serviceTblCompany);
+        $Entity->setCompany($Company);
         $Entity->setPersonSupport($PersonSupport);
         $Entity->setSupportTime($SupportTime);
         $Entity->setRemark($Remark);
@@ -82,19 +128,19 @@ abstract class Support extends Integration
 
     /**
      * @param TblSupport          $tblSupport
-     * @param TblStudentFocusType $tblStudentFocusType
+     * @param TblSupportFocusType $tblSupportFocusType
      * @param bool                $IsPrimary
      *
      * @return bool|TblSupportFocus
      */
-    public function createSupportFocus(TblSupport $tblSupport, TblStudentFocusType $tblStudentFocusType, $IsPrimary = false)
+    public function createSupportFocus(TblSupport $tblSupport, TblSupportFocusType $tblSupportFocusType, $IsPrimary = false)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblSupportFocus();
         $Entity->setTblSupport($tblSupport);
-        $Entity->setTblStudentFocusType($tblStudentFocusType);
+        $Entity->setTblSupportFocusType($tblSupportFocusType);
         $Entity->setIsPrimary($IsPrimary);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
@@ -128,22 +174,118 @@ abstract class Support extends Integration
     }
 
     /**
+     * @param TblPerson $serviceTblPerson
+     * @param \DateTime $Date
+     * @param string    $PersonEditor
+     * @param string    $Remark
+     *
+     * @return TblHandyCap
+     */
+    public function createHandyCap(TblPerson $serviceTblPerson,
+        $Date,
+        $PersonEditor = '',
+        $Remark = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = new TblHandyCap();
+        $Entity->setDate($Date);
+        $Entity->setServiceTblPerson($serviceTblPerson);
+        $Entity->setPersonEditor($PersonEditor);
+        $Entity->setRemark($Remark);
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        return $Entity;
+    }
+
+    /**
      * @param TblSpecial             $tblSpecial
-     * @param TblStudentDisorderType $tblStudentDisorderType
+     * @param TblSpecialDisorderType $tblSpecialDisorderType
      *
      * @return bool|TblSpecialDisorder
      */
-    public function createSpecialDisorder(TblSpecial $tblSpecial, TblStudentDisorderType $tblStudentDisorderType)
+    public function createSpecialDisorder(TblSpecial $tblSpecial, TblSpecialDisorderType $tblSpecialDisorderType)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblSpecialDisorder();
         $Entity->setTblSpecial($tblSpecial);
-        $Entity->setTblStudentDisorderType($tblStudentDisorderType);
+        $Entity->setTblSpecialDisorderType($tblSpecialDisorderType);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
         return $Entity;
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblSupportFocusType
+     */
+    public function getSupportFocusTypeById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblSupportFocusType', $Id
+        );
+    }
+
+    /**
+     * @param $Name
+     * @return bool|TblSupportFocusType
+     */
+    public function getSupportFocusTypeByName($Name)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblSupportFocusType', array(TblSupportFocusType::ATTR_NAME => $Name)
+        );
+    }
+
+    /**
+     * @return bool|TblSupportFocusType[]
+     */
+    public function getSupportFocusTypeAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblSupportFocusType'
+        );
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblSpecialDisorderType
+     */
+    public function getSpecialDisorderTypeById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblSpecialDisorderType', $Id
+        );
+    }
+
+    /**
+     * @param $Name
+     * @return bool|TblSpecialDisorderType
+     */
+    public function getSpecialDisorderTypeByName($Name)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblSpecialDisorderType', array(TblSpecialDisorderType::ATTR_NAME => $Name)
+        );
+    }
+
+    /**
+     * @return bool|TblSpecialDisorderType[]
+     */
+    public function getSpecialDisorderTypeAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSpecialDisorderType');
     }
 
     /**
@@ -195,6 +337,30 @@ abstract class Support extends Integration
     }
 
     /**
+     * @param $Id
+     *
+     * @return false|TblSpecial
+     */
+    public function getHandyCapById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblHandyCap', $Id
+        );
+    }
+
+    /**
+     * @return false|TblSpecial[]
+     */
+    public function getHandyCapAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblHandyCap');
+    }
+
+
+
+    /**
      * @param TblPerson $tblPerson
      *
      * @return false|TblSupport[]
@@ -219,6 +385,20 @@ abstract class Support extends Integration
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSpecial',
         array(
             TblSpecial::SERVICE_TBL_PERSON => $tblPerson->getId()
+        ));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblHandyCap[]
+     */
+    public function getHandyCapByPerson(TblPerson $tblPerson)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblHandyCap',
+        array(
+            TblHandyCap::SERVICE_TBL_PERSON => $tblPerson->getId()
         ));
     }
 
@@ -259,5 +439,47 @@ abstract class Support extends Integration
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSpecialDisorder', array(
             TblSpecialDisorder::ATTR_TBL_SPECIAL => $tblSpecial->getId()
         ));
+    }
+
+    /**
+     * @param TblSupport $tblSupport
+     *
+     * @return bool
+     */
+    public function deleteSupport(TblSupport $tblSupport)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblSupport $Entity */
+        $Entity = $Manager->getEntityById('TblSupport', $tblSupport->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblSupportFocus $tblSupportFocus
+     *
+     * @return bool
+     */
+    public function deleteSupportFocus(TblSupportFocus $tblSupportFocus)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblSupportFocus $Entity */
+        $Entity = $Manager->getEntityById('TblSupportFocus', $tblSupportFocus->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+
+            return true;
+        }
+
+        return false;
     }
 }
