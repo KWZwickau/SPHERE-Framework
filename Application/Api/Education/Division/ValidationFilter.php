@@ -26,6 +26,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\System\Extension\Extension;
@@ -62,7 +63,7 @@ class ValidationFilter extends Extension implements IApiInterface
      *
      * @param bool $ShowAll
      *
-     * @return Warning|false
+     * @return Warning|Success|false
      * @throws \Doctrine\ORM\ORMException
      * @throws \Doctrine\ORM\OptimisticLockException
      * @throws \Doctrine\ORM\TransactionRequiredException
@@ -73,17 +74,29 @@ class ValidationFilter extends Extension implements IApiInterface
 
         if (!$ShowAll) {
             // Letzten Status aus der DB laden
-            if (($tblSetting = Consumer::useService()->getSetting(
-                    'Education', 'Lesson', 'Division', 'InterfaceFilterMessage'))
-                && $tblSetting->getValue()) {
-                $message = $tblSetting->getValue();
+            if (($tblSettingDate = Consumer::useService()->getSetting(
+                    'Education', 'Lesson', 'Division', 'InterfaceFilterMessageDate'))
+                && $tblSettingDate->getValue()
+            ) {
+                $date = $tblSettingDate->getValue();
+                if (($tblSettingCount = Consumer::useService()->getSetting(
+                        'Education', 'Lesson', 'Division', 'InterfaceFilterMessageCount'))
+                ) {
+                    $count = $tblSettingCount->getValue();
+                } else {
+                    $count = 0;
+                }
 
-                return new Warning(new Exclamation()
+                $message = 'Letzte Aktualisierung: ' . $date . ' Es wurden ' . new Bold($count) . ' Meldungen registriert.';
+
+                $content = new Exclamation()
                     . new Bold(' Folgende Einstellungen stimmen nicht mit der Personenverwaltung überein:')
                     . '</br>'
                     . ($message ? $message : '')
                     . '</br></br>'
-                    . (new Standard('Laden', ''))->ajaxPipelineOnClick(self::pipelineLoad()));
+                    . (new Standard('Laden', ''))->ajaxPipelineOnClick(self::pipelineLoad());
+
+                return $count > 0 ? new Warning($content) : new Success($content);
             }
         }
 
@@ -115,20 +128,34 @@ class ValidationFilter extends Extension implements IApiInterface
                 }
             }
 
-            // save message in database
-            $message = 'Letzte Aktualisierung: ' . (new \DateTime('now'))->format('d.m.Y') . ' Es wurden ' . new Bold($totalCount) . ' Meldungen registriert.';
-            if (($tblSetting = Consumer::useService()->getSetting(
-                'Education', 'Lesson', 'Division', 'InterfaceFilterMessage'))
+            // save date and count in database
+            $date = (new \DateTime('now'))->format('d.m.Y');
+            if (($tblSettingDate = Consumer::useService()->getSetting(
+                'Education', 'Lesson', 'Division', 'InterfaceFilterMessageDate'))
             ) {
-                Consumer::useService()->updateSetting($tblSetting, $message);
+                Consumer::useService()->updateSetting($tblSettingDate, $date);
             } else {
                 Consumer::useService()->createSetting(
                     'Education',
                     'Lesson',
                     'Division',
-                    'InterfaceFilterMessage',
+                    'InterfaceFilterMessageDate',
                     TblSetting::TYPE_STRING,
-                    $message
+                    $date
+                );
+            }
+            if (($tblSettingCount = Consumer::useService()->getSetting(
+                'Education', 'Lesson', 'Division', 'InterfaceFilterMessageCount'))
+            ) {
+                Consumer::useService()->updateSetting($tblSettingCount, $totalCount);
+            } else {
+                Consumer::useService()->createSetting(
+                    'Education',
+                    'Lesson',
+                    'Division',
+                    'InterfaceFilterMessageCount',
+                    TblSetting::TYPE_INTEGER,
+                    $totalCount
                 );
             }
         }
