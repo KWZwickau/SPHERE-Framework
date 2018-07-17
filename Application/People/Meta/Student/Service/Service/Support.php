@@ -6,7 +6,6 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblHandyCap;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblSpecial;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblSpecialDisorder;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblSpecialDisorderType;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentDisorderType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentFocusType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblSupport;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblSupportFocus;
@@ -292,7 +291,7 @@ abstract class Support extends Integration
     /**
      * @param $Id
      *
-     * @return false|TblSpecial
+     * @return false|TblHandyCap
      */
     public function getHandyCapById($Id)
     {
@@ -429,20 +428,31 @@ abstract class Support extends Integration
     /**
      * @param TblSpecial $tblSpecial
      *
-     * @return bool|TblStudentDisorderType[]
+     * @return bool|TblSpecialDisorderType[]
      */
-    public function getStudentDisorderTypeAllBySpecial(TblSpecial $tblSpecial)
+    public function getSpecialDisorderTypeAllBySpecial(TblSpecial $tblSpecial)
     {
 
-        $tblStudentDisorderTypeList = array();
+        $tblSpecialDisorderTypeList = array();
         $tblSpecialDisorderList = (new Data($this->getBinding()))->getSpecialDisorderBySpecial($tblSpecial);
         if($tblSpecialDisorderList){
             foreach($tblSpecialDisorderList as $tblSpecialDisorder){
-                $tblStudentDisorderTypeList[] = $tblSpecialDisorder->getTblSpecialDisorderType();
+                $tblSpecialDisorderTypeList[] = $tblSpecialDisorder->getTblSpecialDisorderType();
             }
         }
 
-        return (!empty($tblStudentDisorderTypeList) ? $tblStudentDisorderTypeList : false);
+        return (!empty($tblSpecialDisorderTypeList) ? $tblSpecialDisorderTypeList : false);
+    }
+
+    /**
+     * @param TblSpecial $tblSpecial
+     *
+     * @return bool|TblSpecialDisorder[]
+     */
+    public function getSpecialDisorderAllBySpecial(TblSpecial $tblSpecial)
+    {
+
+        return (new Data($this->getBinding()))->getSpecialDisorderBySpecial($tblSpecial);
     }
 
     /**
@@ -542,5 +552,38 @@ abstract class Support extends Integration
             }
         }
         return $IsRemove;
+    }
+
+    /**
+     * @param TblSpecial $tblSpecial
+     *
+     * @return bool
+     */
+    public function deleteSpecial(TblSpecial $tblSpecial)
+    {
+
+        $IsRemove = true;
+        if(($tblSpecialDisorderList = $this->getSpecialDisorderAllBySpecial($tblSpecial))){
+            foreach($tblSpecialDisorderList as $tblSpecialDisorder){
+                if($IsRemove){
+                    $IsRemove = (new Data($this->getBinding()))->deleteSpecialDisorder($tblSpecialDisorder);
+                }
+            }
+            if($IsRemove){
+                $IsRemove = (new Data($this->getBinding()))->deleteSpecial($tblSpecial);
+            }
+        }
+        return $IsRemove;
+    }
+
+    /**
+     * @param TblHandyCap $tblHandyCap
+     *
+     * @return bool
+     */
+    public function deleteHandyCap(TblHandyCap $tblHandyCap)
+    {
+
+        return (new Data($this->getBinding()))->deleteHandyCap($tblHandyCap);
     }
 }

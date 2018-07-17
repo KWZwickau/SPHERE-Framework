@@ -17,6 +17,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Ruler;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -48,11 +49,15 @@ class ApiSupport extends Extension implements IApiInterface
         $Dispatcher->registerMethod('openCreateSupportModal');
         $Dispatcher->registerMethod('openCreateSpecialModal');
         $Dispatcher->registerMethod('openCreateHandyCapModal');
-        $Dispatcher->registerMethod('openCreateDeleteSupportModal');
+        $Dispatcher->registerMethod('openDeleteSupportModal');
+        $Dispatcher->registerMethod('openDeleteSpecialModal');
+        $Dispatcher->registerMethod('openDeleteHandyCapModal');
         $Dispatcher->registerMethod('saveCreateSupportModal');
         $Dispatcher->registerMethod('saveCreateSpecialModal');
         $Dispatcher->registerMethod('saveCreateHandyCapModal');
-        $Dispatcher->registerMethod('deleteSupportModal');
+        $Dispatcher->registerMethod('deleteSupportService');
+        $Dispatcher->registerMethod('deleteSpecialService');
+        $Dispatcher->registerMethod('deleteHandyCapService');
         $Dispatcher->registerMethod('loadSupportTable');
         $Dispatcher->registerMethod('loadSpecialTable');
         $Dispatcher->registerMethod('loadHandyCapTable');
@@ -255,11 +260,57 @@ class ApiSupport extends Extension implements IApiInterface
         $Pipeline = new Pipeline();
         $ModalEmitter = new ServerEmitter(ApiSupport::receiverModal(), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'openCreateDeleteSupportModal'
+            self::API_TARGET => 'openDeleteSupportModal'
         ));
         $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId,
             'SupportId' => $SupportId
+        ));
+//        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+        return $Pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     * @param int $SpecialId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenDeleteSpecial($PersonId, $SpecialId)
+    {
+
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(ApiSupport::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openDeleteSpecialModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId,
+            'SpecialId' => $SpecialId
+        ));
+//        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+        return $Pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     * @param int $HandyCapId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenDeleteHandyCap($PersonId, $HandyCapId)
+    {
+
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(ApiSupport::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'openDeleteHandyCapModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId,
+            'HandyCapId' => $HandyCapId
         ));
 //        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
         $Pipeline->appendEmitter($ModalEmitter);
@@ -278,11 +329,56 @@ class ApiSupport extends Extension implements IApiInterface
         $Pipeline = new Pipeline();
         $ModalEmitter = new ServerEmitter(ApiSupport::receiverModal(), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'deleteSupportModal'
+            self::API_TARGET => 'deleteSupportService'
         ));
         $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId,
             'SupportId' => $SupportId
+        ));
+//        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+        return $Pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     * @param int $SpecialId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineDeleteSpecial($PersonId, $SpecialId)
+    {
+
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(ApiSupport::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'deleteSpecialService'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId,
+            'SpecialId' => $SpecialId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+        return $Pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     * @param int $HandyCapId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineDeleteHandyCap($PersonId, $HandyCapId)
+    {
+
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(ApiSupport::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'deleteHandyCapService'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId,
+            'HandyCapId' => $HandyCapId
         ));
 //        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
         $Pipeline->appendEmitter($ModalEmitter);
@@ -497,7 +593,7 @@ class ApiSupport extends Extension implements IApiInterface
      *
      * @return Danger|string
      */
-    public function openCreateDeleteSupportModal($PersonId, $SupportId)
+    public function openDeleteSupportModal($PersonId, $SupportId)
     {
         $tblSupport = Student::useService()->getSupportById($SupportId);
         if(!$tblSupport){
@@ -511,7 +607,7 @@ class ApiSupport extends Extension implements IApiInterface
         $FocusList = array();
         $tblFocusType = Student::useService()->getPrimaryFocusBySupport($tblSupport);
         if($tblFocusType){
-            $FocusList[] = new Bold($tblFocusType->getName());
+            $FocusList[] = new Bold('Primär: '.$tblFocusType->getName());
         }
         $tblFocusTypeList = Student::useService()->getFocusListBySupport($tblSupport);
         if($tblFocusTypeList){
@@ -525,40 +621,40 @@ class ApiSupport extends Extension implements IApiInterface
             $Person = $tblPerson->getLastFirstName();
         }
 
-        $Focus = implode('<br/>', $FocusList);
+        $Focus = implode(new Ruler(), $FocusList);
 
         $Content = new Listing(array(
             new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn('Person:', 4),
-                new LayoutColumn($Person, 8),
+                new LayoutColumn('Person:', 3),
+                new LayoutColumn($Person, 9),
             )))),
             new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('Datum:', 4),
-                    new LayoutColumn($tblSupport->getDate(), 8),
+                    new LayoutColumn('Datum:', 3),
+                    new LayoutColumn($tblSupport->getDate(), 9),
             )))),
             new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('Förderantrag/bescheid:', 4),
-                    new LayoutColumn($SupportType, 8),
+                    new LayoutColumn('Förderantrag/bescheid:', 3),
+                    new LayoutColumn($SupportType, 9),
             )))),
             new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('Schwerpunkte:', 4),
-                    new LayoutColumn($Focus, 8),
+                    new LayoutColumn('Schwerpunkte:', 3),
+                    new LayoutColumn($Focus, 9),
             )))),
             new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('Förderschule:', 4),
-                    new LayoutColumn($tblSupport->getCompany(), 8),
+                    new LayoutColumn('Förderschule:', 3),
+                    new LayoutColumn($tblSupport->getCompany(), 9),
             )))),
             new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('Schulbegleitung:', 4),
-                    new LayoutColumn($tblSupport->getPersonSupport(), 8),
+                    new LayoutColumn('Schulbegleitung:', 3),
+                    new LayoutColumn($tblSupport->getPersonSupport(), 9),
             )))),
             new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('Stundenbedarf:', 4),
-                    new LayoutColumn($tblSupport->getSupportTime(), 8),
+                    new LayoutColumn('Stundenbedarf:', 3),
+                    new LayoutColumn($tblSupport->getSupportTime(), 9),
             )))),
             new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('Bemerkung:', 4),
-                    new LayoutColumn($tblSupport->getRemark(), 8),
+                    new LayoutColumn('Bemerkung:', 3),
+                    new LayoutColumn($tblSupport->getRemark(), 9),
             ))))
         ));
 
@@ -581,12 +677,129 @@ class ApiSupport extends Extension implements IApiInterface
     }
 
     /**
+     * @param int $PersonId
+     * @param int $SpecialId
+     *
+     * @return Danger|string
+     */
+    public function openDeleteSpecialModal($PersonId, $SpecialId)
+    {
+        $tblSpecial = Student::useService()->getSpecialById($SpecialId);
+        if(!$tblSpecial){
+            return new Danger('Eintrag nicht gefunden.');
+        }
+
+        $DisorderList = array();
+        $tblSpecialDisorderTypeList = Student::useService()->getSpecialDisorderTypeAllBySpecial($tblSpecial);
+        if($tblSpecialDisorderTypeList){
+            foreach($tblSpecialDisorderTypeList as $tblSpecialDisorderType){
+                $DisorderList[] = $tblSpecialDisorderType->getName();
+            }
+        }
+
+        $Person = '';
+        if(($tblPerson = $tblSpecial->getServiceTblPerson())){
+            $Person = $tblPerson->getLastFirstName();
+        }
+
+        $Disorder = implode(new Ruler(), $DisorderList);
+
+        $Content = new Listing(array(
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Person:', 3),
+                new LayoutColumn($Person, 9),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Datum:', 3),
+                    new LayoutColumn($tblSpecial->getDate(), 9),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Besonderheiten:', 3),
+                    new LayoutColumn($Disorder, 9),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Bemerkung:', 3),
+                    new LayoutColumn($tblSpecial->getRemark(), 9),
+            ))))
+        ));
+
+        return new Title('Entwicklungsbesonderheiten entfernen')
+        .new Layout(
+            new LayoutGroup(
+                new LayoutRow(
+                    new LayoutColumn(
+                        new Panel('Soll der Eintrag wirklich gelöscht werden?',
+                            $Content, Panel::PANEL_TYPE_DANGER
+                        )
+                        .(new DangerLink('Ja', '#', new Ok()))
+                            ->ajaxPipelineOnClick(ApiSupport::pipelineDeleteSpecial($PersonId, $SpecialId))
+                        .(new Standard('Nein', '#', new Remove()))
+                            ->ajaxPipelineOnClick(ApiSupport::pipelineClose())
+                    )
+                )
+            )
+        );
+    }
+
+    /**
+     * @param int $PersonId
+     * @param int $HandyCapId
+     *
+     * @return Danger|string
+     */
+    public function openDeleteHandyCapModal($PersonId, $HandyCapId)
+    {
+        $tblHandyCap = Student::useService()->getHandyCapById($HandyCapId);
+        if(!$tblHandyCap){
+            return new Danger('Eintrag nicht gefunden.');
+        }
+
+        $Person = '';
+        if(($tblPerson = $tblHandyCap->getServiceTblPerson())){
+            $Person = $tblPerson->getLastFirstName();
+        }
+
+
+        $Content = new Listing(array(
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Person:', 3),
+                new LayoutColumn($Person, 9),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Datum:', 3),
+                new LayoutColumn($tblHandyCap->getDate(), 9),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Bemerkung:', 3),
+                    new LayoutColumn($tblHandyCap->getRemark(), 9),
+            ))))
+        ));
+
+        return new Title('Nachteilsausgleich entfernen')
+        .new Layout(
+            new LayoutGroup(
+                new LayoutRow(
+                    new LayoutColumn(
+                        new Panel('Soll der Eintrag wirklich gelöscht werden?',
+                            $Content, Panel::PANEL_TYPE_DANGER
+                        )
+                        .(new DangerLink('Ja', '#', new Ok()))
+                            ->ajaxPipelineOnClick(ApiSupport::pipelineDeleteHandyCap($PersonId, $HandyCapId))
+                        .(new Standard('Nein', '#', new Remove()))
+                            ->ajaxPipelineOnClick(ApiSupport::pipelineClose())
+                    )
+                )
+            )
+        );
+    }
+
+    /**
      * @param $PersonId
      * @param $SupportId
      *
      * @return Danger|string
      */
-    public function deleteSupportModal($PersonId, $SupportId)
+    public function deleteSupportService($PersonId, $SupportId)
     {
 
         if(!($tblSupport = Student::useService()->getSupportById($SupportId))) {
@@ -598,7 +811,55 @@ class ApiSupport extends Extension implements IApiInterface
                 .self::pipelineLoadTable($PersonId)
                 .self::pipelineClose();
         } else {
-            return new Danger('Förderantrag konnte nicht gelöscht werden.')
+            return new Danger('Der Förderantrag konnte nicht gelöscht werden.')
+                .self::pipelineLoadTable($PersonId)
+                .self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param $PersonId
+     * @param $SpecialId
+     *
+     * @return Danger|string
+     */
+    public function deleteSpecialService($PersonId, $SpecialId)
+    {
+
+        if(!($tblSpecial = Student::useService()->getSpecialById($SpecialId))) {
+            return new Danger('Die Entwicklungsbesonderheit konnte nicht gefunden werden.');
+        }
+        if (Student::useService()->deleteSpecial($tblSpecial)
+        ) {
+            return new Success('Die Entwicklungsbesonderheit wurde erfolgreich gelöscht.')
+                .self::pipelineLoadTable($PersonId)
+                .self::pipelineClose();
+        } else {
+            return new Danger('Die Entwicklungsbesonderheit konnte nicht gelöscht werden.')
+                .self::pipelineLoadTable($PersonId)
+                .self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param $PersonId
+     * @param $HandyCapId
+     *
+     * @return Danger|string
+     */
+    public function deleteHandyCapService($PersonId, $HandyCapId)
+    {
+
+        if(!($tblHandyCap = Student::useService()->getHandyCapById($HandyCapId))) {
+            return new Danger('Der Nachteilsausgleich konnte nicht gefunden werden.');
+        }
+        if (Student::useService()->deleteHandyCap($tblHandyCap)
+        ) {
+            return new Success('Der Nachteilsausgleich wurde erfolgreich gelöscht.')
+                .self::pipelineLoadTable($PersonId)
+                .self::pipelineClose();
+        } else {
+            return new Danger('Der Nachteilsausgleich konnte nicht gelöscht werden.')
                 .self::pipelineLoadTable($PersonId)
                 .self::pipelineClose();
         }

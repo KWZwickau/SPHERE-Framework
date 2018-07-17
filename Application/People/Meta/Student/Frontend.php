@@ -527,16 +527,17 @@ class Frontend extends Extension implements IFrontendInterface
         $tblSpecialList = Student::useService()->getSpecialByPerson($tblPerson);
         $TableContent = array();
         if($tblSpecialList){
-            array_walk($tblSpecialList, function(TblSpecial $tblSpecial) use (&$TableContent){
+            array_walk($tblSpecialList, function(TblSpecial $tblSpecial) use (&$TableContent, $tblPerson){
                 $Item['RequestDate'] = $tblSpecial->getDate();
                 $Item['Disorder'] = '';
                 $Item['Remark'] = $tblSpecial->getRemark();
                 $Item['Editor'] = $tblSpecial->getPersonEditor();
                 $Item['Option'] = new Standard('', '#', new Edit())
-                    .new Standard('', '#', new Remove());
+                    .(new Standard('', '#', new Remove()))
+                    ->ajaxPipelineOnClick(ApiSupport::pipelineOpenDeleteSpecial($tblPerson->getId(), $tblSpecial->getId()));
 
                 $DisorderList = array();
-                $tblStudentDisorderTypeList = Student::useService()->getStudentDisorderTypeAllBySpecial($tblSpecial);
+                $tblStudentDisorderTypeList = Student::useService()->getSpecialDisorderTypeAllBySpecial($tblSpecial);
                 if($tblStudentDisorderTypeList){
                     foreach($tblStudentDisorderTypeList as $tblStudentDisorderType){
                         $DisorderList[] = $tblStudentDisorderType->getName();
@@ -586,12 +587,13 @@ class Frontend extends Extension implements IFrontendInterface
         $tblSpecialList = Student::useService()->getHandyCapByPerson($tblPerson);
         $TableContent = array();
         if($tblSpecialList){
-            array_walk($tblSpecialList, function(TblHandyCap $tblHandyCap) use (&$TableContent){
+            array_walk($tblSpecialList, function(TblHandyCap $tblHandyCap) use (&$TableContent, $tblPerson){
                 $Item['RequestDate'] = $tblHandyCap->getDate();
                 $Item['Remark'] = $tblHandyCap->getRemark();
                 $Item['Editor'] = $tblHandyCap->getPersonEditor();
                 $Item['Option'] = new Standard('', '#', new Edit())
-                    .new Standard('', '#', new Remove());
+                    .(new Standard('', '#', new Remove()))
+                    ->ajaxPipelineOnClick(ApiSupport::pipelineOpenDeleteHandyCap($tblPerson->getId(), $tblHandyCap->getId()));
 
                 array_push($TableContent, $Item);
             });

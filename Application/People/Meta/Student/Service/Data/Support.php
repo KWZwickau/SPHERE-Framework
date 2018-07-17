@@ -455,10 +455,8 @@ abstract class Support extends Integration
         if (null !== $Entity) {
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
-
             return true;
         }
-
         return false;
     }
 
@@ -476,10 +474,65 @@ abstract class Support extends Integration
         if (null !== $Entity) {
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
-
             return true;
         }
+        return false;
+    }
 
+    /**
+     * @param TblSpecial $tblSpecial
+     *
+     * @return bool
+     */
+    public function deleteSpecial(TblSpecial $tblSpecial)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblSpecial $Entity */
+        $Entity = $Manager->getEntityById('TblSpecial', $tblSpecial->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblSpecialDisorder $tblSpecialDisorder
+     *
+     * @return bool
+     */
+    public function deleteSpecialDisorder(TblSpecialDisorder $tblSpecialDisorder)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblSpecialDisorder $Entity */
+        $Entity = $Manager->getEntityById('TblSpecialDisorder', $tblSpecialDisorder->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblHandyCap $tblHandyCap
+     *
+     * @return bool
+     */
+    public function deleteHandyCap(TblHandyCap $tblHandyCap)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblHandyCap $Entity */
+        $Entity = $Manager->getEntityById('TblHandyCap', $tblHandyCap->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
         return false;
     }
 }
