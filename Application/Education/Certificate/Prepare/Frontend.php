@@ -764,7 +764,6 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblDivision = $tblPrepare->getServiceTblDivision();
                 $useMultipleBehaviorTasks = false;
                 $tblTaskList = false;
-                $tblTestList = false;
                 $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK');
                 if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
                         'Education', 'Certificate', 'Prepare', 'UseMultipleBehaviorTasks'))
@@ -777,12 +776,13 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
 
+                $tblTestList = Evaluation::useService()->getTestAllByTask($tblPrepare->getServiceTblBehaviorTask(), $tblDivision);
+
                 // Kopfnoten festlegen
                 if (!$IsNotGradeType
                     && $tblDivision
                     && (($tblGenerateCertificate->getServiceTblBehaviorTask()
-                            && ($tblTestList = Evaluation::useService()->getTestAllByTask($tblPrepare->getServiceTblBehaviorTask(),
-                                $tblDivision)))
+                            && $tblTestList)
                         || $useMultipleBehaviorTasks)
                 ) {
                     $Stage = new Stage('Zeugnisvorbereitung', 'Kopfnoten festlegen');
@@ -995,7 +995,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             $studentTable[$tblPerson->getId()]['Average'] = $average;
                                             $averageStudent = $average;
                                             $studentTable[$tblPerson->getId()]['Grades'] = $gradeListString;
-                                        } elseif ($tblTestList) {
+                                        } elseif (($tblTestList = Evaluation::useService()->getTestAllByTask($tblPrepare->getServiceTblBehaviorTask(), $tblDivisionItem))) {
                                             foreach ($tblTestList as $tblTest) {
                                                 if (($tblGradeType = $tblTest->getServiceTblGradeType())
                                                     && $tblGradeType->getId() == $tblCurrentGradeType->getId()
