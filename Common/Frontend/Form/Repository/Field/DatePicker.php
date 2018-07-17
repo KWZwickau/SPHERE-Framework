@@ -13,6 +13,9 @@ use SPHERE\Common\Frontend\Icon\IIconInterface;
 class DatePicker extends AbstractField implements IFieldInterface
 {
 
+    /** @var string $Label */
+    private $Label = '';
+
     /**
      * @param string $Name
      * @param null|string $Placeholder
@@ -27,6 +30,7 @@ class DatePicker extends AbstractField implements IFieldInterface
     ) {
 
         $this->Name = $Name;
+        $this->Label = $Label;
         $this->Template = $this->getTemplate(__DIR__.'/DatePicker.twig');
         $this->Template->setVariable('ElementName', $Name);
         $this->Template->setVariable('ElementLabel', $Label);
@@ -37,4 +41,11 @@ class DatePicker extends AbstractField implements IFieldInterface
         $this->setPostValue($this->Template, $Name, 'ElementValue');
     }
 
+    /**
+     * @return string
+     */
+    public function getLabel()
+    {
+        return $this->Label;
+    }
 }

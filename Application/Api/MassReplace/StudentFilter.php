@@ -130,7 +130,7 @@ class StudentFilter extends Extension
 
         $TableContent = $this->getStudentFilterResult($Year, $Division, $Field);
 
-        $Table = new TableData($TableContent, null,
+        $Table = (new TableData($TableContent, null,
             array(
                 'Check'         => 'Auswahl',
                 'Name'          => 'Name',
@@ -148,7 +148,7 @@ class StudentFilter extends Extension
                 'info'       => false,
                 'searching'  => false,
                 'responsive' => false
-            ));
+            )))->setHash('MassReplaceStudent' . $Node . $Field->getLabel());
 
         return new Layout(
             new LayoutGroup(
@@ -324,6 +324,12 @@ class StudentFilter extends Extension
                                 ) {
                                     $DataPerson['Edit'] = $tblCourse->getName();
                                 }
+                                if (($transferDate = $tblStudentTransfer->getTransferDate()) && $Label == 'Datum'
+                                    && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
+                                ) {
+                                    $DataPerson['Edit'] = $transferDate;
+                                }
+
                                 // Schüler - Aufnahme
                                 if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Abgebende Schule / Kita'
                                     && $tblStudentTransferType->getIdentifier() == 'ARRIVE'
@@ -339,6 +345,11 @@ class StudentFilter extends Extension
                                     && $tblStudentTransferType->getIdentifier() == 'ARRIVE'
                                 ) {
                                     $DataPerson['Edit'] = $tblCourse->getName();
+                                }
+                                if (($transferDate = $tblStudentTransfer->getTransferDate()) && $Label == 'Datum'
+                                    && $tblStudentTransferType->getIdentifier() == 'ARRIVE'
+                                ) {
+                                    $DataPerson['Edit'] = $transferDate;
                                 }
 
                                 // Schüler - Abgabe
@@ -356,6 +367,11 @@ class StudentFilter extends Extension
                                     && $tblStudentTransferType->getIdentifier() == 'LEAVE'
                                 ) {
                                     $DataPerson['Edit'] = $tblCourse->getName();
+                                }
+                                if (($transferDate = $tblStudentTransfer->getTransferDate()) && $Label == 'Datum'
+                                    && $tblStudentTransferType->getIdentifier() == 'LEAVE'
+                                ) {
+                                    $DataPerson['Edit'] = $transferDate;
                                 }
 
                                 // Schulverlauf
