@@ -145,9 +145,10 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblPerson      $tblPerson
-     * @param string         $Address
-     * @param array          $Type
+     * @param TblPerson $tblPerson
+     * @param string $Address
+     * @param array $Type
+     * @param $Group
      *
      * @return IFormInterface|string
      */
@@ -155,7 +156,8 @@ class Service extends AbstractService
         IFormInterface $Form,
         TblPerson $tblPerson,
         $Address,
-        $Type
+        $Type,
+        $Group
     ) {
 
         /**
@@ -174,10 +176,10 @@ class Service extends AbstractService
             if ((new Data($this->getBinding()))->addMailToPerson($tblPerson, $tblMail, $tblType, $Type['Remark'])
             ) {
                 return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die E-Mail Adresse wurde erfolgreich hinzugefügt')
-                    .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPerson->getId()));
+                    .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPerson->getId(), 'Group' => $Group));
             } else {
                 return new Danger(new Ban().' Die E-Mail Adresse konnte nicht hinzugefügt werden')
-                    .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR, array('Id' => $tblPerson->getId()));
+                    .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR, array('Id' => $tblPerson->getId(), 'Group' => $Group));
             }
         }
         return $Form;
@@ -234,9 +236,10 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblCompany     $tblCompany
-     * @param string         $Address
-     * @param array          $Type
+     * @param TblCompany $tblCompany
+     * @param string $Address
+     * @param array $Type
+     * @param $Group
      *
      * @return IFormInterface|string
      */
@@ -244,7 +247,8 @@ class Service extends AbstractService
         IFormInterface $Form,
         TblCompany $tblCompany,
         $Address,
-        $Type
+        $Type,
+        $Group
     ) {
 
         /**
@@ -277,10 +281,10 @@ class Service extends AbstractService
             if ((new Data($this->getBinding()))->addMailToCompany($tblCompany, $tblMail, $tblType, $Type['Remark'])
             ) {
                 return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .  ' Die E-Mail Adresse wurde erfolgreich hinzugefügt')
-                .new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblCompany->getId()));
+                .new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblCompany->getId(), 'Group' => $Group));
             } else {
                 return new Danger(new Ban() . ' Die E-Mail Adresse konnte nicht hinzugefügt werden')
-                .new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR, array('Id' => $tblCompany->getId()));
+                .new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR, array('Id' => $tblCompany->getId(), 'Group' => $Group));
             }
         }
         return $Form;
@@ -288,9 +292,10 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblToPerson    $tblToPerson
-     * @param string         $Address
-     * @param array          $Type
+     * @param TblToPerson $tblToPerson
+     * @param string $Address
+     * @param array $Type
+     * @param $Group
      *
      * @return IFormInterface|string
      */
@@ -298,7 +303,8 @@ class Service extends AbstractService
         IFormInterface $Form,
         TblToPerson $tblToPerson,
         $Address,
-        $Type
+        $Type,
+        $Group
     ) {
 
         /**
@@ -337,11 +343,11 @@ class Service extends AbstractService
                 ) {
                     return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die E-Mail Adresse wurde erfolgreich geändert')
                     . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
-                        array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
+                        array('Id' => $tblToPerson->getServiceTblPerson()->getId(), 'Group' => $Group));
                 } else {
                     return new Danger(new Ban() . ' Die E-Mail Adresse konnte nicht geändert werden')
                     . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
-                        array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
+                        array('Id' => $tblToPerson->getServiceTblPerson()->getId(), 'Group' => $Group));
                 }
             } else {
                 return new Danger('Person nicht gefunden', new Ban());
@@ -352,9 +358,10 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblToCompany   $tblToCompany
-     * @param string         $Address
-     * @param array          $Type
+     * @param TblToCompany $tblToCompany
+     * @param string $Address
+     * @param array $Type
+     * @param $Group
      *
      * @return IFormInterface|string
      */
@@ -362,7 +369,8 @@ class Service extends AbstractService
         IFormInterface $Form,
         TblToCompany $tblToCompany,
         $Address,
-        $Type
+        $Type,
+        $Group
     ) {
 
         /**
@@ -401,11 +409,11 @@ class Service extends AbstractService
                 ) {
                     return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die E-Mail Adresse wurde erfolgreich geändert')
                     . new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS,
-                        array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
+                        array('Id' => $tblToCompany->getServiceTblCompany()->getId(), 'Group' => $Group));
                 } else {
                     return new Danger(new Ban() . ' Die E-Mail Adresse konnte nicht geändert werden')
                     . new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR,
-                        array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
+                        array('Id' => $tblToCompany->getServiceTblCompany()->getId(), 'Group' => $Group));
                 }
             } else {
                 return new Danger('Institution nicht gefunden', new Ban());

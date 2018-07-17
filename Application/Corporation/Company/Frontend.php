@@ -404,7 +404,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Institutionen', 'Datenblatt '.( $Id ? 'bearbeiten' : 'anlegen' ));
 
-        $Stage->addButton(new Standard('Zurück', '/Corporation', new ChevronLeft()));
+        $Stage->addButton(new Standard('Zurück', '/Corporation/Search/Group', new ChevronLeft(), array('Id' => $Group)));
 
         if (!$Id) {
 
@@ -428,7 +428,8 @@ class Frontend extends Extension implements IFrontendInterface
 
             if ($tblCompany) {
                 $Stage->addButton(new Standard('Ansprechpartner hinzufügen', '/Corporation/Company/Contact/Create', new PlusSign(), array(
-                    'Id' => $tblCompany->getId()
+                    'Id' => $tblCompany->getId(),
+                    'Group' => $Group
                 )));
 
                 $Global = $this->getGlobal();
@@ -516,35 +517,35 @@ class Frontend extends Extension implements IFrontendInterface
 //                    ), new Title(new Tag().' Informationen', 'zur Institution')),
                         new LayoutGroup(array(
                             new LayoutRow(new LayoutColumn(
-                                Address::useFrontend()->frontendLayoutCompany($tblCompany)
+                                Address::useFrontend()->frontendLayoutCompany($tblCompany, $Group)
                             )),
                         ), ( new Title(new TagList().' Adressdaten', 'der Institution') )
                             ->addButton(
                                 new Standard('Adresse hinzufügen', '/Corporation/Company/Address/Create',
-                                    new ChevronDown(), array('Id' => $tblCompany->getId())
+                                    new ChevronDown(), array('Id' => $tblCompany->getId(), 'Group' => $Group)
                                 )
                             )
                         ),
                         new LayoutGroup(array(
                             new LayoutRow(new LayoutColumn(
-                                Phone::useFrontend()->frontendLayoutCompany($tblCompany)
-                                . Mail::useFrontend()->frontendLayoutCompany($tblCompany)
-                                . Web::useFrontend()->frontendLayoutCompany($tblCompany)
+                                Phone::useFrontend()->frontendLayoutCompany($tblCompany, $Group)
+                                . Mail::useFrontend()->frontendLayoutCompany($tblCompany, $Group)
+                                . Web::useFrontend()->frontendLayoutCompany($tblCompany, $Group)
                             )),
                         ), ( new Title(new TagList().' Kontaktdaten', 'der Institution') )
                             ->addButton(
                                 new Standard('Telefonnummer hinzufügen', '/Corporation/Company/Phone/Create',
-                                    new ChevronDown(), array('Id' => $tblCompany->getId())
+                                    new ChevronDown(), array('Id' => $tblCompany->getId(), 'Group' => $Group)
                                 )
                             )
                             ->addButton(
                                 new Standard('E-Mail Adresse hinzufügen', '/Corporation/Company/Mail/Create',
-                                    new ChevronDown(), array('Id' => $tblCompany->getId())
+                                    new ChevronDown(), array('Id' => $tblCompany->getId(), 'Group' => $Group)
                                 )
                             )
                             ->addButton(
                                 new Standard('Internet Adresse hinzufügen', '/Corporation/Company/Web/Create',
-                                    new ChevronDown(), array('Id' => $tblCompany->getId())
+                                    new ChevronDown(), array('Id' => $tblCompany->getId(), 'Group' => $Group)
                                 )
                             )
                         ),

@@ -63,16 +63,17 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param int $Id
+     * @param null $Group
      * @param int $To
      * @param array $Type
      *
      * @return Stage|string
      */
-    public function frontendCreateToPerson($Id, $To, $Type)
+    public function frontendCreateToPerson($Id, $Group = null, $To, $Type)
     {
 
         $Stage = new Stage('Beziehungen', 'Hinzufügen');
-        $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $Id)));
+        $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $Id, 'Group' => $Group)));
         $Stage->setMessage(
             'Eine Beziehungen zur gewählten Person hinzufügen'
             . '<br/>Beispiel: Die Person (Vater) > hat folgende Beziehung (Sorgeberechtigt), Bemerkung: Vater > zu folgender Person (Kind)'
@@ -81,7 +82,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblPerson = Person::useService()->getPersonById($Id);
         if (!$tblPerson) {
             return $Stage . new Danger('Person nicht gefunden', new Ban())
-            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
+            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR, array('Group' => $Group));
         }
 
         $Stage->setContent(
@@ -104,7 +105,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $this->formRelationshipToPerson()
                                         ->appendFormButton(new Primary('Speichern', new Save()))
                                         ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                    , $tblPerson, $To, $Type
+                                    , $tblPerson, $To, $Type, $Group
                                 )
                             )
                         )
@@ -233,16 +234,17 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param int $Id
+     * @param null $Group
      * @param int $To
      * @param array $Type
      *
      * @return Stage|string
      */
-    public function frontendCreateToCompany($Id, $To, $Type)
+    public function frontendCreateToCompany($Id, $Group = null, $To, $Type)
     {
 
         $Stage = new Stage('Beziehungen', 'Hinzufügen');
-        $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $Id)));
+        $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $Id, 'Group' => $Group)));
         $Stage->setMessage(
             'Eine Beziehungen zur gewählten Person hinzufügen'
         );
@@ -273,7 +275,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $this->formRelationshipToCompany()
                                         ->appendFormButton(new Primary('Speichern', new Save()))
                                         ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                    , $tblPerson, $To, $Type
+                                    , $tblPerson, $To, $Type, $Group
                                 )
                             )
                         )
@@ -408,16 +410,16 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param int $Id
+     * @param null $Group
      * @param int $To
      * @param array $Type
      *
      * @return Stage|string
      */
-    public function frontendUpdateToPerson($Id, $To, $Type)
+    public function frontendUpdateToPerson($Id, $Group = null, $To, $Type)
     {
 
         $Stage = new Stage('Beziehungen', 'Bearbeiten');
-        $Stage->addButton( new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $Id)) );
         $Stage->setMessage('Eine Beziehungen der gewählten Person ändern');
 
         /** @Var TblToPerson $tblToPerson */
@@ -425,8 +427,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (!$tblToPerson->getServiceTblPersonFrom()) {
             return $Stage . new Danger('Person nicht gefunden', new Ban())
-            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
+            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR, array('Group' => $Group));
         }
+
+        $Stage->addButton( new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $tblToPerson->getServiceTblPersonFrom()->getId(), 'Group' => $Group)) );
 
         $Stage->setContent(
             new Layout(array(
@@ -448,7 +452,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $this->formRelationshipToPerson($tblToPerson)
                                         ->appendFormButton(new Primary('Speichern', new Save()))
                                         ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                    , $tblToPerson, $tblToPerson->getServiceTblPersonFrom(), $To, $Type
+                                    , $tblToPerson, $tblToPerson->getServiceTblPersonFrom(), $To, $Type, $Group
                                 )
                             )
                         )
@@ -462,16 +466,16 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param int $Id
+     * @param null $Group
      * @param int $To
      * @param array $Type
      *
      * @return Stage|string
      */
-    public function frontendUpdateToCompany($Id, $To, $Type)
+    public function frontendUpdateToCompany($Id, $Group = null, $To, $Type)
     {
 
         $Stage = new Stage('Beziehungen', 'Bearbeiten');
-        $Stage->addButton( new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $Id)) );
         $Stage->setMessage('Eine Beziehungen der gewählten Person ändern');
 
         /** @Var TblToPerson $tblToPerson */
@@ -479,8 +483,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (!$tblToCompany->getServiceTblPerson()) {
             return $Stage . new Danger('Person nicht gefunden', new Ban())
-            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
+            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR, array('Group' => $Group));
         }
+
+        $Stage->addButton( new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $tblToCompany->getServiceTblPerson()->getId(), 'Group' => $Group)) );
 
         $Stage->setContent(
             new Layout(array(
@@ -502,7 +508,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $this->formRelationshipToCompany($tblToCompany)
                                         ->appendFormButton(new Primary('Speichern', new Save()))
                                         ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                    , $tblToCompany, $tblToCompany->getServiceTblPerson(), $To, $Type
+                                    , $tblToCompany, $tblToCompany->getServiceTblPerson(), $To, $Type, $Group
                                 )
                             )
                         )
@@ -516,17 +522,18 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblPerson $tblPerson
+     * @param null $Group
      *
      * @return Layout
      */
-    public function frontendLayoutPerson(TblPerson $tblPerson)
+    public function frontendLayoutPerson(TblPerson $tblPerson, $Group = null)
     {
 
         $tblRelationshipAll = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
 
         if ($tblRelationshipAll !== false) {
             /** @noinspection PhpUnusedParameterInspection */
-            array_walk($tblRelationshipAll, function (TblToPerson &$tblToPerson) use ($tblPerson) {
+            array_walk($tblRelationshipAll, function (TblToPerson &$tblToPerson) use ($tblPerson, $Group) {
 
                 if ($tblToPerson->getServiceTblPersonFrom() && $tblToPerson->getServiceTblPersonTo()) {
                     if ($tblToPerson->getTblType()->isBidirectional()) {
@@ -556,12 +563,12 @@ class Frontend extends Extension implements IFrontendInterface
                             ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
                                 ? new Standard(
                                     '', '/People/Person/Relationship/Edit', new Edit(),
-                                    array('Id' => $tblToPerson->getId()),
+                                    array('Id' => $tblToPerson->getId(), 'Group' => $Group),
                                     'Bearbeiten'
                                 )
                                 . new Standard(
                                     '', '/People/Person/Relationship/Destroy', new Remove(),
-                                    array('Id' => $tblToPerson->getId()), 'Löschen'
+                                    array('Id' => $tblToPerson->getId(), 'Group' => $Group), 'Löschen'
                                 )
                                 . new Standard(
                                     '', '/People/Person', new PersonIcon(),
@@ -609,10 +616,11 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblCompany|TblPerson|Element $tblEntity
+     * @param null $Group
      *
      * @return Layout
      */
-    public function frontendLayoutCompany(Element $tblEntity)
+    public function frontendLayoutCompany(Element $tblEntity, $Group = null)
     {
 
         if ($tblEntity instanceof TblPerson) {
@@ -627,7 +635,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($tblRelationshipAll !== false) {
             /** @noinspection PhpUnusedParameterInspection */
-            array_walk($tblRelationshipAll, function (TblToCompany &$tblToCompany) use ($tblEntity) {
+            array_walk($tblRelationshipAll, function (TblToCompany &$tblToCompany) use ($tblEntity, $Group) {
 
                 if ($tblToCompany->getServiceTblPerson() && $tblToCompany->getServiceTblCompany()) {
                     $Panel = array(
@@ -648,12 +656,12 @@ class Frontend extends Extension implements IFrontendInterface
                             ($tblEntity instanceof TblPerson
                                 ? new Standard(
                                     '', '/Corporation/Company/Relationship/Edit', new Edit(),
-                                    array('Id' => $tblToCompany->getId()),
+                                    array('Id' => $tblToCompany->getId(), 'Group' => $Group),
                                     'Bearbeiten'
                                 )
                                 . new Standard(
                                     '', '/Corporation/Company/Relationship/Destroy', new Remove(),
-                                    array('Id' => $tblToCompany->getId()), 'Löschen'
+                                    array('Id' => $tblToCompany->getId(), 'Group' => $Group), 'Löschen'
                                 )
                                 . new Standard(
                                     '', '/Corporation/Company', new Building(),
@@ -700,11 +708,12 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param int $Id
+     * @param null $Group
      * @param bool $Confirm
      *
      * @return Stage|string
      */
-    public function frontendDestroyToPerson($Id, $Confirm = false)
+    public function frontendDestroyToPerson($Id, $Group = null, $Confirm = false)
     {
 
         $Stage = new Stage('Beziehung', 'Löschen');
@@ -713,11 +722,11 @@ class Frontend extends Extension implements IFrontendInterface
             $tblPersonFrom = $tblToPerson->getServiceTblPersonFrom();
             if (!$tblToPerson || !$tblPersonFrom) {
                 return $Stage . new Danger('Person nicht gefunden', new Ban())
-                . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
+                . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR, array('Group' => $Group));
             }
 
             if (!$Confirm) {
-                $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $tblPersonFrom->getId())));
+                $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $tblPersonFrom->getId(), 'Group' => $Group)));
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
                         new Panel(new PersonIcon() . ' Person',
@@ -732,11 +741,11 @@ class Frontend extends Extension implements IFrontendInterface
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
                                 'Ja', '/People/Person/Relationship/Destroy', new Ok(),
-                                array('Id' => $Id, 'Confirm' => true)
+                                array('Id' => $Id, 'Confirm' => true, 'Group' => $Group)
                             )
                             . new Standard(
                                 'Nein', '/People/Person', new Disable(),
-                                array('Id' => $tblPersonFrom->getId())
+                                array('Id' => $tblPersonFrom->getId(), 'Group' => $Group)
                             )
                         )
                     )))))
@@ -750,7 +759,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 : new Danger(new Ban() . ' Die Beziehung konnte nicht gelöscht werden')
                             ),
                             new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
-                                array('Id' => $tblPersonFrom->getId()))
+                                array('Id' => $tblPersonFrom->getId(), 'Group' => $Group))
                         )))
                     )))
                 );
@@ -760,7 +769,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
                         new Danger(new Ban() . ' Die Beziehung konnte nicht gefunden werden'),
-                        new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR)
+                        new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR, array('Group' => $Group))
                     )))
                 )))
             );
@@ -770,11 +779,12 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param int $Id
+     * @param null $Group
      * @param bool $Confirm
      *
      * @return Stage|string
      */
-    public function frontendDestroyToCompany($Id, $Confirm = false)
+    public function frontendDestroyToCompany($Id, $Group = null, $Confirm = false)
     {
 
         $Stage = new Stage('Beziehung', 'Löschen');
@@ -791,7 +801,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             if (!$Confirm) {
-                $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $tblPerson->getId())));
+                $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $tblPerson->getId(), 'Group' => $Group)));
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
                         new Panel(new PersonIcon() . ' Person',
@@ -806,11 +816,11 @@ class Frontend extends Extension implements IFrontendInterface
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
                                 'Ja', '/Corporation/Company/Relationship/Destroy', new Ok(),
-                                array('Id' => $Id, 'Confirm' => true)
+                                array('Id' => $Id, 'Confirm' => true, 'Group' => $Group)
                             )
                             . new Standard(
                                 'Nein', '/People/Person', new Disable(),
-                                array('Id' => $tblPerson->getId())
+                                array('Id' => $tblPerson->getId(), 'Group' => $Group)
                             )
                         )
                     )))))
@@ -824,7 +834,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 : new Danger(new Ban() . ' Die Beziehung konnte nicht gelöscht werden')
                             ),
                             new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
-                                array('Id' => $tblPerson->getId()))
+                                array('Id' => $tblPerson->getId(), 'Group' => $Group))
                         )))
                     )))
                 );
@@ -834,7 +844,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
                         new Danger(new Ban() . ' Die Beziehung konnte nicht gefunden werden'),
-                        new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR)
+                        new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR, array('Group' => $Group))
                     )))
                 )))
             );
