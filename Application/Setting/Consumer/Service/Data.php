@@ -350,6 +350,35 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblSetting $tblSetting
+     * @param $value
+     *
+     * @return bool
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     */
+    public function updateSetting(TblSetting $tblSetting, $value)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblSetting $Entity */
+        $Entity = $Manager->getEntityById('TblSetting', $tblSetting->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setValue($value);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param TblAccount $tblAccountStudent
      * @param TblAccount $tblAccountCustody
      * @param TblAccount $tblAccountBlocker

@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Search\Group;
 
+use SPHERE\Application\Api\Education\Division\ValidationFilter;
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -81,18 +82,21 @@ class Frontend extends Extension implements IFrontendInterface
                 new TblDivision(),
                 new TblDivisionStudent(),
             ));
+
+            $filterWarning = false;
+            if ($tblGroup->getMetaTable() == 'STUDENT') {
+                $tblYearList = Term::useService()->getYearByNow();
+
+                $filterWarning = ValidationFilter::receiverUsed(ValidationFilter::getContent());
+            } else {
+                $tblYearList = false;
+            }
+
             if (null === ($Result = $Cache->getData())) {
-
-                if ($tblGroup->getMetaTable() == 'STUDENT') {
-                    $tblYearList = Term::useService()->getYearByNow();
-                } else {
-                    $tblYearList = false;
-                }
-
                 $Result = array();
                 if ($tblPersonAll) {
                     array_walk($tblPersonAll,
-                        function (TblPerson &$tblPerson) use ($tblGroup, &$Result, $Acronym, $tblYearList) {
+                        function (TblPerson &$tblPerson) use ($tblGroup, &$Result, $Acronym, $tblYearList, &$validationTable) {
 
                             // Division && Identification
                             $displayDivisionList = false;
@@ -236,7 +240,10 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $Stage->setContent(
-                new Layout(new LayoutGroup(array(
+                ($filterWarning
+                    ? $filterWarning
+                    : '')
+                . new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(
                         new Panel(new PersonGroup() . ' Gruppe', array(
                             new Bold($tblGroup->getName()),

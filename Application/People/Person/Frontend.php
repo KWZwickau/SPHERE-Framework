@@ -5,6 +5,7 @@ use SPHERE\Application\Api\People\ApiPerson;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Education\Lesson\Division\Filter\Service as FilterService;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Club\Club;
@@ -301,7 +302,10 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 $MetaTable = new Well($MetaTable);
 
+                $validationMessage = FilterService::getPersonMessageTable($tblPerson);
+
                 $Stage->setContent(
+                    ($validationMessage ? $validationMessage : '') .
                     new Layout(array(
                         new LayoutGroup(
                             new LayoutRow(new LayoutColumn(array(

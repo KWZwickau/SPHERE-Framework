@@ -995,8 +995,6 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->existsCategorySubject($tblCategory, $tblSubject);
     }
-
-
     /**
      * @param TblSubject $tblSubject
      *
@@ -1021,17 +1019,31 @@ class Service extends AbstractService
      *
      * @return bool
      */
-    public function isProfile(TblSubject $tblSubject)
+    public function isElective(TblSubject $tblSubject)
     {
-
-        if (($tblSubjectProfileAll = $this->getSubjectProfileAll())) {
-            foreach ($tblSubjectProfileAll as $tblSubjectProfile) {
-                if ($tblSubjectProfile->getId() == $tblSubject->getId())
-                {
+        if (($tblSubjectElectiveAll = $this->getSubjectElectiveAll())) {
+            foreach ($tblSubjectElectiveAll as $tblSubjectElective) {
+                if ($tblSubjectElective->getId() == $tblSubject->getId()) {
 
                     return true;
                 }
             }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function isProfile(TblSubject $tblSubject)
+    {
+        if (($tblCategoryProfile = Subject::useService()->getCategoryByIdentifier('PROFILE'))
+            && Subject::useService()->existsCategorySubject($tblCategoryProfile, $tblSubject)
+        ) {
+            return true;
         }
 
         return false;
