@@ -12,6 +12,7 @@ use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -129,7 +130,7 @@ class SignOutCertificate extends Extension
                                 ),
                                 array(
                                     'columnDefs' => array(
-                                        array('type' => 'german-string', 'targets' => 0),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
                                         array('width' => '1%', 'targets' => -1),
                                     ),
                                 )
