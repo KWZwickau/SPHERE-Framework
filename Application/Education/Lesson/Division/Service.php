@@ -832,6 +832,11 @@ class Service extends AbstractService
         if (isset($Group['Name']) && empty($Group['Name'])) {
             $Form->setError('Group[Name]', 'Bitte geben Sie einen Namen für die Gruppe an');
             $Error = true;
+        } else {
+            if($this->getSubjectGroupByNameAndDivisionAndSubject($Group['Name'], $tblDivision, $tblSubject)){
+                $Form->setError('Group[Name]', 'Dieser Gruppenname existiert bereits');
+                $Error = true;
+            }
         }
 
         if (!$Error) {
@@ -1313,19 +1318,21 @@ class Service extends AbstractService
         $Error = false;
 
         $tblSubjectGroup = Division::useService()->getSubjectGroupById($Id);
+        $tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId);
 
         if (isset($Group['Name']) && empty($Group['Name'])) {
             $Form->setError('Group[Name]', 'Bitte geben sie einen Namen an');
             $Error = true;
-//        } else {
-//            $SubjectGroupTest = Division::useService()->checkSubjectGroupExists($Group['Name'], $Group['Description']);   // Test auf doppelte Namen sinnvoll?
-//            if ($SubjectGroupTest) {
-//                if ($SubjectGroupTest->getId() !== $tblSubjectGroup->getId()) {
-//                    $Form->setError('Group[Name]', 'Kombination schon vergeben');
-//                    $Form->setError('Group[Description]', 'Beschreibung oder Gruppenname ändern');
-//                    $Error = true;
-//                }
-//            }
+        } else {
+            if($tblDivisionSubject && ($tblDivision = $tblDivisionSubject->getTblDivision())
+            && ($tblSubject = $tblDivisionSubject->getServiceTblSubject())){
+                if(($tblSubjectGroupFind = $this->getSubjectGroupByNameAndDivisionAndSubject($Group['Name'], $tblDivision, $tblSubject))){
+                    if($tblSubjectGroupFind->getId() != $tblSubjectGroup->getId()){
+                        $Form->setError('Group[Name]', 'Dieser Gruppenname existiert bereits');
+                        $Error = true;
+                    }
+                }
+            }
         }
 
         if (!$Error) {

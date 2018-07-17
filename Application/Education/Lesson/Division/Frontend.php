@@ -1422,7 +1422,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $Global = $this->getGlobal();
-            if (!isset( $Global->POST['Id'] ) && $DivisionSubjectId) {
+            if (!isset( $Global->POST['Group']['Name'] ) && $DivisionSubjectId) {
                 $Global->POST['Group']['Name'] = Division::useService()->getDivisionSubjectById($DivisionSubjectId)->getTblSubjectGroup()->getName();
                 $Global->POST['Group']['Description'] = Division::useService()->getDivisionSubjectById($DivisionSubjectId)->getTblSubjectGroup()->getDescription();
                 if ($IsSekTwo) {
