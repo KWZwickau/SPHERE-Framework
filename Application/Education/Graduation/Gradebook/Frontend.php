@@ -2220,7 +2220,7 @@ class Frontend extends FrontendScoreRule
             $GroupId,
             $PersonId,
             $Stage,
-            '/Education/Graduation/Gradebook/Gradebook/Headmaster/Division/Student/Overview',
+            '/Education/Graduation/Gradebook/Gradebook/Teacher/Division/Student/Overview',
             $IsParentView
         );
     }
