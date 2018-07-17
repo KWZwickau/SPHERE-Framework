@@ -2172,10 +2172,11 @@ class Frontend extends FrontendScoreRule
      * @param null $DivisionId
      * @param null $GroupId
      * @param null $PersonId
+     * @param bool $IsParentView
      *
      * @return Stage|string
      */
-    public function frontendHeadmasterStudentOverview($DivisionId = null, $GroupId = null, $PersonId = null)
+    public function frontendHeadmasterStudentOverview($DivisionId = null, $GroupId = null, $PersonId = null, $IsParentView = false)
     {
         $Stage = new Stage('Schülerübersicht', 'Schüler anzeigen');
         $Stage->addButton(new Standard(
@@ -2185,17 +2186,25 @@ class Frontend extends FrontendScoreRule
             )
         ));
 
-        return $this->setStudentOverviewStage($DivisionId, $GroupId, $PersonId, $Stage);
+        return $this->setStudentOverviewStage(
+            $DivisionId,
+            $GroupId,
+            $PersonId,
+            $Stage,
+            '/Education/Graduation/Gradebook/Gradebook/Headmaster/Division/Student/Overview',
+            $IsParentView
+        );
     }
 
     /**
      * @param null $DivisionId
      * @param null $GroupId
      * @param null $PersonId
+     * @param bool $IsParentView
      *
      * @return Stage|string
      */
-    public function frontendTeacherStudentOverview($DivisionId = null, $GroupId = null, $PersonId = null)
+    public function frontendTeacherStudentOverview($DivisionId = null, $GroupId = null, $PersonId = null, $IsParentView = false)
     {
 
         $Stage = new Stage('Schülerübersicht', 'Schüler anzeigen');
@@ -2206,7 +2215,14 @@ class Frontend extends FrontendScoreRule
             )
         ));
 
-        return $this->setStudentOverviewStage($DivisionId, $GroupId, $PersonId, $Stage);
+        return $this->setStudentOverviewStage(
+            $DivisionId,
+            $GroupId,
+            $PersonId,
+            $Stage,
+            '/Education/Graduation/Gradebook/Gradebook/Headmaster/Division/Student/Overview',
+            $IsParentView
+        );
     }
 
     /**
@@ -2915,11 +2931,19 @@ class Frontend extends FrontendScoreRule
      * @param $GroupId
      * @param $PersonId
      * @param Stage $Stage
+     * @param string $Route
+     * @param bool $IsParentView
      *
-     * @return string
+     * @return Stage|string
      */
-    private function setStudentOverviewStage($DivisionId, $GroupId, $PersonId,Stage $Stage)
-    {
+    private function setStudentOverviewStage(
+        $DivisionId,
+        $GroupId,
+        $PersonId,
+        Stage $Stage,
+        $Route,
+        $IsParentView
+    ) {
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
         $tblGroup = Group::useService()->getGroupById($GroupId);
@@ -2935,6 +2959,56 @@ class Frontend extends FrontendScoreRule
         }
 
         $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
+
+        if ($IsParentView) {
+            $rowList[] = new LayoutRow(
+                new LayoutColumn(array(
+                    new Standard('Ansicht: Alle Zensuren',
+                        $Route,
+                        null,
+                        array(
+                            'DivisionId' => $DivisionId,
+                            'PersonId' => $PersonId,
+                            'IsParentView' => false,
+                        )
+                    ),
+                    new Standard(new Info(new Bold('Ansicht: Eltern/Schüler')),
+                        $Route,
+                        new Edit(),
+                        array(
+                            'DivisionId' => $DivisionId,
+                            'PersonId' => $PersonId,
+                            'IsParentView' => true,
+                        )
+                    ),
+                    '</br></br>'
+                ))
+            );
+        } else {
+            $rowList[] = new LayoutRow(
+                new LayoutColumn(array(
+                    new Standard(new Info(new Bold('Ansicht: Alle Zensuren')),
+                        $Route,
+                        new Edit(),
+                        array(
+                            'DivisionId' => $DivisionId,
+                            'PersonId' => $PersonId,
+                            'IsParentView' => false,
+                        )
+                    ),
+                    new Standard('Ansicht: Eltern/Schüler',
+                        $Route,
+                        null,
+                        array(
+                            'DivisionId' => $DivisionId,
+                            'PersonId' => $PersonId,
+                            'IsParentView' => true,
+                        )
+                    ),
+                    '</br></br>'
+                ))
+            );
+        }
 
         $rowList[] = new LayoutRow(array(
             new LayoutColumn(array(
@@ -2998,7 +3072,7 @@ class Frontend extends FrontendScoreRule
                         if ($tblPerson && is_array($divisionList)) {
 
                             $this->setGradeOverview($tblYear, $tblPerson, $divisionList, $rowList, $tblPeriodList,
-                                $tblTestType, true, true, $tableHeaderList, false);
+                                $tblTestType, true, true, $tableHeaderList, $IsParentView);
                         }
                     }
                 }
