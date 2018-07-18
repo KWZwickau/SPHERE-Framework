@@ -42,6 +42,7 @@ use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -320,13 +321,37 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $PersonId
+     * @param int      $PersonId
+     * @param null|int $SupportId
      *
      * @return Form
      */
-    public function formSupport($PersonId)
+    public function formSupport($PersonId, $SupportId = null)
     {
 
+        $Global = $this->getGlobal();
+        if($SupportId != null && !isset($Global->POST['Data']['Date'])){
+            if(($tblSupport = Student::useService()->getSupportById($SupportId))){
+                $Global->POST['Data']['Date'] = $tblSupport->getDate();
+                if(($tblSupportFocusPrimary = Student::useService()->getPrimaryFocusBySupport($tblSupport))){
+                    $Global->POST['Data']['PrimaryFocus'] = $tblSupportFocusPrimary->getId();
+                }
+                if(($tblSupportFocusTypeList = Student::useService()->getFocusListBySupport($tblSupport))){
+                    foreach($tblSupportFocusTypeList as $tblSupportFocusType){
+                        $Global->POST['Data']['CheckboxList'][$tblSupportFocusType->getName()] = $tblSupportFocusType->getId();
+                    }
+                }
+
+                if(($tblSupportType = $tblSupport->getTblSupportType())){
+                    $Global->POST['Data']['SupportType'] = $tblSupportType->getId();
+                }
+                $Global->POST['Data']['Company'] = $tblSupport->getCompany();
+                $Global->POST['Data']['PersonSupport'] = $tblSupport->getPersonSupport();
+                $Global->POST['Data']['SupportTime'] = $tblSupport->getSupportTime();
+                $Global->POST['Data']['Remark'] = $tblSupport->getRemark(false);
+                $Global->savePost();
+            }
+        }
         $tblSupportFocusList = Student::useService()->getSupportFocusTypeAll();
         $SupportTypeList = Student::useService()->getSupportTypeAll();
 
@@ -335,6 +360,14 @@ class Frontend extends Extension implements IFrontendInterface
         /** @var TblSupportFocusType $tblSupportFocus */
         foreach($tblSupportFocusList as $tblSupportFocus){
             $CheckboxList[] = new CheckBox('Data[CheckboxList]['.$tblSupportFocus->getName().']', $tblSupportFocus->getName(), $tblSupportFocus->getId());
+        }
+
+        if($SupportId === null){
+            $SaveButton = (new PrimaryLink('Speichern', ApiSupport::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiSupport::pipelineCreateSupportSave($PersonId));
+        } else {
+            $SaveButton = (new PrimaryLink('Speichern', ApiSupport::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiSupport::pipelineUpdateSupportSave($PersonId, $SupportId));
         }
 
         return new Form(
@@ -369,8 +402,7 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
                 new FormRow(array(
                     new FormColumn(
-                        (new PrimaryLink('Speichern', ApiSupport::getEndpoint(), new Save()))
-                            ->ajaxPipelineOnClick(ApiSupport::pipelineCreateSupportSave($PersonId))
+                        $SaveButton
                     )
                 )),
             ))
@@ -378,20 +410,45 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $PersonId
+     * @param int      $PersonId
+     * @param null|int $SpecialId
      *
      * @return Form
      */
-    public function formSpecial($PersonId)
+    public function formSpecial($PersonId, $SpecialId = null)
     {
 
-        $tblSpecialDisorderList = Student::useService()->getSpecialDisorderTypeAll();
+        $Global = $this->getGlobal();
+        if($SpecialId != null && !isset($Global->POST['Data']['Date'])){
+            if(($tblSpecial = Student::useService()->getSpecialById($SpecialId))){
 
+                $Global->POST['Data']['Date'] = $tblSpecial->getDate();
+                if(($tblSpecialDisorderTypeList = Student::useService()->getSpecialDisorderTypeAllBySpecial($tblSpecial))){
+                    foreach($tblSpecialDisorderTypeList as $tblSpecialDisorderType){
+                        $Global->POST['Data']['CheckboxList'][$tblSpecialDisorderType->getName()] = $tblSpecialDisorderType->getId();
+                    }
+                }
+                $Global->POST['Data']['Remark'] = $tblSpecial->getRemark(false);
+//                $Global->POST['PersonId'] = $PersonId;
+                $Global->POST['SpecialId'] = $SpecialId;
+                $Global->savePost();
+            }
+        }
+
+        $tblSpecialDisorderList = Student::useService()->getSpecialDisorderTypeAll();
         $tblSpecialDisorderList = $this->getSorter($tblSpecialDisorderList)->sortObjectBy('Name');
         $CheckboxList = array();
         /** @var TblSpecialDisorderType $tblSpecialDisorder*/
         foreach($tblSpecialDisorderList as $tblSpecialDisorder){
             $CheckboxList[] = new CheckBox('Data[CheckboxList]['.$tblSpecialDisorder->getName().']', $tblSpecialDisorder->getName(), $tblSpecialDisorder->getId());
+        }
+
+        if($SpecialId === null){
+            $SaveButton = (new PrimaryLink('Speichern', ApiSupport::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiSupport::pipelineCreateSpecialSave($PersonId));
+        } else {
+            $SaveButton = (new PrimaryLink('Speichern', ApiSupport::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiSupport::pipelineUpdateSpecialSave($PersonId, $SpecialId));
         }
 
         return new Form(
@@ -405,11 +462,13 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new TextArea('Data[Remark]', 'Bemerkung', 'Bemerkung', new Edit())
                         , 6),
+                    new FormColumn(
+                        new HiddenField('SpecialId')
+                        , 6),
                 )),
                 new FormRow(array(
                     new FormColumn(
-                        (new PrimaryLink('Speichern', ApiSupport::getEndpoint(), new Save()))
-                            ->ajaxPipelineOnClick(ApiSupport::pipelineCreateSpecialSave($PersonId))
+                        $SaveButton
                     )
                 )),
             ))
@@ -417,12 +476,30 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $PersonId
+     * @param int      $PersonId
+     * @param null|int $HandyCapId
      *
      * @return Form
      */
-    public function formHandyCap($PersonId)
+    public function formHandyCap($PersonId, $HandyCapId = null)
     {
+
+        $Global = $this->getGlobal();
+        if($HandyCapId != null && !isset($Global->POST['Data']['Date'])){
+            if(($tblHandyCap = Student::useService()->getHandyCapById($HandyCapId))){
+                $Global->POST['Data']['Date'] = $tblHandyCap->getDate();
+                $Global->POST['Data']['Remark'] = $tblHandyCap->getRemark(false);
+                $Global->savePost();
+            }
+        }
+
+        if($HandyCapId === null){
+            $SaveButton = (new PrimaryLink('Speichern', ApiSupport::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiSupport::pipelineCreateHandyCapSave($PersonId));
+        } else {
+            $SaveButton = (new PrimaryLink('Speichern', ApiSupport::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiSupport::pipelineUpdateHandyCapSave($PersonId, $HandyCapId));
+        }
 
         return new Form(
             new FormGroup(array(
@@ -436,8 +513,7 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
                 new FormRow(array(
                     new FormColumn(
-                        (new PrimaryLink('Speichern', ApiSupport::getEndpoint(), new Save()))
-                            ->ajaxPipelineOnClick(ApiSupport::pipelineCreateHandyCapSave($PersonId))
+                        $SaveButton
                     )
                 )),
             ))
@@ -464,7 +540,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['IntegrationTime'] = $tblSupport->getSupportTime();
                 $Item['IntegrationRemark'] = $tblSupport->getRemark();
                 $Item['Editor'] = $tblSupport->getPersonEditor();
-                $Item['Option'] = new Standard('', '#', new Edit())
+                $Item['Option'] = (new Standard('', '#', new Edit()))
+                ->ajaxPipelineOnClick(ApiSupport::pipelineOpenEditSupportModal($tblPerson->getId(), $tblSupport->getId()))
                     .(new Standard('', '#', new Remove()))
                 ->ajaxPipelineOnClick(ApiSupport::pipelineOpenDeleteSupport($tblPerson->getId(), $tblSupport->getId()));
 
@@ -532,7 +609,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Disorder'] = '';
                 $Item['Remark'] = $tblSpecial->getRemark();
                 $Item['Editor'] = $tblSpecial->getPersonEditor();
-                $Item['Option'] = new Standard('', '#', new Edit())
+                $Item['Option'] = (new Standard('', '#', new Edit()))
+                    ->ajaxPipelineOnClick(ApiSupport::pipelineOpenEditSpecialModal($tblPerson->getId(), $tblSpecial->getId()))
                     .(new Standard('', '#', new Remove()))
                     ->ajaxPipelineOnClick(ApiSupport::pipelineOpenDeleteSpecial($tblPerson->getId(), $tblSpecial->getId()));
 
@@ -591,7 +669,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['RequestDate'] = $tblHandyCap->getDate();
                 $Item['Remark'] = $tblHandyCap->getRemark();
                 $Item['Editor'] = $tblHandyCap->getPersonEditor();
-                $Item['Option'] = new Standard('', '#', new Edit())
+                $Item['Option'] = (new Standard('', '#', new Edit()))
+                    ->ajaxPipelineOnClick(ApiSupport::pipelineOpenEditHandyCapModal($tblPerson->getId(), $tblHandyCap->getId()))
                     .(new Standard('', '#', new Remove()))
                     ->ajaxPipelineOnClick(ApiSupport::pipelineOpenDeleteHandyCap($tblPerson->getId(), $tblHandyCap->getId()));
 

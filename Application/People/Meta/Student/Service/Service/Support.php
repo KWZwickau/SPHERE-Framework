@@ -6,7 +6,6 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblHandyCap;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblSpecial;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblSpecialDisorder;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblSpecialDisorderType;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentFocusType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblSupport;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblSupportFocus;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblSupportFocusType;
@@ -18,6 +17,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -128,10 +128,10 @@ abstract class Support extends Integration
             $tblSupport = (new Data($this->getBinding()))->createSupport($tblPerson, $tblSupportType, $Date, $PersonEditor, $Company, $PersonSupport, $SupportTime, $Remark);
 
             if(isset($Data['PrimaryFocus']) && !empty($Data['PrimaryFocus'])){
-                $tblStudentFocusType = $this->getSupportFocusTypeById($Data['PrimaryFocus']);
-                if($tblStudentFocusType){
+                $tblSupportFocusType = $this->getSupportFocusTypeById($Data['PrimaryFocus']);
+                if($tblSupportFocusType){
                     $IsPrimary = true;
-                    $this->createSupportFocus($tblSupport, $tblStudentFocusType, $IsPrimary);
+                    $this->createSupportFocus($tblSupport, $tblSupportFocusType, $IsPrimary);
                 }
             }
 
@@ -140,8 +140,8 @@ abstract class Support extends Integration
                 if(!empty($CheckboxList)){
                     $IsPrimary = false;
                     foreach($CheckboxList as $Checkbox){
-                        $tblStudentFocusType = $this->getSupportFocusTypeById($Checkbox);
-                        $this->createSupportFocus($tblSupport, $tblStudentFocusType, $IsPrimary);
+                        $tblSupportFocusType = $this->getSupportFocusTypeById($Checkbox);
+                        $this->createSupportFocus($tblSupport, $tblSupportFocusType, $IsPrimary);
                     }
                 }
             }
@@ -250,6 +250,164 @@ abstract class Support extends Integration
 
         if($tblPerson && $Date){
             (new Data($this->getBinding()))->createHandyCap($tblPerson, $Date, $PersonEditor, $Remark);
+        }
+
+        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Daten wurde erfolgreich gespeichert');
+    }
+
+    /**
+     * @param int   $PersonId
+     * @param int   $SupportId
+     * @param array $Data
+     *
+     * @return IFormInterface|Redirect|string
+     */
+    public function updateSupport($PersonId, $SupportId, $Data = array())
+    {
+
+
+        $tblSupport = Student::useService()->getSupportById($SupportId);
+        $tblPerson = Person::useService()->getPersonById($PersonId);
+        $tblAccount = Account::useService()->getAccountBySession();
+        $PersonEditor = '';
+        if($tblAccount){
+            $tblPersonList = Account::useService()->getPersonAllByAccount($tblAccount);
+            $tblPersonEditor = $tblPersonList[0];
+            if($tblPersonEditor){
+                $PersonEditor = $tblPersonEditor->getLastFirstName();
+                if(($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPersonEditor))){
+                    $PersonEditor .= ' ('.$tblTeacher->getAcronym().')';
+                }
+            }
+        }
+
+        $Date = new \DateTime($Data['Date']);
+        $tblSupportType = $this->getSupportTypeById($Data['SupportType']);
+        $Company = $Data['Company'];
+        $PersonSupport = $Data['PersonSupport'];
+        $SupportTime = $Data['SupportTime'];
+        $Remark = $Data['Remark'];
+
+        if($tblSupport && $tblPerson && $tblSupportType && $Date){
+            (new Data($this->getBinding()))->updateSupport($tblSupport, $tblSupportType, $Date, $PersonEditor, $Company, $PersonSupport, $SupportTime, $Remark);
+
+            //delete old entry's
+            if(($tblSupportFocusList = Student::useService()->getSupportFocusListBySupport($tblSupport))){
+                foreach($tblSupportFocusList as $tblSupportFocus) {
+                    $this->deleteSupportFocus($tblSupportFocus);
+                }
+            }
+
+            if(isset($Data['PrimaryFocus']) && !empty($Data['PrimaryFocus'])){
+                $tblSupportFocusType = $this->getSupportFocusTypeById($Data['PrimaryFocus']);
+                if($tblSupportFocusType){
+                    $IsPrimary = true;
+                    $this->createSupportFocus($tblSupport, $tblSupportFocusType, $IsPrimary);
+                }
+            }
+
+            if(isset($Data['CheckboxList'])) {
+                $CheckboxList = $Data['CheckboxList'];
+                if(!empty($CheckboxList)){
+                    $IsPrimary = false;
+                    foreach($CheckboxList as $Checkbox){
+                        $tblSupportFocusType = $this->getSupportFocusTypeById($Checkbox);
+                        $this->createSupportFocus($tblSupport, $tblSupportFocusType, $IsPrimary);
+                    }
+                }
+            }
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Daten wurde erfolgreich gespeichert');
+        } else {
+            return new Danger(new Remove().' Die Daten konnten nicht gespeichert werden');
+        }
+    }
+
+    /**
+     * @param int   $PersonId
+     * @param int   $SpecialId
+     * @param array $Data
+     *
+     * @return IFormInterface|Redirect|string
+     */
+    public function updateSpecial($PersonId, $SpecialId, $Data = array())
+    {
+
+        $tblSpecial = Student::useService()->getSpecialById($SpecialId);
+        $tblPerson = Person::useService()->getPersonById($PersonId);
+        $tblAccount = Account::useService()->getAccountBySession();
+        $PersonEditor = '';
+        if($tblAccount){
+            $tblPersonList = Account::useService()->getPersonAllByAccount($tblAccount);
+            if($tblPersonList){
+                $tblPersonEditor = $tblPersonList[0];
+                if($tblPersonEditor){
+                    $PersonEditor = $tblPersonEditor->getLastFirstName();
+                    if(($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPersonEditor))){
+                        $PersonEditor .= ' ('.$tblTeacher->getAcronym().')';
+                    }
+                }
+            }
+        }
+
+        $Date = new \DateTime($Data['Date']);
+        $Remark = $Data['Remark'];
+
+        if($tblSpecial && $tblPerson && $Date){
+            (new Data($this->getBinding()))->updateSpecial($tblSpecial, $Date, $PersonEditor, $Remark);
+            //delete old entry's
+            if(($SpecialDisorderList = Student::useService()->getSpecialDisorderAllBySpecial($tblSpecial))){
+                foreach($SpecialDisorderList as $SpecialDisorder){
+                    $this->deleteSpecialDisorder($SpecialDisorder);
+                }
+            }
+
+            if(isset($Data['CheckboxList'])) {
+                $CheckboxList = $Data['CheckboxList'];
+                if(!empty($CheckboxList)){
+                    foreach($CheckboxList as $Checkbox){
+                        $tblSpecialDisorderType = $this->getSpecialDisorderTypeById($Checkbox);
+                        $this->createSpecialDisorder($tblSpecial, $tblSpecialDisorderType);
+                    }
+                }
+            }
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Daten wurde erfolgreich gespeichert');
+        } else {
+            return new Danger(new Remove().' Die Daten konnten nicht gespeichert werden');
+        }
+    }
+
+    /**
+     * @param int   $PersonId
+     * @param int   $HandyCapId
+     * @param array $Data
+     *
+     * @return IFormInterface|Redirect|string
+     */
+    public function updateHandyCap($PersonId, $HandyCapId, $Data = array())
+    {
+
+        $tblHandyCap = Student::useService()->getHandyCapById($HandyCapId);
+        $tblPerson = Person::useService()->getPersonById($PersonId);
+        $tblAccount = Account::useService()->getAccountBySession();
+        $PersonEditor = '';
+        if($tblAccount){
+            $tblPersonList = Account::useService()->getPersonAllByAccount($tblAccount);
+            if($tblPersonList){
+                $tblPersonEditor = $tblPersonList[0];
+                if($tblPersonEditor){
+                    $PersonEditor = $tblPersonEditor->getLastFirstName();
+                    if(($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPersonEditor))){
+                        $PersonEditor .= ' ('.$tblTeacher->getAcronym().')';
+                    }
+                }
+            }
+        }
+
+        $Date = new \DateTime($Data['Date']);
+        $Remark = $Data['Remark'];
+
+        if($tblHandyCap && $tblPerson && $Date){
+            (new Data($this->getBinding()))->updateHandyCap($tblHandyCap, $Date, $PersonEditor, $Remark);
         }
 
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Daten wurde erfolgreich gespeichert');
@@ -374,7 +532,7 @@ abstract class Support extends Integration
     /**
      * @param TblSupport $tblSupport
      *
-     * @return TblStudentFocusType|bool
+     * @return TblSupportFocusType|bool
      */
     public function getPrimaryFocusBySupport(TblSupport $tblSupport)
     {
@@ -395,7 +553,7 @@ abstract class Support extends Integration
     /**
      * @param TblSupport $tblSupport
      *
-     * @return TblStudentFocusType[]|bool
+     * @return TblSupportFocusType[]|bool
      */
     public function getFocusListBySupport(TblSupport $tblSupport)
     {
@@ -456,15 +614,17 @@ abstract class Support extends Integration
     }
 
     /**
-     * @param int   $PersonId
-     * @param array $Data
+     * @param int      $PersonId
+     * @param array    $Data
+     *
+     * @param null|int $SupportId
      *
      * @return false|string|Form
      */
-    public function checkInputSupport($PersonId, $Data)
+    public function checkInputSupport($PersonId, $Data, $SupportId = null)
     {
         $Error = false;
-        $form = Student::useFrontend()->formSupport($PersonId);
+        $form = Student::useFrontend()->formSupport($PersonId, $SupportId);
         if (isset($Data['Date']) && empty($Data['Date'])) {
             $form->setError('Data[Date]', 'Bitte geben Sie ein Datum an');
             $Error = true;
@@ -481,16 +641,17 @@ abstract class Support extends Integration
     }
 
     /**
-     * @param int   $PersonId
-     * @param array $Data
+     * @param int      $PersonId
+     * @param array    $Data
+     * @param null|int $SpecialId
      *
      * @return false|string|Form
      */
-    public function checkInputSpecial($PersonId, $Data)
+    public function checkInputSpecial($PersonId, $Data, $SpecialId = null)
     {
 
         $Error = false;
-        $form = Student::useFrontend()->formSpecial($PersonId);
+        $form = Student::useFrontend()->formSpecial($PersonId, $SpecialId);
         if (isset($Data['Date']) && empty($Data['Date'])) {
             $form->setError('Data[Date]', 'Bitte geben Sie ein Datum an');
             $Error = true;
@@ -507,16 +668,17 @@ abstract class Support extends Integration
     }
 
     /**
-     * @param int   $PersonId
-     * @param array $Data
+     * @param int      $PersonId
+     * @param array    $Data
+     * @param null|int $HandyCapId
      *
      * @return false|string|Form
      */
-    public function checkInputHandyCap($PersonId, $Data)
+    public function checkInputHandyCap($PersonId, $Data, $HandyCapId = null)
     {
 
         $Error = false;
-        $form = Student::useFrontend()->formSpecial($PersonId);
+        $form = Student::useFrontend()->formHandyCap($PersonId, $HandyCapId);
         if (isset($Data['Date']) && empty($Data['Date'])) {
             $form->setError('Data[Date]', 'Bitte geben Sie ein Datum an');
             $Error = true;
@@ -552,6 +714,28 @@ abstract class Support extends Integration
             }
         }
         return $IsRemove;
+    }
+
+    /**
+     * @param TblSupportFocus $tblSupportFocus
+     *
+     * @return bool
+     */
+    public function deleteSupportFocus(TblSupportFocus $tblSupportFocus)
+    {
+
+        return (new Data($this->getBinding()))->deleteSupportFocus($tblSupportFocus);
+    }
+
+    /**
+     * @param TblSpecialDisorder $tblSpecialDisorder
+     *
+     * @return bool
+     */
+    public function deleteSpecialDisorder(TblSpecialDisorder $tblSpecialDisorder)
+    {
+
+        return (new Data($this->getBinding()))->deleteSpecialDisorder($tblSpecialDisorder);
     }
 
     /**

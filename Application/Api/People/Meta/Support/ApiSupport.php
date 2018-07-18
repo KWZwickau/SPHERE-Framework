@@ -49,19 +49,24 @@ class ApiSupport extends Extension implements IApiInterface
         $Dispatcher->registerMethod('openCreateSupportModal');
         $Dispatcher->registerMethod('openCreateSpecialModal');
         $Dispatcher->registerMethod('openCreateHandyCapModal');
+        $Dispatcher->registerMethod('openEditSupportModal');
+        $Dispatcher->registerMethod('openEditSpecialModal');
+        $Dispatcher->registerMethod('openEditHandyCapModal');
         $Dispatcher->registerMethod('openDeleteSupportModal');
         $Dispatcher->registerMethod('openDeleteSpecialModal');
         $Dispatcher->registerMethod('openDeleteHandyCapModal');
         $Dispatcher->registerMethod('saveCreateSupportModal');
         $Dispatcher->registerMethod('saveCreateSpecialModal');
         $Dispatcher->registerMethod('saveCreateHandyCapModal');
+        $Dispatcher->registerMethod('saveUpdateSupportModal');
+        $Dispatcher->registerMethod('saveUpdateSpecialModal');
+        $Dispatcher->registerMethod('saveUpdateHandyCapModal');
         $Dispatcher->registerMethod('deleteSupportService');
         $Dispatcher->registerMethod('deleteSpecialService');
         $Dispatcher->registerMethod('deleteHandyCapService');
         $Dispatcher->registerMethod('loadSupportTable');
         $Dispatcher->registerMethod('loadSpecialTable');
         $Dispatcher->registerMethod('loadHandyCapTable');
-//        $Dispatcher->registerMethod('deleteSupportEntry');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -126,7 +131,7 @@ class ApiSupport extends Extension implements IApiInterface
     }
 
     /**
-     * @param $PersonId
+     * @param int $PersonId
      *
      * @return Pipeline
      */
@@ -146,7 +151,7 @@ class ApiSupport extends Extension implements IApiInterface
     }
 
     /**
-     * @param $PersonId
+     * @param int $PersonId
      *
      * @return Pipeline
      */
@@ -166,7 +171,7 @@ class ApiSupport extends Extension implements IApiInterface
     }
 
     /**
-     * @param $PersonId
+     * @param int $PersonId
      *
      * @return Pipeline
      */
@@ -179,6 +184,72 @@ class ApiSupport extends Extension implements IApiInterface
         ));
         $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     * @param int $SupportId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenEditSupportModal($PersonId, $SupportId)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(ApiSupport::receiverModal(), ApiSupport::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            ApiSupport::API_TARGET => 'openEditSupportModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId,
+            'SupportId' => $SupportId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     * @param int $SpecialId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenEditSpecialModal($PersonId, $SpecialId)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(ApiSupport::receiverModal(), ApiSupport::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            ApiSupport::API_TARGET => 'openEditSpecialModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId,
+            'SpecialId' => $SpecialId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     * @param int $HandyCapId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineOpenEditHandyCapModal($PersonId, $HandyCapId)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(ApiSupport::receiverModal(), ApiSupport::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            ApiSupport::API_TARGET => 'openEditHandyCapModal',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId,
+            'HandyCapId' => $HandyCapId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -242,6 +313,73 @@ class ApiSupport extends Extension implements IApiInterface
         ));
         $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+        return $Pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     * @param int $SupportId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineUpdateSupportSave($PersonId, $SupportId)
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(ApiSupport::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveUpdateSupportModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId,
+            'SupportId' => $SupportId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+        return $Pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     * @param int $SpecialId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineUpdateSpecialSave($PersonId, $SpecialId)
+    {
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(ApiSupport::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveUpdateSpecialModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId,
+            'SpecialId' => $SpecialId
+        ));
+        $ModalEmitter->setLoadingMessage('Wird bearbeitet');
+        $Pipeline->appendEmitter($ModalEmitter);
+        return $Pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     * @param int $HandyCapId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineUpdateHandyCapSave($PersonId, $HandyCapId)
+    {
+
+        $Pipeline = new Pipeline();
+        $ModalEmitter = new ServerEmitter(ApiSupport::receiverModal(), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveUpdateHandyCapModal'
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId,
+            'HandyCapId' => $HandyCapId
         ));
         $ModalEmitter->setLoadingMessage('Wird bearbeitet');
         $Pipeline->appendEmitter($ModalEmitter);
@@ -452,6 +590,75 @@ class ApiSupport extends Extension implements IApiInterface
     }
 
     /**
+     * @param int $PersonId
+     * @param int $SupportId
+     *
+     * @return string
+     */
+    public function openEditSupportModal($PersonId, $SupportId)
+    {
+
+        return new Title('Förderantrag/ Förderbescheid bearbeiten')
+        .new Layout(
+            new LayoutGroup(
+                new LayoutRow(
+                    new LayoutColumn(
+                        new Well(
+                            Student::useFrontend()->formSupport($PersonId, $SupportId)
+                        )
+                    )
+                )
+            )
+        );
+    }
+
+    /**
+     * @param int $PersonId
+     * @param int $SpecialId
+     *
+     * @return string
+     */
+    public function openEditSpecialModal($PersonId, $SpecialId)
+    {
+
+        return new Title('Entwicklungsbesonderheiten bearbeiten')
+        .new Layout(
+            new LayoutGroup(
+                new LayoutRow(
+                    new LayoutColumn(
+                        new Well(
+                            Student::useFrontend()->formSpecial($PersonId, $SpecialId)
+                        )
+                    )
+                )
+            )
+        );
+    }
+
+    /**
+     * @param int $PersonId
+     * @param int $HandyCapId
+     *
+     * @return string
+     */
+    public function openEditHandyCapModal($PersonId, $HandyCapId)
+    {
+
+        return new Title('Nachteilsausgleich bearbeiten')
+        .new Layout(
+            new LayoutGroup(
+                new LayoutRow(
+                    new LayoutColumn(
+                        new Well(
+                            Student::useFrontend()->formHandyCap($PersonId, $HandyCapId)
+                        )
+                    )
+                )
+            )
+        );
+    }
+
+    /**
      * @return Pipeline
      */
     public static function pipelineClose()
@@ -539,6 +746,86 @@ class ApiSupport extends Extension implements IApiInterface
                 .self::pipelineClose();
         } else {
             return new Danger('Nachteilsausgleich konnte nicht gespeichert werden.').self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param int $PersonId
+     * @param int $SupportId
+     *
+     * @return string
+     */
+    public function saveUpdateSupportModal($PersonId, $SupportId)
+    {
+
+        $Global = $this->getGlobal();
+        $Data = $Global->POST['Data'];
+        if (($form = Student::useService()->checkInputSupport($PersonId, $Data))) {
+            // display Errors on form
+            return $form;
+        }
+        // do service
+        if (Student::useService()->updateSupport($PersonId, $SupportId, $Data)
+        ) {
+            return new Success('Förderantrag wurde erfolgreich gespeichert.')
+                .self::pipelineLoadTable($PersonId)
+                .self::pipelineClose();
+        } else {
+            return new Danger('Förderantrag konnte nicht gespeichert werden.').self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param int $PersonId
+     * @param int $SpecialId
+     *
+     * @return string
+     */
+    public function saveUpdateSpecialModal($PersonId, $SpecialId)
+    {
+
+        $Global = $this->getGlobal();
+        $Data = $Global->POST['Data'];
+        if (($form = Student::useService()->checkInputSpecial($PersonId, $Data, $SpecialId))) {
+            // display Errors on form
+            return $form;
+        }
+        // do service
+        if (Student::useService()->updateSpecial($PersonId, $SpecialId, $Data)
+        ) {
+            return new Success('Entwicklungsbesonderheiten wurde erfolgreich gespeichert.')
+                .self::pipelineLoadTable($PersonId)
+                .self::pipelineClose();
+        } else {
+            return new Danger('Entwicklungsbesonderheiten konnte nicht gespeichert werden.').self::pipelineClose();
+        }
+    }
+
+    /**
+     * @param int $PersonId
+     * @param int $HandyCapId
+     *
+     * @return string
+     */
+    public function saveUpdateHandyCapModal($PersonId, $HandyCapId)
+    {
+
+        $Global = $this->getGlobal();
+        $Data = $Global->POST['Data'];
+
+        if (($form = Student::useService()->checkInputHandyCap($PersonId, $Data, $HandyCapId))) {
+            // display Errors on form
+            return $form;
+        }
+
+        // do service
+        if (Student::useService()->updateHandyCap($PersonId, $HandyCapId, $Data)
+        ) {
+            return new Success('Entwicklungsbesonderheiten wurde erfolgreich gespeichert.')
+                .self::pipelineLoadTable($PersonId)
+                .self::pipelineClose();
+        } else {
+            return new Danger('Entwicklungsbesonderheiten konnte nicht gespeichert werden.').self::pipelineClose();
         }
     }
 

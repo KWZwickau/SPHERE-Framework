@@ -197,12 +197,19 @@ class TblSupport extends Element
     }
 
     /**
+     * @param bool $WithHTML
+     *
      * @return string
      */
-    public function getRemark()
+    public function getRemark($WithHTML = true)
     {
 
-        return nl2br($this->Remark);
+        if($WithHTML){
+            return nl2br($this->Remark);
+        } else {
+            return $this->Remark;
+        }
+
     }
 
     /**

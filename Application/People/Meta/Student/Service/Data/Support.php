@@ -219,6 +219,114 @@ abstract class Support extends Integration
     }
 
     /**
+     * @param TblSupport     $tblSupport
+     * @param TblSupportType $tblSupportType
+     * @param \DateTime      $Date
+     * @param string         $PersonEditor
+     * @param string         $Company
+     * @param string         $PersonSupport
+     * @param string         $SupportTime
+     * @param string         $Remark
+     *
+     * @return bool
+     */
+    public function updateSupport(TblSupport $tblSupport,
+        TblSupportType $tblSupportType,
+        $Date,
+        $PersonEditor = '',
+        $Company = '',
+        $PersonSupport = '',
+        $SupportTime = '',
+        $Remark = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblSupport $Entity */
+        $Entity = $Manager->getEntityById('TblSupport', $tblSupport->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setDate($Date);
+            $Entity->setPersonEditor($PersonEditor);
+            $Entity->setTblSupportTyp($tblSupportType);
+            $Entity->setCompany($Company);
+            $Entity->setPersonSupport($PersonSupport);
+            $Entity->setSupportTime($SupportTime);
+            $Entity->setRemark($Remark);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblSpecial $tblSpecial
+     * @param \DateTime  $Date
+     * @param string     $PersonEditor
+     * @param string     $Remark
+     *
+     * @return bool
+     */
+    public function updateSpecial(TblSpecial $tblSpecial,
+        $Date,
+        $PersonEditor = '',
+        $Remark = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblSpecial $Entity */
+        $Entity = $Manager->getEntityById('TblSpecial', $tblSpecial->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setDate($Date);
+            $Entity->setPersonEditor($PersonEditor);
+            $Entity->setRemark($Remark);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblHandyCap $tblHandyCap
+     * @param \DateTime   $Date
+     * @param string      $PersonEditor
+     * @param string      $Remark
+     *
+     * @return bool
+     */
+    public function updateHandyCap(TblHandyCap $tblHandyCap,
+        $Date,
+        $PersonEditor = '',
+        $Remark = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblHandyCap $Entity */
+        $Entity = $Manager->getEntityById('TblHandyCap', $tblHandyCap->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setDate($Date);
+            $Entity->setPersonEditor($PersonEditor);
+            $Entity->setRemark($Remark);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param int $Id
      *
      * @return bool|TblSupportFocusType
@@ -425,6 +533,22 @@ abstract class Support extends Integration
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSupportFocus', array(
             TblSupportFocus::ATTR_TBL_SUPPORT => $tblSupport->getId()
+        ));
+    }
+
+    /**
+     * @param TblSupport          $tblSupport
+     * @param TblSupportFocusType $tblSupportFocusType
+     *
+     * @return bool|false|TblSupportFocus
+     */
+    public function getSupportFocusBySupportAndFocus(TblSupport $tblSupport, TblSupportFocusType $tblSupportFocusType)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSupportFocus', array(
+            TblSupportFocus::ATTR_TBL_SUPPORT => $tblSupport->getId(),
+            TblSupportFocus::ATTR_TBL_SUPPORT_FOCUS_TYPE => $tblSupportFocusType->getId(),
+
         ));
     }
 
