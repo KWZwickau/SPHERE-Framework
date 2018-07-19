@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\ClassRegister;
 
+use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -348,7 +349,8 @@ class ClassRegister implements IApplicationInterface
                     $tblHandyCap = Student::useService()->getHandyCapByPerson($tblPerson);
                     // Button's nur anzeigen, wenn Integrationen hinterlegt sind
                     if($tblSupport || $tblSpecial || $tblHandyCap){
-                        $IntegrationButton = new Standard('', '', new EyeOpen());
+                        $IntegrationButton = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+                        ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
                     }
 
                     $studentTable[] = array(
@@ -421,7 +423,8 @@ class ClassRegister implements IApplicationInterface
             }
 
             $Stage->setContent(
-                new Layout(array(
+                ApiSupportReadOnly::receiverOverViewModal()
+                .new Layout(array(
                     new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(array(

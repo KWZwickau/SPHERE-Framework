@@ -480,7 +480,7 @@ abstract class Support extends Integration
     /**
      * @param TblPerson $tblPerson
      *
-     * @return false|TblSupport[]
+     * @return false|TblSpecial[]
      */
     public function getSpecialByPerson(TblPerson $tblPerson)
     {
@@ -501,18 +501,34 @@ abstract class Support extends Integration
 
     /**
      * @param TblPerson $tblPerson
+     * @param array     $Type
      *
      * @return false|TblSupport
      */
-    public function getSupportByPersonNewest(TblPerson $tblPerson)
+    public function getSupportByPersonNewest(TblPerson $tblPerson, $Type = array())
     {
 
         $tblSupportMatch = false;
         if(($tblSupportList = $this->getSupportByPerson($tblPerson))){
-            $tblSupportMatch = $tblSupportList[0];
             foreach($tblSupportList as $tblSupport){
-                if(new \DateTime($tblSupportMatch->getDate()) < new \DateTime($tblSupport->getDate())) {
-                    $tblSupportMatch = $tblSupport;
+                if(!empty($Type) && ($tblSupportType = $tblSupport->getTblSupportType()) && in_array( $tblSupportType->getName(), $Type)){
+                    /** @var TblSupport $tblSupportMatch */
+                    if($tblSupportMatch){
+                        if(new \DateTime($tblSupportMatch->getDate()) < new \DateTime($tblSupport->getDate())) {
+                            $tblSupportMatch = $tblSupport;
+                        }
+                    } else {
+                        $tblSupportMatch = $tblSupport;
+                    }
+                } else {
+                    /** @var TblSupport $tblSupportMatch */
+                    if($tblSupportMatch){
+                        if (new \DateTime($tblSupportMatch->getDate()) < new \DateTime($tblSupport->getDate())) {
+                            $tblSupportMatch = $tblSupport;
+                        }
+                    } else {
+                        $tblSupportMatch = $tblSupport;
+                    }
                 }
             }
         }
@@ -616,7 +632,9 @@ abstract class Support extends Integration
         $tblSpecialDisorderList = (new Data($this->getBinding()))->getSpecialDisorderBySpecial($tblSpecial);
         if($tblSpecialDisorderList){
             foreach($tblSpecialDisorderList as $tblSpecialDisorder){
-                $tblSpecialDisorderTypeList[] = $tblSpecialDisorder->getTblSpecialDisorderType();
+                if($tblSpecialDisorder->getTblSpecialDisorderType()){
+                    $tblSpecialDisorderTypeList[] = $tblSpecialDisorder->getTblSpecialDisorderType();
+                }
             }
         }
 

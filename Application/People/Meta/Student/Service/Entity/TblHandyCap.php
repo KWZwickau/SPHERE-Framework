@@ -18,6 +18,7 @@ class TblHandyCap extends Element
 {
 
     const SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const ATTR_DATE = 'Date';
 
     /**
      * @Column(type="bigint")
