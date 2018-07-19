@@ -521,6 +521,27 @@ abstract class Support extends Integration
     }
 
     /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblSpecial
+     */
+    public function getSpecialByPersonNewest(TblPerson $tblPerson)
+    {
+
+        $tblSpecialMatch = false;
+        if(($tblSpecialList = $this->getSpecialByPerson($tblPerson))){
+            $tblSpecialMatch = $tblSpecialList[0];
+            foreach($tblSpecialList as $tblSpecial){
+                if(new \DateTime($tblSpecialMatch->getDate()) < new \DateTime($tblSpecial->getDate())) {
+                    $tblSpecialMatch = $tblSpecial;
+                }
+            }
+        }
+
+        return $tblSpecialMatch;
+    }
+
+    /**
      * @return false|TblSupportType[]
      */
     public function getSupportTypeAll()

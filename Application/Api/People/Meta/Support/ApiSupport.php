@@ -760,7 +760,7 @@ class ApiSupport extends Extension implements IApiInterface
 
         $Global = $this->getGlobal();
         $Data = $Global->POST['Data'];
-        if (($form = Student::useService()->checkInputSupport($PersonId, $Data))) {
+        if (($form = Student::useService()->checkInputSupport($PersonId, $Data, $SupportId))) {
             // display Errors on form
             return $form;
         }

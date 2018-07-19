@@ -31,6 +31,7 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblSupport;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblSupportFocusType;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
@@ -99,6 +100,7 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\SuperGlobal;
 
 /**
  * Class Frontend
@@ -332,23 +334,14 @@ class Frontend extends Extension implements IFrontendInterface
         $Global = $this->getGlobal();
         if($SupportId != null && !isset($Global->POST['Data']['Date'])){
             if(($tblSupport = Student::useService()->getSupportById($SupportId))){
-                $Global->POST['Data']['Date'] = $tblSupport->getDate();
-                if(($tblSupportFocusPrimary = Student::useService()->getPrimaryFocusBySupport($tblSupport))){
-                    $Global->POST['Data']['PrimaryFocus'] = $tblSupportFocusPrimary->getId();
-                }
-                if(($tblSupportFocusTypeList = Student::useService()->getFocusListBySupport($tblSupport))){
-                    foreach($tblSupportFocusTypeList as $tblSupportFocusType){
-                        $Global->POST['Data']['CheckboxList'][$tblSupportFocusType->getName()] = $tblSupportFocusType->getId();
-                    }
-                }
-
-                if(($tblSupportType = $tblSupport->getTblSupportType())){
-                    $Global->POST['Data']['SupportType'] = $tblSupportType->getId();
-                }
-                $Global->POST['Data']['Company'] = $tblSupport->getCompany();
-                $Global->POST['Data']['PersonSupport'] = $tblSupport->getPersonSupport();
-                $Global->POST['Data']['SupportTime'] = $tblSupport->getSupportTime();
-                $Global->POST['Data']['Remark'] = $tblSupport->getRemark(false);
+                $Global = $this->fillGlobalSupport($tblSupport, $Global);
+                $Global->savePost();
+            }
+        } elseif(!isset($Global->POST['Data']['Date']) && ($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            // fill Field with newest Input (only for new Entity's)
+            if(($tblSupport = Student::useService()->getSupportByPersonNewest($tblPerson))){
+                $IsEdit = false;
+                $Global = $this->fillGlobalSupport($tblSupport, $Global, $IsEdit);
                 $Global->savePost();
             }
         }
@@ -410,6 +403,40 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param TblSupport  $tblSupport
+     * @param SuperGlobal $Global
+     * @param bool        $IsEdit
+     *
+     * @return SuperGlobal
+     */
+    private function fillGlobalSupport(TblSupport $tblSupport, SuperGlobal $Global, $IsEdit = true)
+    {
+        // fill only update Form's
+        if($IsEdit){
+            $Global->POST['Data']['Date'] = $tblSupport->getDate();
+            if(($tblSupportType = $tblSupport->getTblSupportType())){
+                $Global->POST['Data']['SupportType'] = $tblSupportType->getId();
+            }
+            $Global->POST['Data']['Remark'] = $tblSupport->getRemark(false);
+        }
+
+        if(($tblSupportFocusPrimary = Student::useService()->getPrimaryFocusBySupport($tblSupport))){
+            $Global->POST['Data']['PrimaryFocus'] = $tblSupportFocusPrimary->getId();
+        }
+        if(($tblSupportFocusTypeList = Student::useService()->getFocusListBySupport($tblSupport))){
+            foreach($tblSupportFocusTypeList as $tblSupportFocusType){
+                $Global->POST['Data']['CheckboxList'][$tblSupportFocusType->getName()] = $tblSupportFocusType->getId();
+            }
+        }
+
+
+        $Global->POST['Data']['Company'] = $tblSupport->getCompany();
+        $Global->POST['Data']['PersonSupport'] = $tblSupport->getPersonSupport();
+        $Global->POST['Data']['SupportTime'] = $tblSupport->getSupportTime();
+        return $Global;
+    }
+
+    /**
      * @param int      $PersonId
      * @param null|int $SpecialId
      *
@@ -419,19 +446,18 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Global = $this->getGlobal();
-        if($SpecialId != null && !isset($Global->POST['Data']['Date'])){
-            if(($tblSpecial = Student::useService()->getSpecialById($SpecialId))){
+        if($SpecialId != null && !isset($Global->POST['Data']['Date'])) {
+            if (($tblSpecial = Student::useService()->getSpecialById($SpecialId))) {
+                $Global = $this->fillGlobalSpecial($tblSpecial, $Global);
 
-                $Global->POST['Data']['Date'] = $tblSpecial->getDate();
-                if(($tblSpecialDisorderTypeList = Student::useService()->getSpecialDisorderTypeAllBySpecial($tblSpecial))){
-                    foreach($tblSpecialDisorderTypeList as $tblSpecialDisorderType){
-                        $Global->POST['Data']['CheckboxList'][$tblSpecialDisorderType->getName()] = $tblSpecialDisorderType->getId();
-                    }
-                }
-                $Global->POST['Data']['Remark'] = $tblSpecial->getRemark(false);
-//                $Global->POST['PersonId'] = $PersonId;
-                $Global->POST['SpecialId'] = $SpecialId;
                 $Global->savePost();
+            } elseif (!isset($Global->POST['Data']['Date']) && ($tblPerson = Person::useService()->getPersonById($PersonId))) {
+                // fill Field with newest Input (only for new Entity's)
+                if(($tblSpecial = Student::useService()->getSpecialByPersonNewest($tblPerson))) {
+                    $IsEdit = false;
+                    $Global = $this->fillGlobalSpecial($tblSpecial, $Global, $IsEdit);
+                    $Global->savePost();
+                }
             }
         }
 
@@ -476,6 +502,30 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param TblSpecial  $tblSpecial
+     * @param SuperGlobal $Global
+     * @param bool        $IsEdit
+     *
+     * @return SuperGlobal
+     */
+    private function fillGlobalSpecial(TblSpecial $tblSpecial, SuperGlobal $Global, $IsEdit = true)
+    {
+        // fill only update Form's
+        if($IsEdit){
+            $Global->POST['Data']['Date'] = $tblSpecial->getDate();
+            $Global->POST['Data']['Remark'] = $tblSpecial->getRemark(false);
+        }
+
+        if (($tblSpecialDisorderTypeList = Student::useService()->getSpecialDisorderTypeAllBySpecial($tblSpecial))) {
+            foreach ($tblSpecialDisorderTypeList as $tblSpecialDisorderType) {
+                $Global->POST['Data']['CheckboxList'][$tblSpecialDisorderType->getName()] = $tblSpecialDisorderType->getId();
+            }
+        }
+
+        return $Global;
+    }
+
+    /**
      * @param int      $PersonId
      * @param null|int $HandyCapId
      *
@@ -491,7 +541,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global->POST['Data']['Remark'] = $tblHandyCap->getRemark(false);
                 $Global->savePost();
             }
-        }
+        }// don't need pre fill for create new Entity's
 
         if($HandyCapId === null){
             $SaveButton = (new PrimaryLink('Speichern', ApiSupport::getEndpoint(), new Save()))
