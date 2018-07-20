@@ -36,6 +36,7 @@ use SPHERE\Common\Frontend\Text\Repository\Code;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Filter\Link\Pile;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Sorter\StringGermanOrderSorter;
 
 /**
  * Class Service
@@ -1013,14 +1014,7 @@ class Service extends Extension
 
         if (!empty($tblPersonList)) {
 
-            $lastName = array();
-            $firstName = array();
-            foreach ($tblPersonList as $key => $row) {
-                $lastName[$key] = strtoupper($row->getLastName());
-                $firstName[$key] = strtoupper($row->getFirstName());
-                $id[$key] = $row->getId();
-            }
-            array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $tblPersonList);
+            $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy(TblPerson::ATTR_LAST_NAME, new StringGermanOrderSorter());
 
             $All = 0;
 
@@ -1504,6 +1498,7 @@ class Service extends Extension
         $tblPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable('PROSPECT'));
         $TableContent = array();
         if (!empty($tblPersonList)) {
+            $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy(TblPerson::ATTR_LAST_NAME, new StringGermanOrderSorter());
             array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
 
                 $Item['FirstName'] = $tblPerson->getFirstSecondName();

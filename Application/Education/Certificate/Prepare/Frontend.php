@@ -42,6 +42,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
@@ -766,7 +767,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblTaskList = false;
                 $tblTestList = false;
                 $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK');
-                if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                if (($tblSetting = ConsumerSetting::useService()->getSetting(
                         'Education', 'Certificate', 'Prepare', 'UseMultipleBehaviorTasks'))
                     && $tblSetting->getValue()
                     && $tblDivision
@@ -1742,7 +1743,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblBehaviorTask = $tblPrepareCertificate->getServiceTblBehaviorTask();
             } else {
                 $tblTestTypeBehaviorTask = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK');
-                if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                if (($tblSetting = ConsumerSetting::useService()->getSetting(
                         'Education', 'Certificate', 'Prepare', 'UseMultipleBehaviorTasks'))
                     && $tblSetting->getValue()
                     && $tblPrepareCertificate->getServiceTblDivision()
@@ -2163,6 +2164,7 @@ class Frontend extends Extension implements IFrontendInterface
                     "width" => "80px",
                     "targets" => 2
                 ),
+                array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 1),
             );
 
             $Stage->setContent(

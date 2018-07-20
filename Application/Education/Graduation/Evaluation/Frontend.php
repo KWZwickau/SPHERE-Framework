@@ -2320,7 +2320,10 @@ class Frontend extends Extension implements IFrontendInterface
                 "iDisplayLength" => -1,    // Alle Einträge zeigen
                 "searching"      => false, // Deaktivieren Suchen
                 "info"           => false,  // Deaktivieren Such-Info
-                "responsive"   => false
+                "responsive"   => false,
+                'columnDefs' => array(
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                ),
                 )
             );
 
@@ -2347,7 +2350,16 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             );
         } else {
-            $tableData = new TableData($studentList, null, $tableColumns, null);
+            $tableData = new TableData($studentList, null, $tableColumns, array(
+                "paging"         => false, // Deaktivieren Blättern
+                "iDisplayLength" => -1,    // Alle Einträge zeigen
+                "searching"      => false, // Deaktivieren Suchen
+                "info"           => false,  // Deaktivieren Such-Info
+                "responsive"   => false,
+                'columnDefs' => array(
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                ),
+            ));
         }
 
         /*
