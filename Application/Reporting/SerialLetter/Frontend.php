@@ -1124,7 +1124,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 if ($tblStudent) {
                     /** @noinspection PhpUndefinedFieldInspection */
-                    $tblPerson->StudentNumber = $tblStudent->getIdentifier();
+                    $tblPerson->StudentNumber = $tblStudent->getIdentifierComplete();
                 } else {
                     /** @noinspection PhpUndefinedFieldInspection */
                     $tblPerson->StudentNumber = new Small(new Muted('-NA-'));
