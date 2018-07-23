@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Division\Service;
 
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionCustody;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
@@ -736,23 +735,6 @@ class Data extends AbstractData
 
             if ($isSorted) {
                 $TempList = $this->getSorter($TempList)->sortObjectBy('SortOrder');
-            } else {
-                if(!empty($TempList)){
-                    $tblPersonList = array();
-                    /** @var TblDivisionStudent $Temp */
-                    foreach($TempList as $Temp){
-                        $tblPersonList[] = $Temp->getServiceTblPerson();
-                    }
-                    if(!empty($tblPersonList)){
-                        $tblPersonList = $this->getSorter($tblPersonList)->sortObjectBy(TblPerson::ATTR_LAST_NAME, new StringGermanOrderSorter());
-                    }
-                    $TempList = array();
-                    foreach($tblPersonList as $tblPerson){
-                        if(($TempDivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson($tblDivision, $tblPerson))){
-                            $TempList[] = $TempDivisionStudent;
-                        }
-                    }
-                }
             }
 
             /** @var TblDivisionStudent $tblDivisionStudent */
