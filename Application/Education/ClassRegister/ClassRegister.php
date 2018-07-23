@@ -344,7 +344,7 @@ class ClassRegister implements IApplicationInterface
                         . new \SPHERE\Common\Frontend\Text\Repository\Danger($unExcusedDays) . ')';
 
                     $IntegrationButton = '';
-                    $tblSupport = Student::useService()->getSupportByPerson($tblPerson);
+                    $tblSupport = Student::useService()->getSupportByPersonNewest($tblPerson, array('Förderbescheid', 'Änderung'));
                     $tblSpecial = Student::useService()->getSpecialByPerson($tblPerson);
                     $tblHandyCap = Student::useService()->getHandyCapByPerson($tblPerson);
                     // Button's nur anzeigen, wenn Integrationen hinterlegt sind

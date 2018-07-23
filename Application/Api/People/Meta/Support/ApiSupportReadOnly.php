@@ -5,6 +5,7 @@ namespace SPHERE\Application\Api\People\Meta\Support;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Element\Ruler;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblHandyCap;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -93,6 +94,7 @@ class ApiSupportReadOnly extends Extension implements IApiInterface
                 foreach($tblFocusList as $tblFocus){
                     $WellFocus .= new Container($tblFocus->getName());
                 }
+                $WellFocus .= new Ruler().new Container(new Bold('letzter Bearbeiter: ').$tblSupport->getPersonEditor());
             }
             $WellFocus = new Well($WellFocus);
         }
@@ -104,6 +106,7 @@ class ApiSupportReadOnly extends Extension implements IApiInterface
                 foreach ($tblSpecialDisorderTypeList as $tblSpecialDisorderType) {
                     $WellDisorder .= new Container($tblSpecialDisorderType->getName());
                 }
+                $WellDisorder .= new Ruler().new Container(new Bold('letzter Bearbeiter: ').$tblSpecial->getPersonEditor());
             }
             $WellDisorder = new Well($WellDisorder);
         }
@@ -112,10 +115,16 @@ class ApiSupportReadOnly extends Extension implements IApiInterface
         if(($tblHandyCapList = Student::useService()->getHandyCapByPerson($tblPerson))){
             $WellHandyCap = new Title('Maßnahmen / Beschluss Klassenkonferenz:');
             $tblHandyCapList = $this->getSorter($tblHandyCapList)->sortObjectBy(TblHandyCap::ATTR_DATE, new DateTimeSorter(), Sorter::ORDER_DESC);
+
+            $countHandyCap = count($tblHandyCapList);
+            $i = 0;
             /** @var TblHandyCap $tblHandyCap */
             foreach($tblHandyCapList as $tblHandyCap){
+                $i++;
                 $WellHandyCap .= new Container($tblHandyCap->getDate());
-                $WellHandyCap .= new Container($tblHandyCap->getRemark()). new Container('&nbsp;');
+                $WellHandyCap .= new Container($tblHandyCap->getRemark());
+                $WellHandyCap .= new Container(new Bold('letzter Bearbeiter: ').$tblHandyCap->getPersonEditor())
+                    . ($countHandyCap == $i ? '': new Ruler());
             }
             $WellHandyCap = new Well($WellHandyCap);
         }

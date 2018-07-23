@@ -520,7 +520,7 @@ abstract class Support extends Integration
                     } else {
                         $tblSupportMatch = $tblSupport;
                     }
-                } else {
+                } elseif(empty($Type)) {
                     /** @var TblSupport $tblSupportMatch */
                     if($tblSupportMatch){
                         if (new \DateTime($tblSupportMatch->getDate()) < new \DateTime($tblSupport->getDate())) {
