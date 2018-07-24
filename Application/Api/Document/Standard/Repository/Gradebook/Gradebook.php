@@ -36,6 +36,9 @@ class Gradebook
     const TEXT_SIZE_HEADER = '8pt';// '12px';
     const TEXT_SIZE_BODY = '8pt';// '11px';
     const HEIGHT_HEADER = 490;
+    const COLOR_HEADER = 'darkgray';
+    const COLOR_BODY_ALTERNATE_1 = '#E4E4E4';
+    const COLOR_BODY_ALTERNATE_2 = '#FFF';
 
     /** @var null|Frame $Document */
     private $Document = null;
@@ -141,11 +144,15 @@ class Gradebook
     {
 
         $slice = new Slice();
-        $paddingLeft = '5px';
+        $paddingLeft = '3px';
 
         $widthStudentColumn = 30;
         $widthPeriodColumns = 100 - $widthStudentColumn;
         $widthStudentColumnString = $widthStudentColumn . '%';
+
+        $widthNumber = '9%';
+        $widthStudentName = '76%';
+        $widthCourse = '15%';
 
         // wird dynamisch nach der Testanzahl angepasst
         $widthColumnTest = 10;
@@ -191,6 +198,7 @@ class Gradebook
                         ->styleTextBold()
                         ->styleBorderLeft()
                         ->styleBorderTop()
+                        ->styleBackgroundColor(self::COLOR_HEADER)
                     )
                 )
                 ->addSection((new Section())
@@ -200,21 +208,24 @@ class Gradebook
                         ->stylePaddingLeft($paddingLeft)
                         ->styleTextBold()
                         ->styleBorderLeft()
-                        , '10%')
+                        ->styleBackgroundColor(self::COLOR_HEADER)
+                        , $widthNumber)
                     ->addElementColumn((new Element())
                         ->setContent('Schüler')
                         ->styleTextSize(self::TEXT_SIZE_HEADER)
                         ->stylePaddingLeft($paddingLeft)
                         ->styleTextBold()
                         ->styleBorderLeft()
-                        , '70%')
+                        ->styleBackgroundColor(self::COLOR_HEADER)
+                        , $widthStudentName)
                     ->addElementColumn((new Element())
                         ->setContent('Bg')
                         ->styleTextSize(self::TEXT_SIZE_HEADER)
                         ->stylePaddingLeft($paddingLeft)
                         ->styleTextBold()
                         ->styleBorderLeft()
-                        , '20%')
+                        ->styleBackgroundColor(self::COLOR_HEADER)
+                        , $widthCourse)
                 )
                 , $widthStudentColumnString
             );
@@ -261,7 +272,7 @@ class Gradebook
                                 $date = '';
                             }
 
-                            // todo cut description or /n/r
+                            // todo cut description, nur Buchstaben zulassen und einfache Zeichen
                             $text = trim($date . ' '.
                                 $tblGradeType->getCode() . ' '
                                 . trim($tblTest->getDescription()));
@@ -337,6 +348,7 @@ class Gradebook
                                     ->styleTextBold()
                                     ->styleBorderLeft()
                                     ->styleBorderTop()
+                                    ->styleBackgroundColor(self::COLOR_HEADER)
                                 )
                             )
                             ->addSection($headerSection)
@@ -356,6 +368,7 @@ class Gradebook
                             ->styleBorderLeft()
                             ->styleBorderTop()
                             ->styleBorderRight()
+                            ->styleBackgroundColor(self::COLOR_HEADER)
                         )
                     )
                     ->addSection((new Section())
@@ -374,6 +387,7 @@ class Gradebook
                             ->styleTextBold()
                             ->styleBorderLeft()
                             ->styleBorderRight()
+                            ->styleBackgroundColor(self::COLOR_HEADER)
                         )
                     )
 //                    , $widthTotalColumnString
@@ -398,7 +412,7 @@ class Gradebook
         if ($tblPersonList){
             $number = 1;
             foreach ($tblPersonList as $tblPerson) {
-                $isItalic = isset($addStudentList[$tblPerson->getId()]);
+                $isMissing = isset($addStudentList[$tblPerson->getId()]);
 
                 $courseName = '&nbsp;';
                 if (($tblStudent = $tblPerson->getStudent())
@@ -415,68 +429,7 @@ class Gradebook
 
                 $section = new Section();
 
-//                if ($isItalic) {
-//                    $section
-//                        ->addSliceColumn((new Slice)
-//                            ->addSection((new Section())
-//                                ->addElementColumn((new Element())
-//                                    ->setContent($number++)
-//                                    ->styleTextSize(self::TEXT_SIZE_BODY)
-//                                    ->stylePaddingLeft($paddingLeft)
-//                                    ->styleTextItalic()
-//                                    ->styleBorderTop()
-//                                    ->styleBorderLeft()
-//                                    , '10%')
-//                                ->addElementColumn((new Element())
-//                                    ->setContent($tblPerson->getLastFirstName())
-//                                    ->styleTextSize(self::TEXT_SIZE_BODY)
-//                                    ->stylePaddingLeft($paddingLeft)
-//                                    ->styleTextItalic()
-//                                    ->styleBorderTop()
-//                                    ->styleBorderLeft()
-//                                    , '70%')
-//                                ->addElementColumn((new Element())
-//                                    ->setContent($courseName)
-//                                    ->styleTextSize(self::TEXT_SIZE_BODY)
-//                                    ->stylePaddingLeft($paddingLeft)
-//                                    ->styleTextItalic()
-//                                    ->styleBorderTop()
-//                                    ->styleBorderLeft()
-//                                    , '20%')
-//                            )
-//                            , $widthStudentColumnString
-//                        );
-//                } else {
-//                    $section
-//                        ->addSliceColumn((new Slice)
-//                            ->addSection((new Section())
-//                                ->addElementColumn((new Element())
-//                                    ->setContent($number++)
-//                                    ->styleTextSize(self::TEXT_SIZE_BODY)
-//                                    ->stylePaddingLeft($paddingLeft)
-//                                    ->styleBorderTop()
-//                                    ->styleBorderLeft()
-//                                    , '10%')
-//                                ->addElementColumn((new Element())
-//                                    ->setContent($tblPerson->getLastFirstName())
-//                                    ->styleTextSize(self::TEXT_SIZE_BODY)
-//                                    ->stylePaddingLeft($paddingLeft)
-//                                    ->styleBorderTop()
-//                                    ->styleBorderLeft()
-//                                    , '70%')
-//                                ->addElementColumn((new Element())
-//                                    ->setContent($courseName)
-//                                    ->styleTextSize(self::TEXT_SIZE_BODY)
-//                                    ->stylePaddingLeft($paddingLeft)
-//                                    ->styleBorderTop()
-//                                    ->styleBorderLeft()
-//                                    , '20%')
-//                            )
-//                            , $widthStudentColumnString
-//                        );
-//                }
-
-                $name = $isItalic ? '<s>' . $tblPerson->getLastFirstName() . '</s>': $tblPerson->getLastFirstName();
+                $name = $isMissing ? '<s>' . $tblPerson->getLastFirstName() . '</s>': $tblPerson->getLastFirstName();
 
                 $section
                     ->addSliceColumn((new Slice)
@@ -487,21 +440,24 @@ class Gradebook
                                 ->stylePaddingLeft($paddingLeft)
                                 ->styleBorderTop()
                                 ->styleBorderLeft()
-                                , '10%')
+                                ->styleBackgroundColor($number % 2 == 1 ? self::COLOR_BODY_ALTERNATE_1 : self::COLOR_BODY_ALTERNATE_2)
+                                , $widthNumber)
                             ->addElementColumn((new Element())
                                 ->setContent($name)
                                 ->styleTextSize(self::TEXT_SIZE_BODY)
                                 ->stylePaddingLeft($paddingLeft)
                                 ->styleBorderTop()
                                 ->styleBorderLeft()
-                                , '70%')
+                                ->styleBackgroundColor($number % 2 == 1 ? self::COLOR_BODY_ALTERNATE_1 : self::COLOR_BODY_ALTERNATE_2)
+                                , $widthStudentName)
                             ->addElementColumn((new Element())
                                 ->setContent($courseName)
                                 ->styleTextSize(self::TEXT_SIZE_BODY)
                                 ->stylePaddingLeft($paddingLeft)
                                 ->styleBorderTop()
                                 ->styleBorderLeft()
-                                , '20%')
+                                ->styleBackgroundColor($number % 2 == 1 ? self::COLOR_BODY_ALTERNATE_1 : self::COLOR_BODY_ALTERNATE_2)
+                                , $widthCourse)
                         )
                         , $widthStudentColumnString
                     );
@@ -530,6 +486,7 @@ class Gradebook
                                         ->styleTextBold($tblGradeType->isHighlighted() ? 'bold' : 'normal')
                                         ->styleBorderTop()
                                         ->styleBorderLeft()
+                                        ->styleBackgroundColor($number % 2 == 1 ? self::COLOR_BODY_ALTERNATE_1 : self::COLOR_BODY_ALTERNATE_2)
                                         , $widthColumnTestString);
                                 }
                             }
@@ -555,6 +512,8 @@ class Gradebook
                                 $average = substr($average, 0,
                                     strpos($average, '('));
                                 $average = str_replace('.', ',', $average);
+                            } else {
+                                $average = '&nbsp;';
                             }
 
                             $periodSection->addElementColumn((new Element())
@@ -564,6 +523,7 @@ class Gradebook
                                 ->styleTextBold()
                                 ->styleBorderTop()
                                 ->styleBorderLeft()
+                                ->styleBackgroundColor(self::COLOR_HEADER)
                                 , $widthColumnTestString);
                         }
 
@@ -609,6 +569,7 @@ class Gradebook
                                 ->styleBorderTop()
                                 ->styleBorderLeft()
                                 ->styleBorderRight()
+                                ->styleBackgroundColor(self::COLOR_HEADER)
                             )
                         )
                         , $widthColumnTestString
@@ -641,6 +602,7 @@ class Gradebook
             ->styleTextSize(self::TEXT_SIZE_HEADER)
             ->styleHeight(self::HEIGHT_HEADER . 'px')
             ->styleTextBold($isBold ? 'bold' : 'normal')
+            ->styleBackgroundColor(self::COLOR_HEADER)
             ->styleBorderLeft()
             , $width);
 
