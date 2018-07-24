@@ -788,9 +788,26 @@ class Frontend extends FrontendScoreRule
     ) {
 
         $Stage->addButton(new Standard('Zurück', $BasicRoute, new ChevronLeft(), array(), 'Zurück zur Klassenauswahl'));
+        $Stage->addButton(
+            new External(
+                'Notenbuch herunterladen',
+                '/Api/Document/Standard/Gradebook/Create',
+                new Download(),
+                array(
+                    'DivisionSubjectId' => $tblDivisionSubject->getId(),
+                )
+            )
+        );
 
         $tblDivision = $tblDivisionSubject->getTblDivision();
         $tblSubject = $tblDivisionSubject->getServiceTblSubject();
+
+//        $template = new \SPHERE\Application\Api\Document\Standard\Repository\Gradebook\Gradebook();
+//        $content = $template->createSingleDocument($tblDivisionSubject);
+//        $Stage->setContent($content);
+//
+//        return $Stage;
+
 
         // Berechnungsvorschrift und Berechnungssystem der ausgewählten Fach-Klasse ermitteln
         $tblScoreRule = false;

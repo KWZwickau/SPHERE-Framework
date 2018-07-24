@@ -7,6 +7,7 @@ use MOC\V\Component\Template\Component\IBridgeInterface;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Document\Standard\Repository\AccidentReport\AccidentReport;
 use SPHERE\Application\Api\Document\Standard\Repository\EnrollmentDocument;
+use SPHERE\Application\Api\Document\Standard\Repository\Gradebook\Gradebook;
 use SPHERE\Application\Api\Document\Standard\Repository\GradebookOverview;
 use SPHERE\Application\Api\Document\Standard\Repository\MultiPassword\MultiPassword;
 use SPHERE\Application\Api\Document\Standard\Repository\PasswordChange\PasswordChange;
@@ -89,7 +90,6 @@ class Creator extends Extension
     /**
      * @param null $PersonId
      * @param null $DivisionId
-     * @param $DocumentClass
      * @param string $paperOrientation
      *
      * @return Stage|string
@@ -285,5 +285,55 @@ class Creator extends Extension
         }
 
         return new Stage('Dokument', 'Konnte nicht erstellt werden.');
+    }
+
+    /**
+     * @param $DivisionSubjectId
+     * @param bool $Redirect
+     *
+     * @return Stage|string
+     * @throws \MOC\V\Core\FileSystem\Exception\FileSystemException
+     */
+    public static function createGradebookPdf($DivisionSubjectId, $Redirect = true)
+    {
+
+        // todo bitte , geht nicht sowie auch bei Kamenz
+//        if ($Redirect) {
+//            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+//                '/Api/Document/Standard/Gradebook/Create',
+//                array(
+//                    'DivisionSubjectId' => $DivisionSubjectId,
+//                    'Redirect' => 0
+//                )
+//            );
+//        }
+
+        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))
+            && ($tblDivision = $tblDivisionSubject->getTblDivision())
+            && ($tblSubject = $tblDivisionSubject->getServiceTblSubject())
+        ) {
+            $template = new Gradebook();
+            $content = $template->createSingleDocument($tblDivisionSubject);
+
+            ini_set('memory_limit', '1G');
+
+            // Create Tmp
+            $File = Storage::createFilePointer('pdf');
+
+            // build before const is set (picture)
+            /** @var DomPdf $Document */
+            $Document = PdfDocument::getPdfDocument($File->getFileLocation());
+            $Document->setContent($content);
+            $Document->saveFile(new FileParameter($File->getFileLocation()));
+
+            $FileName = 'Notenbuch_' . $tblDivision->getDisplayName() . '_' . $tblSubject->getDisplayName() . '_' . date("Y-m-d").".pdf";
+
+            return FileSystem::getStream(
+                $File->getRealPath(),
+                $FileName
+            )->__toString();
+        }
+
+        return new Stage('Notenbuch', 'Konnte nicht erstellt werden.');
     }
 }

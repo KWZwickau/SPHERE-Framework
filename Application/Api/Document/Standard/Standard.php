@@ -46,6 +46,9 @@ class Standard extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/MultiPassword/Create', __CLASS__.'::createMultiPasswordPdf'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Gradebook/Create', __CLASS__.'::createGradebookPdf'
+        ));
     }
 
     /**
@@ -150,6 +153,12 @@ class Standard extends Extension implements IModuleInterface
     {
 
         return Creator::createDataPdf($Data, 'MultiPassword', Creator::PAPERORIENTATION_PORTRAIT);
+    }
+
+    public static function createGradebookPdf($DivisionSubjectId)
+    {
+
+        return Creator::createGradebookPdf($DivisionSubjectId);
     }
 
     /**
