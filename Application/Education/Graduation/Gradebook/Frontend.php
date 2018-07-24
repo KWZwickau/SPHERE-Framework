@@ -802,11 +802,12 @@ class Frontend extends FrontendScoreRule
         $tblDivision = $tblDivisionSubject->getTblDivision();
         $tblSubject = $tblDivisionSubject->getServiceTblSubject();
 
-//        $template = new \SPHERE\Application\Api\Document\Standard\Repository\Gradebook\Gradebook();
-//        $content = $template->createSingleDocument($tblDivisionSubject);
-//        $Stage->setContent($content);
-//
-//        return $Stage;
+        // todo remove
+        $template = new \SPHERE\Application\Api\Document\Standard\Repository\Gradebook\Gradebook();
+        $content = $template->createSingleDocument($tblDivisionSubject);
+        $Stage->setContent($content);
+
+        return $Stage;
 
 
         // Berechnungsvorschrift und Berechnungssystem der ausgewählten Fach-Klasse ermitteln

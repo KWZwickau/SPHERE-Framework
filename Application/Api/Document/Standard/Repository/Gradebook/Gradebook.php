@@ -24,7 +24,6 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Common\Frontend\Text\Repository\Small;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Gradebook
@@ -34,8 +33,8 @@ use SPHERE\System\Extension\Repository\Debugger;
 class Gradebook
 {
 
-    const TEXT_SIZE_HEADER = '10pt';// '12px';
-    const TEXT_SIZE_BODY = '9pt';// '11px';
+    const TEXT_SIZE_HEADER = '8pt';// '12px';
+    const TEXT_SIZE_BODY = '8pt';// '11px';
     const HEIGHT_HEADER = 490;
 
     /** @var null|Frame $Document */
@@ -143,7 +142,6 @@ class Gradebook
 
         $slice = new Slice();
         $paddingLeft = '5px';
-//        $minimumTestCountProPeriod = 5;
 
         $widthStudentColumn = 30;
         $widthPeriodColumns = 100 - $widthStudentColumn;
@@ -164,6 +162,23 @@ class Gradebook
             $tblSubject,
             $tblSubjectGroup ? $tblSubjectGroup : null
         );
+
+        if ($tblSubjectGroup) {
+            $tblPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
+        } elseif ($tblDivisionSubject) {
+            $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+        } else {
+            $tblPersonList = false;
+        }
+
+        $existingPersonList = array();
+        if ($tblPersonList) {
+            foreach ($tblPersonList as $tblPerson) {
+                $existingPersonList[$tblPerson->getId()] = $tblPerson;
+            }
+        }
+
+        $addStudentList = array();
 
         $section = new Section();
         $section
@@ -214,11 +229,9 @@ class Gradebook
 
         $periodListCount = array();
         $testList = array();
-//        $countPeriod = 0;
         if ($tblPeriodList) {
             foreach ($tblPeriodList as $tblPeriod) {
                 $count = 0;
-//                $countPeriod++;
                 $tblTestList = Evaluation::useService()->getTestAllByTypeAndDivisionAndSubjectAndPeriodAndSubjectGroup(
                     $tblDivision,
                     $tblSubject,
@@ -234,15 +247,24 @@ class Gradebook
                     foreach ($tblTestList as $tblTest) {
                         if (($tblGradeType = $tblTest->getServiceTblGradeType())) {
                             $count++;
-                            $date = $tblTest->getDate();
-                            if (strlen($date) > 6) {
-                                $date = substr($date, 0, 6);
+                            if ($tblTest->getDate()) {
+                                $date = $tblTest->getDate();
+                                if (strlen($date) > 6) {
+                                    $date = substr($date, 0, 6);
+                                }
+                            } elseif ($tblTest->isContinues() && $tblTest->getFinishDate()) {
+                                $date = $tblTest->getFinishDate();
+                                if (strlen($date) > 6) {
+                                    $date = '(' . substr($date, 0, 6) . ')';
+                                }
+                            } else {
+                                $date = '';
                             }
 
-                            // todo cut description
-                            $text = $date . ' '.
+                            // todo cut description or /n/r
+                            $text = trim($date . ' '.
                                 $tblGradeType->getCode() . ' '
-                                . trim($tblTest->getDescription());
+                                . trim($tblTest->getDescription()));
 
                             if (!empty($text)) {
                                 $text = str_replace(' ', '&nbsp;', $text);
@@ -255,17 +277,13 @@ class Gradebook
 //                            }
 
                             $testList[$tblPeriod->getId()][$tblTest->getId()] = $text;
-//
-//                            $columnDefinition['Test' . $tblTest->getId()] = $tblTest->getDescription()
-//                                ? (new ToolTip($text, htmlspecialchars($tblTest->getDescription())))->enableHtml()
-//                                : $text;
-//
-                            // todo für Schüler, welche nicht mehr in der Klasse sind
+
+                            // für Schüler, welche nicht mehr in der Klasse sind
                             $tblGradeList = \SPHERE\Application\Education\Graduation\Gradebook\Gradebook::useService()->getGradeAllByTest($tblTest);
                             if ($tblGradeList) {
                                 foreach ($tblGradeList as $tblGradeItem) {
                                     if (($tblPersonItem = $tblGradeItem->getServiceTblPerson())
-                                        && !isset($studentArray[$tblPersonItem->getId()])
+                                        && !isset($existingPersonList[$tblPersonItem->getId()])
                                     ) {
                                         $addStudentList[$tblPersonItem->getId()] = $tblPersonItem;
                                     }
@@ -273,12 +291,10 @@ class Gradebook
                             }
                         }
                     }
-//                    $columnDefinition['PeriodAverage' . $tblPeriod->getId()] = '&#216;';
                     $count++;
                     $periodListCount[$tblPeriod->getId()] = $count;
                 } else {
                     $periodListCount[$tblPeriod->getId()] = 1;
-//                    $columnDefinition['Period' . $tblPeriod->getId()] = "";
                 }
             }
 
@@ -286,20 +302,21 @@ class Gradebook
             // für gesamt Durchschnitt;
             $sumCount++;
             if ($sumCount > 0) {
-//                Debugger::screenDump($sumCount, $widthPeriodColumns, $widthColumnTest);
                 $widthColumnTest = $widthPeriodColumns / $sumCount;
                 $widthColumnTestString = $widthColumnTest . '%';
             }
-            $tblPeriod = false;
             foreach ($tblPeriodList as $tblPeriod) {
                 if (isset($periodListCount[$tblPeriod->getId()])) {
                     $countTestPeriod = $periodListCount[$tblPeriod->getId()];
                     $headerSection = new Section();
-                    // todo leeres Halbjahr
+                    // todo eine Seite pro Halbjahr
                     if (isset($testList[$tblPeriod->getId()])) {
-                        foreach ($testList[$tblPeriod->getId()] as $text) {
-                            // todo fettmarkierte Zensuren-Typen bold?
-                            $headerSection = $this->setHeaderTest($headerSection, $text, $widthColumnTestString);
+                        foreach ($testList[$tblPeriod->getId()] as $testId => $text) {
+                            if (($tblTest = Evaluation::useService()->getTestById($testId))
+                                && ($tblGradeType = $tblTest->getServiceTblGradeType())
+                            ) {
+                                $headerSection = $this->setHeaderTest($headerSection, $text, $widthColumnTestString, $tblGradeType->isHighlighted());
+                            }
                         }
 
                         $headerSection = $this->setHeaderTest(
@@ -314,8 +331,6 @@ class Gradebook
                         ->addSliceColumn((new Slice)
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
-                                    // todo Zeitraum anzeigen
-//                                    ->setContent($tblPeriod->getDisplayName())
                                     ->setContent($tblPeriod->getName())
                                     ->styleTextSize(self::TEXT_SIZE_HEADER)
                                     ->stylePaddingLeft($paddingLeft)
@@ -368,13 +383,23 @@ class Gradebook
 
         $slice->addSection($section);
 
+        if (!empty($addStudentList)) {
+            if (!$tblPersonList) {
+                $tblPersonList = array();
+            }
+            foreach ($addStudentList as $tblAddPerson) {
+                $tblPersonList[$tblAddPerson->getId()] = $tblAddPerson;
+            }
+        }
+
         /**
          * Body
          */
-        if (($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))){
+        if ($tblPersonList){
             $number = 1;
-            // todo additional Students
             foreach ($tblPersonList as $tblPerson) {
+                $isItalic = isset($addStudentList[$tblPerson->getId()]);
+
                 $courseName = '&nbsp;';
                 if (($tblStudent = $tblPerson->getStudent())
                     && ($tblCourse = $tblStudent->getCourse())
@@ -390,6 +415,69 @@ class Gradebook
 
                 $section = new Section();
 
+//                if ($isItalic) {
+//                    $section
+//                        ->addSliceColumn((new Slice)
+//                            ->addSection((new Section())
+//                                ->addElementColumn((new Element())
+//                                    ->setContent($number++)
+//                                    ->styleTextSize(self::TEXT_SIZE_BODY)
+//                                    ->stylePaddingLeft($paddingLeft)
+//                                    ->styleTextItalic()
+//                                    ->styleBorderTop()
+//                                    ->styleBorderLeft()
+//                                    , '10%')
+//                                ->addElementColumn((new Element())
+//                                    ->setContent($tblPerson->getLastFirstName())
+//                                    ->styleTextSize(self::TEXT_SIZE_BODY)
+//                                    ->stylePaddingLeft($paddingLeft)
+//                                    ->styleTextItalic()
+//                                    ->styleBorderTop()
+//                                    ->styleBorderLeft()
+//                                    , '70%')
+//                                ->addElementColumn((new Element())
+//                                    ->setContent($courseName)
+//                                    ->styleTextSize(self::TEXT_SIZE_BODY)
+//                                    ->stylePaddingLeft($paddingLeft)
+//                                    ->styleTextItalic()
+//                                    ->styleBorderTop()
+//                                    ->styleBorderLeft()
+//                                    , '20%')
+//                            )
+//                            , $widthStudentColumnString
+//                        );
+//                } else {
+//                    $section
+//                        ->addSliceColumn((new Slice)
+//                            ->addSection((new Section())
+//                                ->addElementColumn((new Element())
+//                                    ->setContent($number++)
+//                                    ->styleTextSize(self::TEXT_SIZE_BODY)
+//                                    ->stylePaddingLeft($paddingLeft)
+//                                    ->styleBorderTop()
+//                                    ->styleBorderLeft()
+//                                    , '10%')
+//                                ->addElementColumn((new Element())
+//                                    ->setContent($tblPerson->getLastFirstName())
+//                                    ->styleTextSize(self::TEXT_SIZE_BODY)
+//                                    ->stylePaddingLeft($paddingLeft)
+//                                    ->styleBorderTop()
+//                                    ->styleBorderLeft()
+//                                    , '70%')
+//                                ->addElementColumn((new Element())
+//                                    ->setContent($courseName)
+//                                    ->styleTextSize(self::TEXT_SIZE_BODY)
+//                                    ->stylePaddingLeft($paddingLeft)
+//                                    ->styleBorderTop()
+//                                    ->styleBorderLeft()
+//                                    , '20%')
+//                            )
+//                            , $widthStudentColumnString
+//                        );
+//                }
+
+                $name = $isItalic ? '<s>' . $tblPerson->getLastFirstName() . '</s>': $tblPerson->getLastFirstName();
+
                 $section
                     ->addSliceColumn((new Slice)
                         ->addSection((new Section())
@@ -401,7 +489,7 @@ class Gradebook
                                 ->styleBorderLeft()
                                 , '10%')
                             ->addElementColumn((new Element())
-                                ->setContent($tblPerson->getLastFirstName())
+                                ->setContent($name)
                                 ->styleTextSize(self::TEXT_SIZE_BODY)
                                 ->stylePaddingLeft($paddingLeft)
                                 ->styleBorderTop()
@@ -418,16 +506,16 @@ class Gradebook
                         , $widthStudentColumnString
                     );
 
-                $tblPeriod = false;
                 foreach ($tblPeriodList as $tblPeriod) {
                     if (isset($periodListCount[$tblPeriod->getId()])) {
                         $countTestPeriod = $periodListCount[$tblPeriod->getId()];
                         $periodSection = new Section();
                         if (isset($testList[$tblPeriod->getId()])) {
                             foreach ($testList[$tblPeriod->getId()] as $testId => $text) {
-                                if (($tblTest = Evaluation::useService()->getTestById($testId))) {
+                                if (($tblTest = Evaluation::useService()->getTestById($testId))
+                                    && ($tblGradeType = $tblTest->getServiceTblGradeType())
+                                ) {
                                     $grade = '&nbsp;';
-                                    // todo Datum bei mündlichen Noten, eventuell breite gleich 2 Spalten
                                     if (($tblGrade = \SPHERE\Application\Education\Graduation\Gradebook\Gradebook::useService()
                                         ->getGradeByTestAndStudent($tblTest, $tblPerson))
                                         && $tblGrade->getGrade()
@@ -435,11 +523,11 @@ class Gradebook
                                         $grade = $tblGrade->getDisplayGrade();
                                     }
 
-                                    // todo fettmarkierte Zensuren-Typen bold?
                                     $periodSection->addElementColumn((new Element())
                                         ->setContent($grade)
                                         ->styleTextSize(self::TEXT_SIZE_BODY)
                                         ->stylePaddingLeft($paddingLeft)
+                                        ->styleTextBold($tblGradeType->isHighlighted() ? 'bold' : 'normal')
                                         ->styleBorderTop()
                                         ->styleBorderLeft()
                                         , $widthColumnTestString);
@@ -558,11 +646,6 @@ class Gradebook
 
         return $section;
     }
-
-//    public function setBodyRow(TblPerson)
-//    {
-//
-//    }
 
     /**
      * @param string $text
