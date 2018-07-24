@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Document\Standard\StudentCard;
 
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\System\Extension\Extension;
@@ -91,6 +92,11 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Address' => 'Adresse',
                                     'Division' => 'Klasse',
                                     'Option' => ''
+                                ),
+                                array(
+                                    "columnDefs" => array(
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                                    ),
                                 )
                             )
                         )),

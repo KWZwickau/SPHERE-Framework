@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Child;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
@@ -170,6 +171,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Attendance' => 'Unterschrift',
                                     ),
                                     array(
+                                        "columnDefs" => array(
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                        ),
                                         "pageLength" => -1,
                                         "responsive" => false
                                     )
@@ -246,6 +251,10 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Denomination' => 'Religion',
                                 ),
                                 array(
+                                    "columnDefs" => array(
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                    ),
                                     "pageLength" => -1,
                                     "responsive" => false
                                 )
@@ -375,7 +384,11 @@ class Frontend extends Extension implements IFrontendInterface
                                                 array(0, 'asc'),
                                                 array(1, 'asc'),
                                                 array(2, 'asc')
-                                            )
+                                            ),
+                                            "columnDefs" => array(
+                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                            ),
                                         )
                                     )
                                 )
@@ -470,6 +483,10 @@ class Frontend extends Extension implements IFrontendInterface
                                             'Kindergarten' => 'Kinderhaus',
                                         ),
                                         array(
+                                            "columnDefs" => array(
+                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                            ),
                                             "pageLength" => -1,
                                             "responsive" => false,
                                         )
@@ -565,6 +582,10 @@ class Frontend extends Extension implements IFrontendInterface
                                             'RegularSchool' => 'Stammschule',
                                         ),
                                         array(
+                                            "columnDefs" => array(
+                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                            ),
                                             "pageLength" => -1,
                                             "responsive" => false,
                                         )
@@ -660,13 +681,17 @@ class Frontend extends Extension implements IFrontendInterface
                                             'Disease' => 'Allergie',
                                         ),
                                         array(
-                                            "pageLength" => -1,
-                                            "responsive" => false,
                                             'order' => array(
                                                 array(0, 'asc'),
                                                 array(1, 'asc'),
                                                 array(2, 'asc')
-                                            )
+                                            ),
+                                            "columnDefs" => array(
+                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                            ),
+                                            "pageLength" => -1,
+                                            "responsive" => false
                                         )
                                     )
                                 )
@@ -731,11 +756,15 @@ class Frontend extends Extension implements IFrontendInterface
                                             'Street'    => 'Straße',
                                         ),
                                         array(
-//                                        "pageLength" => -1,
-                                            "responsive" => false,
                                             'order'      => array(
                                                 array(0, 'asc')
-                                            )
+                                            ),
+                                            "columnDefs" => array(
+                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                            ),
+//                                        "pageLength" => -1,
+                                            "responsive" => false,
                                         )
                                     )
                                     : new Warning('Keine Schüler in der Gruppe "Hort" vorhanden'))

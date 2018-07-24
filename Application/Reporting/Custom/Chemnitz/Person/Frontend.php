@@ -6,6 +6,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Child;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
@@ -122,7 +123,12 @@ class Frontend extends Extension implements IFrontendInterface
                                         'order' => array(
                                             array(0, 'desc'),
                                             array(2, 'asc'),
-                                            array(1, 'asc')
+                                            array(1, 'asc'),
+                                        ),
+                                        "columnDefs" => array(
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
                                         )
                                     )
                                 )
@@ -171,6 +177,11 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Birthplace' => 'Geburtsort',
                                     ),
                                     array(
+                                        'columnDefs' => array(
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 4),
+                                    ),
                                         "pageLength" => -1,
                                         "responsive" => false
                                     )
@@ -255,7 +266,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 array(
                                     'order' => array(
                                         array(2, 'asc'),
-                                        array(1, 'asc')
+                                        array(1, 'asc'),
+                                    ),
+                                    'columnDefs' => array(
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
                                     ),
                                     "pageLength" => -1,
                                     "responsive" => false
@@ -343,6 +358,10 @@ class Frontend extends Extension implements IFrontendInterface
 //                                    'City'                 => 'Ort',
                                 ),
                                 array(
+                                    'columnDefs' => array(
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
+                                    ),
                                     "pageLength" => -1,
                                     "responsive" => false
                                 )
@@ -458,7 +477,11 @@ class Frontend extends Extension implements IFrontendInterface
                                         'order' => array(
                                             array(0, 'desc'),
                                             array(2, 'asc'),
-                                            array(1, 'asc')
+                                            array(1, 'asc'),
+                                        ),
+                                        'columnDefs' => array(
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
                                         )
                                     )
                                 )
@@ -502,6 +525,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Address' => 'Adresse',
                                     ),
                                     array(
+                                        'columnDefs' => array(
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                        ),
                                         "pageLength" => -1,
                                         "responsive" => false
                                     )
@@ -591,7 +618,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 array(
                                     'order' => array(
                                         array(2, 'asc'),
-                                        array(1, 'asc')
+                                        array(1, 'asc'),
+                                    ),
+                                    'columnDefs' => array(
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
                                     ),
                                     "pageLength" => -1,
                                     "responsive" => false
@@ -754,6 +785,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Attendance' => 'Anwesenheit',
                                     ),
                                     array(
+                                        'columnDefs' => array(
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                        ),
                                         "pageLength" => -1,
                                         "responsive" => false
                                     )
@@ -840,7 +875,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 array(
                                     'order' => array(
                                         array(2, 'asc'),
-                                        array(1, 'asc')
+                                        array(1, 'asc'),
+                                    ),
+                                    'columnDefs' => array(
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
                                     ),
                                     "pageLength" => -1,
                                     "responsive" => false

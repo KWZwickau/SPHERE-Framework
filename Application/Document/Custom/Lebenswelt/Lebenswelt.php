@@ -13,6 +13,7 @@ use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Reporting\AbstractModule;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -104,6 +105,11 @@ class Lebenswelt extends AbstractModule implements IModuleInterface
                                     'Address' => 'Adresse',
                                     'Division' => 'Klasse',
                                     'Option' => ''
+                                ),
+                                array(
+                                    'columnDefs' => array(
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                                    ),
                                 )
                             )
                         )),

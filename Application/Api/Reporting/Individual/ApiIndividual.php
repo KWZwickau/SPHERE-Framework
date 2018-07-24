@@ -32,6 +32,7 @@ use SPHERE\Application\Reporting\Individual\Service\Entity\ViewPerson;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewPersonContact;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudent;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudentCustody;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Ajax\Emitter\ClientEmitter;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -122,6 +123,25 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         'Integration:_Datum_F_oE_rderantrag_Beratung',
         'Integration:_Datum_F_oE_rderantrag',
         'Integration:_Datum_F_oE_rderbescheid_SBA'
+    );
+
+    private $FieldNameSortByGermanString = array(
+        'Person:_Vorname',
+        'Person:_Zweiter_Vorname',
+        'Person:_Nachname',
+        'Person:_Geburtsname',
+        'S1:_Vorname',
+        'S1:_Zweiter_Vorname',
+        'S1:_Nachname',
+        'S1:_Geburtsname',
+        'S2:_Vorname',
+        'S2:_Zweiter_Vorname',
+        'S2:_Nachname',
+        'S2:_Geburtsname',
+        'S3:_Vorname',
+        'S3:_Zweiter_Vorname',
+        'S3:_Nachname',
+        'S3:_Geburtsname',
     );
 
     use ApiTrait, AppTrait;
@@ -1977,21 +1997,28 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 $ColumnDTNames = array();
                 $ColumnDBNames = array_keys(current($Result));
                 $i = 0;
+                $GermanStringOrder = array();
                 $DateOrder = array();
-                array_walk($ColumnDBNames, function ($Name) use (&$ColumnDTNames, &$i, &$DateOrder) {
+                // Sortierung Type für TableData
+                array_walk($ColumnDBNames, function ($Name) use (&$ColumnDTNames, &$i, &$DateOrder, &$GermanStringOrder) {
                     $ColumnDTNames[$Name] = $this->decodeField($Name);
 //                    $ColumnDTNames[$Name] = preg_replace('!\_!is', ' ', $Name);
                     if(in_array($Name, $this->FieldNameSortByDate)) {
                         $DateOrder[] = array('type' => 'de_date', 'targets' => $i);
                     }
+                    if(in_array($Name, $this->FieldNameSortByGermanString)) {
+                        $GermanStringOrder[] = array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => $i);
+                    }
                     $i++;
                 });
+                $ColumnDef = array_merge($DateOrder, $GermanStringOrder);
+
                 $Result = (new TableData($Result, null, $ColumnDTNames,
 //                        false
                         array(
                         'responsive' => false,
                         'fixedHeader'=> false,
-                        'columnDefs' => $DateOrder
+                        'columnDefs' => $ColumnDef
                     )
                 ))
 

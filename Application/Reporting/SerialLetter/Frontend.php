@@ -25,6 +25,7 @@ use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblFilterCategory;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialCompany;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialLetter;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -1411,7 +1412,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         'order'                => array(array(1, 'asc')),
                                         'columnDefs'           => array(
                                             array('orderable' => false, 'width' => '1%', 'targets' => 0),
-                                            array('type' => 'natural', 'targets' => 4)
+                                            array('type' => 'natural', 'targets' => 4),
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
                                         ),
                                         'ExtensionRowExchange' => array(
                                             'Enabled' => true,
@@ -1444,7 +1446,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         'order'                => array(array(1, 'asc')),
                                         'columnDefs'           => array(
                                             array('orderable' => false, 'width' => '1%', 'targets' => 0),
-                                            array('type' => 'natural', 'targets' => 4)
+                                            array('type' => 'natural', 'targets' => 4),
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
                                         ),
                                         'ExtensionRowExchange' => array(
                                             'Enabled' => true,
@@ -1485,7 +1488,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         'order'                => array(array(1, 'asc')),
                                         'columnDefs'           => array(
                                             array('orderable' => false, 'width' => '1%', 'targets' => 0),
-                                            array('type' => 'natural', 'targets' => 3)
+                                            array('type' => 'natural', 'targets' => 3),
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
                                         ),
                                         'ExtensionRowExchange' => array(
                                             'Enabled' => true,
@@ -1516,7 +1520,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         'order'                => array(array(1, 'asc')),
                                         'columnDefs'           => array(
                                             array('orderable' => false, 'width' => '1%', 'targets' => 0),
-                                            array('type' => 'natural', 'targets' => 3)
+                                            array('type' => 'natural', 'targets' => 3),
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
                                         ),
                                         'ExtensionRowExchange' => array(
                                             'Enabled' => true,
@@ -1978,7 +1983,8 @@ class Frontend extends Extension implements IFrontendInterface
                     'columnDefs' => array(
                         array('orderable' => false, 'width' => '1%', 'targets' => -1),
                         array('width' => '15%', 'targets' => 0),
-                        array('width' => '10%', 'targets' => 1)
+                        array('width' => '10%', 'targets' => 1),
+                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
                     )
                 ));
         if ($tblFilterCategory && $tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_PERSON_GROUP_PROSPECT) {
@@ -2415,6 +2421,9 @@ class Frontend extends Extension implements IFrontendInterface
                             new TableData($subDataList, null, $columnList,
                                 array(
                                     'order' => array(array(2, 'asc'), array(1, 'asc')),
+                                    "columnDefs" => array(
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                    ),
 //                                    'columnDefs' => array(
 //                                        array('orderable' => false, 'width' => '1%', 'targets' => 0)
 //                                    ),
@@ -2560,7 +2569,9 @@ class Frontend extends Extension implements IFrontendInterface
 //                        'orderable' => false,
                         'width' => '3%', 'targets' => 0),
                     array('type' => 'natural', 'targets' => 2),
-                    array('type' => 'natural', 'targets' => 4)
+                    array('type' => 'natural', 'targets' => 4),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 5),
                 )
             );
             if ($tblFilterCategory && $tblFilterCategory->getName() === TblFilterCategory::IDENTIFIER_PERSON_GROUP_PROSPECT) {
@@ -2582,6 +2593,8 @@ class Frontend extends Extension implements IFrontendInterface
                         array(
 //                            'orderable' => false,
                             'width' => '3%', 'targets' => 0),
+                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 7),
                     )
                 );
             }
@@ -2601,6 +2614,7 @@ class Frontend extends Extension implements IFrontendInterface
                         array(
 //                            'orderable' => false,
                             'width' => '3%', 'targets' => 0),
+                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
                     )
                 );
             }
@@ -2905,6 +2919,9 @@ class Frontend extends Extension implements IFrontendInterface
         );
         $Interactive = array(
             'order'      => array(array(0, 'asc')),
+            "columnDefs" => array(
+                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+            ),
         );
         $tblSerialCompanyList = SerialLetter::useService()->getSerialCompanyBySerialLetter($tblSerialLetter, false);
         if($tblSerialCompanyList){
