@@ -802,6 +802,32 @@ class Frontend extends FrontendScoreRule
         $tblDivision = $tblDivisionSubject->getTblDivision();
         $tblSubject = $tblDivisionSubject->getServiceTblSubject();
 
+        $tblPerson = false;
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
+            if ($tblPersonAllByAccount) {
+                $tblPerson = $tblPersonAllByAccount[0];
+            }
+        }
+
+        if ($tblDivision
+            && (strpos($BasicRoute, 'Headmaster') !== false
+                || ($tblPerson && Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblDivision,
+                        $tblPerson)))
+        ) {
+            $Stage->addButton(
+                new External(
+                    'Alle Notenbücher dieser Klasse herunterladen',
+                    '/Api/Document/Standard/MultiGradebook/Create',
+                    new Download(),
+                    array(
+                        'DivisionId' => $tblDivision->getId(),
+                    )
+                )
+            );
+        }
+
         // todo remove
 //        $template = new \SPHERE\Application\Api\Document\Standard\Repository\Gradebook\Gradebook();
 //        $content = $template->createSingleDocument($tblDivisionSubject);

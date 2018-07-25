@@ -336,4 +336,51 @@ class Creator extends Extension
 
         return new Stage('Notenbuch', 'Konnte nicht erstellt werden.');
     }
+
+    /**
+     * @param $DivisionId
+     * @param bool $Redirect
+     *
+     * @return Stage|string
+     * @throws \MOC\V\Core\FileSystem\Exception\FileSystemException
+     */
+    public static function createMultiGradebookPdf($DivisionId, $Redirect = true)
+    {
+
+        // todo bitte , geht nicht sowie auch bei Kamenz
+//        if ($Redirect) {
+//            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+//                '/Api/Document/Standard/MultiGradebook/Create',
+//                array(
+//                    'DivisionId' => $DivisionId,
+//                    'Redirect' => 0
+//                )
+//            );
+//        }
+
+        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
+            $template = new Gradebook();
+            $content = $template->createMultiDocument($tblDivision);
+
+            ini_set('memory_limit', '2G');
+
+            // Create Tmp
+            $File = Storage::createFilePointer('pdf');
+
+            // build before const is set (picture)
+            /** @var DomPdf $Document */
+            $Document = PdfDocument::getPdfDocument($File->getFileLocation());
+            $Document->setContent($content);
+            $Document->saveFile(new FileParameter($File->getFileLocation()));
+
+            $FileName = 'Notenbücher_' . $tblDivision->getDisplayName()  . '_' . date("Y-m-d").".pdf";
+
+            return FileSystem::getStream(
+                $File->getRealPath(),
+                $FileName
+            )->__toString();
+        }
+
+        return new Stage('Notenbuch', 'Konnte nicht erstellt werden.');
+    }
 }

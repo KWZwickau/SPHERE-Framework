@@ -80,12 +80,28 @@ class Gradebook
     {
 
         $pageList = array();
-        // todo
-//        if (($tblDivisionSubjectAll = Division::useService()->getDivisionSubjectByDivision($tblDivision))) {
-//            foreach ($tblDivisionSubjectAll as $tblDivisionSubject) {
-//                $pageList[] = $this->buildPage($tblDivisionSubject);
-//            }
-//        }
+        if (($tblDivisionSubjectAll = Division::useService()->getDivisionSubjectByDivision($tblDivision))
+            && ($tblYear = $tblDivision->getServiceTblYear())
+            && ($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear))
+        ) {
+            $subjectCount = 0;
+            // todo Sortierung
+            foreach ($tblDivisionSubjectAll as $tblDivisionSubject) {
+                $subjectCount++;
+                $count = 0;
+                foreach ($tblPeriodList as $tblPeriod) {
+                    $count++;
+                    $isLastPeriod = $count == count($tblPeriodList);
+
+                    $pageList[] = $this->buildPage($tblDivisionSubject, $tblPeriod, $isLastPeriod);
+                }
+
+                // todo entfernen
+                if ($subjectCount > 5) {
+                    break;
+                }
+            }
+        }
 
         $this->Document = $this->buildDocument($pageList);
 
@@ -359,7 +375,6 @@ class Gradebook
                         $date = '';
                     }
 
-                    // todo cut description, nur Buchstaben zulassen und einfache Zeichen
                     $text = trim($date . ' ' .
                         $tblGradeType->getCode() . ' '
                         . trim($tblTest->getDescription()));
@@ -368,11 +383,6 @@ class Gradebook
                         $text = str_replace(' ', '&nbsp;', $text);
                         $text = str_replace('-', '&nbsp;', $text);
                     }
-//                            Debugger::screenDump($text, strlen(str_replace('&nbsp;', '', $text)));
-//                            if (strlen($text)> 20) {
-//                                $text = substr($text, 0, 20);
-//                                Debugger::screenDump($text);
-//                            }
 
                     $testList[$tblPeriod->getId()][$tblTest->getId()] = $text;
 
@@ -772,11 +782,14 @@ class Gradebook
     {
 
         $paddingLeft = (15 - self::HEIGHT_HEADER) . 'px';
+        // für Zeilenumbruch im Thema des Tests
+        $height = self::HEIGHT_HEADER . 'px';
 
         return
             '<div style="padding-top: ' . $paddingTop
             . '!important; padding-left: ' . $paddingLeft
             . '!important; transform: rotate(270deg)!important;'
+            . 'max-width: ' . $height . ';'
             // geht erst ab dompdf 0.8.1
 //            . ' white-space: nowrap!important;'
             . '">'

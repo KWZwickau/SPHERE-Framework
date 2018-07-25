@@ -49,6 +49,9 @@ class Standard extends Extension implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Gradebook/Create', __CLASS__.'::createGradebookPdf'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/MultiGradebook/Create', __CLASS__.'::createMultiGradebookPdf'
+        ));
     }
 
     /**
@@ -82,6 +85,7 @@ class Standard extends Extension implements IModuleInterface
 
     /**
      * @param null $PersonId
+     * @param null $DivisionId
      *
      * @return \SPHERE\Common\Window\Stage|string
      */
@@ -155,10 +159,26 @@ class Standard extends Extension implements IModuleInterface
         return Creator::createDataPdf($Data, 'MultiPassword', Creator::PAPERORIENTATION_PORTRAIT);
     }
 
-    public static function createGradebookPdf($DivisionSubjectId)
+    /**
+     * @param $DivisionSubjectId
+     *
+     * @return \SPHERE\Common\Window\Stage|string
+     */
+    public static function createGradebookPdf($DivisionSubjectId = null)
     {
 
         return Creator::createGradebookPdf($DivisionSubjectId);
+    }
+
+    /**
+     * @param $DivisionId
+     *
+     * @return \SPHERE\Common\Window\Stage|string
+     */
+    public static function createMultiGradebookPdf($DivisionId)
+    {
+
+        return Creator::createMultiGradebookPdf($DivisionId);
     }
 
     /**
