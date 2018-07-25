@@ -631,10 +631,109 @@ class Gradebook
             }
         }
 
-        $slice
-            ->addElement((new Element())
+        /**
+         * Test Durchschnitt
+         */
+        $subSection = new Section();
+        $subSection
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleTextSize(self::TEXT_SIZE_BODY)
+                ->stylePaddingLeft($paddingLeft)
                 ->styleBorderTop()
+                ->styleBorderLeft()
+                ->styleBorderBottom()
+                ->styleBackgroundColor(self::COLOR_HEADER)
+                , $widthNumber)
+            ->addElementColumn((new Element())
+                ->setContent('&#216;' . '&nbsp;' . 'Fach-Klasse')
+                ->styleTextSize(self::TEXT_SIZE_BODY)
+                ->stylePaddingLeft($paddingLeft)
+                ->styleBorderTop()
+                ->styleBorderLeft()
+                ->styleBorderBottom()
+                ->styleTextItalic()
+                ->styleBackgroundColor(self::COLOR_HEADER)
+                , $widthStudentName);
+        if ($showCourse) {
+            $subSection
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleTextSize(self::TEXT_SIZE_BODY)
+                    ->stylePaddingLeft($paddingLeft)
+                    ->styleBorderTop()
+                    ->styleBorderLeft()
+                    ->styleBorderBottom()
+                    ->styleBackgroundColor(self::COLOR_HEADER)
+                    , $widthCourse);
+        }
+
+        $section = new Section();
+        $section
+            ->addSliceColumn((new Slice)
+                ->addSection($subSection)
+                , $widthStudentColumnString
             );
+
+        foreach ($tblPeriodList as $tblPeriod) {
+            if (isset($periodListCount[$tblPeriod->getId()])) {
+                $countTestPeriod = $periodListCount[$tblPeriod->getId()];
+                $periodSection = new Section();
+                if (isset($testList[$tblPeriod->getId()])) {
+                    $countTests = 0;
+                    foreach ($testList[$tblPeriod->getId()] as $testId => $text) {
+                        if (($tblTest = Evaluation::useService()->getTestById($testId))
+                            && ($tblGradeType = $tblTest->getServiceTblGradeType())
+                        ) {
+                            $countTests++;
+                            $testAverage = \SPHERE\Application\Education\Graduation\Gradebook\Gradebook::useService()
+                                ->getAverageByTest($tblTest);
+
+                            $periodSection->addElementColumn((new Element())
+                                ->setContent($testAverage ? str_replace('.', ',',$testAverage) : '&nbsp;')
+                                ->styleTextSize(self::TEXT_SIZE_BODY)
+                                ->stylePaddingLeft($paddingLeft)
+                                ->styleTextBold($tblGradeType->isHighlighted() ? 'bold' : 'normal')
+                                ->styleTextItalic()
+                                ->styleBorderTop()
+                                ->styleBorderLeft()
+                                ->styleBorderBottom()
+                                ->styleBorderRight($isLastTestLastColumn && $countTests == count($testList[$tblPeriod->getId()])
+                                    ? '1px' : '0px')
+                                ->styleBackgroundColor(self::COLOR_HEADER)
+                                , $widthColumnTestString);
+                        }
+                    }
+
+                    if ($showAverage) {
+                        $periodSection->addElementColumn((new Element())
+                            ->setContent('&nbsp;')
+                            ->styleTextSize(self::TEXT_SIZE_BODY)
+                            ->stylePaddingLeft($paddingLeft)
+                            ->styleTextBold()
+                            ->styleBorderTop()
+                            ->styleBorderLeft()
+                            ->styleBorderBottom()
+                            ->styleBorderRight($isAverageLastColumn ? '1px' : '0px')
+                            ->styleBackgroundColor(self::COLOR_HEADER)
+                            , $widthColumnTestString);
+                    }
+                }
+
+                $section
+                    ->addSliceColumn((new Slice)
+                        ->addSection($periodSection)
+                        , ($countTestPeriod * $widthColumnTest) . '%'
+                    );
+            }
+        }
+
+        $slice->addSection($section);
+
+//        $slice
+//            ->addElement((new Element())
+//                ->styleBorderTop()
+//            );
 
         return $slice;
     }
