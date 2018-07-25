@@ -558,6 +558,27 @@ abstract class Support extends Integration
     }
 
     /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblHandyCap
+     */
+    public function getHandyCapByPersonNewest(TblPerson $tblPerson)
+    {
+
+        $tblHandyCapMatch = false;
+        if(($tblHandyCapList = $this->getHandyCapByPerson($tblPerson))){
+            $tblHandyCapMatch = $tblHandyCapList[0];
+            foreach($tblHandyCapList as $tblHandyCap){
+                if(new \DateTime($tblHandyCapMatch->getDate()) < new \DateTime($tblHandyCap->getDate())) {
+                    $tblHandyCapMatch = $tblHandyCap;
+                }
+            }
+        }
+
+        return $tblHandyCapMatch;
+    }
+
+    /**
      * @return false|TblSupportType[]
      */
     public function getSupportTypeAll()

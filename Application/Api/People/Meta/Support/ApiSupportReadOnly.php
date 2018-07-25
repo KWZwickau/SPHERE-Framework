@@ -7,12 +7,12 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element\Ruler;
 use SPHERE\Application\IApiInterface;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblHandyCap;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
+use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -23,8 +23,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Sorter;
-use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 class ApiSupportReadOnly extends Extension implements IApiInterface
 {
@@ -50,7 +48,7 @@ class ApiSupportReadOnly extends Extension implements IApiInterface
     public static function receiverOverViewModal()
     {
 
-        return (new ModalReceiver())->setIdentifier('ModalOverViewReciever');
+        return (new ModalReceiver(null, new Close()))->setIdentifier('ModalOverViewReciever');
     }
 
 
@@ -111,21 +109,12 @@ class ApiSupportReadOnly extends Extension implements IApiInterface
             $WellDisorder = new Well($WellDisorder);
         }
 
-        $WellHandyCap = new Well('Keine Maßnahmen / Beschluss Klassenkonferenz');
-        if(($tblHandyCapList = Student::useService()->getHandyCapByPerson($tblPerson))){
-            $WellHandyCap = new Title('Maßnahmen / Beschluss Klassenkonferenz:');
-            $tblHandyCapList = $this->getSorter($tblHandyCapList)->sortObjectBy(TblHandyCap::ATTR_DATE, new DateTimeSorter(), Sorter::ORDER_DESC);
-
-            $countHandyCap = count($tblHandyCapList);
-            $i = 0;
-            /** @var TblHandyCap $tblHandyCap */
-            foreach($tblHandyCapList as $tblHandyCap){
-                $i++;
-                $WellHandyCap .= new Container($tblHandyCap->getDate());
-                $WellHandyCap .= new Container($tblHandyCap->getRemark());
-                $WellHandyCap .= new Container(new Bold('letzter Bearbeiter: ').$tblHandyCap->getPersonEditor())
-                    . ($countHandyCap == $i ? '': new Ruler());
-            }
+        $WellHandyCap = new Well('Keine Maßnahmen / Beschluss Klassenkonferenz (Nachteilsausgleich)');
+        if(($tblHandyCap = Student::useService()->getHandyCapByPersonNewest($tblPerson))){
+            $WellHandyCap = new Title('Maßnahmen / Beschluss Klassenkonferenz (Nachteilsausgleich):');
+            $WellHandyCap .= new Container($tblHandyCap->getDate());
+            $WellHandyCap .= new Container($tblHandyCap->getRemark());
+            $WellHandyCap .= new Container(new Bold('letzter Bearbeiter: ').$tblHandyCap->getPersonEditor());
             $WellHandyCap = new Well($WellHandyCap);
         }
 
