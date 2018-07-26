@@ -124,11 +124,6 @@ class Frontend extends Extension implements IFrontendInterface
                                             array(0, 'desc'),
                                             array(2, 'asc'),
                                             array(1, 'asc'),
-                                        ),
-                                        "columnDefs" => array(
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
                                         )
                                     )
                                 )
@@ -479,10 +474,6 @@ class Frontend extends Extension implements IFrontendInterface
                                             array(2, 'asc'),
                                             array(1, 'asc'),
                                         ),
-                                        'columnDefs' => array(
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
-                                        )
                                     )
                                 )
                                 , 12)
