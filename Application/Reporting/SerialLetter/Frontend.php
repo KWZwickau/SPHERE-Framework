@@ -2920,7 +2920,8 @@ class Frontend extends Extension implements IFrontendInterface
         $Interactive = array(
             'order'      => array(array(0, 'asc')),
             "columnDefs" => array(
-                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 5),
+                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 6),
             ),
         );
         $tblSerialCompanyList = SerialLetter::useService()->getSerialCompanyBySerialLetter($tblSerialLetter, false);
@@ -2935,7 +2936,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if($tblSerialCompanyList){
             $count = 1;
-            array_walk($tblSerialCompanyList, function(TblSerialCompany $tblSerialCompany) use (&$TableContent, &$count, $tblSerialLetter) {
+            array_walk($tblSerialCompanyList, function(TblSerialCompany $tblSerialCompany) use (&$TableContent, &$count, $tblSerialLetter, &$Interactive) {
                 $Item['Number'] = $count++;
                 $Item['Salutation'] = '';
                 $Item['Title'] = '';
