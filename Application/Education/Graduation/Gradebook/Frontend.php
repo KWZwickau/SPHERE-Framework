@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Graduation\Gradebook;
 
+use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
@@ -857,6 +858,7 @@ class Frontend extends FrontendScoreRule
         $periodListCount = array();
         $columnDefinition['Number'] = '#';
         $columnDefinition['Student'] = "Schüler";
+        $columnDefinition['Integration'] = "Integration";
         $columnDefinition['Course'] = new ToolTip('Bg', 'Bildungsgang');
         $countPeriod = 0;
         $countMinimumGradeCount = 1;
@@ -956,6 +958,7 @@ class Frontend extends FrontendScoreRule
                 $count++;
                 $data['Student'] = isset($addStudentList[$tblPerson->getId()])
                     ? new Muted($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName();
+                $data['Integration'] = Student::useService()->getSupportReadOnlyButton($tblPerson);
                 $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
                 $CourseName = '';
                 if ($tblCourse) {
@@ -1136,7 +1139,8 @@ class Frontend extends FrontendScoreRule
         );
 
         $Stage->setContent(
-            new Layout(array(
+            ApiSupportReadOnly::receiverOverViewModal()
+            .new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
@@ -2696,6 +2700,7 @@ class Frontend extends FrontendScoreRule
             $personData = array();
             $tableHeaderList['Number'] = 'Nummer';
             $tableHeaderList['Name'] = 'Name';
+            $tableHeaderList['Integration'] = 'Integration';
             $tblDivisionList = array();
 
             if ($tblGroup) {
@@ -2782,6 +2787,7 @@ class Frontend extends FrontendScoreRule
                     $data = array();
                     $data['Number'] = $count++;
                     $data['Name'] = $tblPerson->getLastFirstName();
+                    $data['Integration'] = Student::useService()->getSupportReadOnlyButton($tblPerson);
                     $data['Division'] = $tblGroup && isset($personData[$tblPerson->getId()]['Division'])
                         ? $personData[$tblPerson->getId()]['Division'] : '';
                     $data['Course'] = '';
@@ -2878,7 +2884,8 @@ class Frontend extends FrontendScoreRule
             }
 
             $Stage->setContent(
-                new Layout(array(
+                ApiSupportReadOnly::receiverOverViewModal()
+               .new Layout(array(
                     new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(array(
@@ -2967,6 +2974,12 @@ class Frontend extends FrontendScoreRule
             new Download(), array('PersonId' => $PersonId, 'DivisionId' => $DivisionId, 'Notenübersicht herunterladen'
         )));
 
+        // Button's nur anzeigen, wenn Integrationen hinterlegt sind
+        if(($Button = Student::useService()->getSupportReadOnlyButton($tblPerson)) !== ''){
+            /** @var Standard $Button */
+            $Stage->addButton($Button->setName('Integration'));
+        }
+
         $columnDefinition = array();
         $columnDefinition['Subject'] = 'Fach';
         if (($tblYear = $tblDivision->getServiceTblYear())) {
@@ -3006,7 +3019,8 @@ class Frontend extends FrontendScoreRule
         }
 
         $Stage->setContent(
-            new Layout(array(
+            ApiSupportReadOnly::receiverOverViewModal()
+            .new Layout(array(
                 new LayoutGroup($rowList)
             ))
         );

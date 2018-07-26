@@ -896,11 +896,8 @@ class Frontend extends Extension implements IFrontendInterface
         $HandyCapCount = 0;
         if(($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))){
             foreach($tblPersonList as $tblPerson){
-                $tblSupport = Student::useService()->getSupportByPersonNewest($tblPerson, array('Förderbescheid', 'Änderung'));
-                $tblSpecial = Student::useService()->getSpecialByPerson($tblPerson);
-                $tblHandyCap = Student::useService()->getHandyCapByPerson($tblPerson);
                 // Button's nur anzeigen, wenn Integrationen hinterlegt sind
-                if($tblSupport || $tblSpecial || $tblHandyCap){
+                if(Student::useService()->getSupportReadOnlyButton($tblPerson) !== ''){
                     $HandyCapCount++;
                     $Listing[] = new Container(new PullClear($tblPerson->getLastFirstName()
                         .new PullRight((new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
@@ -2164,15 +2161,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $count++;
                         $data['Student'] = $tblPerson->getLastFirstName();
 
-                        $data['Integration'] = '';
-                        $tblSupport = Student::useService()->getSupportByPersonNewest($tblPerson, array('Förderbescheid', 'Änderung'));
-                        $tblSpecial = Student::useService()->getSpecialByPerson($tblPerson);
-                        $tblHandyCap = Student::useService()->getHandyCapByPerson($tblPerson);
-                        // Button's nur anzeigen, wenn Integrationen hinterlegt sind
-                        if($tblSupport || $tblSpecial || $tblHandyCap){
-                            $data['Integration'] = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
-                                    ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
-                        }
+                        $data['Integration'] = Student::useService()->getSupportReadOnlyButton($tblPerson);
 
                         $data['Course'] = '';
                         $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
@@ -3605,16 +3594,7 @@ class Frontend extends Extension implements IFrontendInterface
                             . ')')
                         : ''
                     );
-                $studentList[$tblPerson->getId()]['Integration'] = '';
-
-                $tblSupport = Student::useService()->getSupportByPersonNewest($tblPerson, array('Förderbescheid', 'Änderung'));
-                $tblSpecial = Student::useService()->getSpecialByPerson($tblPerson);
-                $tblHandyCap = Student::useService()->getHandyCapByPerson($tblPerson);
-                // Button's nur anzeigen, wenn Integrationen hinterlegt sind
-                if($tblSupport || $tblSpecial || $tblHandyCap){
-                    $studentList[$tblPerson->getId()]['Integration'] = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
-                        ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
-                }
+                $studentList[$tblPerson->getId()]['Integration'] = Student::useService()->getSupportReadOnlyButton($tblPerson);
                 $studentList[$tblPerson->getId()]['Course'] = '';
                 $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
                 if ($tblCourse) {
