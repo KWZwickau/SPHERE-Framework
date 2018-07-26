@@ -10,6 +10,7 @@ use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -119,6 +120,11 @@ class Zwickau extends Extension implements IModuleInterface
                                     'Address'  => 'Adresse',
                                     'Reservation' => 'für Klassenstufe',
                                     'Option'   => ''
+                                ),
+                                array(
+                                    'columnDefs' => array(
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                                    ),
                                 )
                             )
                         )),

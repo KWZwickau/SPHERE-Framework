@@ -6,6 +6,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Child;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
@@ -235,7 +236,11 @@ class Frontend extends Extension implements IFrontendInterface
                                         'order'      => array(
                                             array(2, 'asc'),
                                             array(4, 'asc'),
-                                        )
+                                        ),
+                                        "columnDefs" => array(
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 4),
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 5),
+                                        ),
                                     )
                                 )
                             )

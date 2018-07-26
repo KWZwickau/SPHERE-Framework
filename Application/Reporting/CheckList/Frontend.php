@@ -22,6 +22,7 @@ use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblList;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblListObjectList;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblObjectType;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -1674,6 +1675,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     )),
                                 new TableData($list, null, $columnDefinition,
                                     array(
+                                        'columnDefs' => array(
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                                        ),
 //                                        "pageLength" => -1,
                                         "responsive" => false
                                     ))

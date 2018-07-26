@@ -5,6 +5,7 @@ namespace SPHERE\Application\Reporting\Custom\Hormersdorf\Person;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Child;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
@@ -166,6 +167,9 @@ class Frontend extends Extension implements IFrontendInterface
                                         'PhoneNumbers' => 'Telefonnummer',
                                     ),
                                     array(
+                                        'columnDefs' => array(
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                        ),
                                         "pageLength" => -1,
                                         "responsive" => false
                                     )
@@ -239,7 +243,20 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Name'     => 'Name',
                                     'Birthday' => 'Geburtstag',
                                 ),
-                                null
+                                array(
+                                    'order' => array(
+                                        array('width' => '1%', 'targets' => 0),
+                                        array('width' => '2%', 'targets' => 2),
+                                    ),
+                                    "columnDefs" => array(
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                                    ),
+                                    'pageLength' => -1,
+                                    'paging' => false,
+                                    'info' => false,
+                                    'responsive' => false
+                                )
+//                                null
                             )
                         )
                     )
