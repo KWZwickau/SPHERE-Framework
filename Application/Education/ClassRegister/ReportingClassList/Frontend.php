@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Education\ClassRegister\ReportingClassList;
 
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Window\Stage;
@@ -35,7 +36,12 @@ class Frontend
             'Zurück', $BasicRoute . '/Selected', new ChevronLeft(), array('DivisionId' => $DivisionId)
         ));
 
-        ReportingPerson::useFrontend()->showClassList($Stage, $DivisionId);
+        $showDownLoadButton = false;
+        if(($tblSetting = Consumer::useService()->getSetting('Education', 'ClassRegister', 'Frontend', 'ShowDownloadButton'))){
+            $showDownLoadButton = $tblSetting->getValue();
+        }
+
+        ReportingPerson::useFrontend()->showClassList($Stage, $DivisionId, $showDownLoadButton);
 
         return $Stage;
     }
