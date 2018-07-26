@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student\Service\Service;
 
-use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\People\Meta\Student\Service\Data;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblHandyCap;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblSpecial;
@@ -18,10 +17,8 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\Form;
-use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
-use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -583,19 +580,18 @@ abstract class Support extends Integration
 
     /**
      * @param TblPerson $tblPerson
-     * @return string|Standard
+     * @return bool
      */
-    public function getSupportReadOnlyButton(TblPerson $tblPerson)
+    public function getIsSupportByPerson(TblPerson $tblPerson)
     {
 
-        $return = '';
+        $return = false;
         $tblSupport = Student::useService()->getSupportByPersonNewest($tblPerson, array('Förderbescheid', 'Änderung'));
         $tblSpecial = Student::useService()->getSpecialByPerson($tblPerson);
         $tblHandyCap = Student::useService()->getHandyCapByPerson($tblPerson);
         // Button's nur anzeigen, wenn Integrationen hinterlegt sind
         if($tblSupport || $tblSpecial || $tblHandyCap){
-            $return = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
-                ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
+            $return = true;
         }
         return $return;
     }

@@ -897,7 +897,7 @@ class Frontend extends Extension implements IFrontendInterface
         if(($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))){
             foreach($tblPersonList as $tblPerson){
                 // Button's nur anzeigen, wenn Integrationen hinterlegt sind
-                if(Student::useService()->getSupportReadOnlyButton($tblPerson) !== ''){
+                if(Student::useService()->getIsSupportByPerson($tblPerson)){
                     $HandyCapCount++;
                     $Listing[] = new Container(new PullClear($tblPerson->getLastFirstName()
                         .new PullRight((new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
@@ -2161,7 +2161,13 @@ class Frontend extends Extension implements IFrontendInterface
                         $count++;
                         $data['Student'] = $tblPerson->getLastFirstName();
 
-                        $data['Integration'] = Student::useService()->getSupportReadOnlyButton($tblPerson);
+                        if(Student::useService()->getIsSupportByPerson($tblPerson)) {
+                            $Integration = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+                                ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
+                        } else {
+                            $Integration = '';
+                        }
+                        $data['Integration'] = $Integration;
 
                         $data['Course'] = '';
                         $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
@@ -3594,7 +3600,13 @@ class Frontend extends Extension implements IFrontendInterface
                             . ')')
                         : ''
                     );
-                $studentList[$tblPerson->getId()]['Integration'] = Student::useService()->getSupportReadOnlyButton($tblPerson);
+                if(Student::useService()->getIsSupportByPerson($tblPerson)) {
+                    $Integration = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+                        ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
+                } else {
+                    $Integration = '';
+                }
+                $studentList[$tblPerson->getId()]['Integration'] = $Integration;
                 $studentList[$tblPerson->getId()]['Course'] = '';
                 $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
                 if ($tblCourse) {

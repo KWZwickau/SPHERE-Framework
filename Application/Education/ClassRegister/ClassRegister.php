@@ -343,7 +343,13 @@ class ClassRegister implements IApplicationInterface
                     $absence = ($excusedDays + $unExcusedDays) . ' (' . new Success($excusedDays) . ', '
                         . new \SPHERE\Common\Frontend\Text\Repository\Danger($unExcusedDays) . ')';
 
-                    $IntegrationButton = Student::useService()->getSupportReadOnlyButton($tblPerson);
+
+                    if(Student::useService()->getIsSupportByPerson($tblPerson)) {
+                        $IntegrationButton = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+                            ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
+                    } else {
+                        $IntegrationButton = '';
+                    }
                     $studentTable[] = array(
                         'Number'   => (count($studentTable) + 1),
                         'Name'     => (($isTeacher || !$IsSortable)

@@ -958,7 +958,13 @@ class Frontend extends FrontendScoreRule
                 $count++;
                 $data['Student'] = isset($addStudentList[$tblPerson->getId()])
                     ? new Muted($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName();
-                $data['Integration'] = Student::useService()->getSupportReadOnlyButton($tblPerson);
+                if(Student::useService()->getIsSupportByPerson($tblPerson)) {
+                    $Integration = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+                        ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
+                } else {
+                    $Integration = '';
+                }
+                $data['Integration'] = $Integration;
                 $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
                 $CourseName = '';
                 if ($tblCourse) {
@@ -2787,7 +2793,13 @@ class Frontend extends FrontendScoreRule
                     $data = array();
                     $data['Number'] = $count++;
                     $data['Name'] = $tblPerson->getLastFirstName();
-                    $data['Integration'] = Student::useService()->getSupportReadOnlyButton($tblPerson);
+                    if(Student::useService()->getIsSupportByPerson($tblPerson)) {
+                        $Integration = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+                            ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
+                    } else {
+                        $Integration = '';
+                    }
+                    $data['Integration'] = $Integration;
                     $data['Division'] = $tblGroup && isset($personData[$tblPerson->getId()]['Division'])
                         ? $personData[$tblPerson->getId()]['Division'] : '';
                     $data['Course'] = '';
@@ -2975,9 +2987,10 @@ class Frontend extends FrontendScoreRule
         )));
 
         // Button's nur anzeigen, wenn Integrationen hinterlegt sind
-        if(($Button = Student::useService()->getSupportReadOnlyButton($tblPerson)) !== ''){
-            /** @var Standard $Button */
-            $Stage->addButton($Button->setName('Integration'));
+        $tblPerson = Person::useService()->getPersonById($PersonId);
+        if($tblPerson && Student::useService()->getIsSupportByPerson($tblPerson)) {
+            $Stage->addButton((new Standard('Integration', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+                ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId())));
         }
 
         $columnDefinition = array();
