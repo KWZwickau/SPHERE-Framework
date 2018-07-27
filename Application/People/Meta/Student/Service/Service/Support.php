@@ -151,6 +151,39 @@ abstract class Support extends Integration
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblSupportType $tblSupportType
+     * @param string $Date
+     * @param string $Company
+     * @param string $PersonSupport
+     * @param string $SupportTime
+     * @param string $PersonEditor
+     * @param string $Remark
+     *
+     * @return bool|TblSupport
+     */
+    public function importSupport(TblPerson $tblPerson,
+        TblSupportType $tblSupportType,
+        $Date = '',
+        $Company = '',
+        $PersonSupport = '',
+        $SupportTime = '',
+        $PersonEditor = '',
+        $Remark = '')
+    {
+
+        if($PersonEditor == ''){
+            $PersonEditor = 'Datenübernahme';   //ToDO Abstimmung mit JK
+        }
+        $Date = new \DateTime($Date);
+
+        if($tblPerson && $tblSupportType && $Date){
+            return (new Data($this->getBinding()))->createSupport($tblPerson, $tblSupportType, $Date, $PersonEditor, $Company, $PersonSupport, $SupportTime, $Remark);
+        }
+        return false;
+    }
+
+    /**
      * @param TblSupport          $tblSupport
      * @param TblSupportFocusType $tblSupportFocusType
      * @param bool                $IsPrimary
@@ -206,6 +239,29 @@ abstract class Support extends Integration
         }
 
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Daten wurde erfolgreich gespeichert');
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param string $Date
+     * @param string $PersonEditor
+     * @param string $Remark
+     *
+     * @return bool|TblSpecial
+     */
+    public function importSpecial(TblPerson $tblPerson, $Date, $PersonEditor = '', $Remark = '')
+    {
+
+
+        if($PersonEditor == ''){
+            $PersonEditor = 'Datenübernahme';   //ToDO Abstimmung mit JK
+        }
+        $Date = new \DateTime($Date);
+
+        if($tblPerson && $Date){
+            return (new Data($this->getBinding()))->createSpecial($tblPerson, $Date, $PersonEditor, $Remark);
+        }
+        return false;
     }
 
     /**
@@ -478,6 +534,17 @@ abstract class Support extends Integration
     }
 
     /**
+     * @param $Name
+     *
+     * @return false|TblSupportType
+     */
+    public function getSupportTypeByName($Name)
+    {
+
+        return ( new Data($this->getBinding()) )->getSupportTypeByName($Name);
+    }
+
+    /**
      * @param TblPerson $tblPerson
      *
      * @return false|TblSpecial[]
@@ -594,6 +661,24 @@ abstract class Support extends Integration
             $return = true;
         }
         return $return;
+    }
+
+    /**
+     * @return string
+     */
+    public function countSupportAll()
+    {
+
+        return ( new Data($this->getBinding()) )->countSupportAll();
+    }
+
+    /**
+     * @return string
+     */
+    public function countSpecialAll()
+    {
+
+        return ( new Data($this->getBinding()) )->countSpecialAll();
     }
 
     /**

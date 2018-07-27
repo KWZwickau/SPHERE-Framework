@@ -406,6 +406,24 @@ abstract class Support extends Integration
     }
 
     /**
+     * @return string
+     */
+    public function countSupportAll()
+    {
+
+        return $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSupport', array());
+    }
+
+    /**
+     * @return string
+     */
+    public function countSpecialAll()
+    {
+
+        return $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSpecial', array());
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblSupportType
