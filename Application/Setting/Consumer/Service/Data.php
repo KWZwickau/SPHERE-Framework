@@ -188,15 +188,15 @@ class Data extends AbstractData
                 TblSetting::TYPE_BOOLEAN,
                 '1'
             );
-            // Notenbuch Pdf download -> Stichtagsnoten anzeigen
-//            $this->createSetting(
-//                'Education',
-//                'Graduation',
-//                'Gradebook',
-//                'ShowAppointedDateGradesInPdf',
-//                TblSetting::TYPE_BOOLEAN,
-//                '1'
-//            );
+            // Notenbuch Pdf download -> Zeugnisnoten anzeigen
+            $this->createSetting(
+                'Education',
+                'Graduation',
+                'Gradebook',
+                'ShowCertificateGradeInPdf',
+                TblSetting::TYPE_BOOLEAN,
+                '1'
+            );
 
             // Anzeige des Schulnamens auf der Schülerkartei für die Grundschule
             if ($tblConsumer->getAcronym() == 'ESRL') {

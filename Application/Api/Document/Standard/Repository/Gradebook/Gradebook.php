@@ -14,6 +14,7 @@ use SPHERE\Application\Document\Generator\Repository\Frame;
 use SPHERE\Application\Document\Generator\Repository\Page;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
+use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -258,16 +259,19 @@ class Gradebook
             $showAverage = $tblSettingAverage->getValue();
         }
 
-        // todo showAppointedDateGrades
-//        $showAppointedDateGrades = false;
-//        if (($tblSettingAppointedDateGrades = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'ShowAppointedDateGradesInPdf'))) {
-//            $showAppointedDateGrades = $tblSettingAppointedDateGrades->getValue();
-//        }
+        $showCertificateGrade = false;
+        if (($tblSettingAppointedDateGrades = Consumer::useService()->getSetting('Education', 'Graduation', 'Gradebook', 'ShowCertificateGradeInPdf'))) {
+            $showCertificateGrade = $tblSettingAppointedDateGrades->getValue();
+        }
 
-        // todo tatsächlich ermitteln
         $isLastTestLastColumn = false;
-        $isAverageLastColumn = $showAverage;
-        if (!$isAverageLastColumn) {
+        $isAverageLastColumn = false;
+        $isCertificateGradeLastColumn = false;
+        if ($showCertificateGrade) {
+            $isCertificateGradeLastColumn = true;
+        } elseif ($showAverage) {
+            $isAverageLastColumn = true;
+        } else {
             $isLastTestLastColumn = true;
         }
 
@@ -284,6 +288,39 @@ class Gradebook
         if ($tblPersonList) {
             foreach ($tblPersonList as $tblPerson) {
                 $existingPersonList[$tblPerson->getId()] = $tblPerson;
+            }
+        }
+
+        // mögliches Zeugnis ermitteln
+        $tblPrepareForCertificateGrade = false;
+        if (($tblPrepareList = Prepare::useService()->getPrepareAllByDivision($tblDivision))) {
+            foreach ($tblPrepareList as $tblPrepareCertificate) {
+                if (($tblGenerateCertificate = $tblPrepareCertificate->getServiceTblGenerateCertificate())
+                    && ($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+                ) {
+                    if ($isSekTwo) {
+                        if ($tblCertificateType->getIdentifier() == 'MID_TERM_COURSE'
+                            && ($tblTask = $tblPrepareCertificate->getServiceTblAppointedDateTask())
+                            && ($tblPeriodOfPrepareCertificate = $tblTask->getServiceTblPeriod())
+                            && $tblPeriod->getId() == $tblPeriodOfPrepareCertificate->getId()
+                        ) {
+                            $tblPrepareForCertificateGrade = $tblPrepareCertificate;
+                            break;
+                        }
+                    } else {
+                        if (!$isLastPeriod
+                            && ($tblCertificateType->getIdentifier() == 'HALF_YEAR')
+                        ) {
+                            $tblPrepareForCertificateGrade = $tblPrepareCertificate;
+                            break;
+                        } elseif ($isLastPeriod
+                            && ($tblCertificateType->getIdentifier() == 'YEAR')
+                        ) {
+                            $tblPrepareForCertificateGrade = $tblPrepareCertificate;
+                            break;
+                        }
+                    }
+                }
             }
         }
 
@@ -404,10 +441,12 @@ class Gradebook
             if ($showAverage) {
                 $count++;
             }
-            // todo Stichtagsnoten
+            if ($showCertificateGrade) {
+                $count++;
+            }
             $periodListCount[$tblPeriod->getId()] = $count;
         } else {
-            // todo keine Tests (leeres Halbjahr)
+            // todo keine Tests (leeres Halbjahr) -> mindestens 4 gesamt immer
             // für gesamt Durchschnitt;
             if ($isLastPeriod) {
                 $periodListCount[$tblPeriod->getId()] = 2;
@@ -445,25 +484,37 @@ class Gradebook
                 if ($showAverage) {
                     if (!$isSekTwo && $isLastPeriod) {
                         // Gesamtdurchschnitt
-                        if ($isLastPeriod) {
-                            $headerSection = $this->setHeaderTest(
-                                $headerSection,
-                                '&#216;' . '&nbsp;' . 'Gesamtes Schuljahr',
-                                $widthColumnTestString,
-                                true,
-                                $isAverageLastColumn
-                            );
-                        }
+                        $headerName = 'Schuljahr';
                     } else {
                         // Durchschnitt des Halbjahres
-                        $headerSection = $this->setHeaderTest(
-                            $headerSection,
-                            '&#216;' . '&nbsp;' . $tblPeriod->getName(),
-                            $widthColumnTestString,
-                            true,
-                            $isAverageLastColumn
-                        );
+                        $headerName = $tblPeriod->getName();
                     }
+
+                    $headerSection = $this->setHeaderTest(
+                        $headerSection,
+                        '&#216;' . '&nbsp;' . $headerName,
+                        $widthColumnTestString,
+                        true,
+                        $isAverageLastColumn
+                    );
+                }
+
+                if ($showCertificateGrade) {
+                    if (!$isSekTwo && $isLastPeriod) {
+                        // Gesamtdurchschnitt
+                        $headerName = 'Schuljahr';
+                    } else {
+                        // Durchschnitt des Halbjahres
+                        $headerName = $tblPeriod->getName();
+                    }
+
+                    $headerSection = $this->setHeaderTest(
+                        $headerSection,
+                        'Zeugnisnote' . '&nbsp;' . $headerName,
+                        $widthColumnTestString,
+                        true,
+                        $isCertificateGradeLastColumn
+                    );
                 }
             }
 
@@ -627,6 +678,35 @@ class Gradebook
                                     ->styleBackgroundColor(self::COLOR_HEADER)
                                     , $widthColumnTestString);
                             }
+
+                            if ($showCertificateGrade) {
+                                $certificateGrade = '&nbsp;';
+                                if ($tblPrepareForCertificateGrade
+                                    && ($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepareForCertificateGrade, $tblPerson))
+                                    && $tblPrepareStudent->isApproved()
+                                    && $tblPrepareStudent->isPrinted()
+                                    && ($tblPrepareGrade = Prepare::useService()->getPrepareGradeBySubject(
+                                        $tblPrepareForCertificateGrade,
+                                        $tblPerson,
+                                        $tblDivision,
+                                        $tblSubject,
+                                        Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')
+                                    ))
+                                ) {
+                                    $certificateGrade = $tblPrepareGrade->getGrade();
+                                }
+
+                                $periodSection->addElementColumn((new Element())
+                                    ->setContent($certificateGrade)
+                                    ->styleTextSize(self::TEXT_SIZE_BODY)
+                                    ->stylePaddingLeft($paddingLeft)
+                                    ->styleTextBold()
+                                    ->styleBorderTop()
+                                    ->styleBorderLeft()
+                                    ->styleBorderRight($isCertificateGradeLastColumn ? '1px' : '0px')
+                                    ->styleBackgroundColor(self::COLOR_HEADER)
+                                    , $widthColumnTestString);
+                            }
                         }
 
                         $section
@@ -728,6 +808,20 @@ class Gradebook
                             ->styleBackgroundColor(self::COLOR_HEADER)
                             , $widthColumnTestString);
                     }
+
+                    if ($showCertificateGrade) {
+                        $periodSection->addElementColumn((new Element())
+                            ->setContent('&nbsp;')
+                            ->styleTextSize(self::TEXT_SIZE_BODY)
+                            ->stylePaddingLeft($paddingLeft)
+                            ->styleTextBold()
+                            ->styleBorderTop()
+                            ->styleBorderLeft()
+                            ->styleBorderBottom()
+                            ->styleBorderRight($isCertificateGradeLastColumn ? '1px' : '0px')
+                            ->styleBackgroundColor(self::COLOR_HEADER)
+                            , $widthColumnTestString);
+                    }
                 }
 
                 $section
@@ -739,11 +833,6 @@ class Gradebook
         }
 
         $slice->addSection($section);
-
-//        $slice
-//            ->addElement((new Element())
-//                ->styleBorderTop()
-//            );
 
         return $slice;
     }
