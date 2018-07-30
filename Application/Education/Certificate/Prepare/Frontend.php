@@ -777,7 +777,12 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
 
-                $tblTestList = Evaluation::useService()->getTestAllByTask($tblPrepare->getServiceTblBehaviorTask(), $tblDivision);
+                if (($tblPrepare->getServiceTblBehaviorTask())) {
+                    $tblTestList = Evaluation::useService()->getTestAllByTask($tblPrepare->getServiceTblBehaviorTask(),
+                        $tblDivision);
+                } else {
+                    $tblTestList = false;
+                }
 
                 // Kopfnoten festlegen
                 if (!$IsNotGradeType
