@@ -236,7 +236,7 @@ class Data extends AbstractData
             TblSetting::TYPE_BOOLEAN, '1');
 
         $this->createSetting('Education', 'ClassRegister', 'Frontend', 'ShowDownloadButton',
-            TblSetting::TYPE_BOOLEAN, '0');
+            TblSetting::TYPE_BOOLEAN, '1');
     }
 
     /**
