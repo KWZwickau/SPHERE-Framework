@@ -389,4 +389,15 @@ class Service extends AbstractService
     {
         return (new Data($this->getBinding()))->softRemovePersonReferences($tblPerson);
     }
+
+    /**
+     * @param string $Name
+     *
+     * @return bool|TblSalutation
+     */
+    public function getSalutationByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getSalutationByName($Name);
+    }
 }

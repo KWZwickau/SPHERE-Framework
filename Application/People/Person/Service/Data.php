@@ -323,4 +323,18 @@ class Data extends AbstractData
         Absence::useService()->destroyAbsenceAllByPerson($tblPerson, $IsSoftRemove);
         Group::useService()->removeMemberAllByPerson($tblPerson, $IsSoftRemove);
     }
+
+    /**
+     * @param string $Name
+     *
+     * @return bool|TblSalutation
+     */
+    public function getSalutationByName($Name)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSalutation',
+            array(
+                TblSalutation::ATTR_SALUTATION => $Name
+            ));
+    }
 }

@@ -22,6 +22,8 @@ use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Table\Repository\Title;
+use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\System\Extension\Repository\Debugger;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -161,7 +163,7 @@ class Service
                     $countFatherExists = 0;
                     $countMotherExists = 0;
 
-                    if ($isFormerStudent){
+                    if ($isFormerStudent) {
                         $tblFormerStudentGroup = Group::useService()->insertGroup('Ehemalige Schüler');
                     } else {
                         $tblFormerStudentGroup = false;
@@ -177,7 +179,7 @@ class Service
                             $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Schüler wurde nicht hinzugefügt, da er keinen Vornamen und/oder Namen besitzt.';
                         } else {
 
-                            if ($isFormerStudent){
+                            if ($isFormerStudent) {
                                 $groups = array(
                                     0 => Group::useService()->getGroupByMetaTable('COMMON'),
                                     1 => $tblFormerStudentGroup,
@@ -472,7 +474,7 @@ class Service
                                 $county = trim($Document->getValue($Document->getCell($Location['Schüler_Landkreis'],
                                     $RunY)));
 
-                                if ($streetName !== '' && $streetNumber !=='') {
+                                if ($streetName !== '' && $streetNumber !== '') {
                                     Address::useService()->insertAddressToPerson(
                                         $tblPerson, $streetName, $streetNumber, $studentCityCode, $studentCityName,
                                         $studentCityDistrict, '', $county
@@ -492,7 +494,7 @@ class Service
                                         }
                                     }
 
-                                    if ($streetName !== '' && $streetNumber !=='') {
+                                    if ($streetName !== '' && $streetNumber !== '') {
                                         Address::useService()->insertAddressToPerson(
                                             $tblPersonFather,
                                             $streetName,
@@ -519,7 +521,7 @@ class Service
                                         }
                                     }
 
-                                    if ($streetName !== '' && $streetNumber !=='') {
+                                    if ($streetName !== '' && $streetNumber !== '') {
                                         Address::useService()->insertAddressToPerson(
                                             $tblPersonMother,
                                             $streetName,
@@ -1136,11 +1138,199 @@ class Service
                     Debugger::screenDump($Location);
 
                     return new Warning(json_encode($Location)) . new Danger(
-                        "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                            "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
                 }
             }
         }
 
         return new Danger('File nicht gefunden');
+    }
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param UploadedFile|null $File
+     *
+     * @return IFormInterface|Success|TableData
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function createPersonsFromFile(
+        IFormInterface $Form = null,
+        UploadedFile $File = null
+    ) {
+
+        $errorList = array();
+        $countPersons = 0;
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $File) {
+            return $Form;
+        }
+
+        if (null !== $File) {
+            if ($File->getError()) {
+                $Form->setError('File', 'Fehler');
+            } else {
+
+                /**
+                 * Prepare
+                 */
+                $File = $File->move($File->getPath(),
+                    $File->getFilename() . '.' . $File->getClientOriginalExtension());
+
+                /**
+                 * Read
+                 */
+                //$File->getMimeType()
+                /** @var PhpExcel $Document */
+                $Document = Document::getDocument($File->getPathname());
+                if (!$Document instanceof PhpExcel) {
+                    $Form->setError('File', 'Fehler');
+                    return $Form;
+                }
+
+                $X = $Document->getSheetColumnCount();
+                $Y = $Document->getSheetRowCount();
+
+                /**
+                 * Header -> Location
+                 */
+                $Location = array(
+                    'Anrede' => null,
+                    'Titel' => null,
+                    'Name' => null,
+                    'Vorname' => null,
+                    'Straße' => null,
+                    'PLZ' => null,
+                    'Ort' => null,
+                    'Ortsteil' => null,
+                    'Land' => null,
+                );
+
+                for ($RunX = 0; $RunX < $X; $RunX++) {
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
+                    if (array_key_exists($Value, $Location)) {
+                        $Location[$Value] = $RunX;
+                    }
+                }
+
+                $groupList = array();
+                if (($tblGroupCommon = Group::useService()->getGroupByMetaTable('COMMON'))) {
+                    $groupList[] = $tblGroupCommon;
+                }
+                if (($tblGroupImport = Group::useService()->createGroupFromImport('Import'))) {
+                    $groupList[] = $tblGroupImport;
+                }
+                if (($tblGroupPrivateContacts = Group::useService()->createGroupFromImport('Privatkontakte'))) {
+                    $groupList[] = $tblGroupPrivateContacts;
+                }
+
+                /**
+                 * Import
+                 */
+                if (!in_array(null, $Location, true)) {
+                    $errorList = array();
+                    for ($RunY = 1; $RunY < $Y; $RunY++) {
+                        set_time_limit(300);
+
+                        $rowCount = $RunY +1;
+
+                        $firstName = trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY)));
+                        $lastName = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));
+                        $cityCode = trim($Document->getValue($Document->getCell($Location['PLZ'], $RunY)));
+
+                        if (($tblPersonExits = Person::useService()->existsPerson(
+                            $firstName,
+                            $lastName,
+                            $cityCode
+                        ))) {
+                            $errorList[] = array(
+                                'RowCount' => $rowCount,
+                                'Message' => 'Die Person: ' . $firstName . ' ' . $lastName . ' exsistiert bereits.',
+                                'Result' => 'Die Person wurde nicht angelegt und es wurden keinen Daten übernommen'
+                            );
+                        } else {
+                            $tblSalutation = false;
+                            $salutation = trim($Document->getValue($Document->getCell($Location['Anrede'], $RunY)));
+                            if ($salutation != '') {
+                                $tblSalutation = Person::useService()->getSalutationByName($salutation);
+                                if (!$tblSalutation) {
+                                    $errorList[] = array(
+                                        'RowCount' => $rowCount,
+                                        'Message' => 'Die Anrede: ' . $salutation . ' konnte nicht gefunden werden.',
+                                        'Result' => 'Die Person wird ohne Anrede angelegt.'
+                                    );
+                                }
+                            }
+
+                            if (($tblPerson = Person::useService()->insertPerson(
+                                $tblSalutation,
+                                trim($Document->getValue($Document->getCell($Location['Titel'], $RunY))),
+                                $firstName,
+                                '',
+                                $lastName,
+                                $groupList
+                            ))) {
+                                $countPersons++;
+
+                                $streetName = '';
+                                $streetNumber = '';
+                                $street = trim($Document->getValue($Document->getCell($Location['Straße'], $RunY)));
+                                if (preg_match_all('!\d+!', $street, $matches)) {
+                                    $pos = strpos($street, $matches[0][0]);
+                                    if ($pos !== null) {
+                                        $streetName = trim(substr($street, 0, $pos));
+                                        $streetNumber = trim(substr($street, $pos));
+                                    }
+                                }
+                                $city = trim($Document->getValue($Document->getCell($Location['Ort'], $RunY)));
+
+                                if ($streetName != '' && $streetNumber != '' && $city != '' && $cityCode != '') {
+                                    Address::useService()->insertAddressToPerson(
+                                        $tblPerson,
+                                        $streetName,
+                                        $streetNumber,
+                                        $cityCode,
+                                        $city,
+                                        trim(str_replace('OT', '', $Document->getValue($Document->getCell($Location['Ortsteil'], $RunY)))),
+                                        '',
+                                        '',
+                                        trim($Document->getValue($Document->getCell($Location['Land'], $RunY)))
+                                    );
+                                } else {
+                                    $errorList[] = array(
+                                        'RowCount' => $rowCount,
+                                        'Message' => 'Die Adresse konnte nicht angelegt werden.',
+                                        'Result' => 'Die Person wurde ohne die Adresse angelegt.'
+                                    );
+                                }
+                            } else {
+                                $errorList[] = array(
+                                    'RowCount' => $rowCount,
+                                    'Message' => 'Die Person: ' . $firstName . ' ' . $lastName . ' exsistiert bereits.',
+                                    'Result' => 'Die Person wurde nicht angelegt und es wurden keinen Daten übernommen'
+                                );
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
+
+        if (empty($errorList)) {
+            return new Success('Es wurden ' .  $countPersons . ' Personen importiert.');
+        } else {
+            return new TableData(
+                $errorList,
+                new Title('Fehlermeldungen'),
+                array(
+                    'RowCount' => 'Zeile',
+                    'Message' => 'Fehlermeldung',
+                    'Result' => 'Ergebnis'
+                )
+            );
+        }
     }
 }
