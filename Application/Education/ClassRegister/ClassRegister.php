@@ -16,7 +16,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
-use SPHERE\Common\Frontend\Icon\Repository\Dice;
+use SPHERE\Common\Frontend\Icon\Repository\Commodity;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\ResizeVertical;
@@ -373,7 +373,7 @@ class ClassRegister implements IApplicationInterface
                             ),
                             'Fehlzeiten des Schülers verwalten'
                         ).new Standard(
-                            '', '/Education/ClassRegister/Integration', new Dice(),
+                            '', '/Education/ClassRegister/Integration', new Commodity(),
                             array(
                                 'DivisionId' => $tblDivision->getId(),
                                 'PersonId'   => $tblPerson->getId(),
@@ -502,11 +502,41 @@ class ClassRegister implements IApplicationInterface
                    'BasicRoute' => $BasicRoute,
             )));
 
+        $PersonPanel = '';
         if(($tblPerson = Person::useService()->getPersonById($PersonId))){
-            $Stage->setContent(new Well(Student::useFrontend()->frontendIntegration($tblPerson)));
-        } else {
-            $Stage->setContent(new Warning('Person wurde nicht gefunden.'));
+            $PersonPanel = new Panel('Person', $tblPerson->getLastFirstName(), Panel::PANEL_TYPE_INFO);
         }
+        $DivisionPanel = '';
+        if(($tblDivision = Division::useService()->getDivisionById($DivisionId))){
+            $DivisionPanel = new Panel('Klasse, Schulart', $tblDivision->getDisplayName().', '.$tblDivision->getTypeName(), Panel::PANEL_TYPE_INFO);
+        }
+
+
+        if(($tblPerson = Person::useService()->getPersonById($PersonId))){
+            $Content = (new Well(Student::useFrontend()->frontendIntegration($tblPerson)));
+        } else {
+            $Content = (new Warning('Person wurde nicht gefunden.'));
+        }
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            $PersonPanel
+                        , 6),
+                        new LayoutColumn(
+                            $DivisionPanel
+                        , 6),
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            $Content
+                        )
+                    )
+                ))
+            )
+        );
 
         return $Stage;
     }

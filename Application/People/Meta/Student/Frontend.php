@@ -95,6 +95,7 @@ use SPHERE\Common\Frontend\Message\Repository\Success as SuccessMessage;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
@@ -296,6 +297,13 @@ class Frontend extends Extension implements IFrontendInterface
             .new Layout(array(
                 new LayoutGroup(
                     new LayoutRow(
+                        new LayoutColumn(
+                            new Warning('Für Lehrer sind nur die aktuellsten Einträge sichtbar')
+                        , 6)
+                    )
+                ),
+                new LayoutGroup(
+                    new LayoutRow(
                         new LayoutColumn(array(
                                 ApiSupport::receiverModal(),
                                 (new Standard('Förderantrag/Förderbescheid hinzufügen', '#'))
@@ -375,8 +383,8 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
                 new FormRow(array(
                     new FormColumn(array(
-                        (new SelectBox('Data[SupportType]', 'Förderantrag', array('{{ Name }}' => $SupportTypeList), new Education()))->setRequired(),
-                        new SuccessMessage('Nur "Förderbescheid" und "Änderung" sind sichtbar für Lehrer')
+                        (new SelectBox('Data[SupportType]', 'Vorgang', array('{{ Name }}' => $SupportTypeList), new Education()))->setRequired(),
+                        new SuccessMessage('Nur "Förderbescheid" und "Änderung" sind für Lehrer sichtbar')
                         ), 6),
                     new FormColumn(
                         new Listing($CheckboxList)
@@ -483,7 +491,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(array(
                         (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired(),
-                        new Title('Entwicklung'),
+                        new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Bold('Entwicklungsbesonderheiten '.new DangerText('*')))))),
                         new Listing($CheckboxList)
                         ), 6),
                     new FormColumn(
@@ -559,7 +567,7 @@ class Frontend extends Extension implements IFrontendInterface
                         (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired(),
                     ), 6),
                     new FormColumn(
-                        new TextArea('Data[Remark]', 'Bemerkung', 'Bemerkung', new Edit())
+                        (new TextArea('Data[Remark]', 'Bemerkung', 'Bemerkung', new Edit()))->setRequired()
                     , 12),
                 )),
                 new FormRow(array(
@@ -598,13 +606,14 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $FocusList = array();
                 $PrimaryFocus = Student::useService()->getPrimaryFocusBySupport($tblSupport);
-                if($PrimaryFocus){
-                    $FocusList[] = new Bold($PrimaryFocus->getName());
-                }
                 $tblFocusList = Student::useService()->getFocusListBySupport($tblSupport);
                 if($tblFocusList){
                     foreach($tblFocusList as $tblFocus){
-                        $FocusList[] = $tblFocus->getName();
+                        if($PrimaryFocus && $PrimaryFocus->getId() == $tblFocus->getId()){
+                            $FocusList[] = new Bold($tblFocus->getName().' *');
+                        } else {
+                            $FocusList[] = $tblFocus->getName();
+                        }
                     }
                 }
                 if(!empty($FocusList)) {
@@ -621,8 +630,8 @@ class Frontend extends Extension implements IFrontendInterface
 
         return new TableData($TableContent, null,
             array('RequestDate' => 'Datum',
-                  'CoachingRequest' => 'Förderantrag',
-                  'Focus' => 'Förderschwerpunkte',
+                  'CoachingRequest' => 'Vorgang',
+                  'Focus' => 'Förderschwerpunkte '.new Muted(new Small('Primary *')),
                   'IntegrationCompany' => 'Förderschule',
                   'PersonSupport' => 'Schulbegleitung',
                   'IntegrationTime' => 'Stundenbedarf',

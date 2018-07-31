@@ -723,9 +723,7 @@ abstract class Support extends Integration
         $tblSupportFocusList = (new Data($this->getBinding()))->getSupportFocusBySupport($tblSupport);
         if($tblSupportFocusList){
             foreach($tblSupportFocusList as $tblSupportFocus){
-                if(!$tblSupportFocus->getIsPrimary()){
-                    $FocusList[] = $tblSupportFocus->getTblSupportFocusType();
-                }
+                $FocusList[] = $tblSupportFocus->getTblSupportFocusType();
             }
         }
 
@@ -793,7 +791,7 @@ abstract class Support extends Integration
             $Error = true;
         }
         if (isset($Data['SupportType']) && empty($Data['SupportType'])) {
-            $form->setError('Data[SupportType]', 'Bitte geben Sie ein Verhalten des Förderantrag an');
+            $form->setError('Data[SupportType]', 'Bitte wählen Sie einen Vorgang aus');
             $Error = true;
         }
         if ($Error) {
@@ -820,7 +818,7 @@ abstract class Support extends Integration
             $Error = true;
         }
         if (!isset($Data['CheckboxList'])) {
-            $form .= new Danger('Bitte geben Sie Besonderheiten an');
+            $form .= new Danger('Bitte geben Sie mindestens eine Entwicklungsbesonderheit an');
             $Error = true;
         }
         if ($Error) {

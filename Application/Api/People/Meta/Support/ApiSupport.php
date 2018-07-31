@@ -920,7 +920,7 @@ class ApiSupport extends Extension implements IApiInterface
                     new LayoutColumn($tblSupport->getDate(), 9),
             )))),
             new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('Förderantrag/bescheid:', 3),
+                    new LayoutColumn('Vorgang:', 3),
                     new LayoutColumn($SupportType, 9),
             )))),
             new Layout(new LayoutGroup(new LayoutRow(array(
@@ -1001,7 +1001,7 @@ class ApiSupport extends Extension implements IApiInterface
                     new LayoutColumn($tblSpecial->getDate(), 9),
             )))),
             new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('Besonderheiten:', 3),
+                    new LayoutColumn('Entwicklungsbesonderheiten:', 3),
                     new LayoutColumn($Disorder, 9),
             )))),
             new Layout(new LayoutGroup(new LayoutRow(array(

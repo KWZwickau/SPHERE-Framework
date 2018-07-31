@@ -138,12 +138,19 @@ abstract class Support extends Integration
 
         $Manager = $this->getConnection()->getEntityManager();
 
-        $Entity = new TblSupportFocus();
-        $Entity->setTblSupport($tblSupport);
-        $Entity->setTblSupportFocusType($tblSupportFocusType);
-        $Entity->setIsPrimary($IsPrimary);
-        $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+        $Entity = $Manager->getEntity('TblSupportFocus')->findOneBy(array(
+            TblSupportFocus::ATTR_TBL_SUPPORT_FOCUS_TYPE => $tblSupportFocusType->getId(),
+            TblSupportFocus::ATTR_TBL_SUPPORT => $tblSupport->getId(),
+        ));
+
+        if (null === $Entity) {
+            $Entity = new TblSupportFocus();
+            $Entity->setTblSupport($tblSupport);
+            $Entity->setTblSupportFocusType($tblSupportFocusType);
+            $Entity->setIsPrimary($IsPrimary);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+        }
         return $Entity;
     }
 
