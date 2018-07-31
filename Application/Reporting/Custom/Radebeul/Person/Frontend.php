@@ -104,8 +104,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
                 }
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Radebeul/Person/ParentTeacherConferenceList',
-                    new EyeOpen(),
-                    array('DivisionId' => $tblDivision->getId()));
+                    new EyeOpen(), array('DivisionId' => $tblDivision->getId()), 'Anzeigen');
                 $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
                 array_push($TableContent, $Item);
             });
@@ -313,8 +312,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Item['Name'] = $tblGroup->getName();
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Radebeul/Person/PhoneList',
-                    new EyeOpen(),
-                    array('GroupId' => $tblGroup->getId()));
+                    new EyeOpen(), array('GroupId' => $tblGroup->getId()), 'Anzeigen');
 
                 array_push($TableContent, $Item);
             });
@@ -423,8 +421,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Item['Name'] = $tblGroup->getName();
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Radebeul/Person/KindergartenList',
-                    new EyeOpen(),
-                    array('GroupId' => $tblGroup->getId()));
+                    new EyeOpen(), array('GroupId' => $tblGroup->getId()), 'Anzeigen');
 
                 array_push($TableContent, $Item);
             });
@@ -523,8 +520,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Item['Name'] = $tblGroup->getName();
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Radebeul/Person/RegularSchoolList',
-                    new EyeOpen(),
-                    array('GroupId' => $tblGroup->getId()));
+                    new EyeOpen(), array('GroupId' => $tblGroup->getId()), 'Anzeigen');
 
                 array_push($TableContent, $Item);
             });
@@ -622,8 +618,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Item['Name'] = $tblGroup->getName();
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Radebeul/Person/DiseaseList',
-                    new EyeOpen(),
-                    array('GroupId' => $tblGroup->getId()));
+                    new EyeOpen(), array('GroupId' => $tblGroup->getId()), 'Anzeigen');
 
                 array_push($TableContent, $Item);
             });

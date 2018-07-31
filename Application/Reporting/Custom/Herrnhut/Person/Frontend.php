@@ -96,7 +96,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
                 }
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Herrnhut/Person/ProfileList', new EyeOpen(),
-                    array('DivisionId' => $tblDivision->getId()));
+                    array('DivisionId' => $tblDivision->getId()), 'Anzeigen');
                 $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
                 array_push($TableContent, $Item);
             });
@@ -256,7 +256,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
                 }
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Herrnhut/Person/SignList', new EyeOpen(),
-                    array('DivisionId' => $tblDivision->getId()));
+                    array('DivisionId' => $tblDivision->getId()), 'Anzeigen');
                 $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
                 array_push($TableContent, $Item);
             });
@@ -416,7 +416,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
                 }
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Herrnhut/Person/LanguageList', new EyeOpen(),
-                    array('DivisionId' => $tblDivision->getId()));
+                    array('DivisionId' => $tblDivision->getId()), 'Anzeigen');
                 $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
                 array_push($TableContent, $Item);
             });
@@ -587,7 +587,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
                 }
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Herrnhut/Person/ClassList', new EyeOpen(),
-                    array('DivisionId' => $tblDivision->getId()));
+                    array('DivisionId' => $tblDivision->getId()), 'Anzeigen');
                 $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
                 array_push($TableContent, $Item);
             });
@@ -754,7 +754,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
                 }
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Herrnhut/Person/ExtendedClassList', new EyeOpen(),
-                    array('DivisionId' => $tblDivision->getId()));
+                    array('DivisionId' => $tblDivision->getId()), 'Anzeigen');
                 $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
                 array_push($TableContent, $Item);
             });

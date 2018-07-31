@@ -3,10 +3,11 @@
 namespace SPHERE\Application\Reporting\Standard\Company;
 
 use SPHERE\Application\Corporation\Group\Group;
+use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
-use SPHERE\Common\Frontend\Icon\Repository\Select;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -39,15 +40,17 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Auswertung', 'Institutionengruppenlisten');
         $tblGroupAll = Group::useService()->getGroupAll();
         $companyList = array();
-
+        $TableContent = array();
         if ($GroupId === null) {
             if ($tblGroupAll){
-                foreach ($tblGroupAll as &$tblGroup){
-                    $tblGroup->Count = Group::useService()->countMemberByGroup($tblGroup);
-                    $tblGroup->Option = new Standard(new Select(), '/Reporting/Standard/Company/GroupList', null, array(
+                array_walk($tblGroupAll, function (TblGroup $tblGroup) use (&$TableContent) {
+                    $Item['Name'] = $tblGroup->getName();
+                    $Item['Count'] = Group::useService()->countMemberByGroup($tblGroup);
+                    $Item['Option'] = new Standard(new EyeOpen(), '/Reporting/Standard/Company/GroupList', null, array(
                         'GroupId' => $tblGroup->getId()
-                    ));
-                }
+                    ), 'Anzeigen');
+                    array_push($TableContent, $Item);
+                });
             }
 
             $Stage->setContent(
@@ -56,7 +59,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(
                             new LayoutColumn(
                                 new TableData(
-                                    $tblGroupAll, null, array('Name' => 'Name', 'Count' => 'Institutionen', 'Option' => '')
+                                    $TableContent, null, array('Name' => 'Name', 'Count' => 'Institutionen', 'Option' => '')
                                 )
                             )
                         )
