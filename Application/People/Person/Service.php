@@ -2,18 +2,30 @@
 namespace SPHERE\Application\People\Person;
 
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Mail\Mail;
+use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Document\Storage\Storage;
+use SPHERE\Application\Education\ClassRegister\Absence\Absence;
+use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Meta\Club\Club;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Custody\Custody;
+use SPHERE\Application\People\Meta\Prospect\Prospect;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Service\Data;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Person\Service\Setup;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -388,5 +400,131 @@ class Service extends AbstractService
     public function softRemovePersonReferences(TblPerson $tblPerson)
     {
         return (new Data($this->getBinding()))->softRemovePersonReferences($tblPerson);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return array
+     */
+    public function getDestroyDetailList(TblPerson $tblPerson)
+    {
+
+        $list[] = new Bold('Person: ' . $tblPerson->getLastFirstName());
+        // Group
+        if (($tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson))) {
+            foreach ($tblGroupList as $tblGroup) {
+                $list[] = 'Personen-Gruppen-Zuordnung: ' . $tblGroup->getName();
+            }
+        }
+        // Common
+        if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))){
+            $list[] = 'Personendaten der Person';
+        }
+        // Prospect
+        if (($tblProspect = Prospect::useService()->getProspectByPerson($tblPerson))) {
+            $list[] = 'Interessenten-Daten der Person';
+        }
+        // Teacher
+        if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson))) {
+            $list[] = 'Lehrer-Daten der Person';
+        }
+        // Student
+        if (($tblStudent = $tblPerson->getStudent())) {
+            $list[] = 'Schülerakten-Daten der Person';
+        }
+        // Custody
+        if (($tblCustody = Custody::useService()->getCustodyByPerson($tblPerson))) {
+            $list[] = 'Sorgerecht-Daten der Person';
+        }
+        // Club
+        if (($tblClub = Club::useService()->getClubByPerson($tblPerson))) {
+            $list[] = 'Vereinsmitglied-Daten der Person';
+        }
+
+        // Address
+        if (($tblAddressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
+            foreach ($tblAddressList as $tblToPerson) {
+                if (($tblAddress = $tblToPerson->getTblAddress())) {
+                    $list[] = 'Adresse der Person: ' . $tblAddress->getGuiString();
+                }
+            }
+        }
+        // Phone
+        if (($tblPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson))) {
+            foreach ($tblPhoneList as $tblToPerson) {
+                if (($tblPhone = $tblToPerson->getTblPhone())
+                    && ($tblType = $tblToPerson->getTblType())
+                ) {
+                    $list[] = 'Telefonnummer der Person: ' . $tblPhone->getNumber()
+                        . ' (' . $tblType->getName() . ' ' . $tblType->getDescription() . ')';
+                }
+            }
+        }
+        // Mail
+        if (($tblMailList = Mail::useService()->getMailAllByPerson($tblPerson))) {
+            foreach ($tblMailList as $tblToPerson) {
+                if (($tblMail = $tblToPerson->getTblMail())
+                    && ($tblType = $tblToPerson->getTblType())
+                ) {
+                    $list[] = 'E-Mail Adresse der Person: ' . $tblMail->getAddress()
+                        . ' (' . $tblType->getName() . ')';
+                }
+            }
+        }
+
+        // Person Relationship
+        if (($tblRelationshipToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson))){
+            foreach($tblRelationshipToPersonList as $tblToPerson){
+                if (($personFrom = $tblToPerson->getServiceTblPersonFrom())
+                    && ($personTo = $tblToPerson->getServiceTblPersonTo())
+                    && ($tblType = $tblToPerson->getTblType())
+                ) {
+                    if ($personFrom->getId() == $tblPerson->getId()) {
+                        $dispLayPerson = $personTo;
+                    } else {
+                        $dispLayPerson = $personFrom;
+                    }
+
+                    $list[] = 'Personenbeziehung zu ' . $dispLayPerson->getLastFirstName() . ' (' . $tblType->getName() . ')';
+                }
+            }
+        }
+        // Company Relationship
+        if (($tblRelationshipToPersonList = Relationship::useService()->getCompanyRelationshipAllByPerson($tblPerson))){
+            foreach($tblRelationshipToPersonList as $tblToPerson){
+                if (($tblCompany = $tblToPerson->getServiceTblCompany())
+                    && ($tblType = $tblToPerson->getTblType())
+                ) {
+                    $list[] = 'Firmenbeziehung zu ' . $tblCompany->getDisplayName() . ' (' . $tblType->getName() . ')';
+                }
+            }
+        }
+
+        // Division
+        if (($tblDivisionList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
+            foreach ($tblDivisionList as $tblDivisionStudent) {
+                if (($tblDivision = $tblDivisionStudent->getTblDivision())
+                    && ($tblYear = $tblDivision->getServiceTblYear())
+                ) {
+                    $list[] = 'Klassenzuordnung: ' . $tblDivision->getDisplayName()
+                        . ' (' . $tblYear->getDisplayName() . ')';
+                }
+            }
+        }
+        // Absence
+        if (($tblAbsenceList = Absence::useService()->getAbsenceAllByPerson($tblPerson))){
+            $list[] = count($tblAbsenceList) . ' Fehlzeiten zur Person';
+        }
+        // Grades
+        if (($tblGradeList = Gradebook::useService()->getGradeAllBy($tblPerson))) {
+            $list[] = 'Zugriff auf ' . count($tblGradeList) . ' Zensuren der Person';
+        }
+        // Certificates
+        if (($tblFileList = Storage::useService()->getCertificateRevisionFileAllByPerson($tblPerson))) {
+            $list[] = new Bold('Zugriff auf ' . count($tblFileList) . ' Zeugnisse der Person');
+        }
+
+        return $list;
     }
 }

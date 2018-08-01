@@ -586,9 +586,9 @@ class Frontend extends Extension implements IFrontendInterface
                         new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
                             new Panel('Person', new Bold($tblPerson->getLastFirstName()),
                                 Panel::PANEL_TYPE_INFO),
-                            new Panel(new Question() . ' Diese Person wirklich löschen?', array(
-                                $tblPerson->getLastFirstName()
-                            ),
+                            new Panel(
+                                new Question() . ' Diese Person wirklich löschen?',
+                                Person::useService()->getDestroyDetailList($tblPerson),
                                 Panel::PANEL_TYPE_DANGER,
                                 new Standard(
                                     'Ja', '/People/Person/Destroy', new Ok(),
