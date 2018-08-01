@@ -1830,6 +1830,27 @@ class Frontend extends FrontendScoreRule
                                 $rowList[$schoolTypeId][] = new FormRow($columnList[$schoolTypeId]);
                                 $columnList[$schoolTypeId] = array();
                             }
+                        } else {
+                            // Keine Fächer bei dieser Klasse angelegt
+
+                            $message = new Warning('Keine Fächer verfügbar', new Exclamation());
+
+                            $panel = new Panel(
+                                new Bold('Klasse ' . $tblDivision->getDisplayName()),
+                                $message,
+                                Panel::PANEL_TYPE_INFO
+                            );
+
+                            if ($tblDivision->getTblLevel()) {
+                                $schoolTypeId = $tblDivision->getTblLevel()->getServiceTblType()->getId();
+                            } else {
+                                $schoolTypeId = 0;
+                            }
+                            $columnList[$schoolTypeId][] = new FormColumn($panel, 3);
+                            if (count($columnList[$schoolTypeId]) == 4) {
+                                $rowList[$schoolTypeId][] = new FormRow($columnList[$schoolTypeId]);
+                                $columnList[$schoolTypeId] = array();
+                            }
                         }
                     }
 
@@ -1870,7 +1891,8 @@ class Frontend extends FrontendScoreRule
                         new LayoutRow(
                             new LayoutColumn(
                                 empty($formGroupList)
-                                    ? new Warning('Keine Klassen vorhanden.', new Exclamation())
+                                    ? new Warning('Im Schuljahr ' . ($tblSelectedYear ? $tblSelectedYear->getDisplayName() : '')
+                                    . ' sind keine Klassen vorhanden.', new Exclamation())
                                     : new Well(
                                     Gradebook::useService()->updateScoreTypeDivisionSubject(
                                         (new Form(
