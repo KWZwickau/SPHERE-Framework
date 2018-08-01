@@ -24,7 +24,8 @@ SELECT DISTINCT
     vGS.TblStudentTransport_Route,
     vGS.TblStudentTransport_StationEntrance,
     vGS.TblStudentTransport_StationExit,
-    vGS.TblStudentTransport_Remark
+    vGS.TblStudentTransport_Remark,
+    vGS.TblStudentLiberationSportType_Name
 
     from SettingConsumer_{{ ConsumerAcronym }}.viewGroupStudent vGS
         JOIN SettingConsumer_{{ ConsumerAcronym }}.viewGroupStudentTransfer vGST ON vGST.TblStudent_Id = vGS.TblStudent_Id
