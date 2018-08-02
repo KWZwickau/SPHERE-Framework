@@ -234,8 +234,12 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
      *
      * @return bool|TblGrade[]
      */
-    public function getGradeAllBy(TblPerson $tblPerson = null, TblDivision $tblDivision = null, TblPeriod $tblPeriod = null, TblTestType $tblTestType = null)
-    {
+    public function getGradeAllBy(
+        TblPerson $tblPerson = null,
+        TblDivision $tblDivision = null,
+        TblPeriod $tblPeriod = null,
+        TblTestType $tblTestType = null
+    ) {
         $Parameter = array(
             TblGrade::ENTITY_REMOVE => null
         );

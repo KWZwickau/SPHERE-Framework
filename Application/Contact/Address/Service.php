@@ -751,13 +751,14 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblToPerson[]
      */
-    public function getAddressAllByPerson(TblPerson $tblPerson)
+    public function getAddressAllByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getAddressAllByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getAddressAllByPerson($tblPerson, $isForced);
     }
 
     /**
@@ -912,5 +913,16 @@ class Service extends AbstractService
                 $this->removeAddressToPerson($tblToPerson, $IsSoftRemove);
             }
         }
+    }
+
+    /**
+     * @param TblToPerson $tblToPerson
+     *
+     * @return bool
+     */
+    public function restoreToPerson(TblToPerson $tblToPerson)
+    {
+
+        return (new Data($this->getBinding()))->restoreToPerson($tblToPerson);
     }
 }

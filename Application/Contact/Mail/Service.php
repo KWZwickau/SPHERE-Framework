@@ -91,13 +91,14 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblToPerson[]
      */
-    public function getMailAllByPerson(TblPerson $tblPerson)
+    public function getMailAllByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getMailAllByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getMailAllByPerson($tblPerson, $isForced);
     }
 
     /**
@@ -480,5 +481,16 @@ class Service extends AbstractService
                 $this->removeMailToPerson($tblToPerson, $IsSoftRemove);
             }
         }
+    }
+
+    /**
+     * @param TblToPerson $tblToPerson
+     *
+     * @return bool
+     */
+    public function restoreToPerson(TblToPerson $tblToPerson)
+    {
+
+        return (new Data($this->getBinding()))->restoreToPerson($tblToPerson);
     }
 }

@@ -357,4 +357,25 @@ class Data extends AbstractData
            TblCommonGender::ATTR_NAME => $Name
         ));
     }
+
+    /**
+     * @param TblCommon $tblCommon
+     *
+     * @return bool
+     */
+    public function restoreCommon(TblCommon $tblCommon)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblPerson $Entity */
+        $Entity = $Manager->getEntityById('TblCommon', $tblCommon->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setEntityRemove(null);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
 }

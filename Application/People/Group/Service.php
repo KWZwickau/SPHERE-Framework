@@ -317,13 +317,27 @@ class Service extends AbstractService
     /**
      *
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblGroup[]
      */
-    public function getGroupAllByPerson(TblPerson $tblPerson)
+    public function getGroupAllByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getGroupAllByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getGroupAllByPerson($tblPerson, $isForced);
+    }
+
+    /**
+     *
+     * @param TblPerson $tblPerson
+     * @param bool $isForced
+     *
+     * @return bool|TblMember[]
+     */
+    public function getMemberAllByPerson(TblPerson $tblPerson, $isForced = false)
+    {
+
+        return (new Data($this->getBinding()))->getMemberAllByPerson($tblPerson, $isForced);
     }
 
     /**
@@ -665,5 +679,16 @@ class Service extends AbstractService
 
             return empty($tudors) ? false : $tudors;
         }
+    }
+
+    /**
+     * @param TblMember $tblMember
+     *
+     * @return bool
+     */
+    public function restoreMember(TblMember $tblMember)
+    {
+
+        return (new Data($this->getBinding()))->restoreMember($tblMember);
     }
 }

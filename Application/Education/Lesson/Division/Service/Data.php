@@ -1620,16 +1620,24 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblDivisionStudent[]
      */
-    public function getDivisionStudentAllByPerson(TblPerson $tblPerson)
+    public function getDivisionStudentAllByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblDivisionStudent', array(
-                TblDivisionStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
-            ));
+        if ($isForced) {
+            $EntityList = $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                'TblDivisionStudent', array(
+                    TblDivisionStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+                ));
+        } else {
+            $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                'TblDivisionStudent', array(
+                    TblDivisionStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+                ));
+        }
 
         if ($EntityList) {
             /** @var TblDivisionStudent $item */
@@ -2476,6 +2484,27 @@ class Data extends AbstractData
             }
         }
 
+        return false;
+    }
+
+    /**
+     * @param TblDivisionStudent $tblDivisionStudent
+     *
+     * @return bool
+     */
+    public function restoreDivisionStudent(TblDivisionStudent $tblDivisionStudent)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblDivisionStudent $Entity */
+        $Entity = $Manager->getEntityById('TblDivisionStudent', $tblDivisionStudent->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setEntityRemove(null);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
         return false;
     }
 }

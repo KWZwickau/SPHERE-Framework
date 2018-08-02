@@ -176,8 +176,12 @@ class Service extends ServiceScoreRule
      *
      * @return bool|TblGrade[]
      */
-    public function getGradeAllBy(TblPerson $tblPerson = null, TblDivision $tblDivision = null, TblPeriod $tblPeriod = null, TblTestType $tblTestType = null)
-    {
+    public function getGradeAllBy(
+        TblPerson $tblPerson = null,
+        TblDivision $tblDivision = null,
+        TblPeriod $tblPeriod = null,
+        TblTestType $tblTestType = null
+    ) {
 
         return (new Data($this->getBinding()))->getGradeAllBy($tblPerson, $tblDivision, $tblPeriod, $tblTestType);
     }

@@ -159,16 +159,24 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblToPerson[]
      */
-    public function getMailAllByPerson(TblPerson $tblPerson)
+    public function getMailAllByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
-            array(
-                TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId()
-            ));
+        if ($isForced) {
+            return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
+                array(
+                    TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId()
+                ));
+        } else {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
+                array(
+                    TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId()
+                ));
+        }
     }
 
     /**
@@ -286,5 +294,26 @@ class Data extends AbstractData
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
+    }
+
+    /**
+     * @param TblToPerson $tblToPerson
+     *
+     * @return bool
+     */
+    public function restoreToPerson(TblToPerson $tblToPerson)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblToPerson $Entity */
+        $Entity = $Manager->getEntityById('TblToPerson', $tblToPerson->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setEntityRemove(null);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
     }
 }

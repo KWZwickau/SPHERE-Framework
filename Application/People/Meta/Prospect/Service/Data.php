@@ -38,15 +38,24 @@ class Data extends AbstractData
     /**
      *
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblProspect
      */
-    public function getProspectByPerson(TblPerson $tblPerson)
+    public function getProspectByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblProspect', array(
-            TblProspect::SERVICE_TBL_PERSON => $tblPerson->getId()
-        ));
+        if ($isForced) {
+            return $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblProspect',
+                array(
+                    TblProspect::SERVICE_TBL_PERSON => $tblPerson->getId()
+                ));
+        } else {
+            return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblProspect',
+                array(
+                    TblProspect::SERVICE_TBL_PERSON => $tblPerson->getId()
+                ));
+        }
     }
 
     /**
@@ -283,6 +292,27 @@ class Data extends AbstractData
             } else {
                 $Manager->killEntity($Entity);
             }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblProspect $tblProspect
+     *
+     * @return bool
+     */
+    public function restoreProspect(TblProspect $tblProspect)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblProspect $Entity */
+        $Entity = $Manager->getEntityById('TblProspect', $tblProspect->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setEntityRemove(null);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
         }
         return false;

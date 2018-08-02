@@ -12,11 +12,15 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Setting\Consumer\Consumer;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
+use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -99,47 +103,100 @@ class Restore extends Extension implements IModuleInterface
                     );
                 }
             }
-
-            $stage->setContent(
-                new TableData(
-                    $dataList,
-                    null,
-                    array(
-                        'EntityRemove' => 'Gelöscht am',
-                        'Time' => 'Uhrzeit',
-                        'Name' => 'Name',
-                        'Address' => 'Adresse',
-                        'Option' => ''
-                    ),
-                    array(
-                        'order' => array(
-                            array('0', 'desc'),
-                            array('1', 'desc'),
-                        ),
-                        'columnDefs' => array(
-                            array('type' => 'de_date', 'targets' => 0),
-                            array('type' => 'de_time', 'targets' => 1),
-                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
-                            array('width' => '1%', 'targets' => -1),
-                        ),
-                    )
-                )
-            );
         }
+
+        $stage->setContent(
+            empty($dataList)
+                ? new Warning('Es sind keine soft gelöschten Person vorhanden.', new Exclamation())
+                : new TableData(
+                $dataList,
+                null,
+                array(
+                    'EntityRemove' => 'Gelöscht am',
+                    'Time' => 'Uhrzeit',
+                    'Name' => 'Name',
+                    'Address' => 'Adresse',
+                    'Option' => ''
+                ),
+                array(
+                    'order' => array(
+                        array('0', 'desc'),
+                        array('1', 'desc'),
+                    ),
+                    'columnDefs' => array(
+                        array('type' => 'de_date', 'targets' => 0),
+                        array('type' => 'de_time', 'targets' => 1),
+                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                        array('width' => '1%', 'targets' => -1),
+                    ),
+                )
+            )
+        );
 
         return $stage;
     }
 
     /**
      * @param null $PersonId
+     * @param bool $IsRestore
      *
      * @return Stage|string
      */
-    public function frontendPersonRestoreSelected($PersonId = null)
+    public function frontendPersonRestoreSelected($PersonId = null, $IsRestore = false)
     {
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId, true))) {
             $stage = new Stage('Person Wiederherstellen', 'Anzeigen');
+            $stage->addButton(
+                new Standard(
+                    'Zurück',
+                    '/Platform/System/DataMaintenance/Restore/Person',
+                    new ChevronLeft()
+                )
+            );
+
+
+            if (!$IsRestore) {
+                $stage->addButton(
+                    new Standard(
+                        'Alle Daten wiederherstellen',
+                        '/Platform/System/DataMaintenance/Restore/Person/Selected',
+                        new Upload(),
+                        array(
+                            'PersonId' => $PersonId,
+                            'IsRestore' => true
+                        )
+                    )
+                );
+            }
+
+            if ($IsRestore) {
+                $columns =  array(
+                    'Number' => '#',
+                    'Type' => 'Typ',
+                    'Value' => 'Wert'
+                );
+            } else {
+                $columns =  array(
+                    'Number' => '#',
+                    'Type' => 'Typ',
+                    'Value' => 'Wert',
+                    'EntityRemove' => 'Gelöscht am'
+                );
+            }
+
+            $stage->setContent(
+                ($IsRestore ? new Success('Die Daten wurden wieder hergestellt.', new \SPHERE\Common\Frontend\Icon\Repository\Success()) : '')
+                . new TableData(
+                    Person::useService()->getRestoreDetailList($tblPerson, $IsRestore),
+                    null,
+                    $columns,
+                    array(
+                        "paging" => false, // Deaktivieren Blättern
+                        "iDisplayLength" => -1,    // Alle Einträge zeigen
+                    )
+                )
+            );
 
             return $stage;
         } else {

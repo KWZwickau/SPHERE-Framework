@@ -110,13 +110,14 @@ class Service extends AbstractService
     /**
      *
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblTeacher
      */
-    public function getTeacherByPerson(TblPerson $tblPerson)
+    public function getTeacherByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getTeacherByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getTeacherByPerson($tblPerson, $isForced);
     }
 
     /**
@@ -154,5 +155,16 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->destroyTeacher($tblTeacher, $IsSoftRemove);
+    }
+
+    /**
+     * @param TblTeacher $tblTeacher
+     *
+     * @return bool
+     */
+    public function restoreTeacher(TblTeacher $tblTeacher)
+    {
+
+        return (new Data($this->getBinding()))->restoreTeacher($tblTeacher);
     }
 }

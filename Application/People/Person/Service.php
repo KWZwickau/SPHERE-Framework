@@ -14,6 +14,7 @@ use SPHERE\Application\People\Meta\Club\Club;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Service\Data;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -535,5 +536,259 @@ class Service extends AbstractService
         }
 
         return $list;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param bool $isRestore
+     * @return array
+     */
+    public function getRestoreDetailList(TblPerson $tblPerson, $isRestore)
+    {
+
+        $count = 1;
+        $result[] = array(
+            'Number' => $count++,
+            'Type' => 'Person',
+            'Value' => $tblPerson->getLastFirstName(),
+            'EntityRemove' => $tblPerson->getEntityRemove()
+        );
+
+        if ($isRestore) {
+            (new Data($this->getBinding()))->restorePerson($tblPerson);
+        }
+
+        // Group
+        if (($tblMemberList = Group::useService()->getMemberAllByPerson($tblPerson, true))) {
+            foreach ($tblMemberList as $tblMember) {
+                if (($tblGroup = $tblMember->getTblGroup())) {
+                    $result[] = array(
+                        'Number' => $count++,
+                        'Type' => 'Gruppen-Mitglied',
+                        'Value' => $tblGroup->getName(),
+                        'EntityRemove' => $tblMember->getEntityRemove()
+                    );
+
+                    if ($isRestore) {
+                        Group::useService()->restoreMember($tblMember);
+                    }
+                }
+            }
+        }
+        // Common
+        if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson, true))){
+            $result[] = array(
+                'Number' => $count++,
+                'Type' => 'Meta-Daten',
+                'Value' => 'Personendaten',
+                'EntityRemove' => $tblCommon->getEntityRemove()
+            );
+
+            if ($isRestore) {
+                Common::useService()->restoreCommon($tblCommon);
+            }
+        }
+        // Prospect
+        if (($tblProspect = Prospect::useService()->getProspectByPerson($tblPerson, true))) {
+            $result[] = array(
+                'Number' => $count++,
+                'Type' => 'Meta-Daten',
+                'Value' => 'Interessenten-Daten',
+                'EntityRemove' => $tblProspect->getEntityRemove()
+            );
+
+            if ($isRestore) {
+                Prospect::useService()->restoreProspect($tblProspect);
+            }
+        }
+        // Teacher
+        if (($tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson, true))) {
+            $result[] = array(
+                'Number' => $count++,
+                'Type' => 'Meta-Daten',
+                'Value' => 'Lehrer-Daten',
+                'EntityRemove' => $tblTeacher->getEntityRemove()
+            );
+
+            if ($isRestore) {
+                Teacher::useService()->restoreTeacher($tblTeacher);
+            }
+        }
+        // Student
+        if (($tblStudent = $tblPerson->getStudent(true))) {
+            $result[] = array(
+                'Number' => $count++,
+                'Type' => 'Meta-Daten',
+                'Value' => 'Schülerakten-Daten',
+                'EntityRemove' => $tblStudent->getEntityRemove()
+            );
+
+            if ($isRestore) {
+                Student::useService()->restoreStudent($tblStudent);
+            }
+        }
+        // Custody
+        if (($tblCustody = Custody::useService()->getCustodyByPerson($tblPerson, true))) {
+            $result[] = array(
+                'Number' => $count++,
+                'Type' => 'Meta-Daten',
+                'Value' => 'Sorgerecht-Daten',
+                'EntityRemove' => $tblCustody->getEntityRemove()
+            );
+
+            if ($isRestore) {
+                Custody::useService()->restoreCustody($tblCustody);
+            }
+        }
+        // Club
+        if (($tblClub = Club::useService()->getClubByPerson($tblPerson, true))) {
+            $result[] = array(
+                'Number' => $count++,
+                'Type' => 'Meta-Daten',
+                'Value' => 'Vereinsmitglied-Daten',
+                'EntityRemove' => $tblClub->getEntityRemove()
+            );
+
+            if ($isRestore) {
+                Club::useService()->restoreClub($tblClub);
+            }
+        }
+
+        // Address
+        if (($tblAddressList = Address::useService()->getAddressAllByPerson($tblPerson, true))) {
+            foreach ($tblAddressList as $tblToPerson) {
+                if (($tblAddress = $tblToPerson->getTblAddress())) {
+                    $result[] = array(
+                        'Number' => $count++,
+                        'Type' => 'Adresse',
+                        'Value' => $tblAddress->getGuiString(),
+                        'EntityRemove' => $tblToPerson->getEntityRemove()
+                    );
+
+                    if ($isRestore) {
+                        Address::useService()->restoreToPerson($tblToPerson);
+                    }
+                }
+            }
+        }
+        // Phone
+        if (($tblPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson, true))) {
+            foreach ($tblPhoneList as $tblToPerson) {
+                if (($tblPhone = $tblToPerson->getTblPhone())
+                    && ($tblType = $tblToPerson->getTblType())
+                ) {
+                    $result[] = array(
+                        'Number' => $count++,
+                        'Type' => 'Telefonnummer',
+                        'Value' => $tblPhone->getNumber()
+                            . ' (' . $tblType->getName() . ' ' . $tblType->getDescription() . ')',
+                        'EntityRemove' => $tblToPerson->getEntityRemove()
+                    );
+
+                    if ($isRestore) {
+                        Phone::useService()->restoreToPerson($tblToPerson);
+                    }
+                }
+            }
+        }
+        // Mail
+        if (($tblMailList = Mail::useService()->getMailAllByPerson($tblPerson, true))) {
+            foreach ($tblMailList as $tblToPerson) {
+                if (($tblMail = $tblToPerson->getTblMail())
+                    && ($tblType = $tblToPerson->getTblType())
+                ) {
+                    $result[] = array(
+                        'Number' => $count++,
+                        'Type' => 'E-Mail Adresse',
+                        'Value' => $tblMail->getAddress() . ' (' . $tblType->getName() . ')',
+                        'EntityRemove' => $tblToPerson->getEntityRemove()
+                    );
+
+                    if ($isRestore) {
+                        Mail::useService()->restoreToPerson($tblToPerson);
+                    }
+                }
+            }
+        }
+
+        // Person Relationship
+        if (($tblRelationshipToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, null, true))){
+            foreach($tblRelationshipToPersonList as $tblToPerson){
+                if (($tblType = $tblToPerson->getTblType())) {
+                    if (($personFrom = $tblToPerson->getServiceTblPersonFrom())) {
+                        $displayPerson = $personFrom;
+                    } elseif (($personTo = $tblToPerson->getServiceTblPersonTo())) {
+                        $displayPerson = $personTo;
+                    }
+
+                    $result[] = array(
+                        'Number' => $count++,
+                        'Type' => 'Personenbeziehung',
+                        'Value' =>  $displayPerson->getLastFirstName() . ' (' . $tblType->getName() . ')',
+                        'EntityRemove' => $tblToPerson->getEntityRemove()
+                    );
+
+                    if ($isRestore) {
+                        Relationship::useService()->restoreToPerson($tblToPerson);
+                    }
+                }
+            }
+        }
+        // Company Relationship
+        if (($tblRelationshipToPersonList = Relationship::useService()->getCompanyRelationshipAllByPerson($tblPerson, true))){
+            foreach($tblRelationshipToPersonList as $tblToCompany){
+                if (($tblCompany = $tblToCompany->getServiceTblCompany())
+                    && ($tblType = $tblToCompany->getTblType())
+                ) {
+
+                    $result[] = array(
+                        'Number' => $count++,
+                        'Type' => 'Firmenbeziehung',
+                        'Value' =>  $tblCompany->getDisplayName() . ' (' . $tblType->getName() . ')',
+                        'EntityRemove' => $tblToCompany->getEntityRemove()
+                    );
+
+                    if ($isRestore) {
+                        Relationship::useService()->restoreToCompany($tblToCompany);
+                    }
+                }
+            }
+        }
+
+        // Division
+        if (($tblDivisionList = Division::useService()->getDivisionStudentAllByPerson($tblPerson, true))) {
+            foreach ($tblDivisionList as $tblDivisionStudent) {
+                if (($tblDivision = $tblDivisionStudent->getTblDivision())
+                    && ($tblYear = $tblDivision->getServiceTblYear())
+                ) {
+
+                    $result[] = array(
+                        'Number' => $count++,
+                        'Type' => 'Klassenzuordnung',
+                        'Value' =>  $tblDivision->getDisplayName() . ' (' . $tblYear->getDisplayName() . ')',
+                        'EntityRemove' => $tblDivisionStudent->getEntityRemove()
+                    );
+
+                    if ($isRestore) {
+                        Division::useService()->restoreDivisionStudent($tblDivisionStudent);
+                    }
+                }
+            }
+        }
+        // Absence
+        if (($tblAbsenceList = Absence::useService()->getAbsenceAllByPerson($tblPerson, null, true))){
+            $result[] = array(
+                'Number' => $count,
+                'Type' => 'Fehlzeiten',
+                'Value' =>  count($tblAbsenceList),
+                'EntityRemove' => ''
+            );
+
+            foreach ($tblAbsenceList as $tblAbsence) {
+                Absence::useService()->restoreAbsence($tblAbsence);
+            }
+        }
+
+        return $result;
     }
 }

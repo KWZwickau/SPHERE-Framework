@@ -1501,15 +1501,15 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblDivisionStudent[]
      */
-    public
-    function getDivisionStudentAllByPerson(
-        TblPerson $tblPerson
+    public function getDivisionStudentAllByPerson(
+        TblPerson $tblPerson, $isForced = false
     ) {
 
-        return (new Data($this->getBinding()))->getDivisionStudentAllByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getDivisionStudentAllByPerson($tblPerson, $isForced);
     }
 
     /**
@@ -2654,5 +2654,16 @@ class Service extends AbstractService
         }
 
         return false;
+    }
+
+    /**
+     * @param TblDivisionStudent $tblDivisionStudent
+     *
+     * @return bool
+     */
+    public function restoreDivisionStudent(TblDivisionStudent $tblDivisionStudent)
+    {
+
+        return (new Data($this->getBinding()))->restoreDivisionStudent($tblDivisionStudent);
     }
 }

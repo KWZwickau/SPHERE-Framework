@@ -80,13 +80,14 @@ class Service extends AbstractService
     /**
      * @param TblPerson $tblPerson
      * @param TblType|null $tblType
+     * @param bool $isForced
      *
      * @return bool|TblToPerson[]
      */
-    public function getPersonRelationshipAllByPerson(TblPerson $tblPerson, TblType $tblType = null)
+    public function getPersonRelationshipAllByPerson(TblPerson $tblPerson, TblType $tblType = null, $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getPersonRelationshipAllByPerson($tblPerson, $tblType);
+        return (new Data($this->getBinding()))->getPersonRelationshipAllByPerson($tblPerson, $tblType, $isForced);
     }
 
     /**
@@ -151,13 +152,14 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblToCompany[]
      */
-    public function getCompanyRelationshipAllByPerson(TblPerson $tblPerson)
+    public function getCompanyRelationshipAllByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getCompanyRelationshipAllByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getCompanyRelationshipAllByPerson($tblPerson, $isForced);
     }
 
     /**
@@ -613,5 +615,27 @@ class Service extends AbstractService
                 $this->removeCompanyRelationshipToPerson($tblToPerson, $IsSoftRemove);
             }
         }
+    }
+
+    /**
+     * @param TblToPerson $tblToPerson
+     *
+     * @return bool
+     */
+    public function restoreToPerson(TblToPerson $tblToPerson)
+    {
+
+        return (new Data($this->getBinding()))->restoreToPerson($tblToPerson);
+    }
+
+    /**
+     * @param TblToCompany $tblToCompany
+     *
+     * @return bool
+     */
+    public function restoreToCompany(TblToCompany $tblToCompany)
+    {
+
+        return (new Data($this->getBinding()))->restoreToCompany($tblToCompany);
     }
 }
