@@ -776,13 +776,14 @@ class Service extends AbstractService
     /** get Main Address (Type ID 1)
      *
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblAddress
      */
-    public function getAddressByPerson(TblPerson $tblPerson)
+    public function getAddressByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getAddressByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getAddressByPerson($tblPerson, $isForced);
     }
 
     /** get Main Address (Type ID 1)

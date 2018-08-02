@@ -196,6 +196,25 @@ class Data extends AbstractData
     }
 
     /**
+     * @return false|TblPerson[]
+     */
+    public function getPersonAllBySoftRemove()
+    {
+        // direkt über DB ermitteln
+//        return $this->getForceEntityListBy(__METHOD__, $this->getEntityManager(false), 'TblPerson', array(Element::ENTITY_REMOVE => !null));
+        $resultList = array();
+        if (($tblPersonList = $this->getForceEntityList(__METHOD__, $this->getEntityManager(false), 'TblPerson'))) {
+            foreach ($tblPersonList as $tblPerson) {
+                if ($tblPerson->getEntityRemove() != null) {
+                    $resultList[] = $tblPerson;
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
      * @param $FirstName
      * @param $LastName
      *

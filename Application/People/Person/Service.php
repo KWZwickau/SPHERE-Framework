@@ -90,6 +90,15 @@ class Service extends AbstractService
     }
 
     /**
+     * @return false|TblPerson[]
+     */
+    public function getPersonAllBySoftRemove()
+    {
+
+        return (new Data($this->getBinding()))->getPersonAllBySoftRemove();
+    }
+
+    /**
      * @param TblGroup $tblGroup
      *
      * @return int

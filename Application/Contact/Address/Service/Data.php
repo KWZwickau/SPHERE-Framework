@@ -390,25 +390,44 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblAddress
      */
-    public function getAddressByPerson(TblPerson $tblPerson)
+    public function getAddressByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
         // TODO: Persistent Types
         $Type = $this->getTypeById(1);
-        /** @var TblToPerson $Entity */
-        if (( $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
-            array(
-                TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
-                TblToPerson::ATT_TBL_TYPE       => $Type->getId()
-            ))
-        )
-        ) {
-            return $Entity->getTblAddress();
+        if ($isForced) {
+
+            /** @var TblToPerson $Entity */
+            if (( $Entity = $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
+                array(
+                    TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
+                    TblToPerson::ATT_TBL_TYPE       => $Type->getId()
+                ))
+            )
+            ) {
+                return $Entity->getTblAddress();
+            } else {
+                return false;
+            }
+
         } else {
-            return false;
+
+            /** @var TblToPerson $Entity */
+            if (( $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
+                array(
+                    TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
+                    TblToPerson::ATT_TBL_TYPE       => $Type->getId()
+                ))
+            )
+            ) {
+                return $Entity->getTblAddress();
+            } else {
+                return false;
+            }
         }
     }
 

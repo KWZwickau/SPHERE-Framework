@@ -6,6 +6,7 @@ use SPHERE\Application\Platform\System\Archive\Archive;
 use SPHERE\Application\Platform\System\Cache\Cache;
 use SPHERE\Application\Platform\System\Database\Database;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\Application\Platform\System\Restore\Restore;
 use SPHERE\Application\Platform\System\Session\Session;
 use SPHERE\Application\Platform\System\Test\Test;
 use SPHERE\Application\Platform\System\DataMaintenance\DataMaintenance;
@@ -37,6 +38,7 @@ class System implements IApplicationInterface
         Test::registerModule();
         Session::registerModule();
         DataMaintenance::registerModule();
+        Restore::registerModule();
         /**
          * Register Navigation
          */
