@@ -90,11 +90,11 @@ class ValidationFilter extends Extension implements IApiInterface
                 $message = 'Letzte Aktualisierung: ' . $date . ' Es wurden ' . new Bold($count) . ' Meldungen registriert.';
 
                 $content = new Exclamation()
-                    . new Bold(' Folgende Einstellungen stimmen nicht mit der Personenverwaltung überein:')
+                    . new Bold(' Folgende Einstellungen stimmen nicht zwischen der Personenverwaltung und dem Bildungsmodul überein:')
                     . '</br>'
                     . ($message ? $message : '')
                     . '</br></br>'
-                    . (new Standard('Laden', ''))->ajaxPipelineOnClick(self::pipelineLoad());
+                    . (new Standard('Validierung', ''))->ajaxPipelineOnClick(self::pipelineLoad());
 
                 return $count > 0 ? new Warning($content) : new Success($content);
             }
@@ -129,7 +129,7 @@ class ValidationFilter extends Extension implements IApiInterface
             }
 
             // save date and count in database
-            $date = (new \DateTime('now'))->format('d.m.Y');
+            $date = (new \DateTime('now'))->format('d.m.Y H:s');
             if (($tblSettingDate = Consumer::useService()->getSetting(
                 'Education', 'Lesson', 'Division', 'InterfaceFilterMessageDate'))
             ) {
@@ -172,8 +172,9 @@ class ValidationFilter extends Extension implements IApiInterface
             $accordion = new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                 new Warning(
                     new Exclamation()
-                    . new Bold(' Folgende Einstellungen stimmen nicht mit der Personenverwaltung überein:')
+                    . new Bold(' Folgende Einstellungen stimmen nicht zwischen der Personenverwaltung und dem Bildungsmodul überein:')
                     . $accordion
+                    . (new Standard('Validierung', ''))->ajaxPipelineOnClick(self::pipelineLoad())
                 )
             ))));
         }

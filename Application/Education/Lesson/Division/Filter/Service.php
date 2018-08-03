@@ -239,7 +239,7 @@ class Service
                 );
             } else {
                 return new Warning(
-                    new Exclamation() . new Bold(' Folgende Einstellungen stimmen nicht mit der Personenverwaltung überein:')
+                    new Exclamation() . new Bold(' Folgende Einstellungen stimmen nicht zwischen der Personenverwaltung und dem Bildungsmodul überein:')
                     . '</br></br>'
                     . new TableData(
                         $contentTable,
