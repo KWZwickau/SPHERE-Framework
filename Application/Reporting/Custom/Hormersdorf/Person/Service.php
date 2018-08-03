@@ -143,12 +143,13 @@ class Service extends Extension
     }
 
     /**
-     * @param array $PersonList
-     * @param array $tblPersonList
+     * @param $PersonList
+     * @param $tblPersonList
      *
-     * @return bool|\SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
+     * @return bool|\SPHERE\Application\Document\Storage\FilePointer
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @throws \PHPExcel_Reader_Exception
      */
     public function createClassListExcel($PersonList, $tblPersonList)
     {
@@ -233,7 +234,7 @@ class Service extends Extension
 
             array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent) {
 
-                $Item['Name'] = $tblPerson->getLastFirstName();
+                $Item['Name'] = ($tblPerson->getTitle() ? $tblPerson->getTitle().' ' : '').$tblPerson->getLastFirstName();
                 $Item['Birthday'] = '';
                 $common = Common::useService()->getCommonByPerson($tblPerson);
                 if ($common) {
@@ -247,12 +248,13 @@ class Service extends Extension
     }
 
     /**
-     * @param array $PersonList
-     * @param array $tblPersonList
+     * @param $PersonList
+     * @param $tblPersonList
      *
-     * @return bool|\SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
+     * @return bool|\SPHERE\Application\Document\Storage\FilePointer
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @throws \PHPExcel_Reader_Exception
      */
     public function createStaffListExcel($PersonList, $tblPersonList)
     {
