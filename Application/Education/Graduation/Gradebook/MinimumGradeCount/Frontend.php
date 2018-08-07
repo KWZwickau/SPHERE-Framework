@@ -356,7 +356,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblSchoolType ? 'Schulart: ' . $tblSchoolType->getName() : null,
                                 $tblLevel ? 'Klassenstufe: ' . $tblLevel->getName() : null,
                                 $tblSubject ? 'Fach: ' . $tblSubject->getAcronym() . ' - ' . $tblSubject->getName() : null,
-                                $tblGradeType ? 'Zensuren-Typ: ' . $tblGradeType->getCode() . ' - ' . $tblGradeType->getName() : null,
+                                $tblGradeType ? 'Zensuren-Typ: ' . $tblGradeType->getDisplayName() : null,
                             ),
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(

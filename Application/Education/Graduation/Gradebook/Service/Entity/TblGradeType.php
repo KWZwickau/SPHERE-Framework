@@ -171,4 +171,13 @@ class TblGradeType extends Element
 
         return Gradebook::useService()->isGradeTypeUsed($this);
     }
+
+    /**
+     * @return string
+     */
+    public function getDisplayName()
+    {
+
+        return $this->getCode() . ' - ' . $this->getName();
+    }
 }
