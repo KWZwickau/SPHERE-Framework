@@ -129,7 +129,7 @@ class ValidationFilter extends Extension implements IApiInterface
             }
 
             // save date and count in database
-            $date = (new \DateTime('now'))->format('d.m.Y H:s');
+            $date = (new \DateTime('now'))->format('d.m.Y H:i:s');
             if (($tblSettingDate = Consumer::useService()->getSetting(
                 'Education', 'Lesson', 'Division', 'InterfaceFilterMessageDate'))
             ) {
