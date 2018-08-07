@@ -88,7 +88,7 @@ class Restore extends Extension implements IModuleInterface
                     $tblAddress = Address::useService()->getAddressByPerson($tblPerson, true);
                     $dataList[] = array(
                         'EntityRemove' => $date->format('d.m.Y'),
-                        'Time' => $date->format('H:s'),
+                        'Time' => $date->format('H:i:s'),
                         'Name' => $tblPerson->getLastFirstName(),
                         'Address' => $tblAddress ? $tblAddress->getGuiString() : '',
                         'Option' => new Standard(
