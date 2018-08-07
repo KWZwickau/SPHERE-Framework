@@ -387,8 +387,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                 array(2, 'asc')
                                             ),
                                             "columnDefs" => array(
-                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
                                                 array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
                                             ),
                                         )
                                     )

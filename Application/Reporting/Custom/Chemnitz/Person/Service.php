@@ -400,14 +400,14 @@ class Service extends Extension
                     $Item['FatherTitle'] = $father->getTitle();
                     $Item['FatherLastName'] = $father->getLastName();
                     $Item['FatherFirstName'] = $father->getFirstSecondName();
-                    $Item['Father'] = $father->getLastFirstName();
+                    $Item['Father'] = $father->getFullName();
                 }
                 if ($mother !== null) {
                     $Item['MotherSalutation'] = $mother->getSalutation();
                     $Item['MotherTitle'] = $mother->getTitle();
                     $Item['MotherLastName'] = $mother->getLastName();
                     $Item['MotherFirstName'] = $mother->getFirstSecondName();
-                    $Item['Mother'] = $mother->getLastFirstName();
+                    $Item['Mother'] = $mother->getFullName();
                 }
 
                 array_push($TableContent, $Item);
@@ -871,7 +871,7 @@ class Service extends Extension
                 $export->setValue($export->getCell("20", $Row), $PersonData['FatherLastName']);
                 $export->setValue($export->getCell("21", $Row), $PersonData['FatherFirstName']);
                 $export->setValue($export->getCell("22", $Row), $PersonData['MotherSalutation']);
-                $export->setValue($export->getCell("23", $Row), $PersonData['FatherTitle']);
+                $export->setValue($export->getCell("23", $Row), $PersonData['MotherTitle']);
                 $export->setValue($export->getCell("24", $Row), $PersonData['MotherLastName']);
                 $export->setValue($export->getCell("25", $Row), $PersonData['MotherFirstName']);
                 $export->setValue($export->getCell("26", $Row), $PersonData['Phone']);
