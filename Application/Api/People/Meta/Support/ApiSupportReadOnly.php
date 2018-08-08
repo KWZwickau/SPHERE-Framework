@@ -21,6 +21,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\System\Extension\Extension;
 
@@ -81,42 +82,50 @@ class ApiSupportReadOnly extends Extension implements IApiInterface
     {
 
         $tblPerson = Person::useService()->getPersonById($PersonId);
-        $HeadPanel = new Panel('Schüler', $tblPerson->getLastFirstName(), Panel::PANEL_TYPE_INFO);
-        $WellFocus = new Well('Keine Förderschwerpunkte');
-        if(($tblSupport = Student::useService()->getSupportByPersonNewest($tblPerson, array('Förderbescheid', 'Änderung')))){
-            $WellFocus = new Title('Förderschwerpunkte:');
-            if(($tblFocus = Student::useService()->getPrimaryFocusBySupport($tblSupport))) {
-                $WellFocus .= new Container(new Bold($tblFocus->getName()));
-            }
-            if(($tblFocusList = Student::useService()->getFocusListBySupport($tblSupport))){
-                foreach($tblFocusList as $tblFocus){
-                    $WellFocus .= new Container($tblFocus->getName());
+        if(!$tblPerson){
+            $HeadPanel = new Warning('Person wurde nicht gefunden');
+            $WellFocus = '';
+            $WellDisorder = '';
+            $WellHandyCap = '';
+        } else {
+            $HeadPanel = new Panel('Schüler', $tblPerson->getLastFirstName(), Panel::PANEL_TYPE_INFO);
+            $WellFocus = new Well('Keine Förderschwerpunkte');
+            if(($tblSupport = Student::useService()->getSupportByPersonNewest($tblPerson, array('Förderbescheid', 'Änderung')))){
+                $WellFocus = new Title('Förderschwerpunkte:');
+                if(($tblFocus = Student::useService()->getPrimaryFocusBySupport($tblSupport))) {
+                    $WellFocus .= new Container(new Bold($tblFocus->getName()));
                 }
-                $WellFocus .= new Ruler().new Container(new Bold('letzter Bearbeiter: ').$tblSupport->getPersonEditor());
+                if(($tblFocusList = Student::useService()->getFocusListBySupport($tblSupport))){
+                    foreach($tblFocusList as $tblFocus){
+                        $WellFocus .= new Container($tblFocus->getName());
+                    }
+                    $WellFocus .= new Ruler().new Container(new Bold('letzter Bearbeiter: ').$tblSupport->getPersonEditor());
+                }
+                $WellFocus = new Well($WellFocus);
             }
-            $WellFocus = new Well($WellFocus);
+
+            $WellDisorder = new Well('Keine Entwicklungsbesonderheiten');
+            if(($tblSpecial = Student::useService()->getSpecialByPersonNewest($tblPerson))) {
+                $WellDisorder = new Title('Entwicklungsbesonderheiten:');
+                if(($tblSpecialDisorderTypeList = Student::useService()->getSpecialDisorderTypeAllBySpecial($tblSpecial))) {
+                    foreach ($tblSpecialDisorderTypeList as $tblSpecialDisorderType) {
+                        $WellDisorder .= new Container($tblSpecialDisorderType->getName());
+                    }
+                    $WellDisorder .= new Ruler().new Container(new Bold('letzter Bearbeiter: ').$tblSpecial->getPersonEditor());
+                }
+                $WellDisorder = new Well($WellDisorder);
+            }
+
+            $WellHandyCap = new Well('Keine Maßnahmen / Beschluss Klassenkonferenz (Nachteilsausgleich)');
+            if(($tblHandyCap = Student::useService()->getHandyCapByPersonNewest($tblPerson))){
+                $WellHandyCap = new Title('Maßnahmen / Beschluss Klassenkonferenz (Nachteilsausgleich):');
+                $WellHandyCap .= new Container($tblHandyCap->getDate());
+                $WellHandyCap .= new Container($tblHandyCap->getRemark());
+                $WellHandyCap .= new Container(new Bold('letzter Bearbeiter: ').$tblHandyCap->getPersonEditor());
+                $WellHandyCap = new Well($WellHandyCap);
+            }
         }
 
-        $WellDisorder = new Well('Keine Entwicklungsbesonderheiten');
-        if(($tblSpecial = Student::useService()->getSpecialByPersonNewest($tblPerson))) {
-            $WellDisorder = new Title('Entwicklungsbesonderheiten:');
-            if(($tblSpecialDisorderTypeList = Student::useService()->getSpecialDisorderTypeAllBySpecial($tblSpecial))) {
-                foreach ($tblSpecialDisorderTypeList as $tblSpecialDisorderType) {
-                    $WellDisorder .= new Container($tblSpecialDisorderType->getName());
-                }
-                $WellDisorder .= new Ruler().new Container(new Bold('letzter Bearbeiter: ').$tblSpecial->getPersonEditor());
-            }
-            $WellDisorder = new Well($WellDisorder);
-        }
-
-        $WellHandyCap = new Well('Keine Maßnahmen / Beschluss Klassenkonferenz (Nachteilsausgleich)');
-        if(($tblHandyCap = Student::useService()->getHandyCapByPersonNewest($tblPerson))){
-            $WellHandyCap = new Title('Maßnahmen / Beschluss Klassenkonferenz (Nachteilsausgleich):');
-            $WellHandyCap .= new Container($tblHandyCap->getDate());
-            $WellHandyCap .= new Container($tblHandyCap->getRemark());
-            $WellHandyCap .= new Container(new Bold('letzter Bearbeiter: ').$tblHandyCap->getPersonEditor());
-            $WellHandyCap = new Well($WellHandyCap);
-        }
 
         return new Title('Integration')
         .new Layout(
