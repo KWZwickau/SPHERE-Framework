@@ -5,6 +5,8 @@ use SPHERE\Application\Api\People\ApiPerson;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Document\Storage\Storage;
+use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\Division\Filter\Service as FilterService;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
@@ -582,21 +584,45 @@ class Frontend extends Extension implements IFrontendInterface
                 );
             } else {
                 if (!$Confirm) {
+                    // Personen (Schüler) dürfen aktuell nicht gelöscht werden wenn sie Zensuren oder Zeugnisse besitzen SSW-115
+                    $canRemove = true;
+                    if (($tblGradeAll = Gradebook::useService()->getGradeAllBy($tblPerson))) {
+                        $canRemove = false;
+                    } elseif (($tblFileList = Storage::useService()->getCertificateRevisionFileAllByPerson($tblPerson))) {
+                        $canRemove = false;
+                    }
+
+                    if ($canRemove) {
+                        $buttonList =
+                            new Standard(
+                                'Ja', '/People/Person/Destroy', new Ok(),
+                                array('Id' => $Id, 'Confirm' => true, 'Group' => $Group)
+                            )
+                            . new Standard(
+                                'Nein', '/People/Search/Group', new Disable(), array('Id' => $Group)
+                            );
+                    } else {
+                        $buttonList =
+                            new Standard(
+                                'Nein', '/People/Search/Group', new Disable(), array('Id' => $Group)
+                            );
+                    }
+
                     $Stage->setContent(
-                        new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                        ($canRemove
+                            ? ''
+                            : new \SPHERE\Common\Frontend\Message\Repository\Warning(
+                                'Diese Person kann aktuell nicht gelöscht werden, da zu dieser Person Zensuren und/oder Zeugnisse existieren.'
+                            )
+                        )
+                        . new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
                             new Panel('Person', new Bold($tblPerson->getLastFirstName()),
                                 Panel::PANEL_TYPE_INFO),
                             new Panel(
                                 new Question() . ' Diese Person wirklich löschen?',
                                 Person::useService()->getDestroyDetailList($tblPerson),
                                 Panel::PANEL_TYPE_DANGER,
-                                new Standard(
-                                    'Ja', '/People/Person/Destroy', new Ok(),
-                                    array('Id' => $Id, 'Confirm' => true, 'Group' => $Group)
-                                )
-                                . new Standard(
-                                    'Nein', '/People/Search/Group', new Disable(), array('Id' => $Group)
-                                )
+                                $buttonList
                             )
                         )))))
                     );
