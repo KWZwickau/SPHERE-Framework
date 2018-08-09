@@ -205,7 +205,6 @@ class Creator extends Extension
     public static function createKamenzPdf($Type = '', $Redirect = true)
     {
 
-        // todo pdf download bitte warten --> funktioniert so nicht
         if ($Redirect) {
                 return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
                     '/Api/Document/Standard/KamenzReport/Create',
@@ -297,16 +296,15 @@ class Creator extends Extension
     public static function createGradebookPdf($DivisionSubjectId, $Redirect = true)
     {
 
-        // todo bitte , geht nicht sowie auch bei Kamenz
-//        if ($Redirect) {
-//            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
-//                '/Api/Document/Standard/Gradebook/Create',
-//                array(
-//                    'DivisionSubjectId' => $DivisionSubjectId,
-//                    'Redirect' => 0
-//                )
-//            );
-//        }
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/Gradebook/Create',
+                array(
+                    'DivisionSubjectId' => $DivisionSubjectId,
+                    'Redirect' => 0
+                )
+            );
+        }
 
         if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))
             && ($tblDivision = $tblDivisionSubject->getTblDivision())
@@ -347,16 +345,15 @@ class Creator extends Extension
     public static function createMultiGradebookPdf($DivisionId, $Redirect = true)
     {
 
-        // todo bitte , geht nicht sowie auch bei Kamenz
-//        if ($Redirect) {
-//            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
-//                '/Api/Document/Standard/MultiGradebook/Create',
-//                array(
-//                    'DivisionId' => $DivisionId,
-//                    'Redirect' => 0
-//                )
-//            );
-//        }
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/MultiGradebook/Create',
+                array(
+                    'DivisionId' => $DivisionId,
+                    'Redirect' => 0
+                )
+            );
+        }
 
         if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
             $template = new Gradebook();
