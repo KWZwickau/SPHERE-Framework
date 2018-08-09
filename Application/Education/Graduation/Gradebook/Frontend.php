@@ -1125,7 +1125,7 @@ class Frontend extends FrontendScoreRule
 
         // oberste Tabellen-Kopf-Zeile erstellen
         $headTableColumnList = array();
-        $headTableColumnList[] = new TableColumn('', 3, '20%');
+        $headTableColumnList[] = new TableColumn('', 4, '20%');
         if (!empty($periodListCount)) {
             foreach ($periodListCount as $periodId => $count) {
                 $tblPeriod = Term::useService()->getPeriodById($periodId);
