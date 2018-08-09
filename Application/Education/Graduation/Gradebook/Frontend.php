@@ -181,7 +181,10 @@ class Frontend extends FrontendScoreRule
                                     array('0', 'asc'),
                                     array('1', 'asc'),
                                     array('2', 'asc'),
-                                )
+                                ),
+                                'columnDefs' => array(
+                                    array('orderable' => false, 'targets' => -1),
+                                ),
                             ))
                         ))
                     ))
@@ -742,7 +745,8 @@ class Frontend extends FrontendScoreRule
                                     array('4', 'asc')
                                 ),
                                 'columnDefs' => array(
-                                    array('type' => 'natural', 'targets' => 2)
+                                    array('type' => 'natural', 'targets' => 2),
+                                    array('orderable' => false, 'targets' => -1),
                                 )
                             ))
                         ))
@@ -2071,7 +2075,8 @@ class Frontend extends FrontendScoreRule
                     array('0', 'asc'),
                 ),
                 'columnDefs' => array(
-                    array('type' => 'natural', 'targets' => 0)
+                    array('type' => 'natural', 'targets' => 0),
+                    array('orderable' => false, 'targets' => -1),
                 )
             ));
         } else {
@@ -2113,7 +2118,8 @@ class Frontend extends FrontendScoreRule
                     array('2', 'asc'),
                 ),
                 'columnDefs' => array(
-                    array('type' => 'natural', 'targets' => 2)
+                    array('type' => 'natural', 'targets' => 2),
+                    array('orderable' => false, 'targets' => -1),
                 )
             ));
         }
@@ -2893,6 +2899,7 @@ class Frontend extends FrontendScoreRule
                                     array(
                                         "columnDefs" => array(
                                             array('width' => '6%', 'targets' => 2),
+                                            array('orderable' => false, 'targets' => -1),
                                             array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
                                         ),
                                         'pageLength' => -1,

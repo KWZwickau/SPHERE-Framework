@@ -15,6 +15,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubje
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -224,7 +225,8 @@ class StudentGroupSelect extends Extension implements IApiInterface
                 ),
                     array(
                         'columnDefs' => array(
-                            array('width' => '1%', 'targets' => array(-1))
+                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                            array('width' => '1%', 'orderable' => false, 'targets' => -1),
                         ),
                     )
                 ))->setHash(__NAMESPACE__ . 'StudentGroupSelect' . 'Selected');
@@ -260,7 +262,8 @@ class StudentGroupSelect extends Extension implements IApiInterface
                 ),
                     array(
                         'columnDefs' => array(
-                            array('width' => '1%', 'targets' => array(-1))
+                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                            array('width' => '1%', 'orderable' => false, 'targets' => array(-1)),
                         ),
                     )
                 ))->setHash(__NAMESPACE__ . 'StudentGroupSelect' . 'Available');

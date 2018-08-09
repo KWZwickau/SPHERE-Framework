@@ -224,7 +224,10 @@ class Frontend extends FrontendMinimumGradeCount
                                 'order' => array(
                                     array('0', 'asc'),
                                     array('1', 'asc'),
-                                )
+                                ),
+                                'columnDefs' => array(
+                                    array('orderable' => false, 'targets' => -1),
+                                ),
                             ))
                         ))
                     ))
@@ -401,7 +404,12 @@ class Frontend extends FrontendMinimumGradeCount
                                     'order' => array(
                                         array('0', 'asc'),
                                         array('1', 'asc'),
-                                    )
+                                    ),
+                                    'columnDefs' => array(
+                                        array('type' => 'natural', 'targets' => 4),
+                                        array('orderable' => false, 'targets' => -1),
+                                    ),
+
                                 )
                             )
                         ))
@@ -528,7 +536,11 @@ class Frontend extends FrontendMinimumGradeCount
                                 'order' => array(
                                     array('0', 'asc'),
                                     array('1', 'asc'),
-                                )
+                                ),
+                                'columnDefs' => array(
+                                    array('type' => 'natural', 'targets' => 2),
+                                    array('orderable' => false, 'targets' => -1),
+                                ),
                             ))
                         ))
                     ))
@@ -682,6 +694,12 @@ class Frontend extends FrontendMinimumGradeCount
                                             'Name' => 'Name',
                                             'DisplayMultiplier' => 'Faktor',
                                             'Option' => ''
+                                        ),
+                                        array(
+                                            'columnDefs' => array(
+                                                array('type' => 'natural', 'targets' => 1),
+                                                array('orderable' => false, 'targets' => -1),
+                                            )
                                         )
                                     )
                                 ), 6
@@ -692,6 +710,11 @@ class Frontend extends FrontendMinimumGradeCount
                                         array(
                                             'Name' => 'Name',
                                             'Option' => 'Faktor'
+                                        ),
+                                        array(
+                                            'columnDefs' => array(
+                                                array('orderable' => false, 'targets' => -1),
+                                            )
                                         )
                                     )
                                 ), 6
@@ -861,6 +884,11 @@ class Frontend extends FrontendMinimumGradeCount
                                         array(
                                             'Name' => 'Name',
                                             'Option' => ''
+                                        ),
+                                        array(
+                                            'columnDefs' => array(
+                                                array('orderable' => false, 'targets' => -1),
+                                            )
                                         )
                                     )
                                 ), 6
@@ -871,6 +899,11 @@ class Frontend extends FrontendMinimumGradeCount
                                         array(
                                             'DisplayName' => 'Name ',
                                             'Option' => ' '
+                                        ),
+                                        array(
+                                            'columnDefs' => array(
+                                                array('orderable' => false, 'targets' => -1),
+                                            )
                                         )
                                     )
                                 ), 6
@@ -1192,6 +1225,11 @@ class Frontend extends FrontendMinimumGradeCount
                                         array(
                                             'Name' => 'Name',
                                             'Option' => ''
+                                        ),
+                                        array(
+                                            'columnDefs' => array(
+                                                array('orderable' => false, 'targets' => -1),
+                                            )
                                         )
                                     )
                                 ), 6
@@ -1202,6 +1240,11 @@ class Frontend extends FrontendMinimumGradeCount
                                         array(
                                             'Name' => 'Name ',
                                             'Option' => ' '
+                                        ),
+                                        array(
+                                            'columnDefs' => array(
+                                                array('orderable' => false, 'targets' => -1),
+                                            )
                                         )
                                     )
                                 ), 6
@@ -1331,6 +1374,12 @@ class Frontend extends FrontendMinimumGradeCount
                                             'Name' => 'Name',
                                             'Priority' => 'Priorität',
                                             'Option' => ''
+                                        ),
+                                        array(
+                                            'columnDefs' => array(
+                                                array('type' => 'natural', 'targets' => 1),
+                                                array('orderable' => false, 'targets' => -1),
+                                            )
                                         )
                                     )
                                 ), 6
@@ -1342,6 +1391,12 @@ class Frontend extends FrontendMinimumGradeCount
                                             'Name' => 'Name ',
                                             'Priority' => 'Priorität ',
                                             'Option' => ' '
+                                        ),
+                                        array(
+                                            'columnDefs' => array(
+                                                array('type' => 'natural', 'targets' => 1),
+                                                array('orderable' => false, 'targets' => -1),
+                                            )
                                         )
                                     )
                                 ), 6
