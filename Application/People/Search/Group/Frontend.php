@@ -253,6 +253,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ),
                             'columnDefs' => array(
                                 array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 0),
+                                array('orderable' => false, 'targets' => -1),
                             )
                         ))
                     )))
