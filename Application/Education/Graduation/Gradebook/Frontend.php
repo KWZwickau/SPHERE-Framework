@@ -2937,9 +2937,11 @@ class Frontend extends FrontendScoreRule
                                     array(
                                         "columnDefs" => array(
                                             array('width' => '6%', 'targets' => 2),
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
                                         ),
                                         'pageLength' => -1,
-                                        'responsive' => false
+                                        'responsive' => false,
+
                                     )
                                 )
                             ))

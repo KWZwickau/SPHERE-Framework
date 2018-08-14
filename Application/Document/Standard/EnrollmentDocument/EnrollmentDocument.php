@@ -11,6 +11,7 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
@@ -122,6 +123,11 @@ class EnrollmentDocument extends Extension implements IModuleInterface
                                     'Address'  => 'Adresse',
                                     'Division' => 'Klasse',
                                     'Option'   => ''
+                                ),
+                                array(
+                                    "columnDefs" => array(
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                                    ),
                                 )
                             )
                         )),

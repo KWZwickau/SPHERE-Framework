@@ -92,6 +92,11 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Address' => 'Adresse',
                                     'Division' => 'Klasse',
                                     'Option' => ''
+                                ),
+                                array(
+                                    "columnDefs" => array(
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                                    ),
                                 )
                             )
                         )),

@@ -48,7 +48,7 @@ class StudentCard extends AbstractDocument
                             , '20%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('Evangelische Grundschule Radebeul')
+                            ->setContent('Evangelisches Schulzentrum Radebeul')
                             ->styleFontFamily($fontFamily)
                             ->styleTextBold()
                             ->stylePaddingTop('10px')

@@ -30,11 +30,15 @@ class Service
 
         $tblPersonList = false;
         $tblYear = false;
+        $isMentor = true;
         if (!empty($tblDivisionList)) {
             $tblPersonList = Division::useService()->getPersonAllByDivisionList($tblDivisionList);
             foreach ($tblDivisionList as $tblDivision) {
                 if ($tblDivision->getServiceTblYear()) {
                     $tblYear = $tblDivision->getServiceTblYear();
+                    if($tblDivision->getTypeName() == 'Grundschule'){
+                        $isMentor = false;
+                    }
                     break;
                 }
             }
@@ -48,8 +52,12 @@ class Service
                 if ($tblGroupList) {
                     $isGroup = false;
                     $GroupName = '';
+
                     foreach ($tblGroupList as $tblGroup) {
-                        if (preg_match('!(Mentorengruppe\s)([\w]*)!', $tblGroup->getName(), $Match)) {
+                        if ($isMentor && preg_match('!(Mentorengruppe\s)([\w]*)!', $tblGroup->getName(), $Match)) {
+                            $GroupName .= $Match[2];
+                            $isGroup = true;
+                        } elseif(!$isMentor && preg_match('!(SG\s)([\w]*)!', $tblGroup->getName(), $Match)) {
                             $GroupName .= $Match[2];
                             $isGroup = true;
                         }
@@ -87,7 +95,7 @@ class Service
         $TableContent = array();
         $CountNumber = 0;
         if (!empty($tblPersonListSorted)) {
-            array_walk($tblPersonListSorted, function (TblPerson $tblPerson) use (&$TableContent, &$CountNumber, $tblYear) {
+            array_walk($tblPersonListSorted, function (TblPerson $tblPerson) use (&$TableContent, &$CountNumber, $tblYear, $isMentor) {
                 $CountNumber++;
                 // Content
                 $Item['Division'] = '';
@@ -112,7 +120,9 @@ class Service
                 if ($tblGroupList) {
                     $MentorGroupList = array();
                     foreach ($tblGroupList as $tblGroup) {
-                        if (preg_match('!(Mentorengruppe\s)([\w]*)!', $tblGroup->getName(), $Match)) {
+                        if ($isMentor && preg_match('!(Mentorengruppe\s)([\w]*)!', $tblGroup->getName(), $Match)) {
+                            $MentorGroupList[] = $Match[2];
+                        } elseif(!$isMentor && preg_match('!(SG\s)([\w]*)!', $tblGroup->getName(), $Match)) {
                             $MentorGroupList[] = $Match[2];
                         }
                     }
@@ -308,7 +318,7 @@ class Service
             $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell(0, 0), "Kl.");
             $export->setValue($export->getCell(1, 0), "Sch.");
-            $export->setValue($export->getCell(2, 0), "M");
+            $export->setValue($export->getCell(2, 0), "Gruppe");
             $export->setValue($export->getCell(3, 0), "G");
             $export->setValue($export->getCell(4, 0), "Name");
             $export->setValue($export->getCell(5, 0), "Vorname");
@@ -372,64 +382,17 @@ class Service
                 $export->setValue($export->getCell(13, $Row), $PersonData['ExcelPhoneNumbersGuardian2']);
                 $export->setValue($export->getCell(14, $Row), $PersonData['ExcelMailAddress']);
                 $export->setValue($export->getCell(15, $Row), $PersonData['Birthday']);
-
-//                if (is_array($PersonData['ExcelPhoneNumbersPrivate'])) {
-//                    foreach ($PersonData['ExcelPhoneNumbersPrivate'] as $PhonePrivate) {
-//                        $export->setValue($export->getCell(10, $PhonePRow++), $PhonePrivate);
-//                    }
-//                }
-//                if (is_array($PersonData['ExcelPhoneNumbersBusiness'])) {
-//                    foreach ($PersonData['ExcelPhoneNumbersBusiness'] as $PhonePrivate) {
-//                        $export->setValue($export->getCell(11, $PhoneDRow++), $PhonePrivate);
-//                    }
-//                }
-//                if (is_array($PersonData['ExcelPhoneNumbersGuardian1'])) {
-//                    foreach ($PersonData['ExcelPhoneNumbersGuardian1'] as $PhoneBusiness) {
-//                        $export->setValue($export->getCell(12, $PhoneGuardianARow++), $PhoneBusiness);
-//                    }
-//                }
-//                if (is_array($PersonData['ExcelPhoneNumbersGuardian2'])) {
-//                    foreach ($PersonData['ExcelPhoneNumbersGuardian2'] as $PhoneBusiness) {
-//                        $export->setValue($export->getCell(13, $PhoneGuardianBRow++), $PhoneBusiness);
-//                    }
-//                }
-//                if (is_array($PersonData['ExcelMailAddress'])) {
-//                    foreach ($PersonData['ExcelMailAddress'] as $Mail) {
-//                        $export->setValue($export->getCell(14, $MailRow++), $Mail);
-//                    }
-//                }
-//
-//                if ($Row < ( $PhonePRow - 1 )) {
-//                    $Row = ( $PhonePRow - 1 );
-//                }
-//                if ($Row < ( $PhoneDRow - 1 )) {
-//                    $Row = ( $PhoneDRow - 1 );
-//                }
-//                if ($Row < ( $PhoneGuardianARow - 1 )) {
-//                    $Row = ( $PhoneGuardianARow - 1 );
-//                }
-//                if ($Row < ( $PhoneGuardianBRow - 1 )) {
-//                    $Row = ( $PhoneGuardianBRow - 1 );
-//                }
-//                if ($Row < ( $MailRow - 1 )) {
-//                    $Row = ( $MailRow - 1 );
-//                }
             }
 
             // Table Border
             $export->setStyle($export->getCell(0, 1), $export->getCell(15, $Row))
-//                ->setFontSize(14)
-//                ->setBorderVertical()
-//                ->setBorderLeft()
-//                ->setBorderRight()
-//                ->setBorderBottom()
                 ->setAlignmentMiddle()
                 ->setBorderAll();
 
             // Column Width
             $export->setStyle($export->getCell(0, 0), $export->getCell(0, $Row))->setColumnWidth(3)->setFontSize(9);
             $export->setStyle($export->getCell(1, 0), $export->getCell(1, $Row))->setColumnWidth(4)->setFontSize(9);
-            $export->setStyle($export->getCell(2, 0), $export->getCell(2, $Row))->setColumnWidth(4)->setFontSize(9);
+            $export->setStyle($export->getCell(2, 0), $export->getCell(2, $Row))->setColumnWidth(7)->setFontSize(9);
             $export->setStyle($export->getCell(3, 0), $export->getCell(3, $Row))->setColumnWidth(3)->setFontSize(9);
             $export->setStyle($export->getCell(4, 0), $export->getCell(4, $Row))->setColumnWidth(13)->setFontSize(9);
             $export->setStyle($export->getCell(5, 0), $export->getCell(5, $Row))->setColumnWidth(16)->setFontSize(9);

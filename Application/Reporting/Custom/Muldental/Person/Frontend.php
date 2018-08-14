@@ -6,6 +6,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Child;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
@@ -128,9 +129,12 @@ class Frontend extends Extension implements IFrontendInterface
                                     ), array(
                                         'order' => array(
                                             array(0, 'desc'),
+                                            array(1, 'asc'),
                                             array(2, 'asc'),
-                                            array(1, 'asc')
-                                        )
+                                        ),
+                                        "columnDefs" => array(
+                                            array('type' => 'natural', 'targets' => array(1,3)),
+                                        ),
                                     )
                                 )
                                 , 12)
@@ -213,7 +217,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     array(
                                         'Division'              => 'Klasse(n)',
                                         'Type'                  => 'Schulart',
-                                        'Mentor'                => 'Mentorengruppe',
+                                        'Mentor'                => 'Gruppe',
                                         'Gender'                => 'Geschlecht',
                                         'LastName'              => 'Nachname',
                                         'FirstName'             => 'Vorname',
@@ -235,7 +239,11 @@ class Frontend extends Extension implements IFrontendInterface
                                         'order'      => array(
                                             array(2, 'asc'),
                                             array(4, 'asc'),
-                                        )
+                                        ),
+                                        "columnDefs" => array(
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(4,5)),
+                                            array('type' => 'natural', 'targets' => 7),
+                                        ),
                                     )
                                 )
                             )

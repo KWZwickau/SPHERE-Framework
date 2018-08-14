@@ -247,7 +247,11 @@ class Frontend extends Extension implements IFrontendInterface
                                     ),
                                     array(
                                         "pageLength" => -1,
-                                        "responsive" => false
+                                        "responsive" => false,
+                                        'columnDefs' => array(
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
+                                        ),
                                     )
                                 )
                             )
@@ -411,7 +415,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         "pageLength" => -1,
                                         "responsive" => false,
                                         'columnDefs' => array(
-                                            array('type' => 'de_date', 'targets' => 4)
+                                            array('type' => 'de_date', 'targets' => 4),
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
                                         )
                                     )
                                 )
@@ -576,7 +581,10 @@ class Frontend extends Extension implements IFrontendInterface
                                     ),
                                     array(
                                         "pageLength" => -1,
-                                        "responsive" => false
+                                        "responsive" => false,
+                                        'columnDefs' => array(
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                        ),
                                     )
                                 )
                             )
@@ -908,8 +916,12 @@ class Frontend extends Extension implements IFrontendInterface
 
                             ),
                             array(
-                                "pageLength" => -1,
-                                "responsive" => false
+                                'pageLength' => -1,
+                                'responsive' => false,
+                                'columnDefs' => array(
+                                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                ),
                             )
                         ))
                     ))),
@@ -1003,7 +1015,14 @@ class Frontend extends Extension implements IFrontendInterface
                                         array(1, 'asc')
                                     ),
                                     "pageLength" => -1,
-                                    "responsive" => false
+                                    "responsive" => false,
+                                    'columnDefs' => array(
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 4),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 14),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 15),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 16),
+                                    ),
                                 )
                             )
                         )
@@ -1161,7 +1180,10 @@ class Frontend extends Extension implements IFrontendInterface
                                     ),
                                     array(
                                         "pageLength" => -1,
-                                        "responsive" => false
+                                        "responsive" => false,
+                                        'columnDefs' => array(
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                        ),
                                     )
                                 )
                             )
@@ -1270,7 +1292,18 @@ class Frontend extends Extension implements IFrontendInterface
             array(
                 'order'      => array(array(1, 'asc')),
                 'columnDefs' => array(
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
+                    // Sibling
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 16),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 17),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 18),
+                    // Custody 1
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 21),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 22),
+                    // Custody 2
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 34),
+                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 35),
                 ),
 //                'pageLength' => -1,
 //                'paging'     => false,

@@ -11,6 +11,7 @@ use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
@@ -425,7 +426,10 @@ class ClassRegister implements IApplicationInterface
                                 ),
                                     ($isTeacher || !$IsSortable)
                                         ? array(
-                                            'paging' => false
+                                            'paging' => false,
+                                            'columnDefs' => array(
+                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                            ),
                                         )
                                         : array(
                                         'ExtensionRowReorder' => array(
@@ -435,7 +439,10 @@ class ClassRegister implements IApplicationInterface
                                                 'DivisionId' => $tblDivision->getId()
                                             )
                                         ),
-                                        'paging' => false
+                                        'paging' => false,
+                                        'columnDefs' => array(
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                        ),
                                     )
                                 )
                             ))

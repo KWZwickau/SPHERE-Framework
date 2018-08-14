@@ -4,6 +4,7 @@ namespace SPHERE\Application\Reporting\Custom\Herrnhut\Person;
 
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Child;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
@@ -161,6 +162,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Profile'   => 'Profil',
                                     ),
                                     array(
+                                        'columnDefs' => array(
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                        ),
                                         "pageLength" => -1,
                                         "responsive" => false
                                     )
@@ -317,6 +322,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Empty'     => 'Unterschrift',
                                     ),
                                     array(
+                                        'columnDefs' => array(
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                        ),
                                         "pageLength" => -1,
                                         "responsive" => false
                                     )
@@ -483,6 +492,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'FS4'          => 'FS 4',
                                     ),
                                     array(
+                                        'columnDefs' => array(
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                        ),
                                         "pageLength" => -1,
                                         "responsive" => false
                                     )
@@ -646,6 +659,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'City'         => 'Ort',
                                     ),
                                     array(
+                                        'columnDefs' => array(
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                        ),
                                         "pageLength" => -1,
                                         "responsive" => false
                                     )
@@ -807,6 +824,11 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Leaving'      => 'Abgang',
                                     ),
                                     array(
+                                        'columnDefs' => array(
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 5),
+                                        ),
                                         "pageLength" => -1,
                                         "responsive" => false
                                     )

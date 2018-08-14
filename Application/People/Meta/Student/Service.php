@@ -405,15 +405,13 @@ class Service extends Integration
         $SiblingRank = Relationship::useService()->getSiblingRankById($Meta['Billing']);
 
         $Prefix = $Meta['Student']['Prefix'];
-        $Identifier = '';
         $tblSetting = Consumer::useService()->getSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber');
         if($tblSetting && $tblSetting->getValue()){
             $biggestIdentifier = Student::useService()->getStudentMaxIdentifier();
-            $Identifier = $biggestIdentifier + 1;
+            $Meta['Student']['Identifier'] = $biggestIdentifier + 1;
         }
 
         if ($tblStudent) {
-            $Identifier = $tblStudent->getIdentifier();
             $tblStudentMedicalRecord = $tblStudent->getTblStudentMedicalRecord();
             if ($tblStudentMedicalRecord) {
                 (new Data($this->getBinding()))->updateStudentMedicalRecord(
@@ -523,7 +521,7 @@ class Service extends Integration
             (new Data($this->getBinding()))->updateStudent(
                 $tblStudent,
                 $Prefix,
-                $Identifier,
+                $Meta['Student']['Identifier'],
                 $tblStudentMedicalRecord,
                 $tblStudentTransport,
                 $tblStudentBilling,
@@ -581,7 +579,7 @@ class Service extends Integration
             $tblStudent = (new Data($this->getBinding()))->createStudent(
                 $tblPerson,
                 $Prefix,
-                $Identifier,
+                $Meta['Student']['Identifier'],
                 $tblStudentMedicalRecord,
                 $tblStudentTransport,
                 $tblStudentBilling,

@@ -101,7 +101,8 @@ SELECT
             vCP.TblType_Name,
             ': ',
             vCP.TblPhone_Number,
-            case when vCP.TblToPerson_Remark then ' - ' else '' end,
+            -- case when vCP.TblToPerson_Remark then ' - ' else '' end, doesn't work if searched
+            ' ',
             vCP.TblToPerson_Remark
             ) separator '<br/>'
         ) from SettingConsumer_{{ ConsumerAcronym }}.viewContactPhone vCP
@@ -114,7 +115,8 @@ SELECT
             vCM.TblType_Name,
             ': ',
             vCM.TblMail_Address,
-            case when vCM.TblToPerson_Remark <> '' then ' - ' else '' end,
+            -- case when vCM.TblToPerson_Remark <> '' then ' - ' else '' end, doesn't work if searched
+            ' ',
             vCM.TblToPerson_Remark
             ) separator '<br/>'
         ) from SettingConsumer_{{ ConsumerAcronym }}.viewContactMail vCM
