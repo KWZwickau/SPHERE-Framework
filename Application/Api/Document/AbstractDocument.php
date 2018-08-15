@@ -616,13 +616,19 @@ abstract class AbstractDocument
      *
      * @return array
      */
-    private function setPhoneNumbersByTypeName(TblPerson $tblPerson, $TypeName = 'Privat') {
+    private function setPhoneNumbersByTypeName(TblPerson $tblPerson, $TypeName = 'Privat')
+    {
+
+        $IsRemark = false;
+        if($TypeName == 'Notfall'){
+            $IsRemark = true;
+        }
         $phoneNumberList = array();
         if (($tblPhoneType = Phone::useService()->getTypeByNameAndDescription($TypeName, 'Festnetz'))) {
-            $this->getPhoneNumbers($tblPerson, $tblPhoneType, $phoneNumberList);
+            $this->getPhoneNumbers($tblPerson, $tblPhoneType, $phoneNumberList, $IsRemark);
         }
         if (($tblPhoneType = Phone::useService()->getTypeByNameAndDescription($TypeName, 'Mobil'))) {
-            $this->getPhoneNumbers($tblPerson, $tblPhoneType, $phoneNumberList);
+            $this->getPhoneNumbers($tblPerson, $tblPhoneType, $phoneNumberList, $IsRemark);
         }
 
         // Telefonnummern der Sorgeberechtigten mit Anzeigen
@@ -643,16 +649,16 @@ abstract class AbstractDocument
                             'Festnetz'))
                         ) {
                             if ($tblPersonFrom->getSalutation() == 'Frau') {
-                                $this->getPhoneNumbers($tblPersonFrom, $tblPhoneType, $phoneNumberMotherList);
+                                $this->getPhoneNumbers($tblPersonFrom, $tblPhoneType, $phoneNumberMotherList, $IsRemark);
                             } else {
-                                $this->getPhoneNumbers($tblPersonFrom, $tblPhoneType, $phoneNumberFatherList);
+                                $this->getPhoneNumbers($tblPersonFrom, $tblPhoneType, $phoneNumberFatherList, $IsRemark);
                             }
                         }
                         if (($tblPhoneType = Phone::useService()->getTypeByNameAndDescription($TypeName, 'Mobil'))) {
                             if ($tblPersonFrom->getSalutation() == 'Frau') {
-                                $this->getPhoneNumbers($tblPersonFrom, $tblPhoneType, $phoneNumberMotherList);
+                                $this->getPhoneNumbers($tblPersonFrom, $tblPhoneType, $phoneNumberMotherList, $IsRemark);
                             } else {
-                                $this->getPhoneNumbers($tblPersonFrom, $tblPhoneType, $phoneNumberFatherList);
+                                $this->getPhoneNumbers($tblPersonFrom, $tblPhoneType, $phoneNumberFatherList, $IsRemark);
                             }
                         }
                     }
@@ -673,14 +679,23 @@ abstract class AbstractDocument
 
     /**
      * @param TblPerson $tblPerson
-     * @param TblType $tblType
-     * @param $phoneNumberList
+     * @param TblType   $tblType
+     * @param array     $phoneNumberList
+     * @param bool      $IsRemark
      */
-    private function getPhoneNumbers(TblPerson $tblPerson, TblType $tblType, &$phoneNumberList) {
+    private function getPhoneNumbers(TblPerson $tblPerson, TblType $tblType, &$phoneNumberList, $IsRemark = false) {
         if (($tblPhoneToPersonList = Phone::useService()->getPhoneToPersonAllBy($tblPerson, $tblType))) {
             foreach ($tblPhoneToPersonList as $tblPhoneToPerson) {
                 if (($tblPhone = $tblPhoneToPerson->getTblPhone())) {
-                    $phoneNumberList[] = $tblPhone->getNumber();
+                    if($IsRemark){
+                        $phoneNumberList[] = $tblPhone->getNumber().
+                            ($tblPhoneToPerson->getRemark()
+                                ? ' ('. $tblPhoneToPerson->getRemark().')'
+                                : ''
+                            );
+                    } else {
+                        $phoneNumberList[] = $tblPhone->getNumber();
+                    }
                 }
             }
         }

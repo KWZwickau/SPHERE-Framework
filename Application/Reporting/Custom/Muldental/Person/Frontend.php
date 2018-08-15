@@ -129,9 +129,12 @@ class Frontend extends Extension implements IFrontendInterface
                                     ), array(
                                         'order' => array(
                                             array(0, 'desc'),
+                                            array(1, 'asc'),
                                             array(2, 'asc'),
-                                            array(1, 'asc')
-                                        )
+                                        ),
+                                        "columnDefs" => array(
+                                            array('type' => 'natural', 'targets' => array(1,3)),
+                                        ),
                                     )
                                 )
                                 , 12)
@@ -214,7 +217,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     array(
                                         'Division'              => 'Klasse(n)',
                                         'Type'                  => 'Schulart',
-                                        'Mentor'                => 'Mentorengruppe',
+                                        'Mentor'                => 'Gruppe',
                                         'Gender'                => 'Geschlecht',
                                         'LastName'              => 'Nachname',
                                         'FirstName'             => 'Vorname',
@@ -238,8 +241,8 @@ class Frontend extends Extension implements IFrontendInterface
                                             array(4, 'asc'),
                                         ),
                                         "columnDefs" => array(
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 4),
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 5),
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(4,5)),
+                                            array('type' => 'natural', 'targets' => 7),
                                         ),
                                     )
                                 )
