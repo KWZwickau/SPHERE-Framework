@@ -1584,7 +1584,8 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $totalCount = 0;
-            $filterMessageTable = FilterService::getDivisionMessageTable($tblDivision, false, $totalCount);
+            $IsTableAccordion = true;
+            $filterMessageTable = FilterService::getDivisionMessageTable($tblDivision, false, $totalCount, $IsTableAccordion);
 
             $Stage->setMessage($tblDivision->getDescription());
             $Stage->addButton(new Standard('Fächer', '/Education/Lesson/Division/Subject/Add',
