@@ -384,7 +384,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(array(
                         (new SelectBox('Data[SupportType]', 'Vorgang', array('{{ Name }}' => $SupportTypeList), new Education()))->setRequired(),
-                        new SuccessMessage('Nur "Förderbescheid" und "Änderung" sind für Lehrer sichtbar')
+                        new Warning('Nur "Förderbescheid" und "Änderung" sind für Lehrer sichtbar')
                         ), 6),
                     new FormColumn(
                         new Listing($CheckboxList)
