@@ -194,7 +194,7 @@ class Service
         // Validierung "Stundentaffel"
         $list = self::hasDivisionAllObligations($tblDivision, $list);
 
-        if (!empty($list)) {
+        if (!empty($list) || !empty($missingGroupList)) {
             $contentTable = array();
             $count = 1;
             $countMessages = 0;
@@ -207,8 +207,10 @@ class Service
                 "responsive" => false
             );
 
-            list($contentTable, $countMessages) = self::formatFilterListMessages($list, $contentTable, $count,
-                $countMessages);
+            if(!empty($list)){
+                list($contentTable, $countMessages) = self::formatFilterListMessages($list, $contentTable, $count,
+                    $countMessages);
+            }
 
             if (!empty($missingGroupList)) {
                 foreach ($missingGroupList as $value) {
