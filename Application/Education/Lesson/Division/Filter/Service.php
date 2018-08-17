@@ -20,6 +20,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
@@ -28,6 +29,7 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
 
 /**
@@ -68,12 +70,13 @@ class Service
 
     /**
      * @param TblDivision $tblDivision
-     * @param bool $isAccordion
-     * @param integer $totalCount
+     * @param bool        $isAccordion
+     * @param integer     $totalCount
+     * @param bool        $IsTableAccordion
      *
      * @return array|bool|Warning
      */
-    public static function getDivisionMessageTable(TblDivision $tblDivision, $isAccordion = false, &$totalCount)
+    public static function getDivisionMessageTable(TblDivision $tblDivision, $isAccordion = false, &$totalCount, $IsTableAccordion = false)
     {
 
         $list = array();
@@ -191,7 +194,7 @@ class Service
         // Validierung "Stundentaffel"
         $list = self::hasDivisionAllObligations($tblDivision, $list);
 
-        if (!empty($list)) {
+        if (!empty($list) || !empty($missingGroupList)) {
             $contentTable = array();
             $count = 1;
             $countMessages = 0;
@@ -204,8 +207,10 @@ class Service
                 "responsive" => false
             );
 
-            list($contentTable, $countMessages) = self::formatFilterListMessages($list, $contentTable, $count,
-                $countMessages);
+            if(!empty($list)){
+                list($contentTable, $countMessages) = self::formatFilterListMessages($list, $contentTable, $count,
+                    $countMessages);
+            }
 
             if (!empty($missingGroupList)) {
                 foreach ($missingGroupList as $value) {
@@ -241,7 +246,20 @@ class Service
                 return new Warning(
                     new Exclamation() . new Bold(' Folgende Einstellungen stimmen nicht zwischen der Personenverwaltung und dem Bildungsmodul überein:')
                     . '</br></br>'
-                    . new TableData(
+                .($IsTableAccordion
+                    ? (new Accordion())->addItem('Warnungen '.new Small('('.$totalCount.')'),
+                            new TableData(
+                                $contentTable,
+                                null,
+                                array(
+                                    'Name' => 'Schüler',
+                                    'Field' => 'Eigenschaft / Feld',
+                                    'Value' => 'Personenverwaltung',
+                                    'DivisionSubjects' => 'Bildungsmodul'
+                                ),
+                                $tableOption
+                            ))
+                    : new TableData(
                         $contentTable,
                         null,
                         array(
@@ -252,7 +270,7 @@ class Service
                         ),
                         $tableOption
                     )
-                );
+                ));
             }
         }
 
