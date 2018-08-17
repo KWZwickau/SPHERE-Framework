@@ -52,7 +52,7 @@ class Import implements IApplicationInterface
         if ($consumerAcronym === 'EVSC' || $consumerAcronym == 'DEMO') {
             Coswig::registerModule();
         }
-        if ($consumerAcronym === 'EZGH' || $consumerAcronym == 'DEMO') {
+        if ($consumerAcronym === 'EZSH' || $consumerAcronym == 'DEMO') {
             Herrnhut::registerModule();
         }
         if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH' || $consumerAcronym == 'DEMO') {
@@ -116,6 +116,9 @@ class Import implements IApplicationInterface
         }
         if ($consumerAcronym === 'FES' || $consumerAcronym == 'DEMO') {
             $dataList = Dresden::setLinks($dataList);
+        }
+        if ($consumerAcronym === 'EZSH' || $consumerAcronym == 'DEMO') {
+            $dataList = Herrnhut::setLinks($dataList);
         }
 
         if(empty($dataList)){

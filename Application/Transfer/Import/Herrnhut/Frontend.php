@@ -19,6 +19,11 @@ use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
+/**
+ * Class Frontend
+ *
+ * @package SPHERE\Application\Transfer\Import\Herrnhut
+ */
 class Frontend extends Extension implements IFrontendInterface
 {
 
@@ -94,6 +99,84 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                                 ,
                                 new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)', new Exclamation())
+                            )
+                        ))
+                    )
+                )
+            )
+        );
+
+        return $View;
+    }
+
+    /**
+     * @param null $File
+     *
+     * @return Stage
+     *
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function frontendPersonImport($File = null)
+    {
+
+        $View = new Stage('Import Herrnhut', 'Privatkontakte');
+        $View->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new Well(
+                                Herrnhut::useService()->createPersonsFromFile(new Form(
+                                    new FormGroup(
+                                        new FormRow(
+                                            new FormColumn(
+                                                new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
+                                                    array('showPreview' => false))
+                                            )
+                                        )
+                                    )
+                                    , new Primary('Hochladen')
+                                ), $File)
+                                . new Warning(new Exclamation() . ' Erlaubte Dateitypen: Excel (XLS,XLSX)')
+                            )
+                        ))
+                    )
+                )
+            )
+        );
+
+        return $View;
+    }
+
+    /**
+     * @param null $File
+     *
+     * @return Stage
+     *
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function frontendCompanyImport($File = null)
+    {
+
+        $View = new Stage('Import Herrnhut', 'Institutionen mit Ansprechpartnern');
+        $View->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new Well(
+                                Herrnhut::useService()->createCompaniesFromFile(new Form(
+                                    new FormGroup(
+                                        new FormRow(
+                                            new FormColumn(
+                                                new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
+                                                    array('showPreview' => false))
+                                            )
+                                        )
+                                    )
+                                    , new Primary('Hochladen')
+                                ), $File)
+                                . new Warning(new Exclamation() . ' Erlaubte Dateitypen: Excel (XLS,XLSX)')
                             )
                         ))
                     )
