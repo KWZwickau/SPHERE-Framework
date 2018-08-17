@@ -878,7 +878,7 @@ class Service extends ServiceScoreRule
                                 $error[$tblGrade->getTblGradeType()->getId()] =
                                     new LayoutRow(
                                         new LayoutColumn(
-                                            new Warning('Der Zensuren-Typ: ' . $tblGrade->getTblGradeType()->getName()
+                                            new Warning('Der Zensuren-Typ: ' . $tblGrade->getTblGradeType()->getDisplayName()
                                                 . ' ist nicht in der Berechnungsvariante: ' . $tblScoreCondition->getName() . ' hinterlegt.',
                                                 new Ban()
                                             )
