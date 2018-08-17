@@ -188,7 +188,7 @@ class TblMinimumGradeCount extends Element
     public function getGradeTypeDisplayName()
     {
         if (($tblGradeType = $this->getTblGradeType())){
-            return $tblGradeType ? $tblGradeType->getCode() . ' - ' . $tblGradeType->getName() : '';
+            return $tblGradeType ? $tblGradeType->getDisplayName() : '';
         } else {
             switch ($this->getHighlighted())  {
                 case SelectBoxItem::HIGHLIGHTED_ALL: $gradeType = 'Alle Zensuren-Typen'; break;

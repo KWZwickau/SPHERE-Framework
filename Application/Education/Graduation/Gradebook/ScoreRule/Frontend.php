@@ -132,7 +132,7 @@ class Frontend extends FrontendMinimumGradeCount
                             $list = array();
                             foreach ($tblScoreConditionGradeTypeListByCondition as $tblScoreConditionGradeTypeList) {
                                 if ($tblScoreConditionGradeTypeList->getTblGradeType()) {
-                                    $list[] = $tblScoreConditionGradeTypeList->getTblGradeType()->getName();
+                                    $list[] = $tblScoreConditionGradeTypeList->getTblGradeType()->getDisplayName();
                                 }
                             }
 
@@ -159,7 +159,7 @@ class Frontend extends FrontendMinimumGradeCount
                                     foreach ($tblGradeTypeList as $tblGradeType) {
                                         $structure[] = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9702;&nbsp;&nbsp;'
                                             . 'Zensuren-Typ: '
-                                            . ($tblGradeType->getTblGradeType() ? $tblGradeType->getTblGradeType()->getName() : '')
+                                            . ($tblGradeType->getTblGradeType() ? $tblGradeType->getTblGradeType()->getDisplayName() : '')
                                             . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Faktor: '
                                             . $tblGradeType->getDisplayMultiplier();
                                     }
@@ -335,7 +335,7 @@ class Frontend extends FrontendMinimumGradeCount
                 if ($tblGradeTypes) {
                     foreach ($tblGradeTypes as $tblGradeType) {
                         if ($tblGradeType->getTblGradeType()) {
-                            $gradeTypes[] = $tblGradeType->getTblGradeType()->getName();
+                            $gradeTypes[] = $tblGradeType->getTblGradeType()->getDisplayName();
                         }
                     }
                 }
@@ -471,7 +471,7 @@ class Frontend extends FrontendMinimumGradeCount
                     foreach ($tblScoreGroupGradeTypes as $tblScoreGroupGradeType) {
                         if ($tblScoreGroupGradeType->getTblGradeType()) {
 
-                            $gradeTypes .= $tblScoreGroupGradeType->getTblGradeType()->getName()
+                            $gradeTypes .= $tblScoreGroupGradeType->getTblGradeType()->getDisplayName()
                                 . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreGroupGradeType->getDisplayMultiplier() . ')')) . ', ';
                         }
                     }
@@ -619,7 +619,7 @@ class Frontend extends FrontendMinimumGradeCount
 
                         if ($tblScoreGroupGradeTypeList->getTblGradeType()) {
                             $contentSelectedTable[] = array(
-                                'Name' => $tblScoreGroupGradeTypeList->getTblGradeType()->getName(),
+                                'Name' => $tblScoreGroupGradeTypeList->getTblGradeType()->getDisplayName(),
                                 'DisplayMultiplier' => $tblScoreGroupGradeTypeList->getDisplayMultiplier(),
                                 'Option' =>
                                     (new \SPHERE\Common\Frontend\Link\Repository\Primary(
@@ -636,7 +636,7 @@ class Frontend extends FrontendMinimumGradeCount
                 if ($tblGradeTypeAll) {
                     foreach ($tblGradeTypeAll as $tblGradeType) {
                         $contentAvailableTable[] = array(
-                            'Name' => $tblGradeType->getName(),
+                            'Name' => $tblGradeType->getDisplayName(),
                             'Option' =>
                                 (new Form(
                                     new FormGroup(
@@ -1144,7 +1144,7 @@ class Frontend extends FrontendMinimumGradeCount
                 if ($tblScoreConditionGradeTypeListByCondition) {
                     foreach ($tblScoreConditionGradeTypeListByCondition as &$tblScoreConditionGradeTypeList) {
                         if ($tblScoreConditionGradeTypeList->getTblGradeType()) {
-                            $tblScoreConditionGradeTypeList->Name = $tblScoreConditionGradeTypeList->getTblGradeType()->getName();
+                            $tblScoreConditionGradeTypeList->Name = $tblScoreConditionGradeTypeList->getTblGradeType()->getDisplayName();
                             $tblScoreConditionGradeTypeList->Option =
                                 (new \SPHERE\Common\Frontend\Link\Repository\Primary(
                                     'Entfernen', '/Education/Graduation/Gradebook/Score/Condition/GradeType/Remove',

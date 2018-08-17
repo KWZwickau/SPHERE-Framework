@@ -366,28 +366,29 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(
                                     new TableData($personList, null,
                                         array(
-                                            'Division' => 'Klasse',
-                                            'LastName' => 'Name',
-                                            'FirstName' => 'Vorname',
-                                            'PhoneHome' => 'Zuhause',
-                                            'PhoneMotherMobile' => 'Mutter Handy',
-                                            'PhoneFatherMobile' => 'Vater Handy',
+                                            'Division'            => 'Klasse',
+                                            'Title'               => 'Titel',
+                                            'LastName'            => 'Name',
+                                            'FirstName'           => 'Vorname',
+                                            'PhoneHome'           => 'Zuhause',
+                                            'PhoneMotherMobile'   => 'Mutter Handy',
+                                            'PhoneFatherMobile'   => 'Vater Handy',
                                             'PhoneMotherBusiness' => 'Mutter dienstl.',
                                             'PhoneFatherBusiness' => 'Vater dienstl.',
-                                            'PhoneEmergency' => 'Notfall',
-                                            'Birthday' => 'Geb.-Datum',
+                                            'PhoneEmergency'      => 'Notfall',
+                                            'Birthday'            => 'Geb.-Datum',
                                         ),
                                         array(
                                             "pageLength" => -1,
                                             "responsive" => false,
-                                            'order' => array(
+                                            'order'      => array(
                                                 array(0, 'asc'),
                                                 array(1, 'asc'),
                                                 array(2, 'asc')
                                             ),
                                             "columnDefs" => array(
-                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
                                                 array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
                                             ),
                                         )
                                     )

@@ -265,6 +265,7 @@ class Service extends Extension
             foreach ($tblPersonList as $tblPerson) {
 
                 $Item['Division'] = Student::useService()->getDisplayCurrentDivisionListByPerson($tblPerson, ' ');
+                $Item['Title'] = $tblPerson->getTitle();
                 $Item['LastName'] = $tblPerson->getLastName();
                 $Item['FirstName'] = $tblPerson->getFirstSecondName();
 
@@ -398,6 +399,7 @@ class Service extends Extension
             $export = Document::getDocument($fileLocation->getFileLocation());
 
             $export->setValue($export->getCell($column++, $row), 'Klasse');
+            $export->setValue($export->getCell($column++, $row), 'Titel');
             $export->setValue($export->getCell($column++, $row), 'Nachname');
             $export->setValue($export->getCell($column++, $row), 'Vorname');
             $export->setValue($export->getCell($column++, $row), 'Zuhause');
@@ -417,6 +419,7 @@ class Service extends Extension
                 $column = 0;
 
                 $export->setValue($export->getCell($column++, $row), $PersonData['Division']);
+                $export->setValue($export->getCell($column++, $row), $PersonData['Title']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['LastName']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['FirstName']);
                 $export->setValue($export->getCell($column++, $row), $PersonData['PhoneHome']);
@@ -434,13 +437,14 @@ class Service extends Extension
             $column = 0;
             // Spaltenbreite
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(9);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(4);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(12.5);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(12.5);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(12.5);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(12.5);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(12.5);
-            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(12.5);
-            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(12.5);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(11.5);
+            $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(11.5);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column++, $row))->setColumnWidth(12.5);
             $export->setStyle($export->getCell($column, 0), $export->getCell($column, $row))->setColumnWidth(10);
 

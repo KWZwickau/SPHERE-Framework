@@ -3,7 +3,9 @@
 namespace SPHERE\Application\Platform\Gatekeeper\Authentication;
 
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
+use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSetting;
@@ -79,7 +81,8 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Willkommen', '', '');
         $IsMaintenance = false;
-        $content = false;
+        $contentTeacherWelcome = false;
+        $contentHeadmasterWelcome = false;
         $IsEqual = false;
         $IsNavigationAssistance = false;
 
@@ -94,7 +97,11 @@ class Frontend extends Extension implements IFrontendInterface
                     && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
                 ) {
 
-                    $content = Evaluation::useService()->getTeacherWelcome($tblPerson);
+                    $contentTeacherWelcome = Evaluation::useService()->getTeacherWelcome($tblPerson);
+                }
+
+                if (Access::useService()->hasAuthorization('/Education/Graduation/Gradebook/Type/Select')) {
+                    $contentHeadmasterWelcome = Gradebook::useService()->getMissingSubjectsWithScoreType();
                 }
             }
         }
@@ -144,7 +151,8 @@ class Frontend extends Extension implements IFrontendInterface
                 ? $this->layoutNavigationAssistance()
                 : ''
             )
-            .($content ? $content : '')
+            . ($contentHeadmasterWelcome ? $contentHeadmasterWelcome : '')
+            .($contentTeacherWelcome ? $contentTeacherWelcome : '')
             .$this->getCleanLocalStorage()
         );
 

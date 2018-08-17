@@ -1588,14 +1588,14 @@ class Frontend extends FrontendScoreRule
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
                         new Panel(
                             'Zensuren-Typ',
-                            $tblGradeType->getName()
+                            $tblGradeType->getDisplayName()
                             .'&nbsp;&nbsp;'.new Muted(new Small(new Small(
                                 $tblGradeType->getDescription()))),
                             Panel::PANEL_TYPE_INFO
                         ),
                         new Panel(new Question().' Diesen Zensuren-Typ wirklich löschen?',
                             array(
-                                $tblGradeType->getName(),
+                                $tblGradeType->getDisplayName(),
                                 $tblGradeType->getDescription() ? $tblGradeType->getDescription() : null
                             ),
                             Panel::PANEL_TYPE_DANGER,

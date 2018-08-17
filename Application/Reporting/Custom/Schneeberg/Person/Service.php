@@ -135,15 +135,18 @@ class Service extends Extension
                     $Item['ParentJob'] = $father->getFirstSecondName().' '.$father->getLastName().' '.$FatherString;
                     $Item['ParentJob'] .= ', '.$mother->getFirstSecondName().' '.$mother->getLastName().' '.$MotherString;
 
-                    $Item['Parents'] = $mother->getFirstSecondName() .
+                    $Item['Parents'] = ($mother->getTitle() ? $mother->getTitle().' ' : '').$mother->getFirstSecondName() .
                         ($father->getLastName() == $mother->getLastName() ? '' : ' ' . $mother->getLastName())
-                        . ' & ' . $father->getFirstSecondName() . ' ' . $father->getLastName();
+                        . ' & ' .($father->getTitle() ? $father->getTitle().' ' : '')
+                        . $father->getFirstSecondName() . ' ' . $father->getLastName();
                 } elseif ($father) {
                     $Item['ParentJob'] = $father->getFirstSecondName().' '.$father->getLastName().' '.$FatherString;
-                    $Item['Parents'] = $father->getFirstSecondName().' '.$father->getLastName();
+                    $Item['Parents'] = ($father->getTitle() ? $father->getTitle().' ' : '')
+                        .$father->getFirstSecondName().' '.$father->getLastName();
                 } elseif ($mother) {
                     $Item['ParentJob'] = $mother->getFirstSecondName().' '.$mother->getLastName().$MotherString;
-                    $Item['Parents'] = $mother->getFirstSecondName().' '.$mother->getLastName();
+                    $Item['Parents'] = ($mother->getTitle() ? $mother->getTitle().' ' : '')
+                        .$mother->getFirstSecondName().' '.$mother->getLastName();
                 }
 
                 $common = Common::useService()->getCommonByPerson($tblPerson);
@@ -202,11 +205,12 @@ class Service extends Extension
     }
 
     /**
-     * @param array $PersonList
+     * @param $PersonList
      *
-     * @return bool|\SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
+     * @return bool|\SPHERE\Application\Document\Storage\FilePointer
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @throws \PHPExcel_Reader_Exception
      */
     public function createClassListExcel($PersonList)
     {

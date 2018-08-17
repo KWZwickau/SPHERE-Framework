@@ -923,7 +923,7 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($tblTask) {
                         $gradeType = new Bold('Kopfnote: ' . $tblTest->getServiceTblGradeType()->getName());
                     } else {
-                        $gradeType = $tblTest->getServiceTblGradeType()->getName();
+                        $gradeType = $tblTest->getServiceTblGradeType()->getDisplayName();
                     }
                 } elseif ($tblTask) {
                     $gradeType = new Bold('Stichtagsnote');
@@ -1264,6 +1264,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'columnDefs' => array(
                                     array('type' => 'de_date', 'targets' => 0),
                                     array('type' => 'de_date', 'targets' => 6),
+                                    // Sortierung funktioniert bei Text-Style (farblicher Änderung, Fettmarkierung usw.) Benutzung nicht
                                     array('orderable' => false, 'targets' => 7),
                                     array('orderable' => false, 'targets' => 8),
                                     array('orderable' => false, 'targets' => 9),
@@ -1342,7 +1343,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new SelectBox('Test[Period]', 'Zeitraum', array('DisplayName' => $tblPeriodList)), 6
                 ),
                 new FormColumn(
-                    new SelectBox('Test[GradeType]', 'Zensuren-Typ', array('Name' => $tblGradeTypeList)), 6
+                    new SelectBox('Test[GradeType]', 'Zensuren-Typ', array('DisplayName' => $tblGradeTypeList)), 6
                 )
             )),
             new FormRow(array(
@@ -1514,7 +1515,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Form = new Form(new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new SelectBox('Test[GradeType]', 'Zensuren-Typ', array('Name' => $tblGradeTypeList)), 12
+                        new SelectBox('Test[GradeType]', 'Zensuren-Typ', array('DisplayName' => $tblGradeTypeList)), 12
                     ),
                     new FormColumn(
                         new TextField('Test[Description]', '', 'Thema'), 12

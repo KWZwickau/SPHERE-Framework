@@ -265,8 +265,8 @@ class Service extends Extension
             $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
-            $export->setValue($export->getCell("0", "0"), "Vorname");
-            $export->setValue($export->getCell("1", "0"), "Name");
+            $export->setValue($export->getCell("0", "0"), "Name");
+            $export->setValue($export->getCell("1", "0"), "Vorname");
             $export->setValue($export->getCell("2", "0"), "Geschlecht");
             $export->setValue($export->getCell("3", "0"), "Konfession");
             $export->setValue($export->getCell("4", "0"), "Geburtsdatum");
@@ -284,12 +284,16 @@ class Service extends Extension
 
             $Row = 0;
 
+            // Strich nach dem Header
+            $export->setStyle($export->getCell(0, $Row), $export->getCell(12, $Row))
+                ->setBorderBottom();
+
             foreach ($PersonList as $PersonData) {
                 $Row++;
                 $phoneRow = $mailRow = $Row;
 
-                $export->setValue($export->getCell("0", $Row), $PersonData['FirstName']);
-                $export->setValue($export->getCell("1", $Row), $PersonData['LastName']);
+                $export->setValue($export->getCell("0", $Row), $PersonData['LastName']);
+                $export->setValue($export->getCell("1", $Row), $PersonData['FirstName']);
                 $export->setValue($export->getCell("2", $Row), $PersonData['Gender']);
                 $export->setValue($export->getCell("3", $Row), $PersonData['Denomination']);
                 $export->setValue($export->getCell("4", $Row), $PersonData['Birthday']);
@@ -319,6 +323,10 @@ class Service extends Extension
                 if ($Row < ($mailRow - 1)) {
                     $Row = ($mailRow - 1);
                 }
+
+                // Strich nach jedem Schüler
+                $export->setStyle($export->getCell(0, $Row), $export->getCell(12, $Row))
+                    ->setBorderBottom();
             }
 
             //Column width
@@ -1021,6 +1029,7 @@ class Service extends Extension
             array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$All, $tblGroup) {
 
                 $All++;
+                $Item['Title'] = $tblPerson->getTitle();
                 $Item['FirstName'] = $tblPerson->getFirstSecondName();
                 $Item['LastName'] = $tblPerson->getLastName();
                 $Item['Number'] = $All;
@@ -1290,6 +1299,7 @@ class Service extends Extension
             $ColumnStandard = array(
                 'Number'                   => 'lfd. Nr.',
                 'Salutation'               => 'Anrede',
+                'Title'                    => 'Titel',
                 'FirstName'                => 'Vorname',
                 'LastName'                 => 'Nachname',
                 'StreetName'               => 'Straße',
@@ -1515,8 +1525,8 @@ class Service extends Extension
                 $Item['SchoolYear'] = '';
                 $Item['Birthday'] = $Item['Birthplace'] = $Item['Denomination'] = $Item['Nationality'] = '';
                 $Item['Siblings'] = array();
-                $Item['FatherSalutation'] = $Item['FatherLastName'] = $Item['FatherFirstName'] = $Item['Father'] = '';
-                $Item['MotherSalutation'] = $Item['MotherLastName'] = $Item['MotherFirstName'] = $Item['Mother'] = '';
+                $Item['FatherSalutation'] = $Item['FatherTitle'] = $Item['FatherLastName'] = $Item['FatherFirstName'] = $Item['Father'] = '';
+                $Item['MotherSalutation'] = $Item['MotherTitle'] = $Item['MotherLastName'] = $Item['MotherFirstName'] = $Item['Mother'] = '';
                 $Item['Remark'] = $Item['RemarkExcel'] = '';
                 $Item['MailGuardian'] = $Item['ExcelMailGuardian'] = $Item['ExcelMailGuardianSimple'] = '';
 
@@ -1702,12 +1712,14 @@ class Service extends Extension
 
                 if ($father !== null) {
                     $Item['FatherSalutation'] = $father->getSalutation();
+                    $Item['FatherTitle'] = $father->getTitle();
                     $Item['FatherLastName'] = $father->getLastName();
                     $Item['FatherFirstName'] = $father->getFirstSecondName();
                     $Item['Father'] = $father->getFullName();
                 }
                 if ($mother !== null) {
                     $Item['MotherSalutation'] = $mother->getSalutation();
+                    $Item['MotherTitle'] = $mother->getTitle();
                     $Item['MotherLastName'] = $mother->getLastName();
                     $Item['MotherFirstName'] = $mother->getFirstSecondName();
                     $Item['Mother'] = $mother->getFullName();
@@ -1735,8 +1747,6 @@ class Service extends Extension
      * @param $tblPersonList
      *
      * @return bool|FilePointer
-     * @throws TypeFileException
-     * @throws DocumentTypeException
      */
     public function createInterestedPersonListExcel($PersonList, $tblPersonList)
     {
@@ -1766,18 +1776,20 @@ class Service extends Extension
             $export->setValue($export->getCell(17, 0), "Bekenntnis");
             $export->setValue($export->getCell(18, 0), "Geschwister");
             $export->setValue($export->getCell(19, 0), "Anrede Sorgeberechtigter 1");
-            $export->setValue($export->getCell(20, 0), "Name Sorgeberechtigter 1");
-            $export->setValue($export->getCell(21, 0), "Vorname Sorgeberechtigter 1");
-            $export->setValue($export->getCell(22, 0), "Anrede Sorgeberechtigter 2");
-            $export->setValue($export->getCell(23, 0), "Name Sorgeberechtigter 2");
-            $export->setValue($export->getCell(24, 0), "Vorname Sorgeberechtigter 2");
-            $export->setValue($export->getCell(25, 0), "Telefon Interessent");
-            $export->setValue($export->getCell(26, 0), "Telefon Interessent Kurz");
-            $export->setValue($export->getCell(27, 0), "Telefon Sorgeberechtigte");
-            $export->setValue($export->getCell(28, 0), "Telefon Sorgeberechtigte Kurz");
-            $export->setValue($export->getCell(29, 0), "E-Mail Sorgeberechtigte");
-            $export->setValue($export->getCell(30, 0), "E-Mail Sorgeberechtigte Kurz");
-            $export->setValue($export->getCell(31, 0), "Bemerkung");
+            $export->setValue($export->getCell(20, 0), "Titel Sorgeberechtigter 1");
+            $export->setValue($export->getCell(21, 0), "Name Sorgeberechtigter 1");
+            $export->setValue($export->getCell(22, 0), "Vorname Sorgeberechtigter 1");
+            $export->setValue($export->getCell(23, 0), "Anrede Sorgeberechtigter 2");
+            $export->setValue($export->getCell(24, 0), "Titel Sorgeberechtigter 1");
+            $export->setValue($export->getCell(25, 0), "Name Sorgeberechtigter 2");
+            $export->setValue($export->getCell(26, 0), "Vorname Sorgeberechtigter 2");
+            $export->setValue($export->getCell(27, 0), "Telefon Interessent");
+            $export->setValue($export->getCell(28, 0), "Telefon Interessent Kurz");
+            $export->setValue($export->getCell(29, 0), "Telefon Sorgeberechtigte");
+            $export->setValue($export->getCell(30, 0), "Telefon Sorgeberechtigte Kurz");
+            $export->setValue($export->getCell(31, 0), "E-Mail Sorgeberechtigte");
+            $export->setValue($export->getCell(32, 0), "E-Mail Sorgeberechtigte Kurz");
+            $export->setValue($export->getCell(33, 0), "Bemerkung");
 
             $Row = 1;
             foreach ($PersonList as $PersonData) {
@@ -1802,18 +1814,20 @@ class Service extends Extension
                 $export->setValue($export->getCell(17, $Row), $PersonData['Denomination']);
                 $export->setValue($export->getCell(18, $Row), $PersonData['Siblings']);
                 $export->setValue($export->getCell(19, $Row), $PersonData['FatherSalutation']);
-                $export->setValue($export->getCell(20, $Row), $PersonData['FatherLastName']);
-                $export->setValue($export->getCell(21, $Row), $PersonData['FatherFirstName']);
-                $export->setValue($export->getCell(22, $Row), $PersonData['MotherSalutation']);
-                $export->setValue($export->getCell(23, $Row), $PersonData['MotherLastName']);
-                $export->setValue($export->getCell(24, $Row), $PersonData['MotherFirstName']);
-                $export->setValue($export->getCell(25, $Row), $PersonData['Phone']);
-                $export->setValue($export->getCell(26, $Row), $PersonData['PhoneSimple']);
-                $export->setValue($export->getCell(27, $Row), $PersonData['PhoneGuardian']);
-                $export->setValue($export->getCell(28, $Row), $PersonData['PhoneGuardianSimple']);
-                $export->setValue($export->getCell(29, $Row), $PersonData['ExcelMailGuardian']);
-                $export->setValue($export->getCell(30, $Row), $PersonData['ExcelMailGuardianSimple']);
-                $export->setValue($export->getCell(31, $Row), $PersonData['RemarkExcel']);
+                $export->setValue($export->getCell(20, $Row), $PersonData['FatherTitle']);
+                $export->setValue($export->getCell(21, $Row), $PersonData['FatherLastName']);
+                $export->setValue($export->getCell(22, $Row), $PersonData['FatherFirstName']);
+                $export->setValue($export->getCell(23, $Row), $PersonData['MotherSalutation']);
+                $export->setValue($export->getCell(24, $Row), $PersonData['MotherTitle']);
+                $export->setValue($export->getCell(25, $Row), $PersonData['MotherLastName']);
+                $export->setValue($export->getCell(26, $Row), $PersonData['MotherFirstName']);
+                $export->setValue($export->getCell(27, $Row), $PersonData['Phone']);
+                $export->setValue($export->getCell(28, $Row), $PersonData['PhoneSimple']);
+                $export->setValue($export->getCell(29, $Row), $PersonData['PhoneGuardian']);
+                $export->setValue($export->getCell(30, $Row), $PersonData['PhoneGuardianSimple']);
+                $export->setValue($export->getCell(31, $Row), $PersonData['ExcelMailGuardian']);
+                $export->setValue($export->getCell(32, $Row), $PersonData['ExcelMailGuardianSimple']);
+                $export->setValue($export->getCell(33, $Row), $PersonData['RemarkExcel']);
 
                 // WrapText
                 $export->setStyle($export->getCell(31, $Row))->setWrapText();
