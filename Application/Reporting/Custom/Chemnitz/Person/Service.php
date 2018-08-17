@@ -1299,9 +1299,9 @@ class Service extends Extension
 
                     if ($tblStudentSubject)
                     {
-                        if ($tblStudentSubject->getServiceTblSubject() && $tblStudentSubject->getServiceTblSubject()->getAcronym() == 'FRZ')
+                        if ($tblStudentSubject->getServiceTblSubject() && $tblStudentSubject->getServiceTblSubject()->getAcronym() == 'FR')
                         {
-                            $Item['French'] = 'FRZ';
+                            $Item['French'] = 'FR';
                         }
                     }
                     $isSet = false;
@@ -1523,7 +1523,7 @@ class Service extends Extension
             $export->setValue($export->getCell(2, 1), "Adresse");
             $export->setValue($export->getCell(3, 1), "Telefonnummer");
             $export->setValue($export->getCell(4, 1), "Gr");
-            $export->setValue($export->getCell(5, 1), "NK/P/FRZ");
+            $export->setValue($export->getCell(5, 1), "NK/P/FR");
             $export->setValue($export->getCell(6, 1), "BG");
             $export->setValue($export->getCell(7, 1), "WF");
             // Header bold
@@ -1697,7 +1697,7 @@ class Service extends Extension
 
             if (!empty($counterFrench)) {
                 $Row += 2;
-                $export->setValue($export->getCell(0, $Row), 'Fremdsprache FRZ');
+                $export->setValue($export->getCell(0, $Row), 'Fremdsprache FR');
                 $Row++;
                 $export->setValue($export->getCell(0, $Row), 'Französisch:');
                 $export->setValue($export->getCell(1, $Row), $counterFrench);
