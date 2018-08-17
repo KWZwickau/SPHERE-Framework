@@ -265,8 +265,8 @@ class Service extends Extension
             $fileLocation = Storage::createFilePointer('xlsx');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
-            $export->setValue($export->getCell("0", "0"), "Vorname");
-            $export->setValue($export->getCell("1", "0"), "Name");
+            $export->setValue($export->getCell("0", "0"), "Name");
+            $export->setValue($export->getCell("1", "0"), "Vorname");
             $export->setValue($export->getCell("2", "0"), "Geschlecht");
             $export->setValue($export->getCell("3", "0"), "Konfession");
             $export->setValue($export->getCell("4", "0"), "Geburtsdatum");
@@ -284,12 +284,16 @@ class Service extends Extension
 
             $Row = 0;
 
+            // Strich nach dem Header
+            $export->setStyle($export->getCell(0, $Row), $export->getCell(12, $Row))
+                ->setBorderBottom();
+
             foreach ($PersonList as $PersonData) {
                 $Row++;
                 $phoneRow = $mailRow = $Row;
 
-                $export->setValue($export->getCell("0", $Row), $PersonData['FirstName']);
-                $export->setValue($export->getCell("1", $Row), $PersonData['LastName']);
+                $export->setValue($export->getCell("0", $Row), $PersonData['LastName']);
+                $export->setValue($export->getCell("1", $Row), $PersonData['FirstName']);
                 $export->setValue($export->getCell("2", $Row), $PersonData['Gender']);
                 $export->setValue($export->getCell("3", $Row), $PersonData['Denomination']);
                 $export->setValue($export->getCell("4", $Row), $PersonData['Birthday']);
@@ -319,6 +323,10 @@ class Service extends Extension
                 if ($Row < ($mailRow - 1)) {
                     $Row = ($mailRow - 1);
                 }
+
+                // Strich nach jedem Schüler
+                $export->setStyle($export->getCell(0, $Row), $export->getCell(12, $Row))
+                    ->setBorderBottom();
             }
 
             //Column width
