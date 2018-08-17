@@ -245,19 +245,20 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new TableData($PersonList, null,
                                 array(
-                                    'Salutation' => 'Anrede',
-                                    'FirstName' => 'Vorname',
-                                    'LastName' => 'Name',
-                                    'Birthday' => 'Geburtsdatum',
-                                    'Division' => 'Unterbereich',
-                                    'Address' => 'Adresse',
-//                                    'StreetName'         => 'Straße',
-//                                    'StreetNumber'         => 'Hausnr.',
+                                    'Salutation'   => 'Anrede',
+                                    'Title'        => 'Titel',
+                                    'FirstName'    => 'Vorname',
+                                    'LastName'     => 'Name',
+                                    'Birthday'     => 'Geburtsdatum',
+                                    'Division'     => 'Unterbereich',
+                                    'Address'      => 'Adresse',
+//                                    'StreetName'   => 'Straße',
+//                                    'StreetNumber' => 'Hausnr.',
 //                                    'Code'         => 'PLZ',
 //                                    'City'         => 'Ort',
-                                    'Phone1' => 'Telefon 1',
-                                    'Phone2' => 'Telefon 2',
-                                    'Mail' => 'Mail',
+                                    'Phone1'       => 'Telefon 1',
+                                    'Phone2'       => 'Telefon 2',
+                                    'Mail'         => 'Mail',
                                 ),
                                 array(
                                     'order' => array(
@@ -265,8 +266,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         array(1, 'asc'),
                                     ),
                                     'columnDefs' => array(
-                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
                                         array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
                                     ),
                                     "pageLength" => -1,
                                     "responsive" => false
@@ -855,17 +856,18 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new TableData($PersonList, null,
                                 array(
-                                    'Salutation' => 'Anrede',
-                                    'FirstName' => 'Vorname',
-                                    'LastName' => 'Name',
-                                    'Address' => 'Adresse',
-//                                    'StreetName'         => 'Straße',
-//                                    'StreetNumber'         => 'Hausnr.',
+                                    'Salutation'   => 'Anrede',
+                                    'Title'        => 'Titel',
+                                    'FirstName'    => 'Vorname',
+                                    'LastName'     => 'Name',
+                                    'Address'      => 'Adresse',
+//                                    'StreetName'   => 'Straße',
+//                                    'StreetNumber' => 'Hausnr.',
 //                                    'Code'         => 'PLZ',
 //                                    'City'         => 'Ort',
-                                    'Phone' => 'Telefon',
-                                    'Mail' => 'Mail',
-                                    'Directorate' => 'Vorstand'
+                                    'Phone'        => 'Telefon',
+                                    'Mail'         => 'Mail',
+                                    'Directorate'  => 'Vorstand'
                                 ),
                                 array(
                                     'order' => array(
@@ -873,8 +875,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         array(1, 'asc'),
                                     ),
                                     'columnDefs' => array(
-                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
                                         array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
                                     ),
                                     "pageLength" => -1,
                                     "responsive" => false

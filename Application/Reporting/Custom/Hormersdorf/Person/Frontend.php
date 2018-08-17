@@ -244,10 +244,6 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Birthday' => 'Geburtstag',
                                 ),
                                 array(
-                                    'order' => array(
-                                        array('width' => '1%', 'targets' => 0),
-                                        array('width' => '2%', 'targets' => 2),
-                                    ),
                                     "columnDefs" => array(
                                         array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
                                     ),
