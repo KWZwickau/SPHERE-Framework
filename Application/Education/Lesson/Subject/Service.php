@@ -1023,7 +1023,7 @@ class Service extends AbstractService
     {
         if (($tblSubjectElectiveAll = $this->getSubjectElectiveAll())) {
             foreach ($tblSubjectElectiveAll as $tblSubjectElective) {
-                if ($tblSubjectElective->getId() == $tblSubject->getId()) {
+                if ($tblSubjectElective && $tblSubjectElective->getId() == $tblSubject->getId()) {
 
                     return true;
                 }
