@@ -293,4 +293,15 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getCommonGenderByName($Name);
     }
+
+    /**
+     * @param TblCommon $tblCommon
+     *
+     * @return bool
+     */
+    public function restoreCommon(TblCommon $tblCommon)
+    {
+
+        return (new Data($this->getBinding()))->restoreCommon($tblCommon);
+    }
 }

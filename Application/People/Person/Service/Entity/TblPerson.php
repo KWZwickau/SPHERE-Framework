@@ -265,12 +265,14 @@ class TblPerson extends Element
     }
 
     /**
+     * @param bool $isForced
+     *
      * @return bool|TblStudent
      */
-    public function getStudent()
+    public function getStudent($isForced = false)
     {
 
-        return Student::useService()->getStudentByPerson($this);
+        return Student::useService()->getStudentByPerson($this, $isForced);
     }
 
     /**

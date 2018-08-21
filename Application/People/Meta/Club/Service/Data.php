@@ -33,15 +33,22 @@ class Data  extends AbstractData
     /**
      *
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblClub
      */
-    public function getClubByPerson(TblPerson $tblPerson)
+    public function getClubByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblClub', array(
-            TblClub::SERVICE_TBL_PERSON => $tblPerson->getId()
-        ));
+        if ($isForced) {
+            return $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblClub', array(
+                TblClub::SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+        } else {
+            return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblClub', array(
+                TblClub::SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+        }
     }
 
     /**
@@ -129,6 +136,27 @@ class Data  extends AbstractData
             } else {
                 $Manager->killEntity($Entity);
             }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblClub $tblClub
+     *
+     * @return bool
+     */
+    public function restoreClub(TblClub $tblClub)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblClub $Entity */
+        $Entity = $Manager->getEntityById('TblClub', $tblClub->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setEntityRemove(null);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
         }
         return false;

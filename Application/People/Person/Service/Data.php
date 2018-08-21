@@ -156,6 +156,28 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool
+    */
+    public function restorePerson(
+        TblPerson $tblPerson
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblPerson $Entity */
+        $Entity = $Manager->getEntityById('TblPerson', $tblPerson->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setEntityRemove(null);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param TblPerson     $tblPerson
      * @param TblSalutation $tblSalutation
      *
@@ -193,6 +215,25 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson');
+    }
+
+    /**
+     * @return false|TblPerson[]
+     */
+    public function getPersonAllBySoftRemove()
+    {
+        // direkt über DB ermitteln
+//        return $this->getForceEntityListBy(__METHOD__, $this->getEntityManager(false), 'TblPerson', array(Element::ENTITY_REMOVE => !null));
+        $resultList = array();
+        if (($tblPersonList = $this->getForceEntityList(__METHOD__, $this->getEntityManager(false), 'TblPerson'))) {
+            foreach ($tblPersonList as $tblPerson) {
+                if ($tblPerson->getEntityRemove() != null) {
+                    $resultList[] = $tblPerson;
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
     }
 
     /**

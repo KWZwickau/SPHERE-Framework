@@ -81,13 +81,14 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblToPerson[]
      */
-    public function getPhoneAllByPerson(TblPerson $tblPerson)
+    public function getPhoneAllByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getPhoneAllByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getPhoneAllByPerson($tblPerson, $isForced);
     }
 
     /**
@@ -488,5 +489,16 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getPhoneToPersonAllBy($tblPerson, $tblType);
+    }
+
+    /**
+     * @param TblToPerson $tblToPerson
+     *
+     * @return bool
+     */
+    public function restoreToPerson(TblToPerson $tblToPerson)
+    {
+
+        return (new Data($this->getBinding()))->restoreToPerson($tblToPerson);
     }
 }

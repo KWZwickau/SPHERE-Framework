@@ -115,13 +115,14 @@ class Service extends AbstractService
     /**
      *
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblProspect
      */
-    public function getProspectByPerson(TblPerson $tblPerson)
+    public function getProspectByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getProspectByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getProspectByPerson($tblPerson, $isForced);
     }
 
     /**
@@ -220,5 +221,16 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->destroyProspect($tblProspect, $IsSoftRemove);
+    }
+
+    /**
+     * @param TblProspect $tblProspect
+     *
+     * @return bool
+     */
+    public function restoreProspect(TblProspect $tblProspect)
+    {
+
+        return (new Data($this->getBinding()))->restoreProspect($tblProspect);
     }
 }

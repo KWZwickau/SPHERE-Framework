@@ -85,13 +85,14 @@ class Service extends AbstractService
     /**
      *
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblCustody
      */
-    public function getCustodyByPerson(TblPerson $tblPerson)
+    public function getCustodyByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getCustodyByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getCustodyByPerson($tblPerson, $isForced);
     }
 
     /**
@@ -127,5 +128,16 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->destroyCustody($tblCustody, $IsSoftRemove);
+    }
+
+    /**
+     * @param TblCustody $tblCustody
+     *
+     * @return bool
+     */
+    public function restoreCustody(TblCustody $tblCustody)
+    {
+
+        return (new Data($this->getBinding()))->restoreCustody($tblCustody);
     }
 }

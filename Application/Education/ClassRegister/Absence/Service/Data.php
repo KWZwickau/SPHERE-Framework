@@ -42,24 +42,31 @@ class Data extends AbstractData
     /**
      * @param TblPerson $tblPerson
      * @param TblDivision|null $tblDivision
+     * @param bool $isForced
      *
      * @return false|TblAbsence[]
      */
-    public function getAbsenceAllByPerson(TblPerson $tblPerson, TblDivision $tblDivision = null)
+    public function getAbsenceAllByPerson(TblPerson $tblPerson, TblDivision $tblDivision = null, $isForced = false)
     {
 
         if ($tblDivision) {
-            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAbsence',
-                array(
-                    TblAbsence::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-                    TblAbsence::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
-                )
+            $parameters = array(
+                TblAbsence::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                TblAbsence::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
+            );
+        } else {
+            $parameters = array(
+                TblAbsence::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            );
+        }
+
+        if ($isForced) {
+            return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAbsence',
+                $parameters
             );
         } else {
             return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAbsence',
-                array(
-                    TblAbsence::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
-                )
+                $parameters
             );
         }
     }
@@ -184,4 +191,24 @@ class Data extends AbstractData
         return false;
     }
 
+    /**
+     * @param TblAbsence $tblAbsence
+     *
+     * @return bool
+     */
+    public function restoreAbsence(TblAbsence $tblAbsence)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblAbsence $Entity */
+        $Entity = $Manager->getEntityById('TblAbsence', $tblAbsence->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setEntityRemove(null);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
 }

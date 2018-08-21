@@ -198,15 +198,22 @@ abstract class Student extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblStudent
      */
-    public function getStudentByPerson(TblPerson $tblPerson)
+    public function getStudentByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblStudent', array(
-            TblStudent::SERVICE_TBL_PERSON => $tblPerson->getId()
-        ));
+        if ($isForced) {
+            return $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblStudent', array(
+                TblStudent::SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+        } else {
+            return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblStudent', array(
+                TblStudent::SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+        }
     }
 
     /**
@@ -304,5 +311,26 @@ abstract class Student extends AbstractData
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     *
+     * @return bool
+     */
+    public function restoreStudent(TblStudent $tblStudent)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblStudent $Entity */
+        $Entity = $Manager->getEntityById('TblStudent', $tblStudent->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setEntityRemove(null);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
     }
 }

@@ -272,17 +272,29 @@ class Data extends AbstractData
     /**
      *
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblGroup[]
      */
-    public function getGroupAllByPerson(TblPerson $tblPerson)
+    public function getGroupAllByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        /** @var TblMember[] $EntityList */
-        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember',
-            array(
-                TblMember::SERVICE_TBL_PERSON => $tblPerson->getId()
-            ));
+        if ($isForced) {
+            /** @var TblMember[] $EntityList */
+            $EntityList = $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                'TblMember',
+                array(
+                    TblMember::SERVICE_TBL_PERSON => $tblPerson->getId()
+                ));
+        } else {
+            /** @var TblMember[] $EntityList */
+            $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                'TblMember',
+                array(
+                    TblMember::SERVICE_TBL_PERSON => $tblPerson->getId()
+                ));
+        }
+
         if ($EntityList) {
             array_walk($EntityList, function (TblMember &$V) {
 
@@ -291,6 +303,32 @@ class Data extends AbstractData
         }
         /** @var TblGroup[] $EntityList */
         return ( null === $EntityList ? false : $EntityList );
+    }
+
+    /**
+     *
+     * @param TblPerson $tblPerson
+     * @param bool $isForced
+     *
+     * @return bool|TblMember[]
+     */
+    public function getMemberAllByPerson(TblPerson $tblPerson, $isForced = false)
+    {
+
+        if ($isForced) {
+
+            return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                'TblMember',
+                array(
+                    TblMember::SERVICE_TBL_PERSON => $tblPerson->getId()
+                ));
+        } else {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                'TblMember',
+                array(
+                    TblMember::SERVICE_TBL_PERSON => $tblPerson->getId()
+                ));
+        }
     }
 
     /**
@@ -468,5 +506,26 @@ class Data extends AbstractData
             $Cache->setData($Result);
         }
         return $Result;
+    }
+
+    /**
+     * @param TblMember $tblMember
+     *
+     * @return bool
+     */
+    public function restoreMember(TblMember $tblMember)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblMember $Entity */
+        $Entity = $Manager->getEntityById('TblMember', $tblMember->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setEntityRemove(null);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
     }
 }

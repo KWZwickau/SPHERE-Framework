@@ -41,13 +41,14 @@ abstract class Student extends AbstractService
     /**
      *
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblStudent
      */
-    public function getStudentByPerson(TblPerson $tblPerson)
+    public function getStudentByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getStudentByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getStudentByPerson($tblPerson, $isForced);
     }
 
     /**
@@ -176,5 +177,16 @@ abstract class Student extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getStudentSchoolEnrollmentTypeAll();
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     *
+     * @return bool
+     */
+    public function restoreStudent(TblStudent $tblStudent)
+    {
+
+        return (new Data($this->getBinding()))->restoreStudent($tblStudent);
     }
 }
