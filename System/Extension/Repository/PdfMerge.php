@@ -32,6 +32,15 @@ class PdfMerge
             . DIRECTORY_SEPARATOR . 'vendor'
             . DIRECTORY_SEPARATOR . 'autoload.php'
         );
+        require_once(
+            __DIR__
+            . DIRECTORY_SEPARATOR . '..'
+            . DIRECTORY_SEPARATOR . '..'
+            . DIRECTORY_SEPARATOR . '..'
+            . DIRECTORY_SEPARATOR . 'Library'
+            . DIRECTORY_SEPARATOR . 'PdfMerger'
+            . DIRECTORY_SEPARATOR . 'PDFMerger.php'
+        );
 
         $this->Instance = new PDFMerger();
     }
