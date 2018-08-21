@@ -234,6 +234,9 @@ class Data extends AbstractData
 
         $this->createSetting('Setting', 'Consumer', 'Service', 'Sort_WithShortWords',
             TblSetting::TYPE_BOOLEAN, '1');
+
+        $this->createSetting('Education', 'ClassRegister', 'Frontend', 'ShowDownloadButton',
+            TblSetting::TYPE_BOOLEAN, '1');
     }
 
     /**

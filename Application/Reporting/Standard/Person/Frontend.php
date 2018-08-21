@@ -857,11 +857,12 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param Stage $Stage
-     * @param $DivisionId
+     * @param int   $DivisionId
+     * @param bool  $showDownLoadButton
      *
      * @return Stage|string
      */
-    public function showClassList(Stage $Stage, $DivisionId)
+    public function showClassList(Stage $Stage, $DivisionId, $showDownLoadButton = true)
     {
 
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
@@ -870,11 +871,13 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($tblDivision) {
             if ($PersonList) {
-                $Stage->addButton(
-                    new Primary('Herunterladen',
-                        '/Api/Reporting/Standard/Person/ClassList/Download', new Download(),
-                        array('DivisionId' => $tblDivision->getId()))
-                );
+                if($showDownLoadButton){
+                    $Stage->addButton(
+                        new Primary('Herunterladen',
+                            '/Api/Reporting/Standard/Person/ClassList/Download', new Download(),
+                            array('DivisionId' => $tblDivision->getId()))
+                    );
+                }
                 $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
                     ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
 
