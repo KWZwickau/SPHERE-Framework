@@ -303,7 +303,7 @@ class MultiPassword extends AbstractDocument
                     ->addElementColumn((new Element())
                         ->setContent('Die Schulstiftung der Ev.-Luth. Landeskirche Sachsens hat eine neue Schulsoftware 
                         entwickeln lassen, die für alle evangelischen Schulen in Sachsen nutzbar ist. Auch wir als 
-                        >>Schule<< nutzen diese im Alltag.')
+                        '.$this->FieldValue['CompanyName'].' nutzen diese im Alltag.')
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
