@@ -788,9 +788,53 @@ class Frontend extends FrontendScoreRule
     ) {
 
         $Stage->addButton(new Standard('Zurück', $BasicRoute, new ChevronLeft(), array(), 'Zurück zur Klassenauswahl'));
+        $Stage->addButton(
+            new External(
+                'Notenbuch herunterladen',
+                '/Api/Document/Standard/Gradebook/Create',
+                new Download(),
+                array(
+                    'DivisionSubjectId' => $tblDivisionSubject->getId(),
+                )
+            )
+        );
 
         $tblDivision = $tblDivisionSubject->getTblDivision();
         $tblSubject = $tblDivisionSubject->getServiceTblSubject();
+
+        $tblPerson = false;
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
+            if ($tblPersonAllByAccount) {
+                $tblPerson = $tblPersonAllByAccount[0];
+            }
+        }
+
+        if ($tblDivision
+            && (strpos($BasicRoute, 'Headmaster') !== false
+                || ($tblPerson && Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblDivision,
+                        $tblPerson)))
+        ) {
+            $Stage->addButton(
+                new External(
+                    'Alle Notenbücher dieser Klasse herunterladen',
+                    '/Api/Document/Standard/MultiGradebook/Create',
+                    new Download(),
+                    array(
+                        'DivisionId' => $tblDivision->getId(),
+                    )
+                )
+            );
+        }
+
+        // todo remove
+//        $template = new \SPHERE\Application\Api\Document\Standard\Repository\Gradebook\Gradebook();
+//        $content = $template->createSingleDocument($tblDivisionSubject);
+//        $Stage->setContent($content);
+//
+//        return $Stage;
+
 
         // Berechnungsvorschrift und Berechnungssystem der ausgewählten Fach-Klasse ermitteln
         $tblScoreRule = false;
@@ -2915,6 +2959,11 @@ class Frontend extends FrontendScoreRule
                 }
             }
 
+            $Stage->addButton(new External(
+                'Schülerübersicht Herunterladen', '/Api/Document/Standard/MultiGradebookOverview/Create', new Download(),
+                array('DivisionId' => $DivisionId), 'Klasse'
+            ));
+
             $Stage->setContent(
                 new Layout(array(
                     new LayoutGroup(array(
@@ -3061,9 +3110,10 @@ class Frontend extends FrontendScoreRule
         }
 
         $Stage->addButton(new External(
-            'Herunterladen', 'SPHERE\Application\Api\Document\Standard\GradebookOverview\Create',
-            new Download(), array('PersonId' => $PersonId, 'DivisionId' => $DivisionId, 'Notenübersicht herunterladen'
-        )));
+            'Schülerübersicht Herunterladen', 'SPHERE\Application\Api\Document\Standard\GradebookOverview\Create',
+            new Download(), array('PersonId' => $PersonId, 'DivisionId' => $DivisionId, 'Notenübersicht herunterladen')
+            , 'Schüler'
+        ));
 
         $columnDefinition = array();
         $columnDefinition['Subject'] = 'Fach';

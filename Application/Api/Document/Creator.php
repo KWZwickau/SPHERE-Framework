@@ -7,6 +7,7 @@ use MOC\V\Component\Template\Component\IBridgeInterface;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Api\Document\Standard\Repository\AccidentReport\AccidentReport;
 use SPHERE\Application\Api\Document\Standard\Repository\EnrollmentDocument;
+use SPHERE\Application\Api\Document\Standard\Repository\Gradebook\Gradebook;
 use SPHERE\Application\Api\Document\Standard\Repository\GradebookOverview;
 use SPHERE\Application\Api\Document\Standard\Repository\MultiPassword\MultiPassword;
 use SPHERE\Application\Api\Document\Standard\Repository\PasswordChange\PasswordChange;
@@ -21,6 +22,7 @@ use SPHERE\Application\Document\Generator\Generator;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -29,6 +31,7 @@ use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 use MOC\V\Component\Document\Component\Bridge\Repository\DomPdf;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
+use SPHERE\System\Extension\Repository\PdfMerge;
 
 /**
  * Class Creator
@@ -89,7 +92,6 @@ class Creator extends Extension
     /**
      * @param null $PersonId
      * @param null $DivisionId
-     * @param $DocumentClass
      * @param string $paperOrientation
      *
      * @return Stage|string
@@ -111,20 +113,82 @@ class Creator extends Extension
     }
 
     /**
-     * @param AbstractDocument|AbstractStudentCard $DocumentClass
-     * @param array $Data
-     * @param array $pageList
+     * @param null   $DivisionId
      * @param string $paperOrientation
+     *
+     * @param bool   $Redirect
+     *
+     * @return Stage|string
+     */
+    public static function createMultiGradebookOverviewPdf($DivisionId, $paperOrientation = Creator::PAPERORIENTATION_LANDSCAPE
+        , $Redirect)
+    {
+
+        // Warteseite
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/MultiGradebookOverview/Create',
+                array(
+                    'DivisionId' => $DivisionId,
+                    'paperOrientation' => $paperOrientation,
+                    'Redirect' => 0
+                )
+            );
+        }
+
+        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))
+        ) {
+            // Fieldpointer auf dem der Merge durchgeführt wird, (download)
+            $MergeFile = Storage::createFilePointer('pdf');
+
+            $PdfMerger = new PdfMerge();
+            if(($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))){
+                $FileList = array();
+                foreach($tblPersonList as $tblPerson){
+                    $Document = new GradebookOverview\GradebookOverview($tblPerson, $tblDivision);
+                    // Tmp welches nicht sofort gelöscht werden soll (braucht man noch zum mergen)
+                    $File = self::buildDummyFile($Document, array(), array(), $paperOrientation, false);
+                    // hinzufügen für das mergen
+                    $PdfMerger->addPdf($File);
+                    // speichern der Files zum nachträglichem bereinigen
+                    $FileList[] = $File;
+                }
+                // mergen aller hinzugefügten PDF-Datein
+                $PdfMerger->mergePdf($MergeFile);
+                if(!empty($FileList)){
+                    // aufräumen der Temp-Files
+                    /** @var FilePointer $File */
+                    foreach($FileList as $File){
+                        $File->setDestruct();
+                    }
+                }
+            }
+
+            $FileName = $Document->getName() . ' Klasse ' . $tblDivision->getDisplayName() . ' ' . date("Y-m-d") . ".pdf";
+
+            return self::buildDownloadFile($MergeFile, $FileName);
+        }
+
+        return new Stage('Dokument', 'Konnte nicht erstellt werden.');
+    }
+
+    /**
+     * @param AbstractDocument|AbstractStudentCard $DocumentClass
+     * @param array                                $Data
+     * @param array                                $pageList
+     * @param string                               $paperOrientation
+     * @param bool                                 $isDestruction
      *
      * @return FilePointer
      */
-    private static function buildDummyFile($DocumentClass, $Data = array(), $pageList = array(), $paperOrientation = Creator::PAPERORIENTATION_PORTRAIT)
+    private static function buildDummyFile($DocumentClass, $Data = array(), $pageList = array(),
+        $paperOrientation = Creator::PAPERORIENTATION_PORTRAIT, $isDestruction = true)
     {
 
         ini_set('memory_limit', '1G');
 
         // Create Tmp
-        $File = Storage::createFilePointer('pdf');
+        $File = Storage::createFilePointer('pdf', 'SPHERE-Temporary', $isDestruction);
 
         // build before const is set (picture)
         /** @var IBridgeInterface $Content */
@@ -205,15 +269,14 @@ class Creator extends Extension
     public static function createKamenzPdf($Type = '', $Redirect = true)
     {
 
-        // todo pdf download bitte warten --> funktioniert so nicht
         if ($Redirect) {
-                return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
-                    '/Api/Document/Standard/KamenzReport/Create',
-                    array(
-                        'Type' => $Type,
-                        'Redirect' => 0
-                    )
-                );
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/KamenzReport/Create',
+                array(
+                    'Type' => $Type,
+                    'Redirect' => 0
+                )
+            );
         }
 
         $Data = array();
@@ -285,5 +348,125 @@ class Creator extends Extension
         }
 
         return new Stage('Dokument', 'Konnte nicht erstellt werden.');
+    }
+
+    /**
+     * @param $DivisionSubjectId
+     * @param bool $Redirect
+     *
+     * @return Stage|string
+     * @throws \MOC\V\Core\FileSystem\Exception\FileSystemException
+     */
+    public static function createGradebookPdf($DivisionSubjectId, $Redirect = true)
+    {
+
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/Gradebook/Create',
+                array(
+                    'DivisionSubjectId' => $DivisionSubjectId,
+                    'Redirect' => 0
+                )
+            );
+        }
+
+        if (($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))
+            && ($tblDivision = $tblDivisionSubject->getTblDivision())
+            && ($tblSubject = $tblDivisionSubject->getServiceTblSubject())
+        ) {
+            $template = new Gradebook();
+            $content = $template->createSingleDocument($tblDivisionSubject);
+
+            ini_set('memory_limit', '1G');
+
+            // Create Tmp
+            $File = Storage::createFilePointer('pdf');
+
+            // build before const is set (picture)
+            /** @var DomPdf $Document */
+            $Document = PdfDocument::getPdfDocument($File->getFileLocation());
+            $Document->setContent($content);
+            $Document->saveFile(new FileParameter($File->getFileLocation()));
+
+            $FileName = 'Notenbuch_' . $tblDivision->getDisplayName() . '_' . $tblSubject->getDisplayName() . '_' . date("Y-m-d").".pdf";
+
+            return FileSystem::getStream(
+                $File->getRealPath(),
+                $FileName
+            )->__toString();
+        }
+
+        return new Stage('Notenbuch', 'Konnte nicht erstellt werden.');
+    }
+
+    /**
+     * @param $DivisionId
+     * @param bool $Redirect
+     *
+     * @return Stage|string
+     * @throws \MOC\V\Core\FileSystem\Exception\FileSystemException
+     */
+    public static function createMultiGradebookPdf($DivisionId, $Redirect = true)
+    {
+
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/MultiGradebook/Create',
+                array(
+                    'DivisionId' => $DivisionId,
+                    'Redirect' => 0
+                )
+            );
+        }
+
+        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
+            $template = new Gradebook();
+
+            ini_set('memory_limit', '2G');
+            $PdfMerger = new PdfMerge();
+            $FileList = array();
+
+            if (($tblDivisionSubjectAll = Division::useService()->getDivisionSubjectByDivision($tblDivision))
+                && ($tblYear = $tblDivision->getServiceTblYear())
+                && ($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear))
+            ) {
+                // todo Sortierung
+                foreach ($tblDivisionSubjectAll as $tblDivisionSubject) {
+                    $Content = $template->createSingleDocument($tblDivisionSubject);
+                    // Create Tmp
+                    $File = Storage::createFilePointer('pdf', 'SPHERE-Temporary-short', false);
+                    $clone[] = clone $File;
+                    // build before const is set (picture)
+                    /** @var DomPdf $Document */
+                    $Document = PdfDocument::getPdfDocument($File->getFileLocation());
+                    $Document->setContent($Content);
+                    $Document->saveFile(new FileParameter($File->getFileLocation()));
+                    // hinzufügen für das mergen
+                    $PdfMerger->addPDF($File);
+                    // speichern der Files zum nachträglichem bereinigen
+                    $FileList[] = $File;
+                }
+            }
+            $MergeFile = Storage::createFilePointer('pdf');
+            // mergen aller hinzugefügten PDF-Datein
+            $PdfMerger->mergePdf($MergeFile);
+
+            if(!empty($FileList)){
+                // aufräumen der Temp-Files
+                /** @var FilePointer $File */
+                foreach($FileList as $File){
+                    $File->setDestruct();
+                }
+            }
+
+            $FileName = 'Notenbücher_' . $tblDivision->getDisplayName()  . '_' . date("Y-m-d").".pdf";
+
+            return FileSystem::getStream(
+                $MergeFile->getRealPath(),
+                $FileName
+            )->__toString();
+        }
+
+        return new Stage('Notenbuch', 'Konnte nicht erstellt werden.');
     }
 }

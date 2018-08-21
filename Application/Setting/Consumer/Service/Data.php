@@ -179,6 +179,25 @@ class Data extends AbstractData
                 );
             }
 
+            // Notenbuch Pdf download -> Durchschnittsnote anzeigen
+            $this->createSetting(
+                'Education',
+                'Graduation',
+                'Gradebook',
+                'ShowAverageInPdf',
+                TblSetting::TYPE_BOOLEAN,
+                '1'
+            );
+            // Notenbuch Pdf download -> Zeugnisnoten anzeigen
+            $this->createSetting(
+                'Education',
+                'Graduation',
+                'Gradebook',
+                'ShowCertificateGradeInPdf',
+                TblSetting::TYPE_BOOLEAN,
+                '1'
+            );
+
             // Anzeige des Schulnamens auf der Schülerkartei für die Grundschule
             if ($tblConsumer->getAcronym() == 'ESRL') {
                 $this->createSetting('Api', 'Document', 'StudentCard_PrimarySchool', 'ShowSchoolName', TblSetting::TYPE_BOOLEAN, '0');
