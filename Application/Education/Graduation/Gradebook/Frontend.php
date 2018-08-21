@@ -2921,6 +2921,11 @@ class Frontend extends FrontendScoreRule
                 }
             }
 
+            $Stage->addButton(new External(
+                'Schülerübersicht Herunterladen', '/Api/Document/Standard/MultiGradebookOverview/Create', new Download(),
+                array('DivisionId' => $DivisionId), 'Klasse'
+            ));
+
             $Stage->setContent(
                 new Layout(array(
                     new LayoutGroup(array(
@@ -3009,9 +3014,10 @@ class Frontend extends FrontendScoreRule
         }
 
         $Stage->addButton(new External(
-            'Herunterladen', 'SPHERE\Application\Api\Document\Standard\GradebookOverview\Create',
-            new Download(), array('PersonId' => $PersonId, 'DivisionId' => $DivisionId, 'Notenübersicht herunterladen'
-        )));
+            'Schülerübersicht Herunterladen', 'SPHERE\Application\Api\Document\Standard\GradebookOverview\Create',
+            new Download(), array('PersonId' => $PersonId, 'DivisionId' => $DivisionId, 'Notenübersicht herunterladen')
+            , 'Schüler'
+        ));
 
         $columnDefinition = array();
         $columnDefinition['Subject'] = 'Fach';

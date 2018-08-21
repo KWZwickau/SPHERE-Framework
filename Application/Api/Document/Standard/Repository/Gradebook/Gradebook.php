@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 18.07.2018
- * Time: 08:36
- */
-
 namespace SPHERE\Application\Api\Document\Standard\Repository\Gradebook;
 
 use SPHERE\Application\Document\Generator\Repository\Document;
@@ -65,43 +58,6 @@ class Gradebook
                 $isLastPeriod = $count == count($tblPeriodList);
 
                 $pageList[] = $this->buildPage($tblDivisionSubject, $tblPeriod, $isLastPeriod);
-            }
-        }
-
-        $this->Document = $this->buildDocument($pageList);
-
-        return $this->Document->getTemplate();
-    }
-
-    /**
-     * @param TblDivision $tblDivision
-     *
-     * @return \MOC\V\Component\Template\Component\IBridgeInterface
-     */
-    public function createMultiDocument(TblDivision $tblDivision)
-    {
-
-        $pageList = array();
-        if (($tblDivisionSubjectAll = Division::useService()->getDivisionSubjectByDivision($tblDivision))
-            && ($tblYear = $tblDivision->getServiceTblYear())
-            && ($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear))
-        ) {
-            $subjectCount = 0;
-            // todo Sortierung
-            foreach ($tblDivisionSubjectAll as $tblDivisionSubject) {
-                $subjectCount++;
-                $count = 0;
-                foreach ($tblPeriodList as $tblPeriod) {
-                    $count++;
-                    $isLastPeriod = $count == count($tblPeriodList);
-
-                    $pageList[] = $this->buildPage($tblDivisionSubject, $tblPeriod, $isLastPeriod);
-                }
-
-                // todo entfernen
-                if ($subjectCount > 5) {
-                    break;
-                }
             }
         }
 

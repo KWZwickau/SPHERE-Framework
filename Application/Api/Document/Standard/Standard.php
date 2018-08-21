@@ -32,6 +32,9 @@ class Standard extends Extension implements IModuleInterface
             __NAMESPACE__.'/GradebookOverview/Create', __CLASS__.'::createGradebookOverviewPdf'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/MultiGradebookOverview/Create', __CLASS__.'::createMultiGradebookOverviewPdf'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/StudentTransfer/Create', __CLASS__.'::createStudentTransferPdf'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -93,6 +96,18 @@ class Standard extends Extension implements IModuleInterface
     {
 
         return Creator::createGradebookOverviewPdf($PersonId, $DivisionId,Creator::PAPERORIENTATION_LANDSCAPE);
+    }
+
+    /**
+     * @param null $DivisionId
+     * @param bool $Redirect
+     *
+     * @return \SPHERE\Common\Window\Stage|string
+     */
+    public static function createMultiGradebookOverviewPdf($DivisionId = null, $Redirect = true)
+    {
+
+        return Creator::createMultiGradebookOverviewPdf($DivisionId, Creator::PAPERORIENTATION_LANDSCAPE, $Redirect);
     }
 
     /**

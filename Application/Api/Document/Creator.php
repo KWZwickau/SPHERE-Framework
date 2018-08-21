@@ -22,6 +22,7 @@ use SPHERE\Application\Document\Generator\Generator;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -30,6 +31,7 @@ use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 use MOC\V\Component\Document\Component\Bridge\Repository\DomPdf;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
+use SPHERE\System\Extension\Repository\PdfMerge;
 
 /**
  * Class Creator
@@ -111,20 +113,82 @@ class Creator extends Extension
     }
 
     /**
-     * @param AbstractDocument|AbstractStudentCard $DocumentClass
-     * @param array $Data
-     * @param array $pageList
+     * @param null   $DivisionId
      * @param string $paperOrientation
+     *
+     * @param bool   $Redirect
+     *
+     * @return Stage|string
+     */
+    public static function createMultiGradebookOverviewPdf($DivisionId, $paperOrientation = Creator::PAPERORIENTATION_LANDSCAPE
+        , $Redirect)
+    {
+
+        // Warteseite
+        if ($Redirect) {
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/MultiGradebookOverview/Create',
+                array(
+                    'DivisionId' => $DivisionId,
+                    'paperOrientation' => $paperOrientation,
+                    'Redirect' => 0
+                )
+            );
+        }
+
+        if (($tblDivision = Division::useService()->getDivisionById($DivisionId))
+        ) {
+            // Fieldpointer auf dem der Merge durchgeführt wird, (download)
+            $MergeFile = Storage::createFilePointer('pdf');
+
+            $PdfMerger = new PdfMerge();
+            if(($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))){
+                $FileList = array();
+                foreach($tblPersonList as $tblPerson){
+                    $Document = new GradebookOverview\GradebookOverview($tblPerson, $tblDivision);
+                    // Tmp welches nicht sofort gelöscht werden soll (braucht man noch zum mergen)
+                    $File = self::buildDummyFile($Document, array(), array(), $paperOrientation, false);
+                    // hinzufügen für das mergen
+                    $PdfMerger->addPdf($File);
+                    // speichern der Files zum nachträglichem bereinigen
+                    $FileList[] = $File;
+                }
+                // mergen aller hinzugefügten PDF-Datein
+                $PdfMerger->mergePdf($MergeFile);
+                if(!empty($FileList)){
+                    // aufräumen der Temp-Files
+                    /** @var FilePointer $File */
+                    foreach($FileList as $File){
+                        $File->setDestruct();
+                    }
+                }
+            }
+
+            $FileName = $Document->getName() . ' Klasse ' . $tblDivision->getDisplayName() . ' ' . date("Y-m-d") . ".pdf";
+
+            return self::buildDownloadFile($MergeFile, $FileName);
+        }
+
+        return new Stage('Dokument', 'Konnte nicht erstellt werden.');
+    }
+
+    /**
+     * @param AbstractDocument|AbstractStudentCard $DocumentClass
+     * @param array                                $Data
+     * @param array                                $pageList
+     * @param string                               $paperOrientation
+     * @param bool                                 $isDestruction
      *
      * @return FilePointer
      */
-    private static function buildDummyFile($DocumentClass, $Data = array(), $pageList = array(), $paperOrientation = Creator::PAPERORIENTATION_PORTRAIT)
+    private static function buildDummyFile($DocumentClass, $Data = array(), $pageList = array(),
+        $paperOrientation = Creator::PAPERORIENTATION_PORTRAIT, $isDestruction = true)
     {
 
         ini_set('memory_limit', '1G');
 
         // Create Tmp
-        $File = Storage::createFilePointer('pdf');
+        $File = Storage::createFilePointer('pdf', 'SPHERE-Temporary', $isDestruction);
 
         // build before const is set (picture)
         /** @var IBridgeInterface $Content */
@@ -206,13 +270,13 @@ class Creator extends Extension
     {
 
         if ($Redirect) {
-                return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
-                    '/Api/Document/Standard/KamenzReport/Create',
-                    array(
-                        'Type' => $Type,
-                        'Redirect' => 0
-                    )
-                );
+            return \SPHERE\Application\Api\Education\Certificate\Generator\Creator::displayWaitingPage(
+                '/Api/Document/Standard/KamenzReport/Create',
+                array(
+                    'Type' => $Type,
+                    'Redirect' => 0
+                )
+            );
         }
 
         $Data = array();
@@ -357,23 +421,48 @@ class Creator extends Extension
 
         if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
             $template = new Gradebook();
-            $content = $template->createMultiDocument($tblDivision);
 
             ini_set('memory_limit', '2G');
+            $PdfMerger = new PdfMerge();
+            $FileList = array();
 
-            // Create Tmp
-            $File = Storage::createFilePointer('pdf');
+            if (($tblDivisionSubjectAll = Division::useService()->getDivisionSubjectByDivision($tblDivision))
+                && ($tblYear = $tblDivision->getServiceTblYear())
+                && ($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear))
+            ) {
+                // todo Sortierung
+                foreach ($tblDivisionSubjectAll as $tblDivisionSubject) {
+                    $Content = $template->createSingleDocument($tblDivisionSubject);
+                    // Create Tmp
+                    $File = Storage::createFilePointer('pdf', 'SPHERE-Temporary-short', false);
+                    $clone[] = clone $File;
+                    // build before const is set (picture)
+                    /** @var DomPdf $Document */
+                    $Document = PdfDocument::getPdfDocument($File->getFileLocation());
+                    $Document->setContent($Content);
+                    $Document->saveFile(new FileParameter($File->getFileLocation()));
+                    // hinzufügen für das mergen
+                    $PdfMerger->addPDF($File);
+                    // speichern der Files zum nachträglichem bereinigen
+                    $FileList[] = $File;
+                }
+            }
+            $MergeFile = Storage::createFilePointer('pdf');
+            // mergen aller hinzugefügten PDF-Datein
+            $PdfMerger->mergePdf($MergeFile);
 
-            // build before const is set (picture)
-            /** @var DomPdf $Document */
-            $Document = PdfDocument::getPdfDocument($File->getFileLocation());
-            $Document->setContent($content);
-            $Document->saveFile(new FileParameter($File->getFileLocation()));
+            if(!empty($FileList)){
+                // aufräumen der Temp-Files
+                /** @var FilePointer $File */
+                foreach($FileList as $File){
+                    $File->setDestruct();
+                }
+            }
 
             $FileName = 'Notenbücher_' . $tblDivision->getDisplayName()  . '_' . date("Y-m-d").".pdf";
 
             return FileSystem::getStream(
-                $File->getRealPath(),
+                $MergeFile->getRealPath(),
                 $FileName
             )->__toString();
         }
