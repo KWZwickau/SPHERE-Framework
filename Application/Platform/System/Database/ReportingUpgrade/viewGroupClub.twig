@@ -1,8 +1,8 @@
 SELECT
     viewPerson.TblPerson_Id AS TblPerson_Id,
-    viewPeopleMetaClub.TblClub_EntryDate AS TblClub_EntryDate,
-    viewPeopleMetaClub.TblClub_ExitDate AS TblClub_ExitDate,
     viewPeopleMetaClub.TblClub_Identifier AS TblClub_Identifier,
+    DATE_FORMAT( viewPeopleMetaClub.TblClub_EntryDate, '%d.%m.%Y' ) AS TblClub_EntryDate,
+    DATE_FORMAT( viewPeopleMetaClub.TblClub_ExitDate, '%d.%m.%Y' ) AS TblClub_ExitDate,
     viewPeopleMetaClub.TblClub_Remark AS TblClub_Remark
 FROM
     (PeoplePerson_{{ ConsumerAcronym }}.viewPerson

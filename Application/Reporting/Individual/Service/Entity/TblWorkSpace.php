@@ -24,6 +24,7 @@ class TblWorkSpace extends Element
     const VIEW_TYPE_PROSPECT = 'Prospect';
     const VIEW_TYPE_CUSTODY = 'Custody';
     const VIEW_TYPE_TEACHER = 'Teacher';
+    const VIEW_TYPE_CLUB = 'Club';
 
     const ATTR_TBL_PRESET = 'tblPreset';
     const ATTR_SERVICE_TBL_ACCOUNT = 'serviceTblAccount';

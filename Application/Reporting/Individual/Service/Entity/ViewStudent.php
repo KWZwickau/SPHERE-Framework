@@ -41,6 +41,10 @@ class ViewStudent extends AbstractView
     const TBL_STUDENT_TRANSPORT_REMARK = 'TblStudentTransport_Remark';
     // Unterrichtsbefreiung
     // entfernt #SSW-2277
+    // Sportbefreiung hinzugefügt #SSW-207
+    const TBL_STUDENT_LIBERATION_SPORT_TYPE_NAME = 'TblStudentLiberationSportType_Name';
+
+    const SPORT_LIBERATION = 'SportLiberation';
     // Schließfach
     const TBL_STUDENT_LOCKER_LOCKER_NUMBER = 'TblStudentLocker_LockerNumber';
     const TBL_STUDENT_LOCKER_LOCKER_LOCATION = 'TblStudentLocker_LockerLocation';
@@ -77,15 +81,7 @@ class ViewStudent extends AbstractView
     /**
      * @Column(type="string")
      */
-    protected $TblStudentLiberationType_Description;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblStudentLiberationCategory_Name;
-    /**
-     * @Column(type="string")
-     */
-    protected $TblStudentLiberationCategory_Description;
+    protected $TblStudentLiberationSportType_Name;
     /**
      * @Column(type="string")
      */
@@ -169,6 +165,8 @@ class ViewStudent extends AbstractView
         $this->setNameDefinition(self::TBL_STUDENT_TRANSPORT_STATION_EXIT, 'Allgemeines: Ausstiegshaltestelle');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSPORT_REMARK, 'Allgemeines: Schulbeförderung Bemerkung');
 
+        $this->setNameDefinition(self::TBL_STUDENT_LIBERATION_SPORT_TYPE_NAME, 'Allgemeines: Sportbefreiung');
+
         $this->setNameDefinition(self::SIBLINGS_COUNT, 'Allgemeines: Anzahl Geschwister');
 
         $this->setNameDefinition(self::TBL_STUDENT_STUDENT_NAME_AGREEMENT, 'Allgemeines: Erlaubnis Schülername');
@@ -190,6 +188,7 @@ class ViewStudent extends AbstractView
             self::TBL_STUDENT_TRANSPORT_STATION_ENTRANCE,
             self::TBL_STUDENT_TRANSPORT_STATION_EXIT,
             self::TBL_STUDENT_TRANSPORT_REMARK,
+            self::TBL_STUDENT_LIBERATION_SPORT_TYPE_NAME,
             self::TBL_STUDENT_STUDENT_NAME_AGREEMENT,
             self::TBL_STUDENT_STUDENT_PICTURE_AGREEMENT,
         ));

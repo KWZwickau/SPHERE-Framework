@@ -39,7 +39,13 @@ viewStudentMedicalRecord.TblStudentMedicalRecord_Insurance AS TblStudentMedicalR
 viewStudentTransport.TblStudentTransport_Route AS TblStudentTransport_Route,
 viewStudentTransport.TblStudentTransport_StationEntrance AS TblStudentTransport_StationEntrance,
 viewStudentTransport.TblStudentTransport_StationExit AS TblStudentTransport_StationExit,
-viewStudentTransport.TblStudentTransport_Remark AS TblStudentTransport_Remark
+viewStudentTransport.TblStudentTransport_Remark AS TblStudentTransport_Remark,
+(select concat(TblStudentLiberationType_Name)
+from PeopleMeta_{{ ConsumerAcronym }}.viewStudentLiberation vSL
+where vSL.TblStudentLiberationCategory_Name like 'Sportbefreiung'
+and vSL.TblStudent_Id =  vS.TblStudent_Id
+limit 1
+) TblStudentLiberationSportType_Name
 
 FROM PeopleMeta_{{ ConsumerAcronym }}.viewStudent vS
 LEFT JOIN PeopleMeta_{{ ConsumerAcronym }}.viewStudentBaptism ON vS.TblStudent_Id = viewStudentBaptism.TblStudent_Id

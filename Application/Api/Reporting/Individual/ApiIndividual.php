@@ -15,12 +15,14 @@ use SPHERE\Application\AppTrait;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\IModuleInterface;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Reporting\Individual\Individual;
 use SPHERE\Application\Reporting\Individual\Service\Entity\TblPreset;
 use SPHERE\Application\Reporting\Individual\Service\Entity\TblWorkSpace;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewEducationStudent;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroup;
+use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupClub;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupCustody;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupProspect;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentBasic;
@@ -122,7 +124,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         'Allgemeines:_Taufedatum',
         'Integration:_Datum_F_oE_rderantrag_Beratung',
         'Integration:_Datum_F_oE_rderantrag',
-        'Integration:_Datum_F_oE_rderbescheid_SBA'
+        'Integration:_Datum_F_oE_rderbescheid_SBA',
+        'Verein:_Eintrittsdatum',
+        'Verein:_Austrittsdatum'
     );
 
     private $FieldNameSortByGermanString = array(
@@ -1158,6 +1162,32 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     }
                 }
                 break;
+            case TblWorkSpace::VIEW_TYPE_CLUB:
+                $Block = $this->getPanelList(new ViewPerson(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_CLUB);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewPerson']) ) {
+                        $AccordionList[] = new Panel( 'Person:', new Scrollable( $Block, 300 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Person:', new Scrollable( $Block ) );
+                    }
+                }
+                $Block = $this->getPanelList(new ViewGroupClub(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_CLUB);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewGroupClub']) ) {
+                        $AccordionList[] = new Panel( 'Verein:', new Scrollable( $Block, 140 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Verein:', new Scrollable( $Block ) );
+                    }
+                }
+                $Block = $this->getPanelList(new ViewPersonContact(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_CLUB);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewPersonContact']) ) {
+                        $AccordionList[] = new Panel( 'Kontakt:', new Scrollable( $Block, 300 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Kontakt:', new Scrollable( $Block ) );
+                    }
+                }
+                break;
         }
 
         return
@@ -1638,6 +1668,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     if (!in_array($tblWorkSpace->getView(), $ViewList)) {
 
                         if($Index == 0 ) {
+                            // Eingrenzen der zur Verfügung stehenden Personen durch die spezifische Auswertung
                             $Builder = $this->setInitialView($Builder, $ViewType, $ViewList, $ParameterList);
                         }
 
@@ -1849,7 +1880,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
                         $Parameter)
                 );
-                $ParameterList[$Parameter] = 'STUDENT';
+                $ParameterList[$Parameter] = TblGroup::META_TABLE_STUDENT;
                 $ViewList[] = 'ViewGroup';
                 break;
             case TblWorkSpace::VIEW_TYPE_PROSPECT:
@@ -1861,7 +1892,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
                         $Parameter)
                 );
-                $ParameterList[$Parameter] = 'PROSPECT';
+                $ParameterList[$Parameter] = TblGroup::META_TABLE_PROSPECT;
                 $ViewList[] = 'ViewGroup';
                 break;
             case TblWorkSpace::VIEW_TYPE_CUSTODY:
@@ -1873,7 +1904,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
                         $Parameter)
                 );
-                $ParameterList[$Parameter] = 'CUSTODY';
+                $ParameterList[$Parameter] = TblGroup::META_TABLE_CUSTODY;
                 $ViewList[] = 'ViewGroup';
                 break;
             case TblWorkSpace::VIEW_TYPE_TEACHER:
@@ -1885,7 +1916,19 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
                         $Parameter)
                 );
-                $ParameterList[$Parameter] = 'TEACHER';
+                $ParameterList[$Parameter] = TblGroup::META_TABLE_TEACHER;
+                $ViewList[] = 'ViewGroup';
+                break;
+            case TblWorkSpace::VIEW_TYPE_CLUB:
+                $viewGroup = new ViewGroup();
+                $Parameter = ':Filter'.'Initial'.'Value'.'MetaTable';
+                $Builder->from($viewGroup->getEntityFullName(),
+                    $viewGroup->getViewObjectName());
+                $Builder->andWhere(
+                    $Builder->expr()->eq('ViewGroup.TblGroup_MetaTable',
+                        $Parameter)
+                );
+                $ParameterList[$Parameter] = TblGroup::META_TABLE_CLUB;
                 $ViewList[] = 'ViewGroup';
                 break;
         }
@@ -2173,6 +2216,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 break;
             case TblWorkSpace::VIEW_TYPE_TEACHER :
                 $Name = 'Lehrer';
+                break;
+            case TblWorkSpace::VIEW_TYPE_CLUB :
+                $Name = 'Vereinsmitglieder';
                 break;
             default:
                 $Name = '';
