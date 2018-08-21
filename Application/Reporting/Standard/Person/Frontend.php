@@ -25,7 +25,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
-use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -89,7 +88,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
                 }
                 $Item['Option'] = new Standard('', '/Reporting/Standard/Person/ClassList', new EyeOpen(),
-                    array('DivisionId' => $tblDivision->getId()));
+                    array('DivisionId' => $tblDivision->getId()), 'Anzeigen');
                 $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
                 array_push($TableContent, $Item);
             });
@@ -171,7 +170,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
                 }
                 $Item['Option'] = new Standard('', '/Reporting/Standard/Person/ExtendedClassList', new EyeOpen(),
-                    array('DivisionId' => $tblDivision->getId()));
+                    array('DivisionId' => $tblDivision->getId()), 'Anzeigen');
                 $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
                 array_push($TableContent, $Item);
             });
@@ -345,7 +344,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
                 }
                 $Item['Option'] = new Standard('', '/Reporting/Standard/Person/BirthdayClassList', new EyeOpen(),
-                    array('DivisionId' => $tblDivision->getId()));
+                    array('DivisionId' => $tblDivision->getId()), 'Anzeigen');
                 $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
                 array_push($TableContent, $Item);
             });
@@ -510,7 +509,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 $Item['Option'] = new Standard('', '/Reporting/Standard/Person/MedicalInsuranceClassList',
                     new EyeOpen(),
-                    array('DivisionId' => $tblDivision->getId()));
+                    array('DivisionId' => $tblDivision->getId()), 'Anzeigen');
                 $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
                 array_push($TableContent, $Item);
             });
@@ -651,9 +650,9 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $Item['Name'] = $tblGroup->getName().$MoreColumnInfo;
                     $Item['Count'] = Group::useService()->countMemberByGroup($tblGroup);
-                    $Item['Option'] = new Standard(new Select(), '/Reporting/Standard/Person/GroupList', null, array(
+                    $Item['Option'] = new Standard(new EyeOpen(), '/Reporting/Standard/Person/GroupList', null, array(
                         'GroupId' => $tblGroup->getId()
-                    ));
+                    ), 'Anzeigen');
                     array_push($TableContent, $Item);
                 });
             }
@@ -1107,7 +1106,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
                 }
                 $Item['Option'] = new Standard('', '/Reporting/Standard/Person/ElectiveClassList', new EyeOpen(),
-                    array('DivisionId' => $tblDivision->getId()));
+                    array('DivisionId' => $tblDivision->getId()), 'Anzeigen');
                 $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
                 array_push($TableContent, $Item);
             });

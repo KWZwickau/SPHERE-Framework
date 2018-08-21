@@ -105,8 +105,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $Item['Count'] = array_sum($DivisionList['Count']);
                             }
                             $Item['Option'] = new Standard('', '/Reporting/Custom/Muldental/Person/ClassList', new EyeOpen(),
-                                array('LevelId' => $tblLevel->getId(),
-                                      'YearId'  => $tblYear->getId()));
+                                array('LevelId' => $tblLevel->getId(), 'YearId'  => $tblYear->getId()), 'Anzeigen');
 
                             array_push($TableContent, $Item);
                         }

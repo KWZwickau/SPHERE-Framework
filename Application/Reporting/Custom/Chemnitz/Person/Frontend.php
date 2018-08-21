@@ -100,7 +100,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
                 }
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Chemnitz/Person/ClassList', new EyeOpen(),
-                    array('DivisionId' => $tblDivision->getId()));
+                    array('DivisionId' => $tblDivision->getId()), 'Anzeigen');
                 $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
                 array_push($TableContent, $Item);
             });
@@ -451,7 +451,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
                 }
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Chemnitz/Person/MedicList', new EyeOpen(),
-                    array('DivisionId' => $tblDivision->getId()));
+                    array('DivisionId' => $tblDivision->getId()), 'Anzeigen');
                 $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
                 array_push($TableContent, $Item);
             });
@@ -714,8 +714,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
                 }
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Chemnitz/Person/ParentTeacherConferenceList',
-                    new EyeOpen(),
-                    array('DivisionId' => $tblDivision->getId()));
+                    new EyeOpen(), array('DivisionId' => $tblDivision->getId()), 'Anzeigen');
                 $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
                 array_push($TableContent, $Item);
             });
@@ -972,7 +971,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
                 }
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Chemnitz/Person/PrintClassList', new EyeOpen(),
-                    array('DivisionId' => $tblDivision->getId()));
+                    array('DivisionId' => $tblDivision->getId()), 'Anzeigen');
                 $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
                 array_push($TableContent, $Item);
             });
