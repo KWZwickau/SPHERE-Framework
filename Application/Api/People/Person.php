@@ -2,6 +2,8 @@
 namespace SPHERE\Application\Api\People;
 
 use SPHERE\Application\Api\People\Meta\Student\ApiStudent;
+use SPHERE\Application\Api\People\Meta\Support\ApiSupport;
+use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\IApplicationInterface;
 
 /**
@@ -16,5 +18,7 @@ class Person implements IApplicationInterface
     {
         ApiPerson::registerApi();
         ApiStudent::registerApi();
+        ApiSupport::registerApi();
+        ApiSupportReadOnly::registerApi();
     }
 }

@@ -7,8 +7,8 @@ use SPHERE\Application\Api\MassReplace\StudentFilter;
 use SPHERE\Application\Api\People\Meta\Student\ApiStudent;
 use SPHERE\Application\Api\People\Meta\Student\MassReplaceStudent;
 use SPHERE\Application\Api\People\Meta\Subject\MassReplaceSubject;
+use SPHERE\Application\Api\People\Meta\Support\ApiSupport;
 use SPHERE\Application\Api\People\Meta\Transfer\MassReplaceTransfer;
-use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
@@ -18,16 +18,20 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblHandyCap;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblSpecial;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblSpecialDisorderType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementCategory;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementType;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentDisorderType;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentFocusType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLiberationCategory;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblSupport;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblSupportFocusType;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
@@ -39,7 +43,7 @@ use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
-use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -53,6 +57,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\Child;
 use SPHERE\Common\Frontend\Icon\Repository\Clock;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Heart;
 use SPHERE\Common\Frontend\Icon\Repository\Hospital;
@@ -62,7 +67,8 @@ use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Medicine;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
-use SPHERE\Common\Frontend\Icon\Repository\Person;
+use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Shield;
 use SPHERE\Common\Frontend\Icon\Repository\Stethoscope;
@@ -71,24 +77,31 @@ use SPHERE\Common\Frontend\Icon\Repository\TempleChurch;
 use SPHERE\Common\Frontend\Icon\Repository\TileSmall;
 use SPHERE\Common\Frontend\Icon\Repository\Time;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Accordion;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
+use SPHERE\Common\Frontend\Layout\Repository\Ruler;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Link;
+use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success as SuccessMessage;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
-use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
+use SPHERE\System\Extension\Repository\SuperGlobal;
 
 /**
  * Class Frontend
@@ -246,7 +259,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $this->formGroupTransfer($tblPerson, $Year, $Division),
                                     $this->formGroupGeneral($tblPerson),
                                     $this->formGroupSubject($tblPerson, $Year, $Division),
-                                    $this->formGroupIntegration($tblPerson),
+//                                    $this->formGroupIntegration($tblPerson),
                                 ), (new Primary('Speichern', new Save()))->disableOnLoad())
                                 )->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.')
                                 , $tblPerson, $Meta, $Group
@@ -258,6 +271,495 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         return $Stage;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return Stage
+     */
+    public function frontendIntegration(TblPerson $tblPerson = null)
+    {
+
+        $Stage = new Stage();
+
+        $SupportContent = ApiSupport::receiverTableBlock(new SuccessMessage('Lädt'), 'SupportTable');
+        $SpecialContent = ApiSupport::receiverTableBlock(new SuccessMessage('Lädt'), 'SpecialTable');
+        $HandyCapContent = ApiSupport::receiverTableBlock(new SuccessMessage('Lädt'), 'HandyCapTable');
+
+        $Accordion = new Accordion('');
+        $Accordion->addItem('Förderantrag/Förderbescheid '.ApiSupport::receiverInline('', 'SupportCount'), $SupportContent, true);
+        $Accordion->addItem('Entwicklungsbesonderheiten '.ApiSupport::receiverInline('', 'SpecialCount'), $SpecialContent, false);
+        $Accordion->addItem('Nachteilsaugleich '.ApiSupport::receiverInline('', 'HandyCapCount'), $HandyCapContent, false);
+
+        $Stage->setContent(
+            ApiSupport::pipelineLoadTable($tblPerson->getId())
+            .new Layout(array(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Warning('Für Lehrer sind nur die aktuellsten Einträge sichtbar')
+                        , 6)
+                    )
+                ),
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                                ApiSupport::receiverModal(),
+                                (new Standard('Förderantrag/Förderbescheid hinzufügen', '#'))
+                                    ->ajaxPipelineOnClick(ApiSupport::pipelineOpenCreateSupportModal($tblPerson->getId())),
+                                (new Standard('Entwicklungsbesonderheiten hinzufügen', '#'))
+                                    ->ajaxPipelineOnClick(ApiSupport::pipelineOpenCreateSpecialModal($tblPerson->getId())),
+                                (new Standard('Nachteilsausgleich hinzufügen', '#'))
+                                    ->ajaxPipelineOnClick(ApiSupport::pipelineOpenCreateHandyCapModal($tblPerson->getId())),
+                                new Ruler()
+                            )
+                        )
+                    )
+                ),
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            $Accordion,
+                        ))
+                    )
+                ),
+            ))
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param int      $PersonId
+     * @param null|int $SupportId
+     *
+     * @return Form
+     */
+    public function formSupport($PersonId, $SupportId = null)
+    {
+
+        $Global = $this->getGlobal();
+        if($SupportId != null && !isset($Global->POST['Data']['Date'])){
+            if(($tblSupport = Student::useService()->getSupportById($SupportId))){
+                $Global = $this->fillGlobalSupport($tblSupport, $Global);
+                $Global->savePost();
+            }
+        } elseif(!isset($Global->POST['Data']['Date']) && ($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            // fill Field with newest Input (only for new Entity's)
+            if(($tblSupport = Student::useService()->getSupportByPersonNewest($tblPerson))){
+                $IsEdit = false;
+                $Global = $this->fillGlobalSupport($tblSupport, $Global, $IsEdit);
+                $Global->savePost();
+            }
+        }
+        $tblSupportFocusList = Student::useService()->getSupportFocusTypeAll();
+        $SupportTypeList = Student::useService()->getSupportTypeAll();
+
+        $tblSupportFocusList = $this->getSorter($tblSupportFocusList)->sortObjectBy('Name');
+        $CheckboxList = array();
+        /** @var TblSupportFocusType $tblSupportFocus */
+        foreach($tblSupportFocusList as $tblSupportFocus){
+            $CheckboxList[] = new CheckBox('Data[CheckboxList]['.$tblSupportFocus->getName().']', $tblSupportFocus->getName(), $tblSupportFocus->getId());
+        }
+
+        if($SupportId === null){
+            $SaveButton = (new PrimaryLink('Speichern', ApiSupport::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiSupport::pipelineCreateSupportSave($PersonId));
+        } else {
+            $SaveButton = (new PrimaryLink('Speichern', ApiSupport::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiSupport::pipelineUpdateSupportSave($PersonId, $SupportId));
+        }
+
+        return new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired()
+                        , 6),
+                    new FormColumn(
+                        new SelectBox('Data[PrimaryFocus]', 'Primär geförderter Schwerpunkt', array('{{ Name }}' => $tblSupportFocusList))
+                        , 6),
+                )),
+                new FormRow(array(
+                    new FormColumn(array(
+                        (new SelectBox('Data[SupportType]', 'Vorgang', array('{{ Name }}' => $SupportTypeList), new Education()))->setRequired(),
+                        new Warning('Nur "Förderbescheid" und "Änderung" sind für Lehrer sichtbar')
+                        ), 6),
+                    new FormColumn(
+                        new Listing($CheckboxList)
+                        , 6),
+                )),
+                new FormRow(array(
+                    new FormColumn(array(
+                        new TextField('Data[Company]', 'Förderschule', 'Förderschule', new Education()),
+                        new Ruler(),
+                        new TextField('Data[PersonSupport]', 'Schulbegleitung', 'Schulbegleitung', new PersonIcon()),
+                        new Ruler(),
+                        new TextField('Data[SupportTime]', 'Stundenbedarf pro Woche', 'Stundenbedarf pro Woche', new Clock()),
+                    ), 6),
+                    new FormColumn(
+                        (new TextArea('Data[Remark]', 'Bemerkung', 'Bemerkung', new Edit()))
+                        , 6),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        $SaveButton
+                    )
+                )),
+            ))
+        );
+    }
+
+    /**
+     * @param TblSupport  $tblSupport
+     * @param SuperGlobal $Global
+     * @param bool        $IsEdit
+     *
+     * @return SuperGlobal
+     */
+    private function fillGlobalSupport(TblSupport $tblSupport, SuperGlobal $Global, $IsEdit = true)
+    {
+        // fill only update Form's
+        if($IsEdit){
+            $Global->POST['Data']['Date'] = $tblSupport->getDate();
+            if(($tblSupportType = $tblSupport->getTblSupportType())){
+                $Global->POST['Data']['SupportType'] = $tblSupportType->getId();
+            }
+            $Global->POST['Data']['Remark'] = $tblSupport->getRemark(false);
+        }
+
+        if(($tblSupportFocusPrimary = Student::useService()->getPrimaryFocusBySupport($tblSupport))){
+            $Global->POST['Data']['PrimaryFocus'] = $tblSupportFocusPrimary->getId();
+        }
+        if(($tblSupportFocusTypeList = Student::useService()->getFocusListBySupport($tblSupport))){
+            foreach($tblSupportFocusTypeList as $tblSupportFocusType){
+                $Global->POST['Data']['CheckboxList'][$tblSupportFocusType->getName()] = $tblSupportFocusType->getId();
+            }
+        }
+
+
+        $Global->POST['Data']['Company'] = $tblSupport->getCompany();
+        $Global->POST['Data']['PersonSupport'] = $tblSupport->getPersonSupport();
+        $Global->POST['Data']['SupportTime'] = $tblSupport->getSupportTime();
+        return $Global;
+    }
+
+    /**
+     * @param int      $PersonId
+     * @param null|int $SpecialId
+     *
+     * @return Form
+     */
+    public function formSpecial($PersonId, $SpecialId = null)
+    {
+
+        $Global = $this->getGlobal();
+        if($SpecialId != null && !isset($Global->POST['Data']['Date'])) {
+            if (($tblSpecial = Student::useService()->getSpecialById($SpecialId))) {
+                $Global = $this->fillGlobalSpecial($tblSpecial, $Global);
+
+                $Global->savePost();
+            } elseif (!isset($Global->POST['Data']['Date']) && ($tblPerson = Person::useService()->getPersonById($PersonId))) {
+                // fill Field with newest Input (only for new Entity's)
+                if(($tblSpecial = Student::useService()->getSpecialByPersonNewest($tblPerson))) {
+                    $IsEdit = false;
+                    $Global = $this->fillGlobalSpecial($tblSpecial, $Global, $IsEdit);
+                    $Global->savePost();
+                }
+            }
+        }
+
+        $tblSpecialDisorderList = Student::useService()->getSpecialDisorderTypeAll();
+        $tblSpecialDisorderList = $this->getSorter($tblSpecialDisorderList)->sortObjectBy('Name');
+        $CheckboxList = array();
+        /** @var TblSpecialDisorderType $tblSpecialDisorder*/
+        foreach($tblSpecialDisorderList as $tblSpecialDisorder){
+            $CheckboxList[] = new CheckBox('Data[CheckboxList]['.$tblSpecialDisorder->getName().']', $tblSpecialDisorder->getName(), $tblSpecialDisorder->getId());
+        }
+
+        if($SpecialId === null){
+            $SaveButton = (new PrimaryLink('Speichern', ApiSupport::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiSupport::pipelineCreateSpecialSave($PersonId));
+        } else {
+            $SaveButton = (new PrimaryLink('Speichern', ApiSupport::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiSupport::pipelineUpdateSpecialSave($PersonId, $SpecialId));
+        }
+
+        return new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(array(
+                        (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired(),
+                        new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Bold('Entwicklungsbesonderheiten '.new DangerText('*')))))),
+                        new Listing($CheckboxList)
+                        ), 6),
+                    new FormColumn(
+                        new TextArea('Data[Remark]', 'Bemerkung', 'Bemerkung', new Edit())
+                        , 6),
+                    new FormColumn(
+                        new HiddenField('SpecialId')
+                        , 6),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        $SaveButton
+                    )
+                )),
+            ))
+        );
+    }
+
+    /**
+     * @param TblSpecial  $tblSpecial
+     * @param SuperGlobal $Global
+     * @param bool        $IsEdit
+     *
+     * @return SuperGlobal
+     */
+    private function fillGlobalSpecial(TblSpecial $tblSpecial, SuperGlobal $Global, $IsEdit = true)
+    {
+        // fill only update Form's
+        if($IsEdit){
+            $Global->POST['Data']['Date'] = $tblSpecial->getDate();
+            $Global->POST['Data']['Remark'] = $tblSpecial->getRemark(false);
+        }
+
+        if (($tblSpecialDisorderTypeList = Student::useService()->getSpecialDisorderTypeAllBySpecial($tblSpecial))) {
+            foreach ($tblSpecialDisorderTypeList as $tblSpecialDisorderType) {
+                $Global->POST['Data']['CheckboxList'][$tblSpecialDisorderType->getName()] = $tblSpecialDisorderType->getId();
+            }
+        }
+
+        return $Global;
+    }
+
+    /**
+     * @param int      $PersonId
+     * @param null|int $HandyCapId
+     *
+     * @return Form
+     */
+    public function formHandyCap($PersonId, $HandyCapId = null)
+    {
+
+        $Global = $this->getGlobal();
+        if($HandyCapId != null && !isset($Global->POST['Data']['Date'])){
+            if(($tblHandyCap = Student::useService()->getHandyCapById($HandyCapId))){
+                $Global->POST['Data']['Date'] = $tblHandyCap->getDate();
+                $Global->POST['Data']['Remark'] = $tblHandyCap->getRemark(false);
+                $Global->savePost();
+            }
+        }// don't need pre fill for create new Entity's
+
+        if($HandyCapId === null){
+            $SaveButton = (new PrimaryLink('Speichern', ApiSupport::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiSupport::pipelineCreateHandyCapSave($PersonId));
+        } else {
+            $SaveButton = (new PrimaryLink('Speichern', ApiSupport::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiSupport::pipelineUpdateHandyCapSave($PersonId, $HandyCapId));
+        }
+
+        return new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(array(
+                        (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired(),
+                    ), 6),
+                    new FormColumn(
+                        (new TextArea('Data[Remark]', 'Bemerkung', 'Bemerkung', new Edit()))->setRequired()
+                    , 12),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        $SaveButton
+                    )
+                )),
+            ))
+        );
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return TableData|Warning
+     */
+    public function getSupportTable(TblPerson $tblPerson)
+    {
+
+        $tblSupportList = Student::useService()->getSupportByPerson($tblPerson);
+        $TableContent = array();
+        if($tblSupportList){
+            array_walk($tblSupportList, function(TblSupport $tblSupport) use (&$TableContent, $tblPerson){
+                $Item['RequestDate'] = $tblSupport->getDate();
+                $Item['CoachingRequest'] = ($tblSupport->getTblSupportType() ? $tblSupport->getTblSupportType()->getName() : '');
+                $Item['Focus'] = '';
+                $Item['IntegrationCompany'] = $tblSupport->getCompany();
+                $Item['PersonSupport'] = $tblSupport->getPersonSupport();
+                $Item['IntegrationTime'] = $tblSupport->getSupportTime();
+                $Item['IntegrationRemark'] = $tblSupport->getRemark();
+                $Item['Editor'] = $tblSupport->getPersonEditor();
+                $Item['Option'] = (new Standard('', '#', new Edit()))
+                ->ajaxPipelineOnClick(ApiSupport::pipelineOpenEditSupportModal($tblPerson->getId(), $tblSupport->getId()))
+                    .(new Standard('', '#', new Remove()))
+                ->ajaxPipelineOnClick(ApiSupport::pipelineOpenDeleteSupport($tblPerson->getId(), $tblSupport->getId()));
+
+                $FocusList = array();
+                $PrimaryFocus = Student::useService()->getPrimaryFocusBySupport($tblSupport);
+                $tblFocusList = Student::useService()->getFocusListBySupport($tblSupport);
+                if($tblFocusList){
+                    foreach($tblFocusList as $tblFocus){
+                        if($PrimaryFocus && $PrimaryFocus->getId() == $tblFocus->getId()){
+                            $FocusList[] = new Bold($tblFocus->getName().' *');
+                        } else {
+                            $FocusList[] = $tblFocus->getName();
+                        }
+                    }
+                }
+                if(!empty($FocusList)) {
+                    $Item['Focus'] = new Listing($FocusList);
+                }
+
+                array_push($TableContent, $Item);
+            });
+        }
+
+        if(empty($TableContent)){
+            return new Warning('Es sind keine Daten vorhanden.');
+        }
+
+        return new TableData($TableContent, null,
+            array('RequestDate' => 'Datum',
+                  'CoachingRequest' => 'Vorgang',
+                  'Focus' => 'Förderschwerpunkte '.new Muted(new Small('Primary *')),
+                  'IntegrationCompany' => 'Förderschule',
+                  'PersonSupport' => 'Schulbegleitung',
+                  'IntegrationTime' => 'Stundenbedarf',
+                  'IntegrationRemark' => 'Bemerkung',
+                  'Editor' => 'Bearbeiter',
+                  'Option' => '',
+            ), array(
+                'order' => array(
+                    array(0, 'desc'),
+                ),
+                'columnDefs' => array(
+                    array('type' => 'de_date', 'targets' => 0),
+                ),
+                'pageLength' => -1,
+                'paging' => false,
+                'info' => false,
+//                'searching' => false,
+                'responsive' => false
+            ));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return TableData|Warning
+     */
+    public function getSpecialTable(TblPerson $tblPerson)
+    {
+
+        $tblSpecialList = Student::useService()->getSpecialByPerson($tblPerson);
+        $TableContent = array();
+        if($tblSpecialList){
+            array_walk($tblSpecialList, function(TblSpecial $tblSpecial) use (&$TableContent, $tblPerson){
+                $Item['RequestDate'] = $tblSpecial->getDate();
+                $Item['Disorder'] = '';
+                $Item['Remark'] = $tblSpecial->getRemark();
+                $Item['Editor'] = $tblSpecial->getPersonEditor();
+                $Item['Option'] = (new Standard('', '#', new Edit()))
+                    ->ajaxPipelineOnClick(ApiSupport::pipelineOpenEditSpecialModal($tblPerson->getId(), $tblSpecial->getId()))
+                    .(new Standard('', '#', new Remove()))
+                    ->ajaxPipelineOnClick(ApiSupport::pipelineOpenDeleteSpecial($tblPerson->getId(), $tblSpecial->getId()));
+
+                $DisorderList = array();
+                $tblStudentDisorderTypeList = Student::useService()->getSpecialDisorderTypeAllBySpecial($tblSpecial);
+                if($tblStudentDisorderTypeList){
+                    foreach($tblStudentDisorderTypeList as $tblStudentDisorderType){
+                        $DisorderList[] = $tblStudentDisorderType->getName();
+                    }
+                }
+                if(!empty($DisorderList)) {
+                    $Item['Disorder'] = new Listing($DisorderList);
+                }
+
+                array_push($TableContent, $Item);
+            });
+        }
+
+        if(empty($TableContent)){
+            return new Warning('Es sind keine Daten vorhanden.');
+        }
+
+        return new TableData($TableContent, null,
+            array('RequestDate' => 'Datum',
+                  'Disorder' => 'Entwicklungsbesonderheiten',
+                  'Remark' => 'Bemerkung',
+                  'Editor' => 'Bearbeiter',
+                  'Option' => '',
+            ), array(
+                'order' => array(
+                    array(0, 'desc'),
+                ),
+                'columnDefs' => array(
+                    array('type' => 'de_date', 'targets' => 0),
+                ),
+                'pageLength' => -1,
+                'paging' => false,
+                'info' => false,
+//                'searching' => false,
+                'responsive' => false
+            ));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return TableData|Warning
+     */
+    public function getHandyCapTable(TblPerson $tblPerson)
+    {
+
+        $tblSpecialList = Student::useService()->getHandyCapByPerson($tblPerson);
+        $TableContent = array();
+        if($tblSpecialList){
+            array_walk($tblSpecialList, function(TblHandyCap $tblHandyCap) use (&$TableContent, $tblPerson){
+                $Item['RequestDate'] = $tblHandyCap->getDate();
+                $Item['Remark'] = $tblHandyCap->getRemark();
+                $Item['Editor'] = $tblHandyCap->getPersonEditor();
+                $Item['Option'] = (new Standard('', '#', new Edit()))
+                    ->ajaxPipelineOnClick(ApiSupport::pipelineOpenEditHandyCapModal($tblPerson->getId(), $tblHandyCap->getId()))
+                    .(new Standard('', '#', new Remove()))
+                    ->ajaxPipelineOnClick(ApiSupport::pipelineOpenDeleteHandyCap($tblPerson->getId(), $tblHandyCap->getId()));
+
+                array_push($TableContent, $Item);
+            });
+        }
+
+        if(empty($TableContent)){
+            return new Warning('Es sind keine Daten vorhanden.');
+        }
+
+        return new TableData($TableContent, null,
+            array('RequestDate' => 'Datum',
+                  'Remark' => 'Bemerkung',
+                  'Editor' => 'Bearbeiter',
+                  'Option' => '',
+            ), array(
+                'order' => array(
+                    array(0, 'desc'),
+                ),
+                'columnDefs' => array(
+                    array('type' => 'de_date', 'targets' => 0),
+                ),
+                'pageLength' => -1,
+                'paging' => false,
+                'info' => false,
+//                'searching' => false,
+                'responsive' => false
+            ));
     }
 
     /**
@@ -1465,138 +1967,6 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
         return new Panel($Title, $Panel, Panel::PANEL_TYPE_INFO);
-    }
-
-    /**
-     * @param TblPerson|null $tblPerson
-     *
-     * @return FormGroup
-     */
-    private function formGroupIntegration(
-        TblPerson $tblPerson = null
-    ) {
-
-        if (null !== $tblPerson) {
-            $Global = $this->getGlobal();
-            if (!isset($Global->POST['Meta']['Integration'])) {
-
-                $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-
-                if ($tblStudent) {
-
-                    $tblStudentIntegration = $tblStudent->getTblStudentIntegration();
-                    if ($tblStudentIntegration) {
-
-                        $Global->POST['Meta']['Integration']['Coaching']['Required'] = $tblStudentIntegration->getCoachingRequired() ? 1 : 0;
-                        $Global->POST['Meta']['Integration']['Coaching']['CounselDate'] = $tblStudentIntegration->getCoachingCounselDate();
-                        $Global->POST['Meta']['Integration']['Coaching']['RequestDate'] = $tblStudentIntegration->getCoachingRequestDate();
-                        $Global->POST['Meta']['Integration']['Coaching']['DecisionDate'] = $tblStudentIntegration->getCoachingDecisionDate();
-
-                        $Global->POST['Meta']['Integration']['School']['Company'] =
-                            $tblStudentIntegration->getServiceTblCompany() ? $tblStudentIntegration->getServiceTblCompany()->getId() : 0;
-                        $Global->POST['Meta']['Integration']['School']['Person'] =
-                            $tblStudentIntegration->getServiceTblPerson() ? $tblStudentIntegration->getServiceTblPerson()->getId() : 0;
-                        $Global->POST['Meta']['Integration']['School']['Time'] = $tblStudentIntegration->getCoachingTime();
-                        $Global->POST['Meta']['Integration']['School']['Remark'] = $tblStudentIntegration->getCoachingRemark();
-                    }
-
-                    $tblStudentDisorderAll = Student::useService()->getStudentDisorderAllByStudent($tblStudent);
-                    if ($tblStudentDisorderAll) {
-                        foreach ($tblStudentDisorderAll as $tblStudentDisorder) {
-                            $Global->POST['Meta']['Integration']['Disorder'][$tblStudentDisorder->getTblStudentDisorderType()->getId()] = 1;
-                        }
-                    }
-
-                    $tblStudentFocusAll = Student::useService()->getStudentFocusAllByStudent($tblStudent);
-                    if ($tblStudentFocusAll) {
-                        foreach ($tblStudentFocusAll as $tblStudentFocus) {
-                            $Global->POST['Meta']['Integration']['Focus'][$tblStudentFocus->getTblStudentFocusType()->getId()] = 1;
-                            if ($tblStudentFocus->isPrimary()) {
-                                $Global->POST['Meta']['Integration']['PrimaryFocus'] = $tblStudentFocus->getTblStudentFocusType()->getId();
-                            }
-                        }
-                    }
-                }
-            }
-            $Global->savePost();
-        }
-
-        $tblCompanyAllSchool = Group::useService()->getCompanyAllByGroup(
-            Group::useService()->getGroupByMetaTable('SCHOOL')
-        );
-        if ($tblCompanyAllSchool) {
-            array_push($tblCompanyAllSchool, new TblCompany());
-        } else {
-            $tblCompanyAllSchool = array();
-            $tblCompanyAllSchool[] = new TblCompany();
-        }
-
-        $PanelDisorder = array();
-        $tblStudentDisorderType = Student::useService()->getStudentDisorderTypeAll();
-        $tblStudentDisorderType = $this->getSorter($tblStudentDisorderType)->sortObjectBy('Name',
-            new StringNaturalOrderSorter());
-        array_walk($tblStudentDisorderType,
-            function (TblStudentDisorderType $tblStudentDisorderType) use (&$PanelDisorder) {
-
-                array_push($PanelDisorder,
-                    new CheckBox('Meta[Integration][Disorder]['.$tblStudentDisorderType->getId().']',
-                        $tblStudentDisorderType->getName(), 1)
-                );
-            });
-        $PanelDisorder = new Panel('Förderbedarf: Teilleistungsstörungen', $PanelDisorder, Panel::PANEL_TYPE_INFO);
-
-        $tblStudentFocusType = Student::useService()->getStudentFocusTypeAll();
-        $tblStudentFocusType = $this->getSorter($tblStudentFocusType)->sortObjectBy('Name',
-            new StringNaturalOrderSorter());
-        $PanelFocus = array();
-        $PanelFocus[] = new SelectBox('Meta[Integration][PrimaryFocus]', 'Primär geförderter Schwerpunkt',
-            array('{{ Name}}' => $tblStudentFocusType));
-        array_walk($tblStudentFocusType,
-            function (TblStudentFocusType $tblStudentFocusType) use (&$PanelFocus) {
-
-                array_push($PanelFocus,
-                    new CheckBox('Meta[Integration][Focus]['.$tblStudentFocusType->getId().']',
-                        $tblStudentFocusType->getName(), 1)
-                );
-            });
-        $PanelFocus = new Panel('Förderbedarf: Schwerpunkte', $PanelFocus, Panel::PANEL_TYPE_INFO);
-
-        return new FormGroup(array(
-            new FormRow(array(
-                new FormColumn(
-                    new Panel('Förderantrag / Förderbescheid', array(
-                        new CheckBox('Meta[Integration][Coaching][Required]', 'Förderbedarf', 1),
-                        new DatePicker('Meta[Integration][Coaching][CounselDate]', 'Förderantrag Beratung',
-                            'Förderantrag Beratung',
-                            new Calendar()
-                        ),
-                        new DatePicker('Meta[Integration][Coaching][RequestDate]', 'Förderantrag',
-                            'Förderantrag',
-                            new Calendar()
-                        ),
-                        new DatePicker('Meta[Integration][Coaching][DecisionDate]', 'Förderbescheid SBA',
-                            'Förderbescheid SBA',
-                            new Calendar()
-                        )
-                    ), Panel::PANEL_TYPE_INFO), 3),
-                new FormColumn(
-                    new Panel('Förderschule', array(
-                        new SelectBox('Meta[Integration][School][Company]', 'Förderschule',
-                            array('{{ Name }} {{ Description }}' => $tblCompanyAllSchool),
-                            new Education()),
-                        new SelectBox('Meta[Integration][School][Person]',
-                            'Schulbegleitung '.new Small(new Muted('Integrationsbeauftragter')), array(),
-                            new Person()),
-                        new NumberField('Meta[Integration][School][Time]', 'Stundenbedarf pro Woche',
-                            'Stundenbedarf pro Woche', new Clock()),
-                        new TextArea('Meta[Integration][School][Remark]', 'Bemerkungen', 'Bemerkungen',
-                            new Pencil()),
-
-                    ), Panel::PANEL_TYPE_INFO), 3),
-                new FormColumn($PanelFocus, 3),
-                new FormColumn($PanelDisorder, 3),
-            )),
-        ), new Title(new TileSmall().' Integration', new Bold(new Success($tblPerson->getFullName()))));
     }
 
     /**

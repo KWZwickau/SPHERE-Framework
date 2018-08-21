@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Graduation\Gradebook;
 
+use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
@@ -901,6 +902,7 @@ class Frontend extends FrontendScoreRule
         $periodListCount = array();
         $columnDefinition['Number'] = '#';
         $columnDefinition['Student'] = "Schüler";
+        $columnDefinition['Integration'] = "Integration";
         $columnDefinition['Course'] = new ToolTip('Bg', 'Bildungsgang');
         $countPeriod = 0;
         $countMinimumGradeCount = 1;
@@ -1000,6 +1002,13 @@ class Frontend extends FrontendScoreRule
                 $count++;
                 $data['Student'] = isset($addStudentList[$tblPerson->getId()])
                     ? new Muted($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName();
+                if(Student::useService()->getIsSupportByPerson($tblPerson)) {
+                    $Integration = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+                        ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
+                } else {
+                    $Integration = '';
+                }
+                $data['Integration'] = $Integration;
                 $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
                 $CourseName = '';
                 if ($tblCourse) {
@@ -1160,7 +1169,7 @@ class Frontend extends FrontendScoreRule
 
         // oberste Tabellen-Kopf-Zeile erstellen
         $headTableColumnList = array();
-        $headTableColumnList[] = new TableColumn('', 3, '20%');
+        $headTableColumnList[] = new TableColumn('', 4, '20%');
         if (!empty($periodListCount)) {
             foreach ($periodListCount as $periodId => $count) {
                 $tblPeriod = Term::useService()->getPeriodById($periodId);
@@ -1180,7 +1189,8 @@ class Frontend extends FrontendScoreRule
         );
 
         $Stage->setContent(
-            new Layout(array(
+            ApiSupportReadOnly::receiverOverViewModal()
+            .new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
@@ -2778,6 +2788,7 @@ class Frontend extends FrontendScoreRule
             $personData = array();
             $tableHeaderList['Number'] = 'Nummer';
             $tableHeaderList['Name'] = 'Name';
+            $tableHeaderList['Integration'] = 'Integration';
             $tblDivisionList = array();
 
             if ($tblGroup) {
@@ -2864,6 +2875,13 @@ class Frontend extends FrontendScoreRule
                     $data = array();
                     $data['Number'] = $count++;
                     $data['Name'] = $tblPerson->getLastFirstName();
+                    if(Student::useService()->getIsSupportByPerson($tblPerson)) {
+                        $Integration = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+                            ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
+                    } else {
+                        $Integration = '';
+                    }
+                    $data['Integration'] = $Integration;
                     $data['Division'] = $tblGroup && isset($personData[$tblPerson->getId()]['Division'])
                         ? $personData[$tblPerson->getId()]['Division'] : '';
                     $data['Course'] = '';
@@ -2965,7 +2983,8 @@ class Frontend extends FrontendScoreRule
             ));
 
             $Stage->setContent(
-                new Layout(array(
+                ApiSupportReadOnly::receiverOverViewModal()
+               .new Layout(array(
                     new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(array(
@@ -3115,6 +3134,13 @@ class Frontend extends FrontendScoreRule
             , 'Schüler'
         ));
 
+        // Button's nur anzeigen, wenn Integrationen hinterlegt sind
+        $tblPerson = Person::useService()->getPersonById($PersonId);
+        if($tblPerson && Student::useService()->getIsSupportByPerson($tblPerson)) {
+            $Stage->addButton((new Standard('Integration', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+                ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId())));
+        }
+
         $columnDefinition = array();
         $columnDefinition['Subject'] = 'Fach';
         if (($tblYear = $tblDivision->getServiceTblYear())) {
@@ -3154,7 +3180,8 @@ class Frontend extends FrontendScoreRule
         }
 
         $Stage->setContent(
-            new Layout(array(
+            ApiSupportReadOnly::receiverOverViewModal()
+            .new Layout(array(
                 new LayoutGroup($rowList)
             ))
         );

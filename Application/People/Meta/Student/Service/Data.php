@@ -1,7 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student\Service;
 
-use SPHERE\Application\People\Meta\Student\Service\Data\Integration;
+use SPHERE\Application\People\Meta\Student\Service\Data\Support;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
@@ -29,7 +29,7 @@ use SPHERE\System\Database\Fitting\Element;
  *
  * @package SPHERE\Application\People\Meta\Student\Service
  */
-class Data extends Integration
+class Data extends Support
 {
 
     /**
@@ -282,6 +282,7 @@ class Data extends Integration
         $this->createStudentSubjectRanking('8', '8.');
         $this->createStudentSubjectRanking('9', '9.');
 
+        // old Table
         $this->createStudentFocusType('Sprache');
         $this->createStudentFocusType('Körperlich-motorische Entwicklung');
         $this->createStudentFocusType('Sozial-emotionale Entwicklung');
@@ -290,6 +291,17 @@ class Data extends Integration
         $this->createStudentFocusType('Geistige Entwicklung');
         $this->createStudentFocusType('Lernen');
 
+        // new Table
+        $this->createSupportFocusType('Sprache');
+        $this->createSupportFocusType('Körperlich-motorische Entwicklung');
+        $this->createSupportFocusType('Sozial-emotionale Entwicklung');
+        $this->createSupportFocusType('Hören');
+        $this->createSupportFocusType('Sehen');
+        $this->createSupportFocusType('Geistige Entwicklung');
+        $this->createSupportFocusType('Lernen');
+        $this->createSupportFocusType('Unterricht kranker Schüler');
+
+        // old Table
         $this->createStudentDisorderType('LRS');
         $this->createStudentDisorderType('Gehörschwierigkeiten');
         $this->createStudentDisorderType('Augenleiden');
@@ -301,6 +313,18 @@ class Data extends Integration
         $this->createStudentDisorderType('Hochbegabung');
         $this->createStudentDisorderType('Konzentrationsstörung');
         $this->createStudentDisorderType('Körperliche Beeinträchtigung');
+
+        // new Table Disorder with new Translation
+        $this->createSpecialDisorderType('ADS / ADHS');
+        $this->createSpecialDisorderType('Auditive Wahrnehmungsstörungen');
+        $this->createSpecialDisorderType('Konzentrationsstörungen');
+        $this->createSpecialDisorderType('Störung motorischer Funktionen');
+        $this->createSpecialDisorderType('Lese-/ Rechtschreibstörung');
+        $this->createSpecialDisorderType('Rechenschwäche');
+        $this->createSpecialDisorderType('Sonstige Entwicklungsbesonderheiten');
+        $this->createSpecialDisorderType('Sprach-/ Sprechstörungen');
+        $this->createSpecialDisorderType('Störungen aus dem Autismusspektrum');
+        $this->createSpecialDisorderType('Visuelle Wahrnehmungsstörungen');
 
         $this->createStudentTransferType('ENROLLMENT', 'Einschulung');
         $this->createStudentTransferType('ARRIVE', 'Aufnahme');
@@ -322,6 +346,14 @@ class Data extends Integration
         $this->createStudentSchoolEnrollmentType('PREMATURE', 'vorzeitige Einschulung');
         $this->createStudentSchoolEnrollmentType('REGULAR', 'fristgemäße Einschulung');
         $this->createStudentSchoolEnrollmentType('POSTPONED', 'Einschulung nach Zurückstellung');
+
+        // TblSupportType
+        $this->createSupportType('Beratung', '');
+        $this->createSupportType('Förderantrag', '');
+        $this->createSupportType('Förderbescheid', '');
+        $this->createSupportType('Änderung', '');
+        $this->createSupportType('Ablehnung', '');
+        $this->createSupportType('Wiederspruch', '');
     }
 
     /**

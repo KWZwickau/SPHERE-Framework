@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Education\Graduation\Evaluation;
 
 use DateTime;
+use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
@@ -47,6 +48,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
@@ -58,8 +60,12 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\Listing as ListingLayout;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -882,6 +888,34 @@ class Frontend extends Extension implements IFrontendInterface
             . new Redirect('/Education/Graduation/Evaluation/Test/Teacher', Redirect::TIMEOUT_ERROR);
         }
 
+        //Integration
+        $Accordion = new Accordion();
+//        $Panel = false;
+//        $PanelContent = '';
+        $Listing = array();
+        $HandyCapCount = 0;
+        if(($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))){
+            foreach($tblPersonList as $tblPerson){
+                // Button's nur anzeigen, wenn Integrationen hinterlegt sind
+                if(Student::useService()->getIsSupportByPerson($tblPerson)){
+                    $HandyCapCount++;
+                    $Listing[] = new Container(new PullClear($tblPerson->getLastFirstName()
+                        .new PullRight((new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+                            ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId())))));
+//                    $PanelContent .= ($PanelContent !== '' ? new Ruler() : '')
+//                        .new Container(new PullClear($tblPerson->getLastFirstName()
+//                        .new PullRight((new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+//                            ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId())))));
+                }
+            }
+        }
+        if(!empty($Listing)){
+//            $Panel = new Panel('Integration '.new Muted('Übersicht'), $PanelContent, Panel::PANEL_TYPE_INFO);
+            $Listing = new ListingLayout($Listing);
+            $Accordion->addItem('Integration '.new Muted('('.$HandyCapCount.')'), $Listing);
+        }
+
+
         if ($tblDivisionSubject && $tblDivisionSubject->getServiceTblSubject() && $tblDivision) {
             $tblTestList = Evaluation::useService()->getTestAllByTypeAndDivisionAndSubjectAndPeriodAndSubjectGroup(
                 $tblDivision,
@@ -1243,6 +1277,14 @@ class Frontend extends Extension implements IFrontendInterface
                         ))
                     ))
                 )),
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ApiSupportReadOnly::receiverOverViewModal()
+                            .$Accordion
+                        , 4)
+                    )
+                ),
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
@@ -2017,6 +2059,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $periodListCount = array();
                 $columnDefinition['Number'] = '#';
                 $columnDefinition['Student'] = "Schüler";
+                $columnDefinition['Integration'] = "Integration";
                 $columnDefinition['Course'] = 'Bildungsgang';
 
                 $tblPeriodList = false;
@@ -2118,6 +2161,14 @@ class Frontend extends Extension implements IFrontendInterface
                         $data['Number'] = $count % 5 == 0 ? new Bold($count) : $count;
                         $count++;
                         $data['Student'] = $tblPerson->getLastFirstName();
+
+                        if(Student::useService()->getIsSupportByPerson($tblPerson)) {
+                            $Integration = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+                                ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
+                        } else {
+                            $Integration = '';
+                        }
+                        $data['Integration'] = $Integration;
 
                         $data['Course'] = '';
                         $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
@@ -2264,6 +2315,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tableColumns = array();
             $tableColumns['Number'] = '#';
             $tableColumns['Name'] = 'Schüler';
+            $tableColumns['Integration'] = 'Integration';
             $tableColumns['Course'] = 'Bildungsgang';
             $tableColumns['Grade'] = 'Zensur';
             if ($tblTest->isContinues()) {
@@ -2330,7 +2382,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             // oberste Tabellen-Kopf-Zeile erstellen
             $headTableColumnList = array();
-            $headTableColumnList[] = new TableColumn('', 3, '20%');
+            $headTableColumnList[] = new TableColumn('', 4, '20%');
             $countHeaderColumns = 2;
             if (!empty($periodListCount)) {
                 foreach ($periodListCount as $periodId => $count) {
@@ -2411,7 +2463,8 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
-            new Layout (array(
+            ApiSupportReadOnly::receiverOverViewModal()
+            .new Layout (array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
@@ -3560,7 +3613,13 @@ class Frontend extends Extension implements IFrontendInterface
                             . ')')
                         : ''
                     );
-
+                if(Student::useService()->getIsSupportByPerson($tblPerson)) {
+                    $Integration = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+                        ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
+                } else {
+                    $Integration = '';
+                }
+                $studentList[$tblPerson->getId()]['Integration'] = $Integration;
                 $studentList[$tblPerson->getId()]['Course'] = '';
                 $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
                 if ($tblCourse) {

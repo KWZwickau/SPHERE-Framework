@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\ClassRegister;
 
+use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -9,12 +10,14 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Commodity;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\ResizeVertical;
@@ -24,12 +27,14 @@ use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
@@ -70,6 +75,9 @@ class ClassRegister implements IApplicationInterface
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\All\Selected', __CLASS__ . '::frontendDivisionAllSelected')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '\Integration', __CLASS__ . '::frontendIntegration')
         );
 
         /*
@@ -335,6 +343,14 @@ class ClassRegister implements IApplicationInterface
                     $unExcusedDays = Absence::useService()->getUnexcusedDaysByPerson($tblPerson, $tblDivision);
                     $absence = ($excusedDays + $unExcusedDays) . ' (' . new Success($excusedDays) . ', '
                         . new \SPHERE\Common\Frontend\Text\Repository\Danger($unExcusedDays) . ')';
+
+
+                    if(Student::useService()->getIsSupportByPerson($tblPerson)) {
+                        $IntegrationButton = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+                            ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
+                    } else {
+                        $IntegrationButton = '';
+                    }
                     $studentTable[] = array(
                         'Number'   => (count($studentTable) + 1),
                         'Name'     => (($isTeacher || !$IsSortable)
@@ -342,6 +358,7 @@ class ClassRegister implements IApplicationInterface
                             : new PullClear(
                                 new PullLeft(new ResizeVertical().' '.$tblPerson->getLastFirstName())
                             )),
+                        'Integration' => $IntegrationButton,
                         'Gender'   => $Gender,
                         'Address'  => $tblAddress ? $tblAddress->getGuiString() : '',
                         'Birthday' => $birthday,
@@ -356,6 +373,15 @@ class ClassRegister implements IApplicationInterface
                                     ? '/Education/ClassRegister/Teacher' : '/Education/ClassRegister/All'
                             ),
                             'Fehlzeiten des Schülers verwalten'
+                        ).new Standard(
+                            '', '/Education/ClassRegister/Integration', new Commodity(),
+                            array(
+                                'DivisionId' => $tblDivision->getId(),
+                                'PersonId'   => $tblPerson->getId(),
+                                'BasicRoute' => $isTeacher
+                                    ? '/Education/ClassRegister/Teacher/Selected' : '/Education/ClassRegister/All/Selected'
+                            ),
+                            'Integration des Schülers verwalten'
                         )
                     );
                 }
@@ -395,7 +421,8 @@ class ClassRegister implements IApplicationInterface
             }
 
             $Stage->setContent(
-                new Layout(array(
+                ApiSupportReadOnly::receiverOverViewModal()
+                .new Layout(array(
                     new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(array(
@@ -417,6 +444,7 @@ class ClassRegister implements IApplicationInterface
                                 new TableData($studentTable, null, array(
                                     'Number'   => '#',
                                     'Name'     => 'Name',
+                                    'Integration'     => 'Integration',
                                     'Gender'   => 'Geschlecht',
                                     'Address'  => 'Addresse',
                                     'Birthday' => 'Geburtsdatum',
@@ -429,6 +457,7 @@ class ClassRegister implements IApplicationInterface
                                             'paging' => false,
                                             'columnDefs' => array(
                                                 array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                                array('width' => '1%', 'targets' => 2),
                                             ),
                                         )
                                         : array(
@@ -442,6 +471,8 @@ class ClassRegister implements IApplicationInterface
                                         'paging' => false,
                                         'columnDefs' => array(
                                             array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                            array('width' => '1%', 'targets' => 2),
+                                            array('width' => '60px', 'targets' => -1),
                                         ),
                                     )
                                 )
@@ -455,5 +486,61 @@ class ClassRegister implements IApplicationInterface
         } else {
             return $Stage . new Danger('Klassenbuch nicht gefunden.', new Ban());
         }
+    }
+
+    /**
+     * @param int    $DivisionId
+     * @param int    $PersonId
+     * @param string $BasicRoute
+     *
+     * @return Stage
+     */
+    public function frontendIntegration($DivisionId, $PersonId, $BasicRoute)
+    {
+
+        $Stage = new Stage('Integration', 'Verwalten');
+
+        $Stage->addButton(new Standard('Zurück', $BasicRoute, new ChevronLeft(),
+            array( 'DivisionId' => $DivisionId,
+                   'BasicRoute' => $BasicRoute,
+            )));
+
+        $PersonPanel = '';
+        if(($tblPerson = Person::useService()->getPersonById($PersonId))){
+            $PersonPanel = new Panel('Person', $tblPerson->getLastFirstName(), Panel::PANEL_TYPE_INFO);
+        }
+        $DivisionPanel = '';
+        if(($tblDivision = Division::useService()->getDivisionById($DivisionId))){
+            $DivisionPanel = new Panel('Klasse, Schulart', $tblDivision->getDisplayName().', '.$tblDivision->getTypeName(), Panel::PANEL_TYPE_INFO);
+        }
+
+
+        if(($tblPerson = Person::useService()->getPersonById($PersonId))){
+            $Content = (new Well(Student::useFrontend()->frontendIntegration($tblPerson)));
+        } else {
+            $Content = (new Warning('Person wurde nicht gefunden.'));
+        }
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            $PersonPanel
+                        , 6),
+                        new LayoutColumn(
+                            $DivisionPanel
+                        , 6),
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            $Content
+                        )
+                    )
+                ))
+            )
+        );
+
+        return $Stage;
     }
 }
