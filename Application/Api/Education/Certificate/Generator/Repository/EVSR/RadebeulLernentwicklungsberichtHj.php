@@ -56,8 +56,8 @@ class RadebeulLernentwicklungsberichtHj extends Certificate
                     ->addElementColumn((new Element())
                         ->setContent(
                             new Container('Lernentwicklungsbericht') .
-                            new Container('der') .
-                            new Container('Evangelischen Grundschule Radebeul')
+                            new Container('des') .
+                            new Container('Evangelischen Schulzentrums Radebeul')
                         )
                         ->styleLineHeight('80%')
                         ->styleTextSize('20pt')
