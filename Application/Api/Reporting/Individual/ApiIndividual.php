@@ -843,9 +843,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 $Item['FieldCount'] = '';
 
                 $tblPresetSettingList = Individual::useService()->getPresetSettingAllByPreset($tblPreset, $ViewType);
-                $ViewTypeControll = '';
+                $ViewTypeControl = '';
                 if ($tblPresetSettingList) {
-                    $ViewTypeControll = $tblPresetSettingList[0]->getViewType();
+                    $ViewTypeControl = $tblPresetSettingList[0]->getViewType();
                     $FieldCount = count($tblPresetSettingList);
 //                    //Anzeige der Felder als Accordion
 //                    $FieldList = array();
@@ -861,7 +861,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
                     $Item['FieldCount'] = $FieldCount;
                 }
-                if($ViewTypeControll == $ViewType){
+                if($ViewTypeControl == $ViewType){
                     array_push($TableContent, $Item);
                 }
             });
@@ -928,9 +928,10 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             foreach ($tblWorkSpaceList as $tblWorkSpace) {
                 Individual::useService()->createPresetSetting($tblPreset, $tblWorkSpace);
             }
-            $Info = 'Speicherung erfolgreich';
-            return ApiIndividual::pipelinePresetSaveModal($Info, $ViewType)
-                .ApiIndividual::pipelineCloseModal();
+//            $Info = 'Speicherung erfolgreich';
+            //laden das ergebnisses führt zu fehlerhaften darstellungen auf der Demo/Live wird außerdem nicht zwingend benötigt!
+            return // ApiIndividual::pipelinePresetSaveModal($Info, $ViewType) .
+                ApiIndividual::pipelineCloseModal();
         }
 
         $Info = 'Speicherung konnte nicht erfolgen bitte überprüfen Sie ihre Eingabe';
