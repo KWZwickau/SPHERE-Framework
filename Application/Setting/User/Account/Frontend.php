@@ -741,6 +741,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Address'] = '';
                 $Item['PersonListCustody'] = '';
                 $Item['PersonListStudent'] = '';
+                $Item['GroupByTime'] = $tblUserAccount->getGroupByTime();
                 $Item['Option'] =
                     new Standard('', '/Setting/User/Account/Password/Generation', new Mail(),
                         array(
@@ -808,6 +809,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'UserName'          => 'Account',
                                         'Address'           => 'Adresse',
                                         'PersonListCustody' => 'Sorgeberechtigte',
+                                        'GroupByTime'       => 'Erstellung am',
                                         'Option'            => ''
                                     ), array(
                                         'order'      => array(array(1, 'asc')),
@@ -846,6 +848,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Address'] = '';
                 $Item['PersonListCustody'] = '';
                 $Item['PersonListStudent'] = '';
+                $Item['GroupByTime'] = $tblUserAccount->getGroupByTime();
                 $Item['Option'] =
                     new Standard('', '/Setting/User/Account/Password/Generation', new Mail(),
                         array(
@@ -915,6 +918,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'UserName'          => 'Account',
                                         'Address'           => 'Adresse',
                                         'PersonListStudent' => 'Sorgeberechtigt für',
+                                        'GroupByTime'       => 'Erstellung am',
                                         'Option'            => ''
                                     ), array(
                                         'order'      => array(array(1, 'asc')),

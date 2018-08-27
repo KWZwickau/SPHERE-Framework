@@ -381,10 +381,18 @@ class ApiUserAccount extends Extension implements IApiInterface
                         , 12)
                 )),
                 new FormRow(array(
-                    new FormColumn(
-                        new DangerMessage('Bitte achten Sie darauf, den nächsten PDF-Download erst zu starten,
-                        wenn der vorherige abgeschlossen ist')
-                    ),
+                    new FormColumn(array(
+                        (count($SelectBoxContent) <= 1
+                            ? new DangerMessage('Bitte achten Sie darauf, den nächsten PDF-Download erst zu starten,
+                                                wenn der vorherige abgeschlossen ist')
+                            : new DangerMessage(
+                                new Container('Es sind '.count($SelectBoxContent).' Listen enthalten! Bitte wählen Sie
+                                               diese nacheinander in der Selectbox aus.').
+                                new Container('Bitte achten Sie darauf, den nächsten PDF-Download erst zu starten,
+                                               wenn der vorherige abgeschlossen ist')
+                            )
+                        )
+                    )),
                     new FormColumn(
                         new Layout(
                             new LayoutGroup(
