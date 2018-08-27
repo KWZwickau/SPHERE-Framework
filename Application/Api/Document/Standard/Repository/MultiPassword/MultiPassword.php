@@ -278,30 +278,17 @@ class MultiPassword extends AbstractDocument
                     , '80%')
             );
         }
-        if($this->FieldValue['Fax'] === '&nbsp;'){
-            $Slice->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Telefax:')
-                    ->styleTextSize('8pt')
-                    , '20%')
-                ->addElementColumn((new Element())
-                    ->setContent('>> Fax <<')
-                    ->styleTextColor($this::PLACE_HOLDER)
-                    ->styleTextSize('8pt')
-                    , '80%')
-            );
-        } else {
-            $Slice->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Telefax:')
-                    ->styleTextSize('8pt')
-                    , '20%')
-                ->addElementColumn((new Element())
-                    ->setContent($this->FieldValue['Fax'])
-                    ->styleTextSize('8pt')
-                    , '80%')
-            );
-        }
+
+        $Slice->addSection((new Section())
+            ->addElementColumn((new Element())
+                ->setContent('Telefax:')
+                ->styleTextSize('8pt')
+                , '20%')
+            ->addElementColumn((new Element())
+                ->setContent($this->FieldValue['Fax'])
+                ->styleTextSize('8pt')
+                , '80%')
+        );
         if($this->FieldValue['Mail'] === '&nbsp;'){
             $Slice->addSection((new Section())
                 ->addElementColumn((new Element())
@@ -326,36 +313,20 @@ class MultiPassword extends AbstractDocument
                     , '80%')
             );
         }
-        if($this->FieldValue['Web'] === '&nbsp;'){
-            $Slice->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Internet:')
-                    ->styleTextSize('8pt')
-                    ->stylePaddingTop('10px')
-                    , '20%')
-                ->addElementColumn((new Element())
-                    ->setContent('>> Internetadresse <<')
-                    ->styleTextColor($this::PLACE_HOLDER)
-                    ->styleTextSize('8pt')
-                    ->stylePaddingTop('10px')
-                    , '80%')
-            );
-        } else {
-            $Slice->addSection((new Section())
-                ->addElementColumn((new Element())
-                    ->setContent('Internet:')
-                    ->styleTextSize('8pt')
-                    , '20%')
-                ->addElementColumn((new Element())
-                    ->setContent($this->FieldValue['Web'])
-                    ->styleTextSize('8pt')
-                    ->stylePaddingTop('10px')
-                    , '80%')
-            );
-        }
+        $Slice->addSection((new Section())
+            ->addElementColumn((new Element())
+                ->setContent('Internet:')
+                ->styleTextSize('8pt')
+                , '20%')
+            ->addElementColumn((new Element())
+                ->setContent($this->FieldValue['Web'])
+                ->styleTextSize('8pt')
+                ->stylePaddingTop('10px')
+                , '80%')
+        );
         if($this->FieldValue['Date'] === '&nbsp;'){
             $Slice->addElement((new Element())
-                ->setContent('>> Ort, Datum <<')
+                ->setContent('>> Datum <<')
                 ->styleTextColor($this::PLACE_HOLDER)
                 ->stylePaddingTop('10px')
             );

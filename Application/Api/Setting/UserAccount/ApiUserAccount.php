@@ -431,15 +431,15 @@ class ApiUserAccount extends Extension implements IApiInterface
                 new FormRow(array(
                     new FormColumn(
                         new Panel('Name der Schule',array(
-                            new TextField('Data[CompanyName]', '', 'Name'),
+                            (new TextField('Data[CompanyName]', '', 'Name'))->setRequired(),
                             new TextField('Data[CompanyExtendedName]', '', 'Namenszusatz')
                         ),Panel::PANEL_TYPE_INFO)
                         , 6),
                     new FormColumn(
                         new Panel('Kontaktinformation der Schule',array(
                             new TextField('Data[CompanyDistrict]', '', 'Ortsteil'),
-                            new TextField('Data[CompanyStreet]', '', 'Straße'),
-                            new TextField('Data[CompanyCity]', '', 'PLZ/Ort'),
+                            (new TextField('Data[CompanyStreet]', '', 'Straße'))->setRequired(),
+                            (new TextField('Data[CompanyCity]', '', 'PLZ/Ort'))->setRequired(),
                         ),Panel::PANEL_TYPE_INFO)
                         , 6),
                 )),
@@ -451,19 +451,19 @@ class ApiUserAccount extends Extension implements IApiInterface
                 new FormRow(array(
                     new FormColumn(
                         new Panel('Kontaktinformation',array(
-                            new TextField('Data[Phone]', '', 'Telefon'),
+                            (new TextField('Data[Phone]', '', 'Telefon'))->setRequired(),
                             new TextField('Data[Fax]', '', 'Fax'),
                         ),Panel::PANEL_TYPE_INFO), 4),
                     new FormColumn(
                         new Panel('Internet Präsenz',array(
-                            new TextField('Data[Mail]', '', 'E-Mail'),
+                            (new TextField('Data[Mail]', '', 'E-Mail'))->setRequired(),
                             new TextField('Data[Web]', '', 'Internet')
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
                     new FormColumn(
                         new Panel('Ort, Datum', array(
                             new TextField('Data[Place]', '', 'Ort'),
-                            new TextField('Data[Date]', '', 'Datum')
+                            (new TextField('Data[Date]', '', 'Datum'))->setRequired()
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
                 )),
