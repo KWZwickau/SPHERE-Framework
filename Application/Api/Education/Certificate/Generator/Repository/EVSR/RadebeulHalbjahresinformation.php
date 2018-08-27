@@ -13,7 +13,6 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 /**
  * Class RadebeulJahreszeugnis
@@ -83,8 +82,18 @@ class RadebeulHalbjahresinformation extends Certificate
                                         {{ Content.P' . $personId . '.Company.Data.Name }}
                                     {% else %}
                                         Evangelisches Schulzentrum Radebeul
-                                    {% endif %}'
-                                .new Container('des'))
+                                    {% endif %}')
+                                ->styleMarginTop('-9px')
+                                ->styleTextSize('22px')
+                                ->styleTextColor($textColorRed)
+                                ->styleAlignCenter()
+                                ->styleTextBold()
+                                ->styleFontFamily($fontFamily)
+                            )
+                        )
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element())
+                                ->setContent('- Grundschule -')
                                 ->styleMarginTop('-9px')
                                 ->styleTextSize('22px')
                                 ->styleTextColor($textColorRed)

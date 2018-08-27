@@ -94,6 +94,17 @@ class RadebeulJahreszeugnis extends Certificate
                         )
                         ->addSection((new Section())
                             ->addElementColumn((new Element())
+                                ->setContent('- Grundschule -')
+                                ->styleMarginTop('-9px')
+                                ->styleTextSize('22px')
+                                ->styleTextColor($textColorRed)
+                                ->styleAlignCenter()
+                                ->styleTextBold()
+                                ->styleFontFamily($fontFamily)
+                            )
+                        )
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element())
                                 ->setContent(
                                     '(Staatlich anerkannte Ersatzschule in freier Trägerschaft)'
                                 )
