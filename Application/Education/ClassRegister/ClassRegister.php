@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\ClassRegister;
 
+use SPHERE\Application\Api\People\Meta\MedicalRecord\MedicalRecordReadOnly;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
@@ -18,6 +19,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Commodity;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\ResizeVertical;
@@ -351,20 +353,31 @@ class ClassRegister implements IApplicationInterface
                     } else {
                         $IntegrationButton = '';
                     }
+                    if(($tblMedicalRecord = $tblStudent->getTblStudentMedicalRecord())
+                    && ($tblMedicalRecord->getDisease()
+                        || $tblMedicalRecord->getMedication()
+                        || $tblMedicalRecord->getAttendingDoctor())){
+                        $MedicalRecord = (new Standard('', MedicalRecordReadOnly::getEndpoint(), new EyeOpen()))
+                            ->ajaxPipelineOnClick(MedicalRecordReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
+                    } else {
+                        $MedicalRecord = '';
+                    }
+
                     $studentTable[] = array(
-                        'Number'   => (count($studentTable) + 1),
-                        'Name'     => (($isTeacher || !$IsSortable)
-                            ? $tblPerson->getLastFirstName()
-                            : new PullClear(
-                                new PullLeft(new ResizeVertical().' '.$tblPerson->getLastFirstName())
-                            )),
-                        'Integration' => $IntegrationButton,
-                        'Gender'   => $Gender,
-                        'Address'  => $tblAddress ? $tblAddress->getGuiString() : '',
-                        'Birthday' => $birthday,
-                        'Course'   => $course,
-                        'Absence'  => $absence,
-                        'Option'   => new Standard(
+                        'Number'        => (count($studentTable) + 1),
+                        'Name'          => (($isTeacher || !$IsSortable)
+                                            ? $tblPerson->getLastFirstName()
+                                            : new PullClear(
+                                                new PullLeft(new ResizeVertical().' '.$tblPerson->getLastFirstName())
+                                            )),
+                        'Integration'   => $IntegrationButton,
+                        'MedicalRecord' => $MedicalRecord,
+                        'Gender'        => $Gender,
+                        'Address'       => $tblAddress ? $tblAddress->getGuiString() : '',
+                        'Birthday'      => $birthday,
+                        'Course'        => $course,
+                        'Absence'       => $absence,
+                        'Option'        => new Standard(
                             '', '/Education/ClassRegister/Absence', new Time(),
                             array(
                                 'DivisionId' => $tblDivision->getId(),
@@ -414,6 +427,11 @@ class ClassRegister implements IApplicationInterface
                     'BasicRoute' => $isTeacher ? '/Education/ClassRegister/Teacher' : '/Education/ClassRegister/All'
                 )
             );
+            $buttonList[] = new Standard('Download Klassenliste Krankenakte'
+                , '/Api/Reporting/Standard/Person/MedicalRecordClassList/Download', new Download(), array(
+                    'DivisionId' => $tblDivision->getId()
+                )
+            );
 
             $YearString = new Muted('-NA-');
             if (( $tblYear = $tblDivision->getServiceTblYear() )) {
@@ -421,6 +439,7 @@ class ClassRegister implements IApplicationInterface
             }
 
             $Stage->setContent(
+                // gleicher Reciever für Integration & Krankenakte (Identifier)
                 ApiSupportReadOnly::receiverOverViewModal()
                 .new Layout(array(
                     new LayoutGroup(array(
@@ -442,15 +461,16 @@ class ClassRegister implements IApplicationInterface
                             new LayoutColumn($buttonList),
                             new LayoutColumn(array(
                                 new TableData($studentTable, null, array(
-                                    'Number'   => '#',
-                                    'Name'     => 'Name',
-                                    'Integration'     => 'Integration',
-                                    'Gender'   => 'Geschlecht',
-                                    'Address'  => 'Addresse',
-                                    'Birthday' => 'Geburtsdatum',
-                                    'Course'   => 'Bildungsgang',
-                                    'Absence'  => 'Fehlzeiten (E, U)',
-                                    'Option'   => ''
+                                    'Number'        => '#',
+                                    'Name'          => 'Name',
+                                    'Integration'   => 'Integration',
+                                    'MedicalRecord' => 'Krankenakte',
+                                    'Gender'        => 'Geschlecht',
+                                    'Address'       => 'Addresse',
+                                    'Birthday'      => 'Geburtsdatum',
+                                    'Course'        => 'Bildungsgang',
+                                    'Absence'       => 'Fehlzeiten (E, U)',
+                                    'Option'        => ''
                                 ),
                                     ($isTeacher || !$IsSortable)
                                         ? array(
@@ -463,14 +483,13 @@ class ClassRegister implements IApplicationInterface
                                         : array(
                                         'ExtensionRowReorder' => array(
                                             'Enabled' => true,
-                                            'Url' => '/Api/Education/ClassRegister/Reorder',
-                                            'Data' => array(
-                                                'DivisionId' => $tblDivision->getId()
+                                            'Url'     => '/Api/Education/ClassRegister/Reorder',
+                                            'Data'    => array('DivisionId' => $tblDivision->getId()
                                             )
                                         ),
                                         'paging' => false,
                                         'columnDefs' => array(
-                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                            array('type'  => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
                                             array('width' => '1%', 'targets' => 2),
                                             array('width' => '60px', 'targets' => -1),
                                         ),

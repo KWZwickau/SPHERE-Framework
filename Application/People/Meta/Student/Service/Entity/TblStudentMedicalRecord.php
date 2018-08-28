@@ -5,8 +5,6 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -17,7 +15,8 @@ use SPHERE\System\Database\Fitting\Element;
 class TblStudentMedicalRecord extends Element
 {
 
-    const SERVICE_TBL_PERSON_ATTENDING_DOCTOR = 'serviceTblPersonAttendingDoctor';
+    const ATTR_ATTENDING_DOCTOR = 'AttendingDoctor';
+
     /**
      * @Column(type="text")
      */
@@ -29,7 +28,7 @@ class TblStudentMedicalRecord extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblPersonAttendingDoctor;
+    protected $AttendingDoctor;
     /**
      * @Column(type="bigint")
      */
@@ -76,25 +75,21 @@ class TblStudentMedicalRecord extends Element
     }
 
     /**
-     * @return bool|TblPerson
+     * @return string
      */
-    public function getServiceTblPersonAttendingDoctor()
+    public function getAttendingDoctor()
     {
 
-        if (null === $this->serviceTblPersonAttendingDoctor) {
-            return false;
-        } else {
-            return Person::useService()->getPersonById($this->serviceTblPersonAttendingDoctor);
-        }
+        return $this->AttendingDoctor;
     }
 
     /**
-     * @param TblPerson|null $tblPerson
+     * @param string $AttendingDoctor
      */
-    public function setServiceTblPersonAttendingDoctor(TblPerson $tblPerson = null)
+    public function setAttendingDoctor($AttendingDoctor = '')
     {
 
-        $this->serviceTblPersonAttendingDoctor = ( null === $tblPerson ? null : $tblPerson->getId() );
+        $this->AttendingDoctor = $AttendingDoctor;
     }
 
     /**

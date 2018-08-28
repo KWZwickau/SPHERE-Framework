@@ -180,8 +180,11 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblStudentMedicalRecord', 'Medication')) {
             $Table->addColumn('Medication', 'text');
         }
-        if (!$this->getConnection()->hasColumn('tblStudentMedicalRecord', 'serviceTblPersonAttendingDoctor')) {
-            $Table->addColumn('serviceTblPersonAttendingDoctor', 'bigint', array('notnull' => false));
+        if ($this->getConnection()->hasColumn('tblStudentMedicalRecord', 'serviceTblPersonAttendingDoctor')) {
+            $Table->dropColumn('serviceTblPersonAttendingDoctor');
+        }
+        if (!$this->getConnection()->hasColumn('tblStudentMedicalRecord', 'AttendingDoctor')) {
+            $Table->addColumn('AttendingDoctor', 'string');
         }
         if (!$this->getConnection()->hasColumn('tblStudentMedicalRecord', 'InsuranceState')) {
             $Table->addColumn('InsuranceState', 'bigint');
