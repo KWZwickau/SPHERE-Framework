@@ -280,8 +280,8 @@ class ViewPersonContact extends AbstractView
                             if ($tblAddress) {
                                 $tblCity = $tblAddress->getTblCity();
                                 if ($tblCity) {
-                                    if (!isset($Data[$tblCity->getName()])) {
-                                        $Data[$tblCity->getName()] = $tblCity->getName();
+                                    if (!isset($Data[$tblCity->getId()])) {
+                                        $Data[$tblCity->getId()] = $tblCity->getName();
                                     }
                                 }
                             }
