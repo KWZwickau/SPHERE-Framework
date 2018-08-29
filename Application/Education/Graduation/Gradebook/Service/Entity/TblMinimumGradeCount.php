@@ -33,6 +33,7 @@ class TblMinimumGradeCount extends Element
     const ATTR_SERVICE_TBL_LEVEL = 'serviceTblLevel';
     const ATTR_PERIOD = 'Period';
     const ATTR_HIGHLIGHTED = 'Highlighted';
+    const ATTR_COURSE = 'Course';
 
     /**
      * @Column(type="integer")
@@ -63,6 +64,11 @@ class TblMinimumGradeCount extends Element
      * @Column(type="integer")
      */
     protected $Highlighted;
+
+    /**
+     * @Column(type="integer")
+     */
+    protected $Course;
 
     /**
      * @return bool|TblGradeType
@@ -231,6 +237,22 @@ class TblMinimumGradeCount extends Element
     public function setHighlighted($Highlighted)
     {
         $this->Highlighted = $Highlighted;
+    }
+
+    /**
+     * @return integer
+     */
+    public function getCourse()
+    {
+        return $this->Course;
+    }
+
+    /**
+     * @param integer $Course
+     */
+    public function setCourse($Course)
+    {
+        $this->Course = $Course;
     }
 
     /**

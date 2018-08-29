@@ -28,6 +28,7 @@ use SPHERE\Common\Frontend\Text\Repository\Success as TextSuccess;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -100,28 +101,61 @@ abstract class Service extends AbstractService
             return $Stage;
         }
 
+        Debugger::screenDump($MinimumGradeCount);
+
         $Error = false;
         if (isset($MinimumGradeCount['Count']) && empty($MinimumGradeCount['Count'])) {
             $Stage->setError('MinimumGradeCount[Count]', 'Bitte geben Sie eine Anzahl an');
             $Error = true;
         }
-        if (!($tblLevel = Division::useService()->getLevelById($MinimumGradeCount['Level']))) {
-            $Stage->setError('MinimumGradeCount[Level]', 'Bitte wählen Sie eine Klassenstufe aus');
-            $Error = true;
-        }
+        // todo message for level required
+//        if (!($tblLevel = Division::useService()->getLevelById($MinimumGradeCount['Level']))) {
+//            $Stage->setError('MinimumGradeCount[Level]', 'Bitte wählen Sie eine Klassenstufe aus');
+//            $Error = true;
+//        }
 
         if (!$Error) {
-            $tblSubject = Subject::useService()->getSubjectById($MinimumGradeCount['Subject']);
-            $tblGradeType = Gradebook::useService()->getGradeTypeById($MinimumGradeCount['GradeType']);
+            if ($MinimumGradeCount['GradeType'] < 0) {
+                $highlighted = -$MinimumGradeCount['GradeType'];
+                $tblGradeType = false;
+            } else {
+                $highlighted = SelectBoxItem::HIGHLIGHTED_ALL;
+                $tblGradeType = Gradebook::useService()->getGradeTypeById($MinimumGradeCount['GradeType']);
+            }
 
-            (new Data($this->getBinding()))->createMinimumGradeCount(
-                $MinimumGradeCount['Count'],
-                $tblLevel,
-                $tblSubject ? $tblSubject : null,
-                $tblGradeType ? $tblGradeType : null,
-                isset($MinimumGradeCount['Period']) ? $MinimumGradeCount['Period'] : SelectBoxItem::PERIOD_FULL_YEAR,
-                isset($MinimumGradeCount['Highlighted']) ? $MinimumGradeCount['Highlighted'] : SelectBoxItem::HIGHLIGHTED_ALL
-            );
+            // todo delete all by
+            if (isset($MinimumGradeCount['Levels'])) {
+                // todo bulksave
+                foreach ($MinimumGradeCount['Levels'] as $levelId => $value) {
+                    if (($tblLevel = Division::useService()->getLevelById($levelId))) {
+                        if (isset($MinimumGradeCount['Subjects'])) {
+                            foreach ($MinimumGradeCount['Subjects'] as $subjectId => $subValue) {
+                                if (($tblSubject = Subject::useService()->getSubjectById($subjectId))) {
+                                    (new Data($this->getBinding()))->createMinimumGradeCount(
+                                        $MinimumGradeCount['Count'],
+                                        $tblLevel,
+                                        $tblSubject,
+                                        $tblGradeType ? $tblGradeType : null,
+                                        $MinimumGradeCount['Period'],
+                                        $highlighted,
+                                        $MinimumGradeCount['Course']
+                                    );
+                                }
+                            }
+                        } else {
+                            (new Data($this->getBinding()))->createMinimumGradeCount(
+                                $MinimumGradeCount['Count'],
+                                $tblLevel,
+                                null,
+                                $tblGradeType ? $tblGradeType : null,
+                                $MinimumGradeCount['Period'],
+                                $highlighted,
+                                $MinimumGradeCount['Course']
+                            );
+                        }
+                    }
+                }
+            }
 
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Mindestnotenanzahl ist erfasst worden')
             . new Redirect('/Education/Graduation/Gradebook/MinimumGradeCount', Redirect::TIMEOUT_SUCCESS);

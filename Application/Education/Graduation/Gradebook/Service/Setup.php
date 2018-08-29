@@ -423,6 +423,7 @@ class Setup extends AbstractSetup
         }
         $this->createColumn($Table, 'Period', self::FIELD_TYPE_INTEGER, false, SelectBoxItem::PERIOD_FULL_YEAR);
         $this->createColumn($Table, 'Highlighted', self::FIELD_TYPE_INTEGER, false, 1);
+        $this->createColumn($Table, 'Course', self::FIELD_TYPE_INTEGER, false, SelectBoxItem::COURSE_NONE);
 
         $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
 

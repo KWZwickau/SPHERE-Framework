@@ -126,6 +126,7 @@ abstract class Data extends AbstractData
      * @param TblGradeType|null $tblGradeType
      * @param integer $Period
      * @param integer $Highlighted
+     * @param $Course
      *
      * @return TblMinimumGradeCount
      */
@@ -135,7 +136,8 @@ abstract class Data extends AbstractData
         TblSubject $tblSubject = null,
         TblGradeType $tblGradeType = null,
         $Period,
-        $Highlighted
+        $Highlighted,
+        $Course
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -147,6 +149,7 @@ abstract class Data extends AbstractData
                 TblMinimumGradeCount::ATTR_TBL_GRADE_TYPE => $tblGradeType ? $tblGradeType->getId() : null,
                 TblMinimumGradeCount::ATTR_PERIOD => $Period,
                 TblMinimumGradeCount::ATTR_HIGHLIGHTED => $Highlighted,
+                TblMinimumGradeCount::ATTR_COURSE => $Course
             ));
 
         if (null === $Entity) {
@@ -157,6 +160,7 @@ abstract class Data extends AbstractData
             $Entity->setTblGradeType($tblGradeType ? $tblGradeType : null);
             $Entity->setPeriod($Period);
             $Entity->setHighlighted($Highlighted);
+            $Entity->setCourse($Course);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
