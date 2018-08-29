@@ -2,21 +2,26 @@
 
 namespace SPHERE\Application\Platform\System\DataMaintenance;
 
+use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as AccountAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblUser;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\User\Account\Account;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Success as SuccessIcon;
+use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -68,6 +73,16 @@ class DataMaintenance
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Integration',
                 __CLASS__.'::frontendTransferOltIntegration'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Restore/Person',
+                __CLASS__.'::frontendPersonRestore'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Restore\Person\Selected',
+                __CLASS__ . '::frontendPersonRestoreSelected'
             )
         );
     }
@@ -131,11 +146,23 @@ class DataMaintenance
             ));
         }
 
+        // SoftRemoved Person
+        $CountSoftRemovePerson = 0;
+        if (($tblPersonList = Person::useService()->getPersonAllBySoftRemove())) {
+            $CountSoftRemovePerson = count($tblPersonList);
+        }
 
 
-        $Stage->setContent(new Layout(
+        $Stage->setContent( new Layout(
             new LayoutGroup(
                 new LayoutRow(array(
+                    new LayoutColumn(array(
+                        new TitleLayout('Gelöschte Personen'),
+                        ($CountSoftRemovePerson >= 1
+                            ? new Standard('Personenübersicht ('.$CountSoftRemovePerson.')', __NAMESPACE__.'/Restore/Person')
+                            : new Success('Keine Personen gelöscht')
+                        )
+                    )),
                     new LayoutColumn(array(
                         new TitleLayout('Benutzer-Accounts löschen'),
                         new Standard('Alle Schüler '.new Label($StudentAccountCount, Label::LABEL_TYPE_INFO), __NAMESPACE__.'/OverView', new EyeOpen(),
@@ -149,6 +176,126 @@ class DataMaintenance
         ));
 
         return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public static function frontendPersonRestore()
+    {
+        $Stage = new Stage('Personen Wiederherstellen', 'Übersicht');
+        $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
+
+        $dataList = array();
+        if (($tblPersonList = Person::useService()->getPersonAllBySoftRemove())) {
+            foreach ($tblPersonList as $tblPerson) {
+                if (($date = $tblPerson->getEntityRemove())) {
+                    $tblAddress = Address::useService()->getAddressByPerson($tblPerson, true);
+                    $dataList[] = array(
+                        'EntityRemove' => $date->format('d.m.Y'),
+                        'Time' => $date->format('H:i:s'),
+                        'Name' => $tblPerson->getLastFirstName(),
+                        'Address' => $tblAddress ? $tblAddress->getGuiString() : '',
+                        'Option' => new Standard(
+                            '',
+                            '\Platform\System\DataMaintenance\Restore\Person\Selected',
+                            new EyeOpen(),
+                            array(
+                                'PersonId' => $tblPerson->getId()
+                            ),
+                            'Anzeigen'
+                        )
+                    );
+                }
+            }
+        }
+
+        $Stage->setContent(
+            empty($dataList)
+                ? new Warning('Es sind keine soft gelöschten Person vorhanden.', new Exclamation())
+                : new TableData(
+                $dataList,
+                null,
+                array(
+                    'EntityRemove' => 'Gelöscht am',
+                    'Time' => 'Uhrzeit',
+                    'Name' => 'Name',
+                    'Address' => 'Adresse',
+                    'Option' => ''
+                ),
+                array(
+                    'order' => array(
+                        array('0', 'desc'),
+                        array('1', 'desc'),
+                    ),
+                    'columnDefs' => array(
+                        array('type' => 'de_date', 'targets' => 0),
+                        array('type' => 'de_time', 'targets' => 1),
+                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                        array('width' => '1%', 'targets' => -1),
+                    ),
+                )
+            )
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param null $PersonId
+     * @param bool $IsRestore
+     *
+     * @return Stage|string
+     */
+    public function frontendPersonRestoreSelected($PersonId = null, $IsRestore = false)
+    {
+
+        if (($tblPerson = Person::useService()->getPersonById($PersonId, true))) {
+            $Stage = new Stage('Person Wiederherstellen', 'Anzeigen');
+            $Stage->addButton(new Standard('Zurück', __NAMESPACE__.'/Restore/Person', new ChevronLeft()));
+
+            if (!$IsRestore) {
+                $Stage->addButton(
+                    new Standard('Alle Daten wiederherstellen', __NAMESPACE__.'/Restore/Person/Selected', new Upload(),
+                        array(
+                            'PersonId' => $PersonId,
+                            'IsRestore' => true
+                        )
+                    )
+                );
+            }
+
+            if ($IsRestore) {
+                $columns =  array(
+                    'Number' => '#',
+                    'Type' => 'Typ',
+                    'Value' => 'Wert'
+                );
+            } else {
+                $columns =  array(
+                    'Number' => '#',
+                    'Type' => 'Typ',
+                    'Value' => 'Wert',
+                    'EntityRemove' => 'Gelöscht am'
+                );
+            }
+
+            $Stage->setContent(
+                ($IsRestore ? new Success('Die Daten wurden wieder hergestellt.', new SuccessIcon()) : '')
+                . new TableData(Person::useService()->getRestoreDetailList($tblPerson, $IsRestore), null, $columns,
+                    array(
+                        "paging" => false, // Deaktivieren Blättern
+                        "iDisplayLength" => -1,    // Alle Einträge zeigen
+                    )
+                )
+            );
+
+            return $Stage;
+        } else {
+            return new Stage('Person Wiederherstellen', 'Anzeigen')
+                . new Danger('Die Person wurde nicht gefunden', new Exclamation())
+                . new Redirect(__NAMESPACE__.'/Restore/Person', Redirect::TIMEOUT_ERROR);
+        }
     }
 
     /**
