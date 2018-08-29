@@ -10,7 +10,6 @@ namespace SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount;
 
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblMinimumGradeCount;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -73,28 +72,85 @@ class Frontend extends Extension implements IFrontendInterface
             'Optional kann die Mindestnotenanzahl auf ein Fach und/oder ein Zensuren-Typ beschränkt werden.'
         );
 
-        $tblMinimumGradeCountAll = Gradebook::useService()->getMinimumGradeCountAll();
-
         $TableContent = array();
-        if ($tblMinimumGradeCountAll) {
-            array_walk($tblMinimumGradeCountAll,
-                function (TblMinimumGradeCount $tblMinimumGradeCount) use (&$TableContent) {
-                    array_push($TableContent, array(
-                        'SchoolType' => $tblMinimumGradeCount->getSchoolTypeDisplayName(),
-                        'Level' => $tblMinimumGradeCount->getLevelDisplayName(),
-                        'Subject' => $tblMinimumGradeCount->getSubjectDisplayName(),
-                        'GradeType' => $tblMinimumGradeCount->getGradeTypeDisplayName(),
-                        'Period' => $tblMinimumGradeCount->getPeriodDisplayName(),
-                        'Count' => $tblMinimumGradeCount->getCount(),
-                        'Option' => (new Standard('', '/Education/Graduation/Gradebook/MinimumGradeCount/Edit',
-                                new Edit(), array(
-                                    'Id' => $tblMinimumGradeCount->getId()
-                                ), 'Bearbeiten'))
-                            . (new Standard('', '/Education/Graduation/Gradebook/MinimumGradeCount/Destroy',
-                                new Remove(),
-                                array('Id' => $tblMinimumGradeCount->getId()), 'Löschen'))
-                    ));
-                });
+        $list = array();
+        if (($tblMinimumGradeCountAll = Gradebook::useService()->getMinimumGradeCountAll())) {
+            foreach ($tblMinimumGradeCountAll as $tblMinimumGradeCount) {
+                $tblGradeType = $tblMinimumGradeCount->getTblGradeType();
+                $tblSubject = $tblMinimumGradeCount->getServiceTblSubject();
+                if (($tblLevel = $tblMinimumGradeCount->getServiceTblLevel())
+                    && ($tblType = $tblLevel->getServiceTblType())
+                ) {
+                    $typeName = $tblType->getName();
+                    if ($typeName == 'Grundschule') {
+                        $typeName = 'GS';
+                    } elseif ($typeName == 'Mittelschule / Oberschule') {
+                        $typeName = 'OS';
+                    } elseif ($typeName == 'Gymnasium') {
+                        $typeName = 'GYM';
+                    }
+                    $levelName = $tblLevel->getName() . ' (' . $typeName . ')';
+
+                    if (isset($list['H' . $tblMinimumGradeCount->getHighlighted()
+                        . 'G' . ($tblGradeType ? $tblGradeType->getId() : 0)
+                        . 'P' . $tblMinimumGradeCount->getPeriod()
+                        . 'C' . $tblMinimumGradeCount->getCourse()
+                        . 'N' . $tblMinimumGradeCount->getCount()])
+                    ) {
+                        $list['H' . $tblMinimumGradeCount->getHighlighted()
+                        . 'G' . ($tblGradeType ? $tblGradeType->getId() : 0)
+                        . 'P' . $tblMinimumGradeCount->getPeriod()
+                        . 'C' . $tblMinimumGradeCount->getCourse()
+                        . 'N' . $tblMinimumGradeCount->getCount()]
+                        ['Levels'][$tblLevel->getId()] = $levelName;
+
+                        if ($tblSubject) {
+                            $list['H' . $tblMinimumGradeCount->getHighlighted()
+                            . 'G' . ($tblGradeType ? $tblGradeType->getId() : 0)
+                            . 'P' . $tblMinimumGradeCount->getPeriod()
+                            . 'C' . $tblMinimumGradeCount->getCourse()
+                            . 'N' . $tblMinimumGradeCount->getCount()]
+                            ['Subjects'][$tblSubject->getId()] = $tblSubject->getAcronym();
+                        }
+
+                    } else {
+                        $subjects = $tblSubject ? array($tblSubject->getId() => $tblSubject->getAcronym()) : array();
+                        $list['H' . $tblMinimumGradeCount->getHighlighted()
+                        . 'G' . ($tblGradeType ? $tblGradeType->getId() : 0)
+                        . 'P' . $tblMinimumGradeCount->getPeriod()
+                        . 'C' . $tblMinimumGradeCount->getCourse()
+                        . 'N' . $tblMinimumGradeCount->getCount()] = array(
+                            'Id' => $tblMinimumGradeCount->getId(),
+                            'GradeType' => $tblMinimumGradeCount->getGradeTypeDisplayName(),
+                            'Period' => $tblMinimumGradeCount->getPeriodDisplayName(),
+                            'Course' => $tblMinimumGradeCount->getCourse(),
+                            'Count' => $tblMinimumGradeCount->getCount(),
+                            'Levels' => array($tblLevel->getId() => $levelName),
+                            'Subjects' => $subjects
+                        );
+                    }
+                }
+            }
+        }
+
+        foreach ($list as $item) {
+            sort($item['Levels']);
+            sort($item['Subjects']);
+            $TableContent[] = array(
+                'GradeType' => $item['GradeType'],
+                'Period' => $item['Period'],
+                'Course' => $item['Course'],
+                'Count' => $item['Count'],
+                'Levels' => implode(', ', $item['Levels']),
+                'Subjects' => implode(', ', $item['Subjects']),
+                'Option' => (new Standard('', '/Education/Graduation/Gradebook/MinimumGradeCount/Edit',
+                        new Edit(), array(
+                            'Id' => $tblMinimumGradeCount->getId()
+                        ), 'Bearbeiten'))
+                    . (new Standard('', '/Education/Graduation/Gradebook/MinimumGradeCount/Destroy',
+                        new Remove(),
+                        array('Id' => $tblMinimumGradeCount->getId()), 'Löschen'))
+            );
         }
 
         $Form = $this->formCreateMinimumGradeCount()
@@ -107,12 +163,12 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(array(
                             new TableData($TableContent, null,
                                 array(
-                                    'SchoolType' => 'Schulart',
-                                    'Level' => 'Klassenstufe',
-                                    'Subject' => 'Fach',
                                     'GradeType' => 'Zensuren-Typ',
                                     'Period' => 'Zeitraum',
+                                    'Course' => 'SEKII - Kurse',
                                     'Count' => 'Anzahl',
+                                    'Levels' => 'Klassenstufen',
+                                    'Subjects' => 'Fächer',
                                     'Option' => ''
                                 ),
                                 array(

@@ -34,6 +34,7 @@ class TblMinimumGradeCount extends Element
     const ATTR_PERIOD = 'Period';
     const ATTR_HIGHLIGHTED = 'Highlighted';
     const ATTR_COURSE = 'Course';
+    const ATTR_COUNT = 'Count';
 
     /**
      * @Column(type="integer")

@@ -216,4 +216,30 @@ abstract class Data extends AbstractData
         }
         return false;
     }
+
+    /**
+     * @param $highlighted
+     * @param TblGradeType|null $tblGradeType
+     * @param $period
+     * @param $course
+     * @param $count
+     *
+     * @return false|TblMinimumGradeCount[]
+     */
+    public function getMinimumGradeCountAllBy(
+        $highlighted,
+        TblGradeType $tblGradeType = null,
+        $period,
+        $course,
+        $count
+    ){
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblMinimumGradeCount', array(
+            TblMinimumGradeCount::ATTR_HIGHLIGHTED => $highlighted,
+            TblMinimumGradeCount::ATTR_TBL_GRADE_TYPE => $tblGradeType,
+            TblMinimumGradeCount::ATTR_PERIOD => $period,
+            TblMinimumGradeCount::ATTR_COURSE => $course,
+            TblMinimumGradeCount::ATTR_COUNT => $count
+        ));
+    }
 }

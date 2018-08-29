@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Data;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblMinimumGradeCount;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
@@ -282,5 +283,25 @@ abstract class Service extends AbstractService
         } else {
             return new TextSuccess(new Ok() . ' ' . $count);
         }
+    }
+
+    /**
+     * @param $highlighted
+     * @param TblGradeType|null $tblGradeType
+     * @param $period
+     * @param $course
+     * @param $count
+     *
+     * @return false|TblMinimumGradeCount[]
+     */
+    public function getMinimumGradeCountAllBy(
+        $highlighted,
+        TblGradeType $tblGradeType = null,
+        $period,
+        $course,
+        $count
+    ){
+
+        return (new Data($this->getBinding()))->getMinimumGradeCountAllBy($highlighted, $tblGradeType, $period, $course, $count);
     }
 }
