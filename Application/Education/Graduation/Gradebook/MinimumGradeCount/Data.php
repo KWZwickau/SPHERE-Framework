@@ -218,6 +218,33 @@ abstract class Data extends AbstractData
     }
 
     /**
+     * @param $tblMinimumGradeCountList
+     *
+     * @return bool
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     */
+    public function destroyBulkMinimumGradeCountList($tblMinimumGradeCountList)
+    {
+        $manager = $this->getEntityManager();
+        /** @var TblMinimumGradeCount $tblMinimumGradeCount */
+        foreach ($tblMinimumGradeCountList as $tblMinimumGradeCount) {
+            $Entity = $manager->getEntityById('TblMinimumGradeCount', $tblMinimumGradeCount->getId());
+            if (null !== $Entity) {
+                /** @var TblMinimumGradeCount $Entity */
+                $manager->bulkKillEntity($Entity);
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+            }
+        }
+
+        $manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
      * @param $highlighted
      * @param TblGradeType|null $tblGradeType
      * @param $period

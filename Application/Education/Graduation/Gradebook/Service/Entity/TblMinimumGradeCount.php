@@ -271,4 +271,20 @@ class TblMinimumGradeCount extends Element
 
         return $period;
     }
+
+    /**
+     * @return string
+     */
+    public function getCourseDisplayName()
+    {
+
+        switch ($this->getCourse())  {
+            case SelectBoxItem::COURSE_NONE: $period = ''; break;
+            case SelectBoxItem::COURSE_ADVANCED: $period = 'Leistungskurs'; break;
+            case SelectBoxItem::COURSE_BASIC: $period = 'Grundkurs'; break;
+            default: $period = '';
+        }
+
+        return $period;
+    }
 }
