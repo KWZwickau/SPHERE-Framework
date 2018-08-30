@@ -180,9 +180,6 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblStudentMedicalRecord', 'Medication')) {
             $Table->addColumn('Medication', 'text');
         }
-        if ($this->getConnection()->hasColumn('tblStudentMedicalRecord', 'serviceTblPersonAttendingDoctor')) {
-            $Table->dropColumn('serviceTblPersonAttendingDoctor');
-        }
         if (!$this->getConnection()->hasColumn('tblStudentMedicalRecord', 'AttendingDoctor')) {
             $Table->addColumn('AttendingDoctor', 'string');
         }
@@ -192,6 +189,12 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblStudentMedicalRecord', 'Insurance')) {
             $Table->addColumn('Insurance', 'string');
         }
+
+        // entfernen alter Rückstände
+        if ($this->getConnection()->hasColumn('tblStudentMedicalRecord', 'serviceTblPersonAttendingDoctor')) {
+            $Table->dropColumn('serviceTblPersonAttendingDoctor');
+        }
+
         return $Table;
     }
 

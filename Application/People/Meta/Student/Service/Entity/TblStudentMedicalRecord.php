@@ -26,7 +26,7 @@ class TblStudentMedicalRecord extends Element
      */
     protected $Medication;
     /**
-     * @Column(type="bigint")
+     * @Column(type="string")
      */
     protected $AttendingDoctor;
     /**
