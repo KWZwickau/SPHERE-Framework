@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Api\Transfer;
 
+use SPHERE\Application\Api\Transfer\Indiware\AppointmentGrade\ApiAppointmentGrade;
 use SPHERE\Application\Api\Transfer\Indiware\AppointmentGrade\AppointmentGrade;
 use SPHERE\Application\IApplicationInterface;
 
@@ -15,6 +16,7 @@ class Transfer implements IApplicationInterface
     public static function registerApplication()
     {
 
+        ApiAppointmentGrade::registerApi();
         AppointmentGrade::registerModule();
     }
 }
