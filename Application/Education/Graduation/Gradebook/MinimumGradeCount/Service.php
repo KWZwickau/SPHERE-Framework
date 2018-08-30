@@ -14,16 +14,19 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Data;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblMinimumGradeCount;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
-use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Success as TextSuccess;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
@@ -109,11 +112,11 @@ abstract class Service extends AbstractService
             $form->setError('MinimumGradeCount[Count]', 'Bitte geben Sie eine Anzahl an');
             $Error = true;
         }
-        // todo message for level required
-//        if (!($tblLevel = Division::useService()->getLevelById($MinimumGradeCount['Level']))) {
-//            $Stage->setError('MinimumGradeCount[Level]', 'Bitte wählen Sie eine Klassenstufe aus');
-//            $Error = true;
-//        }
+        // message for level required
+        if (!isset($MinimumGradeCount['Levels'])) {
+            $form->prependGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie mindestens eine Klassenstufe aus.', new Exclamation())))));
+            $Error = true;
+        }
 
         if (!$Error) {
             if ($MinimumGradeCount['GradeType'] < 0) {
@@ -147,38 +150,11 @@ abstract class Service extends AbstractService
                 (new Data($this->getBinding()))->destroyBulkMinimumGradeCountList($tblMinimumGradeCountList);
             }
 
-            if (isset($MinimumGradeCount['Levels'])) {
-                // todo bulksave
-                foreach ($MinimumGradeCount['Levels'] as $levelId => $value) {
-                    if (($tblLevel = Division::useService()->getLevelById($levelId))) {
-                        if (isset($MinimumGradeCount['Subjects'])) {
-                            foreach ($MinimumGradeCount['Subjects'] as $subjectId => $subValue) {
-                                if (($tblSubject = Subject::useService()->getSubjectById($subjectId))) {
-                                    (new Data($this->getBinding()))->createMinimumGradeCount(
-                                        $MinimumGradeCount['Count'],
-                                        $tblLevel,
-                                        $tblSubject,
-                                        $tblGradeType ? $tblGradeType : null,
-                                        $MinimumGradeCount['Period'],
-                                        $highlighted,
-                                        $MinimumGradeCount['Course']
-                                    );
-                                }
-                            }
-                        } else {
-                            (new Data($this->getBinding()))->createMinimumGradeCount(
-                                $MinimumGradeCount['Count'],
-                                $tblLevel,
-                                null,
-                                $tblGradeType ? $tblGradeType : null,
-                                $MinimumGradeCount['Period'],
-                                $highlighted,
-                                $MinimumGradeCount['Course']
-                            );
-                        }
-                    }
-                }
-            }
+            (new Data($this->getBinding()))->createBulkMinimumGradeCountList(
+                $MinimumGradeCount,
+                $highlighted,
+                $tblGradeType ? $tblGradeType : null
+            );
 
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Mindestnotenanzahl ist erfasst/geändert worden')
             . new Redirect('/Education/Graduation/Gradebook/MinimumGradeCount', Redirect::TIMEOUT_SUCCESS);

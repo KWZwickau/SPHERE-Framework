@@ -271,7 +271,7 @@ class Frontend extends Extension implements IFrontendInterface
         return new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
-                    new SelectBox('MinimumGradeCount[GradeType]', 'Zensuren-Typen', array('{{ Code }} - {{ Name }}' => $tblGradeTypeList)), 3
+                    new SelectBox('MinimumGradeCount[GradeType]', 'Zensuren-Typ', array('{{ Code }} - {{ Name }}' => $tblGradeTypeList)), 3
                 ),
                 new FormColumn(
                     new SelectBox('MinimumGradeCount[Period]', 'Zeitraum', array('{{ Name }}' => $periodList)), 3
