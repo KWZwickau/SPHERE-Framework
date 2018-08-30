@@ -167,7 +167,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 array(
                                     'GradeType' => 'Zensuren-Typ',
                                     'Period' => 'Zeitraum',
-                                    'Course' => 'SEKII - Kurse',
+                                    'Course' => 'SEKII - Kurs',
                                     'Count' => 'Anzahl',
                                     'Levels' => 'Klassenstufen',
                                     'Subjects' => 'Fächer',
@@ -277,7 +277,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new SelectBox('MinimumGradeCount[Period]', 'Zeitraum', array('{{ Name }}' => $periodList)), 3
                 ),
                 new FormColumn(
-                    new SelectBox('MinimumGradeCount[Course]', 'SEKII - Kurse', array('{{ Name }}' => $courseList)), 3
+                    new SelectBox('MinimumGradeCount[Course]', 'SEKII - Kurs', array('{{ Name }}' => $courseList)), 3
                 ),
                 new FormColumn(
                     (new NumberField('MinimumGradeCount[Count]', '', 'Anzahl ', new Quantity()))->setRequired(), 3
@@ -441,7 +441,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 array(
                                     'Zensuren-Typ: ' . $tblMinimumGradeCount->getGradeTypeDisplayName(),
                                     'Zeitraum: ' . $tblMinimumGradeCount->getPeriodDisplayName(),
-                                    'SEKII - Kurse: ' . $tblMinimumGradeCount->getCourseDisplayName(),
+                                    'SEKII - Kurs: ' . $tblMinimumGradeCount->getCourseDisplayName(),
                                     'Anzahl: ' . $tblMinimumGradeCount->getCount(),
                                     'Klassenstufen: ' . implode(', ', $levels),
                                     'Fächer: ' . implode(', ', $subjects)

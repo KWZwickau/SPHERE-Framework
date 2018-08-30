@@ -78,14 +78,42 @@ abstract class Service extends AbstractService
 
     /**
      * @param TblDivisionSubject $tblDivisionSubject
+     * @param boolean isSekII
      *
      * @return false|TblMinimumGradeCount[]
      */
     public function getMinimumGradeCountAllByDivisionSubject(
-        TblDivisionSubject $tblDivisionSubject
+        TblDivisionSubject $tblDivisionSubject,
+        $isSekII
     ) {
 
-        return (new Data($this->getBinding()))->getMinimumGradeCountAllByDivisionSubject($tblDivisionSubject);
+        if (($tblMinimumGradeCountList = (new Data($this->getBinding()))->getMinimumGradeCountAllByDivisionSubject($tblDivisionSubject))) {
+            if ($isSekII
+                && ($tblGroup = $tblDivisionSubject->getTblSubjectGroup())
+            ) {
+                $list = array();
+                foreach ($tblMinimumGradeCountList as $tblMinimumGradeCount) {
+
+                    if ($tblMinimumGradeCount->getCourse() == SelectBoxItem::COURSE_ADVANCED) {
+                        if (!$tblGroup->isAdvancedCourse()) {
+                            continue;
+                        }
+                    } elseif ($tblMinimumGradeCount->getCourse() == SelectBoxItem::COURSE_BASIC) {
+                        if ($tblGroup->isAdvancedCourse()) {
+                            continue;
+                        }
+                    }
+
+                    $list[] = $tblMinimumGradeCount;
+                }
+
+                return empty($list) ? false : $list;
+            } else {
+                return $tblMinimumGradeCountList;
+            }
+        }
+
+        return false;
     }
 
     /**

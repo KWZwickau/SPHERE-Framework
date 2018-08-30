@@ -212,9 +212,6 @@ abstract class Data extends AbstractData
 
                         $Manager->bulkSaveEntity($Entity);
                         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
-
-                        $Manager->bulkSaveEntity($Entity);
-                        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
                     }
                 }
             }
