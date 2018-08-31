@@ -55,7 +55,7 @@ class StudentService
      */
     public function replaceStartDateByPersonIdList(
         $PersonIdArray = array(),
-        $Date = ''
+        $Date = null
     ) {
 
         $BulkSave = array();

@@ -71,10 +71,13 @@ class MassReplaceStudent extends Extension
         $Id = null
     ) {
 
+        if($CloneField != ''){
+            $Date = new \DateTime($CloneField);
+        } else {
+            $Date = null;
+        }
 
-        $Date = $CloneField;
-
-        if (!empty($PersonIdArray) && ($Date = new \DateTime($Date))) {
+        if (!empty($PersonIdArray)) {
             $this->useStudentService()->replaceStartDateByPersonIdList($PersonIdArray, $Date);
         }
 

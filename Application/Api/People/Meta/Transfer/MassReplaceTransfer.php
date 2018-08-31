@@ -253,7 +253,7 @@ class MassReplaceTransfer extends Extension
 
         // change miss matched to null
         if (!$tblStudentSchoolEnrollmentType && null !== $tblStudentSchoolEnrollmentType) {
-            $tblCourse = null;
+            $tblStudentSchoolEnrollmentType = null;
         }
 
         $this->useStudentService()->createTransferEnrollmentType($PersonIdArray, $tblStudentTransferType->getIdentifier(),
