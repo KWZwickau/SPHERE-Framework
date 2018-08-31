@@ -1762,10 +1762,16 @@ class Frontend extends Extension implements IFrontendInterface
                                             'Id'                => $tblDivision->getId(),
                                             'DivisionSubjectId' => $tblDivisionSubjectTest->getId()
                                         ), 'Gruppenlehrer festlegen'));
+                                $countSubjectStudent = Division::useService()->countSubjectStudentByDivisionSubject($tblDivisionSubjectTest);
+                                $subText = ' (' . $countSubjectStudent . ' / ' . $StudentTableCount . ' Schüler)';
+                                $text = $tblDivisionSubjectTest->getTblSubjectGroup()->getName()
+                                    . ($countSubjectStudent > 0
+                                        ? new Muted($subText)
+                                        : new \SPHERE\Common\Frontend\Text\Repository\Warning($subText));
                                 $GroupArray[$tblDivisionSubjectTest->getTblSubjectGroup()->getName()]
                                     = $tblDivisionSubjectTest->getTblSubjectGroup()->isAdvancedCourse()
-                                    ? new Bold($tblDivisionSubjectTest->getTblSubjectGroup()->getName())
-                                    : $tblDivisionSubjectTest->getTblSubjectGroup()->getName();
+                                    ? new Bold($text)
+                                    : $text;
 
                                 $tblSubjectPersonList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubjectTest);
                                 if ($tblSubjectPersonList) {
