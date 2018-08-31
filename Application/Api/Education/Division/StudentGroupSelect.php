@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Kauschke
- * Date: 23.06.2017
- * Time: 08:22
- */
-
 namespace SPHERE\Application\Api\Education\Division;
 
 use SPHERE\Application\Api\ApiTrait;
@@ -15,7 +8,6 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Filter\Filter;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
