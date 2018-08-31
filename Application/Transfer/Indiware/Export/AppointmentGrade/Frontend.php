@@ -2,11 +2,10 @@
 
 namespace SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade;
 
+use SPHERE\Application\Api\Transfer\Indiware\AppointmentGrade\ApiAppointmentGrade;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
-use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
-use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Transfer\Indiware\Export\AppointmentGrade\Service\Entity\TblIndiwareStudentSubjectOrder;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -71,23 +70,22 @@ class Frontend extends Extension implements IFrontendInterface
             4 => 'Stufe 12 - 2.Halbjahr'
         );
 
-        $tblTestTypeAppointed = Evaluation::useService()->getTestTypeByIdentifier(TblTestType::APPOINTED_DATE_TASK);
-        $tblTaskListAppointed = Evaluation::useService()->getTaskAllByTestType($tblTestTypeAppointed);
-        $tblTaskList = array(array());
-        if ($tblTaskListAppointed) {
-            foreach ($tblTaskListAppointed as $tblTask) {
-//                $tblYearList = Term::useService()->getYearByPeriod(Term::useService()->getPeriodById(4));  // local test
-                $tblYearList = Term::useService()->getYearByNow();
-                if ($tblYearList) {
-                    /** @var TblYear $tblYear */
-                    foreach ($tblYearList as $tblYear) {
-                        if ($tblTask->getServiceTblYear() && $tblTask->getServiceTblYear()->getId() == $tblYear->getId()) {
-                            $tblTaskList[$tblTask->getId()] = $tblTask->getDate().' '.$tblTask->getName();
-                        }
-                    }
-                }
-            }
+        $YearId = null;
+        if(($tblYearList = Term::useService()->getYearByNow())){
+            $YearId = current($tblYearList)->getId();
         }
+
+        if($YearId !== null){
+            $Global = $this->getGlobal();
+            $Global->POST['YearId'] = $YearId;
+            $Global->savePost();
+        }
+
+        // Vorladen der Selectbox mit Notenaufträgen des aktuellen Schuljahres
+        $Receiver = ApiAppointmentGrade::receiverFormSelect((new ApiAppointmentGrade())->reloadTaskSelect($YearId));
+
+        // Anzeige nur für alle aktuellen Jahre + das letzte Schuljahr
+        $tblYearList = Term::useService()->getYearAllSinceYears(1);
 
         $Stage->setContent(
             new Layout(
@@ -100,11 +98,12 @@ class Frontend extends Extension implements IFrontendInterface
                                         new FormColumn(
                                             new Panel('Benötigte Informationen',
                                                 array(
-                                                    (new SelectBox('TaskId',
-                                                        'Auswahl Notenauftrag '.new ToolTip(new InfoIcon(),
-                                                            'Aus welchem Notenauftrag sollen die Noten ausgelesen werden?'),
-                                                        $tblTaskList
-                                                    ))->setRequired(),
+                                                    (new SelectBox('YearId',
+                                                        'Auswahl Schuljahr '.new ToolTip(new InfoIcon(),
+                                                            'Auswahl der Notenaufträge wird nach der Selektion geladen.'),
+                                                        array('{{ Name }} {{ Description }}' => $tblYearList)
+                                                    ))->ajaxPipelineOnChange(ApiAppointmentGrade::pipelineCreateTaskSelect($Receiver)),
+                                                    $Receiver,
                                                     (new SelectBox('Period',
                                                         'Auswahl Schulhalbjahr '.new ToolTip(new InfoIcon(),
                                                             'Indiware benötigt diese Information um den Export zuweisen zu können'),
