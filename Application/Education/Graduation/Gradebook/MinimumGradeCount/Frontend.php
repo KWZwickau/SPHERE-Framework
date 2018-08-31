@@ -119,7 +119,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         array('1', 'asc'),
                                         array('2', 'asc'),
                                         array('3', 'asc')
-                                    )
+                                    ),
+                                    'columnDefs' => array(
+                                        array('orderable' => false, 'targets' => -1),
+                                    ),
                                 )
                             )
                         ))

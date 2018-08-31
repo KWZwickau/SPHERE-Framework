@@ -214,7 +214,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Temp['Name'] = $tblPeriod->getName();
                 $Temp['Description'] = $tblPeriod->getDescription();
-                $Temp['Period'] = $tblPeriod->getFromDate() . ' - ' . $tblPeriod->getToDate();
+                $Temp['PeriodFrom'] = $tblPeriod->getFromDate();
+                $Temp['PeriodTo'] = $tblPeriod->getToDate();
                 $Temp['Option'] =
                     new Standard('', __NAMESPACE__ . '\Edit\Period', new Pencil(),
                         array('Id' => $tblPeriod->getId()))
@@ -235,14 +236,19 @@ class Frontend extends Extension implements IFrontendInterface
                                 array(
                                     'Name' => 'Name',
                                     'Description' => 'Beschreibung',
-                                    'Period' => 'Zeitraum',
+                                    'PeriodFrom' => 'Zeitraum von',
+                                    'PeriodTo' => 'Zeitraum Bis',
                                     'Option' => '',
                                 ),
                                 array(
                                     'order' => array(
                                         array('2', 'desc'),
+                                        array('3', 'desc'),
                                         array('0', 'asc'),
-                                    )
+                                    ),
+                                    'columnDefs' => array(
+                                        array('type' => 'de_date', 'targets' => array(2, 3)),
+                                    ),
                                 )
                             )
                         )
@@ -693,8 +699,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             array(1, 'desc')
                                         ),
                                         'columnDefs' => array(
-                                            array('type' => 'de_date', 'targets' => 0),
-                                            array('type' => 'de_date', 'targets' => 1),
+                                            array('type' => 'de_date', 'targets' => array(0,1)),
                                         )
                                     )
                                 )

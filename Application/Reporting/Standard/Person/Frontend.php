@@ -109,6 +109,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Count' => 'Schüler',
                                         'Option' => '',
                                     ), array(
+                                        'columnDefs' => array(
+                                            array('type' => 'natural', 'targets' => array(1,3)),
+                                            array("orderable" => false, "targets"   => -1),
+                                        ),
                                         'order' => array(
                                             array(0, 'desc'),
                                             array(2, 'asc'),
@@ -191,6 +195,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Count' => 'Schüler',
                                         'Option' => '',
                                     ), array(
+                                        'columnDefs' => array(
+                                            array('type' => 'natural', 'targets' => array(1,3)),
+                                            array("orderable" => false, "targets"   => -1),
+                                        ),
                                         'order' => array(
                                             array(0, 'desc'),
                                             array(2, 'asc'),
@@ -365,6 +373,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Count' => 'Schüler',
                                         'Option' => '',
                                     ), array(
+                                        'columnDefs' => array(
+                                            array('type' => 'natural', 'targets' => array(1,3)),
+                                            array("orderable" => false, "targets"   => -1),
+                                        ),
                                         'order' => array(
                                             array(0, 'desc'),
                                             array(2, 'asc'),
@@ -530,6 +542,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Count' => 'Schüler',
                                         'Option' => '',
                                     ), array(
+                                        'columnDefs' => array(
+                                            array('type' => 'natural', 'targets' => array(1,3)),
+                                            array("orderable" => false, "targets"   => -1),
+                                        ),
                                         'order' => array(
                                             array(0, 'desc'),
                                             array(2, 'asc'),
@@ -650,7 +666,11 @@ class Frontend extends Extension implements IFrontendInterface
                     }
 
                     $Item['Name'] = $tblGroup->getName().$MoreColumnInfo;
-                    $Item['Count'] = Group::useService()->countMemberByGroup($tblGroup);
+                    $count = Group::useService()->countMemberByGroup($tblGroup);
+                    if($count == 0){
+                        $count .= ' ';
+                    }
+                    $Item['Count'] = $count;
                     $Item['Option'] = new Standard(new Select(), '/Reporting/Standard/Person/GroupList', null, array(
                         'GroupId' => $tblGroup->getId()
                     ));
@@ -664,7 +684,16 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(
                             new LayoutColumn(
                                 new TableData(
-                                    $TableContent, null, array('Name' => 'Name', 'Count' => 'Personen', 'Option' => '')
+                                    $TableContent, null, array('Name' => 'Name', 'Count' => 'Personen', 'Option' => ''),
+                                    array(
+                                        'columnDefs' => array(
+                                            array('type' => 'natural', 'targets' => 1),
+                                            array("orderable" => false, "targets"   => -1),
+                                        ),
+                                        'order' => array(
+                                            array(0, 'asc'),
+                                        )
+                                    )
                                 )
                             )
                         )
@@ -1127,6 +1156,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Count'    => 'Schüler',
                                         'Option'   => '',
                                     ), array(
+                                        'columnDefs' => array(
+                                            array('type' => 'natural', 'targets' => array(1,3)),
+                                            array("orderable" => false, "targets"   => -1),
+                                        ),
                                         'order' => array(
                                             array(0, 'desc'),
                                             array(2, 'asc'),

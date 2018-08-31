@@ -163,6 +163,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Division' => 'Klasse',
                                 'Option' => ''
                             ), array(
+                                'columnDefs' => array(
+                                    array('type' => 'natural', 'targets' => 2),
+                                    array("orderable" => false, "targets"   => 3),
+                                ),
                                 'order' => array(
                                     array('0', 'desc'),
                                     array('1', 'asc'),
@@ -242,6 +246,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Division' => 'Klasse',
                                 'Option' => ''
                             ), array(
+                                'columnDefs' => array(
+                                    array('type' => 'natural', 'targets' => 2),
+                                    array("orderable" => false, "targets"   => 3),
+                                ),
                                 'order' => array(
                                     array('0', 'desc'),
                                     array('1', 'asc'),

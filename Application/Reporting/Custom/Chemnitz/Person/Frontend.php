@@ -120,6 +120,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Count' => 'Schüler',
                                         'Option' => ''
                                     ), array(
+                                        'columnDefs' => array(
+                                            array('type' => 'natural', 'targets' => array(1,3)),
+                                            array("orderable" => false, "targets"   => -1),
+                                        ),
                                         'order' => array(
                                             array(0, 'desc'),
                                             array(2, 'asc'),
@@ -471,6 +475,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Count' => 'Schüler',
                                         'Option' => '',
                                     ), array(
+                                        'columnDefs' => array(
+                                            array('type' => 'natural', 'targets' => array(1,3)),
+                                            array("orderable" => false, "targets"   => -1),
+                                        ),
                                         'order' => array(
                                             array(0, 'desc'),
                                             array(2, 'asc'),
@@ -735,6 +743,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Count' => 'Schüler',
                                         'Option' => '',
                                     ), array(
+                                        'columnDefs' => array(
+                                            array('type' => 'natural', 'targets' => array(1,3)),
+                                            array("orderable" => false, "targets"   => -1),
+                                        ),
                                         'order' => array(
                                             array(0, 'desc'),
                                             array(2, 'asc'),
@@ -992,6 +1004,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Count' => 'Schüler',
                                         'Option' => '',
                                     ), array(
+                                        'columnDefs' => array(
+                                            array('type' => 'natural', 'targets' => array(1,3)),
+                                            array("orderable" => false, "targets"   => -1),
+                                        ),
                                         'order' => array(
                                             array(0, 'desc'),
                                             array(2, 'asc'),

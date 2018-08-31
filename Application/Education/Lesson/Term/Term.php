@@ -191,6 +191,13 @@ class Term implements IModuleInterface
                                     'Zeiträume' => 'Zeiträume',
                                     'Holiday' => 'Unterrichtsfreie Tage',
 //                                    'Optionen'  => 'Zuordnung'
+                                ), array(
+                                    'order'      => array(
+                                        array('0', 'desc')
+                                    ),
+                                    'columnDefs' => array(
+                                        array('orderable' => false, 'targets' => array(1,2)),
+                                    ),
                                 )
                             )
                         ))

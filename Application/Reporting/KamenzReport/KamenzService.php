@@ -260,6 +260,7 @@ class KamenzService
                 'order' => array(array(0, 'asc'), array(1, 'asc')),
                 'columnDefs' => array(
                     array('type' => 'natural', 'targets' => 0),
+                    array('type' => 'de_date', 'targets' => array(3,12)),
                 ),
                 'responsive' => false
             )
@@ -441,6 +442,9 @@ class KamenzService
                     'Address' => 'Adresse'
                 ),
                 array(
+                    'columnDefs' => array(
+                        array('type' => 'de_date', 'targets' => 2),
+                    ),
 //                    'paging' => false,
 //                    'iDisplayLength' => -1,
                     'responsive' => false

@@ -15,6 +15,8 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Filter\Filter;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -298,7 +300,8 @@ class StudentGroupSelect extends Extension implements IApiInterface
                 $left[] = (new TableData($tableSelected, new Title('Ausgewählte', 'Schüler'), $header,
                     array(
                         'columnDefs' => array(
-                            array('width' => '1%', 'targets' => array(-1))
+                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                            array('width' => '1%', 'orderable' => false, 'targets' => -1),
                         ),
                     )
                 ))->setHash(__NAMESPACE__ . 'StudentGroupSelectWithFilter' . 'Selected');
@@ -375,7 +378,8 @@ class StudentGroupSelect extends Extension implements IApiInterface
                 $right[] = (new TableData($tableAvailable, new Title('Verfügbare', 'Schüler'), $header,
                     array(
                         'columnDefs' => array(
-                            array('width' => '1%', 'targets' => array(-1))
+                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                            array('width' => '1%', 'orderable' => false, 'targets' => array(-1)),
                         ),
                     )
                 ))->setHash(__NAMESPACE__ . 'StudentGroupSelectWithFilter' . 'Available');
