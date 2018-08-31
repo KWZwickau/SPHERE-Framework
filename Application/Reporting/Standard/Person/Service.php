@@ -2870,4 +2870,121 @@ class Service extends Extension
 
         return $fileLocation;
     }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return array
+     */
+    public function createMedicalRecordClassList(TblDivision $tblDivision)
+    {
+
+        $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+        $TableContent = array();
+
+        if (!empty($tblPersonList)) {
+
+            $count = 1;
+
+            array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, &$count) {
+                $Item['Name'] = $tblPerson->getLastFirstName();
+                $Item['StudentNumber'] = '';
+                $Item['Birthday'] = '';
+                $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = $Item['District'] = '';
+                $Item['Address'] = '';
+                $Item['Disease'] = '';
+                $Item['Medication'] = '';
+                $Item['AttendingDoctor'] = '';
+
+                $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
+                if ($tblCommon) {
+                    $tblBirhdates = $tblCommon->getTblCommonBirthDates();
+                    if ($tblBirhdates) {
+                        $Item['Birthday'] = $tblBirhdates->getBirthday();
+                    }
+                }
+
+                if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
+                    $Item['StudentNumber'] = $tblStudent->getIdentifier();
+                    if(($tblMedicalRecord = $tblStudent->getTblStudentMedicalRecord())){
+                        $Item['Disease'] = $tblMedicalRecord->getDisease();
+                        $Item['Medication'] = $tblMedicalRecord->getMedication();
+                        $Item['AttendingDoctor'] = $tblMedicalRecord->getAttendingDoctor();
+                    }
+                }
+
+                $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+                if ($tblAddress) {
+                    $Item['StreetName'] = $tblAddress->getStreetName();
+                    $Item['StreetNumber'] = $tblAddress->getStreetNumber();
+                    $Item['Code'] = $tblAddress->getTblCity()->getCode();
+                    $Item['City'] = $tblAddress->getTblCity()->getName();
+                    $Item['District'] = $tblAddress->getTblCity()->getDistrict();
+                    // show in DataTable
+                    $Item['Address'] = $tblAddress->getGuiString();
+                }
+
+                array_push($TableContent, $Item);
+            });
+        }
+
+        return $TableContent;
+    }
+
+    /**
+     * @param $PersonList
+     * @param $tblPersonList
+     *
+     * @return bool|FilePointer
+     * @throws DocumentTypeException
+     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
+     * @throws \PHPExcel_Reader_Exception
+     */
+    public function createMedicalRecordClassListExcel($PersonList, $tblPersonList)
+    {
+
+        if (!empty($PersonList)) {
+
+            $fileLocation = Storage::createFilePointer('xlsx');
+            /** @var PhpExcel $export */
+            $export = Document::getDocument($fileLocation->getFileLocation());
+            $export->setValue($export->getCell("0", "0"), "Schülernummer");
+            $export->setValue($export->getCell("1", "0"), "Name, Vorname");
+            $export->setValue($export->getCell("2", "0"), "Anschrift");
+            $export->setValue($export->getCell("3", "0"), "Geburtsdatum");
+            $export->setValue($export->getCell("4", "0"), "Krankheiten/Allergie");
+            $export->setValue($export->getCell("5", "0"), "Medikamente");
+            $export->setValue($export->getCell("6", "0"), "Behandelnder Arzt");
+
+            $Row = 1;
+
+            foreach ($PersonList as $PersonData) {
+
+                $export->setValue($export->getCell("0", $Row), $PersonData['StudentNumber']);
+                $export->setValue($export->getCell("1", $Row), $PersonData['Name']);
+                $export->setValue($export->getCell("2", $Row), $PersonData['Address']);
+                $export->setValue($export->getCell("3", $Row), $PersonData['Birthday']);
+                $export->setValue($export->getCell("4", $Row), $PersonData['Disease']);
+                $export->setValue($export->getCell("5", $Row), $PersonData['Medication']);
+                $export->setValue($export->getCell("6", $Row), $PersonData['AttendingDoctor']);
+                $Row++;
+            }
+
+            $Row++;
+            $export->setValue($export->getCell("0", $Row), 'Weiblich:');
+            $export->setValue($export->getCell("1", $Row), Person::countFemaleGenderByPersonList($tblPersonList));
+            $Row++;
+            $export->setValue($export->getCell("0", $Row), 'Männlich:');
+            $export->setValue($export->getCell("1", $Row), Person::countMaleGenderByPersonList($tblPersonList));
+            $Row++;
+            $export->setValue($export->getCell("0", $Row), 'Gesamt:');
+            $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
+        }
+
+        return false;
+    }
 }

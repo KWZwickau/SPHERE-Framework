@@ -37,7 +37,6 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransfer;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransport;
 use SPHERE\Application\People\Meta\Student\Service\Service\Support;
 use SPHERE\Application\People\Meta\Student\Service\Setup;
-use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
@@ -221,11 +220,11 @@ class Service extends Support
     }
 
     /**
-     * @param                $Disease
-     * @param                $Medication
-     * @param                $Insurance
-     * @param int|null       $InsuranceState
-     * @param TblPerson|null $tblPersonAttendingDoctor
+     * @param string   $Disease
+     * @param string   $Medication
+     * @param string   $Insurance
+     * @param int|null $InsuranceState
+     * @param string   $AttendingDoctor
      *
      * @return TblStudentMedicalRecord
      */
@@ -234,13 +233,13 @@ class Service extends Support
         $Medication,
         $Insurance,
         $InsuranceState = 0,
-        TblPerson $tblPersonAttendingDoctor = null
+        $AttendingDoctor = ''
     ) {
 
         return (new Data($this->getBinding()))->createStudentMedicalRecord(
             $Disease,
             $Medication,
-            $tblPersonAttendingDoctor,
+            $AttendingDoctor,
             $InsuranceState,
             $Insurance
         );
@@ -399,7 +398,6 @@ class Service extends Support
 
         $tblStudent = $this->getStudentByPerson($tblPerson);
 
-        $AttendingDoctor = Person::useService()->getPersonById($Meta['MedicalRecord']['AttendingDoctor']);
         $SiblingRank = Relationship::useService()->getSiblingRankById($Meta['Billing']);
 
         $Prefix = $Meta['Student']['Prefix'];
@@ -416,7 +414,7 @@ class Service extends Support
                     $tblStudent->getTblStudentMedicalRecord(),
                     $Meta['MedicalRecord']['Disease'],
                     $Meta['MedicalRecord']['Medication'],
-                    $AttendingDoctor ? $AttendingDoctor : null,
+                    $Meta['MedicalRecord']['AttendingDoctor'],
                     $Meta['MedicalRecord']['Insurance']['State'],
                     $Meta['MedicalRecord']['Insurance']['Company']
                 );
@@ -424,7 +422,7 @@ class Service extends Support
                 $tblStudentMedicalRecord = (new Data($this->getBinding()))->createStudentMedicalRecord(
                     $Meta['MedicalRecord']['Disease'],
                     $Meta['MedicalRecord']['Medication'],
-                    $AttendingDoctor ? $AttendingDoctor : null,
+                    $Meta['MedicalRecord']['AttendingDoctor'],
                     $Meta['MedicalRecord']['Insurance']['State'],
                     $Meta['MedicalRecord']['Insurance']['Company']
                 );
@@ -518,7 +516,7 @@ class Service extends Support
             $tblStudentMedicalRecord = (new Data($this->getBinding()))->createStudentMedicalRecord(
                 $Meta['MedicalRecord']['Disease'],
                 $Meta['MedicalRecord']['Medication'],
-                $AttendingDoctor ? $AttendingDoctor : null,
+                $Meta['MedicalRecord']['AttendingDoctor'],
                 $Meta['MedicalRecord']['Insurance']['State'],
                 $Meta['MedicalRecord']['Insurance']['Company']
             );

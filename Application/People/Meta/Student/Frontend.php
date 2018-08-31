@@ -1519,11 +1519,7 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($tblStudentMedicalRecord) {
                         $Global->POST['Meta']['MedicalRecord']['Disease'] = $tblStudentMedicalRecord->getDisease();
                         $Global->POST['Meta']['MedicalRecord']['Medication'] = $tblStudentMedicalRecord->getMedication();
-                        $Global->POST['Meta']['MedicalRecord']['AttendingDoctor'] = (
-                        $tblStudentMedicalRecord->getServiceTblPersonAttendingDoctor()
-                            ? $tblStudentMedicalRecord->getServiceTblPersonAttendingDoctor()->getId()
-                            : 0
-                        );
+                        $Global->POST['Meta']['MedicalRecord']['AttendingDoctor'] = $tblStudentMedicalRecord->getAttendingDoctor();
                         $Global->POST['Meta']['MedicalRecord']['Insurance']['State'] = $tblStudentMedicalRecord->getInsuranceState();
                         $Global->POST['Meta']['MedicalRecord']['Insurance']['Company'] = $tblStudentMedicalRecord->getInsurance();
                     }
@@ -1642,7 +1638,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'Krankheiten / Allergien', new Heart()),
                         new TextArea('Meta[MedicalRecord][Medication]', 'Medikamente', 'Medikamente',
                             new Medicine()),
-                        new SelectBox('Meta[MedicalRecord][AttendingDoctor]', 'Behandelnder Arzt', array(),
+                        new TextField('Meta[MedicalRecord][AttendingDoctor]', 'Name', 'Behandelnder Arzt',
                             new Stethoscope()),
                         // ToDo -> extra Tabelle für Statustypen
                         new SelectBox('Meta[MedicalRecord][Insurance][State]', 'Versicherungsstatus', array(

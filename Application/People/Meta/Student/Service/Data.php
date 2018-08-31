@@ -19,7 +19,6 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentLocker;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransfer;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransport;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Fitting\Element;
@@ -357,18 +356,18 @@ class Data extends Support
     }
 
     /**
-     * @param string         $Disease
-     * @param string         $Medication
-     * @param null|TblPerson $tblPersonAttendingDoctor
-     * @param int            $InsuranceState
-     * @param string         $Insurance
+     * @param string $Disease
+     * @param string $Medication
+     * @param string $AttendingDoctor
+     * @param int    $InsuranceState
+     * @param string $Insurance
      *
      * @return TblStudentMedicalRecord
      */
     public function createStudentMedicalRecord(
         $Disease,
         $Medication,
-        TblPerson $tblPersonAttendingDoctor = null,
+        $AttendingDoctor,
         $InsuranceState,
         $Insurance
     ) {
@@ -378,7 +377,7 @@ class Data extends Support
         $Entity = new TblStudentMedicalRecord();
         $Entity->setDisease($Disease);
         $Entity->setMedication($Medication);
-        $Entity->setServiceTblPersonAttendingDoctor($tblPersonAttendingDoctor);
+        $Entity->setAttendingDoctor($AttendingDoctor);
         $Entity->setInsuranceState($InsuranceState);
         $Entity->setInsurance($Insurance);
         $Manager->saveEntity($Entity);
@@ -391,7 +390,7 @@ class Data extends Support
      * @param TblStudentMedicalRecord $tblStudentMedicalRecord
      * @param string                  $Disease
      * @param string                  $Medication
-     * @param null|TblPerson          $tblPersonAttendingDoctor
+     * @param string                  $AttendingDoctor
      * @param int                     $InsuranceState
      * @param string                  $Insurance
      *
@@ -401,7 +400,7 @@ class Data extends Support
         TblStudentMedicalRecord $tblStudentMedicalRecord,
         $Disease,
         $Medication,
-        TblPerson $tblPersonAttendingDoctor = null,
+        $AttendingDoctor,
         $InsuranceState,
         $Insurance
     ) {
@@ -413,7 +412,7 @@ class Data extends Support
             $Protocol = clone $Entity;
             $Entity->setDisease($Disease);
             $Entity->setMedication($Medication);
-            $Entity->setServiceTblPersonAttendingDoctor($tblPersonAttendingDoctor);
+            $Entity->setAttendingDoctor($AttendingDoctor);
             $Entity->setInsuranceState($InsuranceState);
             $Entity->setInsurance($Insurance);
             $Manager->saveEntity($Entity);
