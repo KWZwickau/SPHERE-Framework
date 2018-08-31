@@ -92,12 +92,15 @@ class ApiSupportReadOnly extends Extension implements IApiInterface
             $WellFocus = new Well('Keine Förderschwerpunkte');
             if(($tblSupport = Student::useService()->getSupportByPersonNewest($tblPerson, array('Förderbescheid', 'Änderung')))){
                 $WellFocus = new Title('Förderschwerpunkte:');
-                if(($tblFocus = Student::useService()->getPrimaryFocusBySupport($tblSupport))) {
-                    $WellFocus .= new Container(new Bold($tblFocus->getName()));
+                if(($tblFocusPrimary = Student::useService()->getPrimaryFocusBySupport($tblSupport))) {
+                    $WellFocus .= new Container(new Bold($tblFocusPrimary->getName()));
                 }
                 if(($tblFocusList = Student::useService()->getFocusListBySupport($tblSupport))){
                     foreach($tblFocusList as $tblFocus){
-                        $WellFocus .= new Container($tblFocus->getName());
+                        // doppelter Focus nicht doppelt abbilden
+                        if($tblFocusPrimary->getId() != $tblFocus->getId()){
+                            $WellFocus .= new Container($tblFocus->getName());
+                        }
                     }
                     $WellFocus .= new Ruler().new Container(new Bold('letzter Bearbeiter: ').$tblSupport->getPersonEditor());
                 }
@@ -121,7 +124,7 @@ class ApiSupportReadOnly extends Extension implements IApiInterface
                 $WellHandyCap = new Title('Maßnahmen / Beschluss Klassenkonferenz (Nachteilsausgleich):');
                 $WellHandyCap .= new Container($tblHandyCap->getDate());
                 $WellHandyCap .= new Container($tblHandyCap->getRemark());
-                $WellHandyCap .= new Container(new Bold('letzter Bearbeiter: ').$tblHandyCap->getPersonEditor());
+                $WellHandyCap .= new Ruler().new Container(new Bold('letzter Bearbeiter: ').$tblHandyCap->getPersonEditor());
                 $WellHandyCap = new Well($WellHandyCap);
             }
         }
