@@ -59,7 +59,19 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(
                             new LayoutColumn(
                                 new TableData(
-                                    $TableContent, null, array('Name' => 'Name', 'Count' => 'Institutionen', 'Option' => '')
+                                    $TableContent, null, array(
+                                        'Name' => 'Name',
+                                        'Count' => 'Institutionen',
+                                        'Option' => ''
+                                    ), array(
+                                        'columnDefs' => array(
+                                            array('type' => 'natural', 'targets' => 1),
+                                            array("orderable" => false, "targets"   => -1),
+                                        ),
+                                        'order' => array(
+                                            array(0, 'asc'),
+                                        )
+                                    )
                                 )
                             )
                         )

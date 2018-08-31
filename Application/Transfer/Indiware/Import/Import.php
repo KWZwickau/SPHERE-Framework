@@ -101,11 +101,11 @@ class Import extends Extension implements IModuleInterface
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel('Indiware-Import für Schüler-Kurse SEK II', $PanelStudentCourseImport
+                            new Panel('Indiware-Import für Lehraufträge', $PanelLectureshipImport
                                 , Panel::PANEL_TYPE_INFO)
                             , 4),
                         new LayoutColumn(
-                            new Panel('Indiware-Import für Lehraufträge', $PanelLectureshipImport
+                            new Panel('Indiware-Import für Schüler-Kurse SEK II', $PanelStudentCourseImport
                                 , Panel::PANEL_TYPE_INFO)
                             , 4),
                     ))

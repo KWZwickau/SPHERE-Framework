@@ -489,7 +489,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     array('4', 'asc')
                                 ),
                                 'columnDefs' => array(
-                                    array('type' => 'natural', 'targets' => 2)
+                                    array('type' => 'natural', 'targets' => 2),
+                                    array('orderable' => false, 'targets' => -1),
                                 )
                             ))
                         ))
@@ -747,8 +748,9 @@ class Frontend extends Extension implements IFrontendInterface
                                             array(0, 'desc')
                                         ),
                                         'columnDefs' => array(
-                                            array('type' => 'de_date', 'targets' => 0)
-                                        )
+                                            array('type' => 'de_date', 'targets' => 0),
+                                            array('orderable' => false, 'targets' => -1),
+                                        ),
                                     )
                                 )
                             )
@@ -2369,14 +2371,17 @@ class Frontend extends Extension implements IFrontendInterface
             $tableData = new TableData(
                 $studentList, null, $columnDefinition,
                 array(
-                "paging"         => false, // Deaktivieren Blättern
-                "iDisplayLength" => -1,    // Alle Einträge zeigen
-                "searching"      => false, // Deaktivieren Suchen
-                "info"           => false,  // Deaktivieren Such-Info
-                "responsive"   => false,
-                'columnDefs' => array(
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
-                ),
+                    "paging"         => false, // Deaktivieren Blättern
+                    "iDisplayLength" => -1,    // Alle Einträge zeigen
+                    "searching"      => false, // Deaktivieren Suchen
+                    "info"           => false,  // Deaktivieren Such-Info
+                    "responsive"   => false,
+                    'order'      => array(
+                        array('0', 'asc'),
+                    ),
+                    'columnDefs' => array(
+                        array('orderable' => false, 'targets' => '_all'),
+                    ),
                 )
             );
 
@@ -2408,9 +2413,14 @@ class Frontend extends Extension implements IFrontendInterface
                 "iDisplayLength" => -1,    // Alle Einträge zeigen
                 "searching"      => false, // Deaktivieren Suchen
                 "info"           => false,  // Deaktivieren Such-Info
+                "sorting"        => false,  // Deaktivieren Such-Info
                 "responsive"   => false,
+                'order'      => array(
+                    array('0', 'asc'),
+                ),
                 'columnDefs' => array(
-                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                    array('type' => 'natural', 'targets' => 0),
+                    array('orderable' => false, 'targets' => '_all'),
                 ),
             ));
         }
@@ -3264,6 +3274,11 @@ class Frontend extends Extension implements IFrontendInterface
                                             "searching"      => false, // Deaktivieren Suchen
                                             "info"           => false,  // Deaktivieren Such-Info
                                             "responsive"   => false
+                                        ),
+                                        array(
+                                            'columnDefs' => array(
+                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                            ),
                                         )
                                     )
                                 ))

@@ -17,6 +17,7 @@ class MultiPassword extends AbstractDocument
 {
 
     const BLOCK_SPACE = '10px';
+    const PLACE_HOLDER = '#BBBB00';
 
     /**
      * MultiPassword constructor.
@@ -165,37 +166,83 @@ class MultiPassword extends AbstractDocument
     private function getAddressHead($AccountId)
     {
         $Slice = new Slice();
-        $Slice->addElement((new Element())
-            ->setContent($this->FieldValue['CompanyName'])
-            ->styleTextSize('8pt')
-        );
+        if($this->FieldValue['CompanyName'] === '&nbsp;'){
+            $Slice->addElement((new Element())
+                ->setContent('>> Name der Schule <<')
+                ->styleTextColor($this::PLACE_HOLDER)
+                ->styleTextSize('8pt')
+            );
+        } else {
+            $Slice->addElement((new Element())
+                ->setContent($this->FieldValue['CompanyName'])
+                ->styleTextSize('8pt')
+            );
+        }
         if($this->FieldValue['CompanyExtendedName']){
             $Slice->addElement((new Element())
                 ->setContent($this->FieldValue['CompanyExtendedName'])
                 ->styleTextSize('8pt')
             );
         }
-        $Slice->addElement((new Element())
-            ->setContent($this->FieldValue['CompanyDistrict'].' '
-                .$this->FieldValue['CompanyStreet'].' '
-                .$this->FieldValue['CompanyCity'])
-            ->styleTextSize('8pt')
-            ->stylePaddingBottom('15px')
-        );
-        $Slice->addElement((new Element())
-            ->setContent($this->FieldValue['PersonName'][$AccountId])
-        );
+        if($this->FieldValue['CompanyDistrict'] === '&nbsp;'
+            && $this->FieldValue['CompanyStreet'] === '&nbsp;'
+            && $this->FieldValue['CompanyCity'] === '&nbsp;') {
+            $Slice->addElement((new Element())
+                ->setContent('>> Adresse <<')
+                ->styleTextColor($this::PLACE_HOLDER)
+                ->styleTextSize('8pt')
+                ->stylePaddingBottom('15px')
+            );
+        } else {
+            $Slice->addElement((new Element())
+                ->setContent($this->FieldValue['CompanyDistrict'].' '
+                    .$this->FieldValue['CompanyStreet'].' '
+                    .$this->FieldValue['CompanyCity'])
+                ->styleTextSize('8pt')
+                ->stylePaddingBottom('15px')
+            );
+        }
+
+        if($this->FieldValue['PersonName'][$AccountId] === '&nbsp;'){
+            $Slice->addElement((new Element())
+                ->setContent('>> Name der Person <<')
+                ->styleTextColor($this::PLACE_HOLDER)
+                ->styleTextSize('8pt')
+            );
+        } else {
+            $Slice->addElement((new Element())
+                ->setContent($this->FieldValue['PersonName'][$AccountId])
+            );
+        }
         if($this->FieldValue['District']){
             $Slice->addElement((new Element())
                 ->setContent($this->FieldValue['District'][$AccountId])
             );
         }
-        $Slice->addElement((new Element())
-            ->setContent($this->FieldValue['Street'][$AccountId])
-        );
-        $Slice->addElement((new Element())
-            ->setContent($this->FieldValue['City'][$AccountId])
-        );
+
+        if(!$this->FieldValue['Street'][$AccountId]){
+            $Slice->addElement((new Element())
+                ->setContent('>> Straße <<')
+                ->styleTextColor($this::PLACE_HOLDER)
+                ->styleTextSize('8pt')
+            );
+        } else {
+            $Slice->addElement((new Element())
+                ->setContent($this->FieldValue['Street'][$AccountId])
+            );
+        }
+
+        if(!$this->FieldValue['City'][$AccountId]){
+            $Slice->addElement((new Element())
+                ->setContent('>> Stadt <<')
+                ->styleTextColor($this::PLACE_HOLDER)
+                ->styleTextSize('8pt')
+            );
+        } else {
+            $Slice->addElement((new Element())
+                ->setContent($this->FieldValue['City'][$AccountId])
+            );
+        }
 
         return $Slice;
     }
@@ -207,16 +254,31 @@ class MultiPassword extends AbstractDocument
     {
 
         $Slice = new Slice();
-        $Slice->addSection((new Section())
-            ->addElementColumn((new Element())
-                ->setContent('Telefon:')
-                ->styleTextSize('8pt')
-                , '20%')
-            ->addElementColumn((new Element())
-                ->setContent($this->FieldValue['Phone'])
-                ->styleTextSize('8pt')
-                , '80%')
-        );
+        if($this->FieldValue['Phone'] === '&nbsp;'){
+            $Slice->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Telefon:')
+                    ->styleTextSize('8pt')
+                    , '20%')
+                ->addElementColumn((new Element())
+                    ->setContent('>> Telefonnummer <<')
+                    ->styleTextColor($this::PLACE_HOLDER)
+                    ->styleTextSize('8pt')
+                    , '80%')
+            );
+        } else {
+            $Slice->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Telefon:')
+                    ->styleTextSize('8pt')
+                    , '20%')
+                ->addElementColumn((new Element())
+                    ->setContent($this->FieldValue['Phone'])
+                    ->styleTextSize('8pt')
+                    , '80%')
+            );
+        }
+
         $Slice->addSection((new Section())
             ->addElementColumn((new Element())
                 ->setContent('Telefax:')
@@ -227,21 +289,34 @@ class MultiPassword extends AbstractDocument
                 ->styleTextSize('8pt')
                 , '80%')
         );
-        $Slice->addSection((new Section())
-            ->addElementColumn((new Element())
-                ->setContent('E-Mail:')
-                ->styleTextSize('8pt')
-                , '20%')
-            ->addElementColumn((new Element())
-                ->setContent($this->FieldValue['Mail'])
-                ->styleTextSize('8pt')
-                , '80%')
-        );
+        if($this->FieldValue['Mail'] === '&nbsp;'){
+            $Slice->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('E-Mail:')
+                    ->styleTextSize('8pt')
+                    , '20%')
+                ->addElementColumn((new Element())
+                    ->setContent('>> E-Mail <<')
+                    ->styleTextColor($this::PLACE_HOLDER)
+                    ->styleTextSize('8pt')
+                    , '80%')
+            );
+        } else {
+            $Slice->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('E-Mail:')
+                    ->styleTextSize('8pt')
+                    , '20%')
+                ->addElementColumn((new Element())
+                    ->setContent($this->FieldValue['Mail'])
+                    ->styleTextSize('8pt')
+                    , '80%')
+            );
+        }
         $Slice->addSection((new Section())
             ->addElementColumn((new Element())
                 ->setContent('Internet:')
                 ->styleTextSize('8pt')
-                ->stylePaddingTop('10px')
                 , '20%')
             ->addElementColumn((new Element())
                 ->setContent($this->FieldValue['Web'])
@@ -249,11 +324,18 @@ class MultiPassword extends AbstractDocument
                 ->stylePaddingTop('10px')
                 , '80%')
         );
-        $Slice->addElement((new Element())
-                ->setContent($this->FieldValue['Place'].$this->FieldValue['Date'])
-//                ->styleTextSize('8pt')
+        if($this->FieldValue['Date'] === '&nbsp;'){
+            $Slice->addElement((new Element())
+                ->setContent('>> Datum <<')
+                ->styleTextColor($this::PLACE_HOLDER)
                 ->stylePaddingTop('10px')
-        );
+            );
+        } else {
+            $Slice->addElement((new Element())
+                ->setContent($this->FieldValue['Place'].$this->FieldValue['Date'])
+                ->stylePaddingTop('10px')
+            );
+        }
 
         $Slice->stylePaddingTop('10px');
 
@@ -278,32 +360,34 @@ class MultiPassword extends AbstractDocument
                     , '4%'
                 )
             )
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('ab sofort stellen wir eine elektronische Notenübersicht zur Nutzung bereit. 
-                        Dadurch erhalten Sie die Möglichkeit, sämtliche Noten Ihres Kindes einzusehen und über seine 
-                        schulische Leistungsentwicklung mit unseren Lehrkräften gezielter zu kommunizieren.')
-                        ->stylePaddingTop('12px')
-                        ->styleAlignJustify()
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '4%'
-                    )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
                 )
-                ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('ab sofort stellen wir eine elektronische Notenübersicht zur Nutzung bereit. 
+                    Dadurch erhalten Sie die Möglichkeit, sämtliche Noten Ihres Kindes einzusehen und über seine 
+                    schulische Leistungsentwicklung mit unseren Lehrkräften gezielter zu kommunizieren.')
+                    ->stylePaddingTop('12px')
+                    ->styleAlignJustify()
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    , '4%'
+                )
+            );
+
+            if($this->FieldValue['CompanyName'] === '&nbsp;'){
+                $Slice->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
                         , '4%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('Die Schulstiftung der Ev.-Luth. Landeskirche Sachsens hat eine neue Schulsoftware 
-                        entwickeln lassen, die für alle evangelischen Schulen in Sachsen nutzbar ist. Auch wir als 
-                        '.$this->FieldValue['CompanyName'].' nutzen diese im Alltag.')
+                    entwickeln lassen, die für alle evangelischen Schulen in Sachsen nutzbar ist. Auch wir als
+                    <span style="color: '.$this::PLACE_HOLDER.'"> >> Schulname << </span> nutzen diese im Alltag.')
                         ->stylePaddingTop(self::BLOCK_SPACE)
                         ->styleAlignJustify()
                     )
@@ -311,8 +395,28 @@ class MultiPassword extends AbstractDocument
                         ->setContent('&nbsp;')
                         , '4%'
                     )
-                )
-                ->addSection((new Section())
+                );
+            } else {
+                $Slice->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '4%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('Die Schulstiftung der Ev.-Luth. Landeskirche Sachsens hat eine neue Schulsoftware 
+                    entwickeln lassen, die für alle evangelischen Schulen in Sachsen nutzbar ist. Auch wir als
+                    '.$this->FieldValue['CompanyName'].' nutzen diese im Alltag.')
+                        ->stylePaddingTop(self::BLOCK_SPACE)
+                        ->styleAlignJustify()
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '4%'
+                    )
+                );
+            }
+
+            $Slice->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
                         , '4%'

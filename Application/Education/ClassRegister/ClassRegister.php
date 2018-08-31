@@ -242,6 +242,10 @@ class ClassRegister implements IApplicationInterface
                                 'Division' => 'Klasse',
                                 'Option' => ''
                             ), array(
+                                'columnDefs' => array(
+                                    array('type' => 'natural', 'targets' => 2),
+                                    array("orderable" => false, "targets"   => 3),
+                                ),
                                 'order' => array(
                                     array('0', 'desc'),
                                     array('2', 'asc'),

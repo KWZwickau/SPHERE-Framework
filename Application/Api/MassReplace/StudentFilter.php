@@ -302,6 +302,9 @@ class StudentFilter extends Extension
                         if($Label == 'Prefix'){
                             $DataPerson['Edit'] = $tblStudent->getPrefix();
                         }
+                        if($Label == 'Beginnt am'){
+                            $DataPerson['Edit'] = $tblStudent->getSchoolAttendanceStartDate();
+                        }
                         // Transfer
                         if ($tblStudentTransferType) {
 //                        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
@@ -318,6 +321,12 @@ class StudentFilter extends Extension
                                     && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
                                 ) {
                                     $DataPerson['Edit'] = $tblType->getName();
+                                }
+                                if (($tblStudentSchoolEnrollmentType = $tblStudentTransfer->getTblStudentSchoolEnrollmentType())
+                                    && $Label == 'Einschulungsart'
+                                    && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
+                                ) {
+                                    $DataPerson['Edit'] = $tblStudentSchoolEnrollmentType->getName();
                                 }
                                 if (($tblCourse = $tblStudentTransfer->getServiceTblCourse()) && $Label == 'Bildungsgang'
                                     && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'

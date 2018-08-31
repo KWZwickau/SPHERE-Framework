@@ -24,6 +24,7 @@ class MassReplaceTransfer extends Extension
     const METHOD_REPLACE_ENROLLMENT_SCHOOL = 'replaceEnrollmentSchool';
     const METHOD_REPLACE_ENROLLMENT_SCHOOL_TYPE = 'replaceEnrollmentSchoolType';
     const METHOD_REPLACE_ENROLLMENT_COURSE = 'replaceEnrollmentCourse';
+    const METHOD_REPLACE_ENROLLMENT_TYPE = 'replaceEnrollmentType';
     const METHOD_REPLACE_ENROLLMENT_TRANSFER_DATE = 'replaceEnrollmentTransferDate';
     const METHOD_REPLACE_ARRIVE_SCHOOL = 'replaceArriveSchool';
     const METHOD_REPLACE_ARRIVE_SCHOOL_TYPE = 'replaceArriveSchoolType';
@@ -230,6 +231,43 @@ class MassReplaceTransfer extends Extension
             if(array_search($Id, $PersonIdArray)){
                 $IsChange = true;
             } 
+        }
+        return ApiMassReplace::pipelineClose($Field, $CloneField, $IsChange);
+    }
+
+    /**
+     * @param string $modalField
+     * @param int    $CloneField
+     * @param array  $PersonIdArray
+     * @param null   $Id
+     *
+     * @return \SPHERE\Common\Frontend\Ajax\Pipeline
+     */
+    public function replaceEnrollmentType($modalField, $CloneField, $PersonIdArray = array(), $Id = null)
+    {
+
+        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ENROLLMENT');
+
+        // get selected Company
+        $tblStudentSchoolEnrollmentType = Student::useService()->getStudentSchoolEnrollmentTypeById($CloneField);
+
+        // change miss matched to null
+        if (!$tblStudentSchoolEnrollmentType && null !== $tblStudentSchoolEnrollmentType) {
+            $tblStudentSchoolEnrollmentType = null;
+        }
+
+        $this->useStudentService()->createTransferEnrollmentType($PersonIdArray, $tblStudentTransferType->getIdentifier(),
+            $tblStudentSchoolEnrollmentType);
+
+        /** @var AbstractField $Field */
+        $Field = unserialize(base64_decode($modalField));
+
+        // Success!
+        $IsChange = false;
+        if($Id != null && !empty($PersonIdArray)){
+            if(array_search($Id, $PersonIdArray)){
+                $IsChange = true;
+            }
         }
         return ApiMassReplace::pipelineClose($Field, $CloneField, $IsChange);
     }

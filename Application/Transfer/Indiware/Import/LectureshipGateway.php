@@ -66,7 +66,16 @@ class LectureshipGateway extends AbstractConverter
         $this->setSanitizer(new FieldSanitizer($ColumnList['Fach'], 'AppSubject', array($this, 'sanitizeSubject')));
         $this->setSanitizer(new FieldSanitizer($ColumnList['Fach'], 'SubjectId', array($this, 'fetchSubject')));
 
-        $TeacherList = array(1 => 'Lehrer', 2 => 'Lehrer2', 3 => 'Lehrer3');
+        // Teacher 1
+        $this->setPointer(new FieldPointer($ColumnList['Lehrer'], 'FileTeacher1'));
+        $this->setPointer(new FieldPointer($ColumnList['Lehrer'], 'AppTeacher1'));
+        $this->setPointer(new FieldPointer($ColumnList['Lehrer'], 'TeacherId1'));
+        $this->setSanitizer(new FieldSanitizer($ColumnList['Lehrer'], 'AppTeacher1',
+            array($this, 'sanitizeFirstTeacher')));
+        $this->setSanitizer(new FieldSanitizer($ColumnList['Lehrer'], 'TeacherId1',
+            array($this, 'fetchTeacher')));
+
+        $TeacherList = array(2 => 'Lehrer2', 3 => 'Lehrer3');
         foreach ($TeacherList as $Key => $FieldPosition) {
             $this->setPointer(new FieldPointer($ColumnList[$FieldPosition], 'FileTeacher'.$Key));
             $this->setPointer(new FieldPointer($ColumnList[$FieldPosition], 'AppTeacher'.$Key));
@@ -553,10 +562,28 @@ class LectureshipGateway extends AbstractConverter
      *
      * @return Warning|string
      */
-    protected function sanitizeTeacher($Value)
+    protected function sanitizeFirstTeacher($Value)
     {
         if (empty($Value)) {
             return new Warning(new WarningIcon().' Lehrer wurde nicht angegeben');
+        }
+
+        if (!($tblTeacher = Teacher::useService()->getTeacherByAcronym($Value))) {
+            return new Warning(new WarningIcon().' Das Lehrer-Kürzel '.$Value.' ist in der Schulsoftware nicht vorhanden');
+        } else {
+            return $tblTeacher->getAcronym().' - '.$tblTeacher->getServiceTblPerson()->getFullName();
+        }
+    }
+
+    /**
+     * @param $Value
+     *
+     * @return Warning|string
+     */
+    protected function sanitizeTeacher($Value)
+    {
+        if (empty($Value)) {
+            return '';
         }
 
         if (!($tblTeacher = Teacher::useService()->getTeacherByAcronym($Value))) {
