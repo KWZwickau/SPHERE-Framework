@@ -1073,18 +1073,14 @@ class Service extends Support
     {
 
         $tblDivisionList = array();
-        if (Group::useService()->existsGroupPerson(Group::useService()->getGroupByMetaTable('STUDENT'),
-            $tblPerson)
-        ) {
 
-            $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
-            if ($tblDivisionStudentList) {
-                foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                    if ($tblDivisionStudent->getTblDivision()) {
-                        $divisionYear = $tblDivisionStudent->getTblDivision()->getServiceTblYear();
-                        if ($divisionYear && $divisionYear->getId() == $tblYear->getId()) {
-                            $tblDivisionList[] = $tblDivisionStudent->getTblDivision();
-                        }
+        $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
+        if ($tblDivisionStudentList) {
+            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                if ($tblDivisionStudent->getTblDivision()) {
+                    $divisionYear = $tblDivisionStudent->getTblDivision()->getServiceTblYear();
+                    if ($divisionYear && $divisionYear->getId() == $tblYear->getId()) {
+                        $tblDivisionList[] = $tblDivisionStudent->getTblDivision();
                     }
                 }
             }
