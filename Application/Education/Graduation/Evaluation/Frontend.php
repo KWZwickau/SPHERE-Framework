@@ -2094,6 +2094,11 @@ class Frontend extends Extension implements IFrontendInterface
                                         }
                                     }
                                 }
+                                // SSW-259
+                                if ($count == 0) {
+                                    $periodListCount[$tblPeriod->getId()] = 1;
+                                    $columnDefinition['Period' . $tblPeriod->getId()] = "";
+                                }
                                 $periodListCount[$tblPeriod->getId()] = $count;
                             } else {
                                 $periodListCount[$tblPeriod->getId()] = 1;
