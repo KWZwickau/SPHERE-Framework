@@ -133,8 +133,6 @@ abstract class Service extends AbstractService
             return $form;
         }
 
-//        Debugger::screenDump($MinimumGradeCount);
-
         $Error = false;
         if (isset($MinimumGradeCount['Count']) && empty($MinimumGradeCount['Count'])) {
             $form->setError('MinimumGradeCount[Count]', 'Bitte geben Sie eine Anzahl an');
@@ -163,20 +161,21 @@ abstract class Service extends AbstractService
                     $tblMinimumGradeCount->getCourse(),
                     $tblMinimumGradeCount->getCount()
                 );
-            } else {
-                $tblMinimumGradeCountList = $this->getMinimumGradeCountAllBy(
-                    $highlighted,
-                    $tblGradeType ? $tblGradeType : null,
-                    $MinimumGradeCount['Period'],
-                    $MinimumGradeCount['Course'],
-                    $MinimumGradeCount['Count']
-                );
-            }
 
-            // delete all by
-            if ($tblMinimumGradeCountList) {
-                (new Data($this->getBinding()))->destroyBulkMinimumGradeCountList($tblMinimumGradeCountList);
+                // delete all by nur bei update
+                if ($tblMinimumGradeCountList) {
+                    (new Data($this->getBinding()))->destroyBulkMinimumGradeCountList($tblMinimumGradeCountList);
+                }
             }
+//            else {
+//                $tblMinimumGradeCountList = $this->getMinimumGradeCountAllBy(
+//                    $highlighted,
+//                    $tblGradeType ? $tblGradeType : null,
+//                    $MinimumGradeCount['Period'],
+//                    $MinimumGradeCount['Course'],
+//                    $MinimumGradeCount['Count']
+//                );
+//            }
 
             (new Data($this->getBinding()))->createBulkMinimumGradeCountList(
                 $MinimumGradeCount,

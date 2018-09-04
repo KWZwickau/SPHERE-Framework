@@ -957,20 +957,21 @@ class Frontend extends FrontendScoreRule
                                 }
                             }
                         }
-                        $columnDefinition['PeriodAverage' . $tblPeriod->getId()] = '&#216;';
-                        $count++;
-                        if (isset($MinimumGradeCountSortedList[$countPeriod])) {
-                            /**@var TblMinimumGradeCount $tblMinimumGradeCount **/
-                            foreach ($MinimumGradeCountSortedList[$countPeriod] as $tblMinimumGradeCount) {
-                                $columnDefinition['MinimumGradeCount' . $tblMinimumGradeCount->getId()] = '#' . $countMinimumGradeCount++;
-                                $count++;
-                            }
-                        }
-                        $periodListCount[$tblPeriod->getId()] = $count;
                     } else {
-                        $periodListCount[$tblPeriod->getId()] = 1;
+                        $count++;
                         $columnDefinition['Period' . $tblPeriod->getId()] = "";
                     }
+
+                    $columnDefinition['PeriodAverage' . $tblPeriod->getId()] = '&#216;';
+                    $count++;
+                    if (isset($MinimumGradeCountSortedList[$countPeriod])) {
+                        /**@var TblMinimumGradeCount $tblMinimumGradeCount **/
+                        foreach ($MinimumGradeCountSortedList[$countPeriod] as $tblMinimumGradeCount) {
+                            $columnDefinition['MinimumGradeCount' . $tblMinimumGradeCount->getId()] = '#' . $countMinimumGradeCount++;
+                            $count++;
+                        }
+                    }
+                    $periodListCount[$tblPeriod->getId()] = $count;
                 }
             }
             $columnDefinition['YearAverage'] = '&#216;';
