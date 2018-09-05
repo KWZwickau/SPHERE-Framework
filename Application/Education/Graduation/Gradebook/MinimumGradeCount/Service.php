@@ -303,4 +303,36 @@ abstract class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getMinimumGradeCountAllBy($highlighted, $tblGradeType, $period, $course, $count);
     }
+
+    /**
+     * @param $Count
+     * @param TblLevel $tblLevel
+     * @param TblSubject|null $tblSubject
+     * @param TblGradeType|null $tblGradeType
+     * @param integer $Period
+     * @param integer $Highlighted
+     * @param $Course
+     *
+     * @return TblMinimumGradeCount
+     */
+    public function createMinimumGradeCount(
+        $Count,
+        TblLevel $tblLevel,
+        TblSubject $tblSubject = null,
+        TblGradeType $tblGradeType = null,
+        $Period,
+        $Highlighted,
+        $Course
+    ) {
+
+        return (new Data($this->getBinding()))->createMinimumGradeCount(
+            $Count,
+            $tblLevel,
+            $tblSubject,
+            $tblGradeType,
+            $Period,
+            $Highlighted,
+            $Course
+        );
+    }
 }
