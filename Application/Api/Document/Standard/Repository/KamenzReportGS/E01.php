@@ -12,11 +12,18 @@ use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 
+/**
+ * Class E01
+ *
+ * @package SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS
+ */
 class E01
 {
     public static function getContent()
     {
         $sliceList = array();
+
+        $left = '50%';
 
         $sliceList[] = (new Slice())
             ->styleTextBold()
@@ -38,7 +45,7 @@ class E01
                     ->setContent('Merkmal')
                     ->styleBorderRight()
                     ->stylePaddingTop('26.1px')
-                    ->stylePaddingBottom('26.1px'), '40%'
+                    ->stylePaddingBottom('26.1px'), $left
                 )
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
@@ -114,11 +121,11 @@ class E01
                 )
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Vorb.kl. u.<br/>-gr. f.<br/>Migranten')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '50%'
-                        )
+//                        ->addElementColumn((new Element())
+//                            ->setContent('Vorb.kl. u.<br/>-gr. f.<br/>Migranten')
+//                            ->styleBorderBottom()
+//                            ->styleBorderRight(), '50%'
+//                        )
                         ->addElementColumn((new Element())
                             ->setContent('Insgesamt')
                             ->styleTextBold()
@@ -128,14 +135,14 @@ class E01
                         )
                     )
                     ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight(), '25%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleBorderRight(), '25%'
-                        )
+//                        ->addElementColumn((new Element())
+//                            ->setContent('m')
+//                            ->styleBorderRight(), '25%'
+//                        )
+//                        ->addElementColumn((new Element())
+//                            ->setContent('w')
+//                            ->styleBorderRight(), '25%'
+//                        )
                         ->addElementColumn((new Element())
                             ->setContent('m')
                             ->styleTextBold()
@@ -145,7 +152,7 @@ class E01
                             ->setContent('w')
                             ->styleTextBold(), '25%'
                         )
-                    ), '20%'
+                    ), '10%'
                 )
             );
 
@@ -158,7 +165,7 @@ class E01
                 ->addElementColumn((new Element())
                     ->setContent('Schüler')
                     ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
+                    ->styleBorderRight(), $left
                 )
                 ->addElementColumn((new Element())
                     ->setContent('
@@ -240,26 +247,26 @@ class E01
                     ')
                     ->styleBorderRight(), '5%'
                 )
-                ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if (Content.E01.Student.Migration.m is not empty) %}
-                            {{ Content.E01.Student.Migration.m }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if (Content.E01.Student.Migration.w is not empty) %}
-                            {{ Content.E01.Student.Migration.w }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
-                    ->styleBorderRight(), '5%'
-                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('
+//                        {% if (Content.E01.Student.Migration.m is not empty) %}
+//                            {{ Content.E01.Student.Migration.m }}
+//                        {% else %}
+//                            &nbsp;
+//                        {% endif %}
+//                    ')
+//                    ->styleBorderRight(), '5%'
+//                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('
+//                        {% if (Content.E01.Student.Migration.w is not empty) %}
+//                            {{ Content.E01.Student.Migration.w }}
+//                        {% else %}
+//                            &nbsp;
+//                        {% endif %}
+//                    ')
+//                    ->styleBorderRight(), '5%'
+//                )
                 ->addElementColumn((new Element())
                     ->setContent('
                         {% if (Content.E01.Student.TotalCount.m is not empty) %}
@@ -294,7 +301,7 @@ class E01
                 ->addElementColumn((new Element())
                     ->setContent('Klassen')
                     ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
+                    ->styleBorderRight(), $left
                 )
                 ->addElementColumn((new Element())
                     ->setContent('
@@ -336,16 +343,16 @@ class E01
                     ')
                     ->styleBorderRight(), '10%'
                 )
-                ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if (Content.E01.Division.Migration is not empty) %}
-                            {{ Content.E01.Division.Migration }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
-                    ->styleBorderRight(), '10%'
-                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('
+//                        {% if (Content.E01.Division.Migration is not empty) %}
+//                            {{ Content.E01.Division.Migration }}
+//                        {% else %}
+//                            &nbsp;
+//                        {% endif %}
+//                    ')
+//                    ->styleBorderRight(), '10%'
+//                )
                 ->addElementColumn((new Element())
                     ->setContent('
                         {% if (Content.E01.Division.TotalCount is not empty) %}
@@ -360,75 +367,80 @@ class E01
                 )
             );
 
-//        $sliceList[] = (new Slice())
-//            ->styleAlignCenter()
-//            ->styleBorderBottom()
-//            ->styleBorderLeft()
-//            ->styleBorderRight()
-//            ->addSection((new Section())
+        $sliceList[] = (new Slice())
+            ->styleAlignCenter()
+            ->styleBorderBottom()
+            ->styleBorderLeft()
+            ->styleBorderRight()
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('Klassen jüU')
+                    ->styleBackgroundColor('lightgrey')
+                    ->styleBorderRight(), $left
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if (Content.E01.DivisionMixed.L1 is not empty) %}
+                            {{ Content.E01.DivisionMixed.L1 }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleBorderRight(), '10%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if (Content.E01.DivisionMixed.L2 is not empty) %}
+                            {{ Content.E01.DivisionMixed.L2 }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleBorderRight(), '10%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if (Content.E01.DivisionMixed.L3 is not empty) %}
+                            {{ Content.E01.DivisionMixed.L3 }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleBorderRight(), '10%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if (Content.E01.DivisionMixed.L4 is not empty) %}
+                            {{ Content.E01.DivisionMixed.L4 }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleBorderRight(), '10%'
+                )
 //                ->addElementColumn((new Element())
-//                    ->setContent('Gruppen')
-//                    ->styleBackgroundColor('lightgrey')
-//                    ->styleBorderRight(), '40%'
+//                    ->setContent('
+//                        {% if (Content.E01.DivisionMixed.Migration is not empty) %}
+//                            {{ Content.E01.DivisionMixed.Migration }}
+//                        {% else %}
+//                            &nbsp;
+//                        {% endif %}
+//                    ')
+//                    ->styleBorderRight(), '10%'
 //                )
-//                ->addElementColumn((new Element())
-//                    ->setContent('&nbsp;')
-//                    ->styleBackgroundColor('lightgrey')
-//                    ->styleBorderRight(), '5%'
-//                )
-//                ->addElementColumn((new Element())
-//                    ->setContent('&nbsp;')
-//                    ->styleBackgroundColor('lightgrey')
-//                    ->styleBorderRight(), '5%'
-//                )
-//                ->addElementColumn((new Element())
-//                    ->setContent('&nbsp;')
-//                    ->styleBackgroundColor('lightgrey')
-//                    ->styleBorderRight(), '5%'
-//                )
-//                ->addElementColumn((new Element())
-//                    ->setContent('&nbsp;')
-//                    ->styleBackgroundColor('lightgrey')
-//                    ->styleBorderRight(), '5%'
-//                )
-//                ->addElementColumn((new Element())
-//                    ->setContent('&nbsp;')
-//                    ->styleBackgroundColor('lightgrey')
-//                    ->styleBorderRight(), '5%'
-//                )
-//                ->addElementColumn((new Element())
-//                    ->setContent('&nbsp;')
-//                    ->styleBackgroundColor('lightgrey')
-//                    ->styleBorderRight(), '5%'
-//                )
-//                ->addElementColumn((new Element())
-//                    ->setContent('&nbsp;')
-//                    ->styleBackgroundColor('lightgrey')
-//                    ->styleBorderRight(), '5%'
-//                )
-//                ->addElementColumn((new Element())
-//                    ->setContent('&nbsp;')
-//                    ->styleBackgroundColor('lightgrey')
-//                    ->styleBorderRight(), '5%'
-//                )
-//                ->addElementColumn((new Element())
-//                    ->setContent('00')
-//                    ->styleBorderRight(), '5%'
-//                )
-//                ->addElementColumn((new Element())
-//                    ->setContent('00')
-//                    ->styleBorderRight(), '5%'
-//                )
-//                ->addElementColumn((new Element())
-//                    ->setContent('&nbsp;')
-//                    ->styleBackgroundColor('lightgrey')
-//                    ->styleBorderRight(), '5%'
-//                )
-//                ->addElementColumn((new Element())
-//                    ->setContent('&nbsp;')
-//                    ->styleBackgroundColor('lightgrey'), '5%'
-//                )
-//            );
+                ->addElementColumn((new Element())
+                    ->setContent('
+                        {% if (Content.E01.DivisionMixed.TotalCount is not empty) %}
+                            {{ Content.E01.DivisionMixed.TotalCount }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleTextBold()
+                    ->styleBackgroundColor('lightgrey')
+                    , '10%'
+                )
+            );
 
         return $sliceList;
     }

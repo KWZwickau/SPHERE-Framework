@@ -78,7 +78,7 @@ class D01
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('darunter aus dem Kindergarten und der Kindertagespflege')
+                            ->setContent('darunter aus den Kindertageseinrichtungen und der Kindertagespflege')
                             ->styleBorderBottom(), '70%'
                         )
                     )
@@ -99,7 +99,7 @@ class D01
                             )
                             ->addSection((new Section())
                                 ->addElementColumn((new Element())
-                                    ->setContent('fristgem. Einschulung (gem. §27 Abs. 1 SchulG)')
+                                    ->setContent('fristgemäße Einschulung (gemäß § 27 Absatz 1 SächsSchulG)')
                                     ->styleBorderBottom(), '90%'
                                 )
                             )

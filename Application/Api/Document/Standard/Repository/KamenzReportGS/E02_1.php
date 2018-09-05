@@ -1,23 +1,24 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: lehmann
- * Date: 23.06.2017
- * Time: 15:19
+ * User: Kauschke
+ * Date: 05.09.2018
+ * Time: 12:01
  */
 
 namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS;
+
 
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 
 /**
- * Class E02
+ * Class E02_1
  *
  * @package SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS
  */
-class E02
+class E02_1
 {
     public static function getContent()
     {
@@ -30,7 +31,9 @@ class E02
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E02. Schüler im Schuljahr {{ Content.SchoolYear.Current }} nach Geburtsjahren und Klassenstufen')
+                ->setContent('E02.1 Darunter <u>Schüler, deren Herkunftssprache nicht oder nicht ausschließlich Deutsch ist</u>, im </br> 
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Schuljahr
+                    {{ Content.SchoolYear.Current }} nach Geburtsjahren und Klassenstufen')
             );
 
         $sliceList[] = (new Slice())
@@ -162,8 +165,8 @@ class E02
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.E02.Y' . $i . '.YearName is not empty) %}
-                                {{ Content.E02.Y' . $i . '.YearName }}
+                            {% if (Content.E02_1.Y' . $i . '.YearName is not empty) %}
+                                {{ Content.E02_1.Y' . $i . '.YearName }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -175,8 +178,8 @@ class E02
                 $section
                     ->addElementColumn((new Element())
                         ->setContent('
-                            {% if (Content.E02.Y' . $i . '.L' . $level . '.m is not empty) %}
-                                {{ Content.E02.Y' . $i . '.L' . $level . '.m }}
+                            {% if (Content.E02_1.Y' . $i . '.L' . $level . '.m is not empty) %}
+                                {{ Content.E02_1.Y' . $i . '.L' . $level . '.m }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -185,8 +188,8 @@ class E02
                     )
                     ->addElementColumn((new Element())
                         ->setContent('
-                            {% if (Content.E02.Y' . $i . '.L' . $level . '.w is not empty) %}
-                                {{ Content.E02.Y' . $i . '.L' . $level . '.w }}
+                            {% if (Content.E02_1.Y' . $i . '.L' . $level . '.w is not empty) %}
+                                {{ Content.E02_1.Y' . $i . '.L' . $level . '.w }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -198,8 +201,8 @@ class E02
             $section
 //                ->addElementColumn((new Element())
 //                    ->setContent('
-//                            {% if (Content.E02.Y' . $i . '.LMigration.m is not empty) %}
-//                                {{ Content.E02.Y' . $i . '.LMigration.m }}
+//                            {% if (Content.E02_1.Y' . $i . '.LMigration.m is not empty) %}
+//                                {{ Content.E02_1.Y' . $i . '.LMigration.m }}
 //                            {% else %}
 //                                &nbsp;
 //                            {% endif %}
@@ -209,8 +212,8 @@ class E02
 //                )
 //                ->addElementColumn((new Element())
 //                    ->setContent('
-//                            {% if (Content.E02.Y' . $i . '.LMigration.w is not empty) %}
-//                                {{ Content.E02.Y' . $i . '.LMigration.w }}
+//                            {% if (Content.E02_1.Y' . $i . '.LMigration.w is not empty) %}
+//                                {{ Content.E02_1.Y' . $i . '.LMigration.w }}
 //                            {% else %}
 //                                &nbsp;
 //                            {% endif %}
@@ -220,8 +223,8 @@ class E02
 //                )
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.E02.Y' . $i . '.m is not empty) %}
-                                {{ Content.E02.Y' . $i . '.m }}
+                            {% if (Content.E02_1.Y' . $i . '.m is not empty) %}
+                                {{ Content.E02_1.Y' . $i . '.m }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -232,8 +235,8 @@ class E02
                 )
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.E02.Y' . $i . '.w is not empty) %}
-                                {{ Content.E02.Y' . $i . '.w }}
+                            {% if (Content.E02_1.Y' . $i . '.w is not empty) %}
+                                {{ Content.E02_1.Y' . $i . '.w }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -266,8 +269,8 @@ class E02
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.E02.TotalCount.L' . $level . '.m is not empty) %}
-                                {{ Content.E02.TotalCount.L' . $level . '.m }}
+                            {% if (Content.E02_1.TotalCount.L' . $level . '.m is not empty) %}
+                                {{ Content.E02_1.TotalCount.L' . $level . '.m }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -276,8 +279,8 @@ class E02
                 )
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.E02.TotalCount.L' . $level . '.w is not empty) %}
-                                {{ Content.E02.TotalCount.L' . $level . '.w }}
+                            {% if (Content.E02_1.TotalCount.L' . $level . '.w is not empty) %}
+                                {{ Content.E02_1.TotalCount.L' . $level . '.w }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -289,8 +292,8 @@ class E02
         $section
 //            ->addElementColumn((new Element())
 //                ->setContent('
-//                            {% if (Content.E02.TotalCount.LMigration.m is not empty) %}
-//                                {{ Content.E02.TotalCount.LMigration.m }}
+//                            {% if (Content.E02_1.TotalCount.LMigration.m is not empty) %}
+//                                {{ Content.E02_1.TotalCount.LMigration.m }}
 //                            {% else %}
 //                                &nbsp;
 //                            {% endif %}
@@ -300,8 +303,8 @@ class E02
 //            )
 //            ->addElementColumn((new Element())
 //                ->setContent('
-//                            {% if (Content.E02.TotalCount.LMigration.w is not empty) %}
-//                                {{ Content.E02.TotalCount.LMigration.w }}
+//                            {% if (Content.E02_1.TotalCount.LMigration.w is not empty) %}
+//                                {{ Content.E02_1.TotalCount.LMigration.w }}
 //                            {% else %}
 //                                &nbsp;
 //                            {% endif %}
@@ -311,8 +314,8 @@ class E02
 //            )
             ->addElementColumn((new Element())
                 ->setContent('
-                            {% if (Content.E02.TotalCount.m is not empty) %}
-                                {{ Content.E02.TotalCount.m }}
+                            {% if (Content.E02_1.TotalCount.m is not empty) %}
+                                {{ Content.E02_1.TotalCount.m }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
@@ -322,8 +325,8 @@ class E02
             )
             ->addElementColumn((new Element())
                 ->setContent('
-                            {% if (Content.E02.TotalCount.w is not empty) %}
-                                {{ Content.E02.TotalCount.w }}
+                            {% if (Content.E02_1.TotalCount.w is not empty) %}
+                                {{ Content.E02_1.TotalCount.w }}
                             {% else %}
                                 &nbsp;
                             {% endif %}
