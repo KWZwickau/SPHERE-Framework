@@ -18,6 +18,7 @@ use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS\E04;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS\E04_1;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS\E05;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS\E07;
+use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS\F01;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS\G01;
 use SPHERE\Application\Document\Generator\Repository\Document;
 use SPHERE\Application\Document\Generator\Repository\Frame;
@@ -46,23 +47,26 @@ class KamenzReportGS extends AbstractDocument
     public function buildDocument($pageList = array())
     {
         return (new Frame())->addDocument((new Document())
-            ->addPage((new Page())
-                ->addSliceArray(D01::getContent())
-            )
-            ->addPage((new Page())
-                ->addSliceArray(E01::getContent())
-                ->addSliceArray(E02::getContent())
-                ->addSliceArray(E02_1::getContent())
-            )
-            ->addPage((new Page())
-                ->addSliceArray(E03::getContent())
-            )
-            ->addPage((new Page())
-                ->addSliceArray(E04::getContent())
-                ->addSliceArray(E04_1::getContent())
-                ->addSliceArray(E05::getContent())
-                ->addSliceArray(E07::getContent())
-            )
+//            ->addPage((new Page())
+//                ->addSliceArray(D01::getContent())
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(E01::getContent())
+//                ->addSliceArray(E02::getContent())
+//                ->addSliceArray(E02_1::getContent())
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(E03::getContent())
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(E04::getContent())
+//                ->addSliceArray(E04_1::getContent())
+//                ->addSliceArray(E05::getContent())
+//                ->addSliceArray(E07::getContent())
+//            )
+//            ->addPage((new Page())
+//                ->addSliceArray(F01::getContent())
+//            )
             ->addPage((new Page())
                 ->addSliceArray(G01::getContent())
             )

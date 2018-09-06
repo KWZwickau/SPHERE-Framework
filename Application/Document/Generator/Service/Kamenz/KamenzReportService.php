@@ -134,11 +134,9 @@ class KamenzReportService
 
                                     self::setRepeatersOs($tblPerson, $tblLevel, $tblDivision, $Content, $gender);
 
-                                    if ($tblStudent) {
-                                        self::setStudentFocus($tblStudent, $tblLevel, $Content, $gender,
-                                            $hasMigrationBackground,
-                                            $isInPreparationDivisionForMigrants);
-                                    }
+                                    self::setStudentFocus($tblPerson, $tblLevel, $Content, $gender,
+                                        $hasMigrationBackground,
+                                        $isInPreparationDivisionForMigrants);
 
                                     // get last Level
                                     self::setSchoolTypeLastYear($Content, $tblPastYearList, $tblPerson, $tblCourse,
@@ -265,6 +263,9 @@ class KamenzReportService
                                             $year
                                         );
 
+                                        self::setStudentFocus($tblPerson, $tblLevel, $Content, $gender,
+                                            $hasMigrationBackground,
+                                            $isInPreparationDivisionForMigrants);
                                     } else {
                                         if (isset($countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()])) {
                                             $countReligionArray['ZZ_Keine_Teilnahme'][$tblLevel->getName()]++;
@@ -390,7 +391,7 @@ class KamenzReportService
                                         $countProfileArray = self::countProfile($tblStudent, $tblLevel, $gender,
                                             $countProfileArray);
 
-                                        self::setStudentFocus($tblStudent, $tblLevel, $Content, $gender,
+                                        self::setStudentFocus($tblPerson, $tblLevel, $Content, $gender,
                                             $hasMigrationBackground,
                                             $isInPreparationDivisionForMigrants);
 
@@ -537,7 +538,7 @@ class KamenzReportService
      * F01. Integrierte Schüler mit sonderpädagogischem Förderbedarf im Schuljahr 2016/17 nach
      * Förderschwerpunkten und Klassenstufen
      *
-     * @param TblStudent $tblStudent
+     * @param TblPerson $tblPerson
      * @param TblLevel $tblLevel
      * @param $Content
      * @param $gender
@@ -545,101 +546,123 @@ class KamenzReportService
      * @param $isInPreparationDivisionForMigrants
      */
     private static function setStudentFocus(
-        TblStudent $tblStudent,
+        TblPerson $tblPerson,
         TblLevel $tblLevel,
         &$Content,
         $gender,
         $hasMigrationBackground,
         $isInPreparationDivisionForMigrants
     ) {
-        if (($tblStudentFocus = Student::useService()->getStudentFocusPrimary($tblStudent))
-            && ($tblStudentFocusType = $tblStudentFocus->getTblStudentFocusType())
+
+        if (($tblSupportType = Student::useService()->getSupportTypeByName('Förderbescheid'))
+            && ($tblSupportList = Student::useService()->getSupportAllByPersonAndSupportType($tblPerson, $tblSupportType))
         ) {
 
-            $name = preg_replace('/[^a-zA-Z]/', '', $tblStudentFocusType->getName());
-
-            /**
-             * Schüler
-             */
-            if (isset($Content['F01'][$name]['Student']['L' . $tblLevel->getName()][$gender])) {
-                $Content['F01'][$name]['Student']['L' . $tblLevel->getName()][$gender]++;
-            } else {
-                $Content['F01'][$name]['Student']['L' . $tblLevel->getName()][$gender] = 1;
-            }
-            if ($isInPreparationDivisionForMigrants) {
-                if (isset($Content['F01'][$name]['Student']['IsInPreparationDivisionForMigrants'][$gender])) {
-                    $Content['F01'][$name]['Student']['IsInPreparationDivisionForMigrants'][$gender]++;
-                } else {
-                    $Content['F01'][$name]['Student']['IsInPreparationDivisionForMigrants'][$gender] = 1;
-                }
-            }
-            if (isset($Content['F01'][$name]['Student']['TotalCount'][$gender])) {
-                $Content['F01'][$name]['Student']['TotalCount'][$gender]++;
-            } else {
-                $Content['F01'][$name]['Student']['TotalCount'][$gender] = 1;
-            }
-            if (isset($Content['F01']['TotalCount']['Student']['TotalCount'][$gender])) {
-                $Content['F01']['TotalCount']['Student']['TotalCount'][$gender]++;
-            } else {
-                $Content['F01']['TotalCount']['Student']['TotalCount'][$gender] = 1;
-            }
-
-            /**
-             * Schüler mit Migrationshintergrund
-             */
-            if ($hasMigrationBackground) {
-                if (isset($Content['F01'][$name]['HasMigrationBackground']['L' . $tblLevel->getName()][$gender])) {
-                    $Content['F01'][$name]['HasMigrationBackground']['L' . $tblLevel->getName()][$gender]++;
-                } else {
-                    $Content['F01'][$name]['HasMigrationBackground']['L' . $tblLevel->getName()][$gender] = 1;
-                }
-                if ($isInPreparationDivisionForMigrants) {
-                    if (isset($Content['F01'][$name]['HasMigrationBackground']['IsInPreparationDivisionForMigrants'][$gender])) {
-                        $Content['F01'][$name]['HasMigrationBackground']['IsInPreparationDivisionForMigrants'][$gender]++;
-                    } else {
-                        $Content['F01'][$name]['HasMigrationBackground']['IsInPreparationDivisionForMigrants'][$gender] = 1;
-                    }
-                }
-                if (isset($Content['F01'][$name]['HasMigrationBackground']['TotalCount'][$gender])) {
-                    $Content['F01'][$name]['HasMigrationBackground']['TotalCount'][$gender]++;
-                } else {
-                    $Content['F01'][$name]['HasMigrationBackground']['TotalCount'][$gender] = 1;
-                }
-                if (isset($Content['F01']['TotalCount']['HasMigrationBackground']['TotalCount'][$gender])) {
-                    $Content['F01']['TotalCount']['HasMigrationBackground']['TotalCount'][$gender]++;
-                } else {
-                    $Content['F01']['TotalCount']['HasMigrationBackground']['TotalCount'][$gender] = 1;
-                }
-            }
-
-            /**
-             * Schüler mit gutachterl. best. Autismus
-             */
-            if (($tblStudentDisorderTypeAutism = Student::useService()->getStudentDisorderTypeByName('Autismus'))
-                && ($tblStudentDisorder = Student::useService()->getStudentDisorder($tblStudent,
-                    $tblStudentDisorderTypeAutism))
+            if (($tblSupport = reset($tblSupportList))
+                && ($tblSupportFocus = Student::useService()->getSupportPrimaryFocusBySupport($tblSupport))
+                && ($tblSupportFocusType = $tblSupportFocus->getTblSupportFocusType())
             ) {
-                if (isset($Content['F01'][$name]['Autism']['L' . $tblLevel->getName()][$gender])) {
-                    $Content['F01'][$name]['Autism']['L' . $tblLevel->getName()][$gender]++;
+                $name = preg_replace('/[^a-zA-Z]/', '', $tblSupportFocusType->getName());
+
+                /**
+                 * Schüler
+                 */
+                if (isset($Content['F01'][$name]['Student']['L' . $tblLevel->getName()][$gender])) {
+                    $Content['F01'][$name]['Student']['L' . $tblLevel->getName()][$gender]++;
                 } else {
-                    $Content['F01'][$name]['Autism']['L' . $tblLevel->getName()][$gender] = 1;
+                    $Content['F01'][$name]['Student']['L' . $tblLevel->getName()][$gender] = 1;
                 }
                 if ($isInPreparationDivisionForMigrants) {
-                    if (isset($Content['F01'][$name]['Autism']['IsInPreparationDivisionForMigrants'][$gender])) {
-                        $Content['F01'][$name]['Autism']['IsInPreparationDivisionForMigrants'][$gender]++;
+                    if (isset($Content['F01'][$name]['Student']['IsInPreparationDivisionForMigrants'][$gender])) {
+                        $Content['F01'][$name]['Student']['IsInPreparationDivisionForMigrants'][$gender]++;
                     } else {
-                        $Content['F01'][$name]['Autism']['IsInPreparationDivisionForMigrants'][$gender] = 1;
+                        $Content['F01'][$name]['Student']['IsInPreparationDivisionForMigrants'][$gender] = 1;
                     }
                 }
-                if (isset($Content['F01'][$name]['Autism']['TotalCount'][$gender])) {
-                    $Content['F01'][$name]['Autism']['TotalCount'][$gender]++;
+                if (isset($Content['F01'][$name]['Student']['TotalCount'][$gender])) {
+                    $Content['F01'][$name]['Student']['TotalCount'][$gender]++;
                 } else {
-                    $Content['F01'][$name]['Autism']['TotalCount'][$gender] = 1;
+                    $Content['F01'][$name]['Student']['TotalCount'][$gender] = 1;
                 }
-                if (isset($Content['F01']['TotalCount']['Autism']['TotalCount'][$gender])) {
-                    $Content['F01']['TotalCount']['Autism']['TotalCount'][$gender]++;
+                if (isset($Content['F01']['TotalCount']['Student']['TotalCount'][$gender])) {
+                    $Content['F01']['TotalCount']['Student']['TotalCount'][$gender]++;
                 } else {
-                    $Content['F01']['TotalCount']['Autism']['TotalCount'][$gender] = 1;
+                    $Content['F01']['TotalCount']['Student']['TotalCount'][$gender] = 1;
+                }
+
+                /**
+                 * Schüler mit Migrationshintergrund
+                 */
+                if ($hasMigrationBackground) {
+                    if (isset($Content['F01'][$name]['HasMigrationBackground']['L' . $tblLevel->getName()][$gender])) {
+                        $Content['F01'][$name]['HasMigrationBackground']['L' . $tblLevel->getName()][$gender]++;
+                    } else {
+                        $Content['F01'][$name]['HasMigrationBackground']['L' . $tblLevel->getName()][$gender] = 1;
+                    }
+                    if ($isInPreparationDivisionForMigrants) {
+                        if (isset($Content['F01'][$name]['HasMigrationBackground']['IsInPreparationDivisionForMigrants'][$gender])) {
+                            $Content['F01'][$name]['HasMigrationBackground']['IsInPreparationDivisionForMigrants'][$gender]++;
+                        } else {
+                            $Content['F01'][$name]['HasMigrationBackground']['IsInPreparationDivisionForMigrants'][$gender] = 1;
+                        }
+                    }
+                    if (isset($Content['F01'][$name]['HasMigrationBackground']['TotalCount'][$gender])) {
+                        $Content['F01'][$name]['HasMigrationBackground']['TotalCount'][$gender]++;
+                    } else {
+                        $Content['F01'][$name]['HasMigrationBackground']['TotalCount'][$gender] = 1;
+                    }
+                    if (isset($Content['F01']['TotalCount']['HasMigrationBackground']['TotalCount'][$gender])) {
+                        $Content['F01']['TotalCount']['HasMigrationBackground']['TotalCount'][$gender]++;
+                    } else {
+                        $Content['F01']['TotalCount']['HasMigrationBackground']['TotalCount'][$gender] = 1;
+                    }
+                }
+
+                /**
+                 * Schüler mit gutachterl. best. Autismus
+                 */
+                if (($tblSpecialList = Student::useService()->getSpecialByPerson($tblPerson))) {
+
+                    $hasAutism = false;
+                    foreach ($tblSpecialList as $tblSpecial) {
+                        if (($tblSpecialDisorderTypeList = Student::useService()->getSpecialDisorderTypeAllBySpecial($tblSpecial))) {
+                            foreach ($tblSpecialDisorderTypeList as $tblSpecialDisorderType) {
+                                if ($tblSpecialDisorderType->getName() == 'Störungen aus dem Autismusspektrum') {
+                                    $hasAutism = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if ($hasAutism) {
+                            break;
+                        }
+                    }
+
+                    if ($hasAutism) {
+                        if (isset($Content['F01'][$name]['Autism']['L' . $tblLevel->getName()][$gender])) {
+                            $Content['F01'][$name]['Autism']['L' . $tblLevel->getName()][$gender]++;
+                        } else {
+                            $Content['F01'][$name]['Autism']['L' . $tblLevel->getName()][$gender] = 1;
+                        }
+                        if ($isInPreparationDivisionForMigrants) {
+                            if (isset($Content['F01'][$name]['Autism']['IsInPreparationDivisionForMigrants'][$gender])) {
+                                $Content['F01'][$name]['Autism']['IsInPreparationDivisionForMigrants'][$gender]++;
+                            } else {
+                                $Content['F01'][$name]['Autism']['IsInPreparationDivisionForMigrants'][$gender] = 1;
+                            }
+                        }
+                        if (isset($Content['F01'][$name]['Autism']['TotalCount'][$gender])) {
+                            $Content['F01'][$name]['Autism']['TotalCount'][$gender]++;
+                        } else {
+                            $Content['F01'][$name]['Autism']['TotalCount'][$gender] = 1;
+                        }
+                        if (isset($Content['F01']['TotalCount']['Autism']['TotalCount'][$gender])) {
+                            $Content['F01']['TotalCount']['Autism']['TotalCount'][$gender]++;
+                        } else {
+                            $Content['F01']['TotalCount']['Autism']['TotalCount'][$gender] = 1;
+                        }
+                    }
                 }
             }
         }
