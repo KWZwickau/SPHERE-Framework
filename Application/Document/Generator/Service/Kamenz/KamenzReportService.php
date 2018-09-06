@@ -179,6 +179,8 @@ class KamenzReportService
 
         self::setYears($Content, $tblCurrentYearList, $tblPastYearList, $year);
 
+        self::setRepeatersFromCertificates($Content, $tblPastYearList, $tblKamenzSchoolType);
+
         /**
          * B
          */
@@ -308,7 +310,7 @@ class KamenzReportService
 
         self::setYears($Content, $tblCurrentYearList, $tblPastYearList);
 
-        self::setRepeatersFromCertificates($Content, $tblPastYearList);
+        self::setRepeatersFromCertificates($Content, $tblPastYearList, $tblKamenzSchoolType);
 
         if ($tblCurrentYearList) {
             $countArray = array();
@@ -467,11 +469,10 @@ class KamenzReportService
     }
 
     /**
-     * Nur für Gymnasium!
      * @param $Content
      * @param $tblPastYearList
      */
-    private static function setRepeatersFromCertificates(&$Content, $tblPastYearList)
+    private static function setRepeatersFromCertificates(&$Content, $tblPastYearList, TblType $tblKamenzSchoolType)
     {
 
         if ($tblPastYearList) {
@@ -486,16 +487,23 @@ class KamenzReportService
                                 if (($tblDivision = $tblPrepare->getServiceTblDivision())
                                     && ($tblLevel = $tblDivision->getTblLevel())
                                     && ($tblSchoolType = $tblLevel->getServiceTblType())
-                                    && $tblSchoolType->getName() == 'Gymnasium'
+                                    && $tblSchoolType->getId() == $tblKamenzSchoolType->getId()
                                     && ($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPrepare($tblPrepare))
                                 ) {
                                     foreach ($tblPrepareStudentList as $tblPrepareStudent) {
                                         if ($tblPrepareStudent->isPrinted()
                                             && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
-                                            && ($tblPrepareInformation = Prepare::useService()->getPrepareInformationBy(
-                                                $tblPrepare, $tblPerson, 'Transfer'
-                                            ))
-                                            && $tblPrepareInformation->getValue() == 'wird nicht versetzt'
+                                            && ((($tblPrepareInformationTransfer = Prepare::useService()->getPrepareInformationBy(
+                                                        $tblPrepare, $tblPerson, 'Transfer'
+                                                    ))
+                                                    && (strpos($tblPrepareInformationTransfer->getValue(),
+                                                            'nicht versetzt') !== false))
+                                                || (($tblPrepareInformationIndividualTransfer = Prepare::useService()->getPrepareInformationBy(
+                                                        $tblPrepare, $tblPerson, 'IndividualTransfer'
+                                                    ))
+                                                    && (strpos($tblPrepareInformationIndividualTransfer->getValue(),
+                                                            'nicht versetzt') !== false))
+                                            )
                                         ) {
 
                                             $gender = 'x';
