@@ -23,7 +23,8 @@ class E04
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E04. Schüler mit der ersten Fremdsprache im Schuljahr {{Content.SchoolYear.Current}} nach Klassenstufen')
+                ->setContent('E04. Schüler mit der ersten Fremdsprache im Schuljahr {{Content.SchoolYear.Current}} 
+                    nach Fremdsprachen und Klassenstufen')
             );
 
         $sliceList[] = (new Slice())
@@ -38,7 +39,7 @@ class E04
                     ->setContent('Fremdsprache')
                     ->styleBorderRight()
                     ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '30%'
+                    ->stylePaddingBottom('8.5px'), '20%'
                 )
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
@@ -76,10 +77,18 @@ class E04
                     ), '60%'
                 )
                 ->addElementColumn((new Element())
+                    ->setContent('Sonderkl.')
+                    ->stylePaddingTop('8.5px')
+                    ->stylePaddingBottom('8.5px')
+                    ->styleBorderRight()
+                    , '10%'
+                )
+                ->addElementColumn((new Element())
                     ->setContent('Insgesamt')
                     ->styleTextBold()
                     ->stylePaddingTop('8.5px')
-                    ->stylePaddingBottom('8.5px'), '10%'
+                    ->stylePaddingBottom('8.5px')
+                    , '10%'
                 )
             );
 
@@ -94,7 +103,7 @@ class E04
                                 &nbsp;
                             {% endif %}
                         ')
-                ->styleBorderRight(), '30%'
+                ->styleBorderRight(), '20%'
             );
             for ($level = 5; $level <= 10; $level++) {
                 $section
@@ -109,6 +118,12 @@ class E04
                         ->styleBorderRight(), '10%'
                     );
             }
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderRight()
+                    , '10%'
+                );
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
