@@ -24,10 +24,9 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
- * Created by PhpStorm.
- * User: lehmann
- * Date: 23.06.2017
- * Time: 10:05
+ * Class KamenzReportService
+ *
+ * @package SPHERE\Application\Document\Generator\Service\Kamenz
  */
 class KamenzReportService
 {
@@ -51,7 +50,7 @@ class KamenzReportService
         /**
          * B
          */
-        self::setGraduate($tblPastYearList, $Content);
+        self::setGraduate($tblPastYearList, $Content, $tblKamenzSchoolType);
 
         if ($tblCurrentYearList) {
             $countArray = array();
@@ -180,11 +179,6 @@ class KamenzReportService
         self::setYears($Content, $tblCurrentYearList, $tblPastYearList, $year);
 
         self::setRepeatersFromCertificates($Content, $tblPastYearList, $tblKamenzSchoolType);
-
-        /**
-         * B
-         */
-        self::setGraduate($tblPastYearList, $Content);
 
         if ($tblCurrentYearList) {
             $countArray = array();
@@ -471,6 +465,7 @@ class KamenzReportService
     /**
      * @param $Content
      * @param $tblPastYearList
+     * @param TblType $tblKamenzSchoolType
      */
     private static function setRepeatersFromCertificates(&$Content, $tblPastYearList, TblType $tblKamenzSchoolType)
     {
@@ -1874,30 +1869,152 @@ class KamenzReportService
     /**
      * @param $tblPastYearList
      * @param $Content
+     * @param TblType $tblKamenzSchoolType
      */
     private static function setGraduate(
         $tblPastYearList,
-        &$Content
+        &$Content,
+        TblType $tblKamenzSchoolType
     ) {
         if ($tblPastYearList) {
             $countArray = array();
+
+            // Abgangszeugnisse
+            if (($tblLeaveStudentList = Prepare::useService()->getLeaveStudentAllBy(true, true))) {
+                foreach ($tblLeaveStudentList as $tblLeaveStudent) {
+                    $isLeave = false;
+                    if (($tblDivision = $tblLeaveStudent->getServiceTblDivision())
+                        && ($tblLevel = $tblDivision->getTblLevel())
+                        && ($tblSchoolType = $tblLevel->getServiceTblType())
+                        && $tblSchoolType->getId() == $tblKamenzSchoolType->getId()
+                        && ($tblYear = $tblDivision->getServiceTblYear())
+                    ) {
+                        /** @var TblYear $tblPastYear */
+                        foreach ($tblPastYearList as $tblPastYear) {
+                            if ($tblPastYear->getId() == $tblYear->getId()) {
+                                $isLeave = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if ($isLeave
+                        && ($tblPerson = $tblLeaveStudent->getServiceTblPerson())
+                        && $tblLevel
+                    ) {
+                        $certificate = $tblLevel->getName();
+
+                        $hasMigrationBackground = false;
+                        if (($tblStudent = $tblPerson->getStudent())
+                            && $tblStudent->getHasMigrationBackground()
+                        ) {
+                            $hasMigrationBackground = true;
+                        }
+
+                        if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))
+                            && (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates()))
+                            && ($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())
+                            && ($birthDay = $tblCommonBirthDates->getBirthday())
+                        ) {
+
+                            if ($tblCommonGender->getName() == 'Männlich') {
+                                $gender = 'm';
+                            } elseif ($tblCommonGender->getName() == 'Weiblich') {
+                                $gender = 'w';
+                            } else {
+                                $gender = 'x';
+                            }
+
+                            $birthDayDate = new \DateTime($birthDay);
+                            if ($birthDayDate) {
+                                $birthYear = $birthDayDate->format('Y');
+                            } else {
+                                $birthYear = false;
+                            }
+
+                            if (isset($Content['B01']['Leave']['L' . $certificate][$gender])) {
+                                $Content['B01']['Leave']['L' . $certificate][$gender]++;
+                            } else {
+                                $Content['B01']['Leave']['L' . $certificate][$gender] = 1;
+                            }
+                            if (isset($Content['B01']['Leave']['TotalCount'][$gender])) {
+                                $Content['B01']['Leave']['TotalCount'][$gender]++;
+                            } else {
+                                $Content['B01']['Leave']['TotalCount'][$gender] = 1;
+                            }
+                            if (isset($Content['B01']['TotalCount']['L' . $certificate][$gender])) {
+                                $Content['B01']['TotalCount']['L' . $certificate][$gender]++;
+                            } else {
+                                $Content['B01']['TotalCount']['L' . $certificate][$gender] = 1;
+                            }
+                            if (isset($Content['B01']['TotalCount'][$gender])) {
+                                $Content['B01']['TotalCount'][$gender] += 1;
+                            } else {
+                                $Content['B01']['TotalCount'][$gender] = 1;
+                            }
+
+                            /**
+                             * B02
+                             */
+                            if ($birthYear) {
+                                if (isset($countArray[$birthYear]['Leave'][$gender])) {
+                                    $countArray[$birthYear]['Leave'][$gender]++;
+                                } else {
+                                    $countArray[$birthYear]['Leave'][$gender] = 1;
+                                }
+                            }
+
+                            /**
+                             * B01.1
+                             */
+                            if ($hasMigrationBackground) {
+                                if (isset($Content['B01_1']['Leave']['L' . $certificate][$gender])) {
+                                    $Content['B01_1']['Leave']['L' . $certificate][$gender]++;
+                                } else {
+                                    $Content['B01_1']['Leave']['L' . $certificate][$gender] = 1;
+                                }
+                                if (isset($Content['B01_1']['Leave']['TotalCount'][$gender])) {
+                                    $Content['B01_1']['Leave']['TotalCount'][$gender]++;
+                                } else {
+                                    $Content['B01_1']['Leave']['TotalCount'][$gender] = 1;
+                                }
+                                if (isset($Content['B01_1']['TotalCount']['L' . $certificate][$gender])) {
+                                    $Content['B01_1']['TotalCount']['L' . $certificate][$gender]++;
+                                } else {
+                                    $Content['B01_1']['TotalCount']['L' . $certificate][$gender] = 1;
+                                }
+                                if (isset($Content['B01_1']['TotalCount'][$gender])) {
+                                    $Content['B01_1']['TotalCount'][$gender] += 1;
+                                } else {
+                                    $Content['B01_1']['TotalCount'][$gender] = 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             foreach ($tblPastYearList as $tblPastYear) {
                 if (($tblGenerateCertificateList = Generate::useService()->getGenerateCertificateAllByYear($tblPastYear))) {
                     foreach ($tblGenerateCertificateList as $tblGenerateCertificate) {
                         if (($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
-                            && ($tblCertificateType->getIdentifier() == 'LEAVE'
-                                || $tblCertificateType->getIdentifier() == 'DIPLOMA')
+                            && (
+//                              $tblCertificateType->getIdentifier() == 'LEAVE' ||
+                                $tblCertificateType->getIdentifier() == 'DIPLOMA')
                             && (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate)))
                         ) {
 
                             foreach ($tblPrepareList as $tblPrepare) {
-                                if (($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPrepare($tblPrepare))) {
+                                if (($tblDivision = $tblPrepare->getServiceTblDivision())
+                                    && ($tblLevel = $tblDivision->getTblLevel())
+                                    && ($tblSchoolType = $tblLevel->getServiceTblType())
+                                    && $tblSchoolType->getId() == $tblKamenzSchoolType->getId()
+                                    && ($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPrepare($tblPrepare))
+                                ) {
                                     foreach ($tblPrepareStudentList as $tblPrepareStudent) {
                                         if ($tblPrepareStudent->isPrinted()
                                             && ($tblPerson = $tblPrepareStudent->getServiceTblPerson())
                                             && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())
-                                            && ($tblDivision = $tblPrepare->getServiceTblDivision())
-                                            && ($tblLevel = $tblDivision->getTblLevel())
                                         ) {
 
                                             $certificate = $tblLevel->getName();
@@ -1930,67 +2047,67 @@ class KamenzReportService
                                                     $birthYear = false;
                                                 }
 
-                                                if ($tblCertificateType->getIdentifier() == 'LEAVE') {
-
-                                                    if (isset($Content['B01']['Leave']['L' . $certificate][$gender])) {
-                                                        $Content['B01']['Leave']['L' . $certificate][$gender]++;
-                                                    } else {
-                                                        $Content['B01']['Leave']['L' . $certificate][$gender] = 1;
-                                                    }
-                                                    if (isset($Content['B01']['Leave']['TotalCount'][$gender])) {
-                                                        $Content['B01']['Leave']['TotalCount'][$gender]++;
-                                                    } else {
-                                                        $Content['B01']['Leave']['TotalCount'][$gender] = 1;
-                                                    }
-                                                    if (isset($Content['B01']['TotalCount']['L' . $certificate][$gender])) {
-                                                        $Content['B01']['TotalCount']['L' . $certificate][$gender]++;
-                                                    } else {
-                                                        $Content['B01']['TotalCount']['L' . $certificate][$gender] = 1;
-                                                    }
-                                                    if (isset($Content['B01']['TotalCount'][$gender])) {
-                                                        $Content['B01']['TotalCount'][$gender] += 1;
-                                                    } else {
-                                                        $Content['B01']['TotalCount'][$gender] = 1;
-                                                    }
-
-                                                    /**
-                                                     * B02
-                                                     */
-                                                    if ($birthYear) {
-                                                        if (isset($countArray[$birthYear]['Leave'][$gender])) {
-                                                            $countArray[$birthYear]['Leave'][$gender]++;
-                                                        } else {
-                                                            $countArray[$birthYear]['Leave'][$gender] = 1;
-                                                        }
-                                                    }
-
-                                                    /**
-                                                     * B01.1
-                                                     */
-                                                    if ($hasMigrationBackground) {
-                                                        if (isset($Content['B01_1']['Leave']['L' . $certificate][$gender])) {
-                                                            $Content['B01_1']['Leave']['L' . $certificate][$gender]++;
-                                                        } else {
-                                                            $Content['B01_1']['Leave']['L' . $certificate][$gender] = 1;
-                                                        }
-                                                        if (isset($Content['B01_1']['Leave']['TotalCount'][$gender])) {
-                                                            $Content['B01_1']['Leave']['TotalCount'][$gender]++;
-                                                        } else {
-                                                            $Content['B01_1']['Leave']['TotalCount'][$gender] = 1;
-                                                        }
-                                                        if (isset($Content['B01_1']['TotalCount']['L' . $certificate][$gender])) {
-                                                            $Content['B01_1']['TotalCount']['L' . $certificate][$gender]++;
-                                                        } else {
-                                                            $Content['B01_1']['TotalCount']['L' . $certificate][$gender] = 1;
-                                                        }
-                                                        if (isset($Content['B01_1']['TotalCount'][$gender])) {
-                                                            $Content['B01_1']['TotalCount'][$gender] += 1;
-                                                        } else {
-                                                            $Content['B01_1']['TotalCount'][$gender] = 1;
-                                                        }
-                                                    }
-
-                                                } else {
+//                                                if ($tblCertificateType->getIdentifier() == 'LEAVE') {
+//
+//                                                    if (isset($Content['B01']['Leave']['L' . $certificate][$gender])) {
+//                                                        $Content['B01']['Leave']['L' . $certificate][$gender]++;
+//                                                    } else {
+//                                                        $Content['B01']['Leave']['L' . $certificate][$gender] = 1;
+//                                                    }
+//                                                    if (isset($Content['B01']['Leave']['TotalCount'][$gender])) {
+//                                                        $Content['B01']['Leave']['TotalCount'][$gender]++;
+//                                                    } else {
+//                                                        $Content['B01']['Leave']['TotalCount'][$gender] = 1;
+//                                                    }
+//                                                    if (isset($Content['B01']['TotalCount']['L' . $certificate][$gender])) {
+//                                                        $Content['B01']['TotalCount']['L' . $certificate][$gender]++;
+//                                                    } else {
+//                                                        $Content['B01']['TotalCount']['L' . $certificate][$gender] = 1;
+//                                                    }
+//                                                    if (isset($Content['B01']['TotalCount'][$gender])) {
+//                                                        $Content['B01']['TotalCount'][$gender] += 1;
+//                                                    } else {
+//                                                        $Content['B01']['TotalCount'][$gender] = 1;
+//                                                    }
+//
+//                                                    /**
+//                                                     * B02
+//                                                     */
+//                                                    if ($birthYear) {
+//                                                        if (isset($countArray[$birthYear]['Leave'][$gender])) {
+//                                                            $countArray[$birthYear]['Leave'][$gender]++;
+//                                                        } else {
+//                                                            $countArray[$birthYear]['Leave'][$gender] = 1;
+//                                                        }
+//                                                    }
+//
+//                                                    /**
+//                                                     * B01.1
+//                                                     */
+//                                                    if ($hasMigrationBackground) {
+//                                                        if (isset($Content['B01_1']['Leave']['L' . $certificate][$gender])) {
+//                                                            $Content['B01_1']['Leave']['L' . $certificate][$gender]++;
+//                                                        } else {
+//                                                            $Content['B01_1']['Leave']['L' . $certificate][$gender] = 1;
+//                                                        }
+//                                                        if (isset($Content['B01_1']['Leave']['TotalCount'][$gender])) {
+//                                                            $Content['B01_1']['Leave']['TotalCount'][$gender]++;
+//                                                        } else {
+//                                                            $Content['B01_1']['Leave']['TotalCount'][$gender] = 1;
+//                                                        }
+//                                                        if (isset($Content['B01_1']['TotalCount']['L' . $certificate][$gender])) {
+//                                                            $Content['B01_1']['TotalCount']['L' . $certificate][$gender]++;
+//                                                        } else {
+//                                                            $Content['B01_1']['TotalCount']['L' . $certificate][$gender] = 1;
+//                                                        }
+//                                                        if (isset($Content['B01_1']['TotalCount'][$gender])) {
+//                                                            $Content['B01_1']['TotalCount'][$gender] += 1;
+//                                                        } else {
+//                                                            $Content['B01_1']['TotalCount'][$gender] = 1;
+//                                                        }
+//                                                    }
+//
+//                                                } else {
 
                                                     if (isset($Content['B01'][$tblCertificate->getCertificate()]['L' . $certificate][$gender])) {
                                                         $Content['B01'][$tblCertificate->getCertificate()]['L' . $certificate][$gender]++;
@@ -2050,7 +2167,7 @@ class KamenzReportService
                                                             $Content['B01_1']['TotalCount'][$gender] = 1;
                                                         }
                                                     }
-                                                }
+//                                                }
                                             }
                                         }
                                     }
