@@ -6,6 +6,7 @@ use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\B01;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\B01_1;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\B02;
+use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\C01;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\E01;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\E02;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\E02_1;
@@ -47,11 +48,12 @@ class KamenzReport extends AbstractDocument
     public function buildDocument($pageList = array())
     {
         return (new Frame())->addDocument((new Document())
-            ->addPage((new Page())
-                ->addSliceArray(B01::getContent())
-                ->addSliceArray(B01_1::getContent())
-                ->addSliceArray(B02::getContent())
-            )
+//            ->addPage((new Page())
+//                ->addSliceArray(B01::getContent())
+//                ->addSliceArray(B01_1::getContent())
+//                ->addSliceArray(B02::getContent())
+//                ->addSliceArray(C01::getContent())
+//            )
             ->addPage((new Page())
                 ->addSliceArray(E01::getContent())
                 ->addSliceArray(E02::getContent())
