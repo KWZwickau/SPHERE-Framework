@@ -12,7 +12,6 @@ use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Window\Stage;
@@ -84,7 +83,7 @@ class Service extends Extension
                                                     } else {
                                                         $DataBlind[$DivisionTypeName][$tblLevel->getName()] = 1;
                                                     }
-                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblPerson->getId();
+                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
                                                 }
                                                 if ($tblSupportFocusType->getName() == 'Hören') {
                                                     if (isset($DataHear[$DivisionTypeName][$tblLevel->getName()])) {
@@ -92,7 +91,7 @@ class Service extends Extension
                                                     } else {
                                                         $DataHear[$DivisionTypeName][$tblLevel->getName()] = 1;
                                                     }
-                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblPerson->getId();
+                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
                                                 }
                                                 if ($tblSupportFocusType->getName() == 'Geistige Entwicklung') {
                                                     if (isset($DataMental[$DivisionTypeName][$tblLevel->getName()])) {
@@ -100,7 +99,7 @@ class Service extends Extension
                                                     } else {
                                                         $DataMental[$DivisionTypeName][$tblLevel->getName()] = 1;
                                                     }
-                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblPerson->getId();
+                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
                                                 }
                                                 if ($tblSupportFocusType->getName() == 'Körperlich-motorische Entwicklung') {
                                                     if (isset($DataPhysical[$DivisionTypeName][$tblLevel->getName()])) {
@@ -108,7 +107,7 @@ class Service extends Extension
                                                     } else {
                                                         $DataPhysical[$DivisionTypeName][$tblLevel->getName()] = 1;
                                                     }
-                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblPerson->getId();
+                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
                                                 }
                                                 if ($tblSupportFocusType->getName() == 'Sprache') {
                                                     if (isset($DataLanguage[$DivisionTypeName][$tblLevel->getName()])) {
@@ -116,7 +115,7 @@ class Service extends Extension
                                                     } else {
                                                         $DataLanguage[$DivisionTypeName][$tblLevel->getName()] = 1;
                                                     }
-                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblPerson->getId();
+                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
                                                 }
                                                 if ($tblSupportFocusType->getName() == 'Lernen') {
                                                     if (isset($DataLearn[$DivisionTypeName][$tblLevel->getName()])) {
@@ -124,7 +123,7 @@ class Service extends Extension
                                                     } else {
                                                         $DataLearn[$DivisionTypeName][$tblLevel->getName()] = 1;
                                                     }
-                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblPerson->getId();
+                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
                                                 }
                                                 if ($tblSupportFocusType->getName() == 'Sozial-emotionale Entwicklung') {
                                                     if (isset($DataEducation[$DivisionTypeName][$tblLevel->getName()])) {
@@ -132,7 +131,7 @@ class Service extends Extension
                                                     } else {
                                                         $DataEducation[$DivisionTypeName][$tblLevel->getName()] = 1;
                                                     }
-                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblPerson->getId();
+                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
                                                 }
                                                 if ($tblSupportFocusType->getName() == 'Unterricht kranker Schüler') {
                                                     if (isset($DataSickStudent[$DivisionTypeName][$tblLevel->getName()])) {
@@ -140,7 +139,7 @@ class Service extends Extension
                                                     } else {
                                                         $DataSickStudent[$DivisionTypeName][$tblLevel->getName()] = 1;
                                                     }
-                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblPerson->getId();
+                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
                                                 }
                                             }
                                         }
@@ -870,17 +869,17 @@ Kostenerstattung durch andere öffentlichen Träger");
                 $Row++;
                 ksort($LevelList);
                 foreach ($LevelList as $LevelName => $FocusList) {
-
-                    foreach ($FocusList as $FocusId => $PersonList) {
-                        foreach ($PersonList as $PersonId) {
-                            $tblFocus = Student::useService()->getStudentFocusTypeById($FocusId);
+                    foreach ($FocusList as $FocusId => $tblSupportList) {
+                        foreach ($tblSupportList as $SupportId) {
+                            $tblFocus = Student::useService()->getSupportFocusTypeById($FocusId);
                             if ($tblFocus) {
                                 $FocusString = $tblFocus->getName();
                             } else {
                                 $FocusString = 'Unbekannt';
                             }
-                            $tblPersonIntegrative = Person::useService()->getPersonById($PersonId);
-                            if ($tblPersonIntegrative) {
+                            if (($tblSupport = Student::useService()->getSupportById($SupportId))
+                                && ($tblPersonIntegrative = $tblSupport->getServiceTblPerson())
+                            ) {
                                 $export->setValue($export->getCell(0, $Row), $tblPersonIntegrative->getLastName());
                                 $export->setStyle($export->getCell(0, $Row), $export->getCell(1, $Row))
                                     ->mergeCells()
@@ -890,16 +889,9 @@ Kostenerstattung durch andere öffentlichen Träger");
                                     ->mergeCells()
                                     ->setAlignmentMiddle();
 
-                                $DecisionDate = '';
-                                $IntegrationDescription = '';
-                                $tblStudent = Student::useService()->getStudentByPerson($tblPersonIntegrative);
-                                if ($tblStudent) {
-                                    $tblStudentIntegration = $tblStudent->getTblStudentIntegration();
-                                    if ($tblStudentIntegration) {
-                                        $DecisionDate = $tblStudentIntegration->getCoachingDecisionDate();
-                                        $IntegrationDescription = $tblStudentIntegration->getCoachingRemark();
-                                    }
-                                }
+                                $DecisionDate = $tblSupport->getDate();
+                                $IntegrationDescription = $tblSupport->getRemark(false);
+
                                 $export->setValue($export->getCell(4, $Row), $DecisionDate);
                                 $export->setStyle($export->getCell(4, $Row))
                                     ->setAlignmentCenter()
