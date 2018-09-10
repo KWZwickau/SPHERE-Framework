@@ -2452,8 +2452,12 @@ class KamenzReportService
         ksort($countBasisCourseArray);
         $count = 0;
         foreach ($countBasisCourseArray as $acronym => $levelArray) {
-            $Content['E16']['S' . $count]['SubjectName'] = ($tblSubject = Subject::useService()->getSubjectByAcronym($acronym))
+            $subjectName = ($tblSubject = Subject::useService()->getSubjectByAcronym($acronym))
                 ? $tblSubject->getName() : '';
+            if ($subjectName == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft') {
+                $subjectName = 'GRW';
+            }
+            $Content['E16']['S' . $count]['SubjectName'] = $subjectName;
             foreach ($levelArray as $level => $valueArray) {
                 foreach ($valueArray as $identifier => $value) {
                     $Content['E16']['S' . $count]['L' . $level][$identifier] = $value;

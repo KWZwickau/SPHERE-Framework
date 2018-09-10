@@ -23,7 +23,9 @@ class E02_1
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E02.1 Darunter <u>Schüler mit Migrationshintergund</u> Schuljahr {{ Content.SchoolYear.Current }} nach Geburtsjahren und Klassen- bzw. Jahrgangsstufen')
+                ->setContent('E02.1 Darunter <u>Schüler, deren Herkunftssprache nicht oder nicht ausschließlich Deutsch ist,</u>
+                    im </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    Schuljahr {{Content.SchoolYear.Current}} nach Geburtsjahren und Klassen- bzw. Jahrgangsstufen')
             );
 
         $sliceList[] = (new Slice())
