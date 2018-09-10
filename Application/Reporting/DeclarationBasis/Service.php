@@ -609,57 +609,59 @@ Kostenerstattung durch andere öffentlichen Träger");
 
             $export->setStyle($export->getCell(0, $Row))
                 ->setBorderLeft(2)
-                ->setBorderBottom(1)
+                ->setBorderBottom(2)
                 ->setBorderRight(1);
             $export->setStyle($export->getCell(1, $Row), $export->getCell(13, $Row))
                 ->setBorderLeft(1)
-                ->setBorderBottom(1)
+                ->setBorderBottom(2)
                 ->setBorderVertical(1)
                 ->setBorderRight(2)
                 ->setAlignmentCenter();
             $export->setStyle($export->getCell(14, $Row), $export->getCell(15, $Row))
-                ->setBorderBottom(1)
+                ->setBorderBottom(2)
                 ->setBorderVertical(2)
                 ->setBorderRight(2)
                 ->setAlignmentCenter();
             $Row++;
-            $export->setValue($export->getCell(0, $Row), "Schule für Unterricht kranker Schüler");
-            // SickStudent Insert
-            $SumEducation = 0;
-            if (isset($DataSickStudent[$Type]) && !empty($DataSickStudent[$Type])) {
-                foreach ($DataSickStudent[$Type] as $Level => $StudentCount) {
-                    $export->setValue($export->getCell($Level, $Row), $StudentCount);
-                    if ($StudentCount) {
-                        $SumEducation += $StudentCount;
-                    }
-                }
-            }
-            $export->setValue($export->getCell(14, $Row), $SumEducation);
+            // laut Herrn Kleinknecht (MTL): kein für das LaSuB relevanter Förderschwerpunkt
+//            $export->setValue($export->getCell(0, $Row), "Schule für Unterricht kranker Schüler");
+//            // SickStudent Insert
+//            $SumEducation = 0;
+//            if (isset($DataSickStudent[$Type]) && !empty($DataSickStudent[$Type])) {
+//                foreach ($DataSickStudent[$Type] as $Level => $StudentCount) {
+//                    $export->setValue($export->getCell($Level, $Row), $StudentCount);
+//                    if ($StudentCount) {
+//                        $SumEducation += $StudentCount;
+//                    }
+//                }
+//            }
+//            $export->setValue($export->getCell(14, $Row), $SumEducation);
+//
+//            $export->setStyle($export->getCell(0, $Row))
+//                ->setBorderLeft(2)
+//                ->setBorderBottom(2)
+//                ->setBorderRight(1);
+//            $export->setStyle($export->getCell(1, $Row), $export->getCell(13, $Row))
+//                ->setBorderLeft(1)
+//                ->setBorderBottom(2)
+//                ->setBorderVertical(1)
+//                ->setBorderRight(2)
+//                ->setAlignmentCenter();
+//            $export->setStyle($export->getCell(14, $Row), $export->getCell(15, $Row))
+//                ->setBorderBottom(2)
+//                ->setBorderVertical(2)
+//                ->setBorderRight(2)
+//                ->setAlignmentCenter();
+//            $Row++;
+//            $export->setValue($export->getCell(0, $Row), 'Hinweis:  Schüler, die integrativ unterrichtet werden, sind
+// dem Förderschultyp zuzuordnen, den sie ohne integrative Beschulung besuchen würden.');
+//            $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
+//                ->mergeCells()
+//                ->setFontBold()
+//                ->setRowHeight(21)
+//                ->setAlignmentBottom();
+//            $Row++;
 
-            $export->setStyle($export->getCell(0, $Row))
-                ->setBorderLeft(2)
-                ->setBorderBottom(2)
-                ->setBorderRight(1);
-            $export->setStyle($export->getCell(1, $Row), $export->getCell(13, $Row))
-                ->setBorderLeft(1)
-                ->setBorderBottom(2)
-                ->setBorderVertical(1)
-                ->setBorderRight(2)
-                ->setAlignmentCenter();
-            $export->setStyle($export->getCell(14, $Row), $export->getCell(15, $Row))
-                ->setBorderBottom(2)
-                ->setBorderVertical(2)
-                ->setBorderRight(2)
-                ->setAlignmentCenter();
-            $Row++;
-            $export->setValue($export->getCell(0, $Row), 'Hinweis:  Schüler, die integrativ unterrichtet werden, sind
- dem Förderschultyp zuzuordnen, den sie ohne integrative Beschulung besuchen würden.');
-            $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
-                ->mergeCells()
-                ->setFontBold()
-                ->setRowHeight(21)
-                ->setAlignmentBottom();
-            $Row++;
             $export->setValue($export->getCell(0, $Row), '                    Eine Namensliste unter Angabe des Förderschwerpunktes
  ist der Meldung zusätzlich beizufügen.');
             $export->setStyle($export->getCell(0, $Row), $export->getCell(15, $Row))
