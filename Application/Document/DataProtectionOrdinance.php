@@ -15,6 +15,7 @@ use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -69,6 +70,46 @@ class DataProtectionOrdinance implements IClusterInterface, IApplicationInterfac
 
         $Stage->setContent(
             new Layout(array(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new Container('Wir freuen uns über Ihr Interesse an unserem Internetauftritt und unseren Angeboten.
+                            Der Schutz Ihrer personenbezogenen Daten (im Folgenden kurz „Daten“) ist uns ein sehr wichtiges
+                            Anliegen. Nachfolgend möchten wir Sie daher ausführlich darüber informieren, welche Daten
+                            bei Ihrem Besuch unseres Internetauftritts und bei der Nutzung unserer dortigen Angebote 
+                            erhoben und wie diese von uns im Folgenden verarbeitet oder genutzt werden.'),
+                            new Container('&nbsp;'),
+                            new Container('Zum Schutz Ihrer Rechte haben wir technische und organisatorische Maßnahmen
+                            getroffen, dass die Vorschriften über den Datenschutz innerhalb der Evangelisch-Lutherischen
+                            Landeskirche Sachsens als auch durch externe Dienstleister beachtet werden, wenn diese an
+                            diesem Angebot mitwirken.'),
+                            new Container('&nbsp;'),
+                            new Container('Wir weisen darauf hin, dass die Datenübertragung im Internet (z.B. bei der
+                            Kommunikation per E-Mail) Sicherheitslücken aufweisen kann. Ein lückenloser Schutz der Daten
+                            vor dem Zugriff durch Dritte ist nicht möglich.'),
+                            new Container('&nbsp;'),
+                            new Container('Wenn Sie glauben, dass die hier aufgeführten Datenschutzrichtlinien nicht
+                            eingehalten werden oder Missbrauch mit persönlichen Daten betrieben wird, dann wenden Sie
+                            sich bitte per E-Mail an unseren Datenschutzbeauftragten.'),
+                            new Container('&nbsp;'),
+                            new Panel(
+                                'Pierre Große',
+                                array(
+                                    'Datenschutzbeauftragter der Ev.-Luth. Landeskirche Sachsens',
+                                    'Ev.-Luth. Landeskirchenamt',
+                                    'Der Datenschutzbeauftragte',
+                                    'Reichenbrander Str. 4',
+                                    '09117 Chemnitz',
+                                    'Telefon: 0351 4692-460',
+                                    'Fax: 0351 4692-469',
+                                    'E-Mail: datenschutzbeauftragter@evlks.de',
+                                )
+                            )
+                        ))
+                    ), new Title(
+                        'ALLGEMEINES'
+                    )
+                ),
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(array(
@@ -174,6 +215,24 @@ class DataProtectionOrdinance implements IClusterInterface, IApplicationInterfac
                                 verhindern, dass Cookies verwendet werden. In diesem Fall kann es vorkommen, dass Sie
                                 nicht alle Funktionen unserer Website vollumfänglich nutzen können.
                             '),
+                            new Container('&nbsp;'),
+                            new Container('Sie können der Speicherung und Verwertung dieser Daten während Ihres Besuchs 
+                            auf unserer Website jederzeit widersprechen. Hierfür müssen Sie lediglich das unten stehende 
+                            Kästchen anklicken, sodass das gesetzte Häkchen nicht mehr zu sehen ist (Opt-out-Verfahren). 
+                            In diesem Fall wird in Ihrem Browser ein sogenannter Opt-out-Cookie hinterlegt, so dass Piwik 
+                            keine Sitzungsdaten mehr erheben kann. Beachten Sie bitte, dass das Löschen Ihrer Cookies der 
+                            jeweiligen Sitzung zur Folge hat, dass auch das Opt-out-Cookie gelöscht wird und unter 
+                            Umständen von Ihnen beim nächsten Besuch unserer Website erneut aktiviert werden muss.'),
+                            new Container('&nbsp;'),
+                            new Container('Das Tracking ist bei Ihnen derzeit nicht aktiv, denn Ihr Browser hat uns 
+                            mitgeteilt, dass Sie kein Tracking wünschen. Hierbei handelt es sich um eine 
+                            Browsereinstellung. Um das Tracking wieder zu aktivieren, müssen Sie die sogenannte 
+                            "Do Not Track"-Einstellung in Ihren Browsereinstellungen deaktivieren.'),
+                            new Panel(
+                                'Statistik', array(
+                                    '<iframe class="sphere-iframe-style" src="/Library/Piwik/index.php?module=CoreAdminHome&action=optOut&language=de"></iframe>',
+                                )
+                                , Panel::PANEL_TYPE_DEFAULT),
                         ))
                     ), new Title(
                         'NUTZUNG VON PIWIK'
