@@ -435,7 +435,10 @@ class Filter extends Extension
                 }
                 // Validierung Schülerakte -> Bildungsmodul
                 else {
-                    if ($this->isFilterFulfilledByPerson($tblPerson)) {
+                    if (isset($personInAnotherGroupList[$tblPerson->getId()])) {
+
+                    }
+                    elseif ($this->isFilterFulfilledByPerson($tblPerson)) {
                         $list[$tblPerson->getId()] = new Ban() . ' ' . $tblPerson->getLastFirstName() . ' ist ' . new Bold('nicht') . ' in dieser Fach-Gruppe';
                     }
                 }
@@ -1108,8 +1111,6 @@ class Filter extends Extension
         $showDivision = false
     ) {
 
-        // todo Bildung mehrere NK und Co belegt.
-
         // meldung bei mehrer Gruppen und der Schüler ist bereits in einer Gruppe ignorieren
         // (z.B. wenn es mehrere Gruppen für eine Fremdsprache  gibt oder in der SEKII bei Kursen)
         if (($tblDivision = $tblDivisionSubject->getTblDivision())
@@ -1117,11 +1118,39 @@ class Filter extends Extension
             $tblDivision,
             $tblSubject
         ))) {
+            $Filter = array();
+            $FilterNew = array();
             foreach ($tblDivisionSubjectList as $tblDivisionSubjectItem) {
                 if ($tblDivisionSubjectItem->getId() != $tblDivisionSubject->getId()
                     && (Division::useService()->exitsSubjectStudent($tblDivisionSubjectItem, $tblPerson))
+                    && ($tblSubjectGroupItem = $tblDivisionSubjectItem->getTblSubjectGroup())
                 ) {
-                    return $list;
+                    // nur bei gleichem Filter ignorieren SSW-244
+                    if (($tblSubjectGroupFilterList = Division::useService()->getSubjectGroupFilterAllBySubjectGroup($tblSubjectGroupItem))) {
+                        foreach ($tblSubjectGroupFilterList as $tblSubjectGroupFilter) {
+                            $FilterNew[$tblSubjectGroupFilter->getField()] = $tblSubjectGroupFilter->getValue();
+                        }
+                    }
+                    if (($tblSubjectGroupFilterList = Division::useService()->getSubjectGroupFilterAllBySubjectGroup($tblSubjectGroup))) {
+                        foreach ($tblSubjectGroupFilterList as $tblSubjectGroupFilter) {
+                            $Filter[$tblSubjectGroupFilter->getField()] = $tblSubjectGroupFilter->getValue();
+                        }
+                    }
+                    $isContinue = true;
+                    if (count($Filter) == count($FilterNew)) {
+                        foreach ($Filter as $key => $value) {
+                            if (isset($FilterNew[$key]) && $FilterNew[$key] == $value) {
+
+                            } else {
+                                $isContinue = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    if ($isContinue) {
+                        return $list;
+                    }
                 }
             }
         }
