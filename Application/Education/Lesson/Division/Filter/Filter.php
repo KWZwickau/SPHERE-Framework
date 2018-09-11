@@ -279,15 +279,8 @@ class Filter extends Extension
             // bei diesen Fächern kann der Filter nicht komplett gelöscht werden
             // automatischen Filter setzen z.B. bei NK, PRO, FS
             elseif (($tblDivisionSubject = $this->getTblDivisionSubject())
-             && ($tblSubject = $this->getTblSubject())
+                && ($tblSubject = $this->getTblSubject())
             ) {
-                // Profil
-                if (($tblCategoryProfile = Subject::useService()->getCategoryByIdentifier('PROFILE'))
-                    && Subject::useService()->existsCategorySubject($tblCategoryProfile, $tblSubject)
-                ) {
-                    $Filter['SubjectProfile'] = $tblSubject->getId();
-                }
-
                 // Fremdsprache
                 if (($tblCategoryForeignLanguage = Subject::useService()->getCategoryByIdentifier('FOREIGNLANGUAGE'))
                     && Subject::useService()->existsCategorySubject($tblCategoryForeignLanguage, $tblSubject)
@@ -311,8 +304,20 @@ class Filter extends Extension
                 }
 
                 // Neigungskurs
-                if (Subject::useService()->isOrientation($tblSubject)) {
+                if ($this->getTypeName() == 'Mittelschule / Oberschule'
+                    && preg_match('!(0?(7|8|9))!is', $this->getLevelName())
+                    && Subject::useService()->isOrientation($tblSubject)
+                ) {
                     $Filter['SubjectOrientation'] = $tblSubject->getId();
+                }
+
+                // Profil
+                if ($this->getTypeName() == 'Gymnasium'
+                    && preg_match('!(0?(8|9|10))!is', $this->getLevelName())
+                    && ($tblCategoryProfile = Subject::useService()->getCategoryByIdentifier('PROFILE'))
+                    && Subject::useService()->existsCategorySubject($tblCategoryProfile, $tblSubject)
+                ) {
+                    $Filter['SubjectProfile'] = $tblSubject->getId();
                 }
             }
         }
