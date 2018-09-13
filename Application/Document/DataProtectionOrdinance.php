@@ -224,10 +224,6 @@ class DataProtectionOrdinance implements IClusterInterface, IApplicationInterfac
                             jeweiligen Sitzung zur Folge hat, dass auch das Opt-out-Cookie gelöscht wird und unter 
                             Umständen von Ihnen beim nächsten Besuch unserer Website erneut aktiviert werden muss.'),
                             new Container('&nbsp;'),
-                            new Container('Das Tracking ist bei Ihnen derzeit nicht aktiv, denn Ihr Browser hat uns 
-                            mitgeteilt, dass Sie kein Tracking wünschen. Hierbei handelt es sich um eine 
-                            Browsereinstellung. Um das Tracking wieder zu aktivieren, müssen Sie die sogenannte 
-                            "Do Not Track"-Einstellung in Ihren Browsereinstellungen deaktivieren.'),
                             new Panel(
                                 'Statistik', array(
                                     '<iframe class="sphere-iframe-style" src="/Library/Piwik/index.php?module=CoreAdminHome&action=optOut&language=de"></iframe>',
