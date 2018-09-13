@@ -204,6 +204,13 @@ class Data extends AbstractData
             } else {
                 $this->createSetting('Api', 'Document', 'StudentCard_PrimarySchool', 'ShowSchoolName', TblSetting::TYPE_BOOLEAN, '1');
             }
+
+            // Validierung (Kamenz + Schnittstelle) der 1. Fremdsprache ab Klassenstufe x
+            if ($tblConsumer->getAcronym() == 'FESH') {
+                $this->createSetting('Reporting', 'KamenzReport', 'Validation', 'FirstForeignLanguageLevel', TblSetting::TYPE_INTEGER, 3);
+            } else {
+                $this->createSetting('Reporting', 'KamenzReport', 'Validation', 'FirstForeignLanguageLevel', TblSetting::TYPE_INTEGER, 1);
+            }
         }
         $this->createSetting(
             'Education',
