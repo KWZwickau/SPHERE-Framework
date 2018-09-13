@@ -3010,6 +3010,7 @@ class Service extends AbstractService
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Informationen wurden erfolgreich gespeichert.')
             . new Redirect('/Education/Certificate/Prepare/Leave/Student', Redirect::TIMEOUT_SUCCESS, array(
                 'PersonId' => $tblPerson->getId(),
+                'DivisionId' => $tblDivision->getId()
             ));
     }
 
