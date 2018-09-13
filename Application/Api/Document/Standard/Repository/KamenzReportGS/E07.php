@@ -23,7 +23,8 @@ class E07
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E07. Schüler im Schuljahr {{ Content.SchoolYear.Current }} nach Klassenstufen und der im vergangenen Schuljahr besuchten Schulart')
+                ->setContent('E07. Schüler im Schuljahr {{ Content.SchoolYear.Current }} nach Klassenstufen und der im vergangenen Schuljahr besuchten
+                 </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Schulart')
             );
 
         $sliceList[] = (new Slice())
@@ -38,7 +39,7 @@ class E07
                     ->setContent('Im vergang. Schuljahr besuchte Schulart')
                     ->styleBorderRight()
                     ->stylePaddingTop('26.1px')
-                    ->stylePaddingBottom('26.1px'), '40%'
+                    ->stylePaddingBottom('26.1px'), '50%'
                 )
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
@@ -114,11 +115,11 @@ class E07
                 )
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Vorb.kl. u.<br/>-gr. f.<br/>Migranten')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '50%'
-                        )
+//                        ->addElementColumn((new Element())
+//                            ->setContent('Vorb.kl. u.<br/>-gr. f.<br/>Migranten')
+//                            ->styleBorderBottom()
+//                            ->styleBorderRight(), '50%'
+//                        )
                         ->addElementColumn((new Element())
                             ->setContent('Insgesamt')
                             ->styleTextBold()
@@ -128,14 +129,14 @@ class E07
                         )
                     )
                     ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight(), '25%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleBorderRight(), '25%'
-                        )
+//                        ->addElementColumn((new Element())
+//                            ->setContent('m')
+//                            ->styleBorderRight(), '25%'
+//                        )
+//                        ->addElementColumn((new Element())
+//                            ->setContent('w')
+//                            ->styleBorderRight(), '25%'
+//                        )
                         ->addElementColumn((new Element())
                             ->setContent('m')
                             ->styleBorderRight()
@@ -145,7 +146,7 @@ class E07
                             ->setContent('w')
                             ->styleTextBold(), '25%'
                         )
-                    ), '20%'
+                    ), '10%'
                 )
             );
 
@@ -157,7 +158,7 @@ class E07
                 ->addElementColumn((new Element())
                     ->setContent('Schulanfänger')
                     ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
+                    ->styleBorderRight(), '50%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('
@@ -223,28 +224,28 @@ class E07
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight(), '5%'
                 )
-                ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if (Content.E07.NewSchoolStarter.Migration.m is not empty) %}
-                            {{ Content.E07.NewSchoolStarter.Migration.m }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if (Content.E07.NewSchoolStarter.Migration.w is not empty) %}
-                            {{ Content.E07.NewSchoolStarter.Migration.w }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '5%'
-                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('
+//                        {% if (Content.E07.NewSchoolStarter.Migration.m is not empty) %}
+//                            {{ Content.E07.NewSchoolStarter.Migration.m }}
+//                        {% else %}
+//                            &nbsp;
+//                        {% endif %}
+//                    ')
+//                    ->styleAlignCenter()
+//                    ->styleBorderRight(), '5%'
+//                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('
+//                        {% if (Content.E07.NewSchoolStarter.Migration.w is not empty) %}
+//                            {{ Content.E07.NewSchoolStarter.Migration.w }}
+//                        {% else %}
+//                            &nbsp;
+//                        {% endif %}
+//                    ')
+//                    ->styleAlignCenter()
+//                    ->styleBorderRight(), '5%'
+//                )
                 ->addElementColumn((new Element())
                     ->setContent('
                         {% if (Content.E07.NewSchoolStarter.TotalCount.m is not empty) %}
@@ -280,7 +281,7 @@ class E07
                 ->addElementColumn((new Element())
                     ->setContent('Grundschule')
                     ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
+                    ->styleBorderRight(), '50%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('
@@ -370,28 +371,28 @@ class E07
                     ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
-                ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if (Content.E07.PrimarySchool.Migration.m is not empty) %}
-                            {{ Content.E07.PrimarySchool.Migration.m }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if (Content.E07.PrimarySchool.Migration.w is not empty) %}
-                            {{ Content.E07.PrimarySchool.Migration.w }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '5%'
-                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('
+//                        {% if (Content.E07.PrimarySchool.Migration.m is not empty) %}
+//                            {{ Content.E07.PrimarySchool.Migration.m }}
+//                        {% else %}
+//                            &nbsp;
+//                        {% endif %}
+//                    ')
+//                    ->styleAlignCenter()
+//                    ->styleBorderRight(), '5%'
+//                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('
+//                        {% if (Content.E07.PrimarySchool.Migration.w is not empty) %}
+//                            {{ Content.E07.PrimarySchool.Migration.w }}
+//                        {% else %}
+//                            &nbsp;
+//                        {% endif %}
+//                    ')
+//                    ->styleAlignCenter()
+//                    ->styleBorderRight(), '5%'
+//                )
                 ->addElementColumn((new Element())
                     ->setContent('
                         {% if (Content.E07.PrimarySchool.TotalCount.m is not empty) %}
@@ -429,7 +430,7 @@ class E07
             ->addSection((new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Insgesamt')
-                    ->styleBorderRight(), '40%'
+                    ->styleBorderRight(), '50%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('
@@ -519,28 +520,28 @@ class E07
                     ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
-                ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if (Content.E07.TotalCount.Migration.m is not empty) %}
-                            {{ Content.E07.TotalCount.Migration.m }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if (Content.E07.TotalCount.Migration.w is not empty) %}
-                            {{ Content.E07.TotalCount.Migration.w }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
-                    ->styleAlignCenter()
-                    ->styleBorderRight(), '5%'
-                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('
+//                        {% if (Content.E07.TotalCount.Migration.m is not empty) %}
+//                            {{ Content.E07.TotalCount.Migration.m }}
+//                        {% else %}
+//                            &nbsp;
+//                        {% endif %}
+//                    ')
+//                    ->styleAlignCenter()
+//                    ->styleBorderRight(), '5%'
+//                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('
+//                        {% if (Content.E07.TotalCount.Migration.w is not empty) %}
+//                            {{ Content.E07.TotalCount.Migration.w }}
+//                        {% else %}
+//                            &nbsp;
+//                        {% endif %}
+//                    ')
+//                    ->styleAlignCenter()
+//                    ->styleBorderRight(), '5%'
+//                )
                 ->addElementColumn((new Element())
                     ->setContent('
                         {% if (Content.E07.TotalCount.TotalCount.m is not empty) %}

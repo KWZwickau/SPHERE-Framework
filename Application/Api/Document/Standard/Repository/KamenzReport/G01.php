@@ -20,7 +20,7 @@ class G01
 
         $sliceList[] = (new Slice())
             ->addElement((new Element())
-                ->setContent('G01. Klassenfrequenz im Schuljahr {{ Content.SchoolYear.Current }} zum Stichtag 02. September {{ Content.Year.Current }}')
+                ->setContent('G01. Klassenfrequenz im Schuljahr {{ Content.SchoolYear.Current }} zum Stichtag 25. Oktober {{ Content.Year.Current }}')
                 ->styleTextBold()
                 ->styleMarginTop('20px')
             );
@@ -43,12 +43,13 @@ class G01
                     ->setContent('Klasse')
                     ->styleBorderRight()
                     ->stylePaddingTop('8.6px')
-                    ->stylePaddingBottom('8.5px'), '40%'
+                    ->stylePaddingBottom('8.5px'), '30%'
                 )
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('Klassenstufen')
+                            ->styleBorderRight()
                         )
                     )
                     ->addSection((new Section())
@@ -73,9 +74,15 @@ class G01
                             ->styleBorderRight(), '16.66%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('10'), '16.67%'
+                            ->setContent('10')
+                            ->styleBorderRight(), '16.67%'
                         )
                     ), '60%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Sonder-</br>klassen')
+                    ->styleBorderRight()
+                    , '10%'
                 )
             );
 
@@ -86,8 +93,9 @@ class G01
                     ->setContent($i . '. Klasse')
                     ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight(),
-                    '40%'
+                    '30%'
                 );
+
             for ($level = 5; $level <= 10; $level++) {
                 $section
                     ->addElementColumn((new Element())
@@ -101,6 +109,13 @@ class G01
                         ->styleBorderRight(), '10%'
                     );
             }
+
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderRight(),
+                    '10%'
+                );
 
             $sliceList[] = (new Slice())
                 ->styleAlignCenter()
@@ -117,7 +132,7 @@ class G01
         $section
             ->addElementColumn((new Element())
                 ->setContent('Insgesamt')
-                ->styleBorderRight(), '40%'
+                ->styleBorderRight(), '30%'
             );
 
         for ($level = 5; $level <= 10; $level++) {
@@ -133,6 +148,13 @@ class G01
                     ->styleBorderRight(), '10%'
                 );
         }
+
+        $section
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleBorderRight(),
+                '10%'
+            );
 
         $sliceList[] = (new Slice())
             ->styleBackgroundColor('lightgrey')

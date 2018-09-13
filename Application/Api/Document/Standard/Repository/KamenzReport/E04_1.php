@@ -23,7 +23,8 @@ class E04_1
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E04.1 Schüler im Schuljahr {{ Content.SchoolYear.Current }} nach der Anzahl der derzeit erlernten Fremdsprachen und Klassenstufen')
+                ->setContent('E04.1 Schüler im Schuljahr {{ Content.SchoolYear.Current }} nach der Anzahl der derzeit
+                    erlernten Fremdsprachen und </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Klassenstufen')
             );
 
         $sliceList[] = (new Slice())
@@ -87,15 +88,23 @@ class E04_1
                         )
                     ), '60%'
                 )
+//                ->addElementColumn((new Element())
+//                    ->setContent('Vorb.kl. u.<br/>-gruppen f.<br/>Migranten')
+//                    ->styleBorderRight(), '10%'
+//                )
                 ->addElementColumn((new Element())
-                    ->setContent('Vorb.kl. u.<br/>-gruppen f.<br/>Migranten')
-                    ->styleBorderRight(), '10%'
+                    ->setContent('Sonderkl.')
+                    ->stylePaddingTop('17.1px')
+                    ->stylePaddingBottom('17.1px')
+                    ->styleBorderRight()
+                    , '10%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('Insgesamt')
                     ->styleTextBold()
                     ->stylePaddingTop('17.1px')
-                    ->stylePaddingBottom('17.1px'), '10%'
+                    ->stylePaddingBottom('17.1px')
+                    , '10%'
                 )
             );
 
@@ -134,14 +143,15 @@ class E04_1
 
             $section
                 ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if (Content.E04_1.F' . $i . '.Migration is not empty) %}
-                            {{ Content.E04_1.F' . $i . '.Migration }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
-                    ->styleBackgroundColor('lightgrey')
+                    ->setContent('&nbsp;')
+//                    ->setContent('
+//                        {% if (Content.E04_1.F' . $i . '.Migration is not empty) %}
+//                            {{ Content.E04_1.F' . $i . '.Migration }}
+//                        {% else %}
+//                            &nbsp;
+//                        {% endif %}
+//                    ')
+//                    ->styleBackgroundColor('lightgrey')
                     ->styleBorderRight(), '10%'
                 )
                 ->addElementColumn((new Element())
@@ -192,13 +202,14 @@ class E04_1
 
         $section
             ->addElementColumn((new Element())
-                ->setContent('
-                    {% if (Content.E04_1.TotalCount.Migration is not empty) %}
-                        {{ Content.E04_1.TotalCount.Migration }}
-                    {% else %}
-                        &nbsp;
-                    {% endif %}
-                ')
+                ->setContent('&nbsp;')
+//                ->setContent('
+//                    {% if (Content.E04_1.TotalCount.Migration is not empty) %}
+//                        {{ Content.E04_1.TotalCount.Migration }}
+//                    {% else %}
+//                        &nbsp;
+//                    {% endif %}
+//                ')
                 ->styleBackgroundColor('lightgrey')
                 ->styleBorderRight(), '10%'
             )

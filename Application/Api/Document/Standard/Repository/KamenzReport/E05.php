@@ -74,7 +74,14 @@ class E05
                             ->styleBorderRight()
                             , '10%'
                         )
-                    ), '60%'
+                    ), '50%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Sonderkl.')
+                    ->stylePaddingTop('8.6px')
+                    ->stylePaddingBottom('8.5px')
+                    ->styleBorderRight()
+                    , '10%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('Insgesamt')
@@ -108,10 +115,14 @@ class E05
                                 &nbsp;
                             {% endif %}
                         ')
-                        ->styleBorderRight(), '10%'
+                        ->styleBorderRight(), '8.33%'
                     );
             }
             $section
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderRight(), '10%'
+                )
                 ->addElementColumn((new Element())
                     ->setContent('
                             {% if (Content.E05.S' . $i . '.TotalCount is not empty) %}
@@ -154,11 +165,16 @@ class E05
                                 &nbsp;
                             {% endif %}
                         ')
-                    ->styleBorderRight(), '10%'
+                    ->styleBorderRight(), '8.33%'
                 );
         }
 
         $section
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleBackgroundColor('lightgrey')
+                ->styleBorderRight(), '10%'
+            )
             ->addElementColumn((new Element())
                 ->setContent('&nbsp;')
                 ->styleBackgroundColor('lightgrey'), '10%'

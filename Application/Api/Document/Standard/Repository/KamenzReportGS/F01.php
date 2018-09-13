@@ -1,19 +1,27 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: lehmann
- * Date: 27.06.2017
- * Time: 11:50
+ * User: Kauschke
+ * Date: 05.09.2018
+ * Time: 16:52
  */
 
-namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym;
+namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS;
 
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 
+/**
+ * Class F01
+ *
+ * @package SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS
+ */
 class F01
 {
+    /**
+     * @return Slice[]
+     */
     public static function getContent()
     {
         $sliceList = array();
@@ -24,8 +32,7 @@ class F01
             ->styleMarginBottom('5px')
             ->addElement((new Element())
                 ->setContent('F01. Inklusiv unterrichtete Schüler mit sonderpädagogischem Förderbedarf im Schuljahr
-                    {{ Content.SchoolYear.Current }} </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; nach 
-                    Förderschwerpunkten und Klassen- bzw. Jahrgangsstufen')
+                {{ Content.SchoolYear.Current }} </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; nach Förderschwerpunkten und Klassenstufen')
             );
 
         $sliceList[] = (new Slice())
@@ -109,40 +116,18 @@ class F01
 
         for ($i = 0; $i < 8; $i++) {
             $isBold = false;
-            $paddingTop = '72.1px';
-            $paddingBottom = '72.1px';
+            $paddingTop = '36.2px';
+            $paddingBottom = '36.3px';
             switch ($i) {
-                case 0:
-                    $text = 'Lernen';
-                    break;
-                case 1:
-                    $text = 'Sehen';
-                    break;
-                case 2:
-                    $text = 'Hören';
-                    break;
-                case 3:
-                    $text = 'Sprache';
-                    break;
-                case 4:
-                    $text = 'Körperlich-motorische Entwicklung';
-                    $paddingTop = '55px';
-                    $paddingBottom = '55px';
-                    break;
-                case 5:
-                    $text = 'Geistige Entwicklung';
-                    break;
-                case 6:
-                    $text = 'Sozial-emotionale Entwicklung';
-                    $paddingTop = '64px';
-                    $paddingBottom = '64px';
-                    break;
-                case 7:
-                    $text = 'Insgesamt';
-                    $isBold = true;
-                    break;
-                default:
-                    $text = '';
+                case 0: $text = 'Lernen'; break;
+                case 1: $text = 'Sehen'; break;
+                case 2: $text = 'Hören'; break;
+                case 3: $text = 'Sprache'; break;
+                case 4: $text = 'Körperlich-motorische Entwicklung'; $paddingTop = '19px'; $paddingBottom = '19px'; break;
+                case 5: $text = 'Geistige Entwicklung'; break;
+                case 6: $text = 'Sozial-emotionale Entwicklung'; $paddingTop = '27.8px'; $paddingBottom = '27.8px';break;
+                case 7: $text = 'Insgesamt'; $isBold = true; break;
+                default: $text = '';
             }
 
             $section = new Section();
@@ -157,7 +142,7 @@ class F01
 
             // Klassenstufe
             $lineSectionList = array();
-            for ($j = 5; $j < 13; $j++) {
+            for ($j = 1; $j <5; $j++) {
                 $lineSection = new Section();
                 $lineSection
                     ->addElementColumn((new Element())
@@ -166,6 +151,11 @@ class F01
                     );
                 $lineSectionList[] = $lineSection;
             }
+//            $lineSectionList[] = (new Section())
+//                ->addElementColumn((new Element())
+//                    ->setContent('Vorb.-kl. u. -gr. f. Migranten')
+//                    ->styleBorderBottom()
+//                );
             $lineSectionList[] = (new Section())
                 ->addElementColumn((new Element())
                     ->setContent('Zusammen')
@@ -214,14 +204,12 @@ class F01
 
         if ($text == 'Insgesamt') {
             $name = 'TotalCount';
-            $isGrey = true;
         } else {
             $name = preg_replace('/[^a-zA-Z]/', '', $text);
-            $isGrey = false;
         }
 
         $lineSectionList = array();
-        for ($j = 5; $j < 13; $j++) {
+        for ($j = 1; $j < 5; $j++) {
             $lineSection = new Section();
             $lineSection
                 ->addElementColumn((new Element())
@@ -233,10 +221,20 @@ class F01
                             {% endif %}
                         ')
                     ->styleBorderBottom()
-                    ->styleBackgroundColor($isGrey ? 'lightgrey' : 'white')
                 );
             $lineSectionList[] = $lineSection;
         }
+//        $lineSectionList[] = (new Section())
+//            ->addElementColumn((new Element())
+//                ->setContent('
+//                    {% if (Content.F01.' . $name . '.' . $identifier . '.IsInPreparationDivisionForMigrants.' . $gender . ' is not empty) %}
+//                        {{ Content.F01.' . $name . '.' . $identifier . '.IsInPreparationDivisionForMigrants.' . $gender . ' }}
+//                    {% else %}
+//                        &nbsp;
+//                    {% endif %}
+//                ')
+//                ->styleBorderBottom()
+//            );
         $lineSectionList[] = (new Section())
             ->addElementColumn((new Element())
                 ->setContent('
@@ -247,7 +245,6 @@ class F01
                     {% endif %}
                 ')
                 ->styleTextBold()
-                ->styleBackgroundColor('lightgrey')
             );
         $section
             ->addSliceColumn((new Slice())

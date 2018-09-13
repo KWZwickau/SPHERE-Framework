@@ -189,73 +189,68 @@ class E16
                     ->styleBorderRight(), '40%'
                 )
                 ->addElementColumn((new Element())
-//                    ->setContent('
-//                        {% if (Content.E16.TotalCount.L11.CoursesCount is not empty) %}
-//                            {{ Content.E16.TotalCount.L11.CoursesCount }}
-//                        {% else %}
-//                            &nbsp;
-//                        {% endif %}
-//                    ')
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                        {% if (Content.E16.TotalCount.L11.CoursesCount is not empty) %}
+                            {{ Content.E16.TotalCount.L11.CoursesCount }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleAlignCenter()
                     ->styleBorderRight(), '12%'
                 )
                 ->addElementColumn((new Element())
-//                    ->setContent('
-//                        {% if (Content.E16.TotalCount.L11.m is not empty) %}
-//                            {{ Content.E16.TotalCount.L11.m }}
-//                        {% else %}
-//                            &nbsp;
-//                        {% endif %}
-//                    ')
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                        {% if (Content.E16.TotalCount.L11.m is not empty) %}
+                            {{ Content.E16.TotalCount.L11.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleAlignCenter()
                     ->styleBorderRight(), '9%'
                 )
                 ->addElementColumn((new Element())
-//                    ->setContent('
-//                        {% if (Content.E16.TotalCount.L11.w is not empty) %}
-//                            {{ Content.E16.TotalCount.L11.w }}
-//                        {% else %}
-//                            &nbsp;
-//                        {% endif %}
-//                    ')
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                        {% if (Content.E16.TotalCount.L11.w is not empty) %}
+                            {{ Content.E16.TotalCount.L11.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleAlignCenter()
                     ->styleBorderRight(), '9%'
                 )
                 ->addElementColumn((new Element())
-//                    ->setContent('
-//                        {% if (Content.E16.TotalCount.L12.CoursesCount is not empty) %}
-//                            {{ Content.E16.TotalCount.L12.CoursesCount }}
-//                        {% else %}
-//                            &nbsp;
-//                        {% endif %}
-//                    ')
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                        {% if (Content.E16.TotalCount.L12.CoursesCount is not empty) %}
+                            {{ Content.E16.TotalCount.L12.CoursesCount }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleAlignCenter()
                     ->styleBorderRight(), '12%'
                 )
                 ->addElementColumn((new Element())
-//                    ->setContent('
-//                        {% if (Content.E16.TotalCount.L12.m is not empty) %}
-//                            {{ Content.E16.TotalCount.L12.m }}
-//                        {% else %}
-//                            &nbsp;
-//                        {% endif %}
-//                    ')
+                    ->setContent('
+                        {% if (Content.E16.TotalCount.L12.m is not empty) %}
+                            {{ Content.E16.TotalCount.L12.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleAlignCenter()
                     ->styleBorderRight(), '9%'
                 )
                 ->addElementColumn((new Element())
-//                    ->setContent('
-//                        {% if (Content.E16.TotalCount.L12.w is not empty) %}
-//                            {{ Content.E16.TotalCount.L12.w }}
-//                        {% else %}
-//                            &nbsp;
-//                        {% endif %}
-//                    ')
-                    ->setContent('&nbsp;')
+                    ->setContent('
+                        {% if (Content.E16.TotalCount.L12.w is not empty) %}
+                            {{ Content.E16.TotalCount.L12.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
                     ->styleAlignCenter()
                     ->styleBorderRight(), '9%'
                 )

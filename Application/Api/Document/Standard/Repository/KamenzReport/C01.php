@@ -1,9 +1,9 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: lehmann
- * Date: 23.06.2017
- * Time: 14:52
+ * User: Kauschke
+ * Date: 07.09.2018
+ * Time: 08:59
  */
 
 namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReport;
@@ -13,22 +13,28 @@ use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 
 /**
- * Class E12
- * @deprecated
+ * Class C01
+ *
  * @package SPHERE\Application\Api\Document\Standard\Repository\KamenzReport
  */
-class E12
+class C01
 {
+    /**
+     * @return Slice[]
+     */
     public static function getContent()
     {
         $sliceList = array();
+        $left = '30%';
 
         $sliceList[] = (new Slice())
             ->styleTextBold()
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E12. Schüler im NEIGUNGSKURSBEREICH im Schuljahr {{ Content.SchoolYear.Current }} nach Klassenstufen')
+                ->setContent('C01. Anzahl der Schüler, die im <u>Schuljahr {{ Content.SchoolYear.Past }}</u> diese Schule
+                    besucht haben und nicht versetzt </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    worden sind, nach abschlussbezogenem Unterricht und Klassenstufen')
             );
 
         $sliceList[] = (new Slice())
@@ -37,13 +43,12 @@ class E12
             ->styleBorderTop()
             ->styleBorderBottom()
             ->styleBorderLeft()
-            ->styleBorderRight()
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('Neigungskursbereich')
+                    ->setContent('Merkmal')
                     ->styleBorderRight()
                     ->stylePaddingTop('17.7px')
-                    ->stylePaddingBottom('17.6px'), '30%'
+                    ->stylePaddingBottom('17.6px'), $left
                 )
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
@@ -81,8 +86,7 @@ class E12
                         ->addElementColumn((new Element())
                             ->setContent('10')
                             ->styleBorderBottom()
-                            ->styleBorderRight()
-                            , '10%'
+                            ->styleBorderRight(), '10%'
                         )
                     )
                     ->addSection((new Section())
@@ -132,8 +136,7 @@ class E12
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
-                            ->styleBorderRight()
-                            , '5%'
+                            ->styleBorderRight(), '5%'
                         )
                     ), '60%'
                 )
@@ -143,6 +146,7 @@ class E12
                         ->addElementColumn((new Element())
                             ->setContent('Insgesamt')
                             ->styleBorderBottom()
+                            ->styleBorderRight()
                             ->stylePaddingTop('8.6px')
                             ->stylePaddingBottom('8.5px')
                         )
@@ -153,156 +157,161 @@ class E12
                             ->styleBorderRight(), '50%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('w'), '50%'
+                            ->setContent('w')
+                            ->styleBorderRight(), '50%'
                         )
                     ), '10%'
                 )
             );
 
-        for ($i = 0; $i < 10; $i++) {
-            $section = new Section();
+        self::setRow($sliceList, 'NoCourse', 'Schüler');
+        self::setRow($sliceList, 'HS', 'HS-Abschluss');
+        self::setRow($sliceList, 'RS', 'RS-Abschluss');
+
+        return $sliceList;
+    }
+
+    /**
+     * @param $sliceList
+     * @param $identifier
+     * @param $name
+     */
+    private static function setRow(&$sliceList, $identifier, $name)
+    {
+
+        $paddingLeft = '5px';
+        $section = new Section();
+
+        if ($identifier == 'HS') {
             $section
                 ->addElementColumn((new Element())
-                    ->setContent('
-                            {% if (Content.E12.S' . $i . '.SubjectName is not empty) %}
-                                {{ Content.E12.S' . $i . '.SubjectName }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}
-                        ')
-                    ->styleBorderRight()
+                    ->setContent('davon mit')
                     ->styleBackgroundColor('lightgrey')
+                    ->styleAlignCenter()
+                    ->styleBorderRight()
+                    ->styleBorderBottom('1px', 'lightgrey')
+                    , '10%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent($name)
+                    ->styleBackgroundColor('lightgrey')
+                    ->stylePaddingLeft($paddingLeft)
+                    ->styleBorderRight()
+                    ->styleBorderBottom()
+                    , '20%'
+                );
+        } elseif ($identifier == 'RS') {
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent('dem Ziel')
+                    ->styleBackgroundColor('lightgrey')
+                    ->styleAlignCenter()
+                    ->styleBorderRight()
+                    ->styleBorderBottom()
+                    , '10%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent($name)
+                    ->styleBackgroundColor('lightgrey')
+                    ->stylePaddingLeft($paddingLeft)
+                    ->styleBorderRight()
+                    ->styleBorderBottom()
+                    , '20%'
+                );
+        } else {
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent($name)
+                    ->styleBackgroundColor('lightgrey')
+                    ->stylePaddingLeft($paddingLeft)
+                    ->styleBorderRight()
+                    ->styleBorderBottom()
                     , '30%'
                 );
-            for ($level = 5; $level <= 10; $level++) {
-                if ($level > 6 && $level < 10) {
-                    $isGrey = false;
-                } else {
+        }
+
+        for ($level = 5; $level < 11; $level++) {
+
+            $isGrey = false;
+            if ($identifier == 'HS' || $identifier == 'RS') {
+                if ($level == 5 || $level == 6) {
                     $isGrey = true;
                 }
 
-                $section
-                    ->addElementColumn((new Element())
-                        ->setContent('
-                            {% if (Content.E12.S' . $i . '.L' . $level . '.m is not empty) %}
-                                {{ Content.E12.S' . $i . '.L' . $level . '.m }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}
-                        ')
-                        ->styleBorderRight()
-                        ->styleBackgroundColor($isGrey ? 'lightgrey' : 'white')
-                        , '5%'
-                    );
-                $section
-                    ->addElementColumn((new Element())
-                        ->setContent('
-                            {% if (Content.E12.S' . $i . '.L' . $level . '.w is not empty) %}
-                                {{ Content.E12.S' . $i . '.L' . $level . '.w }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}
-                        ')
-                        ->styleBorderRight()
-                        ->styleBackgroundColor($isGrey ? 'lightgrey' : 'white')
-                        , '5%'
-                    );
+                if ($identifier == 'HS' && $level == 10) {
+                    $isGrey = true;
+                }
+            } else {
+                if ($level > 6) {
+                    $isGrey = true;
+                }
             }
+
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
-                            {% if (Content.E12.S' . $i . '.TotalCount.m is not empty) %}
-                                {{ Content.E12.S' . $i . '.TotalCount.m }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}
-                        ')
-                    ->styleBackgroundColor('lightgrey')
+                        {% if (Content.C01.' . $identifier . '.L' . $level . '.m is not empty) %}
+                            {{ Content.C01.' . $identifier . '.L' . $level . '.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                    ->styleAlignCenter()
+                    ->styleBackgroundColor($isGrey ? 'lightgrey' : 'white')
                     ->styleBorderRight()
-                    ->styleTextBold(), '5%'
+                    ->styleBorderBottom()
+                    , '5%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('
-                                {% if (Content.E12.S' . $i . '.TotalCount.w is not empty) %}
-                                    {{ Content.E12.S' . $i . '.TotalCount.w }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}
-                            ')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleTextBold(), '5%'
-                );
-
-            $sliceList[] = (new Slice())
-                ->styleAlignCenter()
-                ->styleBorderBottom()
-                ->styleBorderLeft()
-                ->styleBorderRight()
-                ->addSection($section);
-        }
-
-        /**
-         * TotalCount
-         */
-        $section = new Section();
-        $section
-            ->addElementColumn((new Element())
-                ->setContent('
-                            Insgesamt                       
-                        ')
-                ->styleBackgroundColor('lightgrey')
-                ->styleBorderRight(), '30%'
-            );
-        for ($level = 5; $level <= 10; $level++) {
-            $section
-                ->addElementColumn((new Element())
-                    ->setContent('
-                            {% if (Content.E12.TotalCount.L' . $level . '.m is not empty) %}
-                                {{ Content.E12.TotalCount.L' . $level . '.m }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}
-                        ')
-                    ->styleBorderRight(), '5%'
-                );
-            $section
-                ->addElementColumn((new Element())
-                    ->setContent('
-                            {% if (Content.E12.TotalCount.L' . $level . '.w is not empty) %}
-                                {{ Content.E12.TotalCount.L' . $level . '.w }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}
-                        ')
-                    ->styleBorderRight(), '5%'
-                );
-        }
-        $section
-            ->addElementColumn((new Element())
-                ->setContent('
+                        {% if (Content.C01.' . $identifier . '.L' . $level . '.w is not empty) %}
+                            {{ Content.C01.' . $identifier . '.L' . $level . '.w }}
+                        {% else %}
                             &nbsp;
-                        ')
-                ->styleBackgroundColor('lightgrey')
+                        {% endif %}
+                    ')
+                    ->styleAlignCenter()
+                    ->styleBackgroundColor($isGrey ? 'lightgrey' : 'white')
+                    ->styleBorderRight()
+                    ->styleBorderBottom()
+                    , '5%'
+                );
+        }
+
+        $section
+            ->addElementColumn((new Element())
+                ->setContent('
+                        {% if (Content.C01.' . $identifier . '.TotalCount.m is not empty) %}
+                            {{ Content.C01.' . $identifier . '.TotalCount.m }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                ->styleAlignCenter()
+                ->styleTextBold()
                 ->styleBorderRight()
-                ->styleTextBold(), '5%'
+                ->styleBackgroundColor('lightgrey')
+                ->styleBorderBottom()
+                , '5%'
             )
             ->addElementColumn((new Element())
                 ->setContent('
-                             &nbsp;   
-                            ')
+                        {% if (Content.C01.' . $identifier . '.TotalCount.w is not empty) %}
+                            {{ Content.C01.' . $identifier . '.TotalCount.w }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    ')
+                ->styleAlignCenter()
+                ->styleTextBold()
+                ->styleBorderRight()
                 ->styleBackgroundColor('lightgrey')
-                ->styleTextBold(), '5%'
+                ->styleBorderBottom()
+                , '5%'
             );
 
         $sliceList[] = (new Slice())
-            ->styleBackgroundColor('lightgrey')
-            ->styleTextBold()
-            ->styleAlignCenter()
-            ->styleBorderBottom()
             ->styleBorderLeft()
-            ->styleBorderRight()
             ->addSection($section);
-
-        return $sliceList;
     }
 }

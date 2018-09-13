@@ -12,11 +12,18 @@ use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 
+/**
+ * Class E02
+ *
+ * @package SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS
+ */
 class E02
 {
     public static function getContent()
     {
         $sliceList = array();
+
+        $left = '50%';
 
         $sliceList[] = (new Slice())
             ->styleTextBold()
@@ -38,7 +45,7 @@ class E02
                     ->setContent('Geburtsjahr')
                     ->styleBorderRight()
                     ->stylePaddingTop('26.1px')
-                    ->stylePaddingBottom('26.1px'), '40%'
+                    ->stylePaddingBottom('26.1px'), $left
                 )
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
@@ -114,11 +121,11 @@ class E02
                 )
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('Vorb.kl. u.<br/>-gr. f.<br/>Migranten')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '50%'
-                        )
+//                        ->addElementColumn((new Element())
+//                            ->setContent('Vorb.kl. u.<br/>-gr. f.<br/>Migranten')
+//                            ->styleBorderBottom()
+//                            ->styleBorderRight(), '50%'
+//                        )
                         ->addElementColumn((new Element())
                             ->setContent('Insgesamt')
                             ->styleTextBold()
@@ -128,14 +135,14 @@ class E02
                         )
                     )
                     ->addSection((new Section())
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight(), '25%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleBorderRight(), '25%'
-                        )
+//                        ->addElementColumn((new Element())
+//                            ->setContent('m')
+//                            ->styleBorderRight(), '25%'
+//                        )
+//                        ->addElementColumn((new Element())
+//                            ->setContent('w')
+//                            ->styleBorderRight(), '25%'
+//                        )
                         ->addElementColumn((new Element())
                             ->setContent('m')
                             ->styleTextBold()
@@ -146,7 +153,7 @@ class E02
                             ->styleTextBold()
                             , '25%'
                         )
-                    ), '20%'
+                    ), '10%'
                 )
             );
 
@@ -162,7 +169,7 @@ class E02
                             {% endif %}
                         ')
                     ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
+                    ->styleBorderRight(), $left
                 );
             for ($level = 1; $level < 5; $level++) {
                 $section
@@ -189,28 +196,28 @@ class E02
             }
 
             $section
-                ->addElementColumn((new Element())
-                    ->setContent('
-                            {% if (Content.E02.Y' . $i . '.LMigration.m is not empty) %}
-                                {{ Content.E02.Y' . $i . '.LMigration.m }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}
-                        ')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '5%'
-                )
-                ->addElementColumn((new Element())
-                    ->setContent('
-                            {% if (Content.E02.Y' . $i . '.LMigration.w is not empty) %}
-                                {{ Content.E02.Y' . $i . '.LMigration.w }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}
-                        ')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '5%'
-                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('
+//                            {% if (Content.E02.Y' . $i . '.LMigration.m is not empty) %}
+//                                {{ Content.E02.Y' . $i . '.LMigration.m }}
+//                            {% else %}
+//                                &nbsp;
+//                            {% endif %}
+//                        ')
+//                    ->styleBackgroundColor('lightgrey')
+//                    ->styleBorderRight(), '5%'
+//                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('
+//                            {% if (Content.E02.Y' . $i . '.LMigration.w is not empty) %}
+//                                {{ Content.E02.Y' . $i . '.LMigration.w }}
+//                            {% else %}
+//                                &nbsp;
+//                            {% endif %}
+//                        ')
+//                    ->styleBackgroundColor('lightgrey')
+//                    ->styleBorderRight(), '5%'
+//                )
                 ->addElementColumn((new Element())
                     ->setContent('
                             {% if (Content.E02.Y' . $i . '.m is not empty) %}
@@ -253,7 +260,7 @@ class E02
                             Insgesamt
                         ')
                 ->styleBackgroundColor('lightgrey')
-                ->styleBorderRight(), '40%'
+                ->styleBorderRight(), $left
             );
         for ($level = 1; $level < 5; $level++) {
             $section
@@ -280,28 +287,28 @@ class E02
         }
 
         $section
-            ->addElementColumn((new Element())
-                ->setContent('
-                            {% if (Content.E02.TotalCount.LMigration.m is not empty) %}
-                                {{ Content.E02.TotalCount.LMigration.m }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}
-                        ')
-                ->styleBackgroundColor('lightgrey')
-                ->styleBorderRight(), '5%'
-            )
-            ->addElementColumn((new Element())
-                ->setContent('
-                            {% if (Content.E02.TotalCount.LMigration.w is not empty) %}
-                                {{ Content.E02.TotalCount.LMigration.w }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}
-                        ')
-                ->styleBackgroundColor('lightgrey')
-                ->styleBorderRight(), '5%'
-            )
+//            ->addElementColumn((new Element())
+//                ->setContent('
+//                            {% if (Content.E02.TotalCount.LMigration.m is not empty) %}
+//                                {{ Content.E02.TotalCount.LMigration.m }}
+//                            {% else %}
+//                                &nbsp;
+//                            {% endif %}
+//                        ')
+//                ->styleBackgroundColor('lightgrey')
+//                ->styleBorderRight(), '5%'
+//            )
+//            ->addElementColumn((new Element())
+//                ->setContent('
+//                            {% if (Content.E02.TotalCount.LMigration.w is not empty) %}
+//                                {{ Content.E02.TotalCount.LMigration.w }}
+//                            {% else %}
+//                                &nbsp;
+//                            {% endif %}
+//                        ')
+//                ->styleBackgroundColor('lightgrey')
+//                ->styleBorderRight(), '5%'
+//            )
             ->addElementColumn((new Element())
                 ->setContent('
                             {% if (Content.E02.TotalCount.m is not empty) %}
