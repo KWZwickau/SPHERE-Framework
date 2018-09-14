@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeTyp
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreCondition;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGradeTypeList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGroupList;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGroupRequirement;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroup;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroupGradeTypeList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRule;
@@ -299,6 +300,34 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
             /** @var TblScoreConditionGradeTypeList $item */
             foreach ($list as &$item) {
                 if (!$item->getTblGradeType()) {
+                    $item = false;
+                }
+            }
+            $list = array_filter($list);
+
+            return empty($list) ? false : $list;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return bool|TblScoreConditionGroupRequirement[]
+     */
+    public function getScoreConditionGroupRequirementAllByCondition(TblScoreCondition $tblScoreCondition)
+    {
+
+        $list = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblScoreConditionGroupRequirement',
+            array(TblScoreConditionGroupRequirement::ATTR_TBL_SCORE_CONDITION => $tblScoreCondition->getId())
+        );
+
+        if ($list) {
+            /** @var TblScoreConditionGroupRequirement $item */
+            foreach ($list as &$item) {
+                if (!$item->getTblScoreGroup()) {
                     $item = false;
                 }
             }

@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\Service 
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Data;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreCondition;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGroupRequirement;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroup;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRule;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGradeTypeList;
@@ -39,6 +40,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Window\Redirect;
 
 /**
@@ -432,6 +434,17 @@ abstract class Service extends ServiceMinimumGrade
     {
 
         return (new Data($this->getBinding()))->getScoreConditionGradeTypeListByCondition($tblScoreCondition);
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return bool|TblScoreConditionGroupRequirement[]
+     */
+    public function getScoreConditionGroupRequirementAllByCondition(TblScoreCondition $tblScoreCondition)
+    {
+
+        return (new Data($this->getBinding()))->getScoreConditionGroupRequirementAllByCondition($tblScoreCondition);
     }
 
     /**
@@ -1091,5 +1104,53 @@ abstract class Service extends ServiceMinimumGrade
         }
 
         return false;
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     * @param bool $isDisplay
+     *
+     * @return array|bool
+     */
+    public function getRequirementsForScoreCondition(TblScoreCondition $tblScoreCondition, $isDisplay = false)
+    {
+        $requirements = array();
+        $displayList = array();
+        // period
+        if ($tblScoreCondition->getPeriod()) {
+            $requirements['Period'] = $tblScoreCondition->getPeriod();
+            $displayList[] = $tblScoreCondition->getPeriodDisplayName();
+        }
+
+        // gradeTypes
+        if (($tblScoreConditionGradeTypeList = $this->getScoreConditionGradeTypeListByCondition($tblScoreCondition))) {
+            $temp = array();
+            foreach ($tblScoreConditionGradeTypeList as $tblScoreConditionGradeType) {
+                if (($tblGradeType = $tblScoreConditionGradeType->getTblGradeType())) {
+                    $temp[] = $tblScoreConditionGradeType;
+                    $displayList[] = $tblGradeType->getDisplayName() . ' ' . new Muted('(Anzahl: '
+                            . $tblScoreConditionGradeType->getCount() . ')');
+                }
+            }
+            $requirements['GradeTypes'] = $temp;
+        }
+        // groups
+        if (($tblScoreConditionGroupRequirementList = $this->getScoreConditionGroupRequirementAllByCondition($tblScoreCondition))) {
+            $temp = array();
+            foreach ($tblScoreConditionGroupRequirementList as $tblScoreConditionGroupRequirement) {
+                if (($tblScoreGroup = $tblScoreConditionGroupRequirement->getTblScoreGroup())) {
+                    $temp[] = $tblScoreConditionGroupRequirement;
+                    $displayList[] = $tblScoreGroup->getName() . ' '
+                        . new Muted('(Anzahl: ' . $tblScoreConditionGroupRequirement->getCount() . ')');
+                }
+            }
+            $requirements['GradeGroups'] = $temp;
+        }
+
+        if ($isDisplay) {
+            return implode(', ', $displayList);
+        } else {
+            return empty($requirements) ? false : $requirements;
+        }
     }
 }
