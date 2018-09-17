@@ -1098,7 +1098,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ->appendFormButton(new Primary('Speichern', new Save()))
                 ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
             $Stage->addButton(new Standard('Leistungsüberprüfung anlegen', '', new PlusSign(), array(),
-                'zum Formular springen', $Form->getHash()));
+                false, $Form->getHash()));
         } else {
             $Form = false;
         }

@@ -792,7 +792,7 @@ class Frontend extends FrontendScoreRule
         $BasicRoute
     ) {
 
-        $Stage->addButton(new Standard('Zurück', $BasicRoute, new ChevronLeft(), array(), 'Zurück zur Klassenauswahl'));
+        $Stage->addButton(new Standard('Zurück', $BasicRoute, new ChevronLeft(), array()));
         $Stage->addButton(
             new External(
                 'Notenbuch herunterladen',
@@ -800,7 +800,7 @@ class Frontend extends FrontendScoreRule
                 new Download(),
                 array(
                     'DivisionSubjectId' => $tblDivisionSubject->getId(),
-                )
+                ), false
             )
         );
 
@@ -828,7 +828,7 @@ class Frontend extends FrontendScoreRule
                     new Download(),
                     array(
                         'DivisionId' => $tblDivision->getId(),
-                    )
+                    ), false
                 )
             );
         }
@@ -2984,8 +2984,8 @@ class Frontend extends FrontendScoreRule
             }
 
             $Stage->addButton(new External(
-                'Schülerübersicht Herunterladen', '/Api/Document/Standard/MultiGradebookOverview/Create', new Download(),
-                array('DivisionId' => $DivisionId), 'Klasse'
+                'Alle Schülerübersichten dieser Klasse herunterladen', '/Api/Document/Standard/MultiGradebookOverview/Create', new Download(),
+                array('DivisionId' => $DivisionId)
             ));
 
             $Stage->setContent(
@@ -3136,9 +3136,8 @@ class Frontend extends FrontendScoreRule
         }
 
         $Stage->addButton(new External(
-            'Schülerübersicht Herunterladen', 'SPHERE\Application\Api\Document\Standard\GradebookOverview\Create',
+            'Schülerübersicht herunterladen', 'SPHERE\Application\Api\Document\Standard\GradebookOverview\Create',
             new Download(), array('PersonId' => $PersonId, 'DivisionId' => $DivisionId, 'Notenübersicht herunterladen')
-            , 'Schüler'
         ));
 
         // Button's nur anzeigen, wenn Integrationen hinterlegt sind
