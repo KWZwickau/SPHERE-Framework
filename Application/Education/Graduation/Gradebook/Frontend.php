@@ -2985,7 +2985,7 @@ class Frontend extends FrontendScoreRule
 
             $Stage->addButton(new External(
                 'Alle Schülerübersichten dieser Klasse herunterladen', '/Api/Document/Standard/MultiGradebookOverview/Create', new Download(),
-                array('DivisionId' => $DivisionId)
+                array('DivisionId' => $DivisionId), false
             ));
 
             $Stage->setContent(
@@ -3138,6 +3138,7 @@ class Frontend extends FrontendScoreRule
         $Stage->addButton(new External(
             'Schülerübersicht herunterladen', 'SPHERE\Application\Api\Document\Standard\GradebookOverview\Create',
             new Download(), array('PersonId' => $PersonId, 'DivisionId' => $DivisionId, 'Notenübersicht herunterladen')
+            , false
         ));
 
         // Button's nur anzeigen, wenn Integrationen hinterlegt sind
