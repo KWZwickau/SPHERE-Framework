@@ -833,14 +833,6 @@ class Frontend extends FrontendScoreRule
             );
         }
 
-        // todo remove
-//        $template = new \SPHERE\Application\Api\Document\Standard\Repository\Gradebook\Gradebook();
-//        $content = $template->createSingleDocument($tblDivisionSubject);
-//        $Stage->setContent($content);
-//
-//        return $Stage;
-
-
         // Berechnungsvorschrift und Berechnungssystem der ausgewählten Fach-Klasse ermitteln
         $tblScoreRule = false;
         $scoreRuleText = array();
@@ -1600,26 +1592,6 @@ class Frontend extends FrontendScoreRule
         }
 
         return empty($tblPersonList) ? false : $tblPersonList;
-    }
-
-
-    /**
-     * @param $Id
-     *
-     * @return Stage
-     */
-    public function frontendScoreConditionGradeTypeRemove(
-        $Id = null
-    ) {
-
-        $Stage = new Stage('Berechnungsvariante (Bedingungen)', 'Zensuren-Typ von einer Berechnungsvariante entfernen');
-
-        $tblScoreConditionGradeTypeList = Gradebook::useService()->getScoreConditionGradeTypeListById($Id);
-        if ($tblScoreConditionGradeTypeList) {
-            $Stage->setContent(Gradebook::useService()->removeScoreConditionGradeTypeList($tblScoreConditionGradeTypeList));
-        }
-
-        return $Stage;
     }
 
     /**

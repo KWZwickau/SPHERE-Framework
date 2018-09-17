@@ -158,6 +158,16 @@ abstract class Service extends ServiceMinimumGrade
     }
 
     /**
+     * @param $Id
+     *
+     * @return false|TblScoreConditionGroupRequirement
+     */
+    public function getScoreConditionGroupRequirementById($Id)
+    {
+        return (new Data($this->getBinding()))->getScoreConditionGroupRequirementById($Id);
+    }
+
+    /**
      * @param IFormInterface|null $Stage
      * @param                     $ScoreCondition
      *
@@ -332,15 +342,17 @@ abstract class Service extends ServiceMinimumGrade
     /**
      * @param TblGradeType $tblGradeType
      * @param TblScoreCondition $tblScoreCondition
+     * @param $count
      *
      * @return string
      */
     public function addScoreConditionGradeTypeList(
         TblGradeType $tblGradeType,
-        TblScoreCondition $tblScoreCondition
+        TblScoreCondition $tblScoreCondition,
+        $count
     ) {
 
-        if ((new Data($this->getBinding()))->addScoreConditionGradeTypeList($tblGradeType, $tblScoreCondition)) {
+        if ((new Data($this->getBinding()))->addScoreConditionGradeTypeList($tblGradeType, $tblScoreCondition, $count)) {
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich hinzugefügt.') .
             new Redirect('/Education/Graduation/Gradebook/Score/Condition/GradeType/Select', Redirect::TIMEOUT_SUCCESS,
                 array('Id' => $tblScoreCondition->getId()));
@@ -348,6 +360,30 @@ abstract class Service extends ServiceMinimumGrade
             return new Danger(new Ban() . ' Konnte nicht hinzugefügt werden.') .
             new Redirect('/Education/Graduation/Gradebook/Score/Condition/GradeType/Select', Redirect::TIMEOUT_ERROR,
                 array('Id' => $tblScoreCondition->getId()));
+        }
+    }
+
+    /**
+     * @param TblScoreGroup $tblScoreGroup
+     * @param TblScoreCondition $tblScoreCondition
+     * @param $count
+     *
+     * @return string
+     */
+    public function addScoreConditionGroupRequirement(
+        TblScoreGroup $tblScoreGroup,
+        TblScoreCondition $tblScoreCondition,
+        $count
+    ) {
+
+        if ((new Data($this->getBinding()))->addScoreConditionGroupRequirement($tblScoreGroup, $tblScoreCondition, $count)) {
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich hinzugefügt.') .
+                new Redirect('/Education/Graduation/Gradebook/Score/Condition/GradeType/Select', Redirect::TIMEOUT_SUCCESS,
+                    array('Id' => $tblScoreCondition->getId()));
+        } else {
+            return new Danger(new Ban() . ' Konnte nicht hinzugefügt werden.') .
+                new Redirect('/Education/Graduation/Gradebook/Score/Condition/GradeType/Select', Redirect::TIMEOUT_ERROR,
+                    array('Id' => $tblScoreCondition->getId()));
         }
     }
 
@@ -369,6 +405,27 @@ abstract class Service extends ServiceMinimumGrade
             return new Danger(new Ban() . ' Konnte nicht entfernt werden.') .
             new Redirect('/Education/Graduation/Gradebook/Score/Condition/GradeType/Select', Redirect::TIMEOUT_ERROR,
                 array('Id' => $tblScoreCondition->getId()));
+        }
+    }
+
+    /**
+     * @param TblScoreConditionGroupRequirement $tblScoreConditionGroupRequirement
+     *
+     * @return string
+     */
+    public function removeScoreConditionGroupRequirement(
+        TblScoreConditionGroupRequirement $tblScoreConditionGroupRequirement
+    ) {
+
+        $tblScoreCondition = $tblScoreConditionGroupRequirement->getTblScoreCondition();
+        if ((new Data($this->getBinding()))->removeScoreConditionGroupRequirement($tblScoreConditionGroupRequirement)) {
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich entfernt.') .
+                new Redirect('/Education/Graduation/Gradebook/Score/Condition/GradeType/Select', Redirect::TIMEOUT_SUCCESS,
+                    array('Id' => $tblScoreCondition->getId()));
+        } else {
+            return new Danger(new Ban() . ' Konnte nicht entfernt werden.') .
+                new Redirect('/Education/Graduation/Gradebook/Score/Condition/GradeType/Select', Redirect::TIMEOUT_ERROR,
+                    array('Id' => $tblScoreCondition->getId()));
         }
     }
 
@@ -1152,5 +1209,50 @@ abstract class Service extends ServiceMinimumGrade
         } else {
             return empty($requirements) ? false : $requirements;
         }
+    }
+
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return TblGradeType[]|bool
+     */
+    public function getGradeTypeAllByScoreCondition(TblScoreCondition $tblScoreCondition)
+    {
+        $tblGradeTypeList = array();
+        if (($tblScoreConditionGroupList = $this->getScoreConditionGroupListByCondition($tblScoreCondition))) {
+            foreach ($tblScoreConditionGroupList as $item) {
+                if (($tblScoreGroup = $item->getTblScoreGroup())
+                    && ($tblScoreGroupGradeTypeList = $this->getScoreGroupGradeTypeListByGroup($tblScoreGroup))
+                ) {
+                    foreach ($tblScoreGroupGradeTypeList as $subItem) {
+                        if (($tblGradeType = $subItem->getTblGradeType())) {
+                            $tblGradeTypeList[$tblGradeType->getId()] = $tblGradeType;
+                        }
+                    }
+                }
+            }
+        }
+
+        return empty($tblGradeTypeList) ? false : $tblGradeTypeList;
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return TblScoreGroup[]|bool
+     */
+    public function getScoreGroupAllByScoreCondition(TblScoreCondition $tblScoreCondition)
+    {
+        $tblScoreGroupList = array();
+        if (($tblScoreConditionGroupList = $this->getScoreConditionGroupListByCondition($tblScoreCondition))) {
+            foreach ($tblScoreConditionGroupList as $item) {
+                if ($tblScoreGroup = $item->getTblScoreGroup()) {
+                    $tblScoreGroupList[$tblScoreGroup->getId()] = $tblScoreGroup;
+                }
+            }
+        }
+
+        return empty($tblScoreGroupList) ? false : $tblScoreGroupList;
     }
 }

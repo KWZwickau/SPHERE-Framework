@@ -312,6 +312,16 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
     }
 
     /**
+     * @param $Id
+     *
+     * @return false|TblScoreConditionGroupRequirement
+     */
+    public function getScoreConditionGroupRequirementById($Id)
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblScoreConditionGroupRequirement', $Id);
+    }
+
+    /**
      * @param TblScoreCondition $tblScoreCondition
      *
      * @return bool|TblScoreConditionGroupRequirement[]
@@ -511,12 +521,14 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
     /**
      * @param TblGradeType $tblGradeType
      * @param TblScoreCondition $tblScoreCondition
+     * @param $count
      *
      * @return TblScoreConditionGradeTypeList
      */
     public function addScoreConditionGradeTypeList(
         TblGradeType $tblGradeType,
-        TblScoreCondition $tblScoreCondition
+        TblScoreCondition $tblScoreCondition,
+        $count
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -531,6 +543,41 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
             $Entity = new TblScoreConditionGradeTypeList();
             $Entity->setTblGradeType($tblGradeType);
             $Entity->setTblScoreCondition($tblScoreCondition);
+            $Entity->setCount($count);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblScoreGroup $tblScoreGroup
+     * @param TblScoreCondition $tblScoreCondition
+     * @param $count
+     *
+     * @return null|TblScoreConditionGroupRequirement
+     */
+    public function addScoreConditionGroupRequirement(
+        TblScoreGroup $tblScoreGroup,
+        TblScoreCondition $tblScoreCondition,
+        $count
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblScoreConditionGroupRequirement')
+            ->findOneBy(array(
+                TblScoreConditionGroupRequirement::ATTR_TBL_SCORE_GROUP => $tblScoreGroup->getId(),
+                TblScoreConditionGroupRequirement::ATTR_TBL_SCORE_CONDITION => $tblScoreCondition->getId(),
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblScoreConditionGroupRequirement();
+            $Entity->setTblScoreCondition($tblScoreCondition);
+            $Entity->setTblScoreGroup($tblScoreGroup);
+            $Entity->setCount($count);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -634,6 +681,25 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
         $Manager = $this->getConnection()->getEntityManager();
         /** @var TblScoreConditionGradeTypeList $Entity */
         $Entity = $Manager->getEntityById('TblScoreConditionGradeTypeList', $tblScoreConditionGradeTypeList->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblScoreConditionGroupRequirement $tblScoreConditionGroupRequirement
+     *
+     * @return bool
+     */
+    public function removeScoreConditionGroupRequirement(TblScoreConditionGroupRequirement $tblScoreConditionGroupRequirement)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblScoreConditionGroupRequirement $Entity */
+        $Entity = $Manager->getEntityById('TblScoreConditionGroupRequirement', $tblScoreConditionGroupRequirement->getId());
         if (null !== $Entity) {
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
