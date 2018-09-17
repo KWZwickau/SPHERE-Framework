@@ -25,6 +25,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -791,59 +792,16 @@ class Service extends ServiceScoreRule
             $count = 0;
             $sum = 0;
 
-            // get ScoreCondition
-            $tblScoreCondition = false;
-            if ($tblScoreRule !== null) {
-                $tblScoreConditionsByRule = Gradebook::useService()->getScoreConditionsByRule($tblScoreRule);
-                if ($tblScoreConditionsByRule) {
-                    if (count($tblScoreConditionsByRule) > 1) {
-                        $tblScoreConditionsByRule =
-                            $this->getSorter($tblScoreConditionsByRule)->sortObjectBy('Priority');
-                        if ($tblScoreConditionsByRule) {
-                            /** @var TblScoreCondition $item */
-                            foreach ($tblScoreConditionsByRule as $item) {
-                                $tblScoreConditionGradeTypeListByCondition =
-                                    Gradebook::useService()->getScoreConditionGradeTypeListByCondition(
-                                        $item
-                                    );
-                                if ($tblScoreConditionGradeTypeListByCondition) {
-                                    $hasConditions = true;
-                                    foreach ($tblScoreConditionGradeTypeListByCondition as $tblScoreConditionGradeTypeList) {
-                                        $hasGradeType = false;
-                                        foreach ($tblGradeList as $tblGrade) {
-                                            if (is_numeric($tblGrade->getGrade())
-                                                && $tblGrade->getTblGradeType()
-                                                && $tblScoreConditionGradeTypeList->getTblGradeType()
-                                                && ($tblGrade->getTblGradeType()->getId()
-                                                    == $tblScoreConditionGradeTypeList->getTblGradeType()->getId())
-                                            ) {
-                                                $hasGradeType = true;
-                                                break;
-                                            }
-                                        }
-
-                                        if (!$hasGradeType) {
-                                            $hasConditions = false;
-                                            break;
-                                        }
-                                    }
-
-                                    if ($hasConditions) {
-                                        $tblScoreCondition = $item;
-                                        break;
-                                    }
-
-                                } else {
-                                    // no Conditions
-                                    $tblScoreCondition = $item;
-                                    break;
-                                }
-                            }
-                        }
-                    } else {
-                        $tblScoreCondition = $tblScoreConditionsByRule[0];
-                    }
-                }
+            if ($tblScoreRule) {
+                $tblYear = $tblDivision->getServiceTblYear();
+                $tblScoreCondition = $this->getScoreConditionByStudent(
+                    $tblScoreRule,
+                    $tblGradeList,
+                    $tblYear ? $tblYear : null,
+                    $tblPeriod ? $tblPeriod : null
+                );
+            } else {
+                $tblScoreCondition = false;
             }
 
             $error = array();
@@ -981,6 +939,131 @@ class Service extends ServiceScoreRule
         }
 
         return false;
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     * @param $tblGradeList
+     * @param TblYear|null $tblYear
+     * @param TblPeriod|null $tblPeriod
+     *
+     * @return bool|TblScoreCondition
+     */
+    public function getScoreConditionByStudent(
+        TblScoreRule $tblScoreRule,
+        $tblGradeList,
+        TblYear $tblYear = null,
+        TblPeriod $tblPeriod = null
+    ){
+        // get ScoreCondition
+        $tblScoreCondition = false;
+        if ($tblScoreRule !== null) {
+            $tblScoreConditionsByRule = Gradebook::useService()->getScoreConditionsByRule($tblScoreRule);
+            if ($tblScoreConditionsByRule) {
+                if (count($tblScoreConditionsByRule) > 1) {
+                    $tblScoreConditionsByRule =
+                        $this->getSorter($tblScoreConditionsByRule)->sortObjectBy('Priority');
+                    if ($tblScoreConditionsByRule) {
+                        /** @var TblScoreCondition $item */
+                        foreach ($tblScoreConditionsByRule as $item) {
+                            $hasConditions = true;
+
+                            // check period
+                            if (($period = $item->getPeriod())) {
+                                if (($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear))) {
+                                    $firstPeriod = reset($tblPeriodList);
+                                    if ($period == TblScoreCondition::PERIOD_FIRST_PERIOD) {
+                                        if ($tblPeriod && $firstPeriod->getId() == $tblPeriod->getId()) {
+
+                                        } else {
+                                            $hasConditions = false;
+                                        }
+                                    } elseif ($period == TblScoreCondition::PERIOD_SECOND_PERIOD) {
+                                        if ($tblPeriod && $firstPeriod->getId() != $tblPeriod->getId()) {
+
+                                        } else {
+                                            $hasConditions = false;
+                                        }
+                                    }
+                                }
+                            }
+
+                            // check gradeTypes
+                            if (($tblScoreConditionGradeTypeListByCondition =
+                                Gradebook::useService()->getScoreConditionGradeTypeListByCondition(
+                                    $item
+                                ))
+                            ) {
+                                foreach ($tblScoreConditionGradeTypeListByCondition as $tblScoreConditionGradeTypeList) {
+                                    $countMinimum = $tblScoreConditionGradeTypeList->getCount();
+                                    $countGradeType = 0;
+                                    if (($tblGradeType = $tblScoreConditionGradeTypeList->getTblGradeType())) {
+                                        /** @var TblGrade $tblGrade */
+                                        foreach ($tblGradeList as $tblGrade) {
+                                            if (is_numeric($tblGrade->getGrade())
+                                                && $tblGrade->getTblGradeType()
+                                                && ($tblGrade->getTblGradeType()->getId() == $tblGradeType->getId())
+                                            ) {
+                                                $countGradeType++;
+                                            }
+                                        }
+
+                                        if ($countGradeType < $countMinimum) {
+                                            $hasConditions = false;
+                                        }
+                                    }
+                                }
+                            }
+
+                            // check group requirements
+                            if (($tblScoreConditionGroupRequirementList =
+                                Gradebook::useService()->getScoreConditionGroupRequirementAllByCondition(
+                                    $item
+                                ))
+                            ) {
+                                foreach ($tblScoreConditionGroupRequirementList as $tblScoreConditionGroupRequirement) {
+                                    $countMinimum = $tblScoreConditionGroupRequirement->getCount();
+                                    $countGradeTypes = 0;
+                                    if (($tblScoreGroup = $tblScoreConditionGroupRequirement->getTblScoreGroup())
+                                        && ($tblGradeTypeList = Gradebook::useService()->getScoreGroupGradeTypeListByGroup($tblScoreGroup))
+                                    ) {
+                                        $gradeTypeList = array();
+                                        foreach ($tblGradeTypeList as $tblGradeTypeItem) {
+                                            if (($tblGradeType = $tblGradeTypeItem->getTblGradeType())){
+                                                $gradeTypeList[$tblGradeType->getId()] = $tblGradeType;
+                                            }
+                                        }
+
+                                        /** @var TblGrade $tblGrade */
+                                        foreach ($tblGradeList as $tblGrade) {
+                                            if (is_numeric($tblGrade->getGrade())
+                                                && $tblGrade->getTblGradeType()
+                                                && isset($gradeTypeList[$tblGrade->getTblGradeType()->getId()])
+                                            ) {
+                                                $countGradeTypes++;
+                                            }
+                                        }
+
+                                        if ($countGradeTypes < $countMinimum) {
+                                            $hasConditions = false;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if ($hasConditions) {
+                                $tblScoreCondition = $item;
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    $tblScoreCondition = $tblScoreConditionsByRule[0];
+                }
+            }
+        }
+
+        return $tblScoreCondition;
     }
 
     /**
