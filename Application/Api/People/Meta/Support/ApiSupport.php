@@ -1046,19 +1046,30 @@ class ApiSupport extends Extension implements IApiInterface
             $Person = $tblPerson->getLastFirstName();
         }
 
-
         $Content = new Listing(array(
             new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn('Person:', 3),
-                new LayoutColumn($Person, 9),
+                new LayoutColumn('Person:', 4),
+                new LayoutColumn($Person, 8),
             )))),
             new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn('Datum:', 3),
-                new LayoutColumn($tblHandyCap->getDate(), 9),
+                new LayoutColumn('Datum:', 4),
+                new LayoutColumn($tblHandyCap->getDate(), 8),
             )))),
             new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('Bemerkung:', 3),
-                    new LayoutColumn($tblHandyCap->getRemark(), 9),
+                    new LayoutColumn('Rechtliche Grundlage:', 4),
+                    new LayoutColumn($tblHandyCap->getLegalBasis(), 8),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Lernziel:', 4),
+                    new LayoutColumn($tblHandyCap->getLearnTarget(), 8),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Besonderheiten im Unterricht:', 4),
+                    new LayoutColumn($tblHandyCap->getRemarkLesson(), 8),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Besonderheiten bei Leistungsbewertungen:', 4),
+                    new LayoutColumn($tblHandyCap->getRemarkRating(), 8),
             ))))
         ));
 

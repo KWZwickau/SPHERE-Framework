@@ -827,7 +827,10 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
         $this->createColumn($table, 'Date', self::FIELD_TYPE_DATETIME);
         $this->createColumn($table, 'PersonEditor', self::FIELD_TYPE_STRING);
-        $this->createColumn($table, 'Remark', self::FIELD_TYPE_TEXT);
+        $this->createColumn($table, 'LegalBasis', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'LearnTarget', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'RemarkLesson', self::FIELD_TYPE_TEXT);
+        $this->createColumn($table, 'RemarkRating', self::FIELD_TYPE_TEXT);
 
         return $table;
     }

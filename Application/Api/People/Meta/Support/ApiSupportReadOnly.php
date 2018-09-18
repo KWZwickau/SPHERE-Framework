@@ -87,10 +87,12 @@ class ApiSupportReadOnly extends Extension implements IApiInterface
             $WellFocus = '';
             $WellDisorder = '';
             $WellHandyCap = '';
+            $WellLegalBasis = new LayoutColumn('');
+            $WellLearnTarget = new LayoutColumn('');
         } else {
             $HeadPanel = new Panel('Schüler', $tblPerson->getLastFirstName(), Panel::PANEL_TYPE_INFO);
             $WellFocus = new Well('Keine Förderschwerpunkte');
-            if(($tblSupport = Student::useService()->getSupportByPersonNewest($tblPerson, array('Förderbescheid', 'Änderung')))){
+            if(($tblSupport = Student::useService()->getSupportByPersonNewest($tblPerson, array('Förderbescheid')))){
                 $WellFocus = new Title('Förderschwerpunkte:');
                 if(($tblFocusPrimary = Student::useService()->getPrimaryFocusBySupport($tblSupport))) {
                     $WellFocus .= new Container(new Bold($tblFocusPrimary->getName()));
@@ -106,6 +108,9 @@ class ApiSupportReadOnly extends Extension implements IApiInterface
                 }
                 $WellFocus = new Well($WellFocus);
             }
+
+            $WellLegalBasis = new LayoutColumn('');
+            $WellLearnTarget = new LayoutColumn('');
 
             $WellDisorder = new Well('Keine Entwicklungsbesonderheiten');
             if(($tblSpecial = Student::useService()->getSpecialByPersonNewest($tblPerson))) {
@@ -123,7 +128,29 @@ class ApiSupportReadOnly extends Extension implements IApiInterface
             if(($tblHandyCap = Student::useService()->getHandyCapByPersonNewest($tblPerson))){
                 $WellHandyCap = new Title('Maßnahmen / Beschluss Klassenkonferenz (Nachteilsausgleich):');
                 $WellHandyCap .= new Container($tblHandyCap->getDate());
-                $WellHandyCap .= new Container($tblHandyCap->getRemark());
+                $WellLegalBasis = new LayoutColumn(new Well(new Bold('Rechtliche Grundlagen: ').
+                    ($tblHandyCap->getLegalBasis()
+                        ? $tblHandyCap->getLegalBasis()
+                        : '&nbsp; ---'
+                    )), 6);
+                $WellLearnTarget = new LayoutColumn(new Well(new Bold('Lernziel: ').
+                    ($tblHandyCap->getLearnTarget()
+                        ? $tblHandyCap->getLearnTarget()
+                        : '&nbsp; ---'
+                    )), 6);
+                $WellHandyCap .= new Container('&nbsp;');
+                $WellHandyCap .= new Container(new Bold('Besonderheiten im Unterricht:'));
+                $WellHandyCap .= new Container(($tblHandyCap->getRemarkLesson()
+                    ? $tblHandyCap->getRemarkLesson()
+                    : '---'
+                ));
+                $WellHandyCap .= new Container('&nbsp;');
+                $WellHandyCap .= new Container(new Bold('Besonderheiten bei Leistungsbewertungen:'));
+                $WellHandyCap .= new Container(($tblHandyCap->getRemarkRating()
+                    ? $tblHandyCap->getRemarkRating()
+                    : '---'
+                ));
+
                 $WellHandyCap .= new Ruler().new Container(new Bold('letzter Bearbeiter: ').$tblHandyCap->getPersonEditor());
                 $WellHandyCap = new Well($WellHandyCap);
             }
@@ -132,22 +159,26 @@ class ApiSupportReadOnly extends Extension implements IApiInterface
 
         return new Title('Integration')
         .new Layout(
-            new LayoutGroup(
+            new LayoutGroup(array(
                 new LayoutRow(array(
                     new LayoutColumn(
                         $HeadPanel
                     , 12),
                     new LayoutColumn(
                         $WellFocus
-                    , 5),
+                    , 6),
                     new LayoutColumn(
                         $WellDisorder
-                    , 7),
+                    , 6),
+                )),
+                new LayoutRow(array(
+                    $WellLegalBasis,
+                    $WellLearnTarget,
                     new LayoutColumn(
                         $WellHandyCap
                     , 12),
                 ))
-            )
+            ))
         );
     }
 }

@@ -44,6 +44,7 @@ use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
+use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -102,7 +103,6 @@ use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\SuperGlobal;
-use SPHERE\System\Extension\Repository\Sorter\StringNaturalOrderSorter;
 
 /**
  * Class Frontend
@@ -403,7 +403,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(array(
                         (new SelectBox('Data[SupportType]', 'Vorgang', array('{{ Name }}' => $SupportTypeList), new Education()))->setRequired(),
-                        new Warning('Nur "Förderbescheid" und "Änderung" sind für Lehrer sichtbar')
+                        new Warning('Nur "Förderbescheid" ist für Lehrer sichtbar')
                         ), 6),
                     new FormColumn(
                         new Listing($CheckboxList)
@@ -566,7 +566,10 @@ class Frontend extends Extension implements IFrontendInterface
         if($HandyCapId != null && !isset($Global->POST['Data']['Date'])){
             if(($tblHandyCap = Student::useService()->getHandyCapById($HandyCapId))){
                 $Global->POST['Data']['Date'] = $tblHandyCap->getDate();
-                $Global->POST['Data']['Remark'] = $tblHandyCap->getRemark(false);
+                $Global->POST['Data']['LegalBasis'] = $tblHandyCap->getLegalBasis();
+                $Global->POST['Data']['LearnTarget'] = $tblHandyCap->getLearnTarget();
+                $Global->POST['Data']['RemarkLesson'] = $tblHandyCap->getRemarkLesson(false);
+                $Global->POST['Data']['RemarkRating'] = $tblHandyCap->getRemarkRating(false);
                 $Global->savePost();
             }
         }// don't need pre fill for create new Entity's
@@ -585,10 +588,42 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(array(
                         (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired(),
                     ), 6),
-                    new FormColumn(
-                        (new TextArea('Data[Remark]', 'Bemerkung', 'Bemerkung', new Edit()))->setRequired()
-                    , 12),
                 )),
+                new FormRow(new FormColumn(new Ruler())),
+                new FormRow(array(
+                    new FormColumn(array(
+                        new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Bold('Rechtliche Grundlage'))))),
+                    ), 6),
+                    new FormColumn(array(
+                        new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Bold('Lernziel'))))),
+                    ), 6)
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new RadioBox('Data[LegalBasis]', 'Schulaufsicht', TblHandyCap::LEGAL_BASES_SCHOOL_VIEW)
+                    , 3),
+                    new FormColumn(
+                        new RadioBox('Data[LegalBasis]', 'Schulintern', TblHandyCap::LEGAL_BASES_INTERN)
+                    , 3),
+                    new FormColumn(
+                        new RadioBox('Data[LearnTarget]', 'lernzielgleich', TblHandyCap::LEARN_TARGET_EQUAL)
+                    , 3),
+                    new FormColumn(
+                        new RadioBox('Data[LearnTarget]', 'lernzieldifferenziert', TblHandyCap::LEARN_TARGET_DIFFERENT)
+                    , 3)
+                )),
+                new FormRow(new FormColumn(new Ruler())),
+                new FormRow(
+                    new FormColumn(
+                        new TextArea('Data[RemarkLesson]', 'Bemerkung', 'Besonderheiten im Unterricht', new Edit())
+                        , 12)
+                ),
+                new FormRow(new FormColumn(new Ruler())),
+                new FormRow(
+                    new FormColumn(
+                        new TextArea('Data[RemarkRating]', 'Bemerkung', 'Besonderheiten bei Leistungsbewertungen', new Edit())
+                    , 12)
+                ),
                 new FormRow(array(
                     new FormColumn(
                         $SaveButton
@@ -746,7 +781,10 @@ class Frontend extends Extension implements IFrontendInterface
         if($tblSpecialList){
             array_walk($tblSpecialList, function(TblHandyCap $tblHandyCap) use (&$TableContent, $tblPerson){
                 $Item['RequestDate'] = $tblHandyCap->getDate();
-                $Item['Remark'] = $tblHandyCap->getRemark();
+                $Item['LegalBasis'] = $tblHandyCap->getLegalBasis();
+                $Item['LearnTarget'] = $tblHandyCap->getLearnTarget();
+                $Item['RemarkLesson'] = $tblHandyCap->getRemarkLesson();
+                $Item['RemarkRating'] = $tblHandyCap->getRemarkRating();
                 $Item['Editor'] = $tblHandyCap->getPersonEditor();
                 $Item['Option'] = (new Standard('', '#', new Edit()))
                     ->ajaxPipelineOnClick(ApiSupport::pipelineOpenEditHandyCapModal($tblPerson->getId(), $tblHandyCap->getId()))
@@ -763,7 +801,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         return new TableData($TableContent, null,
             array('RequestDate' => 'Datum',
-                  'Remark' => 'Bemerkung',
+                  'LegalBasis' => 'Rechtliche Grundlage',
+                  'LearnTarget' => 'Lernziel',
+                  'RemarkLesson' => 'Besonderheiten im Unterricht',
+                  'RemarkRating' => 'Besonderheiten bei Leistungsbewertungen',
                   'Editor' => 'Bearbeiter',
                   'Option' => '',
             ), array(
