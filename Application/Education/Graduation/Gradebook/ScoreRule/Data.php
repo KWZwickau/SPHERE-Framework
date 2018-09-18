@@ -752,6 +752,7 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
      * @param $Round
      * @param $Priority
      * @param $IsActive
+     * @param null $Period
      *
      * @return bool
      */
@@ -760,7 +761,8 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
         $Name,
         $Round,
         $Priority,
-        $IsActive
+        $IsActive,
+        $Period = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -773,6 +775,7 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
             $Entity->setRound($Round);
             $Entity->setPriority($Priority);
             $Entity->setIsActive($IsActive);
+            $Entity->setPeriod($Period);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

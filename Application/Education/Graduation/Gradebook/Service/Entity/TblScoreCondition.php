@@ -6,7 +6,6 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
-use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -19,6 +18,7 @@ class TblScoreCondition extends Element
 
     const ATTR_NAME = 'Name';
     const ATTR_IS_ACTIVE = 'IsActive';
+    const PERIOD_FULL_YEAR = -1;
     const PERIOD_FIRST_PERIOD = 1;
     const PERIOD_SECOND_PERIOD = 2;
 

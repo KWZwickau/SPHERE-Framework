@@ -582,13 +582,45 @@ abstract class Service extends ServiceMinimumGrade
                 $ScoreCondition['Name'],
                 isset($ScoreCondition['Round']) ? $ScoreCondition['Round'] : '',
                 $ScoreCondition['Priority'],
-                $tblScoreCondition->isActive()
+                $tblScoreCondition->isActive(),
+                $tblScoreCondition->getPeriod()
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Berechnungsvariante ist erfolgreich gespeichert worden')
             . new Redirect('/Education/Graduation/Gradebook/Score/Condition', Redirect::TIMEOUT_SUCCESS);
         }
 
         return $Stage;
+    }
+
+    /**
+     * @param IFormInterface|null $form
+     * @param TblScoreCondition|null $tblScoreCondition
+     * @param $Period
+     *
+     * @return IFormInterface|string
+     */
+    public function updateScoreConditionRequirementPeriod(IFormInterface $form = null, TblScoreCondition $tblScoreCondition = null, $Period)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $tblScoreCondition || null === $Period) {
+            return $form;
+        }
+
+        (new Data($this->getBinding()))->updateScoreCondition(
+            $tblScoreCondition,
+            $tblScoreCondition->getName(),
+            $tblScoreCondition->getRound(),
+            $tblScoreCondition->getPriority(),
+            $tblScoreCondition->isActive(),
+            $Period < 0 ? null : $Period
+        );
+
+        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Bedingung ist erfolgreich gespeichert worden')
+            . new Redirect('/Education/Graduation/Gradebook/Score/Condition/GradeType/Select', Redirect::TIMEOUT_SUCCESS,
+                array('Id' => $tblScoreCondition->getId()));
     }
 
     /**
@@ -1063,7 +1095,7 @@ abstract class Service extends ServiceMinimumGrade
     {
 
         return (new Data($this->getBinding()))->updateScoreCondition($tblScoreCondition, $tblScoreCondition->getName(),
-            $tblScoreCondition->getRound(), $tblScoreCondition->getPriority(), $IsActive);
+            $tblScoreCondition->getRound(), $tblScoreCondition->getPriority(), $IsActive, $tblScoreCondition->getPeriod());
     }
 
     /**

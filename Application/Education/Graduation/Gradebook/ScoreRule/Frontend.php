@@ -11,6 +11,7 @@ namespace SPHERE\Application\Education\Graduation\Gradebook\ScoreRule;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\Frontend as FrontendMinimumGradeCount;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
+use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreCondition;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGroupList;
@@ -28,6 +29,7 @@ use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -1123,11 +1125,13 @@ class Frontend extends FrontendMinimumGradeCount
 
     /**
      * @param $Id
+     * @param null $Period
      *
      * @return Stage
      */
     public function frontendScoreConditionGradeTypeSelect(
-        $Id = null
+        $Id = null,
+        $Period = null
     ) {
 
         $Stage = new Stage('Berechnungsvariante', 'Bedingungen auswählen');
@@ -1241,6 +1245,23 @@ class Frontend extends FrontendMinimumGradeCount
                     }
                 }
 
+                if ($Period == null) {
+                    $global = $this->getGlobal();
+                    $valuePeriod = $tblScoreCondition->getPeriod();
+                    $global->POST['Period'] = $valuePeriod == null ? TblScoreCondition::PERIOD_FULL_YEAR : $valuePeriod;
+                    $global->savePost();
+                }
+
+                $periodList[] = new SelectBoxItem(TblScoreCondition::PERIOD_FULL_YEAR, '-Gesamtes Schuljahr-');
+                $periodList[] = new SelectBoxItem(TblScoreCondition::PERIOD_FIRST_PERIOD, '1. Halbjahr');
+                $periodList[] = new SelectBoxItem(TblScoreCondition::PERIOD_SECOND_PERIOD, '2. Halbjahr');
+
+                $form = new Form(new FormGroup(new FormRow(new FormColumn(
+                    new SelectBox('Period', 'Zeitraum',
+                        array('{{ Name }}' => $periodList))
+                ))));
+                $form->appendFormButton(new Primary('Speichern', new Save()));
+
                 $Stage->setContent(
                     new Layout(array(
                         new LayoutGroup(array(
@@ -1249,6 +1270,15 @@ class Frontend extends FrontendMinimumGradeCount
                                     new Panel('Berechnungsvariante', $tblScoreCondition->getName(),
                                         Panel::PANEL_TYPE_INFO),
                                     12
+                                ),
+                            ))
+                        )),
+                        new LayoutGroup(array(
+                            new LayoutRow(array(
+                                new LayoutColumn(
+                                    new Well (
+                                        Gradebook::useService()->updateScoreConditionRequirementPeriod($form, $tblScoreCondition, $Period)
+                                    )
                                 ),
                             ))
                         )),
