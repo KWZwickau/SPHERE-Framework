@@ -1174,6 +1174,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if (!empty($testList)) {
                     foreach ($testList as $item) {
                         if ($item->getServiceTblSubject() && $item->getServiceTblDivision() && $item->getServiceTblGradeType()) {
+                            $tblDivisionTemp = $item->getServiceTblDivision();
                             $tblSubject = $item->getServiceTblSubject();
                             $tblSubjectGroup = $item->getServiceTblSubjectGroup();
                             $TeacherAcronymList = array();
@@ -1181,10 +1182,10 @@ class Frontend extends Extension implements IFrontendInterface
                             if (!$tblSubjectGroup) {
                                 $tblSubjectGroup = null;
                             } else {
-                                $tblDivisionSubjectMain = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivision,
+                                $tblDivisionSubjectMain = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivisionTemp,
                                     $tblSubject, null);
                             }
-                            $tblDivisionSubjectTeacher = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivision,
+                            $tblDivisionSubjectTeacher = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivisionTemp,
                                 $tblSubject, $tblSubjectGroup);
                             if ($tblDivisionSubjectTeacher) {
                                 // Teacher Group (if exist) else Teacher Subject
@@ -1219,6 +1220,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                             // create Teacher string
                             if (!empty($TeacherAcronymList)) {
+                                // remove dublicates
+                                $TeacherAcronymList = array_unique($TeacherAcronymList);
                                 $TeacherAcronym = implode(', ', $TeacherAcronymList);
                             } else {
                                 $TeacherAcronym = new ToolTip(new Small(new NotAvailable())
@@ -2136,6 +2139,11 @@ class Frontend extends Extension implements IFrontendInterface
                                                     : $text;
                                         }
                                     }
+                                }
+                                // SSW-259
+                                if ($count == 0) {
+                                    $periodListCount[$tblPeriod->getId()] = 1;
+                                    $columnDefinition['Period' . $tblPeriod->getId()] = "";
                                 }
                                 $periodListCount[$tblPeriod->getId()] = $count;
                             } else {

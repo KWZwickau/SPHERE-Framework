@@ -145,3 +145,5 @@ SELECT
 
     FROM PeoplePerson_{{ ConsumerAcronym }}.viewPerson vP
         LEFT JOIN SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA ON vP.TblPerson_Id = vCA.TblPerson_Id
+
+    group by vP.TblPerson_Id
