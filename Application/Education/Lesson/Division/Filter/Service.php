@@ -17,6 +17,7 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
@@ -322,13 +323,28 @@ class Service
                 // Validierung "Stundentaffel"
                 if (($tblLevel = $tblDivision->getTblLevel())
                     && ($tblSchoolType = $tblLevel->getServiceTblType())
-                    && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
                 ) {
+                    if (($tblSetting = Consumer::useService()->getSetting(
+                            'Reporting', 'KamenzReport', 'Validation', 'FirstForeignLanguageLevel'))
+                        && $tblSetting->getValue()
+                    ) {
+                        $firstForeignLanguageLevel = $tblSetting->getValue();
+                    } else {
+                        $firstForeignLanguageLevel = 1;
+                    }
+
+                    if (floatval($tblLevel->getName() >= $firstForeignLanguageLevel)) {
+                        $validateFirstLanguage = true;
+                    } else {
+                        $validateFirstLanguage = false;
+                    }
+
                     $list = self::hasPersonAllObligations(
                         $tblPerson,
                         $tblSchoolType,
                         $tblLevel,
-                        $list
+                        $list,
+                        $validateFirstLanguage
                     );
                 }
             }
@@ -374,8 +390,24 @@ class Service
             && ($tblSchoolType = $tblLevel->getServiceTblType())
             && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
         ) {
+
+            if (($tblSetting = Consumer::useService()->getSetting(
+                    'Reporting', 'KamenzReport', 'Validation', 'FirstForeignLanguageLevel'))
+                && $tblSetting->getValue()
+            ) {
+                $firstForeignLanguageLevel = $tblSetting->getValue();
+            } else {
+                $firstForeignLanguageLevel = 1;
+            }
+
+            if (floatval($tblLevel->getName() >= $firstForeignLanguageLevel)) {
+                $validateFirstLanguage = true;
+            } else {
+                $validateFirstLanguage = false;
+            }
+
             foreach ($tblPersonList as $tblPerson) {
-                $list = self::hasPersonAllObligations($tblPerson, $tblSchoolType, $tblLevel, $list);
+                $list = self::hasPersonAllObligations($tblPerson, $tblSchoolType, $tblLevel, $list, $validateFirstLanguage);
             }
         }
 
@@ -383,20 +415,22 @@ class Service
     }
 
     /**
-     * @param $tblPerson
-     * @param $tblSchoolType
-     * @param $tblLevel
+     * @param TblPerson $tblPerson
+     * @param TblType $tblSchoolType
+     * @param TblLevel $tblLevel
      * @param $list
+     * @param bool $validateFirstLanguage
      *
      * @return array
      */
-    public static function hasPersonAllObligations(TblPerson $tblPerson, TblType $tblSchoolType, TblLevel $tblLevel, $list)
+    public static function hasPersonAllObligations(TblPerson $tblPerson, TblType $tblSchoolType, TblLevel $tblLevel, $list, $validateFirstLanguage)
     {
         $tblStudent = $tblPerson->getStudent();
 
         // Keine 1. Fremdsprache hinterlegt.
-        if (!$tblStudent
-            || !$tblStudent->getTblSubjectForeignLanguage(1)
+        if ($validateFirstLanguage
+            && (!$tblStudent
+            || !$tblStudent->getTblSubjectForeignLanguage(1))
         ) {
             $field = Filter::DESCRIPTION_SUBJECT_FOREIGN_LANGUAGE;
             $value = new Exclamation() . ' Keine 1. Fremdsprache hinterlegt.';
