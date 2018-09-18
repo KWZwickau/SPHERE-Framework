@@ -184,14 +184,20 @@ abstract class Support extends Integration
      * @param TblPerson $serviceTblPerson
      * @param \DateTime $Date
      * @param string    $PersonEditor
-     * @param string    $Remark
+     * @param string    $LegalBasis
+     * @param string    $LearnTarget
+     * @param string    $RemarkLesson
+     * @param string    $RemarkRating
      *
      * @return TblHandyCap
      */
     public function createHandyCap(TblPerson $serviceTblPerson,
         $Date,
         $PersonEditor = '',
-        $Remark = '')
+        $LegalBasis = '',
+        $LearnTarget = '',
+        $RemarkLesson = '',
+        $RemarkRating = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -200,7 +206,10 @@ abstract class Support extends Integration
         $Entity->setDate($Date);
         $Entity->setServiceTblPerson($serviceTblPerson);
         $Entity->setPersonEditor($PersonEditor);
-        $Entity->setRemark($Remark);
+        $Entity->setLegalBasis($LegalBasis);
+        $Entity->setLearnTarget($LearnTarget);
+        $Entity->setRemarkLesson($RemarkLesson);
+        $Entity->setRemarkRating($RemarkRating);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         return $Entity;
@@ -270,6 +279,27 @@ abstract class Support extends Integration
     }
 
     /**
+     * @param TblSupportType $tblSupportType
+     * @param string         $Name
+     * @param string         $Description
+     *
+     * @return false|TblSupportType
+     */
+    public function updateSupportType(TblSupportType $tblSupportType, $Name = '', $Description = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $tblSupportType;
+        $Protocol = clone $Entity;
+        $Entity->setName($Name);
+        $Entity->setDescription($Description);
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+        return $Entity;
+    }
+
+    /**
      * @param TblSpecial $tblSpecial
      * @param \DateTime  $Date
      * @param string     $PersonEditor
@@ -305,14 +335,20 @@ abstract class Support extends Integration
      * @param TblHandyCap $tblHandyCap
      * @param \DateTime   $Date
      * @param string      $PersonEditor
-     * @param string      $Remark
+     * @param string      $LegalBasis
+     * @param string      $LearnTarget
+     * @param string      $RemarkLesson
+     * @param string      $RemarkRating
      *
      * @return bool
      */
     public function updateHandyCap(TblHandyCap $tblHandyCap,
         $Date,
         $PersonEditor = '',
-        $Remark = '')
+        $LegalBasis = '',
+        $LearnTarget = '',
+        $RemarkLesson = '',
+        $RemarkRating = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -323,7 +359,10 @@ abstract class Support extends Integration
         if (null !== $Entity) {
             $Entity->setDate($Date);
             $Entity->setPersonEditor($PersonEditor);
-            $Entity->setRemark($Remark);
+            $Entity->setLegalBasis($LegalBasis);
+            $Entity->setLearnTarget($LearnTarget);
+            $Entity->setRemarkLesson($RemarkLesson);
+            $Entity->setRemarkRating($RemarkRating);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,

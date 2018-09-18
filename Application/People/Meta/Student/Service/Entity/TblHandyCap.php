@@ -17,6 +17,11 @@ use SPHERE\System\Database\Fitting\Element;
 class TblHandyCap extends Element
 {
 
+    const LEGAL_BASES_SCHOOL_VIEW = 'Schulaufsicht';
+    const LEGAL_BASES_INTERN = 'Schulintern';
+    const LEARN_TARGET_EQUAL = 'lernzielgleich';
+    const LEARN_TARGET_DIFFERENT = 'lernzieldifferneziert';
+
     const SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_DATE = 'Date';
 
@@ -35,7 +40,19 @@ class TblHandyCap extends Element
     /**
      * @Column(type="string")
      */
-    protected $Remark;
+    protected $LegalBasis;
+    /**
+     * @Column(type="string")
+     */
+    protected $LearnTarget;
+    /**
+     * @Column(type="string")
+     */
+    protected $RemarkLesson;
+    /**
+     * @Column(type="string")
+     */
+    protected $RemarkRating;
 
 
 
@@ -116,26 +133,82 @@ class TblHandyCap extends Element
     }
 
     /**
+     * @return string
+     */
+    public function getLegalBasis()
+    {
+        return $this->LegalBasis;
+    }
+
+    /**
+     * @param string $LegalBasis
+     */
+    public function setLegalBasis($LegalBasis = '')
+    {
+        $this->LegalBasis = $LegalBasis;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLearnTarget()
+    {
+        return $this->LearnTarget;
+    }
+
+    /**
+     * @param string $LearnTarget
+     */
+    public function setLearnTarget($LearnTarget = '')
+    {
+        $this->LearnTarget = $LearnTarget;
+    }
+
+    /**
      * @param bool $WithHTML
      *
      * @return string
      */
-    public function getRemark($WithHTML = true)
+    public function getRemarkLesson($WithHTML = true)
     {
 
         if($WithHTML){
-            return nl2br($this->Remark);
+            return nl2br($this->RemarkLesson);
         } else {
-            return $this->Remark;
+            return $this->RemarkLesson;
         }
     }
 
     /**
-     * @param string $Remark
+     * @param string $RemarkLesson
      */
-    public function setRemark($Remark)
+    public function setRemarkLesson($RemarkLesson)
     {
 
-        $this->Remark = $Remark;
+        $this->RemarkLesson = $RemarkLesson;
+    }
+
+    /**
+     * @param bool $WithHTML
+     *
+     * @return string
+     */
+    public function getRemarkRating($WithHTML = true)
+    {
+
+        if($WithHTML){
+            return nl2br($this->RemarkRating);
+        } else {
+            return $this->RemarkRating;
+        }
+    }
+
+    /**
+     * @param string $RemarkRating
+     */
+    public function setRemarkRating($RemarkRating)
+    {
+
+        $this->RemarkRating = $RemarkRating;
     }
 }
