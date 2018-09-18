@@ -833,14 +833,6 @@ class Frontend extends FrontendScoreRule
             );
         }
 
-        // todo remove
-//        $template = new \SPHERE\Application\Api\Document\Standard\Repository\Gradebook\Gradebook();
-//        $content = $template->createSingleDocument($tblDivisionSubject);
-//        $Stage->setContent($content);
-//
-//        return $Stage;
-
-
         // Berechnungsvorschrift und Berechnungssystem der ausgewählten Fach-Klasse ermitteln
         $tblScoreRule = false;
         $scoreRuleText = array();
@@ -866,8 +858,18 @@ class Frontend extends FrontendScoreRule
 
         // Mindestnotenanzahlen
         if ($tblDivisionSubject) {
-            $tblMinimumGradeCountList = Gradebook::useService()->getMinimumGradeCountAllByDivisionSubject($tblDivisionSubject);
-            $minimumGradeCountPanel = $this->getMinimumGradeCountPanel($tblMinimumGradeCountList);
+            if (($tblDivision = $tblDivisionSubject->getTblDivision())
+                && ($tblLevel = $tblDivision->getTblLevel())
+                && ($levelName = $tblLevel->getName())
+                && ($levelName == '11' || $levelName == '12')
+            ) {
+                $isSekII = true;
+            } else {
+                $isSekII = false;
+            }
+
+            $tblMinimumGradeCountList = Gradebook::useService()->getMinimumGradeCountAllByDivisionSubject($tblDivisionSubject, $isSekII);
+            $minimumGradeCountPanel = $this->getMinimumGradeCountPanel($tblMinimumGradeCountList, $isSekII);
             if ($tblMinimumGradeCountList) {
                 foreach ($tblMinimumGradeCountList as $tblMinimumGradeCount) {
                     $MinimumGradeCountSortedList[$tblMinimumGradeCount->getPeriod()][] = $tblMinimumGradeCount;
@@ -959,20 +961,21 @@ class Frontend extends FrontendScoreRule
                                 }
                             }
                         }
-                        $columnDefinition['PeriodAverage' . $tblPeriod->getId()] = '&#216;';
-                        $count++;
-                        if (isset($MinimumGradeCountSortedList[$countPeriod])) {
-                            /**@var TblMinimumGradeCount $tblMinimumGradeCount **/
-                            foreach ($MinimumGradeCountSortedList[$countPeriod] as $tblMinimumGradeCount) {
-                                $columnDefinition['MinimumGradeCount' . $tblMinimumGradeCount->getId()] = '#' . $countMinimumGradeCount++;
-                                $count++;
-                            }
-                        }
-                        $periodListCount[$tblPeriod->getId()] = $count;
                     } else {
-                        $periodListCount[$tblPeriod->getId()] = 1;
+                        $count++;
                         $columnDefinition['Period' . $tblPeriod->getId()] = "";
                     }
+
+                    $columnDefinition['PeriodAverage' . $tblPeriod->getId()] = '&#216;';
+                    $count++;
+                    if (isset($MinimumGradeCountSortedList[$countPeriod])) {
+                        /**@var TblMinimumGradeCount $tblMinimumGradeCount **/
+                        foreach ($MinimumGradeCountSortedList[$countPeriod] as $tblMinimumGradeCount) {
+                            $columnDefinition['MinimumGradeCount' . $tblMinimumGradeCount->getId()] = '#' . $countMinimumGradeCount++;
+                            $count++;
+                        }
+                    }
+                    $periodListCount[$tblPeriod->getId()] = $count;
                 }
             }
             $columnDefinition['YearAverage'] = '&#216;';
@@ -2309,10 +2312,11 @@ class Frontend extends FrontendScoreRule
 
     /**
      * @param $tblMinimumGradeCountList
+     * @param $isSekII
      *
-     * @return false|Panel
+     * @return bool|Panel
      */
-    private function getMinimumGradeCountPanel($tblMinimumGradeCountList)
+    private function getMinimumGradeCountPanel($tblMinimumGradeCountList, $isSekII)
     {
 
         if ($tblMinimumGradeCountList) {
@@ -2330,24 +2334,41 @@ class Frontend extends FrontendScoreRule
                     'Subject' => $tblMinimumGradeCount->getSubjectDisplayName(),
                     'GradeType' => $tblMinimumGradeCount->getGradeTypeDisplayName(),
                     'Period' => $tblMinimumGradeCount->getPeriodDisplayName(),
+                    'Course' => $tblMinimumGradeCount->getCourseDisplayName(),
                     'Count' => $tblMinimumGradeCount->getCount()
                 );
             }
 
             if (!empty($minimumGradeCountContent)) {
+                if  ($isSekII) {
+                    $columns = array(
+                        'Number' => 'Nummer',
+                        'SchoolType' => 'Schulart',
+                        'Level' => 'Klassenstufe',
+                        'Subject' => 'Fach',
+                        'GradeType' => 'Zensuren-Typ',
+                        'Period' => 'Zeitraum',
+                        'Course' => 'SEKII - Kurs',
+                        'Count' => 'Anzahl',
+                    );
+                } else {
+                    $columns = array(
+                        'Number' => 'Nummer',
+                        'SchoolType' => 'Schulart',
+                        'Level' => 'Klassenstufe',
+                        'Subject' => 'Fach',
+                        'GradeType' => 'Zensuren-Typ',
+                        'Period' => 'Zeitraum',
+                        'Count' => 'Anzahl',
+                    );
+                }
 
                 return new Panel(
                     'Mindesnotenanzahl',
-                    new TableData($minimumGradeCountContent, null,
-                        array(
-                            'Number' => 'Nummer',
-                            'SchoolType' => 'Schulart',
-                            'Level' => 'Klassenstufe',
-                            'Subject' => 'Fach',
-                            'GradeType' => 'Zensuren-Typ',
-                            'Period' => 'Zeitraum',
-                            'Count' => 'Anzahl',
-                        ),
+                    new TableData(
+                        $minimumGradeCountContent,
+                        null,
+                        $columns,
                         array(
                             "columnDefs" => array(
                                 array(

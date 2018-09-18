@@ -12,17 +12,21 @@ use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Data;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblMinimumGradeCount;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
-use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Success as TextSuccess;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
@@ -74,100 +78,116 @@ abstract class Service extends AbstractService
 
     /**
      * @param TblDivisionSubject $tblDivisionSubject
+     * @param boolean isSekII
      *
      * @return false|TblMinimumGradeCount[]
      */
     public function getMinimumGradeCountAllByDivisionSubject(
-        TblDivisionSubject $tblDivisionSubject
+        TblDivisionSubject $tblDivisionSubject,
+        $isSekII
     ) {
 
-        return (new Data($this->getBinding()))->getMinimumGradeCountAllByDivisionSubject($tblDivisionSubject);
+        if (($tblMinimumGradeCountList = (new Data($this->getBinding()))->getMinimumGradeCountAllByDivisionSubject($tblDivisionSubject))) {
+            if ($isSekII
+                && ($tblGroup = $tblDivisionSubject->getTblSubjectGroup())
+            ) {
+                $list = array();
+                foreach ($tblMinimumGradeCountList as $tblMinimumGradeCount) {
+
+                    if ($tblMinimumGradeCount->getCourse() == SelectBoxItem::COURSE_ADVANCED) {
+                        if (!$tblGroup->isAdvancedCourse()) {
+                            continue;
+                        }
+                    } elseif ($tblMinimumGradeCount->getCourse() == SelectBoxItem::COURSE_BASIC) {
+                        if ($tblGroup->isAdvancedCourse()) {
+                            continue;
+                        }
+                    }
+
+                    $list[] = $tblMinimumGradeCount;
+                }
+
+                return empty($list) ? false : $list;
+            } else {
+                return $tblMinimumGradeCountList;
+            }
+        }
+
+        return false;
     }
 
     /**
-     * @param IFormInterface|null $Stage
+     * @param IFormInterface|null $form
      * @param $MinimumGradeCount
+     * @param TblMinimumGradeCount|null $tblMinimumGradeCount
      *
      * @return IFormInterface|string
      */
-    public function createMinimumGradeCount(IFormInterface $Stage = null, $MinimumGradeCount)
+    public function updateMinimumGradeCount(IFormInterface $form = null, $MinimumGradeCount, TblMinimumGradeCount $tblMinimumGradeCount = null)
     {
 
         /**
          * Skip to Frontend
          */
         if (null === $MinimumGradeCount) {
-            return $Stage;
+            return $form;
         }
 
         $Error = false;
         if (isset($MinimumGradeCount['Count']) && empty($MinimumGradeCount['Count'])) {
-            $Stage->setError('MinimumGradeCount[Count]', 'Bitte geben Sie eine Anzahl an');
+            $form->setError('MinimumGradeCount[Count]', 'Bitte geben Sie eine Anzahl an');
             $Error = true;
         }
-        if (!($tblLevel = Division::useService()->getLevelById($MinimumGradeCount['Level']))) {
-            $Stage->setError('MinimumGradeCount[Level]', 'Bitte wählen Sie eine Klassenstufe aus');
-            $Error = true;
-        }
-
-        if (!$Error) {
-            $tblSubject = Subject::useService()->getSubjectById($MinimumGradeCount['Subject']);
-            $tblGradeType = Gradebook::useService()->getGradeTypeById($MinimumGradeCount['GradeType']);
-
-            (new Data($this->getBinding()))->createMinimumGradeCount(
-                $MinimumGradeCount['Count'],
-                $tblLevel,
-                $tblSubject ? $tblSubject : null,
-                $tblGradeType ? $tblGradeType : null,
-                isset($MinimumGradeCount['Period']) ? $MinimumGradeCount['Period'] : SelectBoxItem::PERIOD_FULL_YEAR,
-                isset($MinimumGradeCount['Highlighted']) ? $MinimumGradeCount['Highlighted'] : SelectBoxItem::HIGHLIGHTED_ALL
-            );
-
-            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Mindestnotenanzahl ist erfasst worden')
-            . new Redirect('/Education/Graduation/Gradebook/MinimumGradeCount', Redirect::TIMEOUT_SUCCESS);
-        }
-
-        return $Stage;
-    }
-
-    /**
-     * @param IFormInterface|null $Stage
-     * @param TblMinimumGradeCount $tblMinimumGradeCount
-     * @param $Count
-     *
-     * @return IFormInterface|string
-     */
-    public function updateMinimumGradeCount(
-        IFormInterface $Stage = null,
-        TblMinimumGradeCount $tblMinimumGradeCount,
-        $Count
-    ) {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Count) {
-            return $Stage;
-        }
-
-        $Error = false;
-        if (isset($Count) && empty($Count)) {
-            $Stage->setError('Count', 'Bitte geben Sie eine Anzahl an');
+        // message for level required
+        if (!isset($MinimumGradeCount['Levels'])) {
+            $form->prependGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie mindestens eine Klassenstufe aus.', new Exclamation())))));
             $Error = true;
         }
 
         if (!$Error) {
+            if ($MinimumGradeCount['GradeType'] < 0) {
+                $highlighted = -$MinimumGradeCount['GradeType'];
+                $tblGradeType = false;
+            } else {
+                $highlighted = SelectBoxItem::HIGHLIGHTED_ALL;
+                $tblGradeType = Gradebook::useService()->getGradeTypeById($MinimumGradeCount['GradeType']);
+            }
 
-            (new Data($this->getBinding()))->updateMinimumGradeCount(
-                $tblMinimumGradeCount,
-                $Count
+            if ($tblMinimumGradeCount) {
+                $tblMinimumGradeCountList = $this->getMinimumGradeCountAllBy(
+                    $tblMinimumGradeCount->getHighlighted(),
+                    $tblMinimumGradeCount->getTblGradeType() ? $tblMinimumGradeCount->getTblGradeType() : null,
+                    $tblMinimumGradeCount->getPeriod(),
+                    $tblMinimumGradeCount->getCourse(),
+                    $tblMinimumGradeCount->getCount()
+                );
+
+                // delete all by nur bei update
+                if ($tblMinimumGradeCountList) {
+                    (new Data($this->getBinding()))->destroyBulkMinimumGradeCountList($tblMinimumGradeCountList);
+                }
+            }
+//            else {
+//                $tblMinimumGradeCountList = $this->getMinimumGradeCountAllBy(
+//                    $highlighted,
+//                    $tblGradeType ? $tblGradeType : null,
+//                    $MinimumGradeCount['Period'],
+//                    $MinimumGradeCount['Course'],
+//                    $MinimumGradeCount['Count']
+//                );
+//            }
+
+            (new Data($this->getBinding()))->createBulkMinimumGradeCountList(
+                $MinimumGradeCount,
+                $highlighted,
+                $tblGradeType ? $tblGradeType : null
             );
 
-            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Mindestnotenanzahl ist geändert worden')
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Mindestnotenanzahl ist erfasst/geändert worden')
             . new Redirect('/Education/Graduation/Gradebook/MinimumGradeCount', Redirect::TIMEOUT_SUCCESS);
         }
 
-        return $Stage;
+        return $form;
     }
 
     /**
@@ -179,6 +199,20 @@ abstract class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->destroyMinimumGradeCount($tblMinimumGradeCount);
+    }
+
+    /**
+     * @param $tblMinimumGradeCountList
+     *
+     * @return bool
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     */
+    public function destroyBulkMinimumGradeCountList($tblMinimumGradeCountList)
+    {
+
+        return (new Data($this->getBinding()))->destroyBulkMinimumGradeCountList($tblMinimumGradeCountList);
     }
 
     /**
@@ -248,5 +282,57 @@ abstract class Service extends AbstractService
         } else {
             return new TextSuccess(new Ok() . ' ' . $count);
         }
+    }
+
+    /**
+     * @param $highlighted
+     * @param TblGradeType|null $tblGradeType
+     * @param $period
+     * @param $course
+     * @param $count
+     *
+     * @return false|TblMinimumGradeCount[]
+     */
+    public function getMinimumGradeCountAllBy(
+        $highlighted,
+        TblGradeType $tblGradeType = null,
+        $period,
+        $course,
+        $count
+    ){
+
+        return (new Data($this->getBinding()))->getMinimumGradeCountAllBy($highlighted, $tblGradeType, $period, $course, $count);
+    }
+
+    /**
+     * @param $Count
+     * @param TblLevel $tblLevel
+     * @param TblSubject|null $tblSubject
+     * @param TblGradeType|null $tblGradeType
+     * @param integer $Period
+     * @param integer $Highlighted
+     * @param $Course
+     *
+     * @return TblMinimumGradeCount
+     */
+    public function createMinimumGradeCount(
+        $Count,
+        TblLevel $tblLevel,
+        TblSubject $tblSubject = null,
+        TblGradeType $tblGradeType = null,
+        $Period,
+        $Highlighted,
+        $Course
+    ) {
+
+        return (new Data($this->getBinding()))->createMinimumGradeCount(
+            $Count,
+            $tblLevel,
+            $tblSubject,
+            $tblGradeType,
+            $Period,
+            $Highlighted,
+            $Course
+        );
     }
 }

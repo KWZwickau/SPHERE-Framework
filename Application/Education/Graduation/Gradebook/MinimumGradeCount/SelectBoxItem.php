@@ -18,6 +18,10 @@ class SelectBoxItem
     const HIGHLIGHTED_IS_HIGHLIGHTED = 2;
     const HIGHLIGHTED_IS_NOT_HIGHLIGHTED = 3;
 
+    const COURSE_NONE = 0;
+    const COURSE_ADVANCED = 1;
+    const COURSE_BASIC = 2;
+
     public function __construct($Id, $Name)
     {
 

@@ -33,6 +33,8 @@ class TblMinimumGradeCount extends Element
     const ATTR_SERVICE_TBL_LEVEL = 'serviceTblLevel';
     const ATTR_PERIOD = 'Period';
     const ATTR_HIGHLIGHTED = 'Highlighted';
+    const ATTR_COURSE = 'Course';
+    const ATTR_COUNT = 'Count';
 
     /**
      * @Column(type="integer")
@@ -63,6 +65,11 @@ class TblMinimumGradeCount extends Element
      * @Column(type="integer")
      */
     protected $Highlighted;
+
+    /**
+     * @Column(type="integer")
+     */
+    protected $Course;
 
     /**
      * @return bool|TblGradeType
@@ -234,6 +241,22 @@ class TblMinimumGradeCount extends Element
     }
 
     /**
+     * @return integer
+     */
+    public function getCourse()
+    {
+        return $this->Course;
+    }
+
+    /**
+     * @param integer $Course
+     */
+    public function setCourse($Course)
+    {
+        $this->Course = $Course;
+    }
+
+    /**
      * @return string
      */
     public function getPeriodDisplayName()
@@ -243,6 +266,22 @@ class TblMinimumGradeCount extends Element
             case SelectBoxItem::PERIOD_FULL_YEAR: $period = 'Gesamtes Schuljahr'; break;
             case SelectBoxItem::PERIOD_FIRST_PERIOD: $period = '1. Halbjahr'; break;
             case SelectBoxItem::PERIOD_SECOND_PERIOD: $period = '2. Halbjahr'; break;
+            default: $period = '';
+        }
+
+        return $period;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCourseDisplayName()
+    {
+
+        switch ($this->getCourse())  {
+            case SelectBoxItem::COURSE_NONE: $period = ''; break;
+            case SelectBoxItem::COURSE_ADVANCED: $period = 'Leistungskurs'; break;
+            case SelectBoxItem::COURSE_BASIC: $period = 'Grundkurs'; break;
             default: $period = '';
         }
 
