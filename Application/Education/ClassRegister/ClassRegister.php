@@ -357,10 +357,12 @@ class ClassRegister implements IApplicationInterface
                     } else {
                         $IntegrationButton = '';
                     }
-                    if(($tblMedicalRecord = $tblStudent->getTblStudentMedicalRecord())
-                    && ($tblMedicalRecord->getDisease()
-                        || $tblMedicalRecord->getMedication()
-                        || $tblMedicalRecord->getAttendingDoctor())){
+
+                    if ($tblStudent
+                        && ($tblMedicalRecord = $tblStudent->getTblStudentMedicalRecord())
+                        && ($tblMedicalRecord->getDisease()
+                            || $tblMedicalRecord->getMedication()
+                            || $tblMedicalRecord->getAttendingDoctor())) {
                         $MedicalRecord = (new Standard('', MedicalRecordReadOnly::getEndpoint(), new EyeOpen()))
                             ->ajaxPipelineOnClick(MedicalRecordReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
                     } else {
