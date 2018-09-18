@@ -333,7 +333,7 @@ class Service
                         $firstForeignLanguageLevel = 1;
                     }
 
-                    if (floatval($tblLevel->getName() >= $firstForeignLanguageLevel)) {
+                    if (floatval($tblLevel->getName()) >= floatval($firstForeignLanguageLevel)) {
                         $validateFirstLanguage = true;
                     } else {
                         $validateFirstLanguage = false;
@@ -400,7 +400,7 @@ class Service
                 $firstForeignLanguageLevel = 1;
             }
 
-            if (floatval($tblLevel->getName() >= $firstForeignLanguageLevel)) {
+            if (floatval($tblLevel->getName()) >= floatval($firstForeignLanguageLevel)) {
                 $validateFirstLanguage = true;
             } else {
                 $validateFirstLanguage = false;

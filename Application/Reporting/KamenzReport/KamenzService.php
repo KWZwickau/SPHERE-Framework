@@ -124,7 +124,7 @@ class KamenzService
                                         if (isset($foreignLanguages[1])) {
                                             $foreignLanguage1 = $foreignLanguages[1];
                                         } else {
-                                            if (floatval($tblLevel->getName() >= $firstForeignLanguageLevel)) {
+                                            if (floatval($tblLevel->getName()) >= floatval($firstForeignLanguageLevel)) {
                                                 $count['ForeignLanguage1']++;
                                                 $foreignLanguage1 = new Warning('Keine 1. Fremdsprache hinterlegt.',
                                                     new Exclamation());
