@@ -509,6 +509,27 @@ abstract class Support extends Integration
 
     /**
      * @param TblPerson $tblPerson
+     * @param TblSupportType $tblSupportType
+     *
+     * @return false|TblSupport[]
+     */
+    public function getSupportAllByPersonAndSupportType(TblPerson $tblPerson, TblSupportType $tblSupportType)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblSupport',
+            array(
+                TblSupport::SERVICE_TBL_PERSON => $tblPerson->getId(),
+                TblSupport::ATTR_TBL_SUPPORT_TYPE => $tblSupportType->getId()
+            ),
+            // Sortierung wichtig für Kamenz-Statistik
+            array(
+                TblSupport::ATTR_DATE => self::ORDER_DESC
+            )
+        );
+    }
+
+    /**
+     * @param TblPerson $tblPerson
      *
      * @return false|TblSpecial[]
      */
@@ -559,6 +580,22 @@ abstract class Support extends Integration
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSupportFocus', array(
             TblSupportFocus::ATTR_TBL_SUPPORT => $tblSupport->getId()
         ));
+    }
+
+    /**
+     * @param TblSupport $tblSupport
+     *
+     * @return false|TblSupportFocus
+     */
+    public function getSupportPrimaryFocusBySupport(TblSupport $tblSupport)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSupportFocus',
+            array(
+                TblSupportFocus::ATTR_TBL_SUPPORT => $tblSupport->getId(),
+                TblSupportFocus::ATTR_IS_PRIMARY => true
+            )
+        );
     }
 
     /**

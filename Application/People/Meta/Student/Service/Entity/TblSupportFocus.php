@@ -18,6 +18,7 @@ class TblSupportFocus extends Element
 
     const ATTR_TBL_SUPPORT = 'tblSupport';
     const ATTR_TBL_SUPPORT_FOCUS_TYPE = 'tblSupportFocusType';
+    const ATTR_IS_PRIMARY = 'IsPrimary';
 
     /**
      * @Column(type="bigint")

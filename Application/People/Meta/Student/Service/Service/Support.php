@@ -534,6 +534,18 @@ abstract class Support extends Integration
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblSupportType $tblSupportType
+     *
+     * @return false|TblSupport[]
+     */
+    public function getSupportAllByPersonAndSupportType(TblPerson $tblPerson, TblSupportType $tblSupportType)
+    {
+
+        return (new Data($this->getBinding()))->getSupportAllByPersonAndSupportType($tblPerson, $tblSupportType);
+    }
+
+    /**
      * @param $Name
      *
      * @return false|TblSupportType
@@ -740,6 +752,17 @@ abstract class Support extends Integration
 
         $tblSupportFocusList = (new Data($this->getBinding()))->getSupportFocusBySupport($tblSupport);
         return (!empty($tblSupportFocusList) ? $tblSupportFocusList : false);
+    }
+
+    /**
+     * @param TblSupport $tblSupport
+     *
+     * @return false|TblSupportFocus
+     */
+    public function getSupportPrimaryFocusBySupport(TblSupport $tblSupport)
+    {
+
+        return (new Data($this->getBinding()))->getSupportPrimaryFocusBySupport($tblSupport);
     }
 
     /**
