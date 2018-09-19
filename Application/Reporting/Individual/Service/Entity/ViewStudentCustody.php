@@ -31,6 +31,7 @@ class ViewStudentCustody extends AbstractView
     const TBL_PERSON_SECOND_NAME_S1 = 'TblPerson_SecondName_S1';
     const TBL_PERSON_LAST_NAME_S1 = 'TblPerson_LastName_S1';
     const TBL_PERSON_BIRTH_NAME_S1 = 'TblPerson_BirthName_S1';
+    const TBL_PERSON_BIRTH_DAY_S1 = 'TblPerson_Birthday_S1';
     const TBL_ADDRESS_STREET_NAME_S1 = 'TblAddress_StreetName_S1';
     const TBL_ADDRESS_STREET_NUMBER_S1 = 'TblAddress_StreetNumber_S1';
     const TBL_CITY_CODE_S1 = 'TblCity_Code_S1';
@@ -51,6 +52,7 @@ class ViewStudentCustody extends AbstractView
     const TBL_PERSON_SECOND_NAME_S2 = 'TblPerson_SecondName_S2';
     const TBL_PERSON_LAST_NAME_S2 = 'TblPerson_LastName_S2';
     const TBL_PERSON_BIRTH_NAME_S2 = 'TblPerson_BirthName_S2';
+    const TBL_PERSON_BIRTH_DAY_S2 = 'TblPerson_Birthday_S2';
     const TBL_ADDRESS_STREET_NAME_S2 = 'TblAddress_StreetName_S2';
     const TBL_ADDRESS_STREET_NUMBER_S2 = 'TblAddress_StreetNumber_S2';
     const TBL_CITY_CODE_S2 = 'TblCity_Code_S2';
@@ -71,6 +73,7 @@ class ViewStudentCustody extends AbstractView
     const TBL_PERSON_SECOND_NAME_S3 = 'TblPerson_SecondName_S3';
     const TBL_PERSON_LAST_NAME_S3 = 'TblPerson_LastName_S3';
     const TBL_PERSON_BIRTH_NAME_S3 = 'TblPerson_BirthName_S3';
+    const TBL_PERSON_BIRTH_DAY_S3 = 'TblPerson_Birthday_S3';
     const TBL_ADDRESS_STREET_NAME_S3 = 'TblAddress_StreetName_S3';
     const TBL_ADDRESS_STREET_NUMBER_S3 = 'TblAddress_StreetNumber_S3';
     const TBL_CITY_CODE_S3 = 'TblCity_Code_S3';
@@ -125,6 +128,10 @@ class ViewStudentCustody extends AbstractView
      * @Column(type="string")
      */
     protected $TblPerson_BirthName_S1;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPerson_Birthday_S1;
     /**
      * @Column(type="string")
      */
@@ -201,6 +208,10 @@ class ViewStudentCustody extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblPerson_Birthday_S2;
+    /**
+     * @Column(type="string")
+     */
     protected $TblAddress_StreetName_S2;
     /**
      * @Column(type="string")
@@ -274,6 +285,10 @@ class ViewStudentCustody extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblPerson_Birthday_S3;
+    /**
+     * @Column(type="string")
+     */
     protected $TblAddress_StreetName_S3;
     /**
      * @Column(type="string")
@@ -335,6 +350,7 @@ class ViewStudentCustody extends AbstractView
         $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME_S1, 'S1: Zweiter Vorname');
         $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_S1, 'S1: Nachname');
         $this->setNameDefinition(self::TBL_PERSON_BIRTH_NAME_S1, 'S1: Geburtsname');
+        $this->setNameDefinition(self::TBL_PERSON_BIRTH_DAY_S1, 'S1: Geburtstag');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_S1, 'S1: Straße');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_S1, 'S1: Hausnummer');
         $this->setNameDefinition(self::TBL_CITY_CODE_S1, 'S1: PLZ');
@@ -354,6 +370,7 @@ class ViewStudentCustody extends AbstractView
         $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME_S2, 'S2: Zweiter Vorname');
         $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_S2, 'S2: Nachname');
         $this->setNameDefinition(self::TBL_PERSON_BIRTH_NAME_S2, 'S2: Geburtsname');
+        $this->setNameDefinition(self::TBL_PERSON_BIRTH_DAY_S2, 'S2: Geburtstag');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_S2, 'S2: Straße');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_S2, 'S2: Hausnummer');
         $this->setNameDefinition(self::TBL_CITY_CODE_S2, 'S2: PLZ');
@@ -373,6 +390,7 @@ class ViewStudentCustody extends AbstractView
         $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME_S3, 'S3: Zweiter Vorname');
         $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_S3, 'S3: Nachname');
         $this->setNameDefinition(self::TBL_PERSON_BIRTH_NAME_S3, 'S3: Geburtsname');
+        $this->setNameDefinition(self::TBL_PERSON_BIRTH_DAY_S3, 'S3: Geburtstag');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NAME_S3, 'S3: Straße');
         $this->setNameDefinition(self::TBL_ADDRESS_STREET_NUMBER_S3, 'S3: Hausnummer');
         $this->setNameDefinition(self::TBL_CITY_CODE_S3, 'S3: PLZ');
@@ -395,6 +413,7 @@ class ViewStudentCustody extends AbstractView
             self::TBL_PERSON_SECOND_NAME_S1,
             self::TBL_PERSON_LAST_NAME_S1,
             self::TBL_PERSON_BIRTH_NAME_S1,
+            self::TBL_PERSON_BIRTH_DAY_S1,
             self::TBL_ADDRESS_STREET_NAME_S1,
             self::TBL_ADDRESS_STREET_NUMBER_S1,
             self::TBL_CITY_CODE_S1,
@@ -415,6 +434,7 @@ class ViewStudentCustody extends AbstractView
             self::TBL_PERSON_SECOND_NAME_S2,
             self::TBL_PERSON_LAST_NAME_S2,
             self::TBL_PERSON_BIRTH_NAME_S2,
+            self::TBL_PERSON_BIRTH_DAY_S2,
             self::TBL_ADDRESS_STREET_NAME_S2,
             self::TBL_ADDRESS_STREET_NUMBER_S2,
             self::TBL_CITY_CODE_S2,
@@ -435,6 +455,7 @@ class ViewStudentCustody extends AbstractView
             self::TBL_PERSON_SECOND_NAME_S3,
             self::TBL_PERSON_LAST_NAME_S3,
             self::TBL_PERSON_BIRTH_NAME_S3,
+            self::TBL_PERSON_BIRTH_DAY_S3,
             self::TBL_ADDRESS_STREET_NAME_S3,
             self::TBL_ADDRESS_STREET_NUMBER_S3,
             self::TBL_CITY_CODE_S3,
@@ -456,6 +477,7 @@ class ViewStudentCustody extends AbstractView
         $this->setDisableDefinition(self::TBL_PERSON_SECOND_NAME_S1);
         $this->setDisableDefinition(self::TBL_PERSON_LAST_NAME_S1);
         $this->setDisableDefinition(self::TBL_PERSON_BIRTH_NAME_S1);
+        $this->setDisableDefinition(self::TBL_PERSON_BIRTH_DAY_S1);
         $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NAME_S1);
         $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NUMBER_S1);
         $this->setDisableDefinition(self::TBL_CITY_CODE_S1);
@@ -474,6 +496,7 @@ class ViewStudentCustody extends AbstractView
         $this->setDisableDefinition(self::TBL_PERSON_SECOND_NAME_S2);
         $this->setDisableDefinition(self::TBL_PERSON_LAST_NAME_S2);
         $this->setDisableDefinition(self::TBL_PERSON_BIRTH_NAME_S2);
+        $this->setDisableDefinition(self::TBL_PERSON_BIRTH_DAY_S2);
         $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NAME_S2);
         $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NUMBER_S2);
         $this->setDisableDefinition(self::TBL_CITY_CODE_S2);
@@ -492,6 +515,7 @@ class ViewStudentCustody extends AbstractView
         $this->setDisableDefinition(self::TBL_PERSON_SECOND_NAME_S3);
         $this->setDisableDefinition(self::TBL_PERSON_LAST_NAME_S3);
         $this->setDisableDefinition(self::TBL_PERSON_BIRTH_NAME_S3);
+        $this->setDisableDefinition(self::TBL_PERSON_BIRTH_DAY_S3);
         $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NAME_S3);
         $this->setDisableDefinition(self::TBL_ADDRESS_STREET_NUMBER_S3);
         $this->setDisableDefinition(self::TBL_CITY_CODE_S3);
