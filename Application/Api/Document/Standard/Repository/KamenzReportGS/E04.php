@@ -23,7 +23,7 @@ class E04
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E04. Schüler im Fremdsprachenunterricht im Schuljahr {{ Content.SchoolYear.Current }} nach Klassenstufen')
+                ->setContent('E04. Schüler im Fremdsprachenunterricht im Schuljahr {{ Content.SchoolYear.Current }} nach Fremdsprachen und Klassenstufen')
             );
 
         $sliceList[] = (new Slice())
@@ -38,7 +38,7 @@ class E04
                     ->setContent('Fremdsprache')
                     ->styleBorderRight()
                     ->stylePaddingTop('17.1px')
-                    ->stylePaddingBottom('17.1px'), '40%'
+                    ->stylePaddingBottom('17.1px'), '50%'
                 )
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
@@ -74,10 +74,10 @@ class E04
                         )
                     ), '40%'
                 )
-                ->addElementColumn((new Element())
-                    ->setContent('Vorb.kl. u.<br/>-gr. f.<br/>Migranten')
-                    ->styleBorderRight(), '10%'
-                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('Vorb.kl. u.<br/>-gr. f.<br/>Migranten')
+//                    ->styleBorderRight(), '10%'
+//                )
                 ->addElementColumn((new Element())
                     ->setContent('Insgesamt')
                     ->styleTextBold()
@@ -86,7 +86,7 @@ class E04
                 )
             );
 
-        for ($i = 0; $i < 4; $i++) {
+        for ($i = 0; $i < 8; $i++) {
             $section = new Section();
             $section
                 ->addElementColumn((new Element())
@@ -98,7 +98,7 @@ class E04
                             {% endif %}
                         ')
                     ->styleBorderRight()
-                    ->styleBackgroundColor('lightgrey'), '40%'
+                    ->styleBackgroundColor('lightgrey'), '50%'
                 );
             for ($level = 1; $level < 5; $level++) {
                 $section
@@ -113,17 +113,17 @@ class E04
                         ->styleBorderRight(), '10%'
                     );
             }
-            $section
-                ->addElementColumn((new Element())
-                    ->setContent('
-                            {% if (Content.E04.S' . $i . '.Migration is not empty) %}
-                                {{ Content.E04.S' . $i . '.Migration }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}
-                        ')
-                    ->styleBorderRight(), '10%'
-                );
+//            $section
+//                ->addElementColumn((new Element())
+//                    ->setContent('
+//                            {% if (Content.E04.S' . $i . '.Migration is not empty) %}
+//                                {{ Content.E04.S' . $i . '.Migration }}
+//                            {% else %}
+//                                &nbsp;
+//                            {% endif %}
+//                        ')
+//                    ->styleBorderRight(), '10%'
+//                );
             $section
                 ->addElementColumn((new Element())
                     ->setContent('

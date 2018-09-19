@@ -6,6 +6,7 @@ use SPHERE\Application\Api\Document\AbstractDocument;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\B01;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\B01_1;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\B02;
+use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\C01;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\E01;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\E02;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\E02_1;
@@ -16,7 +17,6 @@ use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\E05;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\E07;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\E08;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\E11;
-use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\E12;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\F01;
 use SPHERE\Application\Api\Document\Standard\Repository\KamenzReport\G01;
 use SPHERE\Application\Document\Generator\Repository\Document;
@@ -51,6 +51,7 @@ class KamenzReport extends AbstractDocument
                 ->addSliceArray(B01::getContent())
                 ->addSliceArray(B01_1::getContent())
                 ->addSliceArray(B02::getContent())
+                ->addSliceArray(C01::getContent())
             )
             ->addPage((new Page())
                 ->addSliceArray(E01::getContent())
@@ -72,7 +73,6 @@ class KamenzReport extends AbstractDocument
             )
             ->addPage((new Page())
                 ->addSliceArray(E11::getContent())
-                ->addSliceArray(E12::getContent())
             )
             ->addPage((new Page())
                 ->addSliceArray(F01::getContent())

@@ -1,19 +1,27 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: lehmann
- * Date: 27.06.2017
- * Time: 09:03
+ * User: Kauschke
+ * Date: 06.09.2018
+ * Time: 10:26
  */
 
-namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym;
+namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS;
 
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 
+/**
+ * Class C01
+ *
+ * @package SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS
+ */
 class C01
 {
+    /**
+     * @return Slice[]
+     */
     public static function getContent()
     {
         $sliceList = array();
@@ -24,8 +32,7 @@ class C01
             ->styleMarginBottom('5px')
             ->addElement((new Element())
                 ->setContent('C01. Anzahl der Schüler, die im <u>Schuljahr {{ Content.SchoolYear.Past }}</u> 
-                    diese Schule besucht haben und nicht versetzt </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-                    worden sind, nach Klassen- bzw. Jahrgangsstufen')
+                    diese Schule besucht haben und nicht versetzt </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; worden sind, nach Klassenstufen')
             );
 
         $sliceList[] = (new Slice())
@@ -39,7 +46,7 @@ class C01
                     ->setContent('Merkmal')
                     ->styleBorderRight()
                     ->stylePaddingTop('17.7px')
-                    ->stylePaddingBottom('17.6px'), '10%'
+                    ->stylePaddingBottom('17.6px'), '50%'
                 )
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
@@ -50,45 +57,24 @@ class C01
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('5')
+                            ->setContent('1')
                             ->styleBorderBottom()
                             ->styleBorderRight(), '10%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('6')
+                            ->setContent('2')
                             ->styleBorderBottom()
                             ->styleBorderRight(), '10%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('7')
+                            ->setContent('3')
                             ->styleBorderBottom()
                             ->styleBorderRight(), '10%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('8')
+                            ->setContent('4')
                             ->styleBorderBottom()
                             ->styleBorderRight(), '10%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('9')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '10%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('10')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '10%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('11')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '10%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('12')
-                            ->styleBorderBottom()
-                            ->styleBorderRight()
-                            , '10%'
                         )
                     )
                     ->addSection((new Section())
@@ -124,40 +110,7 @@ class C01
                             ->setContent('w')
                             ->styleBorderRight(), '5%'
                         )
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight(), '5%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleBorderRight(), '5%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight(), '5%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleBorderRight(), '5%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight(), '5%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleBorderRight(), '5%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight(), '5%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleBorderRight()
-                            , '5%'
-                        )
-                    ), '80%'
+                    ), '40%'
                 )
                 ->addSliceColumn((new Slice())
                     ->styleTextBold()
@@ -189,10 +142,10 @@ class C01
                 ->setContent('Schüler')
                 ->stylePaddingLeft('5px')
                 ->styleBackgroundColor('lightgrey')
-                ->styleBorderRight(), '10%'
+                ->styleBorderRight(), '50%'
             );
 
-        for ($level = 5; $level < 13; $level++) {
+        for ($level = 1; $level < 5; $level++) {
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
@@ -202,6 +155,7 @@ class C01
                             &nbsp;
                         {% endif %}
                     ')
+                    ->styleBackgroundColor($level == 1 ? 'lightgrey' : 'white')
                     ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 )
@@ -213,6 +167,7 @@ class C01
                             &nbsp;
                         {% endif %}
                     ')
+                    ->styleBackgroundColor($level == 1 ? 'lightgrey' : 'white')
                     ->styleAlignCenter()
                     ->styleBorderRight(), '5%'
                 );
@@ -251,5 +206,4 @@ class C01
 
         return $sliceList;
     }
-
 }

@@ -92,8 +92,13 @@ class E02
                             ->stylePaddingTop('17.1px')
                             ->stylePaddingBottom('17px'), '10%'
                         )
+//                        ->addElementColumn((new Element())
+//                            ->setContent('Vorb.-kl. u.<br/>-gruppen f.<br/>Migranten')
+//                            ->styleBorderBottom()
+//                            ->styleBorderRight(), '10%'
+//                        )
                         ->addElementColumn((new Element())
-                            ->setContent('Vorb.-kl. u.<br/>-gruppen f.<br/>Migranten')
+                            ->setContent('Sonder-<br/>klassen<br/>&nbsp;')
                             ->styleBorderBottom()
                             ->styleBorderRight(), '10%'
                         )
@@ -317,25 +322,27 @@ class E02
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('
-                            {% if (Content.E02.Y' . $i . '.LMigration.m is not empty) %}
-                                {{ Content.E02.Y' . $i . '.LMigration.m }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}
-                        ')
-                        ->styleBackgroundColor('lightgrey')
+                        ->setContent('&nbsp;')
+//                        ->setContent('
+//                            {% if (Content.E02.Y' . $i . '.LMigration.m is not empty) %}
+//                                {{ Content.E02.Y' . $i . '.LMigration.m }}
+//                            {% else %}
+//                                &nbsp;
+//                            {% endif %}
+//                        ')
+//                        ->styleBackgroundColor('lightgrey')
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('
-                            {% if (Content.E02.Y' . $i . '.LMigration.w is not empty) %}
-                                {{ Content.E02.Y' . $i . '.LMigration.w }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}
-                        ')
-                        ->styleBackgroundColor('lightgrey')
+                        ->setContent('&nbsp;')
+//                        ->setContent('
+//                            {% if (Content.E02.Y' . $i . '.LMigration.w is not empty) %}
+//                                {{ Content.E02.Y' . $i . '.LMigration.w }}
+//                            {% else %}
+//                                &nbsp;
+//                            {% endif %}
+//                        ')
+//                        ->styleBackgroundColor('lightgrey')
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
@@ -495,23 +502,25 @@ class E02
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if (Content.E02.TotalCount.LMigration.m is not empty) %}
-                            {{ Content.E02.TotalCount.LMigration.m }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
+//                    ->setContent('
+//                        {% if (Content.E02.TotalCount.LMigration.m is not empty) %}
+//                            {{ Content.E02.TotalCount.LMigration.m }}
+//                        {% else %}
+//                            &nbsp;
+//                        {% endif %}
+//                    ')
+                    ->setContent('&nbsp;')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if (Content.E02.TotalCount.LMigration.m is not empty) %}
-                            {{ Content.E02.TotalCount.LMigration.m }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}                    
-                    ')
+//                    ->setContent('
+//                        {% if (Content.E02.TotalCount.LMigration.w is not empty) %}
+//                            {{ Content.E02.TotalCount.LMigration.w }}
+//                        {% else %}
+//                            &nbsp;
+//                        {% endif %}
+//                    ')
+                    ->setContent('&nbsp;')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())

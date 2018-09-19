@@ -23,7 +23,9 @@ class F01
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('F01. Integrierte Schüler mit sonderpädagogischem Förderbedarf im Schuljahr {{ Content.SchoolYear.Current }} nach Förderschwerpunkten und Klassenstufen')
+                ->setContent('F01. Inklusiv unterrichtete Schüler mit sonderpädagogischem Förderbedarf im Schuljahr
+                    {{ Content.SchoolYear.Current }} </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; nach 
+                    Förderschwerpunkten und Klassenstufen')
             );
 
         $sliceList[] = (new Slice())
@@ -144,7 +146,8 @@ class F01
             }
             $lineSectionList[] = (new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('Vorb.-kl. u. -gr. f. Migranten')
+//                    ->setContent('Vorb.-kl. u. -gr. f. Migranten')
+                    ->setContent('Sonderklassen')
                     ->styleBorderBottom()
                 );
             $lineSectionList[] = (new Section())
@@ -195,8 +198,10 @@ class F01
 
         if ($text == 'Insgesamt') {
             $name = 'TotalCount';
+            $isGrey = true;
         } else {
             $name = preg_replace('/[^a-zA-Z]/', '', $text);
+            $isGrey = false;
         }
 
         $lineSectionList = array();
@@ -211,19 +216,22 @@ class F01
                                 &nbsp;
                             {% endif %}
                         ')
+                    ->styleBackgroundColor($isGrey ? 'lightgrey' : 'white')
                     ->styleBorderBottom()
                 );
             $lineSectionList[] = $lineSection;
         }
         $lineSectionList[] = (new Section())
             ->addElementColumn((new Element())
-                ->setContent('
-                    {% if (Content.F01.' . $name . '.' . $identifier . '.IsInPreparationDivisionForMigrants.' . $gender . ' is not empty) %}
-                        {{ Content.F01.' . $name . '.' . $identifier . '.IsInPreparationDivisionForMigrants.' . $gender . ' }}
-                    {% else %}
-                        &nbsp;
-                    {% endif %}
-                ')
+                ->setContent('&nbsp;')
+//                ->setContent('
+//                    {% if (Content.F01.' . $name . '.' . $identifier . '.IsInPreparationDivisionForMigrants.' . $gender . ' is not empty) %}
+//                        {{ Content.F01.' . $name . '.' . $identifier . '.IsInPreparationDivisionForMigrants.' . $gender . ' }}
+//                    {% else %}
+//                        &nbsp;
+//                    {% endif %}
+//                ')
+                ->styleBackgroundColor($isGrey ? 'lightgrey' : 'white')
                 ->styleBorderBottom()
             );
         $lineSectionList[] = (new Section())
@@ -235,6 +243,7 @@ class F01
                         &nbsp;
                     {% endif %}
                 ')
+                ->styleBackgroundColor('lightgrey')
                 ->styleTextBold()
             );
         $section

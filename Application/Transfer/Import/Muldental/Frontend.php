@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Transfer\Import\Muldental;
 
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\FileUpload;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -224,6 +225,49 @@ class Frontend extends Extension implements IFrontendInterface
                                     ), $File
                                 )
                                 ,
+                                new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
+                            )
+                        ))
+                    )
+                )
+            )
+        );
+
+        return $View;
+    }
+
+    /**
+     * @param null $File
+     *
+     * @return Stage
+     */
+    public function frontendMinimumGradeCountImport($File = null)
+    {
+
+        $View = new Stage();
+        $View->setTitle('Mindestnoten Import');
+        $View->setDescription('Gymnasium');
+        $View->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new Well(
+                                Muldental::useService()->createMinimumGradeCountFromFile(
+                                    new Form(
+                                        new FormGroup(
+                                            new FormRow(
+                                                new FormColumn(
+                                                    new FileUpload('File', 'Datei auswählen', 'Datei auswählen',
+                                                        null,
+                                                        array('showPreview' => false))
+                                                )
+                                            )
+                                        )
+                                        , new Primary('Hochladen')
+                                    ), $File
+                                )
+                                .
                                 new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
                             )
                         ))

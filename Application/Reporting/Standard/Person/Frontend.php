@@ -665,6 +665,7 @@ class Frontend extends Extension implements IFrontendInterface
                     }
 
                     $Item['Name'] = $tblGroup->getName().$MoreColumnInfo;
+                    $count = Group::useService()->countMemberByGroup($tblGroup);
                     if($count == 0){
                         $count .= ' ';
                     }

@@ -16,6 +16,7 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectType;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
@@ -40,6 +41,14 @@ class KamenzService
      */
     public static function validate(TblType $tblSchoolType, &$summary = array())
     {
+        if (($tblSetting = Consumer::useService()->getSetting(
+                'Reporting', 'KamenzReport', 'Validation', 'FirstForeignLanguageLevel'))
+            && $tblSetting->getValue()
+        ) {
+            $firstForeignLanguageLevel = $tblSetting->getValue();
+        } else {
+            $firstForeignLanguageLevel = 1;
+        }
 
         $count['Gender'] = 0;
         $count['Birthday'] = 0;
@@ -110,13 +119,16 @@ class KamenzService
                                             $isInPreparationDivisionForMigrants = 'nein';
                                         }
 
+                                        $foreignLanguage1 = '';
                                         $foreignLanguages = self::getForeignLanguages($tblPerson);
                                         if (isset($foreignLanguages[1])) {
                                             $foreignLanguage1 = $foreignLanguages[1];
                                         } else {
-                                            $count['ForeignLanguage1']++;
-                                            $foreignLanguage1 = new Warning('Keine 1. Fremdsprache hinterlegt.',
-                                                new Exclamation());
+                                            if (floatval($tblLevel->getName()) >= floatval($firstForeignLanguageLevel)) {
+                                                $count['ForeignLanguage1']++;
+                                                $foreignLanguage1 = new Warning('Keine 1. Fremdsprache hinterlegt.',
+                                                    new Exclamation());
+                                            }
                                         }
 
                                         if (isset($foreignLanguages[2])) {

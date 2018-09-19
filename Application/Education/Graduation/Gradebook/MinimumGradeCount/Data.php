@@ -10,9 +10,11 @@ namespace SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount;
 
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblMinimumGradeCount;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 
@@ -126,6 +128,7 @@ abstract class Data extends AbstractData
      * @param TblGradeType|null $tblGradeType
      * @param integer $Period
      * @param integer $Highlighted
+     * @param $Course
      *
      * @return TblMinimumGradeCount
      */
@@ -135,7 +138,8 @@ abstract class Data extends AbstractData
         TblSubject $tblSubject = null,
         TblGradeType $tblGradeType = null,
         $Period,
-        $Highlighted
+        $Highlighted,
+        $Course
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -147,6 +151,7 @@ abstract class Data extends AbstractData
                 TblMinimumGradeCount::ATTR_TBL_GRADE_TYPE => $tblGradeType ? $tblGradeType->getId() : null,
                 TblMinimumGradeCount::ATTR_PERIOD => $Period,
                 TblMinimumGradeCount::ATTR_HIGHLIGHTED => $Highlighted,
+                TblMinimumGradeCount::ATTR_COURSE => $Course
             ));
 
         if (null === $Entity) {
@@ -157,12 +162,63 @@ abstract class Data extends AbstractData
             $Entity->setTblGradeType($tblGradeType ? $tblGradeType : null);
             $Entity->setPeriod($Period);
             $Entity->setHighlighted($Highlighted);
+            $Entity->setCourse($Course);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param $MinimumGradeCount
+     * @param $highlighted
+     * @param TblGradeType|null $tblGradeType
+     */
+    public function createBulkMinimumGradeCountList($MinimumGradeCount, $highlighted, TblGradeType $tblGradeType = null)
+    {
+
+        $Manager = $this->getEntityManager();
+
+        if (isset($MinimumGradeCount['Levels'])) {
+            foreach ($MinimumGradeCount['Levels'] as $levelId => $value) {
+                if (($tblLevel = Division::useService()->getLevelById($levelId))) {
+                    if (isset($MinimumGradeCount['Subjects'])) {
+                        foreach ($MinimumGradeCount['Subjects'] as $subjectId => $subValue) {
+                            if (($tblSubject = Subject::useService()->getSubjectById($subjectId))) {
+                                $Entity = new TblMinimumGradeCount();
+                                $Entity->setCount($MinimumGradeCount['Count']);
+                                $Entity->setServiceTblLevel($tblLevel);
+                                $Entity->setServiceTblSubject($tblSubject);
+                                $Entity->setTblGradeType($tblGradeType);
+                                $Entity->setPeriod($MinimumGradeCount['Period']);
+                                $Entity->setHighlighted($highlighted);
+                                $Entity->setCourse($MinimumGradeCount['Course']);
+
+                                $Manager->bulkSaveEntity($Entity);
+                                Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+                            }
+                        }
+                    } else {
+                        $Entity = new TblMinimumGradeCount();
+                        $Entity->setCount($MinimumGradeCount['Count']);
+                        $Entity->setServiceTblLevel($tblLevel);
+                        $Entity->setServiceTblSubject(null);
+                        $Entity->setTblGradeType($tblGradeType);
+                        $Entity->setPeriod($MinimumGradeCount['Period']);
+                        $Entity->setHighlighted($highlighted);
+                        $Entity->setCourse($MinimumGradeCount['Course']);
+
+                        $Manager->bulkSaveEntity($Entity);
+                        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity, true);
+                    }
+                }
+            }
+        }
+
+        $Manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
     }
 
     /**
@@ -211,5 +267,58 @@ abstract class Data extends AbstractData
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param $tblMinimumGradeCountList
+     *
+     * @return bool
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     */
+    public function destroyBulkMinimumGradeCountList($tblMinimumGradeCountList)
+    {
+        $manager = $this->getEntityManager();
+        /** @var TblMinimumGradeCount $tblMinimumGradeCount */
+        foreach ($tblMinimumGradeCountList as $tblMinimumGradeCount) {
+            $Entity = $manager->getEntityById('TblMinimumGradeCount', $tblMinimumGradeCount->getId());
+            if (null !== $Entity) {
+                /** @var TblMinimumGradeCount $Entity */
+                $manager->bulkKillEntity($Entity);
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity, true);
+            }
+        }
+
+        $manager->flushCache();
+        Protocol::useService()->flushBulkEntries();
+
+        return true;
+    }
+
+    /**
+     * @param $highlighted
+     * @param TblGradeType|null $tblGradeType
+     * @param $period
+     * @param $course
+     * @param $count
+     *
+     * @return false|TblMinimumGradeCount[]
+     */
+    public function getMinimumGradeCountAllBy(
+        $highlighted,
+        TblGradeType $tblGradeType = null,
+        $period,
+        $course,
+        $count
+    ){
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblMinimumGradeCount', array(
+            TblMinimumGradeCount::ATTR_HIGHLIGHTED => $highlighted,
+            TblMinimumGradeCount::ATTR_TBL_GRADE_TYPE => $tblGradeType,
+            TblMinimumGradeCount::ATTR_PERIOD => $period,
+            TblMinimumGradeCount::ATTR_COURSE => $course,
+            TblMinimumGradeCount::ATTR_COUNT => $count
+        ));
     }
 }

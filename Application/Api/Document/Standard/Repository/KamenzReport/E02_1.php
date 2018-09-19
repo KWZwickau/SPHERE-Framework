@@ -23,7 +23,9 @@ class E02_1
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E02.1 Darunter <u>Schüler mit Migrationshintergrund</u> im Schuljahr {{Content.SchoolYear.Current}} nach Geburtsjahren und Klassenstufen')
+                ->setContent('E02.1 Darunter <u>Schüler, deren Herkunftssprache nicht oder nicht ausschließlich Deutsch ist,</u>
+                    im </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    Schuljahr {{Content.SchoolYear.Current}} nach Geburtsjahren und Klassenstufen')
 
             );
 
@@ -92,8 +94,13 @@ class E02_1
                             ->stylePaddingTop('17.1px')
                             ->stylePaddingBottom('17px'), '10%'
                         )
+//                        ->addElementColumn((new Element())
+//                            ->setContent('Vorb.-kl. u.<br/>-gruppen f.<br/>Migranten')
+//                            ->styleBorderBottom()
+//                            ->styleBorderRight(), '10%'
+//                        )
                         ->addElementColumn((new Element())
-                            ->setContent('Vorb.-kl. u.<br/>-gruppen f.<br/>Migranten')
+                            ->setContent('Sonder-<br/>klassen<br/>&nbsp;')
                             ->styleBorderBottom()
                             ->styleBorderRight(), '10%'
                         )
@@ -317,25 +324,27 @@ class E02_1
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('
-                            {% if (Content.E02_1.Y' . $i . '.LMigration.m is not empty) %}
-                                {{ Content.E02_1.Y' . $i . '.LMigration.m }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}
-                        ')
-                        ->styleBackgroundColor('lightgrey')
+                        ->setContent('&nbsp;')
+//                        ->setContent('
+//                            {% if (Content.E02_1.Y' . $i . '.LMigration.m is not empty) %}
+//                                {{ Content.E02_1.Y' . $i . '.LMigration.m }}
+//                            {% else %}
+//                                &nbsp;
+//                            {% endif %}
+//                        ')
+//                        ->styleBackgroundColor('lightgrey')
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('
-                            {% if (Content.E02_1.Y' . $i . '.LMigration.w is not empty) %}
-                                {{ Content.E02_1.Y' . $i . '.LMigration.w }}
-                            {% else %}
-                                &nbsp;
-                            {% endif %}
-                        ')
-                        ->styleBackgroundColor('lightgrey')
+                        ->setContent('&nbsp;')
+//                        ->setContent('
+//                            {% if (Content.E02_1.Y' . $i . '.LMigration.w is not empty) %}
+//                                {{ Content.E02_1.Y' . $i . '.LMigration.w }}
+//                            {% else %}
+//                                &nbsp;
+//                            {% endif %}
+//                        ')
+//                        ->styleBackgroundColor('lightgrey')
                         ->styleBorderRight(), '5%'
                     )
                     ->addElementColumn((new Element())
@@ -495,23 +504,25 @@ class E02_1
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if (Content.E02_1.TotalCount.LMigration.m is not empty) %}
-                            {{ Content.E02_1.TotalCount.LMigration.m }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
+                    ->setContent('&nbsp;')
+//                    ->setContent('
+//                        {% if (Content.E02_1.TotalCount.LMigration.m is not empty) %}
+//                            {{ Content.E02_1.TotalCount.LMigration.m }}
+//                        {% else %}
+//                            &nbsp;
+//                        {% endif %}
+//                    ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if (Content.E02_1.TotalCount.LMigration.m is not empty) %}
-                            {{ Content.E02_1.TotalCount.LMigration.m }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}                    
-                    ')
+                    ->setContent('&nbsp;')
+//                    ->setContent('
+//                        {% if (Content.E02_1.TotalCount.LMigration.w is not empty) %}
+//                            {{ Content.E02_1.TotalCount.LMigration.w }}
+//                        {% else %}
+//                            &nbsp;
+//                        {% endif %}
+//                    ')
                     ->styleBorderRight(), '5%'
                 )
                 ->addElementColumn((new Element())

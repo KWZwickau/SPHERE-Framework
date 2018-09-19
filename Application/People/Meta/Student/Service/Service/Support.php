@@ -302,10 +302,14 @@ abstract class Support extends Integration
         }
 
         $Date = new \DateTime($Data['Date']);
-        $Remark = $Data['Remark'];
+        $LegalBasis = (isset($Data['LegalBasis']) ? $Data['LegalBasis'] : '' );
+        $LearnTarget = (isset($Data['LearnTarget']) ? $Data['LearnTarget'] : '' );
+        $RemarkLesson = $Data['RemarkLesson'];
+        $RemarkRating = $Data['RemarkRating'];
 
         if($tblPerson && $Date){
-            (new Data($this->getBinding()))->createHandyCap($tblPerson, $Date, $PersonEditor, $Remark);
+            (new Data($this->getBinding()))->createHandyCap($tblPerson, $Date, $PersonEditor, $LegalBasis, $LearnTarget,
+                $RemarkLesson, $RemarkRating);
         }
 
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Daten wurde erfolgreich gespeichert');
@@ -460,10 +464,14 @@ abstract class Support extends Integration
         }
 
         $Date = new \DateTime($Data['Date']);
-        $Remark = $Data['Remark'];
+        $LegalBasis = (isset($Data['LegalBasis']) ? $Data['LegalBasis'] : '' );
+        $LearnTarget = (isset($Data['LearnTarget']) ? $Data['LearnTarget'] : '' );
+        $RemarkLesson = $Data['RemarkLesson'];
+        $RemarkRating = $Data['RemarkRating'];
 
         if($tblHandyCap && $tblPerson && $Date){
-            (new Data($this->getBinding()))->updateHandyCap($tblHandyCap, $Date, $PersonEditor, $Remark);
+            (new Data($this->getBinding()))->updateHandyCap($tblHandyCap, $Date, $PersonEditor, $LegalBasis,
+                $LearnTarget, $RemarkLesson, $RemarkRating);
         }
 
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Daten wurde erfolgreich gespeichert');
@@ -531,6 +539,18 @@ abstract class Support extends Integration
     {
 
         return ( new Data($this->getBinding()) )->getSupportByPerson($tblPerson);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblSupportType $tblSupportType
+     *
+     * @return false|TblSupport[]
+     */
+    public function getSupportAllByPersonAndSupportType(TblPerson $tblPerson, TblSupportType $tblSupportType)
+    {
+
+        return (new Data($this->getBinding()))->getSupportAllByPersonAndSupportType($tblPerson, $tblSupportType);
     }
 
     /**
@@ -653,7 +673,7 @@ abstract class Support extends Integration
     {
 
         $return = false;
-        $tblSupport = Student::useService()->getSupportByPersonNewest($tblPerson, array('Förderbescheid', 'Änderung'));
+        $tblSupport = Student::useService()->getSupportByPersonNewest($tblPerson, array('Förderbescheid'));
         $tblSpecial = Student::useService()->getSpecialByPerson($tblPerson);
         $tblHandyCap = Student::useService()->getHandyCapByPerson($tblPerson);
         // Button's nur anzeigen, wenn Integrationen hinterlegt sind
@@ -740,6 +760,17 @@ abstract class Support extends Integration
 
         $tblSupportFocusList = (new Data($this->getBinding()))->getSupportFocusBySupport($tblSupport);
         return (!empty($tblSupportFocusList) ? $tblSupportFocusList : false);
+    }
+
+    /**
+     * @param TblSupport $tblSupport
+     *
+     * @return false|TblSupportFocus
+     */
+    public function getSupportPrimaryFocusBySupport(TblSupport $tblSupport)
+    {
+
+        return (new Data($this->getBinding()))->getSupportPrimaryFocusBySupport($tblSupport);
     }
 
     /**
@@ -844,10 +875,10 @@ abstract class Support extends Integration
             $form->setError('Data[Date]', 'Bitte geben Sie ein Datum an');
             $Error = true;
         }
-        if (isset($Data['Remark']) && empty($Data['Remark'])) {
-            $form->setError('Data[Remark]','Bitte geben Sie eine Bemerkung an');
-            $Error = true;
-        }
+//        if (isset($Data['Remark']) && empty($Data['Remark'])) {
+//            $form->setError('Data[Remark]','Bitte geben Sie eine Bemerkung an');
+//            $Error = true;
+//        }
         if ($Error) {
             return new Well($form);
         }

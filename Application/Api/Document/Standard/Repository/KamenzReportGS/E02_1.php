@@ -1,31 +1,39 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: lehmann
- * Date: 27.06.2017
- * Time: 09:32
+ * User: Kauschke
+ * Date: 05.09.2018
+ * Time: 12:01
  */
 
-namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGym;
+namespace SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS;
+
 
 use SPHERE\Application\Document\Generator\Repository\Element;
 use SPHERE\Application\Document\Generator\Repository\Section;
 use SPHERE\Application\Document\Generator\Repository\Slice;
 
+/**
+ * Class E02_1
+ *
+ * @package SPHERE\Application\Api\Document\Standard\Repository\KamenzReportGS
+ */
 class E02_1
 {
     public static function getContent()
     {
         $sliceList = array();
 
+        $left = '50%';
+
         $sliceList[] = (new Slice())
             ->styleTextBold()
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E02.1 Darunter <u>Schüler, deren Herkunftssprache nicht oder nicht ausschließlich Deutsch ist,</u>
-                    im </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                    Schuljahr {{Content.SchoolYear.Current}} nach Geburtsjahren und Klassen- bzw. Jahrgangsstufen')
+                ->setContent('E02.1 Darunter <u>Schüler, deren Herkunftssprache nicht oder nicht ausschließlich Deutsch ist</u>, im </br> 
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Schuljahr
+                    {{ Content.SchoolYear.Current }} nach Geburtsjahren und Klassenstufen')
             );
 
         $sliceList[] = (new Slice())
@@ -37,144 +45,116 @@ class E02_1
             ->styleBorderRight()
             ->addSection((new Section())
                 ->addElementColumn((new Element())
-                    ->setContent('Geburts-<br/>jahr')
+                    ->setContent('Geburtsjahr')
                     ->styleBorderRight()
-                    ->stylePaddingTop('9.2px')
-                    ->stylePaddingBottom('9.1px'), '10%'
+                    ->stylePaddingTop('26.1px')
+                    ->stylePaddingBottom('26.1px'), $left
                 )
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('Klassen- bzw. Jahrgangsstufe')
+                            ->setContent('Klassenstufe in diesem Schuljahr')
                             ->styleBorderRight()
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
-                            ->setContent('5')
+                            ->setContent('1')
                             ->styleBorderBottom()
-                            ->styleBorderRight(), '10%'
+                            ->styleBorderRight()
+                            ->stylePaddingTop('8.6px')
+                            ->stylePaddingBottom('8.5px'), '25%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('6')
+                            ->setContent('2')
                             ->styleBorderBottom()
-                            ->styleBorderRight(), '10%'
+                            ->styleBorderRight()
+                            ->stylePaddingTop('8.6px')
+                            ->stylePaddingBottom('8.5px'), '25%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('7')
+                            ->setContent('3')
                             ->styleBorderBottom()
-                            ->styleBorderRight(), '10%'
+                            ->styleBorderRight()
+                            ->stylePaddingTop('8.6px')
+                            ->stylePaddingBottom('8.5px'), '25%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('8')
                             ->styleBorderBottom()
-                            ->styleBorderRight(), '10%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('9')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '10%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('10')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '10%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('11')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '10%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('12')
-                            ->styleBorderBottom()
-                            ->styleBorderRight(), '10%'
+                            ->styleBorderRight()
+                            ->setContent('4')
+                            ->stylePaddingTop('8.6px')
+                            ->stylePaddingBottom('8.5px'), '25%'
                         )
                     )
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('m')
-                            ->styleBorderRight(), '5%'
+                            ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
-                            ->styleBorderRight(), '5%'
+                            ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
-                            ->styleBorderRight(), '5%'
+                            ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
-                            ->styleBorderRight(), '5%'
+                            ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
-                            ->styleBorderRight(), '5%'
+                            ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
-                            ->styleBorderRight(), '5%'
+                            ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('m')
-                            ->styleBorderRight(), '5%'
+                            ->styleBorderRight(), '12.5%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('w')
-                            ->styleBorderRight(), '5%'
+                            ->styleBorderRight(), '12.5%'
                         )
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight(), '5%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleBorderRight(), '5%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight(), '5%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleBorderRight(), '5%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight(), '5%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleBorderRight(), '5%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('m')
-                            ->styleBorderRight(), '5%'
-                        )
-                        ->addElementColumn((new Element())
-                            ->setContent('w')
-                            ->styleBorderRight(), '5%'
-                        )
-                    ), '80%'
+                    ), '40%'
                 )
                 ->addSliceColumn((new Slice())
-                    ->styleTextBold()
                     ->addSection((new Section())
+//                        ->addElementColumn((new Element())
+//                            ->setContent('Vorb.kl. u.<br/>-gr. f.<br/>Migranten')
+//                            ->styleBorderBottom()
+//                            ->styleBorderRight(), '50%'
+//                        )
                         ->addElementColumn((new Element())
                             ->setContent('Insgesamt')
+                            ->styleTextBold()
                             ->styleBorderBottom()
-                            ->stylePaddingTop('8.6px')
-                            ->stylePaddingBottom('8.5px')
+                            ->stylePaddingTop('17.1px')
+                            ->stylePaddingBottom('17.1px'), '50%'
                         )
                     )
                     ->addSection((new Section())
+//                        ->addElementColumn((new Element())
+//                            ->setContent('m')
+//                            ->styleBorderRight(), '25%'
+//                        )
+//                        ->addElementColumn((new Element())
+//                            ->setContent('w')
+//                            ->styleBorderRight(), '25%'
+//                        )
                         ->addElementColumn((new Element())
                             ->setContent('m')
-                            ->styleBorderRight(), '50%'
+                            ->styleTextBold()
+                            ->styleBorderRight(), '25%'
                         )
                         ->addElementColumn((new Element())
-                            ->setContent('w'), '50%'
+                            ->setContent('w')
+                            ->styleTextBold()
+                            , '25%'
                         )
                     ), '10%'
                 )
@@ -191,9 +171,10 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
-                    ->styleBorderRight(), '10%'
+                    ->styleBackgroundColor('lightgrey')
+                    ->styleBorderRight(), $left
                 );
-            for ($level = 5; $level < 13; $level++) {
+            for ($level = 1; $level < 5; $level++) {
                 $section
                     ->addElementColumn((new Element())
                         ->setContent('
@@ -218,6 +199,28 @@ class E02_1
             }
 
             $section
+//                ->addElementColumn((new Element())
+//                    ->setContent('
+//                            {% if (Content.E02_1.Y' . $i . '.LMigration.m is not empty) %}
+//                                {{ Content.E02_1.Y' . $i . '.LMigration.m }}
+//                            {% else %}
+//                                &nbsp;
+//                            {% endif %}
+//                        ')
+//                    ->styleBackgroundColor('lightgrey')
+//                    ->styleBorderRight(), '5%'
+//                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('
+//                            {% if (Content.E02_1.Y' . $i . '.LMigration.w is not empty) %}
+//                                {{ Content.E02_1.Y' . $i . '.LMigration.w }}
+//                            {% else %}
+//                                &nbsp;
+//                            {% endif %}
+//                        ')
+//                    ->styleBackgroundColor('lightgrey')
+//                    ->styleBorderRight(), '5%'
+//                )
                 ->addElementColumn((new Element())
                     ->setContent('
                             {% if (Content.E02_1.Y' . $i . '.m is not empty) %}
@@ -256,11 +259,13 @@ class E02_1
         $section = new Section();
         $section
             ->addElementColumn((new Element())
-                ->setContent('Insgesamt')
-                ->styleBorderRight()
-                ->styleAlignCenter(), '10%'
+                ->setContent('
+                            Insgesamt
+                        ')
+                ->styleBackgroundColor('lightgrey')
+                ->styleBorderRight(), $left
             );
-        for ($level = 5; $level < 13; $level++) {
+        for ($level = 1; $level < 5; $level++) {
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
@@ -285,6 +290,28 @@ class E02_1
         }
 
         $section
+//            ->addElementColumn((new Element())
+//                ->setContent('
+//                            {% if (Content.E02_1.TotalCount.LMigration.m is not empty) %}
+//                                {{ Content.E02_1.TotalCount.LMigration.m }}
+//                            {% else %}
+//                                &nbsp;
+//                            {% endif %}
+//                        ')
+//                ->styleBackgroundColor('lightgrey')
+//                ->styleBorderRight(), '5%'
+//            )
+//            ->addElementColumn((new Element())
+//                ->setContent('
+//                            {% if (Content.E02_1.TotalCount.LMigration.w is not empty) %}
+//                                {{ Content.E02_1.TotalCount.LMigration.w }}
+//                            {% else %}
+//                                &nbsp;
+//                            {% endif %}
+//                        ')
+//                ->styleBackgroundColor('lightgrey')
+//                ->styleBorderRight(), '5%'
+//            )
             ->addElementColumn((new Element())
                 ->setContent('
                             {% if (Content.E02_1.TotalCount.m is not empty) %}
@@ -293,6 +320,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
+                ->styleBackgroundColor('lightgrey')
                 ->styleBorderRight(), '5%'
             )
             ->addElementColumn((new Element())
@@ -303,7 +331,7 @@ class E02_1
                                 &nbsp;
                             {% endif %}
                         ')
-                , '5%'
+                ->styleBackgroundColor('lightgrey'), '5%'
             );
 
         $sliceList[] = (new Slice())
@@ -312,7 +340,6 @@ class E02_1
             ->styleBorderLeft()
             ->styleBorderRight()
             ->styleTextBold()
-            ->styleBackgroundColor('lightgrey')
             ->addSection($section);
 
         return $sliceList;

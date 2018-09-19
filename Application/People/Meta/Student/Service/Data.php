@@ -350,9 +350,18 @@ class Data extends Support
         $this->createSupportType('Beratung', '');
         $this->createSupportType('Förderantrag', '');
         $this->createSupportType('Förderbescheid', '');
-        $this->createSupportType('Änderung', '');
+        if(($tblSupportType = $this->getSupportTypeByName('Änderung'))){
+            $this->updateSupportType($tblSupportType, 'Aufhebung', '');
+        } else {
+            $this->createSupportType('Aufhebung', '');
+        }
+
         $this->createSupportType('Ablehnung', '');
-        $this->createSupportType('Wiederspruch', '');
+        if(($tblSupportType = $this->getSupportTypeByName('Wiederspruch'))){
+            $this->updateSupportType($tblSupportType, 'Widerspruch', '');
+        } else {
+            $this->createSupportType('Widerspruch', '');
+        }
     }
 
     /**
