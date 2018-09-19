@@ -42,7 +42,7 @@ select
     ) TblPerson_BirthName_S1,
 
     (select vP.TblCommonBirthDates_Birthday
-        from SettingConsumer_EGE.viewPerson vP
+        from SettingConsumer_{{ ConsumerAcronym }}.viewPerson vP
         where vP.TblPerson_Id = TblPerson_S1_Id
     ) TblPerson_Birthday_S1,
 
@@ -181,7 +181,7 @@ select
     ) TblPerson_BirthName_S2,
 
     (select vP.TblCommonBirthDates_Birthday
-        from SettingConsumer_EGE.viewPerson vP
+        from SettingConsumer_{{ ConsumerAcronym }}.viewPerson vP
         where vP.TblPerson_Id = TblPerson_S2_Id
     ) TblPerson_Birthday_S2,
 
@@ -320,7 +320,7 @@ select
     ) TblPerson_BirthName_S3,
 
     (select vP.TblCommonBirthDates_Birthday
-        from SettingConsumer_EGE.viewPerson vP
+        from SettingConsumer_{{ ConsumerAcronym }}.viewPerson vP
         where vP.TblPerson_Id = TblPerson_S3_Id
     ) TblPerson_Birthday_S3,
 
