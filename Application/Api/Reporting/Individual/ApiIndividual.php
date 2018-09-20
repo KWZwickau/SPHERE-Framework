@@ -517,9 +517,26 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             $Emitter->setGetPayload(array(
                 self::API_TARGET => 'getFilter'
             ));
-            $Emitter->setPostPayload(array(
-                'ViewType' => $ViewType
-            ));
+            // ViewType übergeben
+            $PostArray['ViewType'] = $ViewType;
+            // Spezielles Feld vorbefüllen:
+            // Nur für Schüler-View
+            if($ViewType === TblWorkSpace::VIEW_TYPE_STUDENT){
+                if(($tblWorkSpaceList = Individual::useService()->getWorkSpaceAll($ViewType))){
+                    foreach($tblWorkSpaceList as $tblWorkSpace){
+                        // aktuelles Schuljahr finden
+                        if($tblWorkSpace->getField() === 'TblYear_Year'){
+                            // Liste aller aktuellen Schuljahre
+                            if(($YearList = Term::useService()->getYearByNow())){
+                                $tblYear = current($YearList);
+                                // Speichern im Post
+                                $PostArray['TblYear_Year[1]'] = $tblYear->getName();
+                            }
+                        }
+                    }
+                }
+            }
+            $Emitter->setPostPayload($PostArray);
             $Pipeline->appendEmitter($Emitter);
         }
         return $Pipeline;
@@ -598,10 +615,10 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         // ViewType übergeben
         $PostArray['ViewType'] = $ViewType;
         // Spezielles Feld vorbefüllen:
-        if(($tblWorkSpaceList = Individual::useService()->getWorkSpaceAll($ViewType))){
-            foreach($tblWorkSpaceList as $tblWorkSpace){
-                // Nur für Schüler-View
-                if($ViewType === TblWorkSpace::VIEW_TYPE_STUDENT){
+        // Nur für Schüler-View
+        if($ViewType === TblWorkSpace::VIEW_TYPE_STUDENT){
+            if(($tblWorkSpaceList = Individual::useService()->getWorkSpaceAll($ViewType))){
+                foreach($tblWorkSpaceList as $tblWorkSpace){
                     // aktuelles Schuljahr finden
                     if($tblWorkSpace->getField() === 'TblYear_Year'){
                         // Liste aller aktuellen Schuljahre
