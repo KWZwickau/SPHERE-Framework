@@ -1197,6 +1197,11 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
                     $this->removeScoreConditionGroupList($item);
                 }
             }
+            if (($list = $this->getScoreConditionGroupRequirementAllByCondition($tblScoreCondition))) {
+                foreach ($list as $item) {
+                    $this->removeScoreConditionGroupRequirement($item);
+                }
+            }
 
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);

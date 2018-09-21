@@ -18,6 +18,7 @@ class TblScoreCondition extends Element
 
     const ATTR_NAME = 'Name';
     const ATTR_IS_ACTIVE = 'IsActive';
+    const ATTR_PRIORITY = 'Priority';
     const PERIOD_FULL_YEAR = -1;
     const PERIOD_FIRST_PERIOD = 1;
     const PERIOD_SECOND_PERIOD = 2;
