@@ -96,121 +96,122 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $content = false;
-        $tblLeaveStudentAll = Prepare::useService()->getLeaveStudentAll();
-        if ($tblYear) {
-            $tblPrepareList = Prepare::useService()->getPrepareAllByYear($tblYear);
-            $prepareList = array();
-            if ($tblLeaveStudentAll) {
-                $leaveStudentDivisionList = array();
-                foreach ($tblLeaveStudentAll as $tblLeaveStudent) {
-                    if (($tblDivision = $tblLeaveStudent->getServiceTblDivision())
-                        && (($tblYearDivision = $tblDivision->getServiceTblYear()))
-                    ) {
-                        if ($tblYear->getId() != $tblYearDivision->getId()) {
-                            continue;
-                        }
+        $prepareList = array();
 
-                        if (($tblLeaveInformationCertificateDate = Prepare::useService()->getLeaveInformationBy(
-                            $tblLeaveStudent, 'CertificateDate'))
-                        ) {
-                            $date = $tblLeaveInformationCertificateDate->getValue();
-                        } else {
-                            $date = '';
-                        }
-
-                        if (isset($leaveStudentDivisionList[$tblDivision->getId()])) {
-                            if (!$leaveStudentDivisionList[$tblDivision->getId()]['Date'] && $date) {
-                                $leaveStudentDivisionList[$tblDivision->getId()]['Date'] = $date;
-                            }
-                            $leaveStudentDivisionList[$tblDivision->getId()]['CountTotalCertificates']++;
-                            if ($tblLeaveStudent->isApproved()) {
-                                $leaveStudentDivisionList[$tblDivision->getId()]['CountApprovedCertificates']++;
-                            }
-                        } else {
-                            $leaveStudentDivisionList[$tblDivision->getId()] = array(
-                                'Date' => $date,
-                                'CountTotalCertificates' => 1,
-                                'CountApprovedCertificates' => $tblLeaveStudent->isApproved() ? 1 : 0,
-                                'DivisionDisplayName' => $tblDivision->getDisplayName(),
-                                'DivisionId' => $tblDivision->getId(),
-                            );
-                        }
-                    }
-                }
-
-                if (($tblCertificateType = Generator::useService()->getCertificateTypeByIdentifier('LEAVE'))
-                    && $tblCertificateType->isAutomaticallyApproved()
+        if (($tblLeaveStudentAll = Prepare::useService()->getLeaveStudentAll())) {
+            $leaveStudentDivisionList = array();
+            foreach ($tblLeaveStudentAll as $tblLeaveStudent) {
+                if (($tblDivision = $tblLeaveStudent->getServiceTblDivision())
+                    && (($tblYearDivision = $tblDivision->getServiceTblYear()))
                 ) {
-                    $isLeaveAutomaticallyApproved = true;
-                } else {
-                    $isLeaveAutomaticallyApproved = false;
-                }
-                foreach ($leaveStudentDivisionList as $item) {
-                    if ($isLeaveAutomaticallyApproved) {
-                        $status = new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' ' .
-                            $item['CountTotalCertificates']
-                            . ' Zeugnisse werden automatisch freigegeben.');
-                    } else {
-                        $countApproved = $item['CountApprovedCertificates'];
-                        $countStudents = $item['CountTotalCertificates'];
-
-                        $status = $countApproved < $countStudents
-                            ? new Warning(new Exclamation() . ' ' . $countApproved . ' von ' . $countStudents . ' Zeugnisse freigegeben.')
-                            : new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
-                                . ' ' . $countApproved . ' von ' . $countStudents . ' Zeugnissen freigegeben.');
+                    if ($tblYear && $tblYear->getId() != $tblYearDivision->getId()) {
+                        continue;
                     }
 
-                    $prepareList[] = array(
+                    if (($tblLeaveInformationCertificateDate = Prepare::useService()->getLeaveInformationBy(
+                        $tblLeaveStudent, 'CertificateDate'))
+                    ) {
+                        $date = $tblLeaveInformationCertificateDate->getValue();
+                    } else {
+                        $date = '';
+                    }
+
+                    if (isset($leaveStudentDivisionList[$tblDivision->getId()])) {
+                        if (!$leaveStudentDivisionList[$tblDivision->getId()]['Date'] && $date) {
+                            $leaveStudentDivisionList[$tblDivision->getId()]['Date'] = $date;
+                        }
+                        $leaveStudentDivisionList[$tblDivision->getId()]['CountTotalCertificates']++;
+                        if ($tblLeaveStudent->isApproved()) {
+                            $leaveStudentDivisionList[$tblDivision->getId()]['CountApprovedCertificates']++;
+                        }
+                    } else {
+                        $leaveStudentDivisionList[$tblDivision->getId()] = array(
+                            'Date' => $date,
+                            'CountTotalCertificates' => 1,
+                            'CountApprovedCertificates' => $tblLeaveStudent->isApproved() ? 1 : 0,
+                            'DivisionDisplayName' => $tblDivision->getDisplayName(),
+                            'DivisionId' => $tblDivision->getId(),
+                        );
+                    }
+                }
+            }
+
+            if (($tblCertificateType = Generator::useService()->getCertificateTypeByIdentifier('LEAVE'))
+                && $tblCertificateType->isAutomaticallyApproved()
+            ) {
+                $isLeaveAutomaticallyApproved = true;
+            } else {
+                $isLeaveAutomaticallyApproved = false;
+            }
+            foreach ($leaveStudentDivisionList as $item) {
+                if ($isLeaveAutomaticallyApproved) {
+                    $status = new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' ' .
+                        $item['CountTotalCertificates']
+                        . ' Zeugnisse werden automatisch freigegeben.');
+                } else {
+                    $countApproved = $item['CountApprovedCertificates'];
+                    $countStudents = $item['CountTotalCertificates'];
+
+                    $status = $countApproved < $countStudents
+                        ? new Warning(new Exclamation() . ' ' . $countApproved . ' von ' . $countStudents . ' Zeugnisse freigegeben.')
+                        : new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                            . ' ' . $countApproved . ' von ' . $countStudents . ' Zeugnissen freigegeben.');
+                }
+
+                $prepareList[] = array(
+                    'Year' => $tblYearDivision->getDisplayName(),
                     'Date' => $item['Date'],
-                    'Name' => '',
+                    'Name' => 'Abgangszeugnis',
                     'Division' => $item['DivisionDisplayName'],
                     'CertificateType' => 'Abgangszeugnis',
                     'Status' => $status,
                     'Option' =>
-                                (new Standard(
-                                    '',
-                                    '/Education/Certificate/Approve/Prepare',
-                                    new EyeOpen(),
-                                    array(
-                                        'DivisionId' => $item['DivisionId'],
-                                        'IsLeave' => true
-                                    ),
-                                    'Klassenansicht -> Zeugnisse einzeln freigeben'
-                                ))
-                                . (new External(
-                                    '',
-                                    '/Api/Education/Certificate/Generator/PreviewMultiLeavePdf',
-                                    new Download(),
-                                    array(
-                                        'DivisionId' => $item['DivisionId'],
-                                        'Name' => 'Zeugnismuster'
-                                    ), 'Alle Zeugnisse als Muster herunterladen'))
-                                . (new Standard(
-                                    '',
-                                    '/Education/Certificate/Approve/Prepare/Division/SetApproved',
-                                    new Check(),
-                                    array(
-                                        'DivisionId' => $item['DivisionId'],
-                                        'IsLeave' => true,
-                                        'Route' => '/Education/Certificate/Approve'
-                                    ),
-                                    'Alle Zeugnisse dieser Klasse freigeben'
-                                ))
-                                . (new Standard(
-                                    '',
-                                    '/Education/Certificate/Approve/Prepare/Division/ResetApproved',
-                                    new Disable(),
-                                    array(
-                                        'DivisionId' => $item['DivisionId'],
-                                        'IsLeave' => true,
-                                        'Route' => '/Education/Certificate/Approve'
-                                    ),
-                                    'Alle Zeugnisfreigaben dieser Klasse entfernen'
-                                ))
-                        );
-                }
-
+                        (new Standard(
+                            '',
+                            '/Education/Certificate/Approve/Prepare',
+                            new EyeOpen(),
+                            array(
+                                'DivisionId' => $item['DivisionId'],
+                                'IsLeave' => true
+                            ),
+                            'Klassenansicht -> Zeugnisse einzeln freigeben'
+                        ))
+                        . (new External(
+                            '',
+                            '/Api/Education/Certificate/Generator/PreviewMultiLeavePdf',
+                            new Download(),
+                            array(
+                                'DivisionId' => $item['DivisionId'],
+                                'Name' => 'Zeugnismuster'
+                            ), 'Alle Zeugnisse als Muster herunterladen'))
+                        . (new Standard(
+                            '',
+                            '/Education/Certificate/Approve/Prepare/Division/SetApproved',
+                            new Check(),
+                            array(
+                                'DivisionId' => $item['DivisionId'],
+                                'IsLeave' => true,
+                                'Route' => '/Education/Certificate/Approve'
+                            ),
+                            'Alle Zeugnisse dieser Klasse freigeben'
+                        ))
+                        . (new Standard(
+                            '',
+                            '/Education/Certificate/Approve/Prepare/Division/ResetApproved',
+                            new Disable(),
+                            array(
+                                'DivisionId' => $item['DivisionId'],
+                                'IsLeave' => true,
+                                'Route' => '/Education/Certificate/Approve'
+                            ),
+                            'Alle Zeugnisfreigaben dieser Klasse entfernen'
+                        ))
+                );
             }
+        }
+
+        if ($tblYear) {
+            $tblPrepareList = Prepare::useService()->getPrepareAllByYear($tblYear);
             if ($tblPrepareList) {
                 foreach ($tblPrepareList as $tblPrepare) {
                     $countStudents = 0;
@@ -297,7 +298,9 @@ class Frontend extends Extension implements IFrontendInterface
                             ))
                     );
                 }
+            }
 
+            if (!empty($prepareList)) {
                 $content = new TableData($prepareList, null,
                     array(
                         'Date' => 'Zeugnisdatum',
@@ -319,10 +322,12 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     )
                 );
+            } else {
+                $content = new \SPHERE\Common\Frontend\Message\Repository\Warning('
+                    Es liegen aktuell keine Zeugnisse zum Freigeben vor.', new Exclamation());
             }
         } else {
             $tblPrepareList = Prepare::useService()->getPrepareAll();
-            $prepareList = array();
             if ($tblPrepareList) {
                 foreach ($tblPrepareList as $tblPrepare) {
                     $tblDivision = $tblPrepare->getServiceTblDivision();

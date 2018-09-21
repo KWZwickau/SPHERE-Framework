@@ -224,11 +224,7 @@ class DataProtectionOrdinance implements IClusterInterface, IApplicationInterfac
                             jeweiligen Sitzung zur Folge hat, dass auch das Opt-out-Cookie gelöscht wird und unter 
                             Umständen von Ihnen beim nächsten Besuch unserer Website erneut aktiviert werden muss.'),
                             new Container('&nbsp;'),
-                            new Panel(
-                                'Statistik', array(
-                                    '<iframe class="sphere-iframe-style" src="/Library/Piwik/index.php?module=CoreAdminHome&action=optOut&language=de"></iframe>',
-                                )
-                                , Panel::PANEL_TYPE_DEFAULT),
+                            '<iframe class="sphere-iframe-style" src="/Library/Piwik/index.php?module=CoreAdminHome&action=optOut&language=de"></iframe>'
                         ))
                     ), new Title(
                         'NUTZUNG VON PIWIK'

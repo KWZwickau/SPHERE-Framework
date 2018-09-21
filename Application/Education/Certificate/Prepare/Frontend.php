@@ -4283,38 +4283,63 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Stage
      */
-    public function frontendLeaveSelectStudent()
+    public function frontendLeaveSelectStudent($YearId = null)
     {
         $Stage = new Stage('Zeugnisvorbereitung', 'Abgangszeugnis - Schüler auswählen');
         $this->setHeaderButtonList($Stage, View::LEAVE);
 
         $studentTable = array();
+        $buttonList = array();
 
-        if ($tblYearList = Term::useService()->getYearByNow()) {
-            foreach ($tblYearList as $tblYear) {
-                if (($tblDivisionList = Division::useService()->getDivisionByYear($tblYear))) {
-                    foreach ($tblDivisionList as $tblDivision) {
-                        if (($tblLevel = $tblDivision->getTblLevel())
-                            && !$tblLevel->getIsChecked()
-                            && ($tblType = $tblLevel->getServiceTblType())
-                            && ($tblType->getName() == 'Mittelschule / Oberschule'
+        $tblSelectYear = Term::useService()->getYearById($YearId);
+        if (($tblYearAll = Term::useService()->getYearAll())) {
+            if (!$tblSelectYear
+                && ($tblYearByNowList = Term::useService()->getYearByNow())
+            ) {
+                $tblSelectYear = current($tblYearByNowList);
+            }
+
+            $tblYearAll = $this->getSorter($tblYearAll)->sortObjectBy('Name');
+            /** @var TblYear $tblYear */
+            foreach ($tblYearAll as $tblYear) {
+                if ($tblSelectYear && $tblSelectYear->getId() == $tblYear->getId()) {
+                    $icon = new Edit();
+                    $text = new Info(new Bold($tblYear->getDisplayName()));
+                } else {
+                    $icon = null;
+                    $text = $tblYear->getDisplayName();
+                }
+
+                $buttonList[] = new Standard($text, '/Education/Certificate/Prepare/Leave', $icon, array(
+                   'YearId' => $tblYear->getId()
+                ));
+            }
+        }
+
+        if ($tblSelectYear) {
+            if (($tblDivisionList = Division::useService()->getDivisionByYear($tblSelectYear))) {
+                foreach ($tblDivisionList as $tblDivision) {
+                    if (($tblLevel = $tblDivision->getTblLevel())
+                        && !$tblLevel->getIsChecked()
+                        && ($tblType = $tblLevel->getServiceTblType())
+                        && ($tblType->getName() == 'Mittelschule / Oberschule'
                             || $tblType->getName() == 'Gymnasium')
-                            && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
-                        ) {
-                            foreach ($tblPersonList as $tblPerson) {
-                                $studentTable[] = array(
-                                    'Type' => $tblType->getName(),
-                                    'Division' => $tblDivision->getDisplayName(),
-                                    'Name' => $tblPerson->getLastFirstName(),
-                                    'Option' => new Standard(
-                                        '', '/Education/Certificate/Prepare/Leave/Student', new Select(),
-                                        array(
-                                            'PersonId' => $tblPerson->getId()
-                                        ),
-                                        'Auswählen'
-                                    )
-                                );
-                            }
+                        && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
+                    ) {
+                        foreach ($tblPersonList as $tblPerson) {
+                            $studentTable[] = array(
+                                'Type' => $tblType->getName(),
+                                'Division' => $tblDivision->getDisplayName(),
+                                'Name' => $tblPerson->getLastFirstName(),
+                                'Option' => new Standard(
+                                    '', '/Education/Certificate/Prepare/Leave/Student', new Select(),
+                                    array(
+                                        'PersonId' => $tblPerson->getId(),
+                                        'DivisionId' => $tblDivision->getId()
+                                    ),
+                                    'Auswählen'
+                                )
+                            );
                         }
                     }
                 }
@@ -4323,6 +4348,11 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage->setContent(
             new Layout(array(
+                new LayoutGroup(array(
+                   new LayoutRow(array(
+                       new LayoutColumn($buttonList)
+                   ))
+                )),
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
@@ -4358,11 +4388,12 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $PersonId
+     * @param null $DivisionId
      * @param null $Data
      *
      * @return Stage|string
      */
-    public function frontendLeaveStudentTemplate($PersonId = null, $Data = null)
+    public function frontendLeaveStudentTemplate($PersonId = null, $DivisionId = null, $Data = null)
     {
         if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
             $stage = new Stage('Zeugnisvorbereitung', 'Abgangszeugnis - Schüler');
@@ -4376,7 +4407,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblLeaveStudent = false;
 
             if (($tblStudent = $tblPerson->getStudent())
-                && ($tblDivision = $tblStudent->getCurrentMainDivision())
+                && ($tblDivision = Division::useService()->getDivisionById($DivisionId))
             ){
                 $tblCourse = $tblStudent->getCourse();
                 if (($tblLevel = $tblDivision->getTblLevel())) {
@@ -4415,7 +4446,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
-            if ($tblCertificate->getCertificate() == 'GymAbgSekII') {
+            if ($tblCertificate && $tblCertificate->getCertificate() == 'GymAbgSekII') {
                 $layoutGroups = $this->setLeaveContentForSekTwo(
                     $tblCertificate ? $tblCertificate : null,
                     $tblLeaveStudent ? $tblLeaveStudent : null,
@@ -4480,6 +4511,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $hasPreviewGrades = false;
         $isApproved = false;
+        $hasMissingSubjects = false;
 
         if ($tblCertificate) {
             if ($tblLeaveStudent) {
@@ -4634,12 +4666,23 @@ class Frontend extends Extension implements IFrontendInterface
                         if (($tblGradeTextList = Gradebook::useService()->getGradeTextAll())) {
                             $gradeText = new SelectBox('Data[Grades][' . $tblSubjectItem->getId() . '][GradeText]',
                                 '', array(TblGradeText::ATTR_NAME => $tblGradeTextList));
+
+                            if ($tblLeaveStudent && $tblLeaveStudent->isApproved()) {
+                                $gradeText->setDisabled();
+                            }
                         } else {
                             $gradeText = '';
                         }
 
+                        if (!Generator::useService()->getCertificateSubjectBySubject($tblCertificate, $tblSubjectItem)) {
+                            $hasMissingSubjects = true;
+                            $subjectName = new \SPHERE\Common\Frontend\Text\Repository\Warning($tblSubjectItem->getDisplayName() . ' ' . new Ban());
+                        } else {
+                            $subjectName = $tblSubjectItem->getDisplayName();
+                        }
+
                         $subjectData[$tblSubjectItem->getAcronym()] = array(
-                            'SubjectName' => $tblSubjectItem->getName(),
+                            'SubjectName' => $subjectName,
                             'GradeList' => implode(' | ', $gradeList),
                             'Average' => $average,
                             'Grade' => $selectComplete,
@@ -4692,6 +4735,12 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                     , 3)
             )),
+            ($hasMissingSubjects
+                ? new LayoutRow(new LayoutColumn(new Warning(
+                    'Es sind nicht alle Fächer auf der Zeugnisvorlage eingestellt.', new Exclamation()
+                )))
+                : null
+            ),
             ($hasPreviewGrades
                 ? new LayoutRow(new LayoutColumn(new Warning(
                     'Es wurden noch nicht alle Notenvorschläge gespeichert.', new Exclamation()
