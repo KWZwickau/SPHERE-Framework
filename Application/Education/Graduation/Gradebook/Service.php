@@ -935,7 +935,7 @@ class Service extends ServiceScoreRule
             }
 
             return $resultAverage === '' ? false : $resultAverage
-                . ($tblScoreCondition ? '(' . $tblScoreCondition->getPriority() . ')' : '');
+                . ($tblScoreCondition ? '(' . $tblScoreCondition->getPriority() . ': ' . $tblScoreCondition->getName() . ')' : '');
         }
 
         return false;

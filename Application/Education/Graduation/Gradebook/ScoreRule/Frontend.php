@@ -1172,7 +1172,7 @@ class Frontend extends FrontendMinimumGradeCount
                         if (($tblScoreGroup = $tblScoreConditionGroupRequirement->getTblScoreGroup())) {
                             $tblScoreGroupRequirementAllByCondition[$tblScoreGroup->getId()] = $tblScoreGroup;
                             $contentSelectedTable[] = array(
-                                'Name' => $tblScoreGroup->getName(),
+                                'Name' => 'Zensuren-Gruppe: ' . $tblScoreGroup->getName(),
                                 'Count' => $tblScoreConditionGroupRequirement->getCount(),
                                 'Option' => (new \SPHERE\Common\Frontend\Link\Repository\Primary(
                                     'Entfernen', '/Education/Graduation/Gradebook/Score/Condition/GradeType/Remove',
@@ -1220,7 +1220,7 @@ class Frontend extends FrontendMinimumGradeCount
 
                         } else {
                             $contentAvailableTable[] = array(
-                                'Name' => $tblScoreGroup->getName(),
+                                'Name' => 'Zensuren-Gruppe: ' . $tblScoreGroup->getName(),
                                 'Option' =>
                                     (new Form(
                                         new FormGroup(
@@ -1285,7 +1285,7 @@ class Frontend extends FrontendMinimumGradeCount
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(array(
-                                    new Title('Ausgewählte', 'Zensuren-Typen'),
+                                    new Title('Ausgewählte', 'Bedingungen'),
                                     new TableData($contentSelectedTable, null,
                                         array(
                                             'Name' => 'Name',
@@ -1301,7 +1301,7 @@ class Frontend extends FrontendMinimumGradeCount
                                 ), 6
                                 ),
                                 new LayoutColumn(array(
-                                    new Title('Verfügbare', 'Zensuren-Typen'),
+                                    new Title('Verfügbare', 'Bedingungen'),
                                     new TableData($contentAvailableTable, null,
                                         array(
                                             'Name' => 'Name ',

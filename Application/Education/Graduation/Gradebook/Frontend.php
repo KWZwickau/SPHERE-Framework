@@ -854,7 +854,9 @@ class Frontend extends FrontendScoreRule
                         $tblScoreConditionList = $this->getSorter($tblScoreConditionList)->sortObjectBy(TblScoreCondition::ATTR_PRIORITY);
                         /** @var TblScoreCondition $tblScoreCondition */
                         foreach ($tblScoreConditionList as $tblScoreCondition) {
-                            $scoreRuleText[] = 'Priorität ' . $tblScoreCondition->getPriority() . ': ' .  $tblScoreCondition->getName();
+                            $requirements = Gradebook::useService()->getRequirementsForScoreCondition($tblScoreCondition, true);
+                            $scoreRuleText[] = 'Priorität ' . $tblScoreCondition->getPriority() . ': ' .  $tblScoreCondition->getName()
+                                . ($requirements ? ' (' . $requirements . ')' : '');
                         }
                     }
                 } else {
@@ -1086,7 +1088,7 @@ class Frontend extends FrontendScoreRule
                                     $tblPeriod,
                                     $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
                                 );
-//                                $priority = '';
+                                $priority = '';
                                 if (is_array($average)) {
                                     $errorRowList = $average;
                                     $average = '';
@@ -1101,11 +1103,10 @@ class Frontend extends FrontendScoreRule
                                     }
                                 }
                                 $data[$column] = $showPriority
-                                    ? new ToolTip(new Bold($average), 'Priorität: ' . $priority)
+                                    ? new ToolTip(new Bold($average), 'Priorität ' . $priority)
                                     : new Bold($average);
                             }
                         } elseif (strpos($column, 'YearAverage') !== false) {
-
                             /*
                             * Calc Average
                             */
@@ -1118,6 +1119,7 @@ class Frontend extends FrontendScoreRule
                                 null,
                                 $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
                             );
+                            $priority = '';
                             if (is_array($average)) {
                                 $errorRowList = $average;
                                 $average = '';
@@ -1132,7 +1134,7 @@ class Frontend extends FrontendScoreRule
                                 }
                             }
                             $data[$column] = $showPriority
-                                ? new ToolTip(new Bold($average), 'Priorität: ' . $priority)
+                                ? new ToolTip(new Bold($average), 'Priorität ' . $priority)
                                 : new Bold($average);
                         } elseif (strpos($column, 'Period') !== false) {
                             // keine Tests in der Periode vorhanden
