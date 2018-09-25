@@ -294,6 +294,27 @@ class Data extends AbstractData
     }
 
     /**
+     * @param bool $IsSystem
+     *
+     * @return false|TblSetting[]
+     */
+    public function getSettingAll($IsSystem = false)
+    {
+
+        if ($IsSystem) {
+            return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblSetting', array(
+                TblSetting::ATTR_APPLICATION => self::ORDER_ASC
+            ));
+        } else {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblSetting', array(
+                TblSetting::ATTR_IS_PUBLIC => true
+            ), array(
+                TblSetting::ATTR_APPLICATION => self::ORDER_ASC
+            ));
+        }
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblStudentCustody

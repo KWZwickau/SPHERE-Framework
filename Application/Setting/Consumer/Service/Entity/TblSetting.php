@@ -20,6 +20,7 @@ class TblSetting extends Element
     const ATTR_MODULE = 'Module';
     const ATTR_IDENTIFIER = 'Identifier';
     const ATTR_TYPE = 'Type';
+    const ATTR_IS_PUBLIC = 'IsPublic';
 
     const TYPE_BOOLEAN = 'boolean';
     const TYPE_STRING = 'string';
@@ -59,6 +60,16 @@ class TblSetting extends Element
      * @Column(type="text")
      */
     protected $Value;
+
+    /**
+     * @Column(type="text")
+     */
+    protected $Description;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsPublic;
 
     /**
      * @return string
@@ -154,5 +165,37 @@ class TblSetting extends Element
     public function setModule($Module)
     {
         $this->Module = $Module;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDescription()
+    {
+        return $this->Description;
+    }
+
+    /**
+     * @param string $Description
+     */
+    public function setDescription($Description)
+    {
+        $this->Description = $Description;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isPublic()
+    {
+        return $this->IsPublic;
+    }
+
+    /**
+     * @param boolean $IsPublic
+     */
+    public function setIsPublic($IsPublic)
+    {
+        $this->IsPublic = $IsPublic;
     }
 }

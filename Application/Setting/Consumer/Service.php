@@ -51,6 +51,16 @@ class Service extends AbstractService
     }
 
     /**
+     * @param bool $IsSystem
+     *
+     * @return false|TblSetting[]
+     */
+    public function getSettingAll($IsSystem = false)
+    {
+        return (new Data($this->getBinding()))->getSettingAll($IsSystem);
+    }
+
+    /**
      * @param $Cluster
      * @param $Application
      * @param null $Module
