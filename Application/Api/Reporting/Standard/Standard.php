@@ -52,6 +52,10 @@ class Standard implements IModuleInterface
             __NAMESPACE__.'/Person/MedicalRecordClassList/Download',
             __NAMESPACE__.'\Person\Person::downloadMedicalRecordClassList'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Person/AgreementClassList/Download',
+            __NAMESPACE__.'\Person\Person::downloadAgreementClassList'
+        ));
 
     }
 
