@@ -53,7 +53,7 @@ class Frontend extends Extension implements IFrontendInterface
             if ($Data == null) {
                 $global = $this->getGlobal();
                 foreach ($tblSettingList as $tblSetting) {
-                    $global->POST['Data'][$tblSetting->getIdentifier()] = $tblSetting->getValue();
+                    $global->POST['Data'][$tblSetting->getId()] = $tblSetting->getValue();
                 }
                 $global->savePost();
             }
@@ -63,15 +63,15 @@ class Frontend extends Extension implements IFrontendInterface
                 $description = $tblSetting->getDescription() ? $tblSetting->getDescription() : 'Keine Beschreibung verfügbar.';
                 if ($tblSetting->getType() == TblSetting::TYPE_BOOLEAN) {
                     $formColumns[$tblSetting->getApplication()][] = new FormColumn(
-                        new CheckBox('Data[' . $tblSetting->getIdentifier() . ']', $description, 1)
+                        new CheckBox('Data[' . $tblSetting->getId() . ']', $description, 1)
                     );
                 } elseif ($tblSetting->getType() == TblSetting::TYPE_STRING) {
                     $formColumns[$tblSetting->getApplication()][] = new FormColumn(
-                        new TextField('Data[' . $tblSetting->getIdentifier() . ']', '', $description, new Comment())
+                        new TextField('Data[' . $tblSetting->getId() . ']', '', $description, new Comment())
                     );
                 } elseif ($tblSetting->getType() == TblSetting::TYPE_INTEGER) {
                     $formColumns[$tblSetting->getApplication()][] = new FormColumn(
-                        new NumberField('Data[' . $tblSetting->getIdentifier() . ']', '', $description, new Quantity())
+                        new NumberField('Data[' . $tblSetting->getId() . ']', '', $description, new Quantity())
                     );
                 }
             }
