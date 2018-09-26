@@ -34,12 +34,12 @@ class Data extends AbstractData
     /**
      * @param TblCompany $tblCompany
      *
-     * @return false|TblSchool
+     * @return false|TblSchool[]
      */
     public function getSchoolByCompany(TblCompany $tblCompany)
     {
 
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSchool',
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSchool',
             array(TblSchool::ATTR_SERVICE_TBL_COMPANY => $tblCompany->getId()));
     }
 
@@ -62,13 +62,13 @@ class Data extends AbstractData
     /**
      * @param TblType $tblType
      *
-     * @return false|TblSchool
+     * @return false|TblSchool[]
      */
     public function getSchoolByType(TblType $tblType){
 
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSchool',
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSchool',
             array(
-                TblSchool::ATTR_SERVICE_TBL_TYPE    => $tblType->getId()
+                TblSchool::ATTR_SERVICE_TBL_TYPE => $tblType->getId()
             ));
     }
 

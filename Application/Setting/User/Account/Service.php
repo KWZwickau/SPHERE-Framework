@@ -310,6 +310,7 @@ class Service extends AbstractService
                         if(($tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPersonStudent))){
                             if(($tblSchoolType = Type::useService()->getTypeByName($tblDivision->getTypeName()))){
                                 if(($tblSchoolCompany = School::useService()->getSchoolByType($tblSchoolType))){
+                                    $tblSchoolCompany = current($tblSchoolCompany);
                                     $tblCompany = $tblSchoolCompany->getServiceTblCompany();
                                 }
                             }
@@ -321,6 +322,7 @@ class Service extends AbstractService
             if(($tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPerson))){
                 if(($tblSchoolType = Type::useService()->getTypeByName($tblDivision->getTypeName()))){
                     if(($tblSchoolCompany = School::useService()->getSchoolByType($tblSchoolType))){
+                        $tblSchoolCompany = current($tblSchoolCompany);
                         $tblCompany = $tblSchoolCompany->getServiceTblCompany();
                     }
                 }

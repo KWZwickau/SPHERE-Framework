@@ -67,7 +67,7 @@ class Service extends AbstractService
     /**
      * @param TblCompany $tblCompany
      *
-     * @return false|TblSchool
+     * @return false|TblSchool[]
      */
     public function getSchoolByCompany(TblCompany $tblCompany)
     {
@@ -90,7 +90,7 @@ class Service extends AbstractService
     /**
      * @param TblType $tblType
      *
-     * @return false|TblSchool
+     * @return false|TblSchool[]
      */
     public function getSchoolByType(TblType $tblType)
     {

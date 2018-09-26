@@ -19,6 +19,7 @@ use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
@@ -209,12 +210,45 @@ class AccidentReport extends Extension
 
             $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
             if ($tblStudent) {
+
                 // Schuldaten der Schule des Schülers
                 $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
                 $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
                     $tblStudentTransferType);
                 if ($tblStudentTransfer) {
+                    $tblType = false;
                     $tblCompanySchool = $tblStudentTransfer->getServiceTblCompany();
+
+                    // Schulart über Klasse in der der Schüler aktuell ist
+                    $tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPerson);
+                    if($tblDivision && ($tblLevel = $tblDivision->getTblLevel())){
+                        $tblType = $tblLevel->getServiceTblType();
+                    }
+                    // Unternehmensnummer wird sofern möglich und vorhanden aus den Mandantenschulen gezogen
+                    // und überschreibt damit die Unternehmensnummer der Schulträger
+                    if($tblType){
+                        // Schule aus Mandanteneinstellung mit Schulart
+                        if(($tblSchoolList = School::useService()->getSchoolByType($tblType))){
+                            // bei einer Schule kann diese genommen werden. (Normalfall)
+                            if(count($tblSchoolList) == 1){
+                                $tblSchool = current($tblSchoolList);
+                                // Übernahme nur, wenn eine Unternehmensnummer hinterlegt ist
+                                if($tblSchool->getCompanyNumber() != ''){
+                                    $Global->POST['Data']['CompanyNumber'] = $tblSchool->getCompanyNumber();
+                                }
+                            } else {
+                                // mehr als eine Schule mit gleicher Schulart
+                                if(($tblSchool = School::useService()->getSchoolByCompanyAndType($tblCompanySchool, $tblType))){
+                                    if($tblSchool){
+                                        // Übernahme nur, wenn eine Unternehmensnummer hinterlegt ist
+                                        if($tblSchool->getCompanyNumber() != '') {
+                                            $Global->POST['Data']['CompanyNumber'] = $tblSchool->getCompanyNumber();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                     if ($tblCompanySchool) {
                         $Global->POST['Data']['School'] = $tblCompanySchool->getName();
                         $Global->POST['Data']['SchoolExtended'] = $tblCompanySchool->getExtendedName();
