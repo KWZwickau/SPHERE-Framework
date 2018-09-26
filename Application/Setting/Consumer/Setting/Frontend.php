@@ -2,12 +2,15 @@
 
 namespace SPHERE\Application\Setting\Consumer\Setting;
 
+use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
+use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblSetting;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -58,8 +61,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $global->savePost();
             }
 
+            $selectBoxContent[] = new SelectBoxItem(TblAddress::VALUE_PLZ_ORT_OT_STR_NR, 'PLZ_ORT_OT_STR_NR');
+            $selectBoxContent[] = new SelectBoxItem(TblAddress::VALUE_OT_STR_NR_PLZ_ORT, 'OT_STR_NR_PLZ_ORT');
+
             $fields = array();
             foreach ($tblSettingList as $tblSetting) {
+
                 // werden automatisch vom System gesetzt
                 if ($tblSetting->getIdentifier() == 'InterfaceFilterMessageDate'
                     || $tblSetting->getIdentifier() == 'InterfaceFilterMessageCount'
@@ -67,19 +74,18 @@ class Frontend extends Extension implements IFrontendInterface
                     continue;
                 }
 
-                $description = $tblSetting->getDescription() ? $tblSetting->getDescription() : 'Keine Beschreibung verfügbar.';
-                if ($tblSetting->getType() == TblSetting::TYPE_BOOLEAN) {
-                    $fields[$tblSetting->getApplication()][] =
-                        new CheckBox('Data[' . $tblSetting->getId() . ']', $description, 1)
-                    ;
+                $description = $tblSetting->getDescription()
+                    ? $tblSetting->getDescription()
+                    : $tblSetting->getIdentifier() . ' (keine Beschreibung verfügbar)';
+
+                if ($tblSetting->getIdentifier() == 'Format_GuiString') {
+                    $fields[$tblSetting->getApplication()][] = new SelectBox('Data[' . $tblSetting->getId() . ']', $description, array('{{ Name }}' => $selectBoxContent));
+                } elseif ($tblSetting->getType() == TblSetting::TYPE_BOOLEAN) {
+                    $fields[$tblSetting->getApplication()][] = new CheckBox('Data[' . $tblSetting->getId() . ']', $description, 1);
                 } elseif ($tblSetting->getType() == TblSetting::TYPE_STRING) {
-                    $fields[$tblSetting->getApplication()][] =
-                        new TextField('Data[' . $tblSetting->getId() . ']', '', $description, new Comment())
-                    ;
+                    $fields[$tblSetting->getApplication()][] = new TextField('Data[' . $tblSetting->getId() . ']', '', $description, new Comment());
                 } elseif ($tblSetting->getType() == TblSetting::TYPE_INTEGER) {
-                    $fields[$tblSetting->getApplication()][] =
-                        new NumberField('Data[' . $tblSetting->getId() . ']', '', $description, new Quantity())
-                    ;
+                    $fields[$tblSetting->getApplication()][] = new NumberField('Data[' . $tblSetting->getId() . ']', '', $description, new Quantity());
                 }
             }
 
@@ -113,7 +119,7 @@ class Frontend extends Extension implements IFrontendInterface
             $form->appendFormButton(new Primary('Speichern', new Save()));
 
             $stage->setContent(new Well(
-                $form
+                Consumer::useService()->updateSettingList($form, $Data, $isSystem)
             ));
         }
 

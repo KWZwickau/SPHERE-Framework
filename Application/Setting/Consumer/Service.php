@@ -6,6 +6,9 @@ use SPHERE\Application\Setting\Consumer\Service\Data;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblSetting;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblStudentCustody;
 use SPHERE\Application\Setting\Consumer\Service\Setup;
+use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -48,6 +51,17 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getSetting(
             $Cluster, $Application, $Module, $Identifier
         );
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblSetting
+     */
+    public function getSettingById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getSettingById($Id);
     }
 
     /**
@@ -182,5 +196,60 @@ class Service extends AbstractService
             $return = TblSetting::SORT_GERMAN_A_WITH;
         }
         return $return;
+    }
+
+    /**
+     * @param IFormInterface $form
+     * @param $Data
+     * @param $isSystem
+     *
+     * @return IFormInterface|string
+     */
+    public function updateSettingList(IFormInterface $form, $Data, $isSystem)
+    {
+        if ($Data == null) {
+            return $form;
+        }
+
+        // integer validieren
+        $Error = false;
+        foreach ($Data as $settingId => $value) {
+            if (($tblSetting = $this->getSettingById($settingId))
+                && $tblSetting->getType() == TblSetting::TYPE_INTEGER
+                && !preg_match('/^[0-9]*$/', $value)
+            ) {
+               $form->setError('Data[' . $tblSetting->getId() . ']', 'Bitte geben Sie eine Ganze Zahl (Integer) ein.');
+               $Error = true;
+            }
+        }
+
+        if (!$Error) {
+            foreach ($Data as $settingId => $value) {
+                if (($tblSetting = $this->getSettingById($settingId))) {
+                    switch ($tblSetting->getType()) {
+                        case TblSetting::TYPE_BOOLEAN:
+                            $this->updateSetting($tblSetting, '1');
+                            break;
+                        case TblSetting::TYPE_INTEGER:
+                        default:
+                            $this->updateSetting($tblSetting, $value);
+                    }
+                }
+            }
+
+            // alle nicht gecheckten Checkboxen auf false setzen
+            if (($tblSettingList = Consumer::useService()->getSettingAll($isSystem))) {
+                foreach ($tblSettingList as $tblSetting) {
+                    if (!isset($Data[$tblSetting->getId()]) && $tblSetting->getType() == TblSetting::TYPE_BOOLEAN) {
+                        $this->updateSetting($tblSetting, '0');
+                    }
+                }
+            }
+
+            return new Success('Die Daten wurden gespeichert', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                . new Redirect('/Setting/Consumer/Setting', Redirect::TIMEOUT_SUCCESS);
+        }
+
+        return $form;
     }
 }

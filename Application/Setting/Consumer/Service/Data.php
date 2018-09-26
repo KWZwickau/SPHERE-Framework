@@ -27,7 +27,7 @@ class Data extends AbstractData
             $this->updateSettingDescription($tblSetting, 'Ersetzung der Klassengruppennamen beim Import in ausgeschriebene Griechische Buchstaben. (z.B. a => alpha)');
         }
         if (($tblSetting = $this->createSetting('Contact', 'Address', 'Address', 'Format_GuiString', TblSetting::TYPE_STRING, TblAddress::VALUE_PLZ_ORT_OT_STR_NR))) {
-            $this->updateSettingDescription($tblSetting, 'Reihenfolge für Adressanzeige: 1 = PLZ_ORT_OT_STR_NR, 2 = OT_STR_NR_PLZ_ORT');
+            $this->updateSettingDescription($tblSetting, 'Reihenfolge der Adressanzeige');
         }
         if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'PasswordChange_PictureAddress', TblSetting::TYPE_STRING, ''))) {
             $this->updateSettingDescription($tblSetting, 'Für die Eltern und Schülerzugänge kann für das Passwortänderungsanschreiben ein Bild (Logo) hinterlegt werden. Adresse des Bildes:');
@@ -158,6 +158,17 @@ class Data extends AbstractData
                 TblSetting::ATTR_IDENTIFIER  => $Identifier,
             )
         );
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblSetting
+     */
+    public function getSettingById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblSetting', $Id);
     }
 
     /**
