@@ -170,13 +170,13 @@ class Data extends AbstractData
 
         if ($IsSystem) {
             return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblSetting', array(
-                TblSetting::ATTR_APPLICATION => self::ORDER_ASC
+                TblSetting::ATTR_DESCRIPTION => self::ORDER_ASC
             ));
         } else {
             return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblSetting', array(
                 TblSetting::ATTR_IS_PUBLIC => true
             ), array(
-                TblSetting::ATTR_APPLICATION => self::ORDER_ASC
+                TblSetting::ATTR_DESCRIPTION => self::ORDER_ASC
             ));
         }
     }

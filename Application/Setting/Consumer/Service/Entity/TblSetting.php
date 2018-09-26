@@ -21,6 +21,7 @@ class TblSetting extends Element
     const ATTR_IDENTIFIER = 'Identifier';
     const ATTR_TYPE = 'Type';
     const ATTR_IS_PUBLIC = 'IsPublic';
+    const ATTR_DESCRIPTION = 'Description';
 
     const TYPE_BOOLEAN = 'boolean';
     const TYPE_STRING = 'string';
