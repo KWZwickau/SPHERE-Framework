@@ -60,6 +60,13 @@ class Frontend extends Extension implements IFrontendInterface
 
             $formColumns = array();
             foreach ($tblSettingList as $tblSetting) {
+                // werden automatisch vom System gesetzt
+                if ($tblSetting->getIdentifier() == 'InterfaceFilterMessageDate'
+                    || $tblSetting->getIdentifier() == 'InterfaceFilterMessageCount'
+                ) {
+                    continue;
+                }
+
                 $description = $tblSetting->getDescription() ? $tblSetting->getDescription() : 'Keine Beschreibung verfügbar.';
                 if ($tblSetting->getType() == TblSetting::TYPE_BOOLEAN) {
                     $formColumns[$tblSetting->getApplication()][] = new FormColumn(
@@ -78,7 +85,22 @@ class Frontend extends Extension implements IFrontendInterface
 
             $formGroups = array();
             foreach ($formColumns as $application => $list) {
-                $formGroups[] = new FormGroup(new FormRow($list), new Title($application));
+
+                switch ($application) {
+                    case 'Address': $title = 'Adressen'; break;
+                    case 'Certificate': $title = 'Zeugnisse'; break;
+                    case 'ClassRegister': $title = 'Klassenbücher'; break;
+                    case 'Consumer': $title = 'Alphabetische Sortierung'; break;
+                    case 'Document': $title = 'Dokumente'; break;
+                    case 'Education': $title = 'Bildung'; break;
+                    case 'Graduation': $title = 'Notenbücher/Leistungsüberprüfungen'; break;
+                    case 'KamenzReport': $title = 'Validierung'; break;
+                    case 'Meta': $title = 'Metadaten'; break;
+
+                    default: $title = $application;
+                }
+
+                $formGroups[] = new FormGroup(new FormRow($list), new Title($title));
             }
 
             $form = new Form($formGroups);
