@@ -5,6 +5,9 @@ use SPHERE\Application\Api\People\ApiPerson;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Document\Storage\Storage;
+use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Lesson\Division\Filter\Service as FilterService;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Club\Club;
@@ -53,7 +56,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTab;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTabs;
-use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -88,7 +90,9 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Person', 'Datenblatt '.( $Id ? 'bearbeiten' : 'anlegen' ));
-        $Stage->addButton( new Backward() );
+        $Stage->addButton(
+            new Standard('Zurück', '/People/Search/Group', new ChevronLeft(), array('Id' => $Group))
+        );
 
         if (!$Id) {
 
@@ -210,9 +214,10 @@ class Frontend extends Extension implements IFrontendInterface
 
                     return strnatcmp($ObjectA->getName(), $ObjectB->getName());
                 });
+                $IsStudent = false;
                 // Create Tabs
                 /** @noinspection PhpUnusedParameterInspection */
-                array_walk($MetaTabs, function (TblGroup &$tblGroup) use ($Group, $tblPerson) {
+                array_walk($MetaTabs, function (TblGroup &$tblGroup) use ($Group, $tblPerson, &$IsStudent) {
 
                     switch (strtoupper($tblGroup->getMetaTable())) {
                         case 'COMMON':
@@ -229,6 +234,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblGroup = new LayoutTab('Schülerakte', $tblGroup->getMetaTable(),
                                 array('Id' => $tblPerson->getId(), 'Group' => $Group)
                             );
+                            $IsStudent = true;
                             break;
                         case 'CUSTODY':
                             $tblGroup = new LayoutTab('Sorgerechtdaten', $tblGroup->getMetaTable(),
@@ -249,6 +255,11 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblGroup = false;
                     }
                 });
+                if($IsStudent){
+                    $MetaTabs[] = new LayoutTab('Integration', 'INTEGRATION',
+                        array('Id' => $tblPerson->getId(), 'Group' => $Group)
+                    );
+                }
                 /** @var LayoutTab[] $MetaTabs */
                 $MetaTabs = array_filter($MetaTabs);
                 // Folded ?
@@ -282,6 +293,9 @@ class Frontend extends Extension implements IFrontendInterface
                     case 'STUDENT':
                         $MetaTable = Student::useFrontend()->frontendMeta($tblPerson, $Meta, $Group);
                         break;
+                    case 'INTEGRATION':
+                        $MetaTable = Student::useFrontend()->frontendIntegration($tblPerson, $Group);
+                        break;
                     case 'CUSTODY':
                         $MetaTable = Custody::useFrontend()->frontendMeta($tblPerson, $Meta, $Group);
                         break;
@@ -300,7 +314,10 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 $MetaTable = new Well($MetaTable);
 
+                $validationMessage = FilterService::getPersonMessageTable($tblPerson);
+
                 $Stage->setContent(
+                    ($validationMessage ? $validationMessage : '') .
                     new Layout(array(
                         new LayoutGroup(
                             new LayoutRow(new LayoutColumn(array(
@@ -316,48 +333,48 @@ class Frontend extends Extension implements IFrontendInterface
                             'zur Person '.new Bold(new SuccessText($tblPerson->getFullName())))),
                         new LayoutGroup(array(
                             new LayoutRow(new LayoutColumn(
-                                Address::useFrontend()->frontendLayoutPerson($tblPerson)
+                                Address::useFrontend()->frontendLayoutPerson($tblPerson, $Group)
                             )),
                         ), (new Title(new TagList().' Adressdaten',
                             'der Person '.new Bold(new SuccessText($tblPerson->getFullName()))))
                             ->addButton(
                                 new Standard('Adresse hinzufügen', '/People/Person/Address/Create',
-                                    new ChevronDown(), array('Id' => $tblPerson->getId())
+                                    new ChevronDown(), array('Id' => $tblPerson->getId(), 'Group' => $Group)
                                 )
                             )
                         ),
                         new LayoutGroup(array(
                             new LayoutRow(new LayoutColumn(
-                                Phone::useFrontend()->frontendLayoutPerson($tblPerson)
-                                . Mail::useFrontend()->frontendLayoutPerson($tblPerson)
+                                Phone::useFrontend()->frontendLayoutPerson($tblPerson , $Group)
+                                . Mail::useFrontend()->frontendLayoutPerson($tblPerson, $Group)
                             )),
                         ), (new Title(new TagList().' Kontaktdaten',
                             'der Person '.new Bold(new SuccessText($tblPerson->getFullName()))))
                             ->addButton(
                                 new Standard('Telefonnummer hinzufügen', '/People/Person/Phone/Create',
-                                    new ChevronDown(), array('Id' => $tblPerson->getId())
+                                    new ChevronDown(), array('Id' => $tblPerson->getId(), 'Group' => $Group)
                                 )
                             )
                             ->addButton(
                                 new Standard('E-Mail Adresse hinzufügen', '/People/Person/Mail/Create',
-                                    new ChevronDown(), array('Id' => $tblPerson->getId())
+                                    new ChevronDown(), array('Id' => $tblPerson->getId(), 'Group' => $Group)
                                 )
                             )
                         ),
                         new LayoutGroup(array(
                             new LayoutRow(new LayoutColumn(array(
-                                Relationship::useFrontend()->frontendLayoutPerson($tblPerson),
-                                Relationship::useFrontend()->frontendLayoutCompany($tblPerson)
+                                Relationship::useFrontend()->frontendLayoutPerson($tblPerson, $Group),
+                                Relationship::useFrontend()->frontendLayoutCompany($tblPerson, $Group)
                             ))),
                         ), ( new Title(new TagList().' Beziehungen', new Bold(new SuccessText($tblPerson->getFullName())).' zu Personen und Institutionen') )
                             ->addButton(
                                 new Standard('Personenbeziehung hinzufügen', '/People/Person/Relationship/Create',
-                                    new ChevronDown(), array('Id' => $tblPerson->getId())
+                                    new ChevronDown(), array('Id' => $tblPerson->getId(), 'Group' => $Group)
                                 )
                             )
                             ->addButton(
                                 new Standard('Institutionenbeziehung hinzufügen', '/Corporation/Company/Relationship/Create',
-                                    new ChevronDown(), array('Id' => $tblPerson->getId())
+                                    new ChevronDown(), array('Id' => $tblPerson->getId(), 'Group' => $Group)
                                 )
                             )
                         ),
@@ -577,21 +594,45 @@ class Frontend extends Extension implements IFrontendInterface
                 );
             } else {
                 if (!$Confirm) {
+                    // Personen (Schüler) dürfen aktuell nicht gelöscht werden wenn sie Zensuren oder Zeugnisse besitzen SSW-115
+                    $canRemove = true;
+                    if (($tblGradeAll = Gradebook::useService()->getGradeAllBy($tblPerson))) {
+                        $canRemove = false;
+                    } elseif (($tblFileList = Storage::useService()->getCertificateRevisionFileAllByPerson($tblPerson))) {
+                        $canRemove = false;
+                    }
+
+                    if ($canRemove) {
+                        $buttonList =
+                            new Standard(
+                                'Ja', '/People/Person/Destroy', new Ok(),
+                                array('Id' => $Id, 'Confirm' => true, 'Group' => $Group)
+                            )
+                            . new Standard(
+                                'Nein', '/People/Search/Group', new Disable(), array('Id' => $Group)
+                            );
+                    } else {
+                        $buttonList =
+                            new Standard(
+                                'Nein', '/People/Search/Group', new Disable(), array('Id' => $Group)
+                            );
+                    }
+
                     $Stage->setContent(
-                        new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                        ($canRemove
+                            ? ''
+                            : new \SPHERE\Common\Frontend\Message\Repository\Warning(
+                                'Diese Person kann aktuell nicht gelöscht werden, da zu dieser Person Zensuren und/oder Zeugnisse existieren.'
+                            )
+                        )
+                        . new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
                             new Panel('Person', new Bold($tblPerson->getLastFirstName()),
                                 Panel::PANEL_TYPE_INFO),
-                            new Panel(new Question() . ' Diese Person wirklich löschen?', array(
-                                $tblPerson->getLastFirstName()
-                            ),
+                            new Panel(
+                                new Question() . ' Diese Person wirklich löschen?',
+                                Person::useService()->getDestroyDetailList($tblPerson),
                                 Panel::PANEL_TYPE_DANGER,
-                                new Standard(
-                                    'Ja', '/People/Person/Destroy', new Ok(),
-                                    array('Id' => $Id, 'Confirm' => true, 'Group' => $Group)
-                                )
-                                . new Standard(
-                                    'Nein', '/People/Search/Group', new Disable(), array('Id' => $Group)
-                                )
+                                $buttonList
                             )
                         )))))
                     );

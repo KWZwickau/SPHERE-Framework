@@ -23,11 +23,19 @@ class Data extends AbstractData
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount && ($tblConsumer = $tblAccount->getServiceTblConsumer())) {
 
+            $this->createSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber',
+                TblSetting::TYPE_BOOLEAN, '0');
+
             $this->createSetting('Transfer', 'Indiware', 'Import', 'Lectureship_ConvertDivisionLatinToGreek',
                 TblSetting::TYPE_BOOLEAN, '0');
 
             $this->createSetting('Contact', 'Address', 'Address', 'Format_GuiString',
                 TblSetting::TYPE_STRING, TblAddress::VALUE_PLZ_ORT_OT_STR_NR);
+
+            $this->createSetting('Api', 'Document', 'Standard', 'PasswordChange_PictureAddress',
+                TblSetting::TYPE_STRING, '');
+            $this->createSetting('Api', 'Document', 'Standard', 'PasswordChange_PictureHeight',
+                TblSetting::TYPE_STRING, '');
 
             $this->createSetting('Api', 'Document', 'Standard', 'SignOutCertificate_PictureAddress',
                 TblSetting::TYPE_STRING, '');
@@ -132,6 +140,77 @@ class Data extends AbstractData
                     '0'
                 );
             }
+
+            if ($tblConsumer->getAcronym() == 'EVSC') {
+                // Notenbuch: Sortierung nach Großen (fettmarkiert) und Klein Noten
+                $this->createSetting(
+                    'Education',
+                    'Graduation',
+                    'Gradebook',
+                    'SortHighlighted',
+                    TblSetting::TYPE_BOOLEAN,
+                    '1'
+                );
+                // Notenbuch: Große Noten (fettmarkiert) rechts anordnen
+                $this->createSetting(
+                    'Education',
+                    'Graduation',
+                    'Gradebook',
+                    'IsHighlightedSortedRight',
+                    TblSetting::TYPE_BOOLEAN,
+                    '1'
+                );
+            } else {
+                $this->createSetting(
+                    'Education',
+                    'Graduation',
+                    'Gradebook',
+                    'SortHighlighted',
+                    TblSetting::TYPE_BOOLEAN,
+                    '0'
+                );
+                $this->createSetting(
+                    'Education',
+                    'Graduation',
+                    'Gradebook',
+                    'IsHighlightedSortedRight',
+                    TblSetting::TYPE_BOOLEAN,
+                    '1'
+                );
+            }
+
+            // Notenbuch Pdf download -> Durchschnittsnote anzeigen
+            $this->createSetting(
+                'Education',
+                'Graduation',
+                'Gradebook',
+                'ShowAverageInPdf',
+                TblSetting::TYPE_BOOLEAN,
+                '1'
+            );
+            // Notenbuch Pdf download -> Zeugnisnoten anzeigen
+            $this->createSetting(
+                'Education',
+                'Graduation',
+                'Gradebook',
+                'ShowCertificateGradeInPdf',
+                TblSetting::TYPE_BOOLEAN,
+                '1'
+            );
+
+            // Anzeige des Schulnamens auf der Schülerkartei für die Grundschule
+            if ($tblConsumer->getAcronym() == 'ESRL') {
+                $this->createSetting('Api', 'Document', 'StudentCard_PrimarySchool', 'ShowSchoolName', TblSetting::TYPE_BOOLEAN, '0');
+            } else {
+                $this->createSetting('Api', 'Document', 'StudentCard_PrimarySchool', 'ShowSchoolName', TblSetting::TYPE_BOOLEAN, '1');
+            }
+
+            // Validierung (Kamenz + Schnittstelle) der 1. Fremdsprache ab Klassenstufe x
+            if ($tblConsumer->getAcronym() == 'FESH') {
+                $this->createSetting('Reporting', 'KamenzReport', 'Validation', 'FirstForeignLanguageLevel', TblSetting::TYPE_INTEGER, 3);
+            } else {
+                $this->createSetting('Reporting', 'KamenzReport', 'Validation', 'FirstForeignLanguageLevel', TblSetting::TYPE_INTEGER, 1);
+            }
         }
         $this->createSetting(
             'Education',
@@ -158,6 +237,32 @@ class Data extends AbstractData
             TblSetting::TYPE_BOOLEAN,
             '0'
         );
+        // automatische Bekanntgabe von Leistungsüberprüfungen nach x Tagen für die Notenübersicht für Schüler
+        $this->createSetting(
+            'Education',
+            'Graduation',
+            'Evaluation',
+            'AutoPublicationOfTestsAfterXDays',
+            TblSetting::TYPE_INTEGER,
+            '28'
+        );
+        // Zensuren im Wortlaut auf Abgangszeugnissen
+        $this->createSetting(
+            'Education',
+            'Certificate',
+            'Prepare',
+            'IsGradeVerbalOnLeave',
+            TblSetting::TYPE_BOOLEAN,
+            '0'
+        );
+        $this->createSetting('Setting', 'Consumer', 'Service', 'Sort_UmlautWithE',
+            TblSetting::TYPE_BOOLEAN, '1');
+
+        $this->createSetting('Setting', 'Consumer', 'Service', 'Sort_WithShortWords',
+            TblSetting::TYPE_BOOLEAN, '1');
+
+        $this->createSetting('Education', 'ClassRegister', 'Frontend', 'ShowDownloadButton',
+            TblSetting::TYPE_BOOLEAN, '1');
     }
 
     /**
@@ -271,6 +376,35 @@ class Data extends AbstractData
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param TblSetting $tblSetting
+     * @param $value
+     *
+     * @return bool
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     */
+    public function updateSetting(TblSetting $tblSetting, $value)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblSetting $Entity */
+        $Entity = $Manager->getEntityById('TblSetting', $tblSetting->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setValue($value);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+
+            return true;
+        }
+
+        return false;
     }
 
     /**

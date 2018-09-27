@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Search\Group;
 
+use SPHERE\Application\Api\Education\Division\ValidationFilter;
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -16,6 +17,8 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Setting\Consumer\Consumer as ConsumerSetting;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
@@ -29,7 +32,6 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -59,7 +61,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Suche', 'nach Gruppe');
-        $Stage->addButton(new Backward());
+        $Stage->addButton(new Standard('Zurück', '/People', new ChevronLeft()));
         Group::useFrontend()->addGroupSearchStageButton($Stage);
 
         $tblGroup = Group::useService()->getGroupById($Id);
@@ -80,18 +82,21 @@ class Frontend extends Extension implements IFrontendInterface
                 new TblDivision(),
                 new TblDivisionStudent(),
             ));
+
+            $filterWarning = false;
+            if ($tblGroup->getMetaTable() == 'STUDENT') {
+                $tblYearList = Term::useService()->getYearByNow();
+
+                $filterWarning = ValidationFilter::receiverUsed(ValidationFilter::getContent());
+            } else {
+                $tblYearList = false;
+            }
+
             if (null === ($Result = $Cache->getData())) {
-
-                if ($tblGroup->getMetaTable() == 'STUDENT') {
-                    $tblYearList = Term::useService()->getYearByNow();
-                } else {
-                    $tblYearList = false;
-                }
-
                 $Result = array();
                 if ($tblPersonAll) {
                     array_walk($tblPersonAll,
-                        function (TblPerson &$tblPerson) use ($tblGroup, &$Result, $Acronym, $tblYearList) {
+                        function (TblPerson &$tblPerson) use ($tblGroup, &$Result, $Acronym, $tblYearList, &$validationTable) {
 
                             // Division && Identification
                             $displayDivisionList = false;
@@ -101,7 +106,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                                 if ($tblStudent) {
-                                    $identification = $tblStudent->getIdentifier();
+                                    $identification = $tblStudent->getIdentifierComplete();
                                 }
 
                             }
@@ -235,7 +240,10 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $Stage->setContent(
-                new Layout(new LayoutGroup(array(
+                ($filterWarning
+                    ? $filterWarning
+                    : '')
+                . new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(
                         new Panel(new PersonGroup() . ' Gruppe', array(
                             new Bold($tblGroup->getName()),
@@ -251,7 +259,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 array(0, 'asc')
                             ),
                             'columnDefs' => array(
-                                array('type' => 'german-string', 'targets' => 0),
+                                array('type' => ConsumerSetting::useService()->getGermanSortBySetting(), 'targets' => 0),
+                                array('orderable' => false, 'targets' => -1),
                             )
                         ))
                     )))

@@ -28,25 +28,36 @@ abstract class Student extends AbstractService
 
     /**
      * @param string $Identifier
+     * @param bool   $isWithRemoved -> true = get also EntityRemove
      *
      * @return bool|TblStudent
      */
-    public function getStudentByIdentifier($Identifier)
+    public function getStudentByIdentifier($Identifier, $isWithRemoved = false)
     {
 
-        return (new Data($this->getBinding()))->getStudentByIdentifier($Identifier);
+        return (new Data($this->getBinding()))->getStudentByIdentifier($Identifier, $isWithRemoved);
     }
 
     /**
      *
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblStudent
      */
-    public function getStudentByPerson(TblPerson $tblPerson)
+    public function getStudentByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getStudentByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getStudentByPerson($tblPerson, $isForced);
+    }
+
+    /**
+     * @return bool|TblStudent[]
+     */
+    public function getStudentAll()
+    {
+
+        return (new Data($this->getBinding()))->getStudentAll();
     }
 
     /**
@@ -79,6 +90,7 @@ abstract class Student extends AbstractService
         if ($tblStudent) {
             (new Data($this->getBinding()))->updateStudent(
                 $tblStudent,
+                '',
                 $Identifier,
                 $tblStudentMedicalRecord,
                 $tblStudentTransport,
@@ -174,5 +186,16 @@ abstract class Student extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getStudentSchoolEnrollmentTypeAll();
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     *
+     * @return bool
+     */
+    public function restoreStudent(TblStudent $tblStudent)
+    {
+
+        return (new Data($this->getBinding()))->restoreStudent($tblStudent);
     }
 }

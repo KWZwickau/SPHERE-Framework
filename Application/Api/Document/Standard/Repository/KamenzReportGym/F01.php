@@ -23,7 +23,9 @@ class F01
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('F01. Integrierte Schüler mit sonderpädagogischem Förderbedarf im Schuljahr {{ Content.SchoolYear.Current }} nach Förderschwerpunkten und Klassen- bzw. Jahrgangsstufen')
+                ->setContent('F01. Inklusiv unterrichtete Schüler mit sonderpädagogischem Förderbedarf im Schuljahr
+                    {{ Content.SchoolYear.Current }} </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; nach 
+                    Förderschwerpunkten und Klassen- bzw. Jahrgangsstufen')
             );
 
         $sliceList[] = (new Slice())
@@ -212,8 +214,10 @@ class F01
 
         if ($text == 'Insgesamt') {
             $name = 'TotalCount';
+            $isGrey = true;
         } else {
             $name = preg_replace('/[^a-zA-Z]/', '', $text);
+            $isGrey = false;
         }
 
         $lineSectionList = array();
@@ -229,6 +233,7 @@ class F01
                             {% endif %}
                         ')
                     ->styleBorderBottom()
+                    ->styleBackgroundColor($isGrey ? 'lightgrey' : 'white')
                 );
             $lineSectionList[] = $lineSection;
         }
@@ -242,6 +247,7 @@ class F01
                     {% endif %}
                 ')
                 ->styleTextBold()
+                ->styleBackgroundColor('lightgrey')
             );
         $section
             ->addSliceColumn((new Slice())

@@ -56,13 +56,14 @@ class Service extends AbstractService
     /**
      * @param TblPerson $tblPerson
      * @param TblDivision|null $tblDivision
+     * @param bool $isForced
      *
      * @return false|TblAbsence[]
      */
-    public function getAbsenceAllByPerson(TblPerson $tblPerson, TblDivision $tblDivision = null)
+    public function getAbsenceAllByPerson(TblPerson $tblPerson, TblDivision $tblDivision = null, $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getAbsenceAllByPerson($tblPerson, $tblDivision);
+        return (new Data($this->getBinding()))->getAbsenceAllByPerson($tblPerson, $tblDivision, $isForced);
     }
 
     /**
@@ -479,5 +480,16 @@ class Service extends AbstractService
                 'Month' => $date->format('m'),
                 'Year' => $date->format('Y'),
             ));
+    }
+
+    /**
+     * @param TblAbsence $tblAbsence
+     *
+     * @return bool
+     */
+    public function restoreAbsence(TblAbsence $tblAbsence)
+    {
+
+        return (new Data($this->getBinding()))->restoreAbsence($tblAbsence);
     }
 }

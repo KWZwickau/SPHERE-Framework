@@ -2,12 +2,11 @@
 
 namespace SPHERE\Application\Transfer\Import\Herrnhut;
 
-use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\IModuleInterface;
-use SPHERE\Common\Frontend\Icon\Repository\Upload;
-use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
+use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Main;
+use SPHERE\System\Extension\Repository\Debugger;
 
 class Herrnhut implements IModuleInterface
 {
@@ -21,9 +20,12 @@ class Herrnhut implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/Student/Former', __NAMESPACE__ . '\Frontend::frontendFormerStudentImport'
         ));
-
-        Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetStudent'), 2, 2);
-        Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetFormerStudent'), 2, 2);
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Person', __NAMESPACE__ . '\Frontend::frontendPersonImport'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Company', __NAMESPACE__ . '\Frontend::frontendCompanyImport'
+        ));
     }
 
     /**
@@ -45,25 +47,54 @@ class Herrnhut implements IModuleInterface
     }
 
     /**
-     * @return Thumbnail
+     * @param array $DataList
+     *
+     * @return array
      */
-    public static function widgetStudent()
+    public static function setLinks($DataList)
     {
+        $consumer = 'EZSH';
 
-        return new Thumbnail(
-            FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
-            'Herrnhut', 'Schüler-Daten',
-            new Standard('', '/Transfer/Import/Herrnhut/Student', new Upload(), array(), 'Upload')
+        $DataList[] = array(
+            'Consumer' => $consumer,
+            'Name'     => 'Schüler-Daten',
+            'Option'   => new Standard(
+                '',
+                __NAMESPACE__.'/Student',
+                new Select()
+            )
         );
-    }
-
-    public static function widgetFormerStudent()
-    {
-
-        return new Thumbnail(
-            FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
-            'Herrnhut', 'Ehemalige Schüler-Daten',
-            new Standard('', '/Transfer/Import/Herrnhut/Student/Former', new Upload(), array(), 'Upload')
+        $DataList[] = array(
+            'Consumer' => $consumer,
+            'Name'     => 'Ehemalige Schüler-Daten',
+            'Option'   => new Standard(
+                '',
+                __NAMESPACE__.'/Student/Former',
+                new Select(),
+                array(
+                    'IsNextYear' => false
+                )
+            )
         );
+        $DataList[] = array(
+            'Consumer' => $consumer,
+            'Name'     => 'Private Kontakte',
+            'Option'   => new Standard(
+                '',
+                __NAMESPACE__.'/Person',
+                new Select()
+            )
+        );
+        $DataList[] = array(
+            'Consumer' => $consumer,
+            'Name'     => 'Institutionen mit Ansprechpartnern',
+            'Option'   => new Standard(
+                '',
+                __NAMESPACE__.'/Company',
+                new Select()
+            )
+        );
+
+        return $DataList;
     }
 }

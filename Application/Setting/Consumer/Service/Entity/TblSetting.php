@@ -25,6 +25,11 @@ class TblSetting extends Element
     const TYPE_STRING = 'string';
     const TYPE_INTEGER = 'integer';
 
+    const SORT_GERMAN_AE_WITHOUT = 'german-string-ae-without';
+    const SORT_GERMAN_AE_WITH = 'german-string-ae-with';
+    const SORT_GERMAN_A_WITHOUT = 'german-string-a-without';
+    const SORT_GERMAN_A_WITH = 'german-string-a-with';
+
     /**
      * @Column(type="string")
      */

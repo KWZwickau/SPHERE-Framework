@@ -1,15 +1,34 @@
 <span id="{{ ElementHash }}"
      data-trigger="hover" data-toggle="popover" data-content="{{ ElementToolTip }}"{% if(EnableHtml is not empty) %} data-html="true"{% endif %}
 >{{ ElementName }}</span>
-<script language=javascript>
-    //noinspection JSUnresolvedFunction
-    executeScript(function()
-    {
-        Client.Use("ModAlways", function ()
+{% if(ElementWrap == true) %}
+    <script language=javascript>
+        //noinspection JSUnresolvedFunction
+        executeScript(function()
         {
-            $('span#{{ ElementHash }}[data-toggle="popover"]').popover({
-                placement: 'auto top'
+            Client.Use("ModAlways", function ()
+            {
+                $('span#{{ ElementHash }}[data-toggle="popover"]').popover({
+                    placement: 'auto top'
+                });
             });
         });
-    });
-</script>
+    </script>
+{% else %}
+    <script language=javascript>
+        //noinspection JSUnresolvedFunction
+        executeScript(function()
+        {
+            Client.Use("ModAlways", function ()
+            {
+                $('span#{{ ElementHash }}[data-toggle="popover"]').popover({
+                    placement: 'auto top',
+                    template: '<div class="popover">'
+                    + '<div class="arrow"></div>'
+                    + '<div class="popover-content" style="white-space: nowrap !important;"></div>'
+                    + '</div>'
+                });
+            });
+        });
+    </script>
+{% endif %}

@@ -80,13 +80,14 @@ class Service extends AbstractService
     /**
      * @param TblPerson $tblPerson
      * @param TblType|null $tblType
+     * @param bool $isForced
      *
      * @return bool|TblToPerson[]
      */
-    public function getPersonRelationshipAllByPerson(TblPerson $tblPerson, TblType $tblType = null)
+    public function getPersonRelationshipAllByPerson(TblPerson $tblPerson, TblType $tblType = null, $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getPersonRelationshipAllByPerson($tblPerson, $tblType);
+        return (new Data($this->getBinding()))->getPersonRelationshipAllByPerson($tblPerson, $tblType, $isForced);
     }
 
     /**
@@ -151,13 +152,14 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblToCompany[]
      */
-    public function getCompanyRelationshipAllByPerson(TblPerson $tblPerson)
+    public function getCompanyRelationshipAllByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getCompanyRelationshipAllByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getCompanyRelationshipAllByPerson($tblPerson, $isForced);
     }
 
     /**
@@ -176,6 +178,7 @@ class Service extends AbstractService
      * @param TblPerson $tblPersonFrom
      * @param int $tblPersonTo
      * @param array $Type
+     * @param $Group
      *
      * @return IFormInterface|string
      */
@@ -183,7 +186,8 @@ class Service extends AbstractService
         IFormInterface $Form,
         TblPerson $tblPersonFrom,
         $tblPersonTo,
-        $Type
+        $Type,
+        $Group
     ) {
 
         /**
@@ -223,10 +227,10 @@ class Service extends AbstractService
                 $Type['Remark'])
             ) {
                 return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Beziehung wurde erfolgreich hinzugefügt')
-                . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPersonFrom->getId()));
+                . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPersonFrom->getId(), 'Group' => $Group));
             } else {
                 return new Danger(new Ban() . ' Die Beziehung konnte nicht hinzugefügt werden')
-                . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR, array('Id' => $tblPersonFrom->getId()));
+                . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR, array('Id' => $tblPersonFrom->getId(), 'Group' => $Group));
             }
         }
         return $Form;
@@ -281,6 +285,7 @@ class Service extends AbstractService
      * @param TblPerson $tblPersonFrom
      * @param int $tblCompanyTo
      * @param array $Type
+     * @param $Group
      *
      * @return IFormInterface|string
      */
@@ -288,7 +293,8 @@ class Service extends AbstractService
         IFormInterface $Form,
         TblPerson $tblPersonFrom,
         $tblCompanyTo,
-        $Type
+        $Type,
+        $Group
     ) {
 
         /**
@@ -323,10 +329,10 @@ class Service extends AbstractService
                 $Type['Remark'])
             ) {
                 return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Beziehung wurde erfolgreich hinzugefügt')
-                . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPersonFrom->getId()));
+                . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPersonFrom->getId(), 'Group' => $Group));
             } else {
                 return new Danger(new Ban() . ' Die Beziehung konnte nicht hinzugefügt werden')
-                . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR, array('Id' => $tblPersonFrom->getId()));
+                . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR, array('Id' => $tblPersonFrom->getId(), 'Group' => $Group));
             }
         }
         return $Form;
@@ -338,6 +344,7 @@ class Service extends AbstractService
      * @param TblPerson $tblPersonFrom
      * @param int $tblPersonTo
      * @param array $Type
+     * @param $Group
      *
      * @return IFormInterface|string
      */
@@ -346,7 +353,8 @@ class Service extends AbstractService
         TblToPerson $tblToPerson,
         TblPerson $tblPersonFrom,
         $tblPersonTo,
-        $Type
+        $Type,
+        $Group
     ) {
 
         /**
@@ -388,11 +396,11 @@ class Service extends AbstractService
             ) {
                 return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Beziehung wurde erfolgreich geändert')
                 . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
-                    array('Id' => $tblToPerson->getServiceTblPersonFrom() ? $tblToPerson->getServiceTblPersonFrom()->getId() : 0));
+                    array('Id' => $tblToPerson->getServiceTblPersonFrom() ? $tblToPerson->getServiceTblPersonFrom()->getId() : 0, 'Group' => $Group));
             } else {
                 return new Danger(new Ban() . ' Die Beziehung konnte nicht geändert werden')
                 . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
-                    array('Id' => $tblToPerson->getServiceTblPersonFrom() ? $tblToPerson->getServiceTblPersonFrom()->getId() : 0));
+                    array('Id' => $tblToPerson->getServiceTblPersonFrom() ? $tblToPerson->getServiceTblPersonFrom()->getId() : 0, 'Group' => $Group));
             }
         }
         return $Form;
@@ -404,6 +412,7 @@ class Service extends AbstractService
      * @param TblPerson $tblPersonFrom
      * @param int $tblCompanyTo
      * @param array $Type
+     * @param $Group
      *
      * @return IFormInterface|string
      */
@@ -412,7 +421,8 @@ class Service extends AbstractService
         TblToCompany $tblToCompany,
         TblPerson $tblPersonFrom,
         $tblCompanyTo,
-        $Type
+        $Type,
+        $Group
     ) {
 
         /**
@@ -450,11 +460,11 @@ class Service extends AbstractService
             ) {
                 return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Beziehung wurde erfolgreich geändert')
                 . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
-                    array('Id' => $tblToCompany->getServiceTblPerson() ? $tblToCompany->getServiceTblPerson()->getId() : 0));
+                    array('Id' => $tblToCompany->getServiceTblPerson() ? $tblToCompany->getServiceTblPerson()->getId() : 0, 'Group' => $Group));
             } else {
                 return new Danger(new Ban() . ' Die Beziehung konnte nicht geändert werden')
                 . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
-                    array('Id' => $tblToCompany->getServiceTblPerson() ? $tblToCompany->getServiceTblPerson()->getId() : 0));
+                    array('Id' => $tblToCompany->getServiceTblPerson() ? $tblToCompany->getServiceTblPerson()->getId() : 0, 'Group' => $Group));
             }
         }
         return $Form;
@@ -605,5 +615,27 @@ class Service extends AbstractService
                 $this->removeCompanyRelationshipToPerson($tblToPerson, $IsSoftRemove);
             }
         }
+    }
+
+    /**
+     * @param TblToPerson $tblToPerson
+     *
+     * @return bool
+     */
+    public function restoreToPerson(TblToPerson $tblToPerson)
+    {
+
+        return (new Data($this->getBinding()))->restoreToPerson($tblToPerson);
+    }
+
+    /**
+     * @param TblToCompany $tblToCompany
+     *
+     * @return bool
+     */
+    public function restoreToCompany(TblToCompany $tblToCompany)
+    {
+
+        return (new Data($this->getBinding()))->restoreToCompany($tblToCompany);
     }
 }

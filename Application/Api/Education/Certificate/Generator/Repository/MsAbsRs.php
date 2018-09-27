@@ -2,11 +2,13 @@
 namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
+use SPHERE\Application\Education\Certificate\Generate\Generate;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Consumer\Consumer;
 
@@ -171,84 +173,86 @@ class MsAbsRs extends Certificate
             ->addSlice($this->getDescriptionHead($personId))
             ->addSlice($this->getDescriptionContent($personId, '215px', '15px'))
             ->addSlice($this->getDateLine($personId))
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        , '30%')
-                    ->addElementColumn((new Element())
-                        ->setContent('Der Prüfungsausschuss')
-                        ->styleAlignCenter()
-                        , '40%')
-                    ->addElementColumn((new Element())
-                        , '30%')
-                )
-            )
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        ->styleAlignCenter()
-                        ->styleMarginTop('10px')
-                        ->styleBorderBottom('1px', '#000')
-                        , '30%')
-                    ->addElementColumn((new Element())
-                        , '40%')
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        ->styleAlignCenter()
-                        ->styleMarginTop('10px')
-                        ->styleBorderBottom('1px', '#000')
-                        , '30%')
-                )
-                ->styleMarginTop('5px')
-            )
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('Vorsitzende(r)')
-                        ->styleAlignCenter()
-                        ->styleTextSize('11px')
-                        , '30%')
-                    ->addElementColumn((new Element())
-                        , '5%')
-                    ->addElementColumn((new Element())
-                        ->setContent('Dienstsiegel der Schule')
-                        ->styleAlignCenter()
-                        ->styleTextSize('11px')
-                        , '30%')
-                    ->addElementColumn((new Element())
-                        , '5%')
-                    ->addElementColumn((new Element())
-                        ->setContent('Mitglied')
-                        ->styleAlignCenter()
-                        ->styleTextSize('11px')
-                        , '30%')
-                )
-            )
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        , '70%')
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        ->styleAlignCenter()
-                        ->styleMarginTop('15px')
-                        ->styleBorderBottom('1px', '#000')
-                        , '30%')
-                )
-            )
-            ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        , '70%')
-                    ->addElementColumn((new Element())
-                        ->setContent('Mitglied')
-                        ->styleAlignCenter()
-                        ->styleTextSize('11px')
-                        , '30%')
-                )
-            )
-            ->addSlice($this->getInfo('95px',
+            ///////
+//            ->addSlice((new Slice())
+//                ->addSection((new Section())
+//                    ->addElementColumn((new Element())
+//                        , '30%')
+//                    ->addElementColumn((new Element())
+//                        ->setContent('Der Prüfungsausschuss')
+//                        ->styleAlignCenter()
+//                        , '40%')
+//                    ->addElementColumn((new Element())
+//                        , '30%')
+//                )
+//            )
+//            ->addSlice((new Slice())
+//                ->addSection((new Section())
+//                    ->addElementColumn((new Element())
+//                        ->setContent('&nbsp;')
+//                        ->styleAlignCenter()
+//                        ->styleMarginTop('10px')
+//                        ->styleBorderBottom('1px', '#000')
+//                        , '30%')
+//                    ->addElementColumn((new Element())
+//                        , '40%')
+//                    ->addElementColumn((new Element())
+//                        ->setContent('&nbsp;')
+//                        ->styleAlignCenter()
+//                        ->styleMarginTop('10px')
+//                        ->styleBorderBottom('1px', '#000')
+//                        , '30%')
+//                )
+//                ->styleMarginTop('5px')
+//            )
+//            ->addSlice((new Slice())
+//                ->addSection((new Section())
+//                    ->addElementColumn((new Element())
+//                        ->setContent('Vorsitzende(r)')
+//                        ->styleAlignCenter()
+//                        ->styleTextSize('11px')
+//                        , '30%')
+//                    ->addElementColumn((new Element())
+//                        , '5%')
+//                    ->addElementColumn((new Element())
+//                        ->setContent('Dienstsiegel der Schule')
+//                        ->styleAlignCenter()
+//                        ->styleTextSize('11px')
+//                        , '30%')
+//                    ->addElementColumn((new Element())
+//                        , '5%')
+//                    ->addElementColumn((new Element())
+//                        ->setContent('Mitglied')
+//                        ->styleAlignCenter()
+//                        ->styleTextSize('11px')
+//                        , '30%')
+//                )
+//            )
+//            ->addSlice((new Slice())
+//                ->addSection((new Section())
+//                    ->addElementColumn((new Element())
+//                        , '70%')
+//                    ->addElementColumn((new Element())
+//                        ->setContent('&nbsp;')
+//                        ->styleAlignCenter()
+//                        ->styleMarginTop('15px')
+//                        ->styleBorderBottom('1px', '#000')
+//                        , '30%')
+//                )
+//            )
+//            ->addSlice((new Slice())
+//                ->addSection((new Section())
+//                    ->addElementColumn((new Element())
+//                        , '70%')
+//                    ->addElementColumn((new Element())
+//                        ->setContent('Mitglied')
+//                        ->styleAlignCenter()
+//                        ->styleTextSize('11px')
+//                        , '30%')
+//                )
+//            )
+            ->addSlice($this->getExaminationsBoard('10px','11px'))
+            ->addSlice($this->getInfo('60px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend')
             );
@@ -456,6 +460,158 @@ class MsAbsRs extends Certificate
                 $section->addElementColumn(new Element(), '52%');
             }
         }
+
+        return $slice;
+    }
+
+     /**
+     * @param string $marginTop
+     * @param string $textSize
+     *
+     * @return Slice
+     * @throws \Exception
+     */
+    public function getExaminationsBoard($marginTop, $textSize)
+    {
+
+        $leaderName = '&nbsp;';
+        $leaderDescription = 'Vorsitzende(r)';
+        $firstMemberName = '&nbsp;';
+        $secondMemberName = '&nbsp;';
+
+        if ($this->getTblPrepareCertificate()
+            && ($tblGenerateCertificate = $this->getTblPrepareCertificate()->getServiceTblGenerateCertificate())
+        ) {
+
+            if (($tblGenerateCertificateSettingLeader = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'Leader'))
+                && ($tblPersonLeader = Person::useService()->getPersonById($tblGenerateCertificateSettingLeader->getValue()))
+            ) {
+                $leaderName = $tblPersonLeader->getFullName();
+                if (($tblCommon = $tblPersonLeader->getCommon())
+                    && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
+                    && ($tblGender = $tblCommonBirthDates->getTblCommonGender())
+                ) {
+                    if ($tblGender->getName() == 'Männlich') {
+                        $leaderDescription = 'Vorsitzender';
+                    } elseif ($tblGender->getName() == 'Weiblich') {
+                        $leaderDescription = 'Vorsitzende';
+                    }
+                }
+            }
+
+            if (($tblGenerateCertificateSettingFirstMember = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'FirstMember'))
+                && ($tblPersonFirstMember = Person::useService()->getPersonById($tblGenerateCertificateSettingFirstMember->getValue()))
+            ) {
+                $firstMemberName = $tblPersonFirstMember->getFullName();
+            }
+
+            if (($tblGenerateCertificateSettingSecondMember = Generate::useService()->getGenerateCertificateSettingBy($tblGenerateCertificate, 'SecondMember'))
+                && ($tblPersonSecondMember = Person::useService()->getPersonById($tblGenerateCertificateSettingSecondMember->getValue()))
+            ) {
+                $secondMemberName = $tblPersonSecondMember->getFullName();
+            }
+        }
+
+        $slice = (new Slice())
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->styleMarginTop($marginTop)
+                    , '30%')
+                ->addElementColumn((new Element())
+                    ->setContent('Der Prüfungsausschuss')
+                    ->styleAlignCenter()
+                    ->styleMarginTop($marginTop)
+                )
+                ->addElementColumn((new Element())
+                    ->styleMarginTop($marginTop)
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderBottom()
+                    ->styleMarginTop('15px')
+                    , '30%')
+                ->addElementColumn((new Element())
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderBottom()
+                    ->styleMarginTop('15px')
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent($leaderDescription)
+                    ->styleAlignCenter()
+                    ->styleTextSize($textSize)
+                    ->styleMarginTop('0px')
+                    , '30%')
+                ->addElementColumn((new Element())
+                    ->setContent('Dienstsiegel der Schule' )
+                    ->styleTextSize($textSize)
+                    ->styleAlignCenter()
+                    ->styleMarginTop('0px')
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Mitglied')
+                    ->styleAlignCenter()
+                    ->styleTextSize($textSize)
+                    ->styleMarginTop('0px')
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    ->setContent($leaderName)
+                    ->styleAlignCenter()
+                    ->styleTextSize($textSize)
+                    ->styleMarginTop('0px')
+                    , '30%')
+                ->addElementColumn((new Element())
+                )
+                ->addElementColumn((new Element())
+                    ->setContent($firstMemberName)
+                    ->styleAlignCenter()
+                    ->styleTextSize($textSize)
+                    ->styleMarginTop('0px')
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    , '30%')
+                ->addElementColumn((new Element())
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBorderBottom()
+                    ->styleMarginTop('15px')
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    , '30%')
+                ->addElementColumn((new Element())
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('Mitglied')
+                    ->styleAlignCenter()
+                    ->styleTextSize($textSize)
+                    ->styleMarginTop('0px')
+                    , '30%')
+            )
+            ->addSection((new Section())
+                ->addElementColumn((new Element())
+                    , '30%')
+                ->addElementColumn((new Element())
+                )
+                ->addElementColumn((new Element())
+                    ->setContent($secondMemberName)
+                    ->styleAlignCenter()
+                    ->styleTextSize($textSize)
+                    ->styleMarginTop('0px')
+                    , '30%')
+            )
+        ;
 
         return $slice;
     }

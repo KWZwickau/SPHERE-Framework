@@ -31,7 +31,8 @@ class Setup extends AbstractSetup
          * Table
          */
         $Schema = clone $this->getConnection()->getSchema();
-        $this->setTableGenerateCertificate($Schema);
+        $tblGenerateCertificate = $this->setTableGenerateCertificate($Schema);
+        $this->setTableGenerateCertificateSetting($Schema, $tblGenerateCertificate);
 
         /**
          * Migration & Protocol
@@ -60,6 +61,26 @@ class Setup extends AbstractSetup
         $this->createColumn( $Table, 'serviceTblYear', self::FIELD_TYPE_BIGINT );
         $this->createColumn( $Table, 'serviceTblCommonGenderHeadmaster', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn( $Table, 'IsLocked', self::FIELD_TYPE_BOOLEAN, false, true);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblGenerateCertificate
+     *
+     * @return Table
+     * @throws \Doctrine\DBAL\Schema\SchemaException
+     */
+    private function setTableGenerateCertificateSetting(Schema &$Schema, Table $tblGenerateCertificate)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblGenerateCertificateSetting');
+        $this->createColumn($Table, 'Field', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Value', self::FIELD_TYPE_TEXT);
+
+        $this->getConnection()->addForeignKey($Table, $tblGenerateCertificate);
+        $this->createIndex($Table, array('Field' , 'tblGenerateCertificate'));
 
         return $Table;
     }

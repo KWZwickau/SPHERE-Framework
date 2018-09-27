@@ -67,7 +67,7 @@ class Service extends AbstractService
     /**
      * @param TblCompany $tblCompany
      *
-     * @return false|TblSchool
+     * @return false|TblSchool[]
      */
     public function getSchoolByCompany(TblCompany $tblCompany)
     {
@@ -77,6 +77,7 @@ class Service extends AbstractService
 
     /**
      * @param TblCompany $tblCompany
+     * @param TblType    $tblType
      *
      * @return false|TblSchool
      */
@@ -84,6 +85,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getSchoolByCompanyAndType($tblCompany, $tblType);
+    }
+
+    /**
+     * @param TblType $tblType
+     *
+     * @return false|TblSchool[]
+     */
+    public function getSchoolByType(TblType $tblType)
+    {
+
+        return (new Data($this->getBinding()))->getSchoolByType($tblType);
     }
 
     /**
@@ -142,16 +154,16 @@ class Service extends AbstractService
      * @param IFormInterface $Form
      * @param TblSchool      $tblSchool
      * @param string         $CompanyNumber
+     * @param array          $School
      *
      * @return IFormInterface|string
      */
-    public function updateSchool(IFormInterface $Form, TblSchool $tblSchool, $CompanyNumber = '')
+    public function updateSchool(IFormInterface $Form, TblSchool $tblSchool, $CompanyNumber = '', $School)
     {
         /**
          * Skip to Frontend
          */
-        $Global = $this->getGlobal();
-        if (!isset($Global->POST['Button'])) {
+        if (null === $School) {
             return $Form;
         }
 

@@ -18,6 +18,8 @@ class TblCustody extends Element
 {
 
     const SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const ATTR_OCCUPATION = 'Occupation';
+    const ATTR_EMPLOYMENT = 'Employment';
     /**
      * @Column(type="bigint")
      */

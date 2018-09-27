@@ -14,6 +14,7 @@ use SPHERE\System\Debugger\Logger\LoggerInterface;
 use SPHERE\System\Extension\Repository\DataTables;
 use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\ModHex;
+use SPHERE\System\Extension\Repository\PdfMerge;
 use SPHERE\System\Extension\Repository\Sorter;
 use SPHERE\System\Extension\Repository\SuperGlobal;
 use SPHERE\System\Extension\Repository\Upload;
@@ -155,6 +156,15 @@ class Extension
     {
 
         return new Sorter($List);
+    }
+
+    /**
+     * @return PdfMerge
+     */
+    public function getPdfMerge()
+    {
+
+        return new PdfMerge();
     }
 
     /**

@@ -76,10 +76,11 @@ class Data extends AbstractData
      * @param string $SecondName
      * @param string $LastName
      * @param string $BirthName
+     * @param string $ImportId
      *
      * @return TblPerson
      */
-    public function createPerson($Salutation, $Title, $FirstName, $SecondName, $LastName, $BirthName = '')
+    public function createPerson($Salutation, $Title, $FirstName, $SecondName, $LastName, $BirthName = '', $ImportId = '')
     {
 
         if ($Salutation === false) {
@@ -94,6 +95,7 @@ class Data extends AbstractData
         $Entity->setSecondName($SecondName);
         $Entity->setLastName($LastName);
         $Entity->setBirthName($BirthName);
+        $Entity->setImportId($ImportId);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         return $Entity;
@@ -154,6 +156,28 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool
+    */
+    public function restorePerson(
+        TblPerson $tblPerson
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblPerson $Entity */
+        $Entity = $Manager->getEntityById('TblPerson', $tblPerson->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setEntityRemove(null);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param TblPerson     $tblPerson
      * @param TblSalutation $tblSalutation
      *
@@ -194,6 +218,25 @@ class Data extends AbstractData
     }
 
     /**
+     * @return false|TblPerson[]
+     */
+    public function getPersonAllBySoftRemove()
+    {
+        // direkt über DB ermitteln
+//        return $this->getForceEntityListBy(__METHOD__, $this->getEntityManager(false), 'TblPerson', array(Element::ENTITY_REMOVE => !null));
+        $resultList = array();
+        if (($tblPersonList = $this->getForceEntityList(__METHOD__, $this->getEntityManager(false), 'TblPerson'))) {
+            foreach ($tblPersonList as $tblPerson) {
+                if ($tblPerson->getEntityRemove() != null) {
+                    $resultList[] = $tblPerson;
+                }
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
      * @param $FirstName
      * @param $LastName
      *
@@ -231,6 +274,20 @@ class Data extends AbstractData
         } else {
             return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson', $Id);
         }
+    }
+
+    /**
+     * @param integer $ImportId
+     *
+     * @return bool|TblPerson
+     */
+    public function getPersonByImportId($ImportId)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson',
+            array(
+                TblPerson::ATTR_IMPORT_ID => $ImportId
+            ));
     }
 
     /**
@@ -306,5 +363,19 @@ class Data extends AbstractData
         Relationship::useService()->removeRelationshipAllByPerson($tblPerson, $IsSoftRemove);
         Absence::useService()->destroyAbsenceAllByPerson($tblPerson, $IsSoftRemove);
         Group::useService()->removeMemberAllByPerson($tblPerson, $IsSoftRemove);
+    }
+
+    /**
+     * @param string $Name
+     *
+     * @return bool|TblSalutation
+     */
+    public function getSalutationByName($Name)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSalutation',
+            array(
+                TblSalutation::ATTR_SALUTATION => $Name
+            ));
     }
 }

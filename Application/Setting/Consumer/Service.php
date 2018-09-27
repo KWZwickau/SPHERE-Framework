@@ -51,6 +51,46 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $Cluster
+     * @param $Application
+     * @param null $Module
+     * @param $Identifier
+     * @param string $Type
+     * @param $Value
+     *
+     * @return TblSetting
+     */
+    public function createSetting(
+        $Cluster,
+        $Application,
+        $Module = null,
+        $Identifier,
+        $Type = TblSetting::TYPE_BOOLEAN,
+        $Value
+    ) {
+
+        return (new Data($this->getBinding()))->createSetting(
+            $Cluster, $Application, $Module, $Identifier, $Type, $Value
+        );
+    }
+
+    /**
+     * @param TblSetting $tblSetting
+     * @param $value
+     *
+     * @return bool
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     */
+    public function updateSetting(TblSetting $tblSetting, $value)
+    {
+        return (new Data($this->getBinding()))->updateSetting(
+            $tblSetting, $value
+        );
+    }
+
+    /**
      * @param TblAccount $tblAccountStudent
      *
      * @return false|TblStudentCustody[]
@@ -100,5 +140,37 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->removeStudentCustody($tblStudentCustody);
+    }
+
+    /**
+     * @return string
+     */
+    public function getGermanSortBySetting()
+    {
+        // Setting controlled DataTable
+        $IsUmlautWithE = true;
+        if(($tblSetting = Consumer::useService()->getSetting('Setting', 'Consumer', 'Service', 'Sort_UmlautWithE'))){
+            $IsUmlautWithE = $tblSetting->getValue();
+        }
+        $IsSortWithShortWords = true;
+        if(($tblSetting = Consumer::useService()->getSetting('Setting', 'Consumer', 'Service', 'Sort_WithShortWords'))){
+            $IsSortWithShortWords = $tblSetting->getValue();
+        }
+            // default
+        $return = TblSetting::SORT_GERMAN_AE_WITHOUT;
+        if($IsUmlautWithE && !$IsSortWithShortWords){
+            // ä = ae / Sortierung ignoriert Bindewörter
+            $return = TblSetting::SORT_GERMAN_AE_WITHOUT;
+        } elseif($IsUmlautWithE && $IsSortWithShortWords){
+            // ä = ae / Sortierung mit Bindewörter
+            $return = TblSetting::SORT_GERMAN_AE_WITH;
+        } elseif(!$IsUmlautWithE && !$IsSortWithShortWords) {
+            // ä = a / Sortierung ignoriert Bindewörter
+            $return = TblSetting::SORT_GERMAN_A_WITHOUT;
+        } elseif(!$IsUmlautWithE && $IsSortWithShortWords) {
+            // ä = a / Sortierung mit Bindewörter
+            $return = TblSetting::SORT_GERMAN_A_WITH;
+        }
+        return $return;
     }
 }

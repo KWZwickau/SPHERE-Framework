@@ -24,6 +24,7 @@ class TblPerson extends Element
 
     const ATTR_FIRST_NAME = 'FirstName';
     const ATTR_LAST_NAME = 'LastName';
+    const ATTR_IMPORT_ID = 'ImportId';
 
     /**
      * @Column(type="bigint")
@@ -49,6 +50,10 @@ class TblPerson extends Element
      * @Column(type="string")
      */
     protected $BirthName;
+    /**
+     * @Column(type="string")
+     */
+    protected $ImportId;
 
     /**
      * @return string (Salutation Title FirstName SecondName LastName)
@@ -200,6 +205,24 @@ class TblPerson extends Element
     }
 
     /**
+     * @return string
+     */
+    public function getImportId()
+    {
+
+        return $this->ImportId;
+    }
+
+    /**
+     * @param string $ImportId
+     */
+    public function setImportId($ImportId)
+    {
+
+        $this->ImportId = $ImportId;
+    }
+
+    /**
      * @return bool|TblAddress
      */
     public function fetchMainAddress()
@@ -242,11 +265,39 @@ class TblPerson extends Element
     }
 
     /**
+     * @param bool $isForced
+     *
      * @return bool|TblStudent
      */
-    public function getStudent()
+    public function getStudent($isForced = false)
     {
 
-        return Student::useService()->getStudentByPerson($this);
+        return Student::useService()->getStudentByPerson($this, $isForced);
+    }
+
+    /**
+     * @return bool|string
+     */
+    public function getGenderString()
+    {
+       if (($tblGender = $this->getGender())) {
+            return $tblGender->getName();
+       }
+
+       return '';
+    }
+
+    /**
+     * @return bool|\SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonGender
+     */
+    public function getGender()
+    {
+        if (($tblCommon = $this->getCommon())) {
+            if (($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())) {
+                return $tblCommonBirthDates->getTblCommonGender();
+            }
+        }
+
+        return false;
     }
 }

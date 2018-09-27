@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Education\Graduation\Evaluation;
 
 use DateTime;
+use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
@@ -30,6 +31,7 @@ use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -46,6 +48,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
@@ -57,8 +60,12 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\Listing as ListingLayout;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -84,6 +91,7 @@ use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Sorter;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 /**
@@ -481,7 +489,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     array('4', 'asc')
                                 ),
                                 'columnDefs' => array(
-                                    array('type' => 'natural', 'targets' => 2)
+                                    array('type' => 'natural', 'targets' => 2),
+                                    array('orderable' => false, 'targets' => -1),
                                 )
                             ))
                         ))
@@ -739,8 +748,9 @@ class Frontend extends Extension implements IFrontendInterface
                                             array(0, 'desc')
                                         ),
                                         'columnDefs' => array(
-                                            array('type' => 'de_date', 'targets' => 0)
-                                        )
+                                            array('type' => 'de_date', 'targets' => 0),
+                                            array('orderable' => false, 'targets' => -1),
+                                        ),
                                     )
                                 )
                             )
@@ -880,6 +890,34 @@ class Frontend extends Extension implements IFrontendInterface
             . new Redirect('/Education/Graduation/Evaluation/Test/Teacher', Redirect::TIMEOUT_ERROR);
         }
 
+        //Integration
+        $Accordion = new Accordion();
+//        $Panel = false;
+//        $PanelContent = '';
+        $Listing = array();
+        $HandyCapCount = 0;
+        if(($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))){
+            foreach($tblPersonList as $tblPerson){
+                // Button's nur anzeigen, wenn Integrationen hinterlegt sind
+                if(Student::useService()->getIsSupportByPerson($tblPerson)){
+                    $HandyCapCount++;
+                    $Listing[] = new Container(new PullClear($tblPerson->getLastFirstName()
+                        .new PullRight((new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+                            ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId())))));
+//                    $PanelContent .= ($PanelContent !== '' ? new Ruler() : '')
+//                        .new Container(new PullClear($tblPerson->getLastFirstName()
+//                        .new PullRight((new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+//                            ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId())))));
+                }
+            }
+        }
+        if(!empty($Listing)){
+//            $Panel = new Panel('Integration '.new Muted('Übersicht'), $PanelContent, Panel::PANEL_TYPE_INFO);
+            $Listing = new ListingLayout($Listing);
+            $Accordion->addItem('Integration '.new Muted('('.$HandyCapCount.')'), $Listing);
+        }
+
+
         if ($tblDivisionSubject && $tblDivisionSubject->getServiceTblSubject() && $tblDivision) {
             $tblTestList = Evaluation::useService()->getTestAllByTypeAndDivisionAndSubjectAndPeriodAndSubjectGroup(
                 $tblDivision,
@@ -894,15 +932,34 @@ class Frontend extends Extension implements IFrontendInterface
 
         $contentTable = array();
         if ($tblTestList) {
-            array_walk($tblTestList, function (TblTest &$tblTest) use (&$BasicRoute, &$contentTable) {
-
+            if (($tblSetting = Consumer::useService()->getSetting(
+                'Education', 'Graduation', 'Evaluation', 'AutoPublicationOfTestsAfterXDays'))
+            ) {
+                $days = intval($tblSetting->getValue());
+            } else {
+                $days = false;
+            }
+            if (($tblTestTypeAppointedDateTask = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK'))) {
+                $tblTaskList = Evaluation::useService()->getTaskAllByDivision($tblDivision, $tblTestTypeAppointedDateTask);
+                if ($tblTaskList) {
+                    $tblTaskList = $this->getSorter($tblTaskList)->sortObjectBy('Date', new DateTimeSorter(), Sorter::ORDER_DESC);
+                }
+            } else {
+                $tblTaskList = false;
+            }
+            array_walk($tblTestList, function (TblTest &$tblTest) use (&$BasicRoute, &$contentTable, $days, $tblTaskList) {
                 $tblTask = $tblTest->getTblTask();
+                if ($tblTask) {
+                    $stringDate = $tblTask->getDate();
+                } else {
+                    $stringDate = $tblTest->getDate();
+                }
 
                 if ($tblTest->getServiceTblGradeType()) {
                     if ($tblTask) {
                         $gradeType = new Bold('Kopfnote: ' . $tblTest->getServiceTblGradeType()->getName());
                     } else {
-                        $gradeType = $tblTest->getServiceTblGradeType()->getName();
+                        $gradeType = $tblTest->getServiceTblGradeType()->getDisplayName();
                     }
                 } elseif ($tblTask) {
                     $gradeType = new Bold('Stichtagsnote');
@@ -918,7 +975,6 @@ class Frontend extends Extension implements IFrontendInterface
                     new Warning($countGrades . ' von ' . $countStudents));
 
                 // standard
-                $stringDate = $tblTest->getDate();
                 $stringReturnDate = $tblTest->getReturnDate();
 
 //                // modify date if normal test where date is reached
@@ -930,7 +986,76 @@ class Frontend extends Extension implements IFrontendInterface
                 // modify with continues tests
                 if ($tblTest->getFinishDate()) {
                     $stringDate = $tblTest->getFinishDate();
-                    $stringReturnDate = $tblTest->getFinishDate();
+                    $stringReturnDate = ''; // $tblTest->getFinishDate();
+                }
+
+                // show autoReturnDate
+                if ($stringReturnDate == ''
+                    && $tblTest->getTblTestType()
+                    && $tblTest->getTblTestType()->getIdentifier() == 'TEST'
+                ){
+                    $autoReturnDateAppointedTask = false;
+                    // durch Stichtagsnotenauftrag
+                    $appointedDateTask = false;
+                    if ($tblTaskList) {
+                        /** @var TblTask $tblTaskItem */
+                        foreach ($tblTaskList as $tblTaskItem) {
+                            if (($date = $tblTaskItem->getDate())
+                                && ($tblPeriod = $tblTest->getServiceTblPeriod())
+                                && ($toDatePeriod = $tblPeriod->getToDate())
+                                && ($dateTimeTask = new \DateTime($date))
+                                && ($toDateTimePeriod = new \DateTime($toDatePeriod))
+                                && $dateTimeTask < $toDateTimePeriod
+                            ) {
+                                $appointedDateTask = $tblTaskItem;
+                                break;
+                            }
+                        }
+
+                        if ($appointedDateTask) {
+                            if ($tblTest->getDate()
+                                && ($testDate = (new \DateTime($tblTest->getDate())))
+                                && ($toDateTimeTask = new \DateTime($appointedDateTask->getToDate()))
+                                && ($nowDateTime = (new \DateTime('now')))
+                                && $testDate <= $toDateTimeTask
+                                && $toDateTimeTask < $nowDateTime
+                            ) {
+                                $autoReturnDateAppointedTask = $toDateTimeTask->add(new \DateInterval('P1D'));
+                            }
+                        }
+                    }
+
+                    // nach X Tagen
+                    $autoReturnDateDays = false;
+                    if ($days
+                        && $tblTest->getDate()
+                    ) {
+                        $testDate = (new \DateTime($tblTest->getDate()));
+                        $autoReturnDateDays = $testDate->add(
+                            new \DateInterval('P' . $days . 'D')
+                        );
+                    }
+
+                    if ($autoReturnDateAppointedTask && $autoReturnDateDays) {
+                        if ($autoReturnDateAppointedTask < $autoReturnDateDays) {
+                            $autoReturnDate = $autoReturnDateAppointedTask;
+                        } else {
+                            $autoReturnDate = $autoReturnDateDays;
+                        }
+                    } elseif ($autoReturnDateAppointedTask) {
+                        $autoReturnDate = $autoReturnDateAppointedTask;
+                    } else {
+                        $autoReturnDate = $autoReturnDateDays;
+                    }
+
+                    if ($autoReturnDate) {
+                        $stringReturnDate = $autoReturnDate->format('d.m.Y');
+                        $autoReturnDate = $autoReturnDate->format("Y-m-d");
+                        $now = (new \DateTime('now'))->format("Y-m-d");
+                        if ($autoReturnDate <= $now) {
+                            $stringReturnDate = new Success(new Bold($stringReturnDate));
+                        }
+                    }
                 }
 
                 $contentTable[] = array(
@@ -973,7 +1098,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ->appendFormButton(new Primary('Speichern', new Save()))
                 ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
             $Stage->addButton(new Standard('Leistungsüberprüfung anlegen', '', new PlusSign(), array(),
-                'zum Formular springen', $Form->getHash()));
+                false, $Form->getHash()));
         } else {
             $Form = false;
         }
@@ -1049,6 +1174,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if (!empty($testList)) {
                     foreach ($testList as $item) {
                         if ($item->getServiceTblSubject() && $item->getServiceTblDivision() && $item->getServiceTblGradeType()) {
+                            $tblDivisionTemp = $item->getServiceTblDivision();
                             $tblSubject = $item->getServiceTblSubject();
                             $tblSubjectGroup = $item->getServiceTblSubjectGroup();
                             $TeacherAcronymList = array();
@@ -1056,10 +1182,10 @@ class Frontend extends Extension implements IFrontendInterface
                             if (!$tblSubjectGroup) {
                                 $tblSubjectGroup = null;
                             } else {
-                                $tblDivisionSubjectMain = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivision,
+                                $tblDivisionSubjectMain = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivisionTemp,
                                     $tblSubject, null);
                             }
-                            $tblDivisionSubjectTeacher = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivision,
+                            $tblDivisionSubjectTeacher = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivisionTemp,
                                 $tblSubject, $tblSubjectGroup);
                             if ($tblDivisionSubjectTeacher) {
                                 // Teacher Group (if exist) else Teacher Subject
@@ -1094,6 +1220,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                             // create Teacher string
                             if (!empty($TeacherAcronymList)) {
+                                // remove dublicates
+                                $TeacherAcronymList = array_unique($TeacherAcronymList);
                                 $TeacherAcronym = implode(', ', $TeacherAcronymList);
                             } else {
                                 $TeacherAcronym = new ToolTip(new Small(new NotAvailable())
@@ -1154,6 +1282,14 @@ class Frontend extends Extension implements IFrontendInterface
                         ))
                     ))
                 )),
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ApiSupportReadOnly::receiverOverViewModal()
+                            .$Accordion
+                        , 4)
+                    )
+                ),
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
@@ -1175,6 +1311,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'columnDefs' => array(
                                     array('type' => 'de_date', 'targets' => 0),
                                     array('type' => 'de_date', 'targets' => 6),
+                                    // Sortierung funktioniert bei Text-Style (farblicher Änderung, Fettmarkierung usw.) Benutzung nicht
                                     array('orderable' => false, 'targets' => 7),
                                     array('orderable' => false, 'targets' => 8),
                                     array('orderable' => false, 'targets' => 9),
@@ -1253,7 +1390,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new SelectBox('Test[Period]', 'Zeitraum', array('DisplayName' => $tblPeriodList)), 6
                 ),
                 new FormColumn(
-                    new SelectBox('Test[GradeType]', 'Zensuren-Typ', array('Name' => $tblGradeTypeList)), 6
+                    new SelectBox('Test[GradeType]', 'Zensuren-Typ', array('DisplayName' => $tblGradeTypeList)), 6
                 )
             )),
             new FormRow(array(
@@ -1425,7 +1562,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Form = new Form(new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new SelectBox('Test[GradeType]', 'Zensuren-Typ', array('Name' => $tblGradeTypeList)), 12
+                        new SelectBox('Test[GradeType]', 'Zensuren-Typ', array('DisplayName' => $tblGradeTypeList)), 12
                     ),
                     new FormColumn(
                         new TextField('Test[Description]', '', 'Thema'), 12
@@ -1927,6 +2064,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $periodListCount = array();
                 $columnDefinition['Number'] = '#';
                 $columnDefinition['Student'] = "Schüler";
+                $columnDefinition['Integration'] = "Integration";
                 $columnDefinition['Course'] = 'Bildungsgang';
 
                 $tblPeriodList = false;
@@ -1965,9 +2103,7 @@ class Frontend extends Extension implements IFrontendInterface
                             );
                             if ($tblTestList) {
 
-                                // Sortierung der Tests nach Datum
-                                $tblTestList = $this->getSorter($tblTestList)->sortObjectBy('Date',
-                                    new DateTimeSorter());
+                                $tblTestList = Evaluation::useService()->sortTestList($tblTestList);
 
                                 /** @var TblTest $tblTestTemp */
                                 foreach ($tblTestList as $tblTestTemp) {
@@ -2004,6 +2140,11 @@ class Frontend extends Extension implements IFrontendInterface
                                         }
                                     }
                                 }
+                                // SSW-259
+                                if ($count == 0) {
+                                    $periodListCount[$tblPeriod->getId()] = 1;
+                                    $columnDefinition['Period' . $tblPeriod->getId()] = "";
+                                }
                                 $periodListCount[$tblPeriod->getId()] = $count;
                             } else {
                                 $periodListCount[$tblPeriod->getId()] = 1;
@@ -2030,6 +2171,14 @@ class Frontend extends Extension implements IFrontendInterface
                         $data['Number'] = $count % 5 == 0 ? new Bold($count) : $count;
                         $count++;
                         $data['Student'] = $tblPerson->getLastFirstName();
+
+                        if(Student::useService()->getIsSupportByPerson($tblPerson)) {
+                            $Integration = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+                                ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
+                        } else {
+                            $Integration = '';
+                        }
+                        $data['Integration'] = $Integration;
 
                         $data['Course'] = '';
                         $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
@@ -2176,6 +2325,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tableColumns = array();
             $tableColumns['Number'] = '#';
             $tableColumns['Name'] = 'Schüler';
+            $tableColumns['Integration'] = 'Integration';
             $tableColumns['Course'] = 'Bildungsgang';
             $tableColumns['Grade'] = 'Zensur';
             if ($tblTest->isContinues()) {
@@ -2229,17 +2379,23 @@ class Frontend extends Extension implements IFrontendInterface
             $tableData = new TableData(
                 $studentList, null, $columnDefinition,
                 array(
-                "paging"         => false, // Deaktivieren Blättern
-                "iDisplayLength" => -1,    // Alle Einträge zeigen
-                "searching"      => false, // Deaktivieren Suchen
-                "info"           => false,  // Deaktivieren Such-Info
-                "responsive"   => false
+                    "paging"         => false, // Deaktivieren Blättern
+                    "iDisplayLength" => -1,    // Alle Einträge zeigen
+                    "searching"      => false, // Deaktivieren Suchen
+                    "info"           => false,  // Deaktivieren Such-Info
+                    "responsive"   => false,
+                    'order'      => array(
+                        array('0', 'asc'),
+                    ),
+                    'columnDefs' => array(
+                        array('orderable' => false, 'targets' => '_all'),
+                    ),
                 )
             );
 
             // oberste Tabellen-Kopf-Zeile erstellen
             $headTableColumnList = array();
-            $headTableColumnList[] = new TableColumn('', 3, '20%');
+            $headTableColumnList[] = new TableColumn('', 4, '20%');
             $countHeaderColumns = 2;
             if (!empty($periodListCount)) {
                 foreach ($periodListCount as $periodId => $count) {
@@ -2260,7 +2416,21 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             );
         } else {
-            $tableData = new TableData($studentList, null, $tableColumns, null);
+            $tableData = new TableData($studentList, null, $tableColumns, array(
+                "paging"         => false, // Deaktivieren Blättern
+                "iDisplayLength" => -1,    // Alle Einträge zeigen
+                "searching"      => false, // Deaktivieren Suchen
+                "info"           => false,  // Deaktivieren Such-Info
+                "sorting"        => false,  // Deaktivieren Such-Info
+                "responsive"   => false,
+                'order'      => array(
+                    array('0', 'asc'),
+                ),
+                'columnDefs' => array(
+                    array('type' => 'natural', 'targets' => 0),
+                    array('orderable' => false, 'targets' => '_all'),
+                ),
+            ));
         }
 
         /*
@@ -2311,7 +2481,8 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
-            new Layout (array(
+            ApiSupportReadOnly::receiverOverViewModal()
+            .new Layout (array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
@@ -2731,6 +2902,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
+        $columnList[] = new FormColumn(new HiddenField('Data[IsSubmit]'));
 
         $form = new Form(array(
             $isBehaviorTask
@@ -2924,6 +3096,15 @@ class Frontend extends Extension implements IFrontendInterface
         foreach ($divisionList as $divisionId => $testList) {
             $tblDivision = Division::useService()->getDivisionById($divisionId);
             if ($tblDivision) {
+                if (($tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision))) {
+                    $count = 1;
+                    foreach ($tblDivisionStudentAll as $tblPerson) {
+                        $studentList[$tblDivision->getId()][$tblPerson->getId()]['Number'] = $count++;
+                        $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
+                            $tblPerson->getLastFirstName();
+                    }
+                }
+
                 // Stichtagsnote
                 if ($tblTask->getTblTestType()->getId() == Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')) {
                     if (!empty($testList)) {
@@ -2957,11 +3138,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         }
                                     }
                                 } else {
-                                    $tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision);
                                     if ($tblDivisionStudentAll) {
-                                        $count = 1;
                                         foreach ($tblDivisionStudentAll as $tblPerson) {
-                                            $studentList[$tblDivision->getId()][$tblPerson->getId()]['Number'] = $count++;
                                             $studentList = $this->setTableContentForAppointedDateTask($tblDivision,
                                                 $tblTest, $tblSubject, $tblPerson, $studentList, null, $gradeList);
                                         }
@@ -3019,7 +3197,6 @@ class Frontend extends Extension implements IFrontendInterface
                     $tableHeaderList[$tblDivision->getId()]['Name'] = 'Schüler';
                     $grades = array();
 
-                    $count = 1;
                     if (!empty($testList)) {
                         /** @var TblTest $tblTest */
                         foreach ($testList as $tblTest) {
@@ -3045,7 +3222,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                 $tblPerson = $tblSubjectStudent->getServiceTblPerson();
                                                 if ($tblPerson) {
                                                     list($studentList, $grades) = $this->setTableContentForBehaviourTask($tblDivision,
-                                                        $tblTest, $tblPerson, $studentList, $grades, $count);
+                                                        $tblTest, $tblPerson, $studentList, $grades);
                                                 }
                                             }
                                         }
@@ -3054,7 +3231,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         if ($tblDivisionStudentAll) {
                                             foreach ($tblDivisionStudentAll as $tblPerson) {
                                                 list($studentList, $grades) = $this->setTableContentForBehaviourTask($tblDivision,
-                                                    $tblTest, $tblPerson, $studentList, $grades, $count);
+                                                    $tblTest, $tblPerson, $studentList, $grades);
                                             }
                                         }
                                     }
@@ -3105,6 +3282,11 @@ class Frontend extends Extension implements IFrontendInterface
                                             "searching"      => false, // Deaktivieren Suchen
                                             "info"           => false,  // Deaktivieren Such-Info
                                             "responsive"   => false
+                                        ),
+                                        array(
+                                            'columnDefs' => array(
+                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                            ),
                                         )
                                     )
                                 ))
@@ -3137,8 +3319,7 @@ class Frontend extends Extension implements IFrontendInterface
         TblSubjectGroup $tblSubjectGroup = null,
         &$gradeList = array()
     ) {
-        $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
-            $tblPerson->getLastFirstName();
+
         $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
             $tblPerson);
 
@@ -3230,7 +3411,6 @@ class Frontend extends Extension implements IFrontendInterface
      * @param TblPerson $tblPerson
      * @param $studentList
      * @param $grades
-     * @param $count
      *
      * @return array
      */
@@ -3239,15 +3419,9 @@ class Frontend extends Extension implements IFrontendInterface
         TblTest $tblTest,
         TblPerson $tblPerson,
         $studentList,
-        $grades,
-        &$count
+        $grades
     ) {
 
-        if (!isset($studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'])) {
-            $studentList[$tblDivision->getId()][$tblPerson->getId()]['Number'] = $count++;
-            $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
-                $tblPerson->getLastFirstName();
-        }
         $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
             $tblPerson);
 
@@ -3462,7 +3636,13 @@ class Frontend extends Extension implements IFrontendInterface
                             . ')')
                         : ''
                     );
-
+                if(Student::useService()->getIsSupportByPerson($tblPerson)) {
+                    $Integration = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+                        ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
+                } else {
+                    $Integration = '';
+                }
+                $studentList[$tblPerson->getId()]['Integration'] = $Integration;
                 $studentList[$tblPerson->getId()]['Course'] = '';
                 $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
                 if ($tblCourse) {

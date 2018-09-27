@@ -60,15 +60,22 @@ class Data  extends AbstractData
     /**
      *
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblTeacher
      */
-    public function getTeacherByPerson(TblPerson $tblPerson)
+    public function getTeacherByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTeacher', array(
-            TblTeacher::SERVICE_TBL_PERSON => $tblPerson->getId()
-        ));
+        if ($isForced) {
+            return $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTeacher', array(
+                TblTeacher::SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+        } else {
+            return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTeacher', array(
+                TblTeacher::SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+        }
     }
 
     /**
@@ -151,6 +158,27 @@ class Data  extends AbstractData
             } else {
                 $Manager->killEntity($Entity);
             }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblTeacher $tblTeacher
+     *
+     * @return bool
+     */
+    public function restoreTeacher(TblTeacher $tblTeacher)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblTeacher $Entity */
+        $Entity = $Manager->getEntityById('TblTeacher', $tblTeacher->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setEntityRemove(null);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
         }
         return false;

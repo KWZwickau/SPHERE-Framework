@@ -38,7 +38,7 @@ class E04_1
                     ->setContent('Anzahl der Fremsprachen')
                     ->styleBorderRight()
                     ->stylePaddingTop('17.1px')
-                    ->stylePaddingBottom('17.1px'), '40%'
+                    ->stylePaddingBottom('17.1px'), '50%'
                 )
                 ->addSliceColumn((new Slice())
                     ->addSection((new Section())
@@ -76,10 +76,10 @@ class E04_1
                         )
                     ), '40%'
                 )
-                ->addElementColumn((new Element())
-                    ->setContent('Vorb.kl. u.<br/>-gr. f.<br/>Migranten')
-                    ->styleBorderRight(), '10%'
-                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('Vorb.kl. u.<br/>-gr. f.<br/>Migranten')
+//                    ->styleBorderRight(), '10%'
+//                )
                 ->addElementColumn((new Element())
                     ->setContent('Insgesamt')
                     ->styleTextBold()
@@ -104,7 +104,7 @@ class E04_1
                 ->addElementColumn((new Element())
                     ->setContent($text)
                     ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '40%'
+                    ->styleBorderRight(), '50%'
                 );
 
             for ($level = 1; $level < 5; $level++) {
@@ -122,17 +122,17 @@ class E04_1
             }
 
             $section
-                ->addElementColumn((new Element())
-                    ->setContent('
-                        {% if (Content.E04_1.F' . $i . '.Migration is not empty) %}
-                            {{ Content.E04_1.F' . $i . '.Migration }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
-                    ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '10%'
-                )
+//                ->addElementColumn((new Element())
+//                    ->setContent('
+//                        {% if (Content.E04_1.F' . $i . '.Migration is not empty) %}
+//                            {{ Content.E04_1.F' . $i . '.Migration }}
+//                        {% else %}
+//                            &nbsp;
+//                        {% endif %}
+//                    ')
+//                    ->styleBackgroundColor('lightgrey')
+//                    ->styleBorderRight(), '10%'
+//                )
                 ->addElementColumn((new Element())
                     ->setContent('
                             {% if (Content.E04_1.F' . $i . '.TotalCount is not empty) %}
@@ -162,7 +162,7 @@ class E04_1
             ->addElementColumn((new Element())
                 ->setContent('Insgesamt')
                 ->styleBackgroundColor('lightgrey')
-                ->styleBorderRight(), '40%'
+                ->styleBorderRight(), '50%'
             );
 
         for ($level = 1; $level < 5; $level++) {
@@ -180,17 +180,17 @@ class E04_1
         }
 
         $section
-            ->addElementColumn((new Element())
-                ->setContent('
-                    {% if (Content.E04_1.TotalCount.Migration is not empty) %}
-                        {{ Content.E04_1.TotalCount.Migration }}
-                    {% else %}
-                        &nbsp;
-                    {% endif %}
-                ')
-                ->styleBackgroundColor('lightgrey')
-                ->styleBorderRight(), '10%'
-            )
+//            ->addElementColumn((new Element())
+//                ->setContent('
+//                    {% if (Content.E04_1.TotalCount.Migration is not empty) %}
+//                        {{ Content.E04_1.TotalCount.Migration }}
+//                    {% else %}
+//                        &nbsp;
+//                    {% endif %}
+//                ')
+//                ->styleBackgroundColor('lightgrey')
+//                ->styleBorderRight(), '10%'
+//            )
             ->addElementColumn((new Element())
                 ->setContent('&nbsp;')
                 ->styleBackgroundColor('lightgrey'), '10%'

@@ -9,6 +9,7 @@ use SPHERE\Application\Billing\Billing;
 use SPHERE\Application\Contact\Contact;
 use SPHERE\Application\Corporation\Corporation;
 use SPHERE\Application\Dispatcher;
+use SPHERE\Application\Document\DataProtectionOrdinance;
 use SPHERE\Application\Document\Document;
 use SPHERE\Application\Document\LegalNotice;
 use SPHERE\Application\Document\License;
@@ -355,5 +356,6 @@ class Main extends Extension
         Document::registerCluster();
         License::registerCluster();
         LegalNotice::registerCluster();
+        DataProtectionOrdinance::registerCluster();
     }
 }

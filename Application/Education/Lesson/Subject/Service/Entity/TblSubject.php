@@ -19,6 +19,9 @@ class TblSubject extends Element
     const ATTR_NAME = 'Name';
     const ATTR_DESCRIPTION = 'Description';
 
+    const PSEUDO_ORIENTATION_ID = -1;
+    const PSEUDO_PROFILE_ID = -2;
+
     /**
      * @Column(type="string")
      */
@@ -84,5 +87,15 @@ class TblSubject extends Element
     {
 
         $this->Description = $Description;
+    }
+
+    /**
+     * Acronym-Name
+     * @return string
+     */
+    public function getDisplayName()
+    {
+
+        return $this->getAcronym() . '-' . $this->getName();
     }
 }

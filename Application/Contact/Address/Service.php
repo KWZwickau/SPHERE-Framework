@@ -194,13 +194,14 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblPerson      $tblPerson
-     * @param array          $Street
-     * @param array          $City
-     * @param integer        $State
-     * @param array          $Type
-     * @param string         $County
-     * @param string         $Nation
+     * @param TblPerson $tblPerson
+     * @param array $Street
+     * @param array $City
+     * @param integer $State
+     * @param array $Type
+     * @param string $County
+     * @param string $Nation
+     * @param $Group
      *
      * @return IFormInterface|string|TblToPerson
      */
@@ -212,7 +213,8 @@ class Service extends AbstractService
         $State,
         $Type,
         $County,
-        $Nation
+        $Nation,
+        $Group
     ) {
 
         /**
@@ -247,11 +249,11 @@ class Service extends AbstractService
             ) {
                 return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Adresse wurde erfolgreich hinzugefügt')
                     .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
-                        array('Id' => $tblPerson->getId()));
+                        array('Id' => $tblPerson->getId(), 'Group' => $Group));
             } else {
                 return new Danger(new Ban().' Die Adresse konnte nicht hinzugefügt werden')
                     .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
-                        array('Id' => $tblPerson->getId()));
+                        array('Id' => $tblPerson->getId(), 'Group' => $Group));
             }
         }
         return $Form;
@@ -444,13 +446,14 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblToPerson    $tblToPerson
-     * @param array          $Street
-     * @param array          $City
-     * @param int            $State
-     * @param array          $Type
+     * @param TblToPerson $tblToPerson
+     * @param array $Street
+     * @param array $City
+     * @param int $State
+     * @param array $Type
      * @param                $County
      * @param                $Nation
+     * @param $Group
      *
      * @return IFormInterface|string
      */
@@ -462,7 +465,8 @@ class Service extends AbstractService
         $State,
         $Type,
         $County,
-        $Nation
+        $Nation,
+        $Group
     ) {
 
         /**
@@ -530,11 +534,11 @@ class Service extends AbstractService
                 ) {
                     return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Adresse wurde erfolgreich geändert')
                     .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
-                        array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
+                        array('Id' => $tblToPerson->getServiceTblPerson()->getId(), 'Group' => $Group));
                 } else {
                     return new Danger(new Ban().' Die Adresse konnte nicht geändert werden')
                     .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
-                        array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
+                        array('Id' => $tblToPerson->getServiceTblPerson()->getId(), 'Group' => $Group));
                 }
             } else {
                 new Danger('Person nicht gefunden', new Ban());
@@ -545,13 +549,14 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblToCompany   $tblToCompany
-     * @param array          $Street
-     * @param array          $City
-     * @param int            $State
-     * @param array          $Type
+     * @param TblToCompany $tblToCompany
+     * @param array $Street
+     * @param array $City
+     * @param int $State
+     * @param array $Type
      * @param                $County
      * @param                $Nation
+     * @param $Group
      *
      * @return IFormInterface|string
      */
@@ -563,7 +568,8 @@ class Service extends AbstractService
         $State,
         $Type,
         $County,
-        $Nation
+        $Nation,
+        $Group
     ) {
 
         /**
@@ -633,11 +639,11 @@ class Service extends AbstractService
                 ) {
                     return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Adresse wurde erfolgreich geändert')
                     .new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS,
-                        array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
+                        array('Id' => $tblToCompany->getServiceTblCompany()->getId(), 'Group' => $Group));
                 } else {
                     return new Danger(new Ban().' Die Adresse konnte nicht geändert werden')
                     .new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR,
-                        array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
+                        array('Id' => $tblToCompany->getServiceTblCompany()->getId(), 'Group' => $Group));
                 }
             } else {
                 new Danger('Institution nicht gefunden', new Ban());
@@ -648,13 +654,14 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblCompany     $tblCompany
-     * @param array          $Street
-     * @param array          $City
-     * @param integer        $State
-     * @param array          $Type
+     * @param TblCompany $tblCompany
+     * @param array $Street
+     * @param array $City
+     * @param integer $State
+     * @param array $Type
      * @param                $County
      * @param                $Nation
+     * @param $Group
      *
      * @return IFormInterface|string
      */
@@ -666,7 +673,8 @@ class Service extends AbstractService
         $State,
         $Type,
         $County,
-        $Nation
+        $Nation,
+        $Group
     ) {
 
         /**
@@ -731,11 +739,11 @@ class Service extends AbstractService
             ) {
                 return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Adresse wurde erfolgreich hinzugefügt')
                 .new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS,
-                    array('Id' => $tblCompany->getId()));
+                    array('Id' => $tblCompany->getId(), 'Group' => $Group));
             } else {
                 return new Danger(new Ban().' Die Adresse konnte nicht hinzugefügt werden')
                 .new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR,
-                    array('Id' => $tblCompany->getId()));
+                    array('Id' => $tblCompany->getId(), 'Group' => $Group));
             }
         }
         return $Form;
@@ -743,13 +751,14 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblToPerson[]
      */
-    public function getAddressAllByPerson(TblPerson $tblPerson)
+    public function getAddressAllByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getAddressAllByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getAddressAllByPerson($tblPerson, $isForced);
     }
 
     /**
@@ -768,13 +777,14 @@ class Service extends AbstractService
     /** get Main Address (Type ID 1)
      *
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblAddress
      */
-    public function getAddressByPerson(TblPerson $tblPerson)
+    public function getAddressByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getAddressByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getAddressByPerson($tblPerson, $isForced);
     }
 
     /** get Main Address (Type ID 1)
@@ -903,5 +913,16 @@ class Service extends AbstractService
                 $this->removeAddressToPerson($tblToPerson, $IsSoftRemove);
             }
         }
+    }
+
+    /**
+     * @param TblToPerson $tblToPerson
+     *
+     * @return bool
+     */
+    public function restoreToPerson(TblToPerson $tblToPerson)
+    {
+
+        return (new Data($this->getBinding()))->restoreToPerson($tblToPerson);
     }
 }

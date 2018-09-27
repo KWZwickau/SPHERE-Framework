@@ -72,6 +72,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblUserAccount', 'GroupByTime')) {
             $Table->addColumn('GroupByTime', 'datetime');
         }
+        if (!$this->getConnection()->hasColumn('tblUserAccount', 'GroupByCount')) {
+            $Table->addColumn('GroupByCount', 'integer', array('notnull' => false));
+        }
         $this->getConnection()->getSchema()->getTableNames();
 
         return $Table;

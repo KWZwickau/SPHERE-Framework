@@ -4,7 +4,7 @@ namespace SPHERE\Application\Platform\System\Database;
 
 use Doctrine\DBAL\Schema\View;
 use MOC\V\Component\Database\Component\IBridgeInterface;
-use MOC\V\Component\Database\Database;
+use MOC\V\Component\Database\Database as MocDatabase;
 use MOC\V\Component\Template\Template;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
@@ -41,11 +41,17 @@ class ReportingUpgrade
         'viewGroupClub' => 'viewGroupClub.twig',
         'viewGroupCustody' => 'viewGroupCustody.twig',
         'viewGroupProspect' => 'viewGroupProspect.twig',
+        'viewGroupStudentTransfer' => 'viewGroupStudentTransfer.twig',
         'viewGroupStudent' => 'viewGroupStudent.twig',
+        'viewGroupStudentBasic' => 'viewGroupStudentBasic.twig',
+        'viewGroupStudentIntegration' => 'viewGroupStudentIntegration.twig',
+        'viewGroupStudentSubject' => 'viewGroupStudentSubject.twig',
         'viewGroupTeacher' => 'viewGroupTeacher.twig',
         'viewPerson' => 'viewPerson.twig',
+        'viewPersonContact' => 'viewPersonContact.twig',
         'viewRelationshipToPerson' => 'viewRelationshipToPerson.twig',
-        'viewStudent' => 'viewStudent.twig'
+        'viewStudent' => 'viewStudent.twig',
+        'viewStudentCustody' => 'viewStudentCustody.twig'
     );
 
     /**
@@ -214,7 +220,7 @@ class ReportingUpgrade
      */
     private function getConnection($Host, $User, $Password, $Acronym)
     {
-        $Connection = Database::getDatabase(
+        $Connection = MocDatabase::getDatabase(
             $User, $Password, 'SettingConsumer_' . strtoupper($Acronym), (new MySql())->getIdentifier(), $Host
         );
         if ($Connection->getConnection()->isConnected()) {

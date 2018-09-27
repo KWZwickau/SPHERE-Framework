@@ -10,6 +10,7 @@ use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Person as PersonApp;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Ajax\Emitter\ClientEmitter;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -292,8 +293,8 @@ class ApiPerson extends Extension implements IApiInterface
                     array(2, 'asc')
                 ),
                          'columnDefs' => array(
-                             array('type' => 'german-string', 'targets' => 4),
-                             array('type' => 'german-string', 'targets' => 2),
+                             array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 4),
+                             array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
                          )));
 
                 $InfoPersonEmitter = new ClientEmitter($InfoPersonReceiver, new Danger(new Bold(

@@ -31,7 +31,6 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -57,7 +56,6 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Leistungen');
         $Stage->setDescription('Übersicht');
-//        new Backward();
 
         $tblCommodityAll = Commodity::useService()->getCommodityAll();
 
@@ -163,7 +161,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Leistungen', 'Bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Commodity', new ChevronLeft()));
-//        $Stage->addButton(new Backward());
         $tblCommodity = Commodity::useService()->getCommodityById($Id);
         if (!$tblCommodity) {
             $Stage->setContent(new Warning('Die Leistung konnte nicht abgerufen werden'));
@@ -259,7 +256,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Leistung', 'Artikel auswählen');
         $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Commodity', new ChevronLeft()));
-//        $Stage->addButton(new Backward());
         $tblCommodity = Commodity::useService()->getCommodityById($Id);
         if (!$tblCommodity) {
             $Stage->setContent(new Warning('Die Leistung konnte nicht abgerufen werden'));

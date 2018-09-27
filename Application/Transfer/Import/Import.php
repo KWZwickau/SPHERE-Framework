@@ -6,10 +6,12 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Transfer\Import\Annaberg\Annaberg;
 use SPHERE\Application\Transfer\Import\Chemnitz\Chemnitz;
 use SPHERE\Application\Transfer\Import\Coswig\Coswig;
+use SPHERE\Application\Transfer\Import\Dresden\Dresden;
 use SPHERE\Application\Transfer\Import\FuxMedia\FuxSchool;
 use SPHERE\Application\Transfer\Import\Herrnhut\Herrnhut;
 use SPHERE\Application\Transfer\Import\Hormersdorf\Hormersdorf;
 use SPHERE\Application\Transfer\Import\LebensweltZwenkau\Zwenkau;
+use SPHERE\Application\Transfer\Import\Meerane\Meerane;
 use SPHERE\Application\Transfer\Import\Muldental\Muldental;
 use SPHERE\Application\Transfer\Import\Radebeul\Radebeul;
 use SPHERE\Application\Transfer\Import\Schneeberg\Schneeberg;
@@ -50,7 +52,7 @@ class Import implements IApplicationInterface
         if ($consumerAcronym === 'EVSC' || $consumerAcronym == 'DEMO') {
             Coswig::registerModule();
         }
-        if ($consumerAcronym === 'EZGH' || $consumerAcronym == 'DEMO') {
+        if ($consumerAcronym === 'EZSH' || $consumerAcronym == 'DEMO') {
             Herrnhut::registerModule();
         }
         if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH' || $consumerAcronym == 'DEMO') {
@@ -77,6 +79,12 @@ class Import implements IApplicationInterface
         if ($consumerAcronym === 'CMS' || $consumerAcronym == 'DEMO') {
             Zwickau::registerModule();
         }
+        if ($consumerAcronym === 'EVGSM' || $consumerAcronym == 'DEMO') {
+            Meerane::registerModule();
+        }
+        if ($consumerAcronym === 'FES' || $consumerAcronym == 'DEMO') {
+            Dresden::registerModule();
+        }
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Daten importieren'))
@@ -102,6 +110,22 @@ class Import implements IApplicationInterface
         }
         if ($consumerAcronym === 'CSW' || $consumerAcronym == 'DEMO') {
             $dataList = Tharandt::setLinks($dataList);
+        }
+        if ($consumerAcronym === 'EVGSM' || $consumerAcronym == 'DEMO') {
+            $dataList = Meerane::setLinks($dataList);
+        }
+        if ($consumerAcronym === 'FES' || $consumerAcronym == 'DEMO') {
+            $dataList = Dresden::setLinks($dataList);
+        }
+        if ($consumerAcronym === 'EZSH' || $consumerAcronym == 'DEMO') {
+            $dataList = Herrnhut::setLinks($dataList);
+        }
+
+        if(empty($dataList)){
+            $Stage->setContent(
+                Main::getDispatcher()->fetchDashboard('Import')
+            );
+            return $Stage;
         }
 
         $table = new TableData(

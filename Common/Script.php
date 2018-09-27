@@ -172,11 +172,32 @@ class Script extends Extension
             '/Library/jQuery.DataTables.Plugins/1.10.7/sorting/date-de.js',
             "'undefined' !== typeof jQuery.fn.dataTable.ext.type.order['de_datetime-asc']"
         );
+
+        // ä = ae / Sortierung ignoriert Bindewörter // default
         $this->setSource(
-            'jQuery.DataTable.Plugin.Sorting.GermanString',
-            '/Library/jQuery.DataTables.Plugins/1.10.7/sorting/german-string.js',
-            "'undefined' !== typeof jQuery.fn.dataTable.ext.type.order['german-string-asc']"
+            'jQuery.DataTable.Plugin.Sorting.GermanString-AE-Without',
+            '/Library/jQuery.DataTables.Plugins/1.10.7/sorting/german-string-ae-without.js',
+            "'undefined' !== typeof jQuery.fn.dataTable.ext.type.order['german-string-ae-without-asc']"
         );
+        // ä = ae / Sortierung mit Bindewörter
+        $this->setSource(
+            'jQuery.DataTable.Plugin.Sorting.GermanString-AE-With',
+            '/Library/jQuery.DataTables.Plugins/1.10.7/sorting/german-string-ae-with.js',
+            "'undefined' !== typeof jQuery.fn.dataTable.ext.type.order['german-string-ae-with-asc']"
+        );
+        // ä = a / Sortierung ignoriert Bindewörter
+        $this->setSource(
+            'jQuery.DataTable.Plugin.Sorting.GermanString-A-Without',
+            '/Library/jQuery.DataTables.Plugins/1.10.7/sorting/german-string-a-without.js',
+            "'undefined' !== typeof jQuery.fn.dataTable.ext.type.order['german-string-a-without-asc']"
+        );
+        // ä = a / Sortierung mit Bindewörter
+        $this->setSource(
+            'jQuery.DataTable.Plugin.Sorting.GermanString-A-With',
+            '/Library/jQuery.DataTables.Plugins/1.10.7/sorting/german-string-a-with.js',
+            "'undefined' !== typeof jQuery.fn.dataTable.ext.type.order['german-string-a-with-asc']"
+        );
+
         $this->setSource(
             'jQuery.DataTable.Plugin.Sorting.Natural',
             '/Library/jQuery.DataTables.Plugins/1.10.7/sorting/natural.js',
@@ -244,6 +265,9 @@ class Script extends Extension
             'Bootbox.js', '/Library/Bootbox.js/4.4.0/js/bootbox.min.js',
             "'undefined' !== typeof bootbox"
         );
+        $this->setSource('CookieScript', '/Library/CookieScript/CookieScript.js',
+            "'undefined' !== typeof window.hasCookieConsent"
+        );
 
         /**
          * Module (jQuery plugin)
@@ -284,7 +308,10 @@ class Script extends Extension
             array(
 //                'jQuery.DataTable.Plugin.Sorting.Weekday',
                 'jQuery.DataTable.Plugin.Sorting.DateTime',
-                'jQuery.DataTable.Plugin.Sorting.GermanString',
+                'jQuery.DataTable.Plugin.Sorting.GermanString-AE-Without',
+                'jQuery.DataTable.Plugin.Sorting.GermanString-AE-With',
+                'jQuery.DataTable.Plugin.Sorting.GermanString-A-Without',
+                'jQuery.DataTable.Plugin.Sorting.GermanString-A-With',
                 'jQuery.DataTable.Plugin.Sorting.Natural',
                 'jQuery.DataTable.Buttons.FlashExport',
                 'jQuery.DataTable.Buttons.HtmlExport',
@@ -344,6 +371,9 @@ class Script extends Extension
         );
         $this->setModule(
             'ModCleanStorage', array('jQuery')
+        );
+        $this->setModule(
+            'ModCookie', array('CookieScript')
         );
     }
 

@@ -82,6 +82,17 @@ class Setup extends AbstractSetup
         $tblStudentFocusType = $this->setTableStudentFocusType($Schema);
         $this->setTableStudentFocus($Schema, $tblStudent, $tblStudentFocusType);
 
+        $tblSupportType = $this->setTableSupportType($Schema);
+        $tblSupport = $this->setTableSupport($Schema, $tblSupportType);
+        $tblSupportFocusType = $this->setTableSupportFocusType($Schema);
+        $this->setTableSupportFocus($Schema, $tblSupport, $tblSupportFocusType);
+
+        $tblSpecial = $this->setTableSpecial($Schema);
+        $tblSpecialDisorderType = $this->setTableSpecialDisorderType($Schema);
+        $this->setTableSpecialDisorder($Schema, $tblSpecial, $tblSpecialDisorderType);
+
+        $this->setTableHandyCap($Schema);
+
         /**
          * Migration & Protocol
          */
@@ -169,8 +180,8 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblStudentMedicalRecord', 'Medication')) {
             $Table->addColumn('Medication', 'text');
         }
-        if (!$this->getConnection()->hasColumn('tblStudentMedicalRecord', 'serviceTblPersonAttendingDoctor')) {
-            $Table->addColumn('serviceTblPersonAttendingDoctor', 'bigint', array('notnull' => false));
+        if (!$this->getConnection()->hasColumn('tblStudentMedicalRecord', 'AttendingDoctor')) {
+            $Table->addColumn('AttendingDoctor', 'string');
         }
         if (!$this->getConnection()->hasColumn('tblStudentMedicalRecord', 'InsuranceState')) {
             $Table->addColumn('InsuranceState', 'bigint');
@@ -178,6 +189,12 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblStudentMedicalRecord', 'Insurance')) {
             $Table->addColumn('Insurance', 'string');
         }
+
+        // entfernen alter Rückstände
+        if ($this->getConnection()->hasColumn('tblStudentMedicalRecord', 'serviceTblPersonAttendingDoctor')) {
+            $Table->dropColumn('serviceTblPersonAttendingDoctor');
+        }
+
         return $Table;
     }
 
@@ -328,6 +345,9 @@ class Setup extends AbstractSetup
         $this->getConnection()->removeIndex($Table, array('serviceTblPerson'));
         if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson', Element::ENTITY_REMOVE))) {
             $Table->addIndex(array('serviceTblPerson', Element::ENTITY_REMOVE));
+        }
+        if (!$this->getConnection()->hasColumn('tblStudent', 'Prefix')) {
+            $Table->addColumn('Prefix', 'string', array('notnull' => false));
         }
         if (!$this->getConnection()->hasColumn('tblStudent', 'Identifier')) {
             $Table->addColumn('Identifier', 'string', array('notnull' => false));
@@ -662,16 +682,155 @@ class Setup extends AbstractSetup
     }
 
     /**
-     * @param Schema $schema
+     * @param Schema $Schema
      *
      * @return Table
      */
-    private function setTableStudentSchoolEnrollmentType(Schema &$schema)
+    private function setTableStudentSchoolEnrollmentType(Schema &$Schema)
     {
 
-        $table = $this->createTable($schema, 'tblStudentSchoolEnrollmentType');
+        $table = $this->createTable($Schema, 'tblStudentSchoolEnrollmentType');
         $this->createColumn($table, 'Name', self::FIELD_TYPE_STRING);
         $this->createColumn($table, 'Identifier', self::FIELD_TYPE_STRING);
+
+        return $table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableSupportType(Schema &$Schema)
+    {
+
+        $table = $this->createTable($Schema, 'tblSupportType');
+        $this->createColumn($table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'Description', self::FIELD_TYPE_STRING);
+
+        return $table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblSupportType
+     *
+     * @return Table
+     */
+    private function setTableSupport(Schema &$Schema, Table $tblSupportType)
+    {
+
+        $table = $this->createTable($Schema, 'tblSupport');
+        $this->createColumn($table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($table, 'Date', self::FIELD_TYPE_DATETIME);
+        $this->createForeignKey($table, $tblSupportType);
+        $this->createColumn($table, 'Company', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'PersonSupport', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'SupportTime', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'PersonEditor', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'Remark', self::FIELD_TYPE_TEXT);
+
+        return $table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblSupport
+     * @param Table  $tblSupportFocusType
+     *
+     * @return Table
+     */
+    private function setTableSupportFocus(Schema &$Schema, Table $tblSupport, Table $tblSupportFocusType)
+    {
+
+        $table = $this->createTable($Schema, 'tblSupportFocus');
+        $this->createForeignKey($table, $tblSupport);
+        $this->createForeignKey($table, $tblSupportFocusType);
+        $this->createColumn($table, 'IsPrimary', self::FIELD_TYPE_BOOLEAN);
+
+        return $table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableSupportFocusType(Schema &$Schema)
+    {
+
+        $Table = $this->createTable($Schema, 'tblSupportFocusType');
+        $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Description', self::FIELD_TYPE_STRING);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableSpecial(Schema &$Schema)
+    {
+
+        $table = $this->createTable($Schema, 'tblSpecial');
+        $this->createColumn($table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($table, 'Date', self::FIELD_TYPE_DATETIME);
+        $this->createColumn($table, 'PersonEditor', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'Remark', self::FIELD_TYPE_TEXT);
+
+        return $table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblSpecial
+     * @param Table  $tblSpecialDisorderType
+     *
+     * @return Table
+     */
+    private function setTableSpecialDisorder(Schema &$Schema, Table $tblSpecial, Table $tblSpecialDisorderType)
+    {
+
+        $table = $this->createTable($Schema, 'tblSpecialDisorder');
+        $this->createForeignKey($table, $tblSpecial);
+        $this->createForeignKey($table, $tblSpecialDisorderType);
+
+        return $table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableSpecialDisorderType(Schema &$Schema)
+    {
+
+        $Table = $this->createTable($Schema, 'tblSpecialDisorderType');
+        $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Description', self::FIELD_TYPE_STRING);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableHandyCap(Schema &$Schema)
+    {
+
+        $table = $this->createTable($Schema, 'tblHandyCap');
+        $this->createColumn($table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($table, 'Date', self::FIELD_TYPE_DATETIME);
+        $this->createColumn($table, 'PersonEditor', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'LegalBasis', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'LearnTarget', self::FIELD_TYPE_STRING);
+        $this->createColumn($table, 'RemarkLesson', self::FIELD_TYPE_TEXT);
+        $this->createColumn($table, 'RemarkRating', self::FIELD_TYPE_TEXT);
 
         return $table;
     }

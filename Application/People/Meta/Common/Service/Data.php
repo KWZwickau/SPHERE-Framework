@@ -38,15 +38,23 @@ class Data extends AbstractData
     /**
      *
      * @param TblPerson $tblPerson
+     * @param bool      $IsForced
      *
      * @return bool|TblCommon
      */
-    public function getCommonByPerson(TblPerson $tblPerson)
+    public function getCommonByPerson(TblPerson $tblPerson, $IsForced = false)
     {
 
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCommon', array(
-            TblCommon::SERVICE_TBL_PERSON => $tblPerson->getId()
-        ));
+        if($IsForced){
+            return $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCommon', array(
+                TblCommon::SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+        } else {
+            return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCommon', array(
+                TblCommon::SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+        }
+
     }
 
     /**
@@ -348,5 +356,26 @@ class Data extends AbstractData
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCommonGender', array(
            TblCommonGender::ATTR_NAME => $Name
         ));
+    }
+
+    /**
+     * @param TblCommon $tblCommon
+     *
+     * @return bool
+     */
+    public function restoreCommon(TblCommon $tblCommon)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblPerson $Entity */
+        $Entity = $Manager->getEntityById('TblCommon', $tblCommon->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setEntityRemove(null);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
     }
 }

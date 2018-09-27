@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
+use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCertificate;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
@@ -48,11 +49,17 @@ abstract class Certificate extends Extension
     private $tblDivision = null;
 
     /**
+     * @var TblPrepareCertificate|null
+     */
+    private $tblPrepareCertificate = null;
+
+    /**
      * @param TblDivision $tblDivision
+     * @param TblPrepareCertificate|null $tblPrepareCertificate
      * @param bool|true $IsSample
      * @param array $pageList
      */
-    public function __construct(TblDivision $tblDivision = null, $IsSample = true, $pageList = array())
+    public function __construct(TblDivision $tblDivision = null, TblPrepareCertificate $tblPrepareCertificate = null, $IsSample = true, $pageList = array())
     {
 
         // Twig as string wouldn't be cached (used function getTwigTemplateString)
@@ -61,6 +68,7 @@ abstract class Certificate extends Extension
         $this->setGrade(false);
         $this->setAdditionalGrade(false);
         $this->tblDivision = $tblDivision;
+        $this->tblPrepareCertificate = $tblPrepareCertificate;
         $this->IsSample = (bool)$IsSample;
 
         // need for Preview frontend (getTemplateInformationForPreview)
@@ -115,7 +123,7 @@ abstract class Certificate extends Extension
 
         // für Lernentwicklungsbericht von Radebeul 2cm Rand (1,4 cm scheint Standard zu seien)
         if (strpos(get_class($this), 'RadebeulLernentwicklungsbericht') !== false) {
-            $InjectStyle = 'body { margin-left: 0.6cm !important; margin-right: 0.6cm !important; }';
+            $InjectStyle = 'body { margin-left: 1.2cm !important; margin-right: 1.3cm !important; }';
         } else {
             $InjectStyle = '';
         }
@@ -150,6 +158,18 @@ abstract class Certificate extends Extension
             return false;
         } else {
             return $this->tblDivision;
+        }
+    }
+
+    /**
+     * @return false|TblPrepareCertificate
+     */
+    public function getTblPrepareCertificate()
+    {
+        if (null === $this->tblPrepareCertificate) {
+            return false;
+        } else {
+            return $this->tblPrepareCertificate;
         }
     }
 
@@ -786,7 +806,6 @@ abstract class Certificate extends Extension
                     $SubjectSlice->addSection($SubjectSection);
                     $SectionList[] = $SubjectSection;
                 }
-
             }
         }
 
@@ -1689,6 +1708,11 @@ abstract class Certificate extends Extension
                     ) {
                         $profileAppendText = 'Profil mit informatischer Bildung';
                     }
+                // Bei Annaberg bei keinem Profil (Youtrack: SSW-2355)
+                } elseif ($tblConsumer
+                    && $tblConsumer->getAcronym() == 'EGE'
+                ) {
+                    // keine Anpassung
                 } elseif (strpos(strtolower($tblSubject->getName()), 'wissen') !== false
                     && $this->getTblDivision()
                     && $this->getTblDivision()->getTblLevel()
@@ -2702,7 +2726,8 @@ abstract class Certificate extends Extension
                             , $widthText);
                     }
 
-                    $TextSizeSmall = '8px';
+                    // Zeugnistext soll nicht verkleinert werden SSW-2331
+//                    $TextSizeSmall = '8px';
 
                     $SubjectSection->addElementColumn((new Element())
                         ->setContent('{% if(Content.P' . $personId . '.Grade.Data["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
@@ -2713,28 +2738,31 @@ abstract class Certificate extends Extension
                         ->styleAlignCenter()
                         ->styleBackgroundColor('#E9E9E9')
                         ->styleBorderBottom($IsGradeUnderlined ? '1px' : '0px', '#000')
-                        ->stylePaddingTop(
-                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
-                                 4px
-                             {% else %}
-                                 2px
-                             {% endif %}'
-                        )
-                        ->stylePaddingBottom(
-                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
-                                 5px
-                             {% else %}
-                                 2px
-                             {% endif %}'
-                        )
+//                        ->stylePaddingTop(
+//                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+//                                 4px
+//                             {% else %}
+//                                 2px
+//                             {% endif %}'
+//                        )
+//                        ->stylePaddingBottom(
+//                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+//                                 5px
+//                             {% else %}
+//                                 2px
+//                             {% endif %}'
+//                        )
+                        ->stylePaddingTop('2px')
+                        ->stylePaddingBottom('2px')
                         ->styleMarginTop($isShrinkMarginTop ? '0px' : $marginTop)
-                        ->styleTextSize(
-                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
-                                 ' . $TextSizeSmall . '
-                             {% else %}
-                                 ' . $TextSize . '
-                             {% endif %}'
-                        )
+                        ->styleTextSize($TextSize)
+//                        ->styleTextSize(
+//                            '{% if(Content.P' . $personId . '.Grade.Data.IsShrinkSize["' . $Subject['SubjectAcronym'] . '"] is not empty) %}
+//                                 ' . $TextSizeSmall . '
+//                             {% else %}
+//                                 ' . $TextSize . '
+//                             {% endif %}'
+//                        )
                         , $widthGrade);
 
                     if ($isShrinkMarginTop && $Lane == 2) {

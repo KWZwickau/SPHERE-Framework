@@ -130,7 +130,7 @@ class StudentFilter extends Extension
 
         $TableContent = $this->getStudentFilterResult($Year, $Division, $Field);
 
-        $Table = new TableData($TableContent, null,
+        $Table = (new TableData($TableContent, null,
             array(
                 'Check'         => 'Auswahl',
                 'Name'          => 'Name',
@@ -148,7 +148,7 @@ class StudentFilter extends Extension
                 'info'       => false,
                 'searching'  => false,
                 'responsive' => false
-            ));
+            )))->setHash('MassReplaceStudent' . $Node . $Field->getLabel());
 
         return new Layout(
             new LayoutGroup(
@@ -298,6 +298,13 @@ class StudentFilter extends Extension
 //                    $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
                     $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                     if ($tblStudent) {
+                        // Grunddaten
+                        if($Label == 'Prefix'){
+                            $DataPerson['Edit'] = $tblStudent->getPrefix();
+                        }
+                        if($Label == 'Beginnt am'){
+                            $DataPerson['Edit'] = $tblStudent->getSchoolAttendanceStartDate();
+                        }
                         // Transfer
                         if ($tblStudentTransferType) {
 //                        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
@@ -315,11 +322,23 @@ class StudentFilter extends Extension
                                 ) {
                                     $DataPerson['Edit'] = $tblType->getName();
                                 }
+                                if (($tblStudentSchoolEnrollmentType = $tblStudentTransfer->getTblStudentSchoolEnrollmentType())
+                                    && $Label == 'Einschulungsart'
+                                    && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
+                                ) {
+                                    $DataPerson['Edit'] = $tblStudentSchoolEnrollmentType->getName();
+                                }
                                 if (($tblCourse = $tblStudentTransfer->getServiceTblCourse()) && $Label == 'Bildungsgang'
                                     && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
                                 ) {
                                     $DataPerson['Edit'] = $tblCourse->getName();
                                 }
+                                if (($transferDate = $tblStudentTransfer->getTransferDate()) && $Label == 'Datum'
+                                    && $tblStudentTransferType->getIdentifier() == 'ENROLLMENT'
+                                ) {
+                                    $DataPerson['Edit'] = $transferDate;
+                                }
+
                                 // Schüler - Aufnahme
                                 if (($tblCompany = $tblStudentTransfer->getServiceTblCompany()) && $Label == 'Abgebende Schule / Kita'
                                     && $tblStudentTransferType->getIdentifier() == 'ARRIVE'
@@ -335,6 +354,11 @@ class StudentFilter extends Extension
                                     && $tblStudentTransferType->getIdentifier() == 'ARRIVE'
                                 ) {
                                     $DataPerson['Edit'] = $tblCourse->getName();
+                                }
+                                if (($transferDate = $tblStudentTransfer->getTransferDate()) && $Label == 'Datum'
+                                    && $tblStudentTransferType->getIdentifier() == 'ARRIVE'
+                                ) {
+                                    $DataPerson['Edit'] = $transferDate;
                                 }
 
                                 // Schüler - Abgabe
@@ -352,6 +376,11 @@ class StudentFilter extends Extension
                                     && $tblStudentTransferType->getIdentifier() == 'LEAVE'
                                 ) {
                                     $DataPerson['Edit'] = $tblCourse->getName();
+                                }
+                                if (($transferDate = $tblStudentTransfer->getTransferDate()) && $Label == 'Datum'
+                                    && $tblStudentTransferType->getIdentifier() == 'LEAVE'
+                                ) {
+                                    $DataPerson['Edit'] = $transferDate;
                                 }
 
                                 // Schulverlauf
@@ -426,6 +455,26 @@ class StudentFilter extends Extension
                                     $DataPerson['Edit'] = new Muted('('.$tblSubject->getAcronym().') ').$tblSubject->getName();
                                 }
                             }
+                            if ($Label == new Muted(new Small($i . '. Fremdsprache von Klasse'))){
+                                $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE');
+                                $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i);
+                                $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
+                                    $tblStudentSubjectType, $tblStudentSubjectRanking);
+                                if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                                    $DataPerson['Edit'] = ($tblStudentSubject->getServiceTblLevelFrom() ? $tblStudentSubject->getServiceTblLevelFrom()->getName() . ' ' : '')
+                                        . new Muted('('.$tblSubject->getAcronym().') ');
+                                }
+                            }
+                            if ($Label == new Muted(new Small($i . '. Fremdsprache bis Klasse'))){
+                                $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE');
+                                $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($i);
+                                $tblStudentSubject = Student::useService()->getStudentSubjectByStudentAndSubjectAndSubjectRanking($tblStudent,
+                                    $tblStudentSubjectType, $tblStudentSubjectRanking);
+                                if ($tblStudentSubject && ($tblSubject = $tblStudentSubject->getServiceTblSubject())) {
+                                    $DataPerson['Edit'] = ($tblStudentSubject->getServiceTblLevelTill() ? $tblStudentSubject->getServiceTblLevelTill()->getName() . ' ' : '')
+                                        . new Muted('('.$tblSubject->getAcronym().') ');
+                                }
+                            }
                         }
                     }
                 }
@@ -448,7 +497,7 @@ class StudentFilter extends Extension
 //                }
                 $DataPerson['StudentNumber'] = '';
                 if (isset($tblStudent) && $tblStudent && $DataPerson['Name']) {
-                    $DataPerson['StudentNumber'] = $tblStudent->getIdentifier();
+                    $DataPerson['StudentNumber'] = $tblStudent->getIdentifierComplete();
                 }
 
                 if (!isset($DataPerson['ProspectYear'])) {

@@ -23,7 +23,9 @@ class C01
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('C01. Anzahl der Schüler, die im <u>Schuljahr {{ Content.SchoolYear.Past }}</u> diese Schule besucht haben und nicht versetzt worden sind, nach Klassen- bzw. Jahrgangsstufen')
+                ->setContent('C01. Anzahl der Schüler, die im <u>Schuljahr {{ Content.SchoolYear.Past }}</u> 
+                    diese Schule besucht haben und nicht versetzt </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                    worden sind, nach Klassen- bzw. Jahrgangsstufen')
             );
 
         $sliceList[] = (new Slice())
@@ -225,6 +227,7 @@ class C01
                             &nbsp;
                         {% endif %}
                     ')
+                ->styleBackgroundColor('lightgrey')
                 ->styleAlignCenter()
                 ->styleBorderRight(), '5%'
             )
@@ -236,6 +239,7 @@ class C01
                             &nbsp;
                         {% endif %}
                     ')
+                ->styleBackgroundColor('lightgrey')
                 ->styleAlignCenter()
                 ->styleBorderRight(), '5%'
             );

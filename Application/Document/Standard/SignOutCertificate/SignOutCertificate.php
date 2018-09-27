@@ -12,6 +12,7 @@ use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -19,6 +20,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -128,7 +130,7 @@ class SignOutCertificate extends Extension
                                 ),
                                 array(
                                     'columnDefs' => array(
-                                        array('type' => 'german-string', 'targets' => 0),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
                                         array('width' => '1%', 'targets' => -1),
                                     ),
                                 )
@@ -151,6 +153,7 @@ class SignOutCertificate extends Extension
     {
 
         $Stage = new Stage('Schülerüberweisung', 'Erstellen');
+        $Stage->addButton(new Standard('Zurück', '/Document/Standard/SignOutCertificate', new ChevronLeft()));
         $tblPerson = Person::useService()->getPersonById($Id);
         $Global = $this->getGlobal();
         if ($tblPerson) {

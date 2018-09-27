@@ -91,15 +91,21 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblCustody
      */
-    public function getCustodyByPerson(TblPerson $tblPerson)
+    public function getCustodyByPerson(TblPerson $tblPerson, $isForced = false)
     {
-
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCustody', array(
-            TblCustody::SERVICE_TBL_PERSON => $tblPerson->getId()
-        ));
+        if ($isForced) {
+            return $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCustody', array(
+                TblCustody::SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+        } else {
+            return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCustody', array(
+                TblCustody::SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+        }
     }
 
     /**
@@ -132,6 +138,27 @@ class Data extends AbstractData
             } else {
                 $Manager->killEntity($Entity);
             }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblCustody $tblCustody
+     *
+     * @return bool
+     */
+    public function restoreCustody(TblCustody $tblCustody)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblCustody $Entity */
+        $Entity = $Manager->getEntityById('TblCustody', $tblCustody->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setEntityRemove(null);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
         }
         return false;

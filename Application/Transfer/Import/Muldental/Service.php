@@ -8,7 +8,11 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Course\Course;
@@ -23,11 +27,14 @@ use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -1731,5 +1738,161 @@ class Service
         }
 
         return new Danger('File nicht gefunden');
+    }
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param UploadedFile|null $File
+     *
+     * @return IFormInterface|Danger|string
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function createMinimumGradeCountFromFile(
+        IFormInterface $Form = null,
+        UploadedFile $File = null
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $File) {
+            return $Form;
+        }
+
+        if (null !== $File) {
+            if ($File->getError()) {
+                $Form->setError('File', 'Fehler');
+            } else {
+
+                /**
+                 * Prepare
+                 */
+                $File = $File->move($File->getPath(), $File->getFilename().'.'.$File->getClientOriginalExtension());
+                /**
+                 * Read
+                 */
+                //$File->getMimeType()
+                /** @var PhpExcel $Document */
+                $Document = Document::getDocument($File->getPathname());
+                if (!$Document instanceof PhpExcel) {
+                    $Form->setError('File', 'Fehler');
+                    return $Form;
+                }
+
+                $Y = $Document->getSheetRowCount();
+
+                $tblSchoolType = false;
+                $type = trim($Document->getValue($Document->getCell(0,0)));
+                if ($type == 'GY') {
+                    $tblSchoolType = Type::useService()->getTypeByName('Gymnasium');
+                } elseif ($type == 'OS') {
+                    $tblSchoolType = Type::useService()->getTypeByName('Mittelschule / Oberschule');
+                }
+
+                if (!$tblSchoolType) {
+                    return new Danger('Schultyp: ' . $type . ' nicht gefunden', new Exclamation());
+                }
+
+                $period = SelectBoxItem::PERIOD_FULL_YEAR;
+                $level = trim($Document->getValue($Document->getCell(1,0)));
+                if ($type == 'GY' && strpos($level, '/') !== false) {
+                    $array = explode('/', $level);
+                    $level = $array[0];
+                    $periodName = $array[1];
+                    if ($periodName == 'I') {
+                        $period = SelectBoxItem::PERIOD_FIRST_PERIOD;
+                    } elseif ($periodName == 'II') {
+                        $period = SelectBoxItem::PERIOD_SECOND_PERIOD;
+                    }
+
+                    $isSekTwo = true;
+                } else {
+                    $isSekTwo = false;
+                }
+
+                $tblLevel = Division::useService()->getLevelBy($tblSchoolType, $level);
+                if (!$tblLevel) {
+                    return new Danger('Klassenstufe: ' . $level . ' nicht gefunden', new Exclamation());
+                }
+
+                $panelContent = array();
+                for ($RunY = 2; $RunY < $Y; $RunY++) {
+                    $course = SelectBoxItem::COURSE_NONE;
+                    $subject = trim($Document->getValue($Document->getCell(0, $RunY)));
+                    if ($subject != '') {
+                        if ($isSekTwo && strpos($subject, '-') !== false) {
+                            $array = explode('-', $subject);
+                            $subject = trim($array[0]);
+                            $courseName = trim($array[1]);
+                            if ($courseName == 'GK') {
+                                $course = SelectBoxItem::COURSE_BASIC;
+                            } elseif ($courseName == 'LK') {
+                                $course = SelectBoxItem::COURSE_ADVANCED;
+                            }
+                        }
+
+                        if ($subject == 'Sonst. (NK)') {
+                            if (($tblOrientationAll = Subject::useService()->getSubjectOrientationAll())) {
+                                foreach ($tblOrientationAll as $tblSubject) {
+                                    $item = $tblSubject->getDisplayName();
+                                    $panelContent[] = $item;
+
+                                    $this->createMinimumGradeCounts($tblLevel, $tblSubject, $Document, $RunY, $period, $course);
+                                }
+                            }
+                        } elseif (($tblSubject = Subject::useService()->getSubjectByAcronym($subject))) {
+                            $item = $tblSubject->getDisplayName();
+                            $panelContent[] = $item;
+
+                            $this->createMinimumGradeCounts($tblLevel, $tblSubject, $Document, $RunY, $period, $course);
+                        } else {
+                            $item = new \SPHERE\Common\Frontend\Text\Repository\Danger('Fach: ' . $subject . ' nicht gefunden');#
+                            $panelContent[] = $item;
+                        }
+                    }
+                }
+
+                return new Standard('Zurück', '/Transfer/Import/Muldental/MinimumGradeCount', new ChevronLeft())
+                    . new Panel('Fächer', $panelContent);
+            }
+        }
+        return new Danger('File nicht gefunden');
+    }
+
+    /**
+     * @param TblLevel $tblLevel
+     * @param TblSubject $tblSubject
+     * @param PhpExcel $Document
+     * @param $RunY
+     * @param $period
+     * @param $course
+     */
+    public function createMinimumGradeCounts(TblLevel $tblLevel,TblSubject $tblSubject,PhpExcel $Document, $RunY, $period, $course)
+    {
+        $countHighlighted = trim($Document->getValue($Document->getCell(1, $RunY)));
+        if ($countHighlighted != '' && $countHighlighted > 0) {
+            Gradebook::useService()->createMinimumGradeCount(
+                $countHighlighted,
+                $tblLevel,
+                $tblSubject,
+                null,
+                $period,
+                SelectBoxItem::HIGHLIGHTED_IS_HIGHLIGHTED,
+                $course
+            );
+        }
+
+        $count = trim($Document->getValue($Document->getCell(2, $RunY)));
+        if ($count != '' && $count > 0) {
+            Gradebook::useService()->createMinimumGradeCount(
+                $count,
+                $tblLevel,
+                $tblSubject,
+                null,
+                $period,
+                SelectBoxItem::HIGHLIGHTED_IS_NOT_HIGHLIGHTED,
+                $course
+            );
+        }
     }
 }

@@ -7,6 +7,7 @@ use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -85,7 +86,7 @@ class Frontend extends Extension implements IFrontendInterface
                     ($CompanyNumber != '' ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_WARNING),
                     new PullRight(new Standard('', '/Setting/Consumer/Responsibility/Edit', new Edit(),
                         array('Id' => $tblResponsibility->getId()),
-                        'Bearbeiten der Unternehmensnr. des Unfallversicherungsträgers')));
+                        'Bearbeiten')));
 
                 if ($tblCompany) {
 
@@ -197,10 +198,11 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $Id
      * @param null $CompanyNumber
+     * @param null $Responsibility
      *
      * @return Stage
      */
-    public function frontendResponsibilityEdit($Id = null, $CompanyNumber = null)
+    public function frontendResponsibilityEdit($Id = null, $CompanyNumber = null, $Responsibility = null)
     {
 
         $Stage = new Stage('Unternehmensnr. des Unfallversicherungsträgers', 'Bearbeiten');
@@ -210,9 +212,10 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage->setContent(new Warning('Dieser Schulträger wurde nicht gefunden.')
                 .new Redirect('/Setting/Consumer/Responsibility', Redirect::TIMEOUT_ERROR));
         }
-        $Form = new Form(new FormGroup(new FormRow(new FormColumn(
+        $Form = new Form(new FormGroup(new FormRow(array(new FormColumn(
             new Panel('Unternehmensnr. des Unfallversicherungsträgers', new TextField('CompanyNumber', '', ''),
-                Panel::PANEL_TYPE_SUCCESS)
+                Panel::PANEL_TYPE_SUCCESS)),
+            new FormColumn(new HiddenField('Responsibility[IsSubmit]'))
         ))));
         $Form->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
@@ -243,7 +246,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new Well(Responsibility::useService()->updateResponsibility(
-                                $Form, $tblResponsibility, $CompanyNumber
+                                $Form, $tblResponsibility, $CompanyNumber, $Responsibility
                             ))
                             , 6)
                     )

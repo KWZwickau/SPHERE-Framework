@@ -26,6 +26,7 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -208,6 +209,41 @@ class Service extends AbstractService
 
         $tblType ? $typeId = $tblType->getId() : $typeId = 0;
 
+        $changeOrientation = false;
+        if ($tblType) {
+            if ($tblType->getName() == 'Mittelschule / Oberschule') {
+                if (($tblSetting = Consumer::useService()->getSetting(
+                        'Api',
+                        'Education',
+                        'Certificate',
+                        'OrientationAcronym'
+                    ))
+                    && $tblSetting->getValue()
+                ) {
+
+                } else {
+                    $changeOrientation = true;
+                }
+            }
+        }
+        $changeProfile = false;
+        if ($tblType) {
+            if ($tblType->getName() == 'Gymnasium') {
+                if (($tblSetting = Consumer::useService()->getSetting(
+                        'Api',
+                        'Education',
+                        'Certificate',
+                        'ProfileAcronym'
+                    ))
+                    && $tblSetting->getValue()
+                ) {
+
+                } else {
+                    $changeProfile = true;
+                }
+            }
+        }
+
         $count = 1;
         /** @var TblPrepareStudent $item */
         foreach ($list as $item) {
@@ -256,26 +292,53 @@ class Service extends AbstractService
                     && ($tblDocumentSubjectList = $this->getDocumentSubjectListByDocument($tblDocument))
                 ) {
                     foreach ($tblDocumentSubjectList as $tblDocumentSubject) {
-                        if (($tblSubject = $tblDocumentSubject->getServiceTblSubject())
-                            && ($tblPrepareGrade = Prepare::useService()->getPrepareGradeBySubject($tblPrepare,
+                        if (($tblSubject = $tblDocumentSubject->getServiceTblSubject())) {
+                            $acronym = $tblSubject->getAcronym();
+                            if ($changeOrientation && $tblSubject->getAcronym() == 'NK') {
+                                if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectAllByPersonAndYear($tblPerson, $tblYear))) {
+                                    foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                                        if (($tblSubjectTemp = $tblDivisionSubject->getServiceTblSubject())
+                                            && Subject::useService()->isOrientation($tblSubjectTemp)
+                                        ) {
+                                            $tblSubject = $tblSubjectTemp;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            if ($changeProfile && $tblSubject->getAcronym() == 'PRO') {
+                                if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectAllByPersonAndYear($tblPerson, $tblYear))) {
+                                    foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                                        if (($tblSubjectTemp = $tblDivisionSubject->getServiceTblSubject())
+                                            && Subject::useService()->isProfile($tblSubjectTemp)
+                                        ) {
+                                            $tblSubject = $tblSubjectTemp;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (($tblPrepareGrade = Prepare::useService()->getPrepareGradeBySubject($tblPrepare,
                                 $tblPerson, $tblDivision, $tblSubject,
                                 Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')))
-                        ) {
-                            $value = trim($tblPrepareGrade->getGrade());
-                            if ($value == 'nicht erteilt') {
-                                $value = 'ne';
-                            } elseif ($value == 'teilgenommen') {
-                                $value = 't';
-                            } elseif ($value == 'Keine Benotung') {
-                                $value = 'KB';
-                            } elseif ($value == 'befreit') {
-                                $value = 'b';
+                            ) {
+                                $value = trim($tblPrepareGrade->getGrade());
+                                if ($value == 'nicht erteilt') {
+                                    $value = 'ne';
+                                } elseif ($value == 'teilgenommen') {
+                                    $value = 't';
+                                } elseif ($value == 'Keine Benotung') {
+                                    $value = 'KB';
+                                } elseif ($value == 'befreit') {
+                                    $value = 'b';
+                                }
+                                $Data['Certificate'][$typeId]['Data' . $count]['SubjectGrade'][$acronym]
+                                    = $value;
+                            } elseif ($tblDocumentSubject->isEssential()) {
+                                $Data['Certificate'][$typeId]['Data' . $count]['SubjectGrade'][$acronym]
+                                    = '&ndash;';
                             }
-                            $Data['Certificate'][$typeId]['Data' . $count]['SubjectGrade'][$tblSubject->getAcronym()]
-                                = $value;
-                        } elseif ($tblDocumentSubject->isEssential()) {
-                            $Data['Certificate'][$typeId]['Data' . $count]['SubjectGrade'][$tblSubject->getAcronym()]
-                                = '&ndash;';
                         }
                     }
                 }
@@ -504,7 +567,8 @@ class Service extends AbstractService
             if (($tblPrepare = $item->getTblPrepareCertificate())
                 && ($tblDivision = $tblPrepare->getServiceTblDivision())
             ) {
-                list($tempArray, $basicCourses) =  $this->getCourses($tblPerson, $tblDivision, $tempArray, $basicCourses);
+                list($tempArray, $basicCourses) = $this->getCourses($tblPerson, $tblDivision, $tempArray,
+                    $basicCourses);
                 if (empty($advancedCourses)) {
                     $advancedCourses = $tempArray;
                 }
@@ -658,7 +722,13 @@ class Service extends AbstractService
 
         foreach ($Data as $ranking => $item) {
             $isEssential = isset($item['IsEssential']);
-            $tblSubject = Subject::useService()->getSubjectById($item['Subject']);
+            if ($item['Subject'] == TblSubject::PSEUDO_ORIENTATION_ID) {
+                $tblSubject = Subject::useService()->getPseudoOrientationSubject();
+            } elseif ($item['Subject'] == TblSubject::PSEUDO_PROFILE_ID) {
+                $tblSubject = Subject::useService()->getPseudoProfileSubject();
+            } else {
+                $tblSubject = Subject::useService()->getSubjectById($item['Subject']);
+            }
             if (($tblDocumentSubject = $this->getDocumentSubjectByDocumentAndRanking($tblDocument, $ranking))) {
                 if ($tblSubject) {
                     (new Data($this->getBinding()))->updateDocumentSubject(

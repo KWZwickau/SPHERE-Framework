@@ -29,7 +29,8 @@ class E07
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E07. Schüler im Schuljahr {{ Content.SchoolYear.Current }} nach Klassen- bzw. Jahrgangsstufen und der im vergangenen Schuljahr besuchten Schulart')
+                ->setContent('E07. Schüler im Schuljahr {{ Content.SchoolYear.Current }} nach der im vergangenen Schuljahr
+                    besuchten Schulart und Klassen- </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; bzw. Jahrgangsstufen')
             );
 
         $sliceList[] = (new Slice())

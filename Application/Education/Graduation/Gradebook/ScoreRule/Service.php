@@ -27,8 +27,16 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
+use SPHERE\Common\Frontend\Icon\Repository\Extern;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -669,8 +677,7 @@ abstract class Service extends ServiceMinimumGrade
         /**
          * Skip to Frontend
          */
-        $Global = $this->getGlobal();
-        if (!isset($Global->POST['Button']['Submit']) || $tblYear == null) {
+        if ($Data === null) {
             return $Stage;
         }
 
@@ -749,8 +756,7 @@ abstract class Service extends ServiceMinimumGrade
         /**
          * Skip to Frontend
          */
-        $Global = $this->getGlobal();
-        if (!isset($Global->POST['Button']['Submit']) || $tblYear == null) {
+        if ($Data === null) {
             return $Stage;
         }
 
@@ -1023,5 +1029,67 @@ abstract class Service extends ServiceMinimumGrade
 
         return (new Data($this->getBinding()))->updateScoreGroup($tblScoreGroup, $tblScoreGroup->getName(),
             $tblScoreGroup->getRound(), $tblScoreGroup->getMultiplier(), $tblScoreGroup->isEveryGradeASingleGroup(), $IsActive);
+    }
+
+    /**
+     * @return bool|Layout
+     */
+    public function getMissingSubjectsWithScoreType()
+    {
+
+        $list = array();
+        if (($tblYearList = Term::useService()->getYearByNow())) {
+            foreach ($tblYearList as $tblYear) {
+                if (($tblDivisionList = Division::useService()->getDivisionAllByYear($tblYear))) {
+                    foreach ($tblDivisionList as $tblDivision) {
+                        if (($tblDivisonSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision, false))) {
+                            foreach ($tblDivisonSubjectList as $tblDivisionSubject) {
+                                if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())
+                                    && $tblDivisionSubject->getHasGrading()
+                                ) {
+                                    if (($tblScoreRuleDivisionSubject = $this->getScoreRuleDivisionSubjectByDivisionAndSubject(
+                                        $tblDivision, $tblSubject
+                                    ))
+                                    && $tblScoreRuleDivisionSubject->getTblScoreType()
+                                    ) {
+                                        // ok
+                                    } else {
+                                        // missing SooreType
+                                        $list[$tblYear->getId()][$tblDivisionSubject->getId()] = 'Klasse: ' . $tblDivision->getDisplayName()
+                                            . ' Fach: ' . $tblSubject->getAcronym() . ' ' . $tblSubject->getName();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!empty($list)) {
+            $columns = array();
+            foreach ($list as $yearId => $array) {
+                if ($tblYear = Term::useService()->getYearById($yearId)) {
+                    $columns[] = new LayoutColumn(
+                        new Panel(
+                            'Fach-Klassen ohne Bewertungssystem im Schuljahr: ' . $tblYear->getDisplayName(),
+                            $array,
+                            Panel::PANEL_TYPE_WARNING,
+                            new Standard(
+                                '',
+                                '/Education/Graduation/Gradebook/Type',
+                                new Extern(),
+                                array(),
+                                'Zu den Bewertungssystemen wechseln'
+                            )
+                        ), 6
+                    );
+                }
+            }
+
+            return new Layout(new LayoutGroup(new LayoutRow($columns)));
+        }
+
+        return false;
     }
 }

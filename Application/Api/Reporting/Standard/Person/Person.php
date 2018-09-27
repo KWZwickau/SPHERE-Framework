@@ -210,4 +210,29 @@ class Person
         $fileLocation = ReportingPerson::useService()->createMetaDataComparisonExcel($Person, $Year, $Division);
         return FileSystem::getDownload($fileLocation->getRealPath(),"Stammdatenabfrage"." ".date("Y-m-d H:i:s").".xlsx")->__toString();
     }
+
+    /**
+     * @param null $DivisionId
+     *
+     * @return bool|string
+     */
+    public function downloadMedicalRecordClassList($DivisionId = null)
+    {
+
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        if ($tblDivision) {
+            $PersonList = ReportingPerson::useService()->createMedicalRecordClassList($tblDivision);
+            if ($PersonList) {
+                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+                if ($tblPersonList) {
+                    $fileLocation = ReportingPerson::useService()->createMedicalRecordClassListExcel($PersonList, $tblPersonList);
+                    return FileSystem::getDownload($fileLocation->getRealPath(),
+                        "Krankenakte_Klassenliste ".$tblDivision->getDisplayName()
+                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
+                }
+            }
+        }
+
+        return false;
+    }
 }

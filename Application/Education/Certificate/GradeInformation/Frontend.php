@@ -163,6 +163,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Division' => 'Klasse',
                                 'Option' => ''
                             ), array(
+                                'columnDefs' => array(
+                                    array('type' => 'natural', 'targets' => 2),
+                                    array("orderable" => false, "targets"   => 3),
+                                ),
                                 'order' => array(
                                     array('0', 'desc'),
                                     array('1', 'asc'),
@@ -242,6 +246,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Division' => 'Klasse',
                                 'Option' => ''
                             ), array(
+                                'columnDefs' => array(
+                                    array('type' => 'natural', 'targets' => 2),
+                                    array("orderable" => false, "targets"   => 3),
+                                ),
                                 'order' => array(
                                     array('0', 'desc'),
                                     array('1', 'asc'),
@@ -278,9 +286,6 @@ class Frontend extends Extension implements IFrontendInterface
             $tblPrepareCertificateAllByDivision = Prepare::useService()->getPrepareAllByDivision($tblDivision, true);
             if ($tblPrepareCertificateAllByDivision) {
                 foreach ($tblPrepareCertificateAllByDivision as $tblPrepareCertificate) {
-
-                    // Setzen der Zeugnisvorlagen
-                    Prepare::useService()->setTemplatesAllByPrepareCertificate($tblPrepareCertificate);
 
                     $tableData[] = array(
                         'Date' => $tblPrepareCertificate->getDate(),

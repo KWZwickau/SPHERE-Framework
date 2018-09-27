@@ -48,7 +48,6 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setTitle('Rechnungen');
         $Stage->setDescription('Übersicht');
 //        $Stage->addButton(new Standard('Aufträge', '/Billing/Bookkeeping/Invoice/Control', new Ok(), null, 'Freigeben von Rechnungen'));
-//        new Backward();
 
         $tblInvoiceAll = Invoice::useService()->getInvoiceAll();
         $TableContent = array();

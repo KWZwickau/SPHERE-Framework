@@ -6,6 +6,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Child;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
@@ -99,7 +100,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
                 }
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Chemnitz/Person/ClassList', new EyeOpen(),
-                    array('DivisionId' => $tblDivision->getId()));
+                    array('DivisionId' => $tblDivision->getId()), 'Anzeigen');
                 $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
                 array_push($TableContent, $Item);
             });
@@ -119,10 +120,14 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Count' => 'Schüler',
                                         'Option' => ''
                                     ), array(
+                                        'columnDefs' => array(
+                                            array('type' => 'natural', 'targets' => array(1,3)),
+                                            array("orderable" => false, "targets"   => -1),
+                                        ),
                                         'order' => array(
                                             array(0, 'desc'),
                                             array(2, 'asc'),
-                                            array(1, 'asc')
+                                            array(1, 'asc'),
                                         )
                                     )
                                 )
@@ -171,6 +176,12 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Birthplace' => 'Geburtsort',
                                     ),
                                     array(
+                                        'columnDefs' => array(
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 4),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 7),
+                                    ),
                                         "pageLength" => -1,
                                         "responsive" => false
                                     )
@@ -238,24 +249,29 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new TableData($PersonList, null,
                                 array(
-                                    'Salutation' => 'Anrede',
-                                    'FirstName' => 'Vorname',
-                                    'LastName' => 'Name',
-                                    'Birthday' => 'Geburtsdatum',
-                                    'Division' => 'Unterbereich',
-                                    'Address' => 'Adresse',
-//                                    'StreetName'         => 'Straße',
-//                                    'StreetNumber'         => 'Hausnr.',
+                                    'Salutation'   => 'Anrede',
+                                    'Title'        => 'Titel',
+                                    'FirstName'    => 'Vorname',
+                                    'LastName'     => 'Name',
+                                    'Birthday'     => 'Geburtsdatum',
+                                    'Division'     => 'Unterbereich',
+                                    'Address'      => 'Adresse',
+//                                    'StreetName'   => 'Straße',
+//                                    'StreetNumber' => 'Hausnr.',
 //                                    'Code'         => 'PLZ',
 //                                    'City'         => 'Ort',
-                                    'Phone1' => 'Telefon 1',
-                                    'Phone2' => 'Telefon 2',
-                                    'Mail' => 'Mail',
+                                    'Phone1'       => 'Telefon 1',
+                                    'Phone2'       => 'Telefon 2',
+                                    'Mail'         => 'Mail',
                                 ),
                                 array(
                                     'order' => array(
                                         array(2, 'asc'),
-                                        array(1, 'asc')
+                                        array(1, 'asc'),
+                                    ),
+                                    'columnDefs' => array(
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
                                     ),
                                     "pageLength" => -1,
                                     "responsive" => false
@@ -343,6 +359,10 @@ class Frontend extends Extension implements IFrontendInterface
 //                                    'City'                 => 'Ort',
                                 ),
                                 array(
+                                    'columnDefs' => array(
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
+                                    ),
                                     "pageLength" => -1,
                                     "responsive" => false
                                 )
@@ -435,7 +455,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
                 }
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Chemnitz/Person/MedicList', new EyeOpen(),
-                    array('DivisionId' => $tblDivision->getId()));
+                    array('DivisionId' => $tblDivision->getId()), 'Anzeigen');
                 $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
                 array_push($TableContent, $Item);
             });
@@ -455,11 +475,15 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Count' => 'Schüler',
                                         'Option' => '',
                                     ), array(
+                                        'columnDefs' => array(
+                                            array('type' => 'natural', 'targets' => array(1,3)),
+                                            array("orderable" => false, "targets"   => -1),
+                                        ),
                                         'order' => array(
                                             array(0, 'desc'),
                                             array(2, 'asc'),
-                                            array(1, 'asc')
-                                        )
+                                            array(1, 'asc'),
+                                        ),
                                     )
                                 )
                                 , 12)
@@ -502,6 +526,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Address' => 'Adresse',
                                     ),
                                     array(
+                                        'columnDefs' => array(
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                        ),
                                         "pageLength" => -1,
                                         "responsive" => false
                                     )
@@ -591,7 +619,14 @@ class Frontend extends Extension implements IFrontendInterface
                                 array(
                                     'order' => array(
                                         array(2, 'asc'),
-                                        array(1, 'asc')
+                                        array(1, 'asc'),
+                                    ),
+                                    'columnDefs' => array(
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 12),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 14),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 15),
                                     ),
                                     "pageLength" => -1,
                                     "responsive" => false
@@ -687,8 +722,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
                 }
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Chemnitz/Person/ParentTeacherConferenceList',
-                    new EyeOpen(),
-                    array('DivisionId' => $tblDivision->getId()));
+                    new EyeOpen(), array('DivisionId' => $tblDivision->getId()), 'Anzeigen');
                 $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
                 array_push($TableContent, $Item);
             });
@@ -708,6 +742,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Count' => 'Schüler',
                                         'Option' => '',
                                     ), array(
+                                        'columnDefs' => array(
+                                            array('type' => 'natural', 'targets' => array(1,3)),
+                                            array("orderable" => false, "targets"   => -1),
+                                        ),
                                         'order' => array(
                                             array(0, 'desc'),
                                             array(2, 'asc'),
@@ -754,6 +792,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Attendance' => 'Anwesenheit',
                                     ),
                                     array(
+                                        'columnDefs' => array(
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                        ),
                                         "pageLength" => -1,
                                         "responsive" => false
                                     )
@@ -825,22 +867,27 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new TableData($PersonList, null,
                                 array(
-                                    'Salutation' => 'Anrede',
-                                    'FirstName' => 'Vorname',
-                                    'LastName' => 'Name',
-                                    'Address' => 'Adresse',
-//                                    'StreetName'         => 'Straße',
-//                                    'StreetNumber'         => 'Hausnr.',
+                                    'Salutation'   => 'Anrede',
+                                    'Title'        => 'Titel',
+                                    'FirstName'    => 'Vorname',
+                                    'LastName'     => 'Name',
+                                    'Address'      => 'Adresse',
+//                                    'StreetName'   => 'Straße',
+//                                    'StreetNumber' => 'Hausnr.',
 //                                    'Code'         => 'PLZ',
 //                                    'City'         => 'Ort',
-                                    'Phone' => 'Telefon',
-                                    'Mail' => 'Mail',
-                                    'Directorate' => 'Vorstand'
+                                    'Phone'        => 'Telefon',
+                                    'Mail'         => 'Mail',
+                                    'Directorate'  => 'Vorstand'
                                 ),
                                 array(
                                     'order' => array(
                                         array(2, 'asc'),
-                                        array(1, 'asc')
+                                        array(1, 'asc'),
+                                    ),
+                                    'columnDefs' => array(
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
                                     ),
                                     "pageLength" => -1,
                                     "responsive" => false
@@ -936,7 +983,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
                 }
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Chemnitz/Person/PrintClassList', new EyeOpen(),
-                    array('DivisionId' => $tblDivision->getId()));
+                    array('DivisionId' => $tblDivision->getId()), 'Anzeigen');
                 $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
                 array_push($TableContent, $Item);
             });
@@ -956,6 +1003,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Count' => 'Schüler',
                                         'Option' => '',
                                     ), array(
+                                        'columnDefs' => array(
+                                            array('type' => 'natural', 'targets' => array(1,3)),
+                                            array("orderable" => false, "targets"   => -1),
+                                        ),
                                         'order' => array(
                                             array(0, 'desc'),
                                             array(2, 'asc'),
@@ -1142,7 +1193,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Address' => 'Adresse',
                                         'PhoneNumbers' => 'Telefonnummer',
                                         'Group'        => 'Schüler&shy;gruppe',
-                                        'OrientationAndFrench'  => 'NK/Profil/FRZ',
+                                        'OrientationAndFrench'  => 'NK/Profil/FR',
                                         'Education'    => 'Bildungsgang',
                                         'Elective'     => 'Wahlfach',
                                     ),

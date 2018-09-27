@@ -57,6 +57,8 @@ class ApiContactAddress extends Extension implements IApiInterface
      * @param string $Method
      *
      * @return string
+     * @throws \Exception
+     * @throws \ReflectionException
      */
     public function exportApi($Method = '')
     {
@@ -90,21 +92,19 @@ class ApiContactAddress extends Extension implements IApiInterface
     }
 
     /**
-     * @param int $PersonId
-     *
      * @return ModalReceiver
      */
-    public static function receiverModal($PersonId)
+    public static function receiverModal()
     {
 
         return (new ModalReceiver('Hinzufügen/Bearbeiten der '.new Bold('Hauptadresse'), new Close()))
-            ->setIdentifier('Modal-'.$PersonId);
+            ->setIdentifier('Modal-ChangeAddress');
     }
 
     public static function pipelineOpen($PersonId)
     {
         $Pipeline = new Pipeline();
-        $Emitter = new ServerEmitter(self::receiverModal($PersonId), self::getEndpoint());
+        $Emitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'openModal'
         ));
@@ -117,11 +117,11 @@ class ApiContactAddress extends Extension implements IApiInterface
         return $Pipeline;
     }
 
-    public static function pipelineSave($PersonId)
+    public static function pipelineSave()
     {
 
         $Pipeline = new Pipeline();
-        $Emitter = new ServerEmitter(self::receiverModal($PersonId), self::getEndpoint());
+        $Emitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'saveModal'
         ));
@@ -141,7 +141,7 @@ class ApiContactAddress extends Extension implements IApiInterface
             'PersonId' => $PersonId
         ));
         $Pipeline->appendEmitter($Emitter);
-        $Pipeline->appendEmitter((new CloseModal(self::receiverModal($PersonId)))->getEmitter());
+        $Pipeline->appendEmitter((new CloseModal(self::receiverModal()))->getEmitter());
         return $Pipeline;
     }
 
@@ -201,7 +201,6 @@ class ApiContactAddress extends Extension implements IApiInterface
                     ))
                 )
             );
-//            .new Code(print_r($Global->POST, true));
     }
 
     private function formAddress($PersonId)
@@ -211,14 +210,14 @@ class ApiContactAddress extends Extension implements IApiInterface
         $tblCity = Address::useService()->getCityAll();
         $tblState = Address::useService()->getStateAll();
         array_push($tblState, new TblState(''));
-        $tblType = Address::useService()->getTypeAll();
+        $tblType = Address::useService()->getTypeByName('Hauptadresse');
 
         return (new Form(
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
                         new Panel('Anschrift', array(
-                            (new SelectBox('Type[Type]', 'Typ', array('{{ Name }} {{ Description }}' => $tblType),
+                            (new SelectBox('Type[Type]', 'Typ', array('Name' => array($tblType)),
                                 new TileBig()))->setDisabled(),
                             (new AutoCompleter('Street[Name]', 'Straße', 'Straße',
                                 array('StreetName' => $tblAddress), new MapMarker()
@@ -256,7 +255,7 @@ class ApiContactAddress extends Extension implements IApiInterface
                         , 4),
                     new FormColumn(
                         (new Primary('Speichern', '', new Save(), array('PersonId' => $PersonId)))
-                            ->ajaxPipelineOnClick(self::pipelineSave($PersonId))
+                            ->ajaxPipelineOnClick(self::pipelineSave())
                         , 12),
                 )),
             ))

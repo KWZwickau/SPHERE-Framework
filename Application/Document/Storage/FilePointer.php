@@ -40,6 +40,15 @@ class FilePointer extends DummyFile
     }
 
     /**
+     * @param bool $isDestruct
+     */
+    public function setDestruct($isDestruct = true)
+    {
+
+        $this->Destruct = $isDestruct;
+    }
+
+    /**
      *
      */
     public function __destruct()

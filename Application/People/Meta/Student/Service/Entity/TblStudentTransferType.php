@@ -17,6 +17,10 @@ class TblStudentTransferType extends Element
 
     const ATTR_IDENTIFIER = 'Identifier';
     const ATTR_NAME = 'Name';
+    const ENROLLMENT = 'ENROLLMENT';
+    const ARRIVE = 'ARRIVE';
+    const LEAVE = 'LEAVE';
+    const PROCESS = 'PROCESS';
 
     /**
      * @Column(type="string")

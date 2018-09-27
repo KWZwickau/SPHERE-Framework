@@ -35,12 +35,12 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentLocker;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransfer;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransport;
-use SPHERE\Application\People\Meta\Student\Service\Service\Integration;
+use SPHERE\Application\People\Meta\Student\Service\Service\Support;
 use SPHERE\Application\People\Meta\Student\Service\Setup;
-use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -50,7 +50,7 @@ use SPHERE\Common\Window\Redirect;
  *
  * @package SPHERE\Application\People\Meta\Student
  */
-class Service extends Integration
+class Service extends Support
 {
 
     /**
@@ -220,11 +220,11 @@ class Service extends Integration
     }
 
     /**
-     * @param                $Disease
-     * @param                $Medication
-     * @param                $Insurance
-     * @param int|null       $InsuranceState
-     * @param TblPerson|null $tblPersonAttendingDoctor
+     * @param string   $Disease
+     * @param string   $Medication
+     * @param string   $Insurance
+     * @param int|null $InsuranceState
+     * @param string   $AttendingDoctor
      *
      * @return TblStudentMedicalRecord
      */
@@ -233,13 +233,13 @@ class Service extends Integration
         $Medication,
         $Insurance,
         $InsuranceState = 0,
-        TblPerson $tblPersonAttendingDoctor = null
+        $AttendingDoctor = ''
     ) {
 
         return (new Data($this->getBinding()))->createStudentMedicalRecord(
             $Disease,
             $Medication,
-            $tblPersonAttendingDoctor,
+            $AttendingDoctor,
             $InsuranceState,
             $Insurance
         );
@@ -319,7 +319,8 @@ class Service extends Integration
 
     /**
      * @param TblPerson                    $tblPerson
-     * @param                              $Identifier
+     * @param string                       $Prefix
+     * @param string                       $Identifier
      * @param TblStudentMedicalRecord|null $tblStudentMedicalRecord
      * @param TblStudentTransport|null     $tblStudentTransport
      * @param TblStudentBilling|null       $tblStudentBilling
@@ -332,6 +333,7 @@ class Service extends Integration
      */
     public function createStudent(
         TblPerson $tblPerson,
+        $Prefix = '',
         $Identifier = '',
         TblStudentMedicalRecord $tblStudentMedicalRecord = null,
         TblStudentTransport $tblStudentTransport = null,
@@ -343,6 +345,7 @@ class Service extends Integration
     ) {
 
         return (new Data($this->getBinding()))->createStudent($tblPerson,
+            $Prefix,
             $Identifier,
             $tblStudentMedicalRecord,
             $tblStudentTransport,
@@ -351,6 +354,28 @@ class Service extends Integration
             $tblStudentBaptism,
             $tblStudentIntegration,
             $SchoolAttendanceStartDate);
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param $Prefix
+     * @return bool|TblStudent
+     */
+    public function updateStudentPrefix(TblStudent $tblStudent, $Prefix)
+    {
+
+        return (new Data($this->getBinding()))->updateStudentPrefix($tblStudent,$Prefix);
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param $Identifier
+     * @return bool|TblStudent
+     */
+    public function updateStudentIdentifier(TblStudent $tblStudent, $Identifier)
+    {
+
+        return (new Data($this->getBinding()))->updateStudentIdentifier($tblStudent,$Identifier);
     }
 
     /**
@@ -373,20 +398,23 @@ class Service extends Integration
 
         $tblStudent = $this->getStudentByPerson($tblPerson);
 
-        $AttendingDoctor = Person::useService()->getPersonById($Meta['MedicalRecord']['AttendingDoctor']);
-        $IntegrationPerson = Person::useService()->getPersonById($Meta['Integration']['School']['Person']);
-        $IntegrationCompany = Company::useService()->getCompanyById($Meta['Integration']['School']['Company']);
         $SiblingRank = Relationship::useService()->getSiblingRankById($Meta['Billing']);
 
-        if ($tblStudent) {
+        $Prefix = $Meta['Student']['Prefix'];
+        $tblSetting = Consumer::useService()->getSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber');
+        if($tblSetting && $tblSetting->getValue()){
+            $biggestIdentifier = Student::useService()->getStudentMaxIdentifier();
+            $Meta['Student']['Identifier'] = $biggestIdentifier + 1;
+        }
 
+        if ($tblStudent) {
             $tblStudentMedicalRecord = $tblStudent->getTblStudentMedicalRecord();
             if ($tblStudentMedicalRecord) {
                 (new Data($this->getBinding()))->updateStudentMedicalRecord(
                     $tblStudent->getTblStudentMedicalRecord(),
                     $Meta['MedicalRecord']['Disease'],
                     $Meta['MedicalRecord']['Medication'],
-                    $AttendingDoctor ? $AttendingDoctor : null,
+                    $Meta['MedicalRecord']['AttendingDoctor'],
                     $Meta['MedicalRecord']['Insurance']['State'],
                     $Meta['MedicalRecord']['Insurance']['Company']
                 );
@@ -394,7 +422,7 @@ class Service extends Integration
                 $tblStudentMedicalRecord = (new Data($this->getBinding()))->createStudentMedicalRecord(
                     $Meta['MedicalRecord']['Disease'],
                     $Meta['MedicalRecord']['Medication'],
-                    $AttendingDoctor ? $AttendingDoctor : null,
+                    $Meta['MedicalRecord']['AttendingDoctor'],
                     $Meta['MedicalRecord']['Insurance']['State'],
                     $Meta['MedicalRecord']['Insurance']['Company']
                 );
@@ -448,31 +476,7 @@ class Service extends Integration
                 );
             }
 
-            $tblStudentIntegration = $tblStudent->getTblStudentIntegration();
-            if ($tblStudentIntegration) {
-                (new Data($this->getBinding()))->updateStudentIntegration(
-                    $tblStudent->getTblStudentIntegration(),
-                    $IntegrationPerson ? $IntegrationPerson : null,
-                    $IntegrationCompany ? $IntegrationCompany : null,
-                    $Meta['Integration']['Coaching']['RequestDate'],
-                    $Meta['Integration']['Coaching']['CounselDate'],
-                    $Meta['Integration']['Coaching']['DecisionDate'],
-                    isset( $Meta['Integration']['Coaching']['Required'] ),
-                    $Meta['Integration']['School']['Time'],
-                    $Meta['Integration']['School']['Remark']
-                );
-            } else {
-                $tblStudentIntegration = (new Data($this->getBinding()))->createStudentIntegration(
-                    $IntegrationPerson ? $IntegrationPerson : null,
-                    $IntegrationCompany ? $IntegrationCompany : null,
-                    $Meta['Integration']['Coaching']['RequestDate'],
-                    $Meta['Integration']['Coaching']['CounselDate'],
-                    $Meta['Integration']['Coaching']['DecisionDate'],
-                    isset( $Meta['Integration']['Coaching']['Required'] ),
-                    $Meta['Integration']['School']['Time'],
-                    $Meta['Integration']['School']['Remark']
-                );
-            }
+            $tblStudentIntegration = null;
 
             $tblStudentBilling = $tblStudent->getTblStudentBilling();
             if ($tblStudentBilling) {
@@ -488,6 +492,7 @@ class Service extends Integration
 
             (new Data($this->getBinding()))->updateStudent(
                 $tblStudent,
+                $Prefix,
                 $Meta['Student']['Identifier'],
                 $tblStudentMedicalRecord,
                 $tblStudentTransport,
@@ -511,7 +516,7 @@ class Service extends Integration
             $tblStudentMedicalRecord = (new Data($this->getBinding()))->createStudentMedicalRecord(
                 $Meta['MedicalRecord']['Disease'],
                 $Meta['MedicalRecord']['Medication'],
-                $AttendingDoctor ? $AttendingDoctor : null,
+                $Meta['MedicalRecord']['AttendingDoctor'],
                 $Meta['MedicalRecord']['Insurance']['State'],
                 $Meta['MedicalRecord']['Insurance']['Company']
             );
@@ -528,16 +533,7 @@ class Service extends Integration
                 $Meta['Transport']['Remark']
             );
 
-            $tblStudentIntegration = (new Data($this->getBinding()))->createStudentIntegration(
-                $IntegrationPerson ? $IntegrationPerson : null,
-                $IntegrationCompany ? $IntegrationCompany : null,
-                $Meta['Integration']['Coaching']['RequestDate'],
-                $Meta['Integration']['Coaching']['CounselDate'],
-                $Meta['Integration']['Coaching']['DecisionDate'],
-                isset( $Meta['Integration']['Coaching']['Required'] ),
-                $Meta['Integration']['School']['Time'],
-                $Meta['Integration']['School']['Remark']
-            );
+            $tblStudentIntegration = null;
 
             $tblStudentBilling = (new Data($this->getBinding()))->createStudentBilling(
                 $SiblingRank ? $SiblingRank : null
@@ -545,6 +541,7 @@ class Service extends Integration
 
             $tblStudent = (new Data($this->getBinding()))->createStudent(
                 $tblPerson,
+                $Prefix,
                 $Meta['Student']['Identifier'],
                 $tblStudentMedicalRecord,
                 $tblStudentTransport,
@@ -839,6 +836,25 @@ class Service extends Integration
     }
 
     /**
+     * @return bool|int
+     */
+    public function getStudentMaxIdentifier()
+    {
+
+        $tblStudentList = (new Data($this->getBinding()))->getStudentAll();
+        $result = 0;
+        if($tblStudentList) {
+            foreach($tblStudentList as $tblStudent){
+                if(is_numeric($tblStudent->getIdentifier()) && $tblStudent->getIdentifier() > $result){
+                    $result = $tblStudent->getIdentifier();
+                }
+            }
+        }
+//        return (new Data($this->getBinding()))->getStudentMaxIdentifier();
+        return $result;
+    }
+
+    /**
      * @param int $Id
      *
      * @return bool|TblStudentMedicalRecord
@@ -933,6 +949,44 @@ class Service extends Integration
 
     /**
      * @param TblPerson $tblPerson
+     *
+     * @return false|TblDivision
+     */
+    public function getCurrentMainDivisionByPerson(TblPerson $tblPerson)
+    {
+
+        if (Group::useService()->existsGroupPerson(Group::useService()->getGroupByMetaTable('STUDENT'),
+            $tblPerson)
+        ) {
+            $tblYearList = Term::useService()->getYearByNow();
+            if ($tblYearList) {
+                $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
+                if ($tblDivisionStudentList) {
+                    foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                        foreach ($tblYearList as $tblYear) {
+                            if ($tblDivisionStudent->getTblDivision()) {
+                                $divisionYear = $tblDivisionStudent->getTblDivision()->getServiceTblYear();
+                                if ($divisionYear && $divisionYear->getId() == $tblYear->getId()) {
+                                    if(($tblDivision = $tblDivisionStudent->getTblDivision())){
+                                        if (($tblLevel = $tblDivision->getTblLevel())
+                                            && !$tblLevel->getIsChecked()
+                                        ) {
+                                            return $tblDivision;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
      * @param string $Prefix
      *
      * @return string
@@ -952,6 +1006,25 @@ class Service extends Integration
 
             return '';
         }
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return TblDivision|bool
+     */
+    public function getCurrentDivisionByPerson(TblPerson $tblPerson)
+    {
+
+        $tblDivisionList = $this->getCurrentDivisionListByPerson($tblPerson);
+        if ($tblDivisionList) {
+            foreach ($tblDivisionList as $tblDivision) {
+                if (($tblLevel = $tblDivision->getTblLevel()) && !$tblLevel->getIsChecked()) {
+                    return $tblDivision;
+                }
+            }
+        }
+        return false;
     }
 
     /**

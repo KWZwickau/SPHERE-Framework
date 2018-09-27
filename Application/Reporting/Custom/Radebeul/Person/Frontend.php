@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Child;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
@@ -103,8 +104,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Year'] = $tblDivision->getServiceTblYear()->getDisplayName();
                 }
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Radebeul/Person/ParentTeacherConferenceList',
-                    new EyeOpen(),
-                    array('DivisionId' => $tblDivision->getId()));
+                    new EyeOpen(), array('DivisionId' => $tblDivision->getId()), 'Anzeigen');
                 $Item['Count'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
                 array_push($TableContent, $Item);
             });
@@ -124,6 +124,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Count' => 'Schüler',
                                         'Option' => '',
                                     ), array(
+                                        'columnDefs' => array(
+                                            array('type' => 'natural', 'targets' => array(1,3)),
+                                            array("orderable" => false, "targets"   => -1),
+                                        ),
                                         'order' => array(
                                             array(0, 'desc'),
                                             array(2, 'asc'),
@@ -170,6 +174,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Attendance' => 'Unterschrift',
                                     ),
                                     array(
+                                        "columnDefs" => array(
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                            array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                        ),
                                         "pageLength" => -1,
                                         "responsive" => false
                                     )
@@ -246,6 +254,10 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Denomination' => 'Religion',
                                 ),
                                 array(
+                                    "columnDefs" => array(
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                        array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                    ),
                                     "pageLength" => -1,
                                     "responsive" => false
                                 )
@@ -304,8 +316,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Item['Name'] = $tblGroup->getName();
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Radebeul/Person/PhoneList',
-                    new EyeOpen(),
-                    array('GroupId' => $tblGroup->getId()));
+                    new EyeOpen(), array('GroupId' => $tblGroup->getId()), 'Anzeigen');
 
                 array_push($TableContent, $Item);
             });
@@ -357,25 +368,30 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(
                                     new TableData($personList, null,
                                         array(
-                                            'Division' => 'Klasse',
-                                            'LastName' => 'Name',
-                                            'FirstName' => 'Vorname',
-                                            'PhoneHome' => 'Zuhause',
-                                            'PhoneMotherMobile' => 'Mutter Handy',
-                                            'PhoneFatherMobile' => 'Vater Handy',
+                                            'Division'            => 'Klasse',
+                                            'Title'               => 'Titel',
+                                            'LastName'            => 'Name',
+                                            'FirstName'           => 'Vorname',
+                                            'PhoneHome'           => 'Zuhause',
+                                            'PhoneMotherMobile'   => 'Mutter Handy',
+                                            'PhoneFatherMobile'   => 'Vater Handy',
                                             'PhoneMotherBusiness' => 'Mutter dienstl.',
                                             'PhoneFatherBusiness' => 'Vater dienstl.',
-                                            'PhoneEmergency' => 'Notfall',
-                                            'Birthday' => 'Geb.-Datum',
+                                            'PhoneEmergency'      => 'Notfall',
+                                            'Birthday'            => 'Geb.-Datum',
                                         ),
                                         array(
                                             "pageLength" => -1,
                                             "responsive" => false,
-                                            'order' => array(
+                                            'order'      => array(
                                                 array(0, 'asc'),
                                                 array(1, 'asc'),
                                                 array(2, 'asc')
-                                            )
+                                            ),
+                                            "columnDefs" => array(
+                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 3),
+                                            ),
                                         )
                                     )
                                 )
@@ -410,8 +426,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Item['Name'] = $tblGroup->getName();
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Radebeul/Person/KindergartenList',
-                    new EyeOpen(),
-                    array('GroupId' => $tblGroup->getId()));
+                    new EyeOpen(), array('GroupId' => $tblGroup->getId()), 'Anzeigen');
 
                 array_push($TableContent, $Item);
             });
@@ -470,6 +485,10 @@ class Frontend extends Extension implements IFrontendInterface
                                             'Kindergarten' => 'Kinderhaus',
                                         ),
                                         array(
+                                            "columnDefs" => array(
+                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                            ),
                                             "pageLength" => -1,
                                             "responsive" => false,
                                         )
@@ -506,8 +525,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Item['Name'] = $tblGroup->getName();
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Radebeul/Person/RegularSchoolList',
-                    new EyeOpen(),
-                    array('GroupId' => $tblGroup->getId()));
+                    new EyeOpen(), array('GroupId' => $tblGroup->getId()), 'Anzeigen');
 
                 array_push($TableContent, $Item);
             });
@@ -565,6 +583,10 @@ class Frontend extends Extension implements IFrontendInterface
                                             'RegularSchool' => 'Stammschule',
                                         ),
                                         array(
+                                            "columnDefs" => array(
+                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                            ),
                                             "pageLength" => -1,
                                             "responsive" => false,
                                         )
@@ -601,8 +623,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Item['Name'] = $tblGroup->getName();
                 $Item['Option'] = new Standard('', '/Reporting/Custom/Radebeul/Person/DiseaseList',
-                    new EyeOpen(),
-                    array('GroupId' => $tblGroup->getId()));
+                    new EyeOpen(), array('GroupId' => $tblGroup->getId()), 'Anzeigen');
 
                 array_push($TableContent, $Item);
             });
@@ -660,13 +681,17 @@ class Frontend extends Extension implements IFrontendInterface
                                             'Disease' => 'Allergie',
                                         ),
                                         array(
-                                            "pageLength" => -1,
-                                            "responsive" => false,
                                             'order' => array(
                                                 array(0, 'asc'),
                                                 array(1, 'asc'),
                                                 array(2, 'asc')
-                                            )
+                                            ),
+                                            "columnDefs" => array(
+                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                            ),
+                                            "pageLength" => -1,
+                                            "responsive" => false
                                         )
                                     )
                                 )
@@ -731,11 +756,15 @@ class Frontend extends Extension implements IFrontendInterface
                                             'Street'    => 'Straße',
                                         ),
                                         array(
-//                                        "pageLength" => -1,
-                                            "responsive" => false,
                                             'order'      => array(
                                                 array(0, 'asc')
-                                            )
+                                            ),
+                                            "columnDefs" => array(
+                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 1),
+                                                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 2),
+                                            ),
+//                                        "pageLength" => -1,
+                                            "responsive" => false,
                                         )
                                     )
                                     : new Warning('Keine Schüler in der Gruppe "Hort" vorhanden'))

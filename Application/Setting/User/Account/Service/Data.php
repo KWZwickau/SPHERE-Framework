@@ -89,12 +89,44 @@ class Data extends AbstractData
      *
      * @return false|TblUserAccount[]
      */
-    public function getUserAccountByTimeGroup(\DateTime $dateTime)
+    public function getUserAccountByTime(\DateTime $dateTime)
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUserAccount',
             array(
                 TblUserAccount::ATTR_GROUP_BY_TIME => $dateTime
+            ));
+    }
+
+    /**
+     * @param \DateTime $groupByTime
+     * @param \DateTime $exportDate
+     *
+     * @return false|TblUserAccount[]
+     */
+    public function getUserAccountByLastExport(\DateTime $groupByTime, \DateTime $exportDate)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUserAccount',
+            array(
+                TblUserAccount::ATTR_GROUP_BY_TIME => $groupByTime,
+                TblUserAccount::ATTR_EXPORT_DATE => $exportDate
+            ));
+    }
+
+    /**
+     * @param \DateTime $dateTime
+     * @param int       $groupCount
+     *
+     * @return false|TblUserAccount[]
+     */
+    public function getUserAccountByTimeAndCount(\DateTime $dateTime, $groupCount)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUserAccount',
+            array(
+                TblUserAccount::ATTR_GROUP_BY_TIME => $dateTime,
+                TblUserAccount::ATTR_GROUP_BY_COUNT => $groupCount
             ));
     }
 
@@ -118,6 +150,7 @@ class Data extends AbstractData
      * @param \DateTime  $TimeStamp
      * @param string     $userPassword
      * @param string     $Type STUDENT|CUSTODY
+     * @param int        $GroupByCount
      *
      * @return TblUserAccount
      */
@@ -126,7 +159,8 @@ class Data extends AbstractData
         TblPerson $tblPerson,
         \DateTime $TimeStamp,
         $userPassword,
-        $Type = 'STUDENT'
+        $Type = 'STUDENT',
+        $GroupByCount
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -146,6 +180,7 @@ class Data extends AbstractData
 //            $Entity->setExportDate(null);
             $Entity->setLastDownloadAccount('');
             $Entity->setGroupByTime($TimeStamp);
+            $Entity->setGroupByCount($GroupByCount);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
             return $Entity;
@@ -203,6 +238,34 @@ class Data extends AbstractData
         }
         $Manager->flushCache();
         Protocol::useService()->flushBulkEntries();
+        return true;
+    }
+
+    /**
+     * @param string $tblUserAccount
+     * @param string $Password
+     *
+     * @return bool
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     */
+    public function updateUserAccountChangePassword(TblUserAccount $tblUserAccount, $Password)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblUserAccount $Entity */
+        $Entity = $Manager->getEntityById('TblUserAccount', $tblUserAccount->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            // update if clear PW exist
+            if($Entity->getUserPassword() != ''){
+                $Entity->setUserPassword($Password);
+            }
+            $Entity->setAccountPassword(hash('sha256', $Password));
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+        }
         return true;
     }
 

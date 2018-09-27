@@ -1,4 +1,5 @@
 <?php
+
 namespace SPHERE\System\Cache\Handler;
 
 use SPHERE\System\Cache\CacheFactory;
@@ -22,6 +23,18 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
 
     private $Host = '';
     private $Port = '';
+    /** @var bool $HashKey */
+    private $HashKey = true;
+
+    /**
+     * @param bool $HashKey
+     * @return MemcachedHandler
+     */
+    public function setHashKey($HashKey)
+    {
+        $this->HashKey = $HashKey;
+        return $this;
+    }
 
     /**
      * @param                 $Name
@@ -104,7 +117,12 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
     {
 
         if ($this->isValid()) {
-            self::$Connection->set(preg_replace('!\s+!is', '', $this->getSlotRegion($Region) . '#' . $Key), $Value,
+            self::$Connection->set(
+                preg_replace(
+                    '!\s+!is',
+                    '',
+                    $this->getSlotRegion($Region) . '#' . $this->getKey($Key)
+                ), $Value,
                 (!$Timeout ? null : time() + $Timeout));
             // 0 = MEMCACHED_SUCCESS
             if (0 == ($Code = self::$Connection->getResultCode())) {
@@ -154,6 +172,25 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
     }
 
     /**
+     * @internal
+     *
+     * @param mixed $Key
+     * @return mixed
+     */
+    private function getKey($Key)
+    {
+        if( $this->HashKey ) {
+            // Fix array-to-string notice
+            if( is_array( $Key ) ){
+                $Key = serialize($Key);
+            }
+            // Fix long keys resulting in wrong serialisation data
+            return crc32($Key);
+        }
+        return $Key;
+    }
+
+    /**
      * @param string $Key
      * @param string $Region
      *
@@ -163,7 +200,13 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
     {
 
         if ($this->isValid()) {
-            $Value = self::$Connection->get(preg_replace('!\s+!is', '', $this->getSlotRegion($Region) . '#' . $Key));
+            $Value = self::$Connection->get(
+                preg_replace(
+                    '!\s+!is',
+                    '',
+                    $this->getSlotRegion($Region) . '#' . $this->getKey($Key)
+                )
+            );
             // 0 = MEMCACHED_SUCCESS
             if (0 == ($Code = self::$Connection->getResultCode())) {
                 return $Value;

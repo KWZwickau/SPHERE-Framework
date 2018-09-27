@@ -10,20 +10,36 @@ use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
+use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as AccountGatekeeper;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
+use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Application\Setting\User\Account\Service\Data;
 use SPHERE\Application\Setting\User\Account\Service\Entity\TblUserAccount;
 use SPHERE\Application\Setting\User\Account\Service\Setup;
+use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\External;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Filter\Link\Pile;
 
@@ -103,10 +119,53 @@ class Service extends AbstractService
      *
      * @return false|TblUserAccount[]
      */
-    public function getUserAccountByTimeGroup(\DateTime $dateTime)
+    public function getUserAccountByTime(\DateTime $dateTime)
     {
 
-        return (new Data($this->getBinding()))->getUserAccountByTimeGroup($dateTime);
+        return (new Data($this->getBinding()))->getUserAccountByTime($dateTime);
+    }
+
+    /**
+     * @param \DateTime $groupByTime
+     * @param \DateTime $exportDate
+     *
+     * @return false|TblUserAccount[]
+     */
+    public function getUserAccountByLastExport(\DateTime $groupByTime, \DateTime $exportDate)
+    {
+
+        return (new Data($this->getBinding()))->getUserAccountByLastExport($groupByTime, $exportDate);
+    }
+
+    /**
+     * @param \DateTime $dateTime
+     *
+     * @return false|array(TblUserAccount[])
+     */
+    public function getUserAccountByTimeGroupLimitList(\DateTime $dateTime)
+    {
+
+        $tblUserAccountList = (new Data($this->getBinding()))->getUserAccountByTime($dateTime);
+        $UserAccountArray = false;
+        if($tblUserAccountList){
+            foreach($tblUserAccountList as $tblUserAccount){
+                $UserAccountArray[$tblUserAccount->getGroupByCount()][] = $tblUserAccount;
+            }
+        }
+        return $UserAccountArray;
+
+    }
+
+    /**
+     * @param \DateTime $dateTime
+     * @param int       $groupCount
+     *
+     * @return false|TblUserAccount[]
+     */
+    public function getUserAccountByTimeAndCount(\DateTime $dateTime, $groupCount)
+    {
+
+        return (new Data($this->getBinding()))->getUserAccountByTimeAndCount($dateTime, $groupCount);
     }
 
     /**
@@ -125,6 +184,151 @@ class Service extends AbstractService
             }
         }
         return !empty($result) ? $result : false;
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param TblUserAccount $tblUserAccount
+     * @param array|null     $Data
+     * @param string         $Path
+     *
+     * @return string|Form
+     */
+    public function generatePdfControl(IFormInterface $Form, TblUserAccount $tblUserAccount, $Data = null, $Path = '/Setting/User')
+    {
+
+        if($Data === null){
+            return $Form;
+        }
+
+        $changePath = '/Setting/User/Account/Password/Generation';
+
+        $SchoolPanel = new Panel('Schule', array(
+            new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn('Name', 4),
+                    new LayoutColumn($Data['CompanyName'], 8)
+                )),
+            ))),
+            new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn('Namenszusatz', 4),
+                    new LayoutColumn($Data['CompanyExtendedName'], 8)
+                )),
+            ))),
+            new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn('Ortsteil', 4),
+                    new LayoutColumn($Data['CompanyDistrict'], 8)
+                )),
+            ))),
+            new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn('Straße', 4),
+                    new LayoutColumn($Data['CompanyStreet'], 8)
+                )),
+            ))),
+            new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn('Ort', 4),
+                    new LayoutColumn($Data['CompanyCity'], 8)
+                ))
+            ))),
+        ));
+
+        $ContactPersonPanel = new Panel('Kontakt', array(
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Telefon: ', 4),
+                new LayoutColumn($Data['Phone'], 8),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Fax: ', 4),
+                new LayoutColumn($Data['Fax'], 8),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('E-Mail: ', 4),
+                new LayoutColumn($Data['Mail'], 8),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Internet: ', 4),
+                new LayoutColumn($Data['Web'], 8),
+            )))),
+        ));
+        $SignerPanel = new Panel('Ort/Datum', array(
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Ort: ', 4),
+                new LayoutColumn(($Data['Place'] ? $Data['Place'] : ''), 8),
+            )))),
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Datum: ', 4),
+                new LayoutColumn(($Data['Date'] ? $Data['Date'] : (new \DateTime())->format('d.m.Y')), 8),
+            )))),
+        ));
+
+        return
+        new Layout(
+            new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        $SchoolPanel
+                    , 4),
+                    new LayoutColumn(
+                        $ContactPersonPanel
+                    , 4),
+                    new LayoutColumn(
+                        $SignerPanel
+                    , 4),
+                )),
+                new LayoutRow(
+                    new LayoutColumn(array(
+                        (new External('Passwort generieren & herunterladen', '\Api\Document\Standard\PasswordChange\Create'
+                            , null, array('Data' => $Data), false, External::STYLE_BUTTON_PRIMARY))
+                            ->setRedirect($Path, Redirect::TIMEOUT_SUCCESS),
+                        new Standard('Nein', $changePath, new Disable(), array('Id' => $tblUserAccount->getId(), 'Path' => $Path))
+                        )
+                    )
+                )
+            ))
+        );
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param bool      $IsParent
+     *
+     * @return mixed
+     */
+    public function getCompanySchoolByPerson(TblPerson $tblPerson, $IsParent = false)
+    {
+
+        $tblCompany = false;
+        if($IsParent){
+            $tblRelationshipType = Relationship::useService()->getTypeByName( TblType::IDENTIFIER_GUARDIAN );
+            if(($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType))){
+                foreach($tblRelationshipList as $tblRelationship){  //ToDO Mehrer Schüler auswahl nach "höherer Bildungsgang"
+                    if(($tblPersonStudent = $tblRelationship->getServiceTblPersonTo())){
+                        if(($tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPersonStudent))){
+                            if(($tblSchoolType = Type::useService()->getTypeByName($tblDivision->getTypeName()))){
+                                if(($tblSchoolCompany = School::useService()->getSchoolByType($tblSchoolType))){
+                                    $tblSchoolCompany = current($tblSchoolCompany);
+                                    $tblCompany = $tblSchoolCompany->getServiceTblCompany();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            if(($tblDivision = Student::useService()->getCurrentDivisionByPerson($tblPerson))){
+                if(($tblSchoolType = Type::useService()->getTypeByName($tblDivision->getTypeName()))){
+                    if(($tblSchoolCompany = School::useService()->getSchoolByType($tblSchoolType))){
+                        $tblSchoolCompany = current($tblSchoolCompany);
+                        $tblCompany = $tblSchoolCompany->getServiceTblCompany();
+                    }
+                }
+            }
+        }
+        return $tblCompany;
     }
 
     /**
@@ -321,6 +525,27 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblUserAccount[] $tblUserAccountList
+     *
+     * @return bool|\DateTime
+     */
+    public function getLastExport($tblUserAccountList)
+    {
+        $BiggestDate = false;
+        if(is_array($tblUserAccountList)){
+            /** @var TblUserAccount $tblUserAccount */
+            foreach($tblUserAccountList as $tblUserAccount){
+                if(($Date = $tblUserAccount->getExportDate())) {
+                    if(!$BiggestDate || $BiggestDate <= $Date){
+                        $BiggestDate = $Date;
+                    }
+                }
+            }
+        }
+        return $BiggestDate;
+    }
+
+    /**
      * @param array $tblUserAccountList
      *
      * @return array
@@ -338,15 +563,14 @@ class Service extends AbstractService
                 $tblPerson = $tblUserAccount->getServiceTblPerson();
                 $tblAccount = $tblUserAccount->getServiceTblAccount();
 
-                $item['Salutation'] = $tblPerson->getSalutation();
-                $item['Title'] = $tblPerson->getTitle();
-                $item['FirstName'] = $tblPerson->getFirstName();
-                $item['SecondName'] = $tblPerson->getSecondName();
-                $item['LastName'] = $tblPerson->getLastName();
+                $item['Salutation'] = '';
+                $item['Title'] = '';
+                $item['FirstName'] = '';
+                $item['SecondName'] = '';
+                $item['LastName'] = '';
                 $item['Gender'] = '';
-                $item['AccountName'] = $tblAccount->getUsername();
+                $item['AccountName'] = '';
                 $item['Password'] = $tblUserAccount->getUserPassword();
-
                 $item['StreetName'] = '';
                 $item['StreetNumber'] = '';
                 $item['CityCode'] = '';
@@ -356,33 +580,42 @@ class Service extends AbstractService
                 $item['Nation'] = '';
                 $item['Country'] = '';
 
-                $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
-                if ($tblCommon) {
-                    $tblBirthDates = $tblCommon->getTblCommonBirthDates();
-                    if ($tblBirthDates) {
-                        $tblGender = $tblBirthDates->getTblCommonGender();
-                        if ($tblGender) {
-                            $item['Gender'] = substr($tblGender->getName(), 0, 1);
+                if($tblPerson){
+                    $item['Salutation'] = $tblPerson->getSalutation();
+                    $item['Title'] = $tblPerson->getTitle();
+                    $item['FirstName'] = $tblPerson->getFirstName();
+                    $item['SecondName'] = $tblPerson->getSecondName();
+                    $item['LastName'] = $tblPerson->getLastName();
+                    $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
+                    if ($tblCommon) {
+                        $tblBirthDates = $tblCommon->getTblCommonBirthDates();
+                        if ($tblBirthDates) {
+                            $tblGender = $tblBirthDates->getTblCommonGender();
+                            if ($tblGender) {
+                                $item['Gender'] = substr($tblGender->getName(), 0, 1);
+                            }
                         }
                     }
+                    $tblAddress = $tblPerson->fetchMainAddress();
+                    if ($tblAddress) {
+                        $item['StreetName'] = $tblAddress->getStreetName();
+                        $item['StreetNumber'] = $tblAddress->getStreetNumber();
+                        $tblCity = $tblAddress->getTblCity();
+                        if ($tblCity) {
+                            $item['CityCode'] = $tblCity->getCode();
+                            $item['CityName'] = $tblCity->getName();
+                            $item['District'] = $tblCity->getDistrict();
+                        }
+                        $tblState = $tblAddress->getTblState();
+                        if ($tblState) {
+                            $item['State'] = $tblState->getName();
+                        }
+                        $item['Nation'] = $tblAddress->getNation();
+                        $item['Country'] = $tblAddress->getCounty();
+                    }
                 }
-
-                $tblAddress = $tblPerson->fetchMainAddress();
-                if ($tblAddress) {
-                    $item['StreetName'] = $tblAddress->getStreetName();
-                    $item['StreetNumber'] = $tblAddress->getStreetNumber();
-                    $tblCity = $tblAddress->getTblCity();
-                    if ($tblCity) {
-                        $item['CityCode'] = $tblCity->getCode();
-                        $item['CityName'] = $tblCity->getName();
-                        $item['District'] = $tblCity->getDistrict();
-                    }
-                    $tblState = $tblAddress->getTblState();
-                    if ($tblState) {
-                        $item['State'] = $tblState->getName();
-                    }
-                    $item['Nation'] = $tblAddress->getNation();
-                    $item['Country'] = $tblAddress->getCounty();
+                if($tblAccount){
+                    $item['AccountName'] = $tblAccount->getUsername();
                 }
 
                 array_push($result, $item);
@@ -494,7 +727,14 @@ class Service extends AbstractService
         $addressMissCount = 0;
         $accountExistCount = 0;
 
+        $GroupByCount = 1;
+        $CountAccount = 0;
+
         foreach ($PersonIdArray as $PersonId) {
+            if ($CountAccount % 30 == 0
+                && $CountAccount != 0) {
+                $GroupByCount++;
+            }
             $tblPerson = Person::useService()->getPersonById($PersonId);
             if ($tblPerson) {
                 // ignore Person with Account
@@ -557,8 +797,9 @@ class Service extends AbstractService
                         $Type = TblUserAccount::VALUE_TYPE_STUDENT;
                     }
                     // add tblUserAccount
-                    $this->createUserAccount($tblAccount, $tblPerson, $TimeStamp, $password,
-                        $Type);
+                    if($this->createUserAccount($tblAccount, $tblPerson, $TimeStamp, $password, $Type, $GroupByCount)){
+                        $CountAccount++;
+                    }
                 }
             }
         }
@@ -612,7 +853,7 @@ class Service extends AbstractService
      *
      * @return string
      */
-    private function generatePassword($completeLength = 8, $specialLength = 0, $numberLength = 0, $capitalLetter = 0)
+    public function generatePassword($completeLength = 8, $specialLength = 0, $numberLength = 2, $capitalLetter = 1)
     {
 
         $numberChars = '123456789';
@@ -654,6 +895,7 @@ class Service extends AbstractService
      * @param \DateTime  $TimeStamp
      * @param string     $userPassword
      * @param string     $Type STUDENT|CUSTODY
+     * @param int        $GroupByCount
      *
      * @return false|TblUserAccount
      */
@@ -662,7 +904,8 @@ class Service extends AbstractService
         TblPerson $tblPerson,
         \DateTime $TimeStamp,
         $userPassword,
-        $Type
+        $Type,
+        $GroupByCount
     ) {
 
         return ( new Data($this->getBinding()) )->createUserAccount(
@@ -670,7 +913,8 @@ class Service extends AbstractService
             $tblPerson,
             $TimeStamp,
             $userPassword,
-            $Type);
+            $Type,
+            $GroupByCount);
     }
 
     /**
@@ -758,9 +1002,28 @@ class Service extends AbstractService
     public function clearPassword(\DateTime $GroupByTime)
     {
 
-        $tblUserAccountList = $this->getUserAccountByTimeGroup($GroupByTime);
+        $tblUserAccountList = $this->getUserAccountByTime($GroupByTime);
         if ($tblUserAccountList) {
             return (new Data($this->getBinding()))->updateUserAccountClearPassword($tblUserAccountList);
+        }
+        return false;
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param string     $Password
+     *
+     * @return bool
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     */
+    public function changePassword(TblAccount $tblAccount, $Password)
+    {
+
+        $tblUserAccount = $this->getUserAccountByAccount($tblAccount);
+        if ($tblUserAccount) {
+            return (new Data($this->getBinding()))->updateUserAccountChangePassword($tblUserAccount, $Password);
         }
         return false;
     }

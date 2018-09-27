@@ -360,16 +360,24 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblToPerson[]
      */
-    public function getAddressAllByPerson(TblPerson $tblPerson)
+    public function getAddressAllByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
-            array(
-                TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId()
-            ));
+        if ($isForced) {
+            return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
+                array(
+                    TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId()
+                ));
+        } else {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
+                array(
+                    TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId()
+                ));
+        }
     }
 
     /**
@@ -390,25 +398,44 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblAddress
      */
-    public function getAddressByPerson(TblPerson $tblPerson)
+    public function getAddressByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
         // TODO: Persistent Types
         $Type = $this->getTypeById(1);
-        /** @var TblToPerson $Entity */
-        if (( $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
-            array(
-                TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
-                TblToPerson::ATT_TBL_TYPE       => $Type->getId()
-            ))
-        )
-        ) {
-            return $Entity->getTblAddress();
+        if ($isForced) {
+
+            /** @var TblToPerson $Entity */
+            if (( $Entity = $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
+                array(
+                    TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
+                    TblToPerson::ATT_TBL_TYPE       => $Type->getId()
+                ))
+            )
+            ) {
+                return $Entity->getTblAddress();
+            } else {
+                return false;
+            }
+
         } else {
-            return false;
+
+            /** @var TblToPerson $Entity */
+            if (( $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
+                array(
+                    TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
+                    TblToPerson::ATT_TBL_TYPE       => $Type->getId()
+                ))
+            )
+            ) {
+                return $Entity->getTblAddress();
+            } else {
+                return false;
+            }
         }
     }
 
@@ -639,5 +666,26 @@ class Data extends AbstractData
         }
 
         return $tblAddressAll;
+    }
+
+    /**
+     * @param TblToPerson $tblToPerson
+     *
+     * @return bool
+     */
+    public function restoreToPerson(TblToPerson $tblToPerson)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblToPerson $Entity */
+        $Entity = $Manager->getEntityById('TblToPerson', $tblToPerson->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setEntityRemove(null);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
     }
 }

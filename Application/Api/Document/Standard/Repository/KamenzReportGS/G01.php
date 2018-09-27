@@ -23,7 +23,7 @@ class G01
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('G01. Klassenfrequenz im Schuljahr {{ Content.SchoolYear.Current }} zum Stichtag 18. September {{ Content.Year.Current }}')
+                ->setContent('G01. Klassenfrequenz im Schuljahr {{ Content.SchoolYear.Current }} zum Stichtag 25. Oktober {{ Content.Year.Current }}')
             );
 
         $sliceList[] = (new Slice())
@@ -50,19 +50,27 @@ class G01
                     ->addSection((new Section())
                         ->addElementColumn((new Element())
                             ->setContent('1')
-                            ->styleBorderRight(), '25%'
+                            ->styleBorderRight(), '16.66%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('2')
-                            ->styleBorderRight(), '25%'
+                            ->styleBorderRight(), '16.66%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('jüU 1+2')
+                            ->styleBorderRight(), '16.66%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('3')
-                            ->styleBorderRight(), '25%'
+                            ->styleBorderRight(), '16.66%'
                         )
                         ->addElementColumn((new Element())
                             ->setContent('4')
-                            ->styleBorderRight(), '25%'
+                            ->styleBorderRight(), '16.66%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('jüU 3+4')
+                            ->styleBorderRight(), '16.66%'
                         )
                     ), '60%'
                 )
@@ -87,8 +95,26 @@ class G01
                                 &nbsp;
                             {% endif %}
                         ')
-                        ->styleBorderRight(), '15%'
+                        ->styleBorderRight(), '10%'
                     );
+
+                if ($level == 2) {
+                    // jüU 1+2
+                    $section
+                        ->addElementColumn((new Element())
+                            ->setContent('&nbsp;')
+                            ->styleBorderRight(), '10%'
+                        );
+                }
+
+                if ($level == 4) {
+                    // jüU 3+4
+                    $section
+                        ->addElementColumn((new Element())
+                            ->setContent('&nbsp;')
+                            ->styleBorderRight(), '10%'
+                        );
+                }
             }
 
             $sliceList[] = (new Slice())
@@ -119,8 +145,26 @@ class G01
                                 &nbsp;
                             {% endif %}
                         ')
-                    ->styleBorderRight(), '15%'
+                    ->styleBorderRight(), '10%'
                 );
+
+            if ($level == 2) {
+                // jüU 1+2
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleBorderRight(), '10%'
+                    );
+            }
+
+            if ($level == 4) {
+                // jüU 3+4
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleBorderRight(), '10%'
+                    );
+            }
         }
 
         $sliceList[] = (new Slice())

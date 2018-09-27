@@ -43,7 +43,6 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\ToggleCheckbox;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -75,7 +74,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Gruppen', 'Übersicht');
-        $Stage->addButton(new Backward());
+        $Stage->addButton(new Standard('Zurück', '/People', new ChevronLeft()));
 
         $tblGroupAll = Group::useService()->getGroupAllSorted();
         if ($tblGroupAll) {
@@ -193,7 +192,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Gruppe', 'Bearbeiten');
-        $Stage->addButton(new Backward(true));
+        $Stage->addButton(new Standard('Zurück', '/People/Group', new ChevronLeft()));
 
         $tblGroup = Group::useService()->getGroupById($Id);
         if ($tblGroup) {
@@ -264,7 +263,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Gruppe', 'Löschen');
-        $Stage->addButton(new Backward(true));
+        $Stage->addButton(new Standard('Zurück', '/People/Group', new ChevronLeft()));
 
         if ($Id) {
             $tblGroup = Group::useService()->getGroupById($Id);

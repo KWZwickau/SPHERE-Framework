@@ -82,13 +82,14 @@ class Service extends AbstractService
     /**
      *
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblClub
      */
-    public function getClubByPerson(TblPerson $tblPerson)
+    public function getClubByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getClubByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getClubByPerson($tblPerson, $isForced);
     }
 
     /**
@@ -136,5 +137,16 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->destroyClub($tblClub, $IsSoftRemove);
+    }
+
+    /**
+     * @param TblClub $tblClub
+     *
+     * @return bool
+     */
+    public function restoreClub(TblClub $tblClub)
+    {
+
+        return (new Data($this->getBinding()))->restoreClub($tblClub);
     }
 }

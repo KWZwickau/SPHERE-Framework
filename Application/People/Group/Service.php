@@ -11,6 +11,7 @@ use SPHERE\Application\People\Group\Service\Setup;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -316,13 +317,27 @@ class Service extends AbstractService
     /**
      *
      * @param TblPerson $tblPerson
+     * @param bool $isForced
      *
      * @return bool|TblGroup[]
      */
-    public function getGroupAllByPerson(TblPerson $tblPerson)
+    public function getGroupAllByPerson(TblPerson $tblPerson, $isForced = false)
     {
 
-        return (new Data($this->getBinding()))->getGroupAllByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getGroupAllByPerson($tblPerson, $isForced);
+    }
+
+    /**
+     *
+     * @param TblPerson $tblPerson
+     * @param bool $isForced
+     *
+     * @return bool|TblMember[]
+     */
+    public function getMemberAllByPerson(TblPerson $tblPerson, $isForced = false)
+    {
+
+        return (new Data($this->getBinding()))->getMemberAllByPerson($tblPerson, $isForced);
     }
 
     /**
@@ -347,7 +362,55 @@ class Service extends AbstractService
     public function addGroupPerson(TblGroup $tblGroup, TblPerson $tblPerson)
     {
 
+        // automatic identifier for Student
+        if($tblGroup->getMetaTable() == TblGroup::META_TABLE_STUDENT){
+            // control settings
+            $tblSetting = Consumer::useService()->getSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber');
+            if($tblSetting && $tblSetting->getValue()) {
+                $this->setAutoStudentNumber($tblPerson);
+            }
+        }
         return (new Data($this->getBinding()))->addGroupPerson($tblGroup, $tblPerson);
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     * @param TblPerson[] $tblPersonList
+     *
+     * @return bool
+     */
+    public function addGroupPersonList(TblGroup $tblGroup, $tblPersonList)
+    {
+
+        $result = (new Data($this->getBinding()))->addGroupPersonList($tblGroup, $tblPersonList);
+        if($tblGroup->getMetaTable() == TblGroup::META_TABLE_STUDENT){
+            // control settings
+            $tblSetting = Consumer::useService()->getSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber');
+            if($tblSetting && $tblSetting->getValue()) {
+                foreach($tblPersonList as $tblPerson){
+                    $this->setAutoStudentNumber($tblPerson);
+                }
+            }
+        }
+        return $result;
+    }
+
+    private function setAutoStudentNumber(TblPerson $tblPerson)
+    {
+
+        $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+        if($tblStudent){
+            if($tblStudent->getIdentifier() == ''){
+                $MaxIdentifier = Student::useService()->getStudentMaxIdentifier();
+                $MaxIdentifier++;
+                Student::useService()->updateStudentIdentifier($tblStudent, $MaxIdentifier);
+            }
+        } else {
+            $MaxIdentifier = Student::useService()->getStudentMaxIdentifier();
+            $MaxIdentifier++;
+            $Prefix = '';
+            Student::useService()->createStudent($tblPerson, $Prefix, $MaxIdentifier);
+        }
     }
 
     /**
@@ -439,8 +502,7 @@ class Service extends AbstractService
         /**
          * Skip to Frontend
          */
-        $Global = $this->getGlobal();
-        if (!isset( $Global->POST['Button']['Submit'] )) {
+        if ($DataAddPerson === null && $DataRemovePerson === null) {
             return $Form;
         }
 
@@ -484,11 +546,12 @@ class Service extends AbstractService
     private function addPersonListToGroup(TblGroup $tblGroup, $DataAddPerson)
     {
 
+        $tblPersonList = array();
         foreach ($DataAddPerson as $personId => $value) {
-            $tblPerson = Person::useService()->getPersonById($personId);
-            if ($tblPerson && !$this->existsGroupPerson($tblGroup, $tblPerson)) {
-                $this->addGroupPerson($tblGroup, $tblPerson);
-            }
+            $tblPersonList[] = Person::useService()->getPersonById($personId);
+        }
+        if(!empty($tblPersonList)){
+            $this->addGroupPersonList($tblGroup, $tblPersonList);
         }
     }
 
@@ -616,5 +679,16 @@ class Service extends AbstractService
 
             return empty($tudors) ? false : $tudors;
         }
+    }
+
+    /**
+     * @param TblMember $tblMember
+     *
+     * @return bool
+     */
+    public function restoreMember(TblMember $tblMember)
+    {
+
+        return (new Data($this->getBinding()))->restoreMember($tblMember);
     }
 }

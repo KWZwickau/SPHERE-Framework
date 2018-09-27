@@ -23,7 +23,10 @@ class B01_1
             ->styleMarginTop('20px')
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('B01.1 Darunter <u>Absolventen/Abgänger mit Migrationshintergund</u> aus dem Schuljahr {{ Content.SchoolYear.Past }} nach Abschlussarten und Klassenstufen')
+                ->setContent('B01.1 Darunter <u>Absolventen/Abgänger, deren Herkunftssprache nicht oder nicht
+                    ausschließlich Deutsch</u> </br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <u>ist,</u> aus dem Schuljahr {{ Content.SchoolYear.Past }} 
+                    nach Abschlussarten und Klassenstufen')
             );
 
         $sliceList[] = (new Slice())
@@ -38,7 +41,7 @@ class B01_1
                     ->setContent('Abschlussart')
                     ->styleBorderRight()
                     ->stylePaddingTop('17.2px')
-                    ->stylePaddingBottom('18px'), '30%'
+                    ->stylePaddingBottom('18px'), '16%'
                 )
                 ->addSliceColumn((new Slice())
                     ->addElement((new Element())
@@ -104,6 +107,27 @@ class B01_1
                     ), '56%'
                 )
                 ->addSliceColumn((new Slice())
+                    ->addElement((new Element())
+                        ->setContent('Sonderkl.')
+                        ->styleBorderBottom()
+                        ->styleBorderRight()
+                        ->stylePaddingTop('8.6px')
+                        ->stylePaddingBottom('8.5px')
+                    )
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('m')
+                            ->styleBorderRight()
+                            , '50%'
+                        )
+                        ->addElementColumn((new Element())
+                            ->setContent('w')
+                            ->styleBorderRight()
+                            , '50%'
+                        )
+                    ), '14%'
+                )
+                ->addSliceColumn((new Slice())
                     ->styleTextBold()
                     ->addElement((new Element())
                         ->setContent('Insgesamt')
@@ -126,9 +150,9 @@ class B01_1
         for ($i = 0; $i < 4; $i++) {
             switch ($i) {
                 case 0: $text = 'Abgangszeugnis'; $identifier = 'Leave'; break;
-                case 1: $text = 'Hauptschulabschluss'; $identifier = 'MsAbsHs'; break;
-                case 2: $text = 'Qual. Hauptschulabschluss'; $identifier = 'MsAbsHsQ'; break;
-                case 3: $text = 'Realschulabschluss'; $identifier = 'MsAbsRs'; break;
+                case 1: $text = 'HS - Abs.'; $identifier = 'MsAbsHs'; break;
+                case 2: $text = 'Qual. HS - Abs.'; $identifier = 'MsAbsHsQ'; break;
+                case 3: $text = 'RS - Abs.'; $identifier = 'MsAbsRs'; break;
                 default: $text = ''; $identifier = 'Default';
             }
             $section = new Section();
@@ -137,7 +161,7 @@ class B01_1
                     ->setContent($text)
                     ->stylePaddingLeft('5px')
                     ->styleBackgroundColor('lightgrey')
-                    ->styleBorderRight(), '30%'
+                    ->styleBorderRight(), '16%'
                 );
             for ($level = 7; $level <= 10; $level++) {
                 $isGrey = false;
@@ -181,6 +205,24 @@ class B01_1
                         ->styleBorderRight(), '7%'
                     );
             }
+
+            // Sonderklassen
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBackgroundColor($identifier == 'Leave' ? 'white' : 'lightgrey')
+                    ->styleBorderRight()
+                    ->styleAlignCenter()
+                    ->styleTextBold(), '7%'
+                )
+                ->addElementColumn((new Element())
+                    ->setContent('&nbsp;')
+                    ->styleBackgroundColor($identifier == 'Leave' ? 'white' : 'lightgrey')
+                    ->styleBorderRight()
+                    ->styleAlignCenter()
+                    ->styleTextBold(), '7%'
+                );
+
             $section
                 ->addElementColumn((new Element())
                     ->setContent('
@@ -225,7 +267,7 @@ class B01_1
                             Insgesamt                       
                         ')
                 ->styleBackgroundColor('lightgrey')
-                ->styleBorderRight(), '30%'
+                ->styleBorderRight(), '16%'
             );
         for ($level = 7; $level <= 10; $level++) {
             $section
@@ -251,6 +293,22 @@ class B01_1
                     ->styleBorderRight(), '7%'
                 );
         }
+
+        // Sonderklassen
+        $section
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleBackgroundColor('lightgrey')
+                ->styleBorderRight()
+                ->styleTextBold(), '7%'
+            )
+            ->addElementColumn((new Element())
+                ->setContent('&nbsp;')
+                ->styleBackgroundColor('lightgrey')
+                ->styleBorderRight()
+                ->styleTextBold(), '7%'
+            );
+
         $section
             ->addElementColumn((new Element())
                 ->setContent('

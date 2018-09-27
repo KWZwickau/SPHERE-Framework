@@ -1,7 +1,8 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student\Service;
 
-use SPHERE\Application\People\Meta\Student\Service\Data\Integration;
+use SPHERE\Application\People\Meta\Student\Service\Data\Support;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
@@ -18,7 +19,6 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentLocker;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransfer;
 use SPHERE\Application\People\Meta\Student\Service\Entity\ViewStudentTransport;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Fitting\Element;
@@ -28,7 +28,7 @@ use SPHERE\System\Database\Fitting\Element;
  *
  * @package SPHERE\Application\People\Meta\Student\Service
  */
-class Data extends Integration
+class Data extends Support
 {
 
     /**
@@ -281,6 +281,7 @@ class Data extends Integration
         $this->createStudentSubjectRanking('8', '8.');
         $this->createStudentSubjectRanking('9', '9.');
 
+        // old Table
         $this->createStudentFocusType('Sprache');
         $this->createStudentFocusType('Körperlich-motorische Entwicklung');
         $this->createStudentFocusType('Sozial-emotionale Entwicklung');
@@ -289,6 +290,17 @@ class Data extends Integration
         $this->createStudentFocusType('Geistige Entwicklung');
         $this->createStudentFocusType('Lernen');
 
+        // new Table
+        $this->createSupportFocusType('Sprache');
+        $this->createSupportFocusType('Körperlich-motorische Entwicklung');
+        $this->createSupportFocusType('Sozial-emotionale Entwicklung');
+        $this->createSupportFocusType('Hören');
+        $this->createSupportFocusType('Sehen');
+        $this->createSupportFocusType('Geistige Entwicklung');
+        $this->createSupportFocusType('Lernen');
+        $this->createSupportFocusType('Unterricht kranker Schüler');
+
+        // old Table
         $this->createStudentDisorderType('LRS');
         $this->createStudentDisorderType('Gehörschwierigkeiten');
         $this->createStudentDisorderType('Augenleiden');
@@ -300,6 +312,18 @@ class Data extends Integration
         $this->createStudentDisorderType('Hochbegabung');
         $this->createStudentDisorderType('Konzentrationsstörung');
         $this->createStudentDisorderType('Körperliche Beeinträchtigung');
+
+        // new Table Disorder with new Translation
+        $this->createSpecialDisorderType('ADS / ADHS');
+        $this->createSpecialDisorderType('Auditive Wahrnehmungsstörungen');
+        $this->createSpecialDisorderType('Konzentrationsstörungen');
+        $this->createSpecialDisorderType('Störung motorischer Funktionen');
+        $this->createSpecialDisorderType('Lese-/ Rechtschreibstörung');
+        $this->createSpecialDisorderType('Rechenschwäche');
+        $this->createSpecialDisorderType('Sonstige Entwicklungsbesonderheiten');
+        $this->createSpecialDisorderType('Sprach-/ Sprechstörungen');
+        $this->createSpecialDisorderType('Störungen aus dem Autismusspektrum');
+        $this->createSpecialDisorderType('Visuelle Wahrnehmungsstörungen');
 
         $this->createStudentTransferType('ENROLLMENT', 'Einschulung');
         $this->createStudentTransferType('ARRIVE', 'Aufnahme');
@@ -321,21 +345,38 @@ class Data extends Integration
         $this->createStudentSchoolEnrollmentType('PREMATURE', 'vorzeitige Einschulung');
         $this->createStudentSchoolEnrollmentType('REGULAR', 'fristgemäße Einschulung');
         $this->createStudentSchoolEnrollmentType('POSTPONED', 'Einschulung nach Zurückstellung');
+
+        // TblSupportType
+        $this->createSupportType('Beratung', '');
+        $this->createSupportType('Förderantrag', '');
+        $this->createSupportType('Förderbescheid', '');
+        if(($tblSupportType = $this->getSupportTypeByName('Änderung'))){
+            $this->updateSupportType($tblSupportType, 'Aufhebung', '');
+        } else {
+            $this->createSupportType('Aufhebung', '');
+        }
+
+        $this->createSupportType('Ablehnung', '');
+        if(($tblSupportType = $this->getSupportTypeByName('Wiederspruch'))){
+            $this->updateSupportType($tblSupportType, 'Widerspruch', '');
+        } else {
+            $this->createSupportType('Widerspruch', '');
+        }
     }
 
     /**
-     * @param string         $Disease
-     * @param string         $Medication
-     * @param null|TblPerson $tblPersonAttendingDoctor
-     * @param int            $InsuranceState
-     * @param string         $Insurance
+     * @param string $Disease
+     * @param string $Medication
+     * @param string $AttendingDoctor
+     * @param int    $InsuranceState
+     * @param string $Insurance
      *
      * @return TblStudentMedicalRecord
      */
     public function createStudentMedicalRecord(
         $Disease,
         $Medication,
-        TblPerson $tblPersonAttendingDoctor = null,
+        $AttendingDoctor,
         $InsuranceState,
         $Insurance
     ) {
@@ -345,7 +386,7 @@ class Data extends Integration
         $Entity = new TblStudentMedicalRecord();
         $Entity->setDisease($Disease);
         $Entity->setMedication($Medication);
-        $Entity->setServiceTblPersonAttendingDoctor($tblPersonAttendingDoctor);
+        $Entity->setAttendingDoctor($AttendingDoctor);
         $Entity->setInsuranceState($InsuranceState);
         $Entity->setInsurance($Insurance);
         $Manager->saveEntity($Entity);
@@ -358,7 +399,7 @@ class Data extends Integration
      * @param TblStudentMedicalRecord $tblStudentMedicalRecord
      * @param string                  $Disease
      * @param string                  $Medication
-     * @param null|TblPerson          $tblPersonAttendingDoctor
+     * @param string                  $AttendingDoctor
      * @param int                     $InsuranceState
      * @param string                  $Insurance
      *
@@ -368,7 +409,7 @@ class Data extends Integration
         TblStudentMedicalRecord $tblStudentMedicalRecord,
         $Disease,
         $Medication,
-        TblPerson $tblPersonAttendingDoctor = null,
+        $AttendingDoctor,
         $InsuranceState,
         $Insurance
     ) {
@@ -380,7 +421,7 @@ class Data extends Integration
             $Protocol = clone $Entity;
             $Entity->setDisease($Disease);
             $Entity->setMedication($Medication);
-            $Entity->setServiceTblPersonAttendingDoctor($tblPersonAttendingDoctor);
+            $Entity->setAttendingDoctor($AttendingDoctor);
             $Entity->setInsuranceState($InsuranceState);
             $Entity->setInsurance($Insurance);
             $Manager->saveEntity($Entity);
@@ -388,6 +429,42 @@ class Data extends Integration
             return true;
         }
         return false;
+    }
+
+//    /**
+//     * @return bool|int
+//     * @deprecated MAX don't display Highest Number
+//     */
+//    public function getStudentMaxIdentifier()
+//    {
+//
+//        $Manager = $this->getConnection()->getEntityManager();
+//
+//        // cast to int didn't work with QueryBuilder
+//        $Query = $Manager->getQueryBuilder()
+//            ->select('MAX(CAST(S.Identifier AS UNSIGNED))')
+//            ->from(__NAMESPACE__ . '\Entity\TblStudent', 'S')
+//            ->getQuery();
+//
+//        $result = $Query->getResult();
+//
+//        if(!empty($result)){
+//            if(isset($result[0][1])) {
+//                $result = $result[0][1];
+//            }
+//        }
+//        return ( $result ? $result : false );
+//    }
+
+    /**
+     * @return false|TblStudent[]
+     */
+    public function getStudentAll()
+    {
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(),
+//        return $this->getForceEntityList(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblStudent'
+        );
     }
 
     /**

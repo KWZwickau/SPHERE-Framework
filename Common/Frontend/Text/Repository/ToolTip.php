@@ -26,8 +26,9 @@ class ToolTip extends Extension
      * ToolTip constructor.
      * @param string $Text
      * @param string $ToolTip
+     * @param bool   $Wrap
      */
-    public function __construct($Text, $ToolTip)
+    public function __construct($Text, $ToolTip, $Wrap = true)
     {
 
         $this->Template = $this->getTemplate(__DIR__.'/ToolTip.twig');
@@ -40,6 +41,7 @@ class ToolTip extends Extension
                 $this->Template->setVariable('ElementToolTip', $Text);
             }
         }
+        $this->Template->setVariable('ElementWrap', $Wrap);
 
         $this->Template->setVariable('ElementHash', $this->getHash());
     }

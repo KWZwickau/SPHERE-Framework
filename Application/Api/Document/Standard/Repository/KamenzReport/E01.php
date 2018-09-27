@@ -31,7 +31,7 @@ class E01
             ->styleTextBold()
             ->styleMarginBottom('5px')
             ->addElement((new Element())
-                ->setContent('E01. Schüler, Klassen und Gruppen im Schuljahr {{Content.SchoolYear.Current}} nach abschlussbezogenem Unterricht und Klassenstufen')
+                ->setContent('E01. Schüler und Klassen im Schuljahr {{Content.SchoolYear.Current}} nach abschlussbezogenem Unterricht und Klassenstufen')
             );
 
         $sliceList[] = (new Slice())
@@ -99,8 +99,13 @@ class E01
                             ->stylePaddingTop('17.1px')
                             ->stylePaddingBottom('17px'), '10%'
                         )
+//                        ->addElementColumn((new Element())
+//                            ->setContent('Vorb.-kl. u.<br/>-gruppen f.<br/>Migranten')
+//                            ->styleBorderBottom()
+//                            ->styleBorderRight(), '10%'
+//                        )
                         ->addElementColumn((new Element())
-                            ->setContent('Vorb.-kl. u.<br/>-gruppen f.<br/>Migranten')
+                            ->setContent('Sonder-<br/>klassen<br/>&nbsp;')
                             ->styleBorderBottom()
                             ->styleBorderRight(), '10%'
                         )
@@ -305,30 +310,32 @@ class E01
 
         $section
             ->addElementColumn((new Element())
-                ->setContent('
-                        {% if (Content.E01.' . $identifier . '.' . $part . '.Migrants.m is not empty) %}
-                            {{ Content.E01.' . $identifier . '.' . $part . '.Migrants.m }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
+//                ->setContent('
+//                        {% if (Content.E01.' . $identifier . '.' . $part . '.Migrants.m is not empty) %}
+//                            {{ Content.E01.' . $identifier . '.' . $part . '.Migrants.m }}
+//                        {% else %}
+//                            &nbsp;
+//                        {% endif %}
+//                    ')
+                ->setContent('&nbsp;')
                 ->styleAlignCenter()
                 ->styleBorderRight()
-                ->styleBackgroundColor('lightgrey')
+                ->styleBackgroundColor($identifier == 'NoCourse' ? 'white' : 'lightgrey')
                 ->styleBorderBottom()
                 , '5%'
             )
             ->addElementColumn((new Element())
-                ->setContent('
-                        {% if (Content.E01.' . $identifier . '.' . $part . '.Migrants.w is not empty) %}
-                            {{ Content.E01.' . $identifier . '.' . $part . '.Migrants.w }}
-                        {% else %}
-                            &nbsp;
-                        {% endif %}
-                    ')
+//                ->setContent('
+//                        {% if (Content.E01.' . $identifier . '.' . $part . '.Migrants.w is not empty) %}
+//                            {{ Content.E01.' . $identifier . '.' . $part . '.Migrants.w }}
+//                        {% else %}
+//                            &nbsp;
+//                        {% endif %}
+//                    ')
+                ->setContent('&nbsp;')
                 ->styleAlignCenter()
                 ->styleBorderRight()
-                ->styleBackgroundColor('lightgrey')
+                ->styleBackgroundColor($identifier == 'NoCourse' ? 'white' : 'lightgrey')
                 ->styleBorderBottom()
                 , '5%'
             );
@@ -457,7 +464,7 @@ class E01
                     ')
                 ->styleAlignCenter()
                 ->styleBorderRight()
-                ->styleBackgroundColor('lightgrey')
+                ->styleBackgroundColor($identifier == 'NoCourse' ? 'white' : 'lightgrey')
                 ->styleBorderBottom()
                 , '10%'
             );

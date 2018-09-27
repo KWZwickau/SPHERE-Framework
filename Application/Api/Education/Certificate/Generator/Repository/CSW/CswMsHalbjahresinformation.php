@@ -25,9 +25,8 @@ class CswMsHalbjahresinformation extends Certificate
 
     /**
      * @param TblPerson|null $tblPerson
-     * @return Page
-     * @internal param bool $IsSample
      *
+     * @return Page
      */
     public function buildPages(TblPerson $tblPerson = null)
     {
@@ -101,7 +100,7 @@ class CswMsHalbjahresinformation extends Certificate
      *
      * @return Slice
      */
-    public function getIndividualSchoolLine($personId)
+    public static function getIndividualSchoolLine($personId)
     {
 
         $slice = (new Slice());

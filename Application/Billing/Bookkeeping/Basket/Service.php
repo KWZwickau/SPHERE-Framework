@@ -938,11 +938,11 @@ class Service extends AbstractService
         TblDivision $tblFilterDivision = null
     ) {
 
+
         /**
          * Skip to Frontend
          */
-        $Global = $this->getGlobal();
-        if (!isset( $Global->POST['Button']['Submit'] )) {
+        if ($DataAddPerson == null && $DataRemovePerson == null) {
             return $Form;
         }
 
@@ -969,7 +969,7 @@ class Service extends AbstractService
      * @param TblBasket      $tblBasket
      * @param null           $Filter
      *
-     * @return IFormInterface|Success
+     * @return IFormInterface|String
      */
     public function getPersonFilter(IFormInterface $Form, TblBasket $tblBasket, $Filter = null)
     {

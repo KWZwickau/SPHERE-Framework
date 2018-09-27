@@ -41,7 +41,6 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -63,6 +62,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param int $Id
+     * @param null $Group
      * @param array $Street
      * @param array $City
      * @param int $State
@@ -72,18 +72,18 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage|string
      */
-    public function frontendCreateToPerson($Id, $Street, $City, $State, $Type, $County = null, $Nation = null)
+    public function frontendCreateToPerson($Id, $Group = null, $Street, $City, $State, $Type, $County = null, $Nation = null)
     {
 
         $tblPerson = Person::useService()->getPersonById($Id);
 
         $Stage = new Stage('Adresse', 'Hinzufügen');
-        $Stage->addButton( new Backward(true) );
+        $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $Id, 'Group' => $Group)));
         $Stage->setMessage('Eine Adresse zur gewählten Person hinzufügen');
 
         if(!$tblPerson){
             return $Stage . new Danger('Person nicht gefunden', new Ban())
-            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
+            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR, array('Group' => $Group));
         }
 
         $Stage->setContent(
@@ -107,7 +107,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $this->formAddress()
                                         ->appendFormButton(new Primary('Speichern', new Save()))
                                         ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                    , $tblPerson, $Street, $City, $State, $Type, $County, $Nation
+                                    , $tblPerson, $Street, $City, $State, $Type, $County, $Nation, $Group
                                 )
                             )
                         )
@@ -178,6 +178,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param int $Id
+     * @param null $Group
      * @param array $Street
      * @param array $City
      * @param int $State
@@ -187,7 +188,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage|string
      */
-    public function frontendCreateToCompany($Id, $Street, $City, $State, $Type, $County = null, $Nation = null)
+    public function frontendCreateToCompany($Id, $Group = null, $Street, $City, $State, $Type, $County = null, $Nation = null)
     {
 
         $tblCompany = Company::useService()->getCompanyById($Id);
@@ -195,7 +196,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('Eine Adresse zur gewählten Institution hinzufügen');
 
         if ($tblCompany) {
-            $Stage->addButton(new Standard('Zurück', '/Corporation/Company', new ChevronLeft(), array('Id' => $tblCompany->getId())));
+            $Stage->addButton(new Standard('Zurück', '/Corporation/Company', new ChevronLeft(), array('Id' => $tblCompany->getId(), 'Group' => $Group)));
 
             $Stage->setContent(
                 new Layout(array(
@@ -219,7 +220,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         $this->formAddress()
                                             ->appendFormButton(new Primary('Speichern', new Save()))
                                             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                        , $tblCompany, $Street, $City, $State, $Type, $County, $Nation
+                                        , $tblCompany, $Street, $City, $State, $Type, $County, $Nation, $Group
                                     )
                                 )
                             )
@@ -237,6 +238,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param int $Id
+     * @param null $Group
      * @param array $Street
      * @param array $City
      * @param int $State
@@ -246,19 +248,22 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage|string
      */
-    public function frontendUpdateToPerson($Id, $Street, $City, $State, $Type, $County = null, $Nation = null)
+    public function frontendUpdateToPerson($Id, $Group = null, $Street, $City, $State, $Type, $County = null, $Nation = null)
     {
 
         $tblToPerson = Address::useService()->getAddressToPersonById($Id);
 
         $Stage = new Stage('Adresse', 'Bearbeiten');
-        $Stage->addButton( new Backward(true) );
         $Stage->setMessage('Die Adresse der gewählten Person ändern');
 
         if (!$tblToPerson) {
-            // Back to Person with Backward
+            // Error Message
             return $Stage.new Danger('Adresse nicht gefunden', new Ban());
 //            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
+        }
+
+        if (($tblPerson = $tblToPerson->getServiceTblPerson())) {
+            $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $tblPerson->getId())));
         }
 
         if(!$tblToPerson->getServiceTblPerson()){
@@ -305,7 +310,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $this->formAddress()
                                         ->appendFormButton(new Primary('Speichern', new Save()))
                                         ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                    , $tblToPerson, $Street, $City, $State, $Type, $County, $Nation
+                                    , $tblToPerson, $Street, $City, $State, $Type, $County, $Nation, $Group
                                 )
                             )
                         )
@@ -318,6 +323,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param int $Id
+     * @param null $Group
      * @param array $Street
      * @param array $City
      * @param int $State
@@ -327,7 +333,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage|string
      */
-    public function frontendUpdateToCompany($Id, $Street, $City, $State, $Type, $County = null, $Nation = null)
+    public function frontendUpdateToCompany($Id, $Group = null, $Street, $City, $State, $Type, $County = null, $Nation = null)
     {
 
         $tblToCompany = Address::useService()->getAddressToCompanyById($Id);
@@ -337,7 +343,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblToCompany->getServiceTblCompany()) {
 
             $tblCompany = $tblToCompany->getServiceTblCompany();
-            $Stage->addButton(new Standard('Zurück', '/Corporation/Company', new ChevronLeft(), array('Id' => $tblCompany->getId())));
+            $Stage->addButton(new Standard('Zurück', '/Corporation/Company', new ChevronLeft(), array('Id' => $tblCompany->getId(), 'Group' => $Group)));
 
             $Global = $this->getGlobal();
             if (!isset($Global->POST['Address'])) {
@@ -380,7 +386,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         $this->formAddress()
                                             ->appendFormButton(new Primary('Speichern', new Save()))
                                             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                        , $tblToCompany, $Street, $City, $State, $Type, $County, $Nation
+                                        , $tblToCompany, $Street, $City, $State, $Type, $County, $Nation, $Group
                                     )
                                 )
                             )
@@ -398,20 +404,23 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param int $Id
      * @param bool $Confirm
+     * @param null $Group
      *
      * @return Stage|string
      */
-    public function frontendDestroyToPerson($Id, $Confirm = false)
+    public function frontendDestroyToPerson($Id, $Confirm = false, $Group = null)
     {
 
         $Stage = new Stage('Adresse', 'Löschen');
-        $Stage->addButton( new Backward(true) );
-        if ($Id) {
-            $tblToPerson = Address::useService()->getAddressToPersonById($Id);
+        if ($Id &&  $tblToPerson = Address::useService()->getAddressToPersonById($Id)) {
             $tblPerson = $tblToPerson->getServiceTblPerson();
             if (!$tblPerson) {
                 return $Stage . new Danger('Person nicht gefunden', new Ban())
-                . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
+                . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR, array('Group' => $Group));
+            }
+
+            if ($tblPerson) {
+                $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(), array('Id' => $tblPerson->getId(), 'Group' => $Group)));
             }
 
             if (!$Confirm) {
@@ -429,11 +438,11 @@ class Frontend extends Extension implements IFrontendInterface
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
                                 'Ja', '/People/Person/Address/Destroy', new Ok(),
-                                array('Id' => $Id, 'Confirm' => true)
+                                array('Id' => $Id, 'Confirm' => true, 'Group' => $Group)
                             )
                             . new Standard(
                                 'Nein', '/People/Person', new Disable(),
-                                array('Id' => $tblPerson->getId())
+                                array('Id' => $tblPerson->getId(), 'Group' => $Group)
                             )
                         )
                     )))))
@@ -447,7 +456,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 : new Danger(new Ban() . ' Die Adresse konnte nicht gelöscht werden')
                             ),
                             new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
-                                array('Id' => $tblPerson->getId()))
+                                array('Id' => $tblPerson->getId(), 'Group' => $Group))
                         )))
                     )))
                 );
@@ -457,7 +466,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
                         new Danger(new Ban() . ' Die Adresse konnte nicht gefunden werden'),
-                        new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR)
+                        new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR, array('Group' => $Group))
                     )))
                 )))
             );
@@ -468,22 +477,22 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param int $Id
      * @param bool $Confirm
+     * @param null $Group
      *
      * @return Stage|string
      */
-    public function frontendDestroyToCompany($Id, $Confirm = false)
+    public function frontendDestroyToCompany($Id, $Confirm = false, $Group = null)
     {
 
         $Stage = new Stage('Adresse', 'Löschen');
-        $Stage->addButton( new Backward(true) );
-        if ($Id) {
-            $tblToCompany = Address::useService()->getAddressToCompanyById($Id);
-
+        if ($Id && ($tblToCompany = Address::useService()->getAddressToCompanyById($Id))) {
             $tblCompany = $tblToCompany->getServiceTblCompany();
             if(!$tblCompany){
                 return $Stage.new Danger('Institution nicht gefunden', new Ban())
                 . new Redirect('/Corporation/Search/Group', Redirect::TIMEOUT_ERROR);
             }
+
+            $Stage->addButton( new Standard('Zurück', '/Corporation/Company', new ChevronLeft(), array('Id' => $tblCompany->getId(), 'Group' => $Group)) );
 
             if (!$Confirm) {
                 $Stage->setContent(
@@ -492,10 +501,7 @@ class Frontend extends Extension implements IFrontendInterface
                             array(
                                 new Bold($tblCompany->getName()),
                                 $tblCompany->getExtendedName()),
-                            Panel::PANEL_TYPE_SUCCESS,
-                            new Standard('Zurück zur Institution', '/Corporation/Company', new ChevronLeft(),
-                                array('Id' => $tblCompany->getId())
-                            )
+                            Panel::PANEL_TYPE_SUCCESS
                         ),
                         new Panel(new Question() . ' Diese Adresse wirklich löschen?', array(
                             $tblToCompany->getTblType()->getName() . ' ' . $tblToCompany->getTblType()->getDescription(),
@@ -505,11 +511,11 @@ class Frontend extends Extension implements IFrontendInterface
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
                                 'Ja', '/Corporation/Company/Address/Destroy', new Ok(),
-                                array('Id' => $Id, 'Confirm' => true)
+                                array('Id' => $Id, 'Confirm' => true, 'Group' => $Group)
                             )
                             . new Standard(
                                 'Nein', '/Corporation/Company', new Disable(),
-                                array('Id' => $tblCompany->getId())
+                                array('Id' => $tblCompany->getId(), 'Group' => $Group)
                             )
                         )
                     )))))
@@ -522,7 +528,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new Success('Die Adresse wurde gelöscht')
                                 : new Danger('Die Adresse konnte nicht gelöscht werden')
                             ),
-                            new Redirect('/Corporation/Company', 1, array('Id' => $tblCompany->getId()))
+                            new Redirect('/Corporation/Company', 1, array('Id' => $tblCompany->getId(), 'Group' => $Group))
                         )))
                     )))
                 );
@@ -542,16 +548,17 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblPerson $tblPerson
+     * @param null $Group
      *
      * @return Layout
      */
-    public function frontendLayoutPerson(TblPerson $tblPerson)
+    public function frontendLayoutPerson(TblPerson $tblPerson, $Group = null)
     {
 
         $addressExistsList = array();
         $tblAddressAll = Address::useService()->getAddressAllByPerson($tblPerson);
         if ($tblAddressAll !== false) {
-            array_walk($tblAddressAll, function (TblToPerson &$tblToPerson) use ($addressExistsList) {
+            array_walk($tblAddressAll, function (TblToPerson &$tblToPerson) use ($addressExistsList, $Group) {
 
                 if (array_key_exists($tblToPerson->getId(), $addressExistsList)){
                     $tblToPerson = false;
@@ -569,12 +576,12 @@ class Frontend extends Extension implements IFrontendInterface
                             Panel::PANEL_TYPE_SUCCESS,
                             new Standard(
                                 '', '/People/Person/Address/Edit', new Edit(),
-                                array('Id' => $tblToPerson->getId()),
+                                array('Id' => $tblToPerson->getId(), 'Group' => $Group),
                                 'Bearbeiten'
                             )
                             . new Standard(
                                 '', '/People/Person/Address/Destroy', new Remove(),
-                                array('Id' => $tblToPerson->getId()), 'Löschen'
+                                array('Id' => $tblToPerson->getId(), 'Group' => $Group), 'Löschen'
                             )
                         )
                         , 3);
@@ -692,15 +699,16 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblCompany $tblCompany
+     * @param null $Group
      *
      * @return Layout
      */
-    public function frontendLayoutCompany(TblCompany $tblCompany)
+    public function frontendLayoutCompany(TblCompany $tblCompany, $Group = null)
     {
 
         $tblAddressAll = Address::useService()->getAddressAllByCompany($tblCompany);
         if ($tblAddressAll !== false) {
-            array_walk($tblAddressAll, function (TblToCompany &$tblToCompany) {
+            array_walk($tblAddressAll, function (TblToCompany &$tblToCompany) use ($Group) {
 
                 $Panel = array($tblToCompany->getTblAddress()->getGuiLayout());
                 if ($tblToCompany->getRemark()) {
@@ -713,12 +721,12 @@ class Frontend extends Extension implements IFrontendInterface
                         Panel::PANEL_TYPE_SUCCESS,
                         new Standard(
                             '', '/Corporation/Company/Address/Edit', new Edit(),
-                            array('Id' => $tblToCompany->getId()),
+                            array('Id' => $tblToCompany->getId(), 'Group' => $Group),
                             'Bearbeiten'
                         )
                         . new Standard(
                             '', '/Corporation/Company/Address/Destroy', new Remove(),
-                            array('Id' => $tblToCompany->getId()), 'Löschen'
+                            array('Id' => $tblToCompany->getId(), 'Group' => $Group), 'Löschen'
                         )
                     )
                     , 3);

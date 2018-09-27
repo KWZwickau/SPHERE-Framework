@@ -17,6 +17,11 @@ use SPHERE\System\Database\Fitting\Element;
 class TblProspectReservation extends Element
 {
 
+    const ATTR_RESERVATION_YEAR = 'ReservationYear';
+    const ATTR_RESERVATION_DIVISION = 'ReservationDivision';
+    const ATTR_SERVICE_TBL_TYPE_OPTION_A = 'serviceTblTypeOptionA';
+    const ATTR_SERVICE_TBL_TYPE_OPTION_B = 'serviceTblTypeOptionB';
+
     /**
      * @Column(type="string")
      */
