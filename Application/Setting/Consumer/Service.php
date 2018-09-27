@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Setting\Consumer;
 
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Service\Data;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblSetting;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblStudentCustody;
@@ -251,5 +252,17 @@ class Service extends AbstractService
         }
 
         return $form;
+    }
+
+    /**
+     * @param TblSetting $tblSetting
+     * @param TblConsumer $tblConsumer
+     *
+     * @return string
+     */
+    public function getSettingByConsumer(TblSetting $tblSetting, TblConsumer $tblConsumer)
+    {
+
+        return (new Data($this->getBinding()))->getSettingByConsumer($tblSetting, $tblConsumer);
     }
 }

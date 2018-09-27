@@ -28,6 +28,12 @@ class Setting extends Extension implements IModuleInterface
                 __NAMESPACE__.'/Frontend::frontendSettings'
             )
         );
+
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/AllConsumers' ,
+                __NAMESPACE__.'/Frontend::frontendSettingAllConsumers'
+            )
+        );
     }
 
     /**

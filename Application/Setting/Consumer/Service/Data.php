@@ -3,11 +3,16 @@ namespace SPHERE\Application\Setting\Consumer\Service;
 
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblSetting;
 use SPHERE\Application\Setting\Consumer\Service\Entity\TblStudentCustody;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Database;
 use SPHERE\System\Database\Fitting\Element;
+use MOC\V\Component\Database\Component\IBridgeInterface;
+use MOC\V\Component\Database\Database as MocDatabase;
+use SPHERE\System\Database\Type\MySql;
 
 /**
  * Class Data
@@ -60,6 +65,10 @@ class Data extends AbstractData
             // Logo für das Zeugnis darf skalliert nicht breiter sein als 182px (bei einer höhe von 50px [Bsp.: 546 * 150 ist noch ok])
             $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Für die Standard-Zeugnisse kann ein Bild (Logo) hinterlegt werden. Logo für das Zeugnis darf skalliert nicht breiter sein als 182px (bei einer höhe von 50px [Bsp.: 546 * 150 ist noch ok]). Adresse des Bildes:');
         }
+        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Generate', 'PictureHeight', TblSetting::TYPE_STRING, ''))) {
+            // Logo für das Zeugnis darf skalliert nicht breiter sein als 182px (bei einer höhe von 50px [Bsp.: 546 * 150 ist noch ok])
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Für die Standard-Zeugnisse kann ein Bild (Logo) hinterlegt werden. Logo für das Zeugnis darf skalliert nicht breiter sein als 182px (bei einer höhe von 50px [Bsp.: 546 * 150 ist noch ok]). Höhe des Bildes:');
+        }
         if (($tblSetting = $this->createSetting('Api', 'Education', 'Certificate', 'OrientationAcronym', TblSetting::TYPE_STRING, ''))) {
             $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Werden die Neigungskurse in der Bildung nicht einzeln gepflegt, sondern nur ein einzelner Standard-Neigungskurs, kann hier das Kürzel des Standard-Neigungskurses (z.B. NK) hinterlegt werden. Für die Zeugnisse wir dann der eigentliche Neigungskurs aus der Schülerakte des Schülers gezogen.');
         }
@@ -72,6 +81,9 @@ class Data extends AbstractData
         if (($tblSetting =  $this->createSetting('Education', 'Certificate', 'Prepare', 'IsSchoolExtendedNameDisplayed', TblSetting::TYPE_BOOLEAN, '0'))) {
             $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Anzeige des Schul-Zusatzes (Institutionszusatz) auf Zeugnissen', true);
         }
+        if (($tblSetting =  $this->createSetting('Education', 'Certificate', 'Prepare', 'SchoolExtendedNameSeparator', TblSetting::TYPE_STRING, ''))) {
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Anzeige des Schul-Zusatzes (Institutionszusatz) auf Zeugnissen mit dem Trennzeichen:');
+        }
         if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Prepare', 'UseMultipleBehaviorTasks', TblSetting::TYPE_BOOLEAN, '0'))) {
             // Verwendung aller Kopfnotenaufträgen für eine Zeugnisvorbereitung
             $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Verwendung aller Kopfnotenaufträge des Schuljahres für die Zeugnisvorbereitung', true);
@@ -82,6 +94,9 @@ class Data extends AbstractData
         if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnLeave', TblSetting::TYPE_BOOLEAN, '0'))) {
             // Zensuren im Wortlaut auf Abgangszeugnissen
             $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Anzeige der Zensuren im Wortlaut auf Abgangszeugnissen', true);
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Diploma', 'PreArticleForSchoolName', TblSetting::TYPE_STRING, ''))) {
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Artikel vor dem Schulnamen auf Abschluszeugnissen (z.B. das):');
         }
 
         if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsShownAverageInStudentOverview', TblSetting::TYPE_BOOLEAN, false))) {
@@ -251,6 +266,7 @@ class Data extends AbstractData
      * @param string $Type
      * @param $Value
      * @param string $Category
+     * @param string $Description
      * @param bool $IsPublic
      *
      * @return TblSetting
@@ -263,6 +279,7 @@ class Data extends AbstractData
         $Type,
         $Value,
         $Category = 'Allgemein',
+        $Description = '',
         $IsPublic = false
     ) {
 
@@ -283,6 +300,7 @@ class Data extends AbstractData
             $Entity->setType($Type);
             $Entity->setValue($Value);
             $Entity->setCategory($Category);
+            $Entity->setDescription($Description);
             $Entity->setIsPublic($IsPublic);
 
             $Manager->saveEntity($Entity);
@@ -393,6 +411,75 @@ class Data extends AbstractData
                 $Entity);
             $Manager->killEntity($Entity);
             return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblSetting $tblSetting
+     * @param TblConsumer $tblConsumer
+     *
+     * @return string
+     */
+    public function getSettingByConsumer(TblSetting $tblSetting, TblConsumer $tblConsumer)
+    {
+
+        $value = '';
+        $connection = false;
+        $container = Database::getDataBaseConfig($tblConsumer);
+
+        if ($container) {
+            try {
+                $connection = $this->getConnectionByAcronym(
+                    $container->getContainer('Host')->getValue(),
+                    $container->getContainer('Username')->getValue(),
+                    $container->getContainer('Password')->getValue(),
+                    $tblConsumer->getAcronym()
+                );
+
+                if ($connection) {
+                    $queryBuilder = $connection->getQueryBuilder();
+
+                    $query = $queryBuilder->select('S.Value')
+                        ->from('SettingConsumer_' . $tblConsumer->getAcronym() . '.tblSetting', 'S')
+                        ->where('S.Identifier = :identifier')
+                        ->setParameter('identifier', $tblSetting->getIdentifier());
+
+                    $result = $query->execute();
+                    $array = $result->fetch();
+
+                    if (isset($array['Value'])) {
+                       $value = $array['Value'];
+                    }
+
+                    $connection->getConnection()->close();
+                }
+            } catch (\Exception $Exception) {
+                if ($connection) {
+                    $connection->getConnection()->close();
+                }
+                $connection = null;
+            }
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param string $Host Server-Address (IP)
+     * @param string $User
+     * @param string $Password
+     * @param string $Acronym DatabaseName will get prefix 'SettingConsumer_' e.g. SettingConsumer_{Acronym}
+     *
+     * @return bool|IBridgeInterface
+     */
+    private function getConnectionByAcronym($Host, $User, $Password, $Acronym)
+    {
+        $Connection = MocDatabase::getDatabase(
+            $User, $Password, 'SettingConsumer_' . strtoupper($Acronym), (new MySql())->getIdentifier(), $Host
+        );
+        if ($Connection->getConnection()->isConnected()) {
+            return $Connection;
         }
         return false;
     }

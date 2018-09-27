@@ -11,6 +11,7 @@ use Doctrine\DBAL\Schema\Table;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\Setup;
 use MOC\V\Component\Database\Component\IBridgeInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Flash;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -437,5 +438,27 @@ class Database extends Extension
         }
         $this->Protocol = array();
         return $Protocol;
+    }
+
+    /**
+     * @param TblConsumer $tblConsumer
+     *
+     * @return bool|mixed|null|\SPHERE\System\Config\ConfigContainer
+     */
+    public static function getDataBaseConfig(TblConsumer $tblConsumer)
+    {
+        $container = false;
+        $configuration = (new ConfigFactory())
+            ->createReader(__DIR__ . '/Configuration.ini', new IniReader())
+            ->getConfig();
+
+        if ($configuration) {
+            $container = $configuration->getContainer('Setting:Consumer:' . $tblConsumer->getAcronym());
+            if ($container == null) {
+                $container = $configuration->getContainer('Setting:Consumer');
+            }
+        }
+
+        return $container;
     }
 }
