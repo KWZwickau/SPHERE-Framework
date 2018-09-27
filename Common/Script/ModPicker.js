@@ -23,7 +23,13 @@
             },
             useStrict: true,
             format: 'DD.MM.YYYY',
-            extraFormats: [ 'DD.MM.YY', 'DD.M.YY', 'D.MM.YY', 'D.M.YY', 'DDMMYYYY' ]
+            extraFormats: [
+                'DDMMYYYY', 'DDMMYY',
+                'DD.MM.YY', 'DD.M.YY', 'D.MM.YY', 'D.M.YY',
+                'DD.M.YYYY', 'D.MM.YYYY', 'D.M.YYYY',
+                'DD,MM,YY', 'DD,M,YY', 'D,MM,YY', 'D,M,YY',
+                'DD,M,YYYY', 'D,MM,YYYY', 'D,M,YYYY', 'DD,MM,YYYY'
+            ]
             // These are the defaults.
         }, options), _self = this;
 
