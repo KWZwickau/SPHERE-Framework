@@ -100,7 +100,7 @@ class ApiSupportReadOnly extends Extension implements IApiInterface
                 if(($tblFocusList = Student::useService()->getFocusListBySupport($tblSupport))){
                     foreach($tblFocusList as $tblFocus){
                         // doppelter Focus nicht doppelt abbilden
-                        if($tblFocusPrimary->getId() != $tblFocus->getId()){
+                        if($tblFocusPrimary && $tblFocusPrimary->getId() != $tblFocus->getId()){
                             $WellFocus .= new Container($tblFocus->getName());
                         }
                     }
