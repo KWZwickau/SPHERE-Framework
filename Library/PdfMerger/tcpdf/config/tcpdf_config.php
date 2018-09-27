@@ -63,7 +63,7 @@
  * Default images directory.
  * By default it is automatically set but you can also set it as a fixed string to improve performances.
  */
-//define ('K_PATH_IMAGES', '');
+define ('K_PATH_IMAGES', '/var/www/Common/Style/Resource');
 
 /**
  * Deafult image logo used be the default Header() method.
@@ -79,7 +79,7 @@
 /**
  * Cache directory for temporary files (full path).
  */
-//define ('K_PATH_CACHE', '/tmp/');
+define ('K_PATH_CACHE', '/tmp/');
 
 /**
  * Generic name for a blank image.
