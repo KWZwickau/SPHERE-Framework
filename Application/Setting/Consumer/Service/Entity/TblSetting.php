@@ -73,6 +73,11 @@ class TblSetting extends Element
     protected $IsPublic;
 
     /**
+     * @Column(type="string")
+     */
+    protected $Category;
+
+    /**
      * @return string
      */
     public function getCluster()
@@ -198,5 +203,21 @@ class TblSetting extends Element
     public function setIsPublic($IsPublic)
     {
         $this->IsPublic = $IsPublic;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCategory()
+    {
+        return $this->Category;
+    }
+
+    /**
+     * @param string $Category
+     */
+    public function setCategory($Category)
+    {
+        $this->Category = $Category;
     }
 }

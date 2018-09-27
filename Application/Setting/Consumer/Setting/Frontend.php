@@ -79,36 +79,21 @@ class Frontend extends Extension implements IFrontendInterface
                     : $tblSetting->getIdentifier() . ' (keine Beschreibung verfügbar)';
 
                 if ($tblSetting->getIdentifier() == 'Format_GuiString') {
-                    $fields[$tblSetting->getApplication()][] = new SelectBox('Data[' . $tblSetting->getId() . ']', $description, array('{{ Name }}' => $selectBoxContent));
+                    $fields[$tblSetting->getCategory()][] = new SelectBox('Data[' . $tblSetting->getId() . ']', $description, array('{{ Name }}' => $selectBoxContent));
                 } elseif ($tblSetting->getType() == TblSetting::TYPE_BOOLEAN) {
-                    $fields[$tblSetting->getApplication()][] = new CheckBox('Data[' . $tblSetting->getId() . ']', $description, 1);
+                    $fields[$tblSetting->getCategory()][] = new CheckBox('Data[' . $tblSetting->getId() . ']', $description, 1);
                 } elseif ($tblSetting->getType() == TblSetting::TYPE_STRING) {
-                    $fields[$tblSetting->getApplication()][] = new TextField('Data[' . $tblSetting->getId() . ']', '', $description, new Comment());
+                    $fields[$tblSetting->getCategory()][] = new TextField('Data[' . $tblSetting->getId() . ']', '', $description, new Comment());
                 } elseif ($tblSetting->getType() == TblSetting::TYPE_INTEGER) {
-                    $fields[$tblSetting->getApplication()][] = new NumberField('Data[' . $tblSetting->getId() . ']', '', $description, new Quantity());
+                    $fields[$tblSetting->getCategory()][] = new NumberField('Data[' . $tblSetting->getId() . ']', '', $description, new Quantity());
                 }
             }
 
             ksort($fields);
             $formColumns = array();
-            foreach ($fields as $application => $content) {
-
-                switch ($application) {
-                    case 'Address': $title = 'Adressen'; break;
-                    case 'Certificate': $title = 'Zeugnisse'; break;
-                    case 'ClassRegister': $title = 'Klassenbücher'; break;
-                    case 'Consumer': $title = 'Alphabetische Sortierung'; break;
-                    case 'Document': $title = 'Dokumente'; break;
-                    case 'Education': $title = 'Bildung'; break;
-                    case 'Graduation': $title = 'Notenbücher/Leistungsüberprüfungen'; break;
-                    case 'KamenzReport': $title = 'Validierung'; break;
-                    case 'Meta': $title = 'Metadaten'; break;
-
-                    default: $title = $application;
-                }
-
+            foreach ($fields as $category => $content) {
                 $formColumns[] = new FormColumn(new Panel(
-                    $title,
+                    $category,
                     $content,
                     Panel::PANEL_TYPE_INFO
                 ));
