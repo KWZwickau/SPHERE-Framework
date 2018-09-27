@@ -116,12 +116,12 @@ class Frontend extends Extension implements IFrontendInterface
                         : ($CompanyNumberStandard != ''
                             ? 'Schulträger: '.$CompanyNumberStandard.' '.
                             new ToolTip(new Info(),
-                                'Diese wird verwendet wenn bei der Schule keine Unternehmensnr. hinterlegt ist.')
+                                'Es wird diese Unternehmensnr. des Schulträgers verwendet, wenn bei der Schule keine hinterlegt ist.')
                             : '')),
                     ($CompanyNumber != '' ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_WARNING),
                     new PullRight(new Standard('', '/Setting/Consumer/School/Edit', new Edit(),
                         array('Id' => $tblSchool->getId()),
-                        'Bearbeiten der Unternehmensnr. des Unfallversicherungsträgers')));
+                        'Bearbeiten')));
 
                 if ($tblCompany) {
                     $Form .= new Layout(array(
