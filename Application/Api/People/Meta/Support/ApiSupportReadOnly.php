@@ -49,7 +49,7 @@ class ApiSupportReadOnly extends Extension implements IApiInterface
     public static function receiverOverViewModal()
     {
 
-        return (new ModalReceiver(null, new Close()))->setIdentifier('ModalOverViewReciever');
+        return (new ModalReceiver(null, new Close()))->setIdentifier('ModalSupportOverViewReciever');
     }
 
 
