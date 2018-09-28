@@ -16,6 +16,7 @@ use SPHERE\Application\Education\Certificate\Prepare\Service\Entity\TblPrepareCe
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
@@ -40,6 +41,11 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
+/**
+ * Class Frontend
+ *
+ * @package SPHERE\Application\Education\Certificate\PrintCertificate
+ */
 class Frontend extends Extension implements IFrontendInterface
 {
 
@@ -221,19 +227,166 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @return Stage
+     */
+    public function frontendPrintCertificateDivisionTeacher()
+    {
+
+        $Stage = new Stage('Zeugnis', 'Übersicht (nicht gedruckte Zeugnisse)');
+
+        $tableContent = array();
+        $prepareList = array();
+
+        $tblPerson = false;
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
+            if ($tblPersonAllByAccount) {
+                $tblPerson = $tblPersonAllByAccount[0];
+            }
+        }
+        if ($tblPerson
+            && ($tblDivisionTeacherList = Division::useService()->getDivisionTeacherAllByPerson($tblPerson))
+        ) {
+            $divisionList = array();
+            foreach ($tblDivisionTeacherList as $tblDivisionTeacher) {
+                if (($tblDivision = $tblDivisionTeacher->getTblDivision())) {
+                    $divisionList[$tblDivision->getId()] = $tblDivision;
+                }
+            }
+
+            // freigebene und nicht gedruckte Zeugnisse
+            $tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllWhere(true, false);
+            if ($tblPrepareStudentList) {
+                foreach ($tblPrepareStudentList as $tblPrepareStudent) {
+                    if (($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                        && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
+                        && $tblPrepareStudent->getServiceTblCertificate()
+                        && ($tblDivisionItem = $tblPrepare->getServiceTblDivision())
+                    ) {
+                        if (isset($divisionList[$tblDivisionItem->getId()]) && !isset($prepareList[$tblPrepare->getId()])) {
+                            $prepareList[$tblPrepare->getId()] = $tblPrepare;
+                        }
+                    }
+                }
+            }
+
+            // alle automatisch freigebenen Zeugnisse
+            if ($tblGenerateCertificateList = Generate::useService()->getGenerateCertificateAll()) {
+                foreach ($tblGenerateCertificateList as $tblGenerateCertificate) {
+                    if (($tblCertificateType = $tblGenerateCertificate->getServiceTblCertificateType())
+                        && $tblCertificateType->isAutomaticallyApproved()
+                    ) {
+                        if (($tblPrepareList = Prepare::useService()->getPrepareAllByGenerateCertificate($tblGenerateCertificate))) {
+                            foreach ($tblPrepareList as $tblPrepareCertificate) {
+                                if (($tblDivisionItem = $tblPrepareCertificate->getServiceTblDivision())
+                                    && isset($divisionList[$tblDivisionItem->getId()])
+                                ) {
+                                    if (($tblPrepareStudentList = Prepare::useService()->getPrepareStudentAllByPrepare($tblPrepareCertificate))) {
+                                        foreach ($tblPrepareStudentList as $tblPrepareStudent) {
+                                            if (($tblPerson = $tblPrepareStudent->getServiceTblPerson())
+                                                && ($tblPrepare = $tblPrepareStudent->getTblPrepareCertificate())
+                                                && $tblPrepareStudent->getServiceTblCertificate()
+                                                && !$tblPrepareStudent->isPrinted()
+                                            ) {
+                                                if (!isset($prepareList[$tblPrepare->getId()])) {
+                                                    $prepareList[$tblPrepare->getId()] = $tblPrepare;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /** @var TblPrepareCertificate $tblPrepare */
+        foreach ($prepareList as $tblPrepare) {
+            if (($tblDivision = $tblPrepare->getServiceTblDivision())) {
+                $tableContent[] = array(
+                    'Year' => $tblDivision->getServiceTblYear()
+                        ? $tblDivision->getServiceTblYear()->getDisplayName() : '',
+                    'Date' => $tblPrepare->getDate(),
+                    'Division' => $tblDivision->getDisplayName(),
+                    'CertificateType' =>
+                        ($tblCertificateType = $tblPrepare->getCertificateType()) ? $tblCertificateType->getName() : '',
+                    'Name' => $tblPrepare->getName(),
+                    'Option' => new Standard(
+                        'Zeugnisse herunterladen und revisionssicher speichern',
+                        '/Education/Certificate/PrintCertificate/Confirm',
+                        new Download(),
+                        array(
+                            'PrepareId' => $tblPrepare->getId(),
+                            'Route' => 'DivisionTeacher'
+                        ))
+                );
+            }
+        }
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            empty($tableContent)
+                                ? new Warning('Keine Zeugnisse zum Druck verfügbar', new Exclamation())
+                                : new TableData(
+                                $tableContent,
+                                null,
+                                array(
+                                    'Year' => 'Schuljahr',
+                                    'Date' => 'Zeugnisdatum',
+                                    'Division' => 'Klasse',
+                                    'Name' => 'Name',
+                                    'CertificateType' => 'Zeugnistyp',
+                                    'Option' => ''
+                                ),
+                                array(
+                                    'order' => array(
+                                        array(0, 'desc'),
+                                        array(1, 'desc'),
+                                        array(2, 'asc'),
+                                        array(3, 'asc'),
+                                    ),
+                                    'columnDefs' => array(
+                                        array('type' => 'natural', 'targets' => 2),
+                                    )
+                                )
+                            )
+                        ))
+                    ))
+                ))
+            ))
+        );
+
+        return $Stage;
+    }
+
+    /**
      * @param null $PrepareId
      * @param null $DivisionId
      * @param bool $IsLeave
+     * @param string $Route
      *
      * @return Stage
      */
     public function frontendConfirmPrintCertificate(
         $PrepareId = null,
         $DivisionId = null,
-        $IsLeave = false
+        $IsLeave = false,
+        $Route = 'All'
     ) {
 
         $Stage = new Stage('Zeugnis', 'Herunterladen und revisionssicher abspeichern');
+        if ($Route == 'All') {
+            $backRoute = '/Education/Certificate/PrintCertificate';
+        } else {
+            $backRoute = '/Education/Certificate/DivisionTeacherPrintCertificate';
+        }
 
         if ($IsLeave) {
             if (($tblDivision = Division::useService()->getDivisionById($DivisionId))) {
@@ -308,7 +461,7 @@ class Frontend extends Extension implements IFrontendInterface
             ) {
 
                 $Stage->addButton(new Standard(
-                    'Zurück', '/Education/Certificate/PrintCertificate', new ChevronLeft()
+                    'Zurück', $backRoute, new ChevronLeft()
                 ));
 
                 if (($tblCertificateType = $tblPrepare->getCertificateType())
@@ -354,9 +507,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     'PrepareId' => $tblPrepare->getId(),
                                 ),
                                 'Zeugnisse herunterladen und revisionssicher abspeichern'))
-                                ->setRedirect('/Education/Certificate/PrintCertificate', 60)
+                                ->setRedirect($backRoute, 60)
                             . new Standard(
-                                'Nein', '/Education/Certificate/PrintCertificate', new Disable()
+                                'Nein', $backRoute, new Disable()
                             )
                         ),
                     )))))
@@ -366,7 +519,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
                             new Danger(new Ban() . ' Das Zeugnis konnte nicht gefunden werden'),
-                            new Redirect('/Education/Certificate/PrintCertificate', Redirect::TIMEOUT_ERROR)
+                            new Redirect($backRoute, Redirect::TIMEOUT_ERROR)
                         )))
                     )))
                 );

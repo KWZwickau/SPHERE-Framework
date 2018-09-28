@@ -13,6 +13,11 @@ use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 
+/**
+ * Class PrintCertificate
+ *
+ * @package SPHERE\Application\Education\Certificate\PrintCertificate
+ */
 class PrintCertificate implements IModuleInterface
 {
 
@@ -25,12 +30,20 @@ class PrintCertificate implements IModuleInterface
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Zeugnisse drucken'))
         );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route('SPHERE\Application\Education\Certificate\DivisionTeacherPrintCertificate'),
+                new Link\Name('Zeugnisse drucken (Klassenlehrer)'))
+        );
 
         /**
          * Route
          */
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __NAMESPACE__ . '\Frontend::frontendPrintCertificate')
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            'SPHERE\Application\Education\Certificate\DivisionTeacherPrintCertificate',
+            __NAMESPACE__ . '\Frontend::frontendPrintCertificateDivisionTeacher')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '\Confirm', __NAMESPACE__ . '\Frontend::frontendConfirmPrintCertificate')
