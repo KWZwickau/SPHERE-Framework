@@ -235,4 +235,29 @@ class Person
 
         return false;
     }
+
+    /**
+     * @param null $DivisionId
+     *
+     * @return bool|string
+     */
+    public function downloadAgreementClassList($DivisionId = null)
+    {
+
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        if ($tblDivision) {
+            $PersonList = ReportingPerson::useService()->createAgreementClassList($tblDivision);
+            if ($PersonList) {
+                $tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision);
+                if ($tblPersonList) {
+                    $fileLocation = ReportingPerson::useService()->createAgreementClassListExcel($PersonList, $tblPersonList);
+                    return FileSystem::getDownload($fileLocation->getRealPath(),
+                        "Einverständniserklärung_Klassenliste ".$tblDivision->getDisplayName()
+                        ." ".date("Y-m-d H:i:s").".xlsx")->__toString();
+                }
+            }
+        }
+
+        return false;
+    }
 }
