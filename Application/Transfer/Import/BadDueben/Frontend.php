@@ -51,31 +51,31 @@ class Frontend extends Extension implements IFrontendInterface
                 new ChevronLeft()
             )
         );
-//        $View->setContent(
-//            new Layout(
-//                new LayoutGroup(
-//                    new LayoutRow(
-//                        new LayoutColumn(array(
-//                            new Well(
-//                                BadDueben::useService()->createStudentsFromFile(new Form(
-//                                    new FormGroup(
-//                                        new FormRow(
-//                                            new FormColumn(
-//                                                new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
-//                                                    array('showPreview' => false))
-//                                            )
-//                                        )
-//                                    )
-//                                    , new Primary('Hochladen')
-//                                ), $File, $IsNextYear
-//                                )
-//                                . new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX) ' . new Exclamation())
-//                            )
-//                        ))
-//                    )
-//                )
-//            )
-//        );
+        $View->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new Well(
+                                BadDueben::useService()->createStudentsFromFile(new Form(
+                                    new FormGroup(
+                                        new FormRow(
+                                            new FormColumn(
+                                                new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
+                                                    array('showPreview' => false))
+                                            )
+                                        )
+                                    )
+                                    , new Primary('Hochladen')
+                                ), $File
+                                )
+                                . new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX) ' . new Exclamation())
+                            )
+                        ))
+                    )
+                )
+            )
+        );
 
         return $View;
     }
