@@ -28,7 +28,7 @@ class BadDueben implements IModuleInterface
             __NAMESPACE__ . '/Student', __NAMESPACE__ . '\Frontend::frontendStudentImport'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '/Staff', __NAMESPACE__ . '\Frontend::frontendStaffmport'
+            __NAMESPACE__ . '/Staff', __NAMESPACE__ . '\Frontend::frontendStaffImport'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/InterestedPerson', __NAMESPACE__ . '\Frontend::frontendInterestedPersonImport'
