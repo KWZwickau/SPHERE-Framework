@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Api\People;
 
+use SPHERE\Application\Api\People\Meta\Agreement\ApiAgreementReadOnly;
 use SPHERE\Application\Api\People\Meta\MedicalRecord\MedicalRecordReadOnly;
 use SPHERE\Application\Api\People\Meta\Student\ApiStudent;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupport;
@@ -22,5 +23,6 @@ class Person implements IApplicationInterface
         ApiSupport::registerApi();
         ApiSupportReadOnly::registerApi();
         MedicalRecordReadOnly::registerApi();
+        ApiAgreementReadOnly::registerApi();
     }
 }

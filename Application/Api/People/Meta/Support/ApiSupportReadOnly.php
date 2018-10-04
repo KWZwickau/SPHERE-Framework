@@ -49,7 +49,7 @@ class ApiSupportReadOnly extends Extension implements IApiInterface
     public static function receiverOverViewModal()
     {
 
-        return (new ModalReceiver(null, new Close()))->setIdentifier('ModalOverViewReciever');
+        return (new ModalReceiver(null, new Close()))->setIdentifier('ModalSupportOverViewReciever');
     }
 
 
@@ -100,7 +100,7 @@ class ApiSupportReadOnly extends Extension implements IApiInterface
                 if(($tblFocusList = Student::useService()->getFocusListBySupport($tblSupport))){
                     foreach($tblFocusList as $tblFocus){
                         // doppelter Focus nicht doppelt abbilden
-                        if($tblFocusPrimary->getId() != $tblFocus->getId()){
+                        if($tblFocusPrimary && $tblFocusPrimary->getId() != $tblFocus->getId()){
                             $WellFocus .= new Container($tblFocus->getName());
                         }
                     }

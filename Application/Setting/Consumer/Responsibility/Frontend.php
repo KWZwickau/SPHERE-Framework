@@ -86,7 +86,7 @@ class Frontend extends Extension implements IFrontendInterface
                     ($CompanyNumber != '' ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_WARNING),
                     new PullRight(new Standard('', '/Setting/Consumer/Responsibility/Edit', new Edit(),
                         array('Id' => $tblResponsibility->getId()),
-                        'Bearbeiten der Unternehmensnr. des Unfallversicherungsträgers')));
+                        'Bearbeiten')));
 
                 if ($tblCompany) {
 
