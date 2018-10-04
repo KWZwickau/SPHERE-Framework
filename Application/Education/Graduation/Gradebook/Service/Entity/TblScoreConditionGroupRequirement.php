@@ -1,4 +1,11 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: Kauschke
+ * Date: 14.09.2018
+ * Time: 10:00
+ */
+
 namespace SPHERE\Application\Education\Graduation\Gradebook\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
@@ -10,19 +17,19 @@ use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity()
- * @Table(name="tblScoreConditionGradeTypeList")
+ * @Table(name="tblScoreConditionGroupRequirement")
  * @Cache(usage="READ_ONLY")
  */
-class TblScoreConditionGradeTypeList extends Element
+class TblScoreConditionGroupRequirement extends Element
 {
 
-    const ATTR_TBL_GRADE_TYPE = 'tblGradeType';
+    const ATTR_TBL_SCORE_GROUP = 'tblScoreGroup';
     const ATTR_TBL_SCORE_CONDITION = 'tblScoreCondition';
 
     /**
      * @Column(type="bigint")
      */
-    protected $tblGradeType;
+    protected $tblScoreGroup;
 
     /**
      * @Column(type="bigint")
@@ -35,25 +42,25 @@ class TblScoreConditionGradeTypeList extends Element
     protected $Count;
 
     /**
-     * @return bool|TblGradeType
+     * @return bool|TblScoreGroup
      */
-    public function getTblGradeType()
+    public function getTblScoreGroup()
     {
 
-        if (null === $this->tblGradeType) {
+        if (null === $this->tblScoreGroup) {
             return false;
         } else {
-            return Gradebook::useService()->getGradeTypeById($this->tblGradeType);
+            return Gradebook::useService()->getScoreGroupById($this->tblScoreGroup);
         }
     }
 
     /**
-     * @param TblGradeType|null $tblGradeType
+     * @param TblScoreGroup|null $tblScoreGroup
      */
-    public function setTblGradeType($tblGradeType)
+    public function setTblScoreGroup($tblScoreGroup)
     {
 
-        $this->tblGradeType = ( null === $tblGradeType ? null : $tblGradeType->getId() );
+        $this->tblScoreGroup = ( null === $tblScoreGroup ? null : $tblScoreGroup->getId() );
     }
 
     /**

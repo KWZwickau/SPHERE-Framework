@@ -11,9 +11,9 @@ namespace SPHERE\Application\Education\Graduation\Gradebook\ScoreRule;
 use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\Frontend as FrontendMinimumGradeCount;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
+use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreCondition;
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGradeTypeList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGroupList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroup;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroupGradeTypeList;
@@ -29,6 +29,7 @@ use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -125,19 +126,22 @@ class Frontend extends FrontendMinimumGradeCount
                             . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Priorität: '
                             . $tblScoreCondition->getPriority();
 
-                        $tblScoreConditionGradeTypeListByCondition = Gradebook::useService()->getScoreConditionGradeTypeListByCondition(
-                            $tblScoreCondition
-                        );
-                        if ($tblScoreConditionGradeTypeListByCondition) {
-                            $list = array();
-                            foreach ($tblScoreConditionGradeTypeListByCondition as $tblScoreConditionGradeTypeList) {
-                                if ($tblScoreConditionGradeTypeList->getTblGradeType()) {
-                                    $list[] = $tblScoreConditionGradeTypeList->getTblGradeType()->getDisplayName();
-                                }
-                            }
-
-                            $structure[] = '&nbsp;&nbsp;&nbsp;&bull;&nbsp;&nbsp;' . 'Bedingungen: ' . implode(', ',
-                                    $list);
+//                        $tblScoreConditionGradeTypeListByCondition = Gradebook::useService()->getScoreConditionGradeTypeListByCondition(
+//                            $tblScoreCondition
+//                        );
+//                        if ($tblScoreConditionGradeTypeListByCondition) {
+//                            $list = array();
+//                            foreach ($tblScoreConditionGradeTypeListByCondition as $tblScoreConditionGradeTypeList) {
+//                                if ($tblScoreConditionGradeTypeList->getTblGradeType()) {
+//                                    $list[] = $tblScoreConditionGradeTypeList->getTblGradeType()->getDisplayName();
+//                                }
+//                            }
+//
+//                            $structure[] = '&nbsp;&nbsp;&nbsp;&bull;&nbsp;&nbsp;' . 'Bedingungen: ' . implode(', ',
+//                                    $list);
+//                        }
+                        if (($requirements = Gradebook::useService()->getRequirementsForScoreCondition($tblScoreCondition, true))) {
+                            $structure[] = '&nbsp;&nbsp;&nbsp;&bull;&nbsp;&nbsp;' . 'Bedingungen: ' . $requirements;
                         }
 
                         $tblScoreConditionGroupListByCondition = Gradebook::useService()->getScoreConditionGroupListByCondition(
@@ -306,14 +310,14 @@ class Frontend extends FrontendMinimumGradeCount
         $Stage->setMessage(
             'Hier werden die Berechnungsvarianten verwaltet.' . '<br>' .
             'Die Berechnungsvariante bildet die 2. Ebene der Berechnungsvorschriften und setzt sich aus einer Priorität
-            , Zensuren-Gruppen und Bedingungen (Zensuren-Typen) zusammen. <br>
+            , Zensuren-Gruppen und Bedingungen zusammen. <br>
             Die Priorität gibt an, in welcher Reihenfolge die Berechnungsvarianten
             (falls eine Berechnungsvorschrift mehrere Berechnungsvarianten enthält) berücksichtigt werden.
             Dabei hat die Berechnungsvariante mit der niedrigsten Zahl die höchste Priorität. <br>
-            Die Bedingungen (Zensuren-Typen) geben an, ob für die Durchschnittsberechnung die Berechnungsvariante gewählt wird.
+            Die Bedingungen geben an, ob für die Durchschnittsberechnung die Berechnungsvariante gewählt wird.
             Ist keine Bedingung hinterlegt, wird diese Berechnungsvariante immer gewählt. Hingegen wenn eine oder mehrere
-            Bedingung(en) hinterlegt sind, wird diese Berechnungsvariante nur gewählt, wenn alle Zensuren-Typen bei den Zensuren
-            des Schülers vorhanden sind.'
+            Bedingung(en) hinterlegt sind, wird diese Berechnungsvariante nur gewählt, wenn alle Bedingungen bei den Zensuren
+            des Schülers erfüllt sind.'
         );
         $this->setScoreStageMenuButtons($Stage, self::SCORE_CONDITION);
 
@@ -333,20 +337,7 @@ class Frontend extends FrontendMinimumGradeCount
                     $scoreGroups = substr($scoreGroups, 0, $length - 2);
                 }
 
-                $gradeTypes = array();
-                $tblGradeTypes = Gradebook::useService()->getScoreConditionGradeTypeListByCondition($tblScoreCondition);
-                if ($tblGradeTypes) {
-                    foreach ($tblGradeTypes as $tblGradeType) {
-                        if ($tblGradeType->getTblGradeType()) {
-                            $gradeTypes[] = $tblGradeType->getTblGradeType()->getDisplayName();
-                        }
-                    }
-                }
-                if (empty($gradeTypes)) {
-                    $gradeTypes = '';
-                } else {
-                    $gradeTypes = implode(', ', $gradeTypes);
-                }
+                $requirements = Gradebook::useService()->getRequirementsForScoreCondition($tblScoreCondition, true);
 
                 $contentTable[] = array(
                     'Status' => $tblScoreCondition->isActive()
@@ -354,7 +345,7 @@ class Frontend extends FrontendMinimumGradeCount
                         : new \SPHERE\Common\Frontend\Text\Repository\Warning(new MinusSign() . ' inaktiv'),
                     'Name' => $tblScoreCondition->getName(),
                     'ScoreGroups' => $scoreGroups,
-                    'GradeTypes' => $gradeTypes,
+                    'Requirement' => $requirements,
                     'Priority' => $tblScoreCondition->getPriority(),
                     'Option' =>
                         (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Edit', new Edit(),
@@ -377,7 +368,7 @@ class Frontend extends FrontendMinimumGradeCount
                             (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/GradeType/Select',
                                 new Equalizer(),
                                 array('Id' => $tblScoreCondition->getId()),
-                                'Zensuren-Typen (Bedingungen) auswählen')) : '')
+                                'Bedingungen auswählen')) : '')
                 );
             }
         }
@@ -396,7 +387,7 @@ class Frontend extends FrontendMinimumGradeCount
                                     'Status' => 'Status',
                                     'Name' => 'Name',
                                     'ScoreGroups' => 'Zensuren-Gruppen',
-                                    'GradeTypes' => 'Zensuren-Typen (Bedingungen)',
+                                    'Requirement' => 'Bedingungen',
                                     'Priority' => 'Priorität',
 //                                'Round' => 'Runden',
                                     'Option' => '',
@@ -1134,14 +1125,16 @@ class Frontend extends FrontendMinimumGradeCount
 
     /**
      * @param $Id
+     * @param null $Period
      *
      * @return Stage
      */
     public function frontendScoreConditionGradeTypeSelect(
-        $Id = null
+        $Id = null,
+        $Period = null
     ) {
 
-        $Stage = new Stage('Berechnungsvariante (Bedingungen)', 'Zensuren-Typen auswählen');
+        $Stage = new Stage('Berechnungsvariante', 'Bedingungen auswählen');
 
         $Stage->addButton(new Standard('Zurück', '/Education/Graduation/Gradebook/Score/Condition', new ChevronLeft()));
 
@@ -1152,59 +1145,122 @@ class Frontend extends FrontendMinimumGradeCount
             if (empty($tblScoreCondition)) {
                 $Stage->setContent(new Warning('Die Berechnungsvariante konnte nicht abgerufen werden'));
             } else {
-                $tblScoreConditionGradeTypeListByCondition = Gradebook::useService()->getScoreConditionGradeTypeListByCondition($tblScoreCondition);
-                $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
-                $tblGradeTypeAll = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType);
+                $contentSelectedTable = array();
                 $tblGradeTypeAllByCondition = array();
-                if ($tblScoreConditionGradeTypeListByCondition) {
-                    /** @var TblScoreConditionGradeTypeList $tblScoreConditionGradeType */
+                if (($tblScoreConditionGradeTypeListByCondition
+                    = Gradebook::useService()->getScoreConditionGradeTypeListByCondition($tblScoreCondition))
+                ) {
                     foreach ($tblScoreConditionGradeTypeListByCondition as $tblScoreConditionGradeType) {
-                        if ($tblScoreConditionGradeType->getTblGradeType()) {
-                            $tblGradeTypeAllByCondition[] = $tblScoreConditionGradeType->getTblGradeType();
-                        }
-                    }
-                }
-
-                if (!empty($tblGradeTypeAllByCondition) && $tblGradeTypeAll) {
-                    $tblGradeTypeAll = array_udiff($tblGradeTypeAll, $tblGradeTypeAllByCondition,
-                        function (TblGradeType $ObjectA, TblGradeType $ObjectB) {
-
-                            return $ObjectA->getId() - $ObjectB->getId();
-                        }
-                    );
-                }
-
-                if ($tblScoreConditionGradeTypeListByCondition) {
-                    foreach ($tblScoreConditionGradeTypeListByCondition as &$tblScoreConditionGradeTypeList) {
-                        if ($tblScoreConditionGradeTypeList->getTblGradeType()) {
-                            $tblScoreConditionGradeTypeList->Name = $tblScoreConditionGradeTypeList->getTblGradeType()->getDisplayName();
-                            $tblScoreConditionGradeTypeList->Option =
-                                (new \SPHERE\Common\Frontend\Link\Repository\Primary(
+                        if ($tblGradeType = $tblScoreConditionGradeType->getTblGradeType()) {
+                            $tblGradeTypeAllByCondition[$tblGradeType->getId()] = $tblGradeType;
+                            $contentSelectedTable[] = array(
+                                'Name' => $tblGradeType->getDisplayName(),
+                                'Count' => $tblScoreConditionGradeType->getCount(),
+                                'Option' => (new \SPHERE\Common\Frontend\Link\Repository\Primary(
                                     'Entfernen', '/Education/Graduation/Gradebook/Score/Condition/GradeType/Remove',
                                     new Minus(), array(
-                                    'Id' => $tblScoreConditionGradeTypeList->getId()
-                                )))->__toString();
-                        } else {
-                            $tblScoreConditionGradeTypeList = false;
+                                    'tblScoreConditionGradeTypeId' => $tblScoreConditionGradeType->getId()
+                                )))->__toString()
+                            );
                         }
                     }
-                    $tblScoreConditionGradeTypeListByCondition = array_filter($tblScoreConditionGradeTypeListByCondition);
                 }
 
-                if ($tblGradeTypeAll) {
-                    foreach ($tblGradeTypeAll as $tblGradeType) {
-                        $tblGradeType->Option =
-                            (new \SPHERE\Common\Frontend\Link\Repository\Primary(
-                                'Hinzufügen',
-                                '/Education/Graduation/Gradebook/Score/Condition/GradeType/Add',
-                                new Plus(),
-                                array(
-                                    'tblScoreConditionId' => $tblScoreCondition->getId(),
-                                    'tblGradeTypeId' => $tblGradeType->getId()
-                                )
-                            ))->__toString();
+                $tblScoreGroupRequirementAllByCondition = array();
+                if (($tblScoreGroupRequirementList = Gradebook::useService()->getScoreConditionGroupRequirementAllByCondition($tblScoreCondition))) {
+                    foreach ($tblScoreGroupRequirementList as $tblScoreConditionGroupRequirement) {
+                        if (($tblScoreGroup = $tblScoreConditionGroupRequirement->getTblScoreGroup())) {
+                            $tblScoreGroupRequirementAllByCondition[$tblScoreGroup->getId()] = $tblScoreGroup;
+                            $contentSelectedTable[] = array(
+                                'Name' => 'Zensuren-Gruppe: ' . $tblScoreGroup->getName(),
+                                'Count' => $tblScoreConditionGroupRequirement->getCount(),
+                                'Option' => (new \SPHERE\Common\Frontend\Link\Repository\Primary(
+                                    'Entfernen', '/Education/Graduation/Gradebook/Score/Condition/GradeType/Remove',
+                                    new Minus(), array(
+                                    'tblScoreConditionGroupRequirementId' => $tblScoreConditionGroupRequirement->getId()
+                                )))->__toString()
+                            );
+                        }
                     }
                 }
+
+                if (($tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByScoreCondition($tblScoreCondition))){
+                    foreach ($tblGradeTypeList as $tblGradeType) {
+                        if (isset($tblGradeTypeAllByCondition[$tblGradeType->getId()])) {
+
+                        } else {
+                            $contentAvailableTable[] = array(
+                                'Name' => $tblGradeType->getDisplayName(),
+                                'Option' =>
+                                    (new Form(
+                                        new FormGroup(
+                                            new FormRow(array(
+                                                new FormColumn(
+                                                    new TextField('GradeType[Count]', 'Anzahl', '', new Quantity()
+                                                    )
+                                                    , 7),
+                                                new FormColumn(
+                                                    new Primary('Hinzufügen',
+                                                        new Plus())
+                                                    , 5)
+                                            ))
+                                        ), null,
+                                        '/Education/Graduation/Gradebook/Score/Condition/GradeType/Add', array(
+                                            'tblScoreConditionId' => $tblScoreCondition->getId(),
+                                            'tblGradeTypeId' => $tblGradeType->getId()
+                                        )
+                                    ))->__toString()
+                            );
+                        }
+                    }
+                }
+                if (($tblScoreGroupList = Gradebook::useService()->getScoreGroupAllByScoreCondition($tblScoreCondition))) {
+                    foreach ($tblScoreGroupList as $tblScoreGroup) {
+                        if (isset($tblScoreGroupRequirementAllByCondition[$tblScoreGroup->getId()])) {
+
+                        } else {
+                            $contentAvailableTable[] = array(
+                                'Name' => 'Zensuren-Gruppe: ' . $tblScoreGroup->getName(),
+                                'Option' =>
+                                    (new Form(
+                                        new FormGroup(
+                                            new FormRow(array(
+                                                new FormColumn(
+                                                    new TextField('GradeType[Count]', 'Anzahl', '', new Quantity()
+                                                    )
+                                                    , 7),
+                                                new FormColumn(
+                                                    new Primary('Hinzufügen',
+                                                        new Plus())
+                                                    , 5)
+                                            ))
+                                        ), null,
+                                        '/Education/Graduation/Gradebook/Score/Condition/GradeType/Add', array(
+                                            'tblScoreConditionId' => $tblScoreCondition->getId(),
+                                            'tblScoreGroupId' => $tblScoreGroup->getId()
+                                        )
+                                    ))->__toString()
+                            );
+                        }
+                    }
+                }
+
+                if ($Period == null) {
+                    $global = $this->getGlobal();
+                    $valuePeriod = $tblScoreCondition->getPeriod();
+                    $global->POST['Period'] = $valuePeriod == null ? TblScoreCondition::PERIOD_FULL_YEAR : $valuePeriod;
+                    $global->savePost();
+                }
+
+                $periodList[] = new SelectBoxItem(TblScoreCondition::PERIOD_FULL_YEAR, '-Gesamtes Schuljahr-');
+                $periodList[] = new SelectBoxItem(TblScoreCondition::PERIOD_FIRST_PERIOD, '1. Halbjahr');
+                $periodList[] = new SelectBoxItem(TblScoreCondition::PERIOD_SECOND_PERIOD, '2. Halbjahr');
+
+                $form = new Form(new FormGroup(new FormRow(new FormColumn(
+                    new SelectBox('Period', 'Zeitraum',
+                        array('{{ Name }}' => $periodList))
+                ))));
+                $form->appendFormButton(new Primary('Speichern', new Save()));
 
                 $Stage->setContent(
                     new Layout(array(
@@ -1219,11 +1275,21 @@ class Frontend extends FrontendMinimumGradeCount
                         )),
                         new LayoutGroup(array(
                             new LayoutRow(array(
+                                new LayoutColumn(
+                                    new Well (
+                                        Gradebook::useService()->updateScoreConditionRequirementPeriod($form, $tblScoreCondition, $Period)
+                                    )
+                                ),
+                            ))
+                        )),
+                        new LayoutGroup(array(
+                            new LayoutRow(array(
                                 new LayoutColumn(array(
-                                    new Title('Ausgewählte', 'Zensuren-Typen'),
-                                    new TableData($tblScoreConditionGradeTypeListByCondition, null,
+                                    new Title('Ausgewählte', 'Bedingungen'),
+                                    new TableData($contentSelectedTable, null,
                                         array(
                                             'Name' => 'Name',
+                                            'Count' => 'Anzahl',
                                             'Option' => ''
                                         ),
                                         array(
@@ -1235,8 +1301,8 @@ class Frontend extends FrontendMinimumGradeCount
                                 ), 6
                                 ),
                                 new LayoutColumn(array(
-                                    new Title('Verfügbare', 'Zensuren-Typen'),
-                                    new TableData($tblGradeTypeAll, null,
+                                    new Title('Verfügbare', 'Bedingungen'),
+                                    new TableData($contentAvailableTable, null,
                                         array(
                                             'Name' => 'Name ',
                                             'Option' => ' '
@@ -1262,26 +1328,64 @@ class Frontend extends FrontendMinimumGradeCount
     /**
      * @param null $tblScoreConditionId
      * @param null $tblGradeTypeId
+     * @param null $tblScoreGroupId
+     * @param null $GradeType
      *
-     * @return Stage
+     * @return Stage|string
      */
     public function frontendScoreConditionGradeTypeAdd(
         $tblScoreConditionId = null,
-        $tblGradeTypeId = null
+        $tblGradeTypeId = null,
+        $tblScoreGroupId = null,
+        $GradeType = null
     ) {
 
-        $Stage = new Stage('Berechnungsvariante (Bedingungen)', 'Zensuren-Typ einer Berechnungsvariante hinzufügen');
+        $Stage = new Stage('Berechnungsvariante (Bedingungen)', 'Bedingung einer Berechnungsvariante hinzufügen');
 
-        if ($tblScoreConditionId === null || $tblGradeTypeId === null) {
-            return $Stage;
+        if (($tblScoreCondition = Gradebook::useService()->getScoreConditionById($tblScoreConditionId))) {
+            if (isset($GradeType['Count']) && $GradeType['Count'] == '') {
+                $count = 1;
+            } elseif (isset($GradeType['Count']) && !preg_match(Service::PREG_MATCH_DECIMAL_NUMBER,
+                    $GradeType['Count'])
+            ) {
+                return $Stage
+                    . new Warning('Bitte geben Sie als Faktor eine Zahl an. Der Zensuren-Type wurde nicht hinzugefügt.',
+                        new Exclamation())
+                    . new Redirect('/Education/Graduation/Gradebook/Score/Condition/GradeType/Select', Redirect::TIMEOUT_ERROR,
+                        array('Id' => $tblScoreCondition->getId()));
+            } else {
+                $count = isset($GradeType['Count']) ? $GradeType['Count'] : 1;
+            }
+
+            if (($tblGradeType = Gradebook::useService()->getGradeTypeById($tblGradeTypeId))) {
+                $Stage->setContent(Gradebook::useService()->addScoreConditionGradeTypeList($tblGradeType,
+                    $tblScoreCondition, $count));
+            } elseif (($tblScoreGroup = Gradebook::useService()->getScoreGroupById($tblScoreGroupId))) {
+                $Stage->setContent(Gradebook::useService()->addScoreConditionGroupRequirement($tblScoreGroup,
+                    $tblScoreCondition, $count));
+            }
         }
 
-        $tblScoreCondition = Gradebook::useService()->getScoreConditionById($tblScoreConditionId);
-        $tblGradeType = Gradebook::useService()->getGradeTypeById($tblGradeTypeId);
+        return $Stage;
+    }
 
-        if ($tblScoreCondition && $tblGradeType) {
-            $Stage->setContent(Gradebook::useService()->addScoreConditionGradeTypeList($tblGradeType,
-                $tblScoreCondition));
+    /**
+     * @param null $tblScoreConditionGradeTypeId
+     * @param null $tblScoreConditionGroupRequirementId
+     *
+     * @return Stage
+     */
+    public function frontendScoreConditionGradeTypeRemove(
+        $tblScoreConditionGradeTypeId = null,
+        $tblScoreConditionGroupRequirementId = null
+    ) {
+
+        $Stage = new Stage('Berechnungsvariante (Bedingungen)', 'Zensuren-Typ von einer Berechnungsvariante entfernen');
+
+        if (($tblScoreConditionGradeTypeList = Gradebook::useService()->getScoreConditionGradeTypeListById($tblScoreConditionGradeTypeId))) {
+            $Stage->setContent(Gradebook::useService()->removeScoreConditionGradeTypeList($tblScoreConditionGradeTypeList));
+        } elseif (($tblScoreConditionGroupRequirement = Gradebook::useService()->getScoreConditionGroupRequirementById($tblScoreConditionGroupRequirementId))) {
+            $Stage->setContent(Gradebook::useService()->removeScoreConditionGroupRequirement($tblScoreConditionGroupRequirement));
         }
 
         return $Stage;
