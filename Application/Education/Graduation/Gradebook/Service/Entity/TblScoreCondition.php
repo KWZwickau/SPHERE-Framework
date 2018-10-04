@@ -18,6 +18,10 @@ class TblScoreCondition extends Element
 
     const ATTR_NAME = 'Name';
     const ATTR_IS_ACTIVE = 'IsActive';
+    const ATTR_PRIORITY = 'Priority';
+    const PERIOD_FULL_YEAR = -1;
+    const PERIOD_FIRST_PERIOD = 1;
+    const PERIOD_SECOND_PERIOD = 2;
 
     /**
      * @Column(type="string")
@@ -38,6 +42,11 @@ class TblScoreCondition extends Element
      * @Column(type="boolean")
      */
     protected $IsActive;
+
+    /**
+     * @Column(type="integer")
+     */
+    protected $Period;
 
     /**
      * @return string
@@ -116,5 +125,36 @@ class TblScoreCondition extends Element
     {
 
         return Gradebook::useService()->isScoreConditionUsed($this);
+    }
+
+    /**
+     * @return integer
+     */
+    public function getPeriod()
+    {
+        return $this->Period;
+    }
+
+    /**
+     * @param integer $Period
+     */
+    public function setPeriod($Period)
+    {
+        $this->Period = $Period;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPeriodDisplayName()
+    {
+
+        switch ($this->getPeriod())  {
+            case self::PERIOD_FIRST_PERIOD: $period = '1. Halbjahr'; break;
+            case self::PERIOD_SECOND_PERIOD: $period = '2. Halbjahr'; break;
+            default: $period = '';
+        }
+
+        return $period;
     }
 }

@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblMinimumGradeCount;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreCondition;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
@@ -836,6 +837,7 @@ class Frontend extends FrontendScoreRule
         // Berechnungsvorschrift und Berechnungssystem der ausgewählten Fach-Klasse ermitteln
         $tblScoreRule = false;
         $scoreRuleText = array();
+        $showPriority = false;
         if ($tblDivision && $tblSubject) {
 
             $tblScoreRule = Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
@@ -845,9 +847,18 @@ class Frontend extends FrontendScoreRule
             );
             if ($tblScoreRule) {
                 $scoreRuleText[] = new Bold($tblScoreRule->getName());
-                $tblScoreConditionsByRule = Gradebook::useService()->getScoreConditionsByRule($tblScoreRule);
-                if ($tblScoreConditionsByRule) {
 
+                if (($tblScoreConditionList = Gradebook::useService()->getScoreConditionsByRule($tblScoreRule))) {
+                    if (count($tblScoreConditionList) > 1) {
+                        $showPriority = true;
+                        $tblScoreConditionList = $this->getSorter($tblScoreConditionList)->sortObjectBy(TblScoreCondition::ATTR_PRIORITY);
+                        /** @var TblScoreCondition $tblScoreCondition */
+                        foreach ($tblScoreConditionList as $tblScoreCondition) {
+                            $requirements = Gradebook::useService()->getRequirementsForScoreCondition($tblScoreCondition, true);
+                            $scoreRuleText[] = 'Priorität ' . $tblScoreCondition->getPriority() . ': ' .  $tblScoreCondition->getName()
+                                . ($requirements ? ' (' . $requirements . ')' : '');
+                        }
+                    }
                 } else {
                     $scoreRuleText[] = new Bold(new \SPHERE\Common\Frontend\Text\Repository\Warning(
                         new Ban() . ' Keine Berechnungsvariante hinterlegt. Alle Zensuren-Typen sind gleichwertig.'
@@ -1077,7 +1088,7 @@ class Frontend extends FrontendScoreRule
                                     $tblPeriod,
                                     $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
                                 );
-//                                $priority = '';
+                                $priority = '';
                                 if (is_array($average)) {
                                     $errorRowList = $average;
                                     $average = '';
@@ -1086,15 +1097,16 @@ class Frontend extends FrontendScoreRule
                                     if ($posStart !== false) {
                                         $posEnd = strpos($average, ')');
                                         if ($posEnd !== false) {
-//                                            $priority = substr($average, $posStart + 1, $posEnd - ($posStart + 1));
+                                           $priority = substr($average, $posStart + 1, $posEnd - ($posStart + 1));
                                         }
                                         $average = substr($average, 0, $posStart);
                                     }
                                 }
-                                $data[$column] = new Bold($average);
+                                $data[$column] = $showPriority
+                                    ? new ToolTip(new Bold($average), 'Priorität ' . $priority)
+                                    : new Bold($average);
                             }
                         } elseif (strpos($column, 'YearAverage') !== false) {
-
                             /*
                             * Calc Average
                             */
@@ -1107,16 +1119,23 @@ class Frontend extends FrontendScoreRule
                                 null,
                                 $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
                             );
+                            $priority = '';
                             if (is_array($average)) {
                                 $errorRowList = $average;
                                 $average = '';
                             } else {
                                 $posStart = strpos($average, '(');
                                 if ($posStart !== false) {
+                                    $posEnd = strpos($average, ')');
+                                    if ($posEnd !== false) {
+                                        $priority = substr($average, $posStart + 1, $posEnd - ($posStart + 1));
+                                    }
                                     $average = substr($average, 0, $posStart);
                                 }
                             }
-                            $data[$column] = new Bold($average);
+                            $data[$column] = $showPriority
+                                ? new ToolTip(new Bold($average), 'Priorität ' . $priority)
+                                : new Bold($average);
                         } elseif (strpos($column, 'Period') !== false) {
                             // keine Tests in der Periode vorhanden
                             $data[$column] = '';
@@ -1603,26 +1622,6 @@ class Frontend extends FrontendScoreRule
         }
 
         return empty($tblPersonList) ? false : $tblPersonList;
-    }
-
-
-    /**
-     * @param $Id
-     *
-     * @return Stage
-     */
-    public function frontendScoreConditionGradeTypeRemove(
-        $Id = null
-    ) {
-
-        $Stage = new Stage('Berechnungsvariante (Bedingungen)', 'Zensuren-Typ von einer Berechnungsvariante entfernen');
-
-        $tblScoreConditionGradeTypeList = Gradebook::useService()->getScoreConditionGradeTypeListById($Id);
-        if ($tblScoreConditionGradeTypeList) {
-            $Stage->setContent(Gradebook::useService()->removeScoreConditionGradeTypeList($tblScoreConditionGradeTypeList));
-        }
-
-        return $Stage;
     }
 
     /**
