@@ -4,6 +4,7 @@ namespace SPHERE\Application\Transfer\Import;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Transfer\Import\Annaberg\Annaberg;
+use SPHERE\Application\Transfer\Import\BadDueben\BadDueben;
 use SPHERE\Application\Transfer\Import\Chemnitz\Chemnitz;
 use SPHERE\Application\Transfer\Import\Coswig\Coswig;
 use SPHERE\Application\Transfer\Import\Dresden\Dresden;
@@ -85,6 +86,9 @@ class Import implements IApplicationInterface
         if ($consumerAcronym === 'FES' || $consumerAcronym == 'DEMO') {
             Dresden::registerModule();
         }
+        if ($consumerAcronym === 'ESBD' || $consumerAcronym == 'DEMO') {
+            BadDueben::registerModule();
+        }
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Daten importieren'))
@@ -119,6 +123,9 @@ class Import implements IApplicationInterface
         }
         if ($consumerAcronym === 'EZSH' || $consumerAcronym == 'DEMO') {
             $dataList = Herrnhut::setLinks($dataList);
+        }
+        if ($consumerAcronym === 'ESBD' || $consumerAcronym == 'DEMO') {
+            $dataList = BadDueben::setLinks($dataList);
         }
 
         if(empty($dataList)){
