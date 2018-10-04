@@ -400,6 +400,8 @@ class Service
                     'staatl. GS' => null,
                     'Kindergarten' => null,
                     'GeS Name' => null,
+                    'Papa' => null,
+                    'Mama' => null,
 
                     // Klasse 5
                     'Eingang Anmeldung' => null,
@@ -423,10 +425,10 @@ class Service
                  */
                 if (!in_array(null, $Location, true)) {
                     $countInterestedPerson = 0;
-//                    $countFather = 0;
-//                    $countMother = 0;
-//                    $countFatherExists = 0;
-//                    $countMotherExists = 0;
+                    $countFather = 0;
+                    $countMother = 0;
+                    $countFatherExists = 0;
+                    $countMotherExists = 0;
 
                     $error = array();
 
@@ -584,136 +586,154 @@ class Service
                                     $remark
                                 );
 
-//                                $tblRelationshipTypeCustody = Relationship::useService()->getTypeById(1);
-//
-//                                // Custody1
-//                                $tblPersonCustody1 = null;
-//                                $firstNameCustody1 = trim($Document->getValue($Document->getCell($Location['Sorgeber 1 Vorname'],
-//                                    $RunY)));
-//                                $lastNameCustody1 = trim($Document->getValue($Document->getCell($Location['Sorgeber 1 Nachname'],
-//                                    $RunY)));
-//
-//                                if ($firstNameCustody1 !== '' && $lastNameCustody1 !== '') {
-//                                    $tblPersonCustody1Exists = Person::useService()->existsPerson(
-//                                        $firstNameCustody1,
-//                                        $lastNameCustody1,
-//                                        $cityCode
-//                                    );
-//
-//                                    if (!$tblPersonCustody1Exists) {
-//                                        $tblPersonCustody1 = Person::useService()->insertPerson(
-//                                            null,
-//                                            '',
-//                                            $firstNameCustody1,
-//                                            '',
-//                                            $lastNameCustody1,
-//                                            array(
-//                                                0 => Group::useService()->getGroupByMetaTable('COMMON'),
-//                                                1 => Group::useService()->getGroupByMetaTable('CUSTODY')
-//                                            )
-//                                        );
-//
-//                                        Relationship::useService()->insertRelationshipToPerson(
-//                                            $tblPersonCustody1,
-//                                            $tblPerson,
-//                                            $tblRelationshipTypeCustody,
-//                                            ''
-//                                        );
-//
-//                                        // Address
-//                                        if ($StreetName && $StreetNumber && $cityCode && $cityName) {
-//                                            Address::useService()->insertAddressToPerson(
-//                                                $tblPersonCustody1, $StreetName, $StreetNumber, $cityCode, $cityName,
-//                                                $cityDistrict, ''
-//                                            );
-//                                        } else {
-//                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse des Sorgeberechtigen1 wurde nicht angelegt, da sie keine vollständige Adresse besitzt.';
-//                                        }
-//
-//                                        $countFather++;
-//                                    } else {
-//
-//                                        Relationship::useService()->insertRelationshipToPerson(
-//                                            $tblPersonCustody1Exists,
-//                                            $tblPerson,
-//                                            $tblRelationshipTypeCustody,
-//                                            ''
-//                                        );
-//
-//                                        $countFatherExists++;
-//                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Sorgeberechtigte wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert.';
-//                                    }
-//                                } else {
-//                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Sorgeberechtigte1 wurde nicht angelegt, da sie keinen Namen und Vornamen hat.';
-//                                }
-//
-//                                // Custody2
-//                                $tblPersonCustody2 = null;
-//                                $firstNameCustody2 = trim($Document->getValue($Document->getCell($Location['Sorgeber 2 Vorname'],
-//                                    $RunY)));
-//                                $lastNameCustody2 = trim($Document->getValue($Document->getCell($Location['Sorgeber 2 Nachname'],
-//                                    $RunY)));
-//
-//                                if ($firstNameCustody2 !== '' && $lastNameCustody2 !== '') {
-//                                    $tblPersonCustody2Exists = Person::useService()->existsPerson(
-//                                        $firstNameCustody2,
-//                                        $lastNameCustody2,
-//                                        $cityCode
-//                                    );
-//
-//                                    if (!$tblPersonCustody2Exists) {
-//                                        $tblPersonCustody2 = Person::useService()->insertPerson(
-//                                            null,
-//                                            '',
-//                                            $firstNameCustody2,
-//                                            '',
-//                                            $lastNameCustody2,
-//                                            array(
-//                                                0 => Group::useService()->getGroupByMetaTable('COMMON'),
-//                                                1 => Group::useService()->getGroupByMetaTable('CUSTODY')
-//                                            )
-//                                        );
-//
-//                                        Relationship::useService()->insertRelationshipToPerson(
-//                                            $tblPersonCustody2,
-//                                            $tblPerson,
-//                                            $tblRelationshipTypeCustody,
-//                                            ''
-//                                        );
-//
-//                                        if ($StreetName && $StreetNumber && $cityCode && $cityName) {
-//                                            Address::useService()->insertAddressToPerson(
-//                                                $tblPersonCustody2, $StreetName, $StreetNumber, $cityCode, $cityName,
-//                                                $cityDistrict, ''
-//                                            );
-//                                        } else {
-//                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse des Sorgeberechtigen2 wurde nicht angelegt, da sie keine vollständige Adresse besitzt.';
-//                                        }
-//
-//                                        $countMother++;
-//                                    } else {
-//
-//                                        Relationship::useService()->insertRelationshipToPerson(
-//                                            $tblPersonCustody2Exists,
-//                                            $tblPerson,
-//                                            $tblRelationshipTypeCustody,
-//                                            ''
-//                                        );
-//
-//                                        $countMotherExists++;
-//                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Sorgeberechtigte wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert.';
-//                                    }
-//                                } else {
-//                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Sorgeberechtigte1 wurde nicht angelegt, da sie keinen Namen und Vornamen hat.';
-//                                }
-//
-//                                if ($StreetName && $StreetNumber && $cityCode && $cityName) {
-//                                    Address::useService()->insertAddressToPerson(
-//                                        $tblPerson, $StreetName, $StreetNumber, $cityCode, $cityName, $cityDistrict, ''
-//                                    );
-//                                } else {
-//                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse des Interessenten wurde nicht angelegt, da sie keine vollständige Adresse besitzt.';
-//                                }
+                                if ($optionalLocation['Papa'] != null && $optionalLocation['Mama'] != null) {
+                                    $tblRelationshipTypeCustody = Relationship::useService()->getTypeById(1);
+
+                                    // Custody1
+                                    $tblPersonCustody1 = null;
+                                    $firstNameCustody1 = '';
+                                    $lastNameCustody1 = '';
+                                    $nameCustody1 = trim($Document->getValue($Document->getCell($optionalLocation['Papa'],
+                                        $RunY)));
+                                    $nameArrayCustody1 = preg_split('/\s+/', $nameCustody1);
+                                    if (isset($nameArrayCustody1[0])) {
+                                        $firstNameCustody1 = $nameArrayCustody1[0];
+                                    }
+                                    if (isset($nameArrayCustody1[1])) {
+                                        $lastNameCustody1 = $nameArrayCustody1[1];
+                                    }
+
+                                    if ($firstNameCustody1 !== '' && $lastNameCustody1 !== '') {
+                                        $tblPersonCustody1Exists = Person::useService()->existsPerson(
+                                            $firstNameCustody1,
+                                            $lastNameCustody1,
+                                            $cityCode
+                                        );
+
+                                        if (!$tblPersonCustody1Exists) {
+                                            $tblPersonCustody1 = Person::useService()->insertPerson(
+                                                null,
+                                                '',
+                                                $firstNameCustody1,
+                                                '',
+                                                $lastNameCustody1,
+                                                array(
+                                                    0 => Group::useService()->getGroupByMetaTable('COMMON'),
+                                                    1 => Group::useService()->getGroupByMetaTable('CUSTODY')
+                                                )
+                                            );
+
+                                            Relationship::useService()->insertRelationshipToPerson(
+                                                $tblPersonCustody1,
+                                                $tblPerson,
+                                                $tblRelationshipTypeCustody,
+                                                'Vater'
+                                            );
+
+                                            // Address
+                                            if ($StreetName && $StreetNumber && $cityCode && $cityName) {
+                                                Address::useService()->insertAddressToPerson(
+                                                    $tblPersonCustody1, $StreetName, $StreetNumber, $cityCode,
+                                                    $cityName,
+                                                    $cityDistrict, ''
+                                                );
+                                            } else {
+                                                $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse des Sorgeberechtigen1 wurde nicht angelegt, da sie keine vollständige Adresse besitzt.';
+                                            }
+
+                                            $countFather++;
+                                        } else {
+
+                                            Relationship::useService()->insertRelationshipToPerson(
+                                                $tblPersonCustody1Exists,
+                                                $tblPerson,
+                                                $tblRelationshipTypeCustody,
+                                                'Vater'
+                                            );
+
+                                            $countFatherExists++;
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Sorgeberechtigte wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert.';
+                                        }
+                                    } else {
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Sorgeberechtigte1 wurde nicht angelegt, da sie keinen Namen und Vornamen hat.';
+                                    }
+
+                                    // Custody2
+                                    $tblPersonCustody2 = null;
+                                    $firstNameCustody2 = '';
+                                    $lastNameCustody2 = '';
+                                    $nameCustody2 = trim($Document->getValue($Document->getCell($optionalLocation['Mama'],
+                                        $RunY)));
+                                    $nameArrayCustody2 = preg_split('/\s+/', $nameCustody2);
+                                    if (isset($nameArrayCustody2[0])) {
+                                        $firstNameCustody2 = $nameArrayCustody2[0];
+                                    }
+                                    if (isset($nameArrayCustody2[1])) {
+                                        $lastNameCustody2 = $nameArrayCustody2[1];
+                                    }
+
+                                    if ($firstNameCustody2 !== '' && $lastNameCustody2 !== '') {
+                                        $tblPersonCustody2Exists = Person::useService()->existsPerson(
+                                            $firstNameCustody2,
+                                            $lastNameCustody2,
+                                            $cityCode
+                                        );
+
+                                        if (!$tblPersonCustody2Exists) {
+                                            $tblPersonCustody2 = Person::useService()->insertPerson(
+                                                null,
+                                                '',
+                                                $firstNameCustody2,
+                                                '',
+                                                $lastNameCustody2,
+                                                array(
+                                                    0 => Group::useService()->getGroupByMetaTable('COMMON'),
+                                                    1 => Group::useService()->getGroupByMetaTable('CUSTODY')
+                                                )
+                                            );
+
+                                            Relationship::useService()->insertRelationshipToPerson(
+                                                $tblPersonCustody2,
+                                                $tblPerson,
+                                                $tblRelationshipTypeCustody,
+                                                'Mutter'
+                                            );
+
+                                            if ($StreetName && $StreetNumber && $cityCode && $cityName) {
+                                                Address::useService()->insertAddressToPerson(
+                                                    $tblPersonCustody2, $StreetName, $StreetNumber, $cityCode,
+                                                    $cityName,
+                                                    $cityDistrict, ''
+                                                );
+                                            } else {
+                                                $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse des Sorgeberechtigen2 wurde nicht angelegt, da sie keine vollständige Adresse besitzt.';
+                                            }
+
+                                            $countMother++;
+                                        } else {
+
+                                            Relationship::useService()->insertRelationshipToPerson(
+                                                $tblPersonCustody2Exists,
+                                                $tblPerson,
+                                                $tblRelationshipTypeCustody,
+                                                'Mutter'
+                                            );
+
+                                            $countMotherExists++;
+                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Sorgeberechtigte wurde nicht angelegt, da schon eine Person mit gleichen Namen und gleicher PLZ existiert.';
+                                        }
+                                    } else {
+                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Sorgeberechtigte2 wurde nicht angelegt, da sie keinen Namen und Vornamen hat.';
+                                    }
+                                }
+
+                                if ($StreetName && $StreetNumber && $cityCode && $cityName) {
+                                    Address::useService()->insertAddressToPerson(
+                                        $tblPerson, $StreetName, $StreetNumber, $cityCode, $cityName, $cityDistrict, ''
+                                    );
+                                } else {
+                                    $error[] = 'Zeile: ' . ($RunY + 1) . ' Die Adresse des Interessenten wurde nicht angelegt, da sie keine vollständige Adresse besitzt.';
+                                }
 
                                 /*
                                 * Phone
