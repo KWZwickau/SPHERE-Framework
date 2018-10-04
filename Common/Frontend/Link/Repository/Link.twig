@@ -23,6 +23,12 @@
                                 // Standard LeftClick behaviour.
                                 Event.preventDefault();
                                 {{ AjaxEventClick }}
+                                if( {{ PageHeight }} ){
+                                    // When the user clicks on the button, scroll to the PageHeight position
+                                    setTimeout(function(){
+                                        window.scroll(0, {{ PageHeight }})
+                                    }, {{ ScrollDelay }});
+                                }
                             }
                         // Middle click
                         } else if (Event.which === 2) {
