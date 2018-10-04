@@ -115,7 +115,13 @@ class GradebookOverview extends AbstractDocument
                         ->addElementColumn((new Element())
                             ->setContent('Klasse: ' . ($this->getTblDivision() ? $this->getTblDivision()->getDisplayName() : ''))
                         )
-                    ), '33%'
+                    )
+                    ->addSection((new Section())
+                        ->addElementColumn((new Element())
+                            ->setContent('Stand: ' . (new \DateTime())->format('d.m.Y'))
+                        )
+                    )
+                    , '33%'
                 )
                 ->addElementColumn((new Element())
                     ->setContent('Schülerübersicht')
