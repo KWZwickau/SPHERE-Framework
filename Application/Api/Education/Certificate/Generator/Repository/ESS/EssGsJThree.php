@@ -7,6 +7,7 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
 use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 
 /**
  * Class EssGsJThree
@@ -16,9 +17,9 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 class EssGsJThree extends EssStyle
 {
 
+    const TEXT_SIZE_BIG = '18pt';
     const TEXT_SIZE = '12pt';
-    const TEXT_SIZE_SMALL = '11pt';
-    const TEXT_SIZE_VERY_SMALL = '7pt';
+    const TEXT_SIZE_SMALL = '8pt';
     const TEXT_FAMILY = 'MyriadPro';
 
     /**
@@ -27,8 +28,8 @@ class EssGsJThree extends EssStyle
     public function selectValuesTransfer()
     {
         return array(
-            1 => "wird nach Klasse 4 versetzt.",
-            2 => "wird nicht versetzt."
+            1 => "wird nach Klasse 4 versetzt",
+            2 => "wird nicht versetzt"
         );
     }
 
@@ -61,8 +62,12 @@ class EssGsJThree extends EssStyle
         return (new Page())
             ->addSlice($Header)
             ->addSlice((new Slice())
-                ->addElement((new Element\Image('/Common/Style/Resource/Logo/ESS_Grundschule_Head.png', '700px'))
-                    ->styleAlignCenter()
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleHeight('110px')
+                    )
+                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ESS_Grundschule_Head.png', '700px')))
                 )
             )
             ->addSlice((new Slice())
@@ -72,11 +77,12 @@ class EssGsJThree extends EssStyle
                         , '25%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('J A H R E S Z E U G N I S')
+                        ->setContent('JAHRESZEUGNIS')
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
-                        ->styleTextSize('24px')
+                        ->styleTextSize(self::TEXT_SIZE_BIG)
                         ->styleMarginTop('7px')
+                        ->styleMarginBottom('20px')
                         , '75%'
                     )
                 )
@@ -85,7 +91,7 @@ class EssGsJThree extends EssStyle
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
-                        , '3%'
+                        , '0%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('Klasse {{ Content.P' . $personId . '.Division.Data.Level.Name }}')
@@ -93,7 +99,7 @@ class EssGsJThree extends EssStyle
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleTextBold()
-                        , '97%'
+                        , '100%'
                     )
                 )
             )
@@ -101,7 +107,7 @@ class EssGsJThree extends EssStyle
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
-                        , '3%'
+                        , '0%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('2. Schulhalbjahr')
@@ -109,14 +115,13 @@ class EssGsJThree extends EssStyle
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleTextBold()
-                        , '22%')
+                        , '25%')
                     ->addElementColumn((new Element())
                         ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
                                           {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
-                        ->styleTextSize('15pt')
+                        ->styleTextSize(self::TEXT_SIZE_BIG)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
-                        ->styleTextBold()
                         , '50%')
                     ->addElementColumn((new Element())
                         ->setContent('Schuljahr {{ Content.P' . $personId . '.Division.Data.Year }}')
@@ -125,10 +130,10 @@ class EssGsJThree extends EssStyle
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleTextBold()
                         ->styleAlignRight()
-                        , '22%')
+                        , '25%')
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
-                        , '3%'
+                        , '0%'
                     )
                 )
             )
@@ -136,16 +141,7 @@ class EssGsJThree extends EssStyle
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
-                        , '3%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Einschätzung <br/> Lern-, Arbeits- und<br/> Sozialverhalten')
-                        ->styleTextSize(self::TEXT_SIZE)
-                        ->styleLineHeight('105%')
-                        ->styleFontFamily(self::TEXT_FAMILY)
-                        ->styleMarginTop('17px')
-                        ->styleTextBold()
-                        , '22%'
+                        , '25%'
                     )
                     ->addSliceColumn(
                         self::getESSHeadGrade($personId)
@@ -166,28 +162,29 @@ class EssGsJThree extends EssStyle
                         , '25%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Grad der Ausprägung: 1 = vorbildlich, 2 = stark, 3 = durchschnittlich, 4 = schwach, 5 = unzureichend')
-                        ->styleTextSize(self::TEXT_SIZE_VERY_SMALL)
+                        ->setContent(new Container('Grad der Ausprägung:')
+                        .new Container('1 = vorbildlich, 2 = stark, 3 = durchschnittlich, 4 = schwach, 5 = unzureichend'))
+                        ->styleTextSize(self::TEXT_SIZE_SMALL)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
-                        ->stylePaddingTop('5px')
                     )
                 )
+                ->stylePaddingTop('15px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
-                        , '3%'
+                        , '0%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('Allgemeine <br/> Einschätzung:')
+                        ->setContent('Einschätzung <br/> Lern-, Arbeits- und<br/> Sozialverhalten')
                         ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
-                        ->styleMarginTop('15px')
+                        ->styleMarginTop('17px')
                         ->styleTextBold()
-                        , '22%'
+                        , '25%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('{% if(Content.P'.$personId.'.Input.Rating is not empty) %}
@@ -200,47 +197,48 @@ class EssGsJThree extends EssStyle
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleAlignJustify()
                         ->styleMarginTop('15px')
-                        ->styleHeight('150px')
-                        , '72%'
+                        , '75%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
-                        , '3%'
+                        , '0%'
                     )
                 )
+                ->styleHeight('115px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
-                        , '3%'
+                        , '0%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('Leistungen in den<br/>einzelnen Fächern')
                         ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
-                        ->styleMarginTop('10px')
                         ->styleTextBold()
-                        , '22%'
+                        , '25%'
                     )
                     ->addSliceColumn(
                         self::getESSSubjectLanes($personId)
-                        , '72%'
+                        , '75%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
-                        , '3%'
+                        , '0%'
                     )
                 )
+                ->styleMarginTop('25px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         , '25%')
                     ->addElementColumn((new Element())
-                        ->setContent('Notenstufen:1 = sehr gut, 2 = gut, 3 = befriedigend, 4 = ausreichend, 5 = mangelhaft, 6 = ungenügend')
-                        ->styleTextSize(self::TEXT_SIZE_VERY_SMALL)
+                        ->setContent(new Container('Notenstufen:').
+                            new Container('1 = sehr gut, 2 = gut, 3 = befriedigend, 4 = ausreichend, 5 = mangelhaft, 6 = ungenügend'))
+                        ->styleTextSize(self::TEXT_SIZE_SMALL)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->stylePaddingTop('10px')
@@ -251,7 +249,7 @@ class EssGsJThree extends EssStyle
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
-                        , '3%'
+                        , '0%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('Fachliche <br/> Einschätzung')
@@ -260,7 +258,7 @@ class EssGsJThree extends EssStyle
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleMarginTop('20px')
                         ->styleTextBold()
-                        , '22%'
+                        , '25%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('{% if(Content.P'.$personId.'.Input.TechnicalRating is not empty) %}
@@ -273,27 +271,27 @@ class EssGsJThree extends EssStyle
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleAlignJustify()
                         ->styleMarginTop('20px')
-                        , '72%'
+                        , '75%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
-                        , '3%'
+                        , '0%'
                     )
                 )
-                ->styleHeight('190px')
+                ->styleHeight('160px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
-                        , '3%'
+                        , '0%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('Versetzungsvermerk')
-                        ->styleTextSize(self::TEXT_SIZE_SMALL)
+                        ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
-                        , '22%'
+                        , '25%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('{% if(Content.P' . $personId . '.Input.Transfer) %}
@@ -301,14 +299,14 @@ class EssGsJThree extends EssStyle
                         {% else %}
                               &nbsp;
                         {% endif %}')
-                        ->styleTextSize(self::TEXT_SIZE_SMALL)
+                        ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
-                        , '72%'
+                        , '75%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
-                        , '3%'
+                        , '0%'
                     )
                 )
                 ->styleMarginTop('10px')
@@ -317,7 +315,7 @@ class EssGsJThree extends EssStyle
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
-                        , '3%'
+                        , '0%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('Datum:
@@ -326,12 +324,12 @@ class EssGsJThree extends EssStyle
                                 {% else %}
                                     &nbsp;
                                 {% endif %}')
-                        ->styleTextSize(self::TEXT_SIZE_SMALL)
+                        ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->stylePaddingTop('20px')
                         ->stylePaddingBottom('20px')
-                        , '97%'
+                        , '100%'
                     )
                 )
             )
@@ -365,7 +363,7 @@ class EssGsJThree extends EssStyle
                         , '25%')
                     ->addElementColumn((new Element())
                         ->setContent('Dienstsiegel')
-                        ->styleTextSize(self::TEXT_SIZE_SMALL)
+                        ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         , '25%')
@@ -376,13 +374,13 @@ class EssGsJThree extends EssStyle
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
-                        , '3%')
+                        , '0%')
                     ->addElementColumn((new Element())
                         ->setContent('Zur Kenntnis genommen:')
-                        ->styleTextSize('10pt')
+                        ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
-                        , '22%')
+                        , '25%')
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
                         ->styleBorderBottom('1px', '#000', 'dotted')
@@ -396,10 +394,10 @@ class EssGsJThree extends EssStyle
                     ->addElementColumn((new Element())
                         ->setContent('Eltern')
                         ->styleAlignCenter()
-//                        ->stylePaddingTop('5px')
                         ->styleTextSize(self::TEXT_SIZE_SMALL)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
+                        ->styleHeight('1px')
                         , '45%')
                     ->addElementColumn((new Element())
                         , '30%')
