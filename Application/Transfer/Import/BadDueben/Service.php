@@ -979,12 +979,13 @@ class Service
                                 $day = trim($Document->getValue($Document->getCell($Location['Schüler_Geburtsdatum'],
                                     $RunY)));
                                 if ($day !== '') {
-                                    try {
-                                        $birthday = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
-                                    } catch (\Exception $ex) {
-                                        $birthday = '';
-                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Ungültiges Geburtsdatum: ' . $ex->getMessage();
-                                    }
+                                    $birthday = $day;
+//                                    try {
+//                                        $birthday = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
+//                                    } catch (\Exception $ex) {
+//                                        $birthday = '';
+//                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Ungültiges Geburtsdatum: ' . $ex->getMessage();
+//                                    }
 
                                 } else {
                                     $birthday = '';
@@ -1015,39 +1016,38 @@ class Service
                                     }
                                 }
 
-//                                $tblSchoolType = Type::useService()->getTypeById(8); // Oberschule
                                 // division
-//                                $tblDivision = false;
-//                                $division = trim($Document->getValue($Document->getCell($Location['Schüler_Klasse'],
-//                                    $RunY)));
-//                                if ($division !== '') {
-//                                    if ($tblYear) {
-//                                        if ($tblSchoolType) {
-//                                            if ($division != '10') {
-//                                                $pos = 1;
-//                                                $level = substr($division, 0, $pos);
-//                                                $division = substr($division, $pos);
-//                                            } else {
-//                                                $level = $division;
-//                                                $division = '';
-//                                            }
-//                                            $tblLevel = Division::useService()->insertLevel($tblSchoolType, $level);
-//                                            if ($tblLevel) {
-//                                                $tblDivision = Division::useService()->insertDivision(
-//                                                    $tblYear,
-//                                                    $tblLevel,
-//                                                    $division
-//                                                );
-//                                            }
-//                                        }
-//                                    }
-//
-//                                    if ($tblDivision) {
-//                                        Division::useService()->insertDivisionStudent($tblDivision, $tblPerson);
-//                                    } else {
-//                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Schüler konnte keiner Klasse zugeordnet werden.';
-//                                    }
-//                                }
+                                $tblSchoolType = Type::useService()->getTypeByName('Grundschule');
+                                $division = trim($Document->getValue($Document->getCell($Location['Schüler_Klasse'],
+                                    $RunY)));
+                                if ($division !== '' && $tblYear && $tblSchoolType) {
+                                    $level = '';
+                                    switch ($division) {
+                                        case '01': $level = 1; break;
+                                        case '02': $level = 2; break;
+                                        case '03': $level = 3; break;
+                                        case '04': $level = 4; break;
+                                        default:
+                                    }
+                                    $division = '';
+
+                                    if ($level != '') {
+                                        $tblLevel = Division::useService()->insertLevel($tblSchoolType, $level);
+                                        if ($tblLevel) {
+                                            $tblDivision = Division::useService()->insertDivision(
+                                                $tblYear,
+                                                $tblLevel,
+                                                $division
+                                            );
+
+                                            if ($tblDivision) {
+                                                Division::useService()->insertDivisionStudent($tblDivision, $tblPerson);
+                                            } else {
+                                                $error[] = 'Zeile: ' . ($RunY + 1) . ' Der Schüler konnte keiner Klasse zugeordnet werden.';
+                                            }
+                                        }
+                                    }
+                                }
 
                                 // Address
                                 $studentCityCode = str_pad(
@@ -1479,13 +1479,13 @@ class Service
                                 $day = trim($Document->getValue($Document->getCell($Location['Schüler_Schulpflicht_beginnt_am'],
                                     $RunY)));
                                 if ($day !== '') {
-                                    try {
-                                        $date = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
-                                    } catch (\Exception $ex) {
-                                        $date = '';
-                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Ungültiges Schüler_Schulpflicht_beginnt_am Datum: ' . $ex->getMessage();
-                                    }
-
+//                                    try {
+//                                        $date = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
+//                                    } catch (\Exception $ex) {
+//                                        $date = '';
+//                                        $error[] = 'Zeile: ' . ($RunY + 1) . ' Ungültiges Schüler_Schulpflicht_beginnt_am Datum: ' . $ex->getMessage();
+//                                    }
+                                    $date = $day;
                                 } else {
                                     $date = '';
                                 }
@@ -1507,12 +1507,13 @@ class Service
                                     $day = trim($Document->getValue($Document->getCell($Location['Schüler_Einschulung_am'],
                                         $RunY)));
                                     if ($day !== '') {
-                                        try {
-                                            $enrollmentDate = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
-                                        } catch (\Exception $ex) {
-                                            $enrollmentDate = '';
-                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Ungültiges Schüler_Einschulung_am Datum: ' . $ex->getMessage();
-                                        }
+//                                        try {
+//                                            $enrollmentDate = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
+//                                        } catch (\Exception $ex) {
+//                                            $enrollmentDate = '';
+//                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Ungültiges Schüler_Einschulung_am Datum: ' . $ex->getMessage();
+//                                        }
+                                        $enrollmentDate = $day;
 
                                     } else {
                                         $enrollmentDate = '';
@@ -1533,12 +1534,13 @@ class Service
                                     $day = trim($Document->getValue($Document->getCell($Location['Schüler_Aufnahme_am'],
                                         $RunY)));
                                     if ($day !== '') {
-                                        try {
-                                            $arriveDate = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
-                                        } catch (\Exception $ex) {
-                                            $arriveDate = '';
-                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Ungültiges Schüler_Aufnahme_am Datum: ' . $ex->getMessage();
-                                        }
+//                                        try {
+//                                            $arriveDate = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP($day));
+//                                        } catch (\Exception $ex) {
+//                                            $arriveDate = '';
+//                                            $error[] = 'Zeile: ' . ($RunY + 1) . ' Ungültiges Schüler_Aufnahme_am Datum: ' . $ex->getMessage();
+//                                        }
+                                        $arriveDate = $day;
 
                                     } else {
                                         $arriveDate = '';
@@ -1655,7 +1657,7 @@ class Service
                                         if ($subjectReligion === 'ETH') {
                                             $tblSubject = Subject::useService()->getSubjectByAcronym('ETH');
                                         } elseif ($subjectReligion === 'RE/e') {
-                                            $tblSubject = Subject::useService()->getSubjectByAcronym('REV');
+                                            $tblSubject = Subject::useService()->getSubjectByAcronym('RE/E');
                                         }
                                         if ($tblSubject) {
                                             Student::useService()->addStudentSubject(
