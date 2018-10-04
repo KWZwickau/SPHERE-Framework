@@ -130,6 +130,11 @@ class Gradebook
                             )
                         )
                     )
+                    ->addElement((new Element())
+                        ->setContent(
+                            'Stand: ' . (new \DateTime())->format('d.m.Y')
+                        )
+                    )
                 )
                 ->addSlice((new Slice())->addElement((new Element())->styleHeight('20px')))
                 ->addSlice(
