@@ -30,6 +30,7 @@ use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Application\People\Search\Group\Group;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Text\Repository\Code;
@@ -169,14 +170,25 @@ class Service extends Extension
                     }
                 }
 
-                $tblType = Relationship::useService()->getTypeByName('Sorgeberechtigt');
-                $tblToPersonGuardianList = false;
+                $tblType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN);
+                $tblToPersonGuardianList = array();
                 if ($tblType) {
                     $tblToPersonGuardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
                         $tblType);
                 }
-                if ($tblToPersonGuardianList) {
+                $tblType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_AUTHORIZED);
+                if ($tblType) {
+                    $tblToPersonGuardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
+                        $tblType);
+                }
+                if ($tblToPersonGuardianList && !empty($tblToPersonGuardianList)) {
                     foreach ($tblToPersonGuardianList as $tblToPersonGuardian) {
+
+                        $pre = '';
+                        if($tblToPersonGuardian->getTblType()->getName() == TblType::IDENTIFIER_AUTHORIZED){
+                            $pre = 'Bev. ';
+                        }
+
                         //Phone Guardian
                         $tblPersonGuardian = $tblToPersonGuardian->getServiceTblPersonFrom();
                         $tblToPersonPhoneList = Phone::useService()->getPhoneAllByPerson($tblPersonGuardian);
@@ -188,7 +200,7 @@ class Service extends Extension
                                         $tblPhoneList[$tblPersonGuardian->getId()] = $tblPhoneList[$tblPersonGuardian->getId()] . ', '
                                             . $tblPhone->getNumber() . ' ' . $this->getShortTypeByTblToPersonPhone($tblToPersonPhone);
                                     } else {
-                                        $tblPhoneList[$tblPersonGuardian->getId()] = $tblPersonGuardian->getFirstName() . ' ' .
+                                        $tblPhoneList[$tblPersonGuardian->getId()] = $pre.$tblPersonGuardian->getFirstName() . ' ' .
                                             $tblPersonGuardian->getLastName() . ' ('
                                             . $tblPhone->getNumber() . ' ' . $this->getShortTypeByTblToPersonPhone($tblToPersonPhone);
                                     }
@@ -209,7 +221,7 @@ class Service extends Extension
                                         $tblMailList[$tblPersonGuardian->getId()] = $tblMailList[$tblPersonGuardian->getId()] . ', '
                                             . $tblMail->getAddress();
                                     } else {
-                                        $tblMailList[$tblPersonGuardian->getId()] = $tblPersonGuardian->getFirstName() . ' ' .
+                                        $tblMailList[$tblPersonGuardian->getId()] = $pre.$tblPersonGuardian->getFirstName() . ' ' .
                                             $tblPersonGuardian->getLastName() . ' ('
                                             . $tblMail->getAddress();
                                     }

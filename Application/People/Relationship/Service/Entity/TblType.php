@@ -16,6 +16,7 @@ use SPHERE\System\Database\Fitting\Element;
 class TblType extends Element
 {
     const IDENTIFIER_GUARDIAN = 'Sorgeberechtigt';
+    const IDENTIFIER_AUTHORIZED = 'Bevollmächtigt';
 
     const ATTR_NAME = 'Name';
     const ATTR_DESCRIPTION = 'Description';
