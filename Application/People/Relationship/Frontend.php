@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\People\Relationship;
 
-use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Person;
@@ -147,29 +146,22 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblPersonAll) {
             array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($currentPerson) {
 
-                // alle Hauptadressen
-                $tblAddressToPersonList = Address::useService()->getAddressAllByPersonAndType($tblPerson,
-                    Address::useService()->getTypeById(1));
-                if ($tblAddressToPersonList) {
-                    /** @var \SPHERE\Application\Contact\Address\Service\Entity\TblToPerson $tblAddressToPerson */
-                    $tblAddressToPerson = reset($tblAddressToPersonList);
-                } else {
-                    $tblAddressToPerson = false;
-                }
+                $tblAddress = $tblPerson->fetchMainAddress();
 
                 if ($currentPerson && $currentPerson->getId() == $tblPerson->getId()) {
                     $tblPerson = array(
-                        'Person' => new \SPHERE\Common\Frontend\Text\Repository\Warning($tblPerson->getFullName()) . ' (Aktuell hinterlegt)',
-                        'Address' => $tblAddressToPerson ? $tblAddressToPerson->getTblAddress()->getGuiString() : ''
+                        'Person' => new \SPHERE\Common\Frontend\Text\Repository\Warning($tblPerson->getLastFirstName()) . ' (Aktuell hinterlegt)',
+                        'Address' => $tblAddress ? $tblAddress->getGuiString() : ''
                     );
                 } else {
                     $tblPerson = array(
-                        'Person' => new RadioBox('To', $tblPerson->getFullName(), $tblPerson->getId())
+                        'Select' => new RadioBox('To', '&nbsp;', $tblPerson->getId()),
+                        'Person' => $tblPerson->getLastFirstName()
                             . new PullRight(new Standard('', '/People/Person',
                                 new PersonIcon(),
                                 array('Id' => $tblPerson->getId()),
-                                'zu ' . $tblPerson->getFullName() . ' wechseln')),
-                        'Address' => $tblAddressToPerson ? $tblAddressToPerson->getTblAddress()->getGuiString() : ''
+                                'zu ' . $tblPerson->getLastFirstName() . ' wechseln')),
+                        'Address' => $tblAddress ? $tblAddress->getGuiString() : ''
                     );
                 }
             });
@@ -178,18 +170,36 @@ class Frontend extends Extension implements IFrontendInterface
             $tblPersonAll = array();
         }
 
+        $columns = array(
+            'Select' => '',
+            'Person' => 'Name',
+            'Address' => 'Adresse'
+        );
+
+        $interactive =  array(
+            'order' => array(
+                array(1, 'asc'),
+            ),
+            'responsive' => false
+        );
+
         // Person Panel
         if ($currentPerson) {
             $PanelPerson = new Panel('zur folgenden Person ' . new PersonIcon(),
                 array(
                     new \SPHERE\Common\Frontend\Text\Repository\Danger('AKTUELL hinterlegte Person, '),
-                    new PullLeft(new RadioBox('To', $currentPerson->getFullName(), $currentPerson->getId()))
+                    new PullLeft(new RadioBox('To', $currentPerson->getLastFirstName(), $currentPerson->getId()))
                     . new PullRight(new Standard('', '/People/Person',
                         new PersonIcon(),
                         array('Id' => $currentPerson->getId()),
-                        'zu ' . $currentPerson->getFullName() . ' wechseln')),
+                        'zu ' . $currentPerson->getLastFirstName() . ' wechseln')),
                     new \SPHERE\Common\Frontend\Text\Repository\Danger('ODER eine andere Person wählen: '),
-                    new TableData($tblPersonAll, null, array('Person' => 'Person wählen', 'Address' => 'Adresse')),
+                    new TableData(
+                        $tblPersonAll,
+                        null,
+                        $columns,
+                        $interactive
+                    ),
                 ), Panel::PANEL_TYPE_INFO,
                 new Standard('Neue Person anlegen', '/People/Person', new PersonIcon()
                     , array(), 'Die aktuell gewählte Person verlassen'
@@ -198,7 +208,12 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             $PanelPerson = new Panel('zur folgenden Person ' . new PersonIcon(),
                 array(
-                    new TableData($tblPersonAll, null, array('Person' => 'Person wählen', 'Address' => 'Adresse')),
+                    new TableData(
+                        $tblPersonAll,
+                        null,
+                        $columns,
+                        $interactive
+                    ),
                 ), Panel::PANEL_TYPE_INFO,
                 new Standard('Neue Person anlegen', '/People/Person', new PersonIcon()
                     , array(), 'Die aktuell gewählte Person verlassen'
@@ -316,32 +331,29 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblCompanyAll) {
             array_walk($tblCompanyAll, function (TblCompany &$tblCompany) use ($currentCompany) {
 
-                // alle Hauptadressen
-                $tblAddressToCompanyList = Address::useService()->getAddressAllByCompanyAndType($tblCompany,
-                    Address::useService()->getTypeById(1));
-                if ($tblAddressToCompanyList) {
-                    /** @var \SPHERE\Application\Contact\Address\Service\Entity\TblToCompany $tblAddressToCompany */
-                    $tblAddressToCompany = reset($tblAddressToCompanyList);
-                } else {
-                    $tblAddressToCompany = false;
-                }
+                $tblAddress = $tblCompany->fetchMainAddress();
 
                 if ($currentCompany && $currentCompany->getId() == $tblCompany->getId()) {
                     $tblCompany = array(
                         'Company' => new \SPHERE\Common\Frontend\Text\Repository\Warning($tblCompany->getName()) . ' (Aktuell hinterlegt)',
-                        'Address' => $tblAddressToCompany ? $tblAddressToCompany->getTblAddress()->getGuiString() : ''
+                        'Address' => $tblAddress ? $tblAddress->getGuiString() : ''
                     );
                 } else {
                     $tblCompany = array(
-                        'Company' => new RadioBox('To', $tblCompany->getName()
-                                . new Container(new Container($tblCompany->getExtendedName()))
-                                . new Container(new Container(new Muted($tblCompany->getDescription()))),
-                                $tblCompany->getId())
+                        'Select' => new RadioBox('To', '&nbsp;', $tblCompany->getId()),
+                        'Company' => $tblCompany->getName()
                             . new PullRight(new Standard('', '/Corporation/Company',
-                                new Building(),
-                                array('Id' => $tblCompany->getId()),
-                                'zu ' . $tblCompany->getName() . ' wechseln')),
-                        'Address' => $tblAddressToCompany ? $tblAddressToCompany->getTblAddress()->getGuiString() : ''
+                                    new Building(),
+                                    array('Id' => $tblCompany->getId()),
+                                    'zu ' . $tblCompany->getName() . ' wechseln')
+                            )
+                            . ($tblCompany->getExtendedName()
+                                ? new Container(new Container($tblCompany->getExtendedName()))
+                                : '')
+                            . ($tblCompany->getDescription()
+                                ? new Container(new Container(new Muted($tblCompany->getDescription())))
+                                : ''),
+                        'Address' => $tblAddress ? $tblAddress->getGuiString() : ''
                     );
                 }
             });
@@ -350,21 +362,43 @@ class Frontend extends Extension implements IFrontendInterface
             $tblCompanyAll = array();
         }
 
+        $columns = array(
+            'Select' => '',
+            'Company' => 'Name',
+            'Address' => 'Adresse'
+        );
+
+        $interactive =  array(
+            'order' => array(
+                array(1, 'asc'),
+            ),
+            'responsive' => false
+        );
+
         // Company Panel
         if ($currentCompany) {
-            $PanelCompany = new Panel('zu folgender Institution '.new Building(),
+            $PanelCompany = new Panel('zu folgender Institution ' . new Building(),
                 array(
                     new \SPHERE\Common\Frontend\Text\Repository\Danger('AKTUELL hinterlegte Institution, '),
                     new PullLeft(new RadioBox('To', $currentCompany->getName()
-                        . new Container(new Container($currentCompany->getExtendedName()))
-                        . new Container(new Container(new Muted($currentCompany->getDescription()))),
-                        $currentCompany->getId()))
+                        . ($currentCompany->getExtendedName()
+                            ? ' ' . $currentCompany->getExtendedName()
+                            : '')
+                        . ($currentCompany->getDescription()
+                            ? ' ' . new Muted($currentCompany->getDescription())
+                            : ''), $currentCompany->getId()))
                     . new PullRight(new Standard('', '/Corporation/Company',
-                        new Building(),
-                        array('Id' => $currentCompany->getId()),
-                        'zu ' . $currentCompany->getDisplayName() . ' wechseln')),
+                            new Building(),
+                            array('Id' => $currentCompany->getId()),
+                            'zu ' . $currentCompany->getName() . ' wechseln')
+                    ),
                     new \SPHERE\Common\Frontend\Text\Repository\Danger('ODER eine andere Institution wählen: '),
-                    new TableData($tblCompanyAll, null, array('Company' => 'Institution wählen', 'Address' => 'Adresse')),
+                    new TableData(
+                        $tblCompanyAll,
+                        null,
+                        $columns,
+                        $interactive
+                    )
                 ), Panel::PANEL_TYPE_INFO,
                 new Standard('Neue Institution anlegen', '/Corporation/Company', new Building()
                     , array(), 'Die aktuell gewählte Person verlassen'
@@ -373,7 +407,12 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             $PanelCompany = new Panel('zu folgender Institution '.new Building(),
                 array(
-                    new TableData($tblCompanyAll, null, array('Company' => 'Institution wählen', 'Address' => 'Adresse')),
+                    new TableData(
+                        $tblCompanyAll,
+                        null,
+                        $columns,
+                        $interactive
+                    )
                 ), Panel::PANEL_TYPE_INFO,
                 new Standard('Neue Institution anlegen', '/Corporation/Company', new Building()
                     , array(), 'Die aktuell gewählte Person verlassen'

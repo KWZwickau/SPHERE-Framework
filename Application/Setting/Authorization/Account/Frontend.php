@@ -363,8 +363,8 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 ) {
                     $tblPersonItem = array(
-                        'Person'  => new RadioBox('Account[User]', $tblPersonItem->getFullName(),
-                            $tblPersonItem->getId()),
+                        'Select' => new RadioBox('Account[User]', '&nbsp;', $tblPersonItem->getId()),
+                        'Person'  => $tblPersonItem->getLastFirstName(),
                         'Address' => $tblPersonItem->fetchMainAddress() ? $tblPersonItem->fetchMainAddress()->getGuiString() : ''
                     );
                 } else {
@@ -379,13 +379,31 @@ class Frontend extends Extension implements IFrontendInterface
             $tblPersonAll = array();
         }
 
+        $columns = array(
+            'Select' => '',
+            'Person' => 'Name',
+            'Address' => 'Adresse'
+        );
+
+        $interactive =  array(
+            'order' => array(
+                array(1, 'asc'),
+            ),
+            'responsive' => false
+        );
+
         // Person Panel
         if ($tblPerson) {
             $PanelPerson = new Panel(new Person().' für folgende Mitarbeiter', array(
                 new Danger('AKTUELL hinterlegte Person, '),
                 new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId()),
                 new Danger('ODER eine andere Person wählen: '),
-                new TableData($tblPersonAll, null, array('Person' => 'Person wählen', 'Address' => 'Adresse')),
+                new TableData(
+                    $tblPersonAll,
+                    null,
+                    $columns,
+                    $interactive
+                )
             ), Panel::PANEL_TYPE_INFO);
         } elseif (isset( $Global->POST['Account']['User'] )) {
             $tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($Global->POST['Account']['User']);
@@ -393,11 +411,21 @@ class Frontend extends Extension implements IFrontendInterface
                 new Warning('AKTUELL selektierte Person, '),
                 new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId()),
                 new Danger('ODER eine andere Person wählen: '),
-                new TableData($tblPersonAll, null, array('Person' => 'Person wählen', 'Address' => 'Adresse')),
+                new TableData(
+                    $tblPersonAll,
+                    null,
+                    $columns,
+                    $interactive
+                ),
             ), Panel::PANEL_TYPE_INFO);
         } else {
             $PanelPerson = new Panel(new Person().' für folgende Mitarbeiter', array(
-                new TableData($tblPersonAll, null, array('Person' => 'Person wählen', 'Address' => 'Adresse')),
+                new TableData(
+                    $tblPersonAll,
+                    null,
+                    $columns,
+                    $interactive
+                ),
             ), Panel::PANEL_TYPE_INFO);
         }
 
