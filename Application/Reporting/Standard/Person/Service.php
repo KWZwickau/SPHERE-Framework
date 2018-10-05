@@ -184,7 +184,7 @@ class Service extends Extension
                     $AuthorizedList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
                         $tblType);
                     if($AuthorizedList){
-                        array_merge($tblToPersonGuardianList, $AuthorizedList);
+                        $tblToPersonGuardianList = array_merge($tblToPersonGuardianList, $AuthorizedList);
                     }
                 }
                 if (!empty($tblToPersonGuardianList)) {
