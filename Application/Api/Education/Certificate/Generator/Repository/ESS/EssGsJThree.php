@@ -90,10 +90,6 @@ class EssGsJThree extends EssStyle
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
-                    )
-                    ->addElementColumn((new Element())
                         ->setContent('Klasse {{ Content.P' . $personId . '.Division.Data.Level.Name }}')
                         ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('105%')
@@ -105,10 +101,6 @@ class EssGsJThree extends EssStyle
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
-                    )
                     ->addElementColumn((new Element())
                         ->setContent('2. Schulhalbjahr')
                         ->styleTextSize(self::TEXT_SIZE)
@@ -131,10 +123,6 @@ class EssGsJThree extends EssStyle
                         ->styleTextBold()
                         ->styleAlignRight()
                         , '25%')
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
-                    )
                 )
             )
             ->addSlice((new Slice())
@@ -174,10 +162,6 @@ class EssGsJThree extends EssStyle
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
-                    )
-                    ->addElementColumn((new Element())
                         ->setContent('Einschätzung <br/> Lern-, Arbeits- und<br/> Sozialverhalten')
                         ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('105%')
@@ -199,19 +183,11 @@ class EssGsJThree extends EssStyle
                         ->styleMarginTop('15px')
                         , '75%'
                     )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
-                    )
                 )
                 ->styleHeight('115px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
-                    )
                     ->addElementColumn((new Element())
                         ->setContent('Leistungen in den<br/>einzelnen Fächern')
                         ->styleTextSize(self::TEXT_SIZE)
@@ -223,10 +199,6 @@ class EssGsJThree extends EssStyle
                     ->addSliceColumn(
                         self::getESSSubjectLanes($personId)
                         , '75%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
                     )
                 )
                 ->styleMarginTop('25px')
@@ -247,10 +219,6 @@ class EssGsJThree extends EssStyle
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
-                    )
                     ->addElementColumn((new Element())
                         ->setContent('Fachliche <br/> Einschätzung')
                         ->styleTextSize(self::TEXT_SIZE)
@@ -273,19 +241,11 @@ class EssGsJThree extends EssStyle
                         ->styleMarginTop('20px')
                         , '75%'
                     )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
-                    )
                 )
                 ->styleHeight('160px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
-                    )
                     ->addElementColumn((new Element())
                         ->setContent('Versetzungsvermerk')
                         ->styleTextSize(self::TEXT_SIZE)
@@ -304,19 +264,11 @@ class EssGsJThree extends EssStyle
                         ->styleFontFamily(self::TEXT_FAMILY)
                         , '75%'
                     )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
-                    )
                 )
                 ->styleMarginTop('10px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
-                    )
                     ->addElementColumn((new Element())
                         ->setContent('Datum:
                                 {% if(Content.P'.$personId.'.Input.Date is not empty) %}
@@ -327,7 +279,7 @@ class EssGsJThree extends EssStyle
                         ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
-                        ->stylePaddingTop('20px')
+                        ->stylePaddingTop('19px')
                         ->stylePaddingBottom('20px')
                         , '100%'
                     )
@@ -368,13 +320,10 @@ class EssGsJThree extends EssStyle
                         ->styleFontFamily(self::TEXT_FAMILY)
                         , '25%')
                 )
-                ->stylePaddingBottom('40px')
+                ->stylePaddingBottom('35px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%')
                     ->addElementColumn((new Element())
                         ->setContent('Zur Kenntnis genommen:')
                         ->styleTextSize(self::TEXT_SIZE)

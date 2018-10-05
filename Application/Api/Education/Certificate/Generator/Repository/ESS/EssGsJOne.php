@@ -77,10 +77,6 @@ class EssGsJOne extends Certificate
                 )
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
-                    )
-                    ->addElementColumn((new Element())
                         ->setContent('{{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}')
                         ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('105%')
@@ -114,19 +110,11 @@ class EssGsJOne extends Certificate
                         ->styleAlignRight()
                         , '30%'
                     )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
-                    )
                 )
                 ->stylePaddingBottom('30px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
-                    )
                     ->addElementColumn((new Element())
                         ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
                                       {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
@@ -136,28 +124,16 @@ class EssGsJOne extends Certificate
 //                        ->styleTextBold()
                         , '100%'
                     )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
-                    )
                 )
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
-                    )
                     ->addElementColumn((new Element())
                         ->setContent('Vor- und Zuname')
                         ->styleTextSize(self::TEXT_SIZE_SMALL)
                         ->styleLineHeight('75%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         , '100%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
                     )
                 )
             )
@@ -174,10 +150,6 @@ class EssGsJOne extends Certificate
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
-                    )
-                    ->addElementColumn((new Element())
                         ->setContent('{% if(Content.P' . $personId . '.Input.Remark is not empty) %}
                                     {{ Content.P' . $personId . '.Input.Remark|nl2br }}
                                 {% else %}
@@ -192,18 +164,10 @@ class EssGsJOne extends Certificate
                         ->styleHeight('300px')
                         , '100%'
                     )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
-                    )
                 )
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
-                    )
                     ->addElementColumn((new Element())
                         ->setContent('{% if(Content.P' . $personId . '.Input.Transfer) %}
                         {{ Content.P' . $personId . '.Input.Transfer }}
@@ -215,10 +179,6 @@ class EssGsJOne extends Certificate
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleMarginTop('5px')
                         , '100%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '0%'
                     )
                 )
             )
