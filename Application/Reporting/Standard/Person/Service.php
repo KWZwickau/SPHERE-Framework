@@ -173,15 +173,21 @@ class Service extends Extension
                 $tblType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_GUARDIAN);
                 $tblToPersonGuardianList = array();
                 if ($tblType) {
-                    $tblToPersonGuardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
+                    $GuardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
                         $tblType);
+                    if($GuardianList){
+                        $tblToPersonGuardianList = $GuardianList;
+                    }
                 }
                 $tblType = Relationship::useService()->getTypeByName(TblType::IDENTIFIER_AUTHORIZED);
                 if ($tblType) {
-                    $tblToPersonGuardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
+                    $AuthorizedList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
                         $tblType);
+                    if($AuthorizedList){
+                        array_merge($tblToPersonGuardianList, $AuthorizedList);
+                    }
                 }
-                if ($tblToPersonGuardianList && !empty($tblToPersonGuardianList)) {
+                if (!empty($tblToPersonGuardianList)) {
                     foreach ($tblToPersonGuardianList as $tblToPersonGuardian) {
 
                         $pre = '';
