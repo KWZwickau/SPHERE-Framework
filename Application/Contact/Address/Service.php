@@ -185,7 +185,7 @@ class Service extends AbstractService
             // control there is no other MainAddress
             if ($tblType->getName() == 'Hauptadresse') {
                 $tblAddressMain = Address::useService()->getAddressByPerson($tblPerson);
-                if ($tblAddressMain && $tblAddress->getId() != $tblAddressMain->getId()) {
+                if ($tblAddressMain && (($tblAddress && $tblAddress->getId() != $tblAddressMain->getId()) || !$tblAddress)) {
                     $Form->setError('Type[Type]', '"'.$tblPerson->getFullName()
                         .'" besitzt bereits eine Hauptadresse');
                     $Error = true;
