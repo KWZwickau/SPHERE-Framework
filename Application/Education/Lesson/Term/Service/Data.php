@@ -86,10 +86,11 @@ class Data extends AbstractData
      * @param string $From
      * @param string $To
      * @param string $Description
+     * @param bool $IsLevel12
      *
      * @return TblPeriod
      */
-    public function createPeriod($Name, $From, $To, $Description = '')
+    public function createPeriod($Name, $From, $To, $Description = '', $IsLevel12 = false)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -105,6 +106,8 @@ class Data extends AbstractData
             $Entity->setDescription($Description);
             $Entity->setFromDate(new \DateTime($From));
             $Entity->setToDate(new \DateTime($To));
+            $Entity->setIsLevel12($IsLevel12);
+
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -148,6 +151,7 @@ class Data extends AbstractData
      * @param           $Description
      * @param           $From
      * @param           $To
+     * @param bool $IsLevel12
      *
      * @return bool
      */
@@ -156,7 +160,8 @@ class Data extends AbstractData
         $Name,
         $Description,
         $From,
-        $To
+        $To,
+        $IsLevel12 = false
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -169,6 +174,8 @@ class Data extends AbstractData
             $Entity->setDescription($Description);
             $Entity->setFromDate(new \DateTime($From));
             $Entity->setToDate(new \DateTime($To));
+            $Entity->setIsLevel12($IsLevel12);
+
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
@@ -347,12 +354,16 @@ class Data extends AbstractData
         ));
     }
 
-    public function checkYearExist($Year, $Description)
+    /**
+     * @param $Year
+     *
+     * @return false|TblYear
+     */
+    public function checkYearExist($Year)
     {
 
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblYear', array(
-            TblYear::ATTR_YEAR => $Year,
-            TblYear::ATTR_DESCRIPTION => $Description
+            TblYear::ATTR_YEAR => $Year
         ));
 
     }

@@ -93,6 +93,8 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblPeriod', 'ToDate')) {
             $Table->addColumn('ToDate', 'datetime', array('notnull' => false));
         }
+        $this->createColumn($Table, 'IsLevel12', self::FIELD_TYPE_BOOLEAN, false, false);
+
         return $Table;
     }
 

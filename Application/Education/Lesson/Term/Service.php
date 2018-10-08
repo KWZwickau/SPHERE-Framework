@@ -200,8 +200,8 @@ class Service extends AbstractService
             $Form->setError('Year[Year]', 'Bitte geben sie ein Jahr an');
             $Error = true;
         } else {
-            if (($tblYear = Term::useService()->checkYearExist($Year['Year'], $Year['Description']))) {
-                $Form->setError('Year[Description]', 'Bitte geben sie eine andere Beschreibung an');
+            if (($tblYear = Term::useService()->checkYearExist($Year['Year']))) {
+                $Form->setError('Year[Year]', 'Dieses Schuljahr existiert bereits.');
                 $Error = true;
             }
         }
@@ -215,13 +215,19 @@ class Service extends AbstractService
                 . new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_ERROR);
             }
         }
+
         return $Form;
     }
 
-    public function checkYearExist($Year, $Description)
+    /**
+     * @param $Year
+     *
+     * @return false|TblYear
+     */
+    public function checkYearExist($Year)
     {
 
-        return (new Data($this->getBinding()))->checkYearExist($Year, $Description);
+        return (new Data($this->getBinding()))->checkYearExist($Year);
     }
 
     /**
@@ -339,7 +345,7 @@ class Service extends AbstractService
      * @param $Year
      * @param $Period
      *
-     * @return Success
+     * @return string
      */
     public function addYearPeriod($Year, $Period)
     {
@@ -381,7 +387,7 @@ class Service extends AbstractService
      * @param $Year
      * @param $Period
      *
-     * @return Success
+     * @return string
      */
     public function removeYearPeriod($Year, $Period)
     {
@@ -418,7 +424,7 @@ class Service extends AbstractService
         $Error = false;
 
         if (isset($Period['Name']) && empty($Period['Name'])) {
-            $Form->setError('Period[Name]', 'Bitte geben Sie einen eineindeutigen Namen an');
+            $Form->setError('Period[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
         }
 
@@ -448,7 +454,7 @@ class Service extends AbstractService
         if (!$Error) {
 
             if ((new Data($this->getBinding()))->createPeriod(
-                $Period['Name'], $Period['From'], $Period['To'], $Period['Description'])
+                $Period['Name'], $Period['From'], $Period['To'], $Period['Description'], isset($Period['IsLevel12']))
             ) {
                 return new Success('Der Zeitraum wurde erfolgreich hinzugefügt')
                 . new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_SUCCESS);
@@ -498,9 +504,9 @@ class Service extends AbstractService
             $Stage->setError('Year[Year]', 'Bitte geben Sie ein Jahr an');
             $Error = true;
         } else {
-            if (($CheckYear = Term::useService()->checkYearExist($Year['Year'], $Year['Description']))) {
+            if (($CheckYear = Term::useService()->checkYearExist($Year['Year']))) {
                 if ($tblYear->getId() !== $CheckYear->getId()) {
-                    $Stage->setError('Year[Description]', 'Bitte geben sie eine andere Beschreibung an');
+                    $Stage->setError('Year[Year]', 'Dieses Schuljahr existiert bereits.');
                     $Error = true;
                 }
             }
@@ -565,7 +571,8 @@ class Service extends AbstractService
                 $Period['Name'],
                 $Period['Description'],
                 $Period['From'],
-                $Period['To']
+                $Period['To'],
+                isset($Period['IsLevel12'])
             )
             ) {
                 $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
@@ -656,13 +663,14 @@ class Service extends AbstractService
      * @param string $From
      * @param string $To
      * @param string $Description
+     * @param bool $IsLevel12
      *
      * @return TblPeriod
      */
-    public function insertPeriod($Name, $From, $To, $Description = '')
+    public function insertPeriod($Name, $From, $To, $Description = '', $IsLevel12 = false)
     {
 
-        return (new Data($this->getBinding()))->createPeriod($Name, $From, $To, $Description);
+        return (new Data($this->getBinding()))->createPeriod($Name, $From, $To, $Description, $IsLevel12);
     }
 
     /**

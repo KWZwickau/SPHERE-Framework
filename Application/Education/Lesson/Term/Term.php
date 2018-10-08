@@ -118,7 +118,9 @@ class Term implements IModuleInterface
                     /** @noinspection PhpUnusedParameterInspection */
                     array_walk($tblPeriodAll, function (TblPeriod &$tblPeriod) use ($tblYear) {
 
-                        $tblPeriod = $tblPeriod->getName() . ' ' . new Muted(new Small($tblPeriod->getDescription()))
+                        $tblPeriod = $tblPeriod->getName()
+                            . ($tblPeriod->getDescription() ? ' ' . new Muted(new Small($tblPeriod->getDescription())) : '')
+                            . ($tblPeriod->isLevel12() ? new Muted(' 12. Klasse') : '')
 //                            .new PullRight(new Standard('', __NAMESPACE__.'\Remove\Period', new Remove(),
 //                                array('PeriodId' => $tblPeriod->getId(),
 //                                      'Id'       => $tblYear->getId()), 'Zeitraum entfernen'))
