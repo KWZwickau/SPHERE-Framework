@@ -11,6 +11,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -177,7 +178,7 @@ class StudentTransfer extends Extension
                         $Global->POST['Data']['LeaveSchool'] = $tblCompanySchool->getDisplayName();
                         $tblAddressSchool = Address::useService()->getAddressByCompany($tblCompanySchool);
                         if ($tblAddressSchool) {
-                            $Global->POST['Data']['AddressStreet'] = $tblAddressSchool->getStreetName().', '.$tblAddressSchool->getStreetNumber();
+                            $Global->POST['Data']['AddressStreet'] = $tblAddressSchool->getStreetName().' '.$tblAddressSchool->getStreetNumber();
                             $tblCitySchool = $tblAddressSchool->getTblCity();
                             if ($tblCitySchool) {
                                 $Global->POST['Data']['AddressCity'] = $tblCitySchool->getCode().', '.$tblCitySchool->getName();
@@ -220,7 +221,7 @@ class StudentTransfer extends Extension
                     }
                 }
                 // Datum Aufnahme
-                $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ARRIVE');
+                $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::ARRIVE);
                 $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
                     $tblStudentTransferType);
                 if ($tblStudentTransfer) {
@@ -235,6 +236,26 @@ class StudentTransfer extends Extension
                                     $Global->POST['Data']['SchoolEntryDivision'] = $tblDivision->getTblLevel()->getName();
                                 }
                             }
+                        }
+                    }
+                }
+                // Datum Abgabe
+                // Schule Abgabe
+                $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier(TblStudentTransferType::LEAVE);
+                $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                    $tblStudentTransferType);
+                if ($tblStudentTransfer) {
+                    $LeaveDate = $tblStudentTransfer->getTransferDate();
+                    $Global->POST['Data']['DateUntil'] = $LeaveDate;
+                    if(($tblCompanyLeave = $tblStudentTransfer->getServiceTblCompany())){
+                        // Lange Schulnamen (ab 42 Buchstaben) werden auf 2 Zeilen aufgeteilt
+                        if(strlen($tblCompanyLeave->getName()) >= 42){
+                            $Global->POST['Data']['NewSchool1'] = substr($tblCompanyLeave->getName(), 0, 41);
+                            $Global->POST['Data']['NewSchool2'] = substr($tblCompanyLeave->getName(), 41);
+                            $Global->POST['Data']['NewSchool3'] = $tblCompanyLeave->getExtendedName();
+                        } else {
+                            $Global->POST['Data']['NewSchool1'] = $tblCompanyLeave->getName();
+                            $Global->POST['Data']['NewSchool2'] = $tblCompanyLeave->getExtendedName();
                         }
                     }
                 }
