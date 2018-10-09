@@ -794,7 +794,7 @@ class Service extends AbstractService
             if ($tblPrepare
                 && ($tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask())
                 && $tblYear
-                && ($tblPeriodList = $tblYear->getTblPeriodAll())
+                && ($tblPeriodList = $tblYear->getTblPeriodAll($tblLevel && $tblLevel->getName() == '12'))
                 && ($tblPeriod = $tblAppointedDateTask->getServiceTblPeriod())
                 && ($tblFirstPeriod = current($tblPeriodList))
                 && $tblPeriod->getId() != $tblFirstPeriod->getId()

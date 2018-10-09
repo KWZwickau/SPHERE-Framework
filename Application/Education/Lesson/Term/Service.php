@@ -63,13 +63,15 @@ class Service extends AbstractService
     /**
      *
      * @param TblYear $tblYear
+     * @param bool $IsLevel12
      *
+     * @param bool $IsAll
      * @return bool|TblPeriod[]
      */
-    public function getPeriodAllByYear(TblYear $tblYear)
+    public function getPeriodAllByYear(TblYear $tblYear, $IsLevel12 = false, $IsAll = false)
     {
 
-        return (new Data($this->getBinding()))->getPeriodAllByYear($tblYear);
+        return (new Data($this->getBinding()))->getPeriodAllByYear($tblYear, $IsLevel12, $IsAll);
     }
 
     /**
@@ -95,7 +97,7 @@ class Service extends AbstractService
         $tblYearAll = Term::useService()->getYearAll();
         if ($tblYearAll) {
             foreach ($tblYearAll as $tblYear) {
-                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, false, true);
                 if ($tblPeriodList) {
                     $To = '';
                     $tblPeriodTemp = new TblPeriod();
@@ -138,7 +140,7 @@ class Service extends AbstractService
         $tblYearAll = Term::useService()->getYearAll();
         if ($tblYearAll) {
             foreach ($tblYearAll as $tblYear) {
-                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, false, true);
                 if ($tblPeriodList) {
                     $To = '';
                     $tblPeriodTemp = new TblPeriod();
@@ -274,7 +276,7 @@ class Service extends AbstractService
         $tblYearAll = Term::useService()->getYearAll();
         if ($tblYearAll) {
             foreach ($tblYearAll as $tblYear) {
-                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, false, true);
                 if ($tblPeriodList) {
                     $From = '';
                     $To = '';

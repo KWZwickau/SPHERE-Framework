@@ -272,7 +272,7 @@ class Frontend extends Extension
             $Global->POST['Data']['BehaviorTask'] = $tblBehaviorTask ? $tblBehaviorTask->getId() : 0;
 
             // Halbjahr oder Jahreszeugnis vorauswählen an Hand des aktuellen Datums
-            if (($tblPeriodList = $tblYear->getTblPeriodAll())
+            if (($tblPeriodList = $tblYear->getTblPeriodAll(false))
                 && count($tblPeriodList) == 2
             ) {
                 $tblCurrentPeriod = false;

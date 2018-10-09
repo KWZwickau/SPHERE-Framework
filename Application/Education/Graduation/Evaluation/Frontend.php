@@ -783,6 +783,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblTestTypeAllWhereTask = Evaluation::useService()->getTestTypeAllWhereTask();
         $tblYearAllByNow = Term::useService()->getYearByNow();
         $periodSelect[] = '';
+        // todo
         if ($tblYear === null) {
             if ($tblYearAllByNow) {
                 foreach ($tblYearAllByNow as $tblYear) {
@@ -1091,6 +1092,7 @@ class Frontend extends Extension implements IFrontendInterface
             );
             $isTeacher = (strpos($BasicRoute, 'Teacher') !== false);
             $Form = $this->formTest(
+                $tblDivision,
                 $tblDivision->getServiceTblYear(),
                 $tblScoreRule ? $tblScoreRule : null,
                 $isTeacher ? $tblDivisionSubject : null
@@ -1344,6 +1346,7 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param TblDivision $tblDivision
      * @param TblYear $tblYear
      * @param TblScoreRule $tblScoreRule
      * @param TblDivisionSubject $tblDivisionSubjectSelected
@@ -1351,6 +1354,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @return Form
      */
     private function formTest(
+        TblDivision $tblDivision,
         TblYear $tblYear,
         TblScoreRule $tblScoreRule = null,
         TblDivisionSubject $tblDivisionSubjectSelected = null
@@ -1365,7 +1369,8 @@ class Frontend extends Extension implements IFrontendInterface
             $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType);
         }
 
-        $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+        $tblLevel = $tblDivision->getTblLevel();
+        $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12');
 
         // select current period
         $Global = $this->getGlobal();
@@ -2068,6 +2073,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $columnDefinition['Course'] = 'Bildungsgang';
 
                 $tblPeriodList = false;
+                // todo
                 // ist Stichtagsnotenauftrag auf eine Periode beschränkt oder wird das gesamte Schuljahr genutzt
                 if ($tblTask->getServiceTblPeriod()) {
                     $tblPeriodList[] = $tblTask->getServiceTblPeriod();

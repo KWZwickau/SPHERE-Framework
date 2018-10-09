@@ -77,12 +77,15 @@ class TblYear extends Element
     }
 
     /**
+     * @param bool $IsLevel12
+     * @param bool $IsAll
+     *
      * @return bool|TblPeriod[]
      */
-    public function getTblPeriodAll()
+    public function getTblPeriodAll($IsLevel12 = false, $IsAll = false)
     {
 
-        return Term::useService()->getPeriodAllByYear($this);
+        return Term::useService()->getPeriodAllByYear($this, $IsLevel12, $IsAll);
     }
 
     /**

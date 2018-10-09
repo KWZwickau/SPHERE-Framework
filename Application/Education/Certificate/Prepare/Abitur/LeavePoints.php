@@ -226,7 +226,7 @@ class LeavePoints extends Extension
                             if (($tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask())
                                 && ($tblDivisionItem = $tblPrepare->getServiceTblDivision())
                                 && ($tblYear = $tblDivisionItem->getServiceTblYear())
-                                && ($tblPeriodList = $tblYear->getTblPeriodAll())
+                                && ($tblPeriodList = $tblYear->getTblPeriodAll($tblLevel && $tblLevel->getName() == '12'))
                                 && ($tblPeriod = $tblAppointedDateTask->getServiceTblPeriod())
                                 && ($tblFirstPeriod = current($tblPeriodList))
                                 && $tblPeriod->getId() != $tblFirstPeriod->getId()

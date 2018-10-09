@@ -236,7 +236,12 @@ class SignOutCertificate extends Extension
                 $LastDate = '';
                 foreach ($tblYearList as $tblYear) {
                     if (Division::useService()->getDivisionByPersonAndYear($tblPerson, $tblYear)) {
-                        $tblPeriodList = $tblYear->getTblPeriodAll();
+                        if (($tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))){
+                            $tblLevel = $tblMainDivision->getTblLevel();
+                        } else {
+                            $tblLevel = false;
+                        }
+                        $tblPeriodList = $tblYear->getTblPeriodAll($tblLevel && $tblLevel->getName() == '12');
                         if ($tblPeriodList) {
                             foreach ($tblPeriodList as $tblPeriod) {
                                 if ($LastDate && new \DateTime($LastDate) < new \DateTime($tblPeriod->getToDate())) {

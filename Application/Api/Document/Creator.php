@@ -425,10 +425,11 @@ class Creator extends Extension
             ini_set('memory_limit', '2G');
             $PdfMerger = new PdfMerge();
             $FileList = array();
+            $tblLevel = $tblDivision->getTblLevel();
 
             if (($tblDivisionSubjectAll = Division::useService()->getDivisionSubjectByDivision($tblDivision))
                 && ($tblYear = $tblDivision->getServiceTblYear())
-                && ($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear))
+                && ($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12'))
             ) {
                 // todo Sortierung
                 foreach ($tblDivisionSubjectAll as $tblDivisionSubject) {

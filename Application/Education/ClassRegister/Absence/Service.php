@@ -120,7 +120,8 @@ class Service extends AbstractService
         $minDate = false;
         $maxDate = false;
         if (($tblYear = $tblDivision->getServiceTblYear())) {
-            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+            $tblLevel = $tblDivision->getTblLevel();
+            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12');
             if ($tblPeriodList) {
                 foreach ($tblPeriodList as $tblPeriod) {
                     if (!$minDate) {
@@ -219,7 +220,8 @@ class Service extends AbstractService
         $maxDate = false;
         if (($tblDivision = $tblAbsence->getServiceTblDivision())) {
             if (($tblYear = $tblDivision->getServiceTblYear())) {
-                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+                $tblLevel = $tblDivision->getTblLevel();
+                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12');
                 if ($tblPeriodList) {
                     foreach ($tblPeriodList as $tblPeriod) {
                         if (!$minDate) {

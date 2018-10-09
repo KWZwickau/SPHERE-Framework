@@ -358,7 +358,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $tblPeriodUsedList = Term::useService()->getPeriodAllByYear($tblYear);
+        $tblPeriodUsedList = Term::useService()->getPeriodAllByYear($tblYear, false, true);
         $tblPeriodAll = Term::useService()->getPeriodAll();
 
         $contentPeriodUsed = array();

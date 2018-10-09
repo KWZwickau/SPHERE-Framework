@@ -333,7 +333,8 @@ class Frontend extends Extension implements IFrontendInterface
             $endDate = false;
             $tblYear = $tblDivision->getServiceTblYear();
             if ($tblYear) {
-                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+                $tblLevel = $tblDivision->getTblLevel();
+                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12');
                 if ($tblPeriodList) {
                     foreach ($tblPeriodList as $tblPeriod) {
                         if ($startDate) {
@@ -718,7 +719,8 @@ class Frontend extends Extension implements IFrontendInterface
             $endDate = false;
             $tblYear = $tblDivision->getServiceTblYear();
             if ($tblYear) {
-                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+                $tblLevel = $tblDivision->getTblLevel();
+                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12');
                 if ($tblPeriodList) {
                     foreach ($tblPeriodList as $tblPeriod) {
                         if ($startDate) {

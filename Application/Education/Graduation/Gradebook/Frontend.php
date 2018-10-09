@@ -807,6 +807,7 @@ class Frontend extends FrontendScoreRule
 
         $tblDivision = $tblDivisionSubject->getTblDivision();
         $tblSubject = $tblDivisionSubject->getServiceTblSubject();
+        $tblLevel = $tblDivision->getTblLevel();
 
         $tblPerson = false;
         $tblAccount = Account::useService()->getAccountBySession();
@@ -870,7 +871,7 @@ class Frontend extends FrontendScoreRule
         // Mindestnotenanzahlen
         if ($tblDivisionSubject) {
             if (($tblDivision = $tblDivisionSubject->getTblDivision())
-                && ($tblLevel = $tblDivision->getTblLevel())
+                && ($tblLevel)
                 && ($levelName = $tblLevel->getName())
                 && ($levelName == '11' || $levelName == '12')
             ) {
@@ -895,7 +896,7 @@ class Frontend extends FrontendScoreRule
 
         $tblYear = $tblDivision->getServiceTblYear();
         if ($tblYear) {
-            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12');
         } else {
             $tblPeriodList = false;
         }
@@ -1431,24 +1432,30 @@ class Frontend extends FrontendScoreRule
                 $hasScore = false;
             }
 
-            $tableHeaderList = array();
-            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
-            if ($tblPeriodList) {
-                $tableHeaderList['Subject'] = 'Fach';
-                foreach ($tblPeriodList as $tblPeriod) {
-                    $tableHeaderList['Period' . $tblPeriod->getId()] = new Bold($tblPeriod->getDisplayName());
-                }
-
-                if($isShownAverage) {
-                    $tableHeaderList['Average'] = '&#216;';
-                }
-            }
-
             if (!empty($data)) {
                 if (isset($data[$tblYear->getId()])) {
                     foreach ($data[$tblYear->getId()] as $personId => $divisionList) {
                         $tblPerson = Person::useService()->getPersonById($personId);
                         if ($tblPerson && is_array($divisionList)) {
+                            $tableHeaderList = array();
+                            if (($tblMainDivision = Student::useService()->getCurrentMainDivisionByPerson($tblPerson))) {
+                                $tblLevel = $tblMainDivision->getTblLevel();
+                            } else {
+                                $tblLevel = false;
+                            }
+
+                            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12');
+                            if ($tblPeriodList) {
+                                $tableHeaderList['Subject'] = 'Fach';
+                                foreach ($tblPeriodList as $tblPeriod) {
+                                    $tableHeaderList['Period' . $tblPeriod->getId()] = new Bold($tblPeriod->getDisplayName());
+                                }
+
+                                if($isShownAverage) {
+                                    $tableHeaderList['Average'] = '&#216;';
+                                }
+                            }
+
                             $this->setGradeOverview($tblYear, $tblPerson, $divisionList, $rowList, $tblPeriodList,
                                 $tblTestType, $isShownAverage, $hasScore, $tableHeaderList, true);
                         }
@@ -3172,7 +3179,8 @@ class Frontend extends FrontendScoreRule
         $columnDefinition['Subject'] = 'Fach';
         if (($tblYear = $tblDivision->getServiceTblYear())) {
             $tableHeaderList = array();
-            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+            $tblLevel = $tblDivision->getTblLevel();
+            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12');
             if ($tblPeriodList) {
                 $tableHeaderList['Subject'] = 'Fach';
                 foreach ($tblPeriodList as $tblPeriod) {
