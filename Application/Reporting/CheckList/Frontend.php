@@ -1331,11 +1331,13 @@ class Frontend extends Extension implements IFrontendInterface
             // set Header
             $tblListElementListByList = CheckList::useService()->getListElementListByList($tblList);
             if ($tblListElementListByList) {
+                // set Edit Column
+                $columnDefinition['FieldOptionLeft'] = $EditHead;
                 foreach ($tblListElementListByList as $tblListElementList) {
                     $columnDefinition['Field'.$tblListElementList->getId()] = $tblListElementList->getName();
                 }
                 // set Edit Column
-                $columnDefinition['Field'] = $EditHead;
+                $columnDefinition['FieldOptionRight'] = $EditHead;
             }
 
             $tblListObjectListByList = CheckList::useService()->getListObjectListByList($tblList);
@@ -1395,6 +1397,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($isProspectList) {
                     $columnDefinition = array(
                         'Name'            => 'Interessentenname'.str_repeat('&nbsp;', 18 ),
+                        'FieldOptionLeft' => $EditHead,
                         'Year'            => 'Schul&shy;jahr',
                         'Level'           => 'Kl. - Stufe',
                         'SchoolOption'    => 'Schulart',
@@ -1410,7 +1413,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $columnDefinition['Field'.$tblListElementList->getId()] = $tblListElementList->getName();
                         }
                         // set Edit Column
-                        $columnDefinition['Field'] = $EditHead;
+                        $columnDefinition['FieldOptionRight'] = $EditHead;
                     }
                 }
 
@@ -1561,8 +1564,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     }
                                 }
                             }
-                            // Edit Button
-                            $list[$count]['Field'] = new Standard('', '/Reporting/CheckList/Object/Element/Edit', new Edit(),
+                            // Edit Button left = right
+                            $list[$count]['FieldOptionLeft'] = $list[$count]['FieldOptionRight'] = new Standard('', '/Reporting/CheckList/Object/Element/Edit', new Edit(),
                                 array('ObjectId'        => $objectId,
                                       'ListId'          => $tblList->getId(),
                                       'ObjectTypeId'    => $tblObjectType->getId(),
@@ -1579,6 +1582,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($hasFilter) {
                     $columnDefinition = array(
                         'Name'            => 'Interessentenname&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
+                        'FieldOptionLeft' => $EditHead,
                         'Year'            => 'Schul&shy;jahr',
                         'Level'           => 'Kl. - Stufe',
                         'SchoolOption'    => 'Schulart',
@@ -1591,7 +1595,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $columnDefinition['Field'.$tblListElementList->getId()] = $tblListElementList->getName();
                         }
                         // set Edit Column
-                        $columnDefinition['Field'] = $EditHead;
+                        $columnDefinition['FieldOptionRight'] = $EditHead;
                     }
                 }
             }
