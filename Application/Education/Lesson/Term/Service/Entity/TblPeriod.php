@@ -141,7 +141,11 @@ class TblPeriod extends Element
     public function getDisplayName()
     {
 
-        return $this->getName() . ' ' . new Small(new Muted('(' .$this->getFromDate() . ' - ' . $this->getToDate() . ')'));
+        return $this->getName()
+            . ($this->getFromDate() && $this->getToDate()
+                ? ' ' . new Small(new Muted('(' .$this->getFromDate() . ' - ' . $this->getToDate() . ')'))
+                : ''
+            );
     }
 
     /**

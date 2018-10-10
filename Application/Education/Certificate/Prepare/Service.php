@@ -795,7 +795,7 @@ class Service extends AbstractService
                 && ($tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask())
                 && $tblYear
                 && ($tblPeriodList = $tblYear->getTblPeriodAll($tblLevel && $tblLevel->getName() == '12'))
-                && ($tblPeriod = $tblAppointedDateTask->getServiceTblPeriod())
+                && ($tblPeriod = $tblAppointedDateTask->getServiceTblPeriodByDivision($tblDivision))
                 && ($tblFirstPeriod = current($tblPeriodList))
                 && $tblPeriod->getId() != $tblFirstPeriod->getId()
             ) {
@@ -3210,7 +3210,7 @@ class Service extends AbstractService
 
         if (($tblTaskList = Evaluation::useService()->getTaskAllByDivision($tblDivision, $tblTestType))) {
             foreach ($tblTaskList as $tblTask) {
-                if (($tblPeriod = $tblTask->getServiceTblPeriod())
+                if (($tblPeriod = $tblTask->getServiceTblPeriodByDivision($tblDivision))
                     && strpos($tblPeriod->getName(), '2.') !== false
                 ) {
                     if (($tblTestList = Evaluation::useService()->getTestAllByTask($tblTask))) {

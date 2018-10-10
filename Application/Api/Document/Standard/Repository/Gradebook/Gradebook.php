@@ -274,7 +274,7 @@ class Gradebook
                     if ($isSekTwo) {
                         if ($tblCertificateType->getIdentifier() == 'MID_TERM_COURSE'
                             && ($tblTask = $tblPrepareCertificate->getServiceTblAppointedDateTask())
-                            && ($tblPeriodOfPrepareCertificate = $tblTask->getServiceTblPeriod())
+                            && ($tblPeriodOfPrepareCertificate = $tblTask->getServiceTblPeriodByDivision($tblDivision))
                             && $tblPeriod->getId() == $tblPeriodOfPrepareCertificate->getId()
                         ) {
                             $tblPrepareForCertificateGrade = $tblPrepareCertificate;

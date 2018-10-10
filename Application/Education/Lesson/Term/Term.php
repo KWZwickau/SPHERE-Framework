@@ -113,7 +113,7 @@ class Term implements IModuleInterface
         if ($tblYearAll) {
             array_walk($tblYearAll, function (TblYear $tblYear) use (&$Year) {
 
-                $tblPeriodAll = $tblYear->getTblPeriodAll();
+                $tblPeriodAll = $tblYear->getTblPeriodAll(false, true);
                 if ($tblPeriodAll) {
                     /** @noinspection PhpUnusedParameterInspection */
                     array_walk($tblPeriodAll, function (TblPeriod &$tblPeriod) use ($tblYear) {

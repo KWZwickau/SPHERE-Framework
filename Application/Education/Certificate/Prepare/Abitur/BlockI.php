@@ -215,7 +215,7 @@ class BlockI extends AbstractBlock
                                 && ($tblDivisionItem = $tblPrepare->getServiceTblDivision())
                                 && ($tblYear = $tblDivisionItem->getServiceTblYear())
                                 && ($tblPeriodList = $tblYear->getTblPeriodAll($tblLevel && $tblLevel->getName() == '12'))
-                                && ($tblPeriod = $tblAppointedDateTask->getServiceTblPeriod())
+                                && ($tblPeriod = $tblAppointedDateTask->getServiceTblPeriodByDivision($tblDivision))
                                 && ($tblFirstPeriod = current($tblPeriodList))
                                 && $tblPeriod->getId() != $tblFirstPeriod->getId()
                             ) {
