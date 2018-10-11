@@ -250,9 +250,19 @@ class StudentTransfer extends Extension
                     if(($tblCompanyLeave = $tblStudentTransfer->getServiceTblCompany())){
                         // Lange Schulnamen (ab 42 Buchstaben) werden auf 2 Zeilen aufgeteilt
                         if(strlen($tblCompanyLeave->getName()) >= 42){
-                            $Global->POST['Data']['NewSchool1'] = substr($tblCompanyLeave->getName(), 0, 41);
-                            $Global->POST['Data']['NewSchool2'] = substr($tblCompanyLeave->getName(), 41);
-                            $Global->POST['Data']['NewSchool3'] = $tblCompanyLeave->getExtendedName();
+                            // Versuch, nach letztem Leerzeichen zu trennen.
+                            $ShortString = substr($tblCompanyLeave->getName(), 0, 41);
+                            $CutPosition = strripos($ShortString, ' ');
+                            if($CutPosition){
+                                $Global->POST['Data']['NewSchool1'] = substr($tblCompanyLeave->getName(), 0, $CutPosition);
+                                $Global->POST['Data']['NewSchool2'] = substr($tblCompanyLeave->getName(), $CutPosition);
+                                $Global->POST['Data']['NewSchool3'] = $tblCompanyLeave->getExtendedName();
+                            } else {
+                                // trennt Notalls fest
+                                $Global->POST['Data']['NewSchool1'] = substr($tblCompanyLeave->getName(), 0, 41);
+                                $Global->POST['Data']['NewSchool2'] = substr($tblCompanyLeave->getName(), 41);
+                                $Global->POST['Data']['NewSchool3'] = $tblCompanyLeave->getExtendedName();
+                            }
                         } else {
                             $Global->POST['Data']['NewSchool1'] = $tblCompanyLeave->getName();
                             $Global->POST['Data']['NewSchool2'] = $tblCompanyLeave->getExtendedName();
