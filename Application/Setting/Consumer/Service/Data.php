@@ -126,6 +126,8 @@ class Data extends AbstractData
             // Validierung (Kamenz + Schnittstelle) der 1. Fremdsprache ab Klassenstufe x
             $this->updateSettingDescription($tblSetting, 'Allgemein', 'Validierung (Kamenz + Schnittstelle), ob die 1. Fremdsprache in der Schülerakte gepflegt ist, ab Klassenstufe:', true);
         }
+        // Sotierung der Anreden für die Serienbriefe
+        $this->createSetting('Reporting', 'SerialLetter', 'GenderSort', 'FirstFemale', TblSetting::TYPE_BOOLEAN, 1, 'Serienbrief', 'Beginnt mit der Frau im Briefkopf (Sehr geehrte Frau, sehr geehrter Herr) DIN 5008', true);
 
         if (($tblSetting = $this->createSetting('Education', 'ClassRegister', 'Sort', 'SortMaleFirst', TblSetting::TYPE_BOOLEAN, '1'))) {
             $this->updateSettingDescription($tblSetting, 'Klassenbücher', 'Bei der Sortierung der Schüler im Klassenbuch nach Geschlecht, stehen die männlichen Schüler zuerst. ', true);

@@ -2652,7 +2652,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                     // get fresh list
                     $tblAddressPersonAllByPerson = SerialLetter::useService()->getAddressPersonAllByPerson($tblSerialLetter,
-                        $tblPerson, 'M');   // ToDO choose FirstGender
+                        $tblPerson);
                     if ($tblAddressPersonAllByPerson) {
                         /** @var TblAddressPerson $tblAddressPerson */
                         $AddressList = array();
