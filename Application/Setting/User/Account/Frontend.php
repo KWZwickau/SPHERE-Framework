@@ -1139,6 +1139,7 @@ class Frontend extends Extension implements IFrontendInterface
         $CompanyDistrict = '';
         $CompanyStreet = '';
         $CompanyCity = '';
+        $CompanyPLZCity = '';
         $CompanyPhone = '';
         $CompanyFax = '';
         $CompanyMail = '';
