@@ -962,4 +962,52 @@ abstract class Support extends Integration
 
         return (new Data($this->getBinding()))->deleteHandyCap($tblHandyCap);
     }
+
+    /**
+     * SSW-317/318
+     *
+     * letzten Förderbescheid (Datum muss kleiner / gleich sein als aktuelles Datum).
+     * Gibt es einen Typ "Aufhebung" (Datum muss kleiner / gleich sein als aktuelles Datum)
+     * ist der Förderbescheid nicht mehr gültig und darf nicht mit herangezogen werden.
+     *
+     * @param TblPerson $tblPerson
+     *
+     * @return TblSupport|false $tblSupport
+     */
+    public function getSupportForReportingByPerson(TblPerson $tblPerson)
+    {
+        $tblSupport = false;
+        if (($tblSupportType = Student::useService()->getSupportTypeByName('Förderbescheid'))
+            && ($tblSupportList = Student::useService()->getSupportAllByPersonAndSupportType($tblPerson, $tblSupportType))
+        ) {
+
+            $now = new \DateTime();
+
+            foreach ($tblSupportList as $item) {
+                if(new \DateTime($item->getDate()) <= $now){
+                    $tblSupport = $item;
+
+                    break;
+                }
+            }
+
+            if ($tblSupport
+                && ($tblSupportTypeCancel = Student::useService()->getSupportTypeByName('Aufhebung'))
+                && ($tblSupportCancelList = Student::useService()->getSupportAllByPersonAndSupportType($tblPerson, $tblSupportTypeCancel))
+            ) {
+                foreach ($tblSupportCancelList as $itemCancel) {
+                    $cancelDate = new \DateTime($itemCancel->getDate());
+                    if($cancelDate <= $now
+                        && $cancelDate >= new \DateTime($tblSupport->getDate())
+                    ){
+                        $tblSupport = false;
+
+                        break;
+                    }
+                }
+            }
+        }
+
+        return $tblSupport;
+    }
 }

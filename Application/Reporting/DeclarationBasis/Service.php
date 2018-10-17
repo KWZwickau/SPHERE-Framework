@@ -40,8 +40,6 @@ class Service extends Extension
         $DataEducation = array();
         $DataFocus = array();
         $DataSickStudent = array();
-        $tblSupportType = Student::useService()->getSupportTypeByName('Förderbescheid');
-        $tblSupportTypeCancel = Student::useService()->getSupportTypeByName('Aufhebung');
 
         $YearString = '20.../20...';
         $YearList = Term::useService()->getYearByNow();
@@ -66,99 +64,76 @@ class Service extends Extension
                                 } else {
                                     $DataContent[$DivisionTypeName][$tblLevel->getName()] = count($tblDivisionStudentList);
                                 }
-                                if ($tblSupportType) {
-                                    foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                                        if (($tblPerson = $tblDivisionStudent->getServiceTblPerson())
-                                            && ($tblSupportList = Student::useService()->getSupportAllByPersonAndSupportType($tblPerson,
-                                                $tblSupportType))
-                                        ) {
-                                            $IsSupportActive = true;
-                                            $tblSupport = reset($tblSupportList);
-
-                                            if($tblSupportTypeCancel
-                                                && ($tblSupportListCancel = Student::useService()->getSupportAllByPersonAndSupportType($tblPerson,
-                                                $tblSupportTypeCancel))
-                                                && $tblSupport){
-                                                $tblSupportListCancel = reset($tblSupportListCancel);
-                                                //
-                                                if(new \DateTime($tblSupportListCancel->getDate()) >= new \DateTime($tblSupport->getDate())
-                                                    && new \DateTime($tblSupportListCancel->getDate()) <= new \DateTime()){
-                                                    $IsSupportActive = false;
-                                                }
+                                foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                                    if (($tblPerson = $tblDivisionStudent->getServiceTblPerson())
+                                        && ($tblSupport = Student::useService()->getSupportForReportingByPerson($tblPerson))
+                                        && ($tblSupportFocus = Student::useService()->getSupportPrimaryFocusBySupport($tblSupport))
+                                        && ($tblSupportFocusType = $tblSupportFocus->getTblSupportFocusType())
+                                    ) {
+                                        // füllen der Förderschwerpunkte
+                                        if ($tblSupportFocusType->getName() == 'Sehen') {
+                                            if (isset($DataBlind[$DivisionTypeName][$tblLevel->getName()])) {
+                                                $DataBlind[$DivisionTypeName][$tblLevel->getName()] += 1;
+                                            } else {
+                                                $DataBlind[$DivisionTypeName][$tblLevel->getName()] = 1;
                                             }
-
-                                            if (($tblSupport)
-                                                && ($tblSupportFocus = Student::useService()->getSupportPrimaryFocusBySupport($tblSupport))
-                                                && ($tblSupportFocusType = $tblSupportFocus->getTblSupportFocusType())
-                                                && $IsSupportActive
-                                            ) {
-                                                $tblSupportFocusType = $tblSupportFocus->getTblSupportFocusType();
-                                                // füllen der Förderschwerpunkte
-                                                if ($tblSupportFocusType->getName() == 'Sehen') {
-                                                    if (isset($DataBlind[$DivisionTypeName][$tblLevel->getName()])) {
-                                                        $DataBlind[$DivisionTypeName][$tblLevel->getName()] += 1;
-                                                    } else {
-                                                        $DataBlind[$DivisionTypeName][$tblLevel->getName()] = 1;
-                                                    }
-                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
-                                                }
-                                                if ($tblSupportFocusType->getName() == 'Hören') {
-                                                    if (isset($DataHear[$DivisionTypeName][$tblLevel->getName()])) {
-                                                        $DataHear[$DivisionTypeName][$tblLevel->getName()] += 1;
-                                                    } else {
-                                                        $DataHear[$DivisionTypeName][$tblLevel->getName()] = 1;
-                                                    }
-                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
-                                                }
-                                                if ($tblSupportFocusType->getName() == 'Geistige Entwicklung') {
-                                                    if (isset($DataMental[$DivisionTypeName][$tblLevel->getName()])) {
-                                                        $DataMental[$DivisionTypeName][$tblLevel->getName()] += 1;
-                                                    } else {
-                                                        $DataMental[$DivisionTypeName][$tblLevel->getName()] = 1;
-                                                    }
-                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
-                                                }
-                                                if ($tblSupportFocusType->getName() == 'Körperlich-motorische Entwicklung') {
-                                                    if (isset($DataPhysical[$DivisionTypeName][$tblLevel->getName()])) {
-                                                        $DataPhysical[$DivisionTypeName][$tblLevel->getName()] += 1;
-                                                    } else {
-                                                        $DataPhysical[$DivisionTypeName][$tblLevel->getName()] = 1;
-                                                    }
-                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
-                                                }
-                                                if ($tblSupportFocusType->getName() == 'Sprache') {
-                                                    if (isset($DataLanguage[$DivisionTypeName][$tblLevel->getName()])) {
-                                                        $DataLanguage[$DivisionTypeName][$tblLevel->getName()] += 1;
-                                                    } else {
-                                                        $DataLanguage[$DivisionTypeName][$tblLevel->getName()] = 1;
-                                                    }
-                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
-                                                }
-                                                if ($tblSupportFocusType->getName() == 'Lernen') {
-                                                    if (isset($DataLearn[$DivisionTypeName][$tblLevel->getName()])) {
-                                                        $DataLearn[$DivisionTypeName][$tblLevel->getName()] += 1;
-                                                    } else {
-                                                        $DataLearn[$DivisionTypeName][$tblLevel->getName()] = 1;
-                                                    }
-                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
-                                                }
-                                                if ($tblSupportFocusType->getName() == 'Sozial-emotionale Entwicklung') {
-                                                    if (isset($DataEducation[$DivisionTypeName][$tblLevel->getName()])) {
-                                                        $DataEducation[$DivisionTypeName][$tblLevel->getName()] += 1;
-                                                    } else {
-                                                        $DataEducation[$DivisionTypeName][$tblLevel->getName()] = 1;
-                                                    }
-                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
-                                                }
-                                                if ($tblSupportFocusType->getName() == 'Unterricht kranker Schüler') {
-                                                    if (isset($DataSickStudent[$DivisionTypeName][$tblLevel->getName()])) {
-                                                        $DataSickStudent[$DivisionTypeName][$tblLevel->getName()] += 1;
-                                                    } else {
-                                                        $DataSickStudent[$DivisionTypeName][$tblLevel->getName()] = 1;
-                                                    }
-                                                    $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
-                                                }
+                                            $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
+                                        }
+                                        if ($tblSupportFocusType->getName() == 'Hören') {
+                                            if (isset($DataHear[$DivisionTypeName][$tblLevel->getName()])) {
+                                                $DataHear[$DivisionTypeName][$tblLevel->getName()] += 1;
+                                            } else {
+                                                $DataHear[$DivisionTypeName][$tblLevel->getName()] = 1;
                                             }
+                                            $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
+                                        }
+                                        if ($tblSupportFocusType->getName() == 'Geistige Entwicklung') {
+                                            if (isset($DataMental[$DivisionTypeName][$tblLevel->getName()])) {
+                                                $DataMental[$DivisionTypeName][$tblLevel->getName()] += 1;
+                                            } else {
+                                                $DataMental[$DivisionTypeName][$tblLevel->getName()] = 1;
+                                            }
+                                            $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
+                                        }
+                                        if ($tblSupportFocusType->getName() == 'Körperlich-motorische Entwicklung') {
+                                            if (isset($DataPhysical[$DivisionTypeName][$tblLevel->getName()])) {
+                                                $DataPhysical[$DivisionTypeName][$tblLevel->getName()] += 1;
+                                            } else {
+                                                $DataPhysical[$DivisionTypeName][$tblLevel->getName()] = 1;
+                                            }
+                                            $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
+                                        }
+                                        if ($tblSupportFocusType->getName() == 'Sprache') {
+                                            if (isset($DataLanguage[$DivisionTypeName][$tblLevel->getName()])) {
+                                                $DataLanguage[$DivisionTypeName][$tblLevel->getName()] += 1;
+                                            } else {
+                                                $DataLanguage[$DivisionTypeName][$tblLevel->getName()] = 1;
+                                            }
+                                            $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
+                                        }
+                                        if ($tblSupportFocusType->getName() == 'Lernen') {
+                                            if (isset($DataLearn[$DivisionTypeName][$tblLevel->getName()])) {
+                                                $DataLearn[$DivisionTypeName][$tblLevel->getName()] += 1;
+                                            } else {
+                                                $DataLearn[$DivisionTypeName][$tblLevel->getName()] = 1;
+                                            }
+                                            $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
+                                        }
+                                        if ($tblSupportFocusType->getName() == 'Sozial-emotionale Entwicklung') {
+                                            if (isset($DataEducation[$DivisionTypeName][$tblLevel->getName()])) {
+                                                $DataEducation[$DivisionTypeName][$tblLevel->getName()] += 1;
+                                            } else {
+                                                $DataEducation[$DivisionTypeName][$tblLevel->getName()] = 1;
+                                            }
+                                            $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
+                                        }
+                                        if ($tblSupportFocusType->getName() == 'Unterricht kranker Schüler') {
+                                            if (isset($DataSickStudent[$DivisionTypeName][$tblLevel->getName()])) {
+                                                $DataSickStudent[$DivisionTypeName][$tblLevel->getName()] += 1;
+                                            } else {
+                                                $DataSickStudent[$DivisionTypeName][$tblLevel->getName()] = 1;
+                                            }
+                                            $DataFocus[$DivisionTypeName][$tblLevel->getName()][$tblSupportFocusType->getId()][] = $tblSupport->getId();
                                         }
                                     }
                                 }
