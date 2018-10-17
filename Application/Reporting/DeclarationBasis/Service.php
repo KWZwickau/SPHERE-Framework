@@ -40,6 +40,8 @@ class Service extends Extension
         $DataEducation = array();
         $DataFocus = array();
         $DataSickStudent = array();
+        $tblSupportType = Student::useService()->getSupportTypeByName('Förderbescheid');
+        $tblSupportTypeCancel = Student::useService()->getSupportTypeByName('Aufhebung');
 
         $YearString = '20.../20...';
         $YearList = Term::useService()->getYearByNow();
@@ -64,16 +66,31 @@ class Service extends Extension
                                 } else {
                                     $DataContent[$DivisionTypeName][$tblLevel->getName()] = count($tblDivisionStudentList);
                                 }
-                                if (($tblSupportType = Student::useService()->getSupportTypeByName('Förderbescheid'))) {
+                                if ($tblSupportType) {
                                     foreach ($tblDivisionStudentList as $tblDivisionStudent) {
                                         if (($tblPerson = $tblDivisionStudent->getServiceTblPerson())
                                             && ($tblSupportList = Student::useService()->getSupportAllByPersonAndSupportType($tblPerson,
                                                 $tblSupportType))
                                         ) {
+                                            $IsSupportActive = true;
+                                            $tblSupport = reset($tblSupportList);
 
-                                            if (($tblSupport = reset($tblSupportList))
+                                            if($tblSupportTypeCancel
+                                                && ($tblSupportListCancel = Student::useService()->getSupportAllByPersonAndSupportType($tblPerson,
+                                                $tblSupportTypeCancel))
+                                                && $tblSupport){
+                                                $tblSupportListCancel = reset($tblSupportListCancel);
+                                                //
+                                                if(new \DateTime($tblSupportListCancel->getDate()) >= new \DateTime($tblSupport->getDate())
+                                                    && new \DateTime($tblSupportListCancel->getDate()) <= new \DateTime()){
+                                                    $IsSupportActive = false;
+                                                }
+                                            }
+
+                                            if (($tblSupport)
                                                 && ($tblSupportFocus = Student::useService()->getSupportPrimaryFocusBySupport($tblSupport))
                                                 && ($tblSupportFocusType = $tblSupportFocus->getTblSupportFocusType())
+                                                && $IsSupportActive
                                             ) {
                                                 $tblSupportFocusType = $tblSupportFocus->getTblSupportFocusType();
                                                 // füllen der Förderschwerpunkte
