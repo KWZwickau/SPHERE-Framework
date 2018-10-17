@@ -1428,8 +1428,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 $countPerson++;
                                 $tblPerson = Person::useService()->getPersonById($objectId);
                                 if ($tblPerson) {
-                                    $list[$count]['Name'] = $tblPerson->getLastFirstName()
-                                        .new PullClear(new PullRight(new Standard('', '/People/Person',
+                                    $list[$count]['Name'] = new PullClear($tblPerson->getLastFirstName()
+                                        .new PullRight(new Standard('', '/People/Person',
                                             new \SPHERE\Common\Frontend\Icon\Repository\Person(),
                                             array('Id' => $tblPerson->getId()), 'Zur Person')));
 
@@ -1529,8 +1529,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblCompany = Company::useService()->getCompanyById($objectId);
                                 if ($tblCompany) {
                                     $countCompany++;
-                                    $list[$count]['Name'] = $tblCompany->getName().new Container($tblCompany->getExtendedName())
-                                        .new PullClear(new PullRight(new Standard('', '/Corporation/Company',
+                                    $list[$count]['Name'] = new PullClear($tblCompany->getName().new Container($tblCompany->getExtendedName())
+                                        .new PullRight(new Standard('', '/Corporation/Company',
                                             new Building(),
                                             array('Id' => $tblCompany->getId()), 'Zur Institution')));
                                 } else {
