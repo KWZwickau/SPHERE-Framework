@@ -51,6 +51,9 @@ class Setup extends AbstractSetup
         $this->createColumn($table, 'Identifier', self::FIELD_TYPE_STRING);
         $this->createColumn($table, 'Type', self::FIELD_TYPE_STRING);
         $this->createColumn($table, 'Value', self::FIELD_TYPE_TEXT);
+        $this->createColumn($table, 'Description', self::FIELD_TYPE_TEXT, false, '');
+        $this->createColumn($table, 'IsPublic', self::FIELD_TYPE_BOOLEAN, false, false);
+        $this->createColumn($table, 'Category', self::FIELD_TYPE_STRING, false, 'Allgemein');
 
         $this->createIndex($table, array('Cluster', 'Application', 'Module', 'Identifier'));
 
