@@ -195,10 +195,6 @@ class ApiUserAccount extends Extension implements IApiInterface
                         )
                     ),
                     new LayoutColumn(
-                        // ermöglicht das schneller runterscrollen bei Ajax-Click
-                        '<div style="height: 780px">&nbsp;</div>'
-                    ),
-                    new LayoutColumn(
                         self::pipelineShowFilter($GroupByTime)
                     ),
                 ))
@@ -222,6 +218,13 @@ class ApiUserAccount extends Extension implements IApiInterface
                     new LayoutColumn(
                         new Well($form)
                     ),
+//                    new LayoutColumn(
+//                        $GroupByTime.'<br/>'.
+//                        new InfoMessage('Dieser Vorgang kann einige Zeit in Anspruch nehmen'
+//                            .new Container((new ProgressBar(0, 100, 0, 10))
+//                                ->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS))
+//                        )
+//                    ),
                 ))
             )
         );
@@ -405,7 +408,7 @@ class ApiUserAccount extends Extension implements IApiInterface
                         )
                     )
                 ))
-                ,
+            ,
                 new FormRow(
                     new FormColumn(
                         new Panel('Listen Auswahl '.new Muted(new Small('(Max 30 Personen)')), new SelectBox('Data[GroupByCount]', '', $SelectBoxContent),

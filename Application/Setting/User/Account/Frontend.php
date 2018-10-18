@@ -1003,12 +1003,12 @@ class Frontend extends Extension implements IFrontendInterface
                     if($tblUserAccountTarget->getGroupByCount()){
                         $PdfButton = (new Standard('', ApiUserAccount::getEndpoint(), new Mail(), array()
                             , 'Download als PDF'
-                            ))->ajaxPipelineOnClick(ApiUserAccount::pipelineShowLoad($GroupByTime));
+                        ))->ajaxPipelineOnClick(ApiUserAccount::pipelineShowLoad($GroupByTime));
                     }
 
                     $item['Option'] = new External('', '/Api/Setting/UserAccount/Download', new Download()
                             , array('GroupByTime' => $GroupByTime), 'Download als Excel')
-                        .$PdfButton->setScrollDown(10000, 100)
+                        .$PdfButton
                         .new Standard('', '/Setting/User/Account/Clear', new Remove(),
                             array('GroupByTime' => $GroupByTime),
                             'Entfernen der Klartext Passwörter und des damit verbundenem verfügbaren Download');
@@ -1078,7 +1078,7 @@ class Frontend extends Extension implements IFrontendInterface
                 return $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
                         new Panel('Person', new WarningMessage('Person wurde nicht gefunden')
-                        . new DangerMessage('Account ohne Person kann nicht angeschrieben werden.'))
+                            . new DangerMessage('Account ohne Person kann nicht angeschrieben werden.'))
                         .new Redirect($Path, Redirect::TIMEOUT_ERROR)
                     )
                 )))));
@@ -1089,17 +1089,17 @@ class Frontend extends Extension implements IFrontendInterface
             );
             $Stage->setContent(
                 new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
-                    new Panel(new PersonIcon().' Benutzerdaten',
-                        array(
-                            'Person: '.new Bold($tblPerson->getFullName()),
-                            'Account: '.new Bold($tblAccount->getUserName())
+                        new Panel(new PersonIcon().' Benutzerdaten',
+                            array(
+                                'Person: '.new Bold($tblPerson->getFullName()),
+                                'Account: '.new Bold($tblAccount->getUserName())
+                            ),
+                            Panel::PANEL_TYPE_SUCCESS
                         ),
-                        Panel::PANEL_TYPE_SUCCESS
-                    ),
 //                    new Panel(new Question().' Das Passwort dieses Benutzers wirklich neu Erzeugen?',
                         new Well(
                             Account::useService()->generatePdfControl(
-                            $this->getPdfForm($tblPerson, $tblUserAccount, $IsParent), $tblUserAccount, $Data, $Path)
+                                $this->getPdfForm($tblPerson, $tblUserAccount, $IsParent), $tblUserAccount, $Data, $Path)
                         ),
 //                        Panel::PANEL_TYPE_DANGER)
                     )
@@ -1139,7 +1139,6 @@ class Frontend extends Extension implements IFrontendInterface
         $CompanyDistrict = '';
         $CompanyStreet = '';
         $CompanyCity = '';
-        $CompanyPLZCity = '';
         $CompanyPhone = '';
         $CompanyFax = '';
         $CompanyMail = '';
@@ -1162,7 +1161,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                }
 //            }
 
-        // display error if no option exist
+            // display error if no option exist
 //        } elseif(!$tblSchoolAll){
 //            $Warning = new WarningMessage('Es sind keine Schulen in den Mandanteneinstellungen hinterlegt.
 //            Um diese Funktionalität nutzen zu können ist dies zwingend erforderlich.');
@@ -1247,13 +1246,13 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(
                         new HiddenField('Data[PersonId]')
-                    , 1),
+                        , 1),
                     new FormColumn(
                         new HiddenField('Data[UserAccountId]')
-                    , 1),
+                        , 1),
                     new FormColumn(
                         new HiddenField('Data[IsParent]')
-                    , 1),
+                        , 1),
 //                    new FormColumn(
 //                        new HiddenField('Data[CompanyId]')
 //                    , 1),
@@ -1261,7 +1260,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(
                         new \SPHERE\Common\Frontend\Form\Repository\Title(new TileBig().' Informationen Schule')
-                    , 12)
+                        , 12)
                 )),
                 new FormRow(array(
                     new FormColumn(
@@ -1269,19 +1268,19 @@ class Frontend extends Extension implements IFrontendInterface
                             new TextField('Data[CompanyName]', '', 'Name'),
                             new TextField('Data[CompanyExtendedName]', '', 'Namenszusatz')
                         ),Panel::PANEL_TYPE_INFO)
-                    , 6),
+                        , 6),
                     new FormColumn(
                         new Panel('Kontaktinformation der Schule',array(
                             new TextField('Data[CompanyDistrict]', '', 'Ortsteil'),
                             new TextField('Data[CompanyStreet]', '', 'Straße'),
                             new TextField('Data[CompanyCity]', '', 'PLZ/Ort'),
                         ),Panel::PANEL_TYPE_INFO)
-                    , 6),
+                        , 6),
                 )),
                 new FormRow(array(
                     new FormColumn(
                         new \SPHERE\Common\Frontend\Form\Repository\Title(new TileBig().' Informationen Briefkontakt')
-                    , 12)
+                        , 12)
                 )),
                 new FormRow(array(
                     new FormColumn(
@@ -1294,13 +1293,13 @@ class Frontend extends Extension implements IFrontendInterface
                             new TextField('Data[Mail]', '', 'E-Mail'),
                             new TextField('Data[Web]', '', 'Internet')
                         ), Panel::PANEL_TYPE_INFO)
-                    , 4),
+                        , 4),
                     new FormColumn(
                         new Panel('Ort, Datum', array(
                             new TextField('Data[Place]', '', 'Ort'),
                             new TextField('Data[Date]', '', 'Datum')
                         ), Panel::PANEL_TYPE_INFO)
-                    , 4),
+                        , 4),
                 )),
                 new FormRow(
                     new FormColumn(
