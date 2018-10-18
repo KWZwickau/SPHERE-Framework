@@ -340,12 +340,22 @@ class Service
                         $validateFirstLanguage = false;
                     }
 
+                    if (($tblSetting = Consumer::useService()->getSetting(
+                            'Education','Lesson','Subject', 'HasOrientationSubjects'))
+                        && $tblSetting->getValue()
+                    ) {
+                        $hasOrientationSubjects = $tblSetting->getValue();
+                    } else {
+                        $hasOrientationSubjects = false;
+                    }
+
                     $list = self::hasPersonAllObligations(
                         $tblPerson,
                         $tblSchoolType,
                         $tblLevel,
                         $list,
-                        $validateFirstLanguage
+                        $validateFirstLanguage,
+                        $hasOrientationSubjects
                     );
                 }
             }
@@ -407,8 +417,18 @@ class Service
                 $validateFirstLanguage = false;
             }
 
+            if (($tblSetting = Consumer::useService()->getSetting(
+                    'Education','Lesson','Subject', 'HasOrientationSubjects'))
+                && $tblSetting->getValue()
+            ) {
+                $hasOrientationSubjects = $tblSetting->getValue();
+            } else {
+                $hasOrientationSubjects = false;
+            }
+
             foreach ($tblPersonList as $tblPerson) {
-                $list = self::hasPersonAllObligations($tblPerson, $tblSchoolType, $tblLevel, $list, $validateFirstLanguage);
+                $list = self::hasPersonAllObligations($tblPerson, $tblSchoolType, $tblLevel, $list, $validateFirstLanguage,
+                    $hasOrientationSubjects);
             }
         }
 
@@ -424,7 +444,7 @@ class Service
      *
      * @return array
      */
-    public static function hasPersonAllObligations(TblPerson $tblPerson, TblType $tblSchoolType, TblLevel $tblLevel, $list, $validateFirstLanguage)
+    public static function hasPersonAllObligations(TblPerson $tblPerson, TblType $tblSchoolType, TblLevel $tblLevel, $list, $validateFirstLanguage, $hasOrientationSubjects)
     {
         $tblStudent = $tblPerson->getStudent();
 
@@ -470,22 +490,24 @@ class Service
         if (($tblSchoolType->getName() == 'Mittelschule / Oberschule')) {
 
             // OS/MS in Klassen 7-9 muss ein Neigungskurs oder eine 2. Fremdsprache hinterlegt sein
-            if (preg_match('!(0?(7|8|9))!is', $tblLevel->getName())) {
-                if (!$tblStudent
-                    || (!$tblStudent->getTblSubjectOrientation() && !$tblStudent->getTblSubjectForeignLanguage(2))
-                ) {
-                    $field = Filter::DESCRIPTION_SUBJECT_ORIENTATION;
-                    $value = new Exclamation() . ' Kein Neigungskurs/2.FS hinterlegt.';
-                    if (!isset($list[$tblPerson->getId()]['Filters']['SubjectOrientation'])) {
-                        $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Field'] = $field;
-                        $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Value'] = $value;
-                        $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['DivisionSubjects'] = '';
-                    } else {
-                        $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Value'] .=
-                            (empty($list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Value'])
-                                ? ''
-                                : '</br>')
-                            . $value;
+            if ($hasOrientationSubjects) {
+                if (preg_match('!(0?(7|8|9))!is', $tblLevel->getName())) {
+                    if (!$tblStudent
+                        || (!$tblStudent->getTblSubjectOrientation() && !$tblStudent->getTblSubjectForeignLanguage(2))
+                    ) {
+                        $field = Filter::DESCRIPTION_SUBJECT_ORIENTATION;
+                        $value = new Exclamation() . ' Kein Neigungskurs/2.FS hinterlegt.';
+                        if (!isset($list[$tblPerson->getId()]['Filters']['SubjectOrientation'])) {
+                            $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Field'] = $field;
+                            $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Value'] = $value;
+                            $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['DivisionSubjects'] = '';
+                        } else {
+                            $list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Value'] .=
+                                (empty($list[$tblPerson->getId()]['Filters']['SubjectOrientation']['Value'])
+                                    ? ''
+                                    : '</br>')
+                                . $value;
+                        }
                     }
                 }
             }

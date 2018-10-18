@@ -50,6 +50,15 @@ class KamenzService
             $firstForeignLanguageLevel = 1;
         }
 
+        if (($tblSetting = Consumer::useService()->getSetting(
+                'Education','Lesson','Subject', 'HasOrientationSubjects'))
+            && $tblSetting->getValue()
+        ) {
+            $hasOrientationSubjects = $tblSetting->getValue();
+        } else {
+            $hasOrientationSubjects = false;
+        }
+
         $count['Gender'] = 0;
         $count['Birthday'] = 0;
         $count['Religion'] = 0;
@@ -167,16 +176,18 @@ class KamenzService
                                             )
                                         );
 
-                                        if (($tblSchoolType->getName() == 'Mittelschule / Oberschule')) {
-                                            if (($orientation = self::getOrientation($tblPerson))) {
-                                                $studentList[$tblPerson->getId()]['Orientation'] = $orientation;
-                                            } elseif (preg_match('!(0?(7|8|9))!is', $tblLevel->getName())
-                                                && !isset($foreignLanguages[2])
-                                            ) {
-                                                $count['Orientation']++;
-                                                $studentList[$tblPerson->getId()]['Orientation']
-                                                    = new Warning('Kein Neigungskurs/2.FS hinterlegt.',
-                                                    new Exclamation());
+                                        if ($hasOrientationSubjects) {
+                                            if (($tblSchoolType->getName() == 'Mittelschule / Oberschule')) {
+                                                if (($orientation = self::getOrientation($tblPerson))) {
+                                                    $studentList[$tblPerson->getId()]['Orientation'] = $orientation;
+                                                } elseif (preg_match('!(0?(7|8|9))!is', $tblLevel->getName())
+                                                    && !isset($foreignLanguages[2])
+                                                ) {
+                                                    $count['Orientation']++;
+                                                    $studentList[$tblPerson->getId()]['Orientation']
+                                                        = new Warning('Kein Neigungskurs/2.FS hinterlegt.',
+                                                        new Exclamation());
+                                                }
                                             }
                                         }
 

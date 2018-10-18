@@ -145,6 +145,8 @@ class Data extends AbstractData
             $this->updateSettingDescription($tblSetting, 'Leistungsüberprüfungen', 'Automatische Bekanntgabe von Leistungsüberprüfungen für die Notenübersicht der Schüler/Eltern nach x Tagen:', true);
         }
 
+        $this->createSetting('Education','Lesson','Subject', 'HasOrientationSubjects', TblSetting::TYPE_BOOLEAN, '1', 'Allgemein', 'Es werden Neigungskurse verwendet.');
+
         if (($tblSetting = $this->createSetting('Setting', 'Consumer', 'Service', 'Sort_UmlautWithE', TblSetting::TYPE_BOOLEAN, '1'))) {
             $this->updateSettingDescription($tblSetting, 'Allgemein', 'Bei der alphabetischen Sortierung von Namen werden Umlaute ersetzt durch Vokal + e (z.B. ä => ae)', true);
         }
