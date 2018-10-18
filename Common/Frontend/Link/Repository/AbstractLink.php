@@ -162,6 +162,22 @@ abstract class AbstractLink extends Extension implements ILinkInterface
     }
 
     /**
+     * only work's with ajax Link
+     *
+     * @param int $Height
+     * @param int $Delay
+     *
+     * @return ILinkInterface
+     */
+    public function setScrollDown($Height = 10000, $Delay = 0)
+    {
+
+        $this->Template->setVariable('PageHeight', $Height);
+        $this->Template->setVariable('ScrollDelay', $Delay);
+        return $this;
+    }
+
+    /**
      * @return string
      */
     public function __toString()
