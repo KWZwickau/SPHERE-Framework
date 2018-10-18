@@ -17,9 +17,9 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 class EssGsHjTwo extends Certificate
 {
 
+    const TEXT_SIZE_BIG = '18pt';
     const TEXT_SIZE = '12pt';
-    const TEXT_SIZE_SMALL = '11pt';
-    const TEXT_SIZE_VERY_SMALL = '10pt';
+    const TEXT_SIZE_SMALL = '8pt';
     const TEXT_FAMILY = 'MyriadPro';
 
     /**
@@ -51,8 +51,12 @@ class EssGsHjTwo extends Certificate
         return (new Page())
             ->addSlice($Header)
             ->addSlice((new Slice())
-                ->addElement((new Element\Image('/Common/Style/Resource/Logo/ESS_Grundschule_Head.png', '700px'))
-                    ->styleAlignCenter()
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        ->styleHeight('110px')
+                    )
+                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ESS_Grundschule_Head.png', '700px')))
                 )
             )
             ->addSlice((new Slice())
@@ -62,7 +66,7 @@ class EssGsHjTwo extends Certificate
                         , '25%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('H A L B J A H R E S I N F O R M A T I O N')
+                        ->setContent('HALBJAHRESINFORMATION')
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleTextSize('24px')
@@ -75,39 +79,31 @@ class EssGsHjTwo extends Certificate
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '3%'
-                    )
-                    ->addElementColumn((new Element())
                         ->setContent('Klasse {{ Content.P' . $personId . '.Division.Data.Level.Name }}')
                         ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleTextBold()
-                        , '97%'
+                        , '100%'
                     )
                 )
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '3%'
-                    )
-                    ->addElementColumn((new Element())
                         ->setContent('1. Schulhalbjahr')
                         ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleTextBold()
-                        , '22%')
+                        , '25%')
                     ->addElementColumn((new Element())
                         ->setContent('{{ Content.P' . $personId . '.Person.Data.Name.First }}
                                           {{ Content.P' . $personId . '.Person.Data.Name.Last }}')
-                        ->styleTextSize('15pt')
+                        ->styleTextSize(self::TEXT_SIZE_BIG)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
-                        ->styleTextBold()
+//                        ->styleTextBold()
                         , '50%')
                     ->addElementColumn((new Element())
                         ->setContent('Schuljahr {{ Content.P' . $personId . '.Division.Data.Year }}')
@@ -116,19 +112,11 @@ class EssGsHjTwo extends Certificate
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleTextBold()
                         ->styleAlignRight()
-                        , '22%')
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '3%'
-                    )
+                        , '25%')
                 )
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '3%'
-                    )
                     ->addElementColumn((new Element())
                         ->setContent('Allgemeine <br/> Einschätzung:')
                         ->styleTextSize(self::TEXT_SIZE)
@@ -136,7 +124,7 @@ class EssGsHjTwo extends Certificate
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleMarginTop('25px')
                         ->styleTextBold()
-                        , '22%'
+                        , '25%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('{% if(Content.P'.$personId.'.Input.Rating is not empty) %}
@@ -144,50 +132,32 @@ class EssGsHjTwo extends Certificate
                             {% else %}
                                 &nbsp;
                             {% endif %}')
-                        ->styleTextSize(self::TEXT_SIZE_SMALL)
+                        ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleAlignJustify()
                         ->styleMarginTop('25px')
                         ->styleHeight('205px')
-                        , '72%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '3%'
+                        , '75%'
                     )
                 )
             )
             ->addSlice((new Slice())
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '25%'
-                    )
-                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ESS_Grundschule_down.png', '500px'))
-                        ->styleAlignCenter()
-                        ->stylePaddingBottom('10px')
-                        , '72%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '3%'
-                    )
+                ->addElement((new Element\Image('/Common/Style/Resource/Logo/ESS_Grundschule_down.png', '700px'))
+                    ->styleAlignCenter()
+                    ->stylePaddingTop('2px')
+                    ->stylePaddingBottom('27px')
                 )
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '3%'
-                    )
                     ->addElementColumn((new Element())
                         ->setContent('Fachliche <br/> Einschätzung:')
                         ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleTextBold()
-                        , '22%'
+                        , '25%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('{% if(Content.P'.$personId.'.Input.TechnicalRating is not empty) %}
@@ -195,25 +165,17 @@ class EssGsHjTwo extends Certificate
                         {% else %}
                             &nbsp;
                         {% endif %}')
-                        ->styleTextSize(self::TEXT_SIZE_SMALL)
+                        ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('90%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleAlignJustify()
-                        ->styleHeight('323px')
-                        , '72%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '3%'
+                        ->styleHeight('295px')
+                        , '75%'
                     )
                 )
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '3%'
-                    )
                     ->addElementColumn((new Element())
                         ->setContent('Datum:
                         {% if(Content.P' . $personId . '.Input.Date is not empty) %}
@@ -221,15 +183,11 @@ class EssGsHjTwo extends Certificate
                         {% else %}
                             &nbsp;
                         {% endif %}')
-                        ->styleTextSize(self::TEXT_SIZE_VERY_SMALL)
+                        ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->stylePaddingBottom('20px')
-                        , '94%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '3%'
+                        , '100%'
                     )
                 )
             )
@@ -245,50 +203,49 @@ class EssGsHjTwo extends Certificate
                                 Klassenlehrer(in)
                             {% endif %}
                             ')
-                        ->styleTextSize(self::TEXT_SIZE_VERY_SMALL)
+                        ->styleTextSize(self::TEXT_SIZE_SMALL)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         , '50%')
                     ->addElementColumn((new Element())
                         ->setContent('Dienstsiegel')
-                        ->styleTextSize(self::TEXT_SIZE_VERY_SMALL)
+                        ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
                         , '25%')
                 )
+                ->stylePaddingBottom('35px')
             )
             ->addSlice((new Slice())
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        , '3%'
-                    )
-                    ->addElementColumn((new Element())
                         ->setContent('Zur Kenntnis genommen:')
-                        ->styleTextSize(self::TEXT_SIZE_VERY_SMALL)
+                        ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
-                        , '22%')
+                        , '25%')
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
                         ->styleBorderBottom('1px', '#000', 'dotted')
-                        , '40%')
+                        , '45%')
                     ->addElementColumn((new Element())
-                        , '35%')
+                        , '30%')
                 )
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         , '25%')
                     ->addElementColumn((new Element())
                         ->setContent('Eltern')
-                        ->styleTextSize(self::TEXT_SIZE_VERY_SMALL)
+                        ->styleAlignCenter()
+                        ->styleTextSize(self::TEXT_SIZE_SMALL)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
-                        ->styleAlignCenter()
-                        , '40%')
+                        ->styleHeight('1px')
+                        , '45%')
                     ->addElementColumn((new Element())
-                        , '35%')
-                )->styleMarginTop('20px')
+                        , '30%')
+                )
+                ->styleMarginTop('5px')
             );
     }
 }

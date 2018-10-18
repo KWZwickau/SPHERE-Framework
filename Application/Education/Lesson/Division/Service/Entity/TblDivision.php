@@ -132,8 +132,16 @@ class TblDivision extends Element
 
         if ($this->getTblLevel()) {
             if (strlen($this->getName()) >= 2) {
-                return $this->getTblLevel()->getName().( is_numeric($this->getName()) ? '-' : ' ' ).$this->getName();
+                // Gruppennamen mit dem Muster "x - xxxx" sollen an Klassen ohne Leerzeichen angefügt werden
+                if(preg_match('!(^[a-z]{1,1} - [a-zA-Z]{2})!', $this->getName())) {
+                    return $this->getTblLevel()->getName().$this->getName();
+                } else {
+                    // Gruppennamen die mehr als 1 Zeichen haben sollen durch ein Leerzeichen vom Level getrennt werden
+                    // alpha etc.
+                    return $this->getTblLevel()->getName().( is_numeric($this->getName()) ? '-' : ' ' ).$this->getName();
+                }
             } else {
+                // Gruppennamen sollen durch kein Leerzeichen vom Level getrennt werden
                 return $this->getTblLevel()->getName().( is_numeric($this->getName()) ? '-' : '' ).$this->getName();
             }
         } else {
