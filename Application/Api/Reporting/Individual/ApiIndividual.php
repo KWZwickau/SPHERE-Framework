@@ -27,7 +27,6 @@ use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupClub;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupCustody;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupProspect;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentBasic;
-use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentIntegration;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentSubject;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentTransfer;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupTeacher;
@@ -1098,14 +1097,14 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                         $AccordionList[] = new Dropdown( 'Schüler Fächer:', new Scrollable( $Block ) );
                     }
                 }
-                $Block = $this->getPanelList(new ViewGroupStudentIntegration(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);
-                if( !empty( $Block ) ) {
-                    if( isset($ViewList['ViewGroupStudentIntegration']) ) {
-                        $AccordionList[] = new Panel( 'Schüler Integration:', new Scrollable( $Block, 300 ));
-                    } else {
-                        $AccordionList[] = new Dropdown( 'Schüler Integration:', new Scrollable( $Block ) );
-                    }
-                }
+//                $Block = $this->getPanelList(new ViewGroupStudentIntegration(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);
+//                if( !empty( $Block ) ) {
+//                    if( isset($ViewList['ViewGroupStudentIntegration']) ) {
+//                        $AccordionList[] = new Panel( 'Schüler Integration:', new Scrollable( $Block, 300 ));
+//                    } else {
+//                        $AccordionList[] = new Dropdown( 'Schüler Integration:', new Scrollable( $Block ) );
+//                    }
+//                }
                 $Block = $this->getPanelList(new ViewEducationStudent(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);
                 if( !empty( $Block ) ) {
                     if( isset($ViewList['ViewEducationStudent']) ) {
