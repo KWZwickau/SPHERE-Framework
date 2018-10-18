@@ -1280,10 +1280,10 @@ class Frontend extends Extension implements IFrontendInterface
                     $columnTable = array(
                         'Number' => '#',
                         'Name' => 'Name',
+                        'IntegrationButton' => 'Integration',
                         'Course' => 'Bildungsgang',
                         'ExcusedDays' => 'E-FZ', //'ent&shy;schuld&shy;igte FZ',
-                        'UnexcusedDays' => 'U-FZ', // 'unent&shy;schuld&shy;igte FZ'
-                        'IntegrationButton' => 'Integration'
+                        'UnexcusedDays' => 'U-FZ' // 'unent&shy;schuld&shy;igte FZ'
                     );
 
                     foreach ($tblPrepareList as $tblPrepareItem) {
@@ -1828,8 +1828,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $columnTable = array(
                     'Number' => '#',
                     'Name' => 'Name',
-                    'Course' => 'Bildungs&shy;gang',
                     'IntegrationButton' => 'Integration',
+                    'Course' => 'Bildungs&shy;gang',
                     'SubjectGrades' => 'Fachnoten',
                     'CheckSubjects' => 'Prüfung Fächer/Zeugnis'
                 );
@@ -1838,8 +1838,8 @@ class Frontend extends Extension implements IFrontendInterface
                     'Number' => '#',
                     'Name' => 'Name',
                     'Division' => 'Klasse',
-                    'Course' => 'Bildungs&shy;gang',
                     'IntegrationButton' => 'Integration',
+                    'Course' => 'Bildungs&shy;gang',
                     'SubjectGrades' => 'Fachnoten',
                     'CheckSubjects' => 'Prüfung Fächer/Zeugnis'
                 );
@@ -1850,10 +1850,10 @@ class Frontend extends Extension implements IFrontendInterface
                     'Number' => '#',
                     'Name' => 'Name',
                     'Division' => 'Klasse',
+                    'IntegrationButton' => 'Integration',
                     'Course' => 'Bildungs&shy;gang',
                     'ExcusedAbsence' => 'E-FZ', //'ent&shy;schuld&shy;igte FZ',
                     'UnexcusedAbsence' => 'U-FZ', // 'unent&shy;schuld&shy;igte FZ',
-                    'IntegrationButton' => 'Integration',
                     'SubjectGrades' => 'Fachnoten',
                     'CheckSubjects' => 'Prüfung Fächer/Zeugnis',
                     'BehaviorGrades' => 'Kopfnoten',
@@ -1862,10 +1862,10 @@ class Frontend extends Extension implements IFrontendInterface
                 $columnTable = array(
                     'Number' => '#',
                     'Name' => 'Name',
+                    'IntegrationButton' => 'Integration',
                     'Course' => 'Bildungs&shy;gang',
                     'ExcusedAbsence' => 'E-FZ', //'ent&shy;schuld&shy;igte FZ',
                     'UnexcusedAbsence' => 'U-FZ', // 'unent&shy;schuld&shy;igte FZ',
-                    'IntegrationButton' => 'Integration',
                     'SubjectGrades' => 'Fachnoten',
                     'CheckSubjects' => 'Prüfung Fächer/Zeugnis',
                     'BehaviorGrades' => 'Kopfnoten',
