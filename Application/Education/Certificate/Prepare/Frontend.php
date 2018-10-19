@@ -10,6 +10,7 @@ namespace SPHERE\Application\Education\Certificate\Prepare;
 
 use SPHERE\Application\Api\Education\Certificate\Generator\Repository\GymAbgSekI;
 use SPHERE\Application\Api\Education\Certificate\Generator\Repository\GymAbgSekII;
+use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Certificate\Generator\Generator;
 use SPHERE\Application\Education\Certificate\Generator\Service\Entity\TblCertificate;
 use SPHERE\Application\Education\Certificate\Prepare\Abitur\BlockIView;
@@ -1279,6 +1280,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $columnTable = array(
                         'Number' => '#',
                         'Name' => 'Name',
+                        'IntegrationButton' => 'Integration',
                         'Course' => 'Bildungsgang',
                         'ExcusedDays' => 'E-FZ', //'ent&shy;schuld&shy;igte FZ',
                         'UnexcusedDays' => 'U-FZ' // 'unent&shy;schuld&shy;igte FZ'
@@ -1351,6 +1353,14 @@ class Frontend extends Extension implements IFrontendInterface
                                         $studentTable[$tblPerson->getId()]['ExcusedDays'] = '';
                                         $studentTable[$tblPerson->getId()]['UnexcusedDays'] = '';
                                     }
+                                    // Integration ReadOnlyButton
+                                    if(Student::useService()->getIsSupportByPerson($tblPerson)) {
+                                        $studentTable[$tblPerson->getId()]['IntegrationButton'] = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+                                            ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
+                                    } else {
+                                        $studentTable[$tblPerson->getId()]['IntegrationButton'] = '';
+                                    }
+
                                     /*
                                      * Sonstige Informationen der Zeugnisvorlage
                                      */
@@ -1442,6 +1452,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutGroup(array(
                                 new LayoutRow(array(
                                     new LayoutColumn(array(
+                                        ApiSupportReadOnly::receiverOverViewModal(),
                                         Prepare::useService()->updatePrepareInformationList($form, $tblPrepare,
                                             $tblGroup ? $tblGroup : null, $Route, $Data, $CertificateList)
                                     ))
@@ -1817,6 +1828,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $columnTable = array(
                     'Number' => '#',
                     'Name' => 'Name',
+                    'IntegrationButton' => 'Integration',
                     'Course' => 'Bildungs&shy;gang',
                     'SubjectGrades' => 'Fachnoten',
                     'CheckSubjects' => 'Prüfung Fächer/Zeugnis'
@@ -1826,6 +1838,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Number' => '#',
                     'Name' => 'Name',
                     'Division' => 'Klasse',
+                    'IntegrationButton' => 'Integration',
                     'Course' => 'Bildungs&shy;gang',
                     'SubjectGrades' => 'Fachnoten',
                     'CheckSubjects' => 'Prüfung Fächer/Zeugnis'
@@ -1837,6 +1850,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Number' => '#',
                     'Name' => 'Name',
                     'Division' => 'Klasse',
+                    'IntegrationButton' => 'Integration',
                     'Course' => 'Bildungs&shy;gang',
                     'ExcusedAbsence' => 'E-FZ', //'ent&shy;schuld&shy;igte FZ',
                     'UnexcusedAbsence' => 'U-FZ', // 'unent&shy;schuld&shy;igte FZ',
@@ -1848,6 +1862,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $columnTable = array(
                     'Number' => '#',
                     'Name' => 'Name',
+                    'IntegrationButton' => 'Integration',
                     'Course' => 'Bildungs&shy;gang',
                     'ExcusedAbsence' => 'E-FZ', //'ent&shy;schuld&shy;igte FZ',
                     'UnexcusedAbsence' => 'U-FZ', // 'unent&shy;schuld&shy;igte FZ',
@@ -2022,6 +2037,13 @@ class Frontend extends Extension implements IFrontendInterface
                             } else {
                                 $checkSubjectsString = '';
                             }
+                            // Integration ReadOnlyButton
+                            if(Student::useService()->getIsSupportByPerson($tblPerson)) {
+                                $IntegrationButton = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
+                                    ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
+                            } else {
+                                $IntegrationButton = '';
+                            }
 
                             $studentTable[$tblPerson->getId()] = array(
                                 'Number' => $isDiploma && $isMuted ? new Muted($number) : $number,
@@ -2030,6 +2052,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Course' => $isDiploma && $isMuted ? new Muted($course) : $course,
                                 'ExcusedAbsence' => $excusedDays . ' ',
                                 'UnexcusedAbsence' => $unexcusedDays . ' ',
+                                'IntegrationButton' => $IntegrationButton,
                                 'SubjectGrades' => $isDiploma && $isMuted ? '' : $subjectGradesDisplayText,
                                 'BehaviorGrades' => $behaviorGradesDisplayText,
                                 'CheckSubjects' => $checkSubjectsString,
@@ -2229,6 +2252,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(array(
+                                ApiSupportReadOnly::receiverOverViewModal(),
                                 new TableData($studentTable, null, $columnTable, array(
                                     'order' => array(
                                         array('0', 'asc'),

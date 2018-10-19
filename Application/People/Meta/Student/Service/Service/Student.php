@@ -103,6 +103,7 @@ abstract class Student extends AbstractService
         } else {
             $tblStudent = (new Data($this->getBinding()))->createStudent(
                 $tblPerson,
+                '',
                 $Identifier,
                 $tblStudentMedicalRecord,
                 $tblStudentTransport,

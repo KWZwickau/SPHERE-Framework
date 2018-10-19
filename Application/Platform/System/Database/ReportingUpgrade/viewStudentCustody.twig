@@ -41,6 +41,11 @@ select
         where vP.TblPerson_Id = TblPerson_S1_Id
     ) TblPerson_BirthName_S1,
 
+    (select vP.TblCommonBirthDates_Birthday
+        from SettingConsumer_{{ ConsumerAcronym }}.viewPerson vP
+        where vP.TblPerson_Id = TblPerson_S1_Id
+    ) TblPerson_Birthday_S1,
+
     -- Address
     (select vCA.TblAddress_StreetName
         from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
@@ -175,6 +180,11 @@ select
         where vP.TblPerson_Id = TblPerson_S2_Id
     ) TblPerson_BirthName_S2,
 
+    (select vP.TblCommonBirthDates_Birthday
+        from SettingConsumer_{{ ConsumerAcronym }}.viewPerson vP
+        where vP.TblPerson_Id = TblPerson_S2_Id
+    ) TblPerson_Birthday_S2,
+
     -- Address
     (select vCA.TblAddress_StreetName
         from SettingConsumer_{{ ConsumerAcronym }}.viewContactAddress vCA
@@ -308,6 +318,11 @@ select
         from SettingConsumer_{{ ConsumerAcronym }}.viewPerson vP
         where vP.TblPerson_Id = TblPerson_S3_Id
     ) TblPerson_BirthName_S3,
+
+    (select vP.TblCommonBirthDates_Birthday
+        from SettingConsumer_{{ ConsumerAcronym }}.viewPerson vP
+        where vP.TblPerson_Id = TblPerson_S3_Id
+    ) TblPerson_Birthday_S3,
 
     -- Address
     (select vCA.TblAddress_StreetName

@@ -39,6 +39,7 @@ class Setup extends AbstractSetup
         $this->setTableScoreRuleConditionList($Schema, $tblScoreRule, $tblScoreCondition);
         $this->setTableScoreConditionGradeTypeList($Schema, $tblGradeType, $tblScoreCondition);
         $this->setTableScoreConditionGroupList($Schema, $tblScoreCondition, $tblScoreGroup);
+        $this->setTableScoreConditionGroupRequirement($Schema, $tblScoreCondition, $tblScoreGroup);
         $this->setTableScoreGroupGradeTypeList($Schema, $tblGradeType, $tblScoreGroup);
         $this->setTableScoreRuleDivisionSubject($Schema, $tblScoreRule, $tblScoreType);
         $this->setTableScoreRuleSubjectGroup($Schema, $tblScoreRule);
@@ -218,6 +219,7 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblScoreCondition', 'IsActive')) {
             $Table->addColumn('IsActive', 'boolean', array('default' => true));
         }
+        $this->createColumn($Table, 'Period', self::FIELD_TYPE_INTEGER, true);
 
         return $Table;
     }
@@ -302,6 +304,8 @@ class Setup extends AbstractSetup
 
         $Table = $this->getConnection()->createTable($Schema, 'tblScoreConditionGradeTypeList');
 
+        $this->createColumn($Table, 'Count', self::FIELD_TYPE_INTEGER, false, 1);
+
         $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
         $this->getConnection()->addForeignKey($Table, $tblScoreCondition, true);
 
@@ -319,6 +323,25 @@ class Setup extends AbstractSetup
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblScoreConditionGroupList');
+
+        $this->getConnection()->addForeignKey($Table, $tblScoreCondition, true);
+        $this->getConnection()->addForeignKey($Table, $tblScoreGroup, true);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblScoreCondition
+     * @param Table $tblScoreGroup
+     *
+     * @return Table
+     */
+    private function setTableScoreConditionGroupRequirement(Schema &$Schema, Table $tblScoreCondition, Table $tblScoreGroup)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblScoreConditionGroupRequirement');
+        $this->createColumn($Table, 'Count', self::FIELD_TYPE_INTEGER, false, 1);
 
         $this->getConnection()->addForeignKey($Table, $tblScoreCondition, true);
         $this->getConnection()->addForeignKey($Table, $tblScoreGroup, true);

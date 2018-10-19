@@ -1619,30 +1619,29 @@ class Frontend extends Extension implements IFrontendInterface
         /**
          * Panel: Agreement
          */
-        $tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll();
         $AgreementPanel = array();
-        array_walk($tblAgreementCategoryAll,
-            function (TblStudentAgreementCategory $tblStudentAgreementCategory) use (&$AgreementPanel) {
-
-                array_push($AgreementPanel, new Aspect(new Bold($tblStudentAgreementCategory->getName())));
-                $tblAgreementTypeAll = Student::useService()->getStudentAgreementTypeAllByCategory($tblStudentAgreementCategory);
-                if ($tblAgreementTypeAll) {
-                    $tblAgreementTypeAll = $this->getSorter($tblAgreementTypeAll)->sortObjectBy('Name');
-                }
-                array_walk($tblAgreementTypeAll,
-                    function (TblStudentAgreementType $tblStudentAgreementType) use (
-                        &$AgreementPanel,
-                        $tblStudentAgreementCategory
-                    ) {
-
-                        array_push($AgreementPanel,
-                            new CheckBox('Meta[Agreement]['.$tblStudentAgreementCategory->getId().']['.$tblStudentAgreementType->getId().']',
-                                $tblStudentAgreementType->getName(), 1)
+        if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
+            array_walk($tblAgreementCategoryAll,
+                function (TblStudentAgreementCategory $tblStudentAgreementCategory) use (&$AgreementPanel) {
+                    array_push($AgreementPanel, new Aspect(new Bold($tblStudentAgreementCategory->getName())));
+                    $tblAgreementTypeAll = Student::useService()->getStudentAgreementTypeAllByCategory($tblStudentAgreementCategory);
+                    if ($tblAgreementTypeAll) {
+                        $tblAgreementTypeAll = $this->getSorter($tblAgreementTypeAll)->sortObjectBy('Name');
+                        array_walk($tblAgreementTypeAll,
+                            function (TblStudentAgreementType $tblStudentAgreementType) use (
+                                &$AgreementPanel,
+                                $tblStudentAgreementCategory
+                            ) {
+                                array_push($AgreementPanel,
+                                    new CheckBox('Meta[Agreement]['.$tblStudentAgreementCategory->getId().']['.$tblStudentAgreementType->getId().']',
+                                        $tblStudentAgreementType->getName(), 1)
+                                );
+                            }
                         );
                     }
-                );
-            }
-        );
+                }
+            );
+        }
         $AgreementPanel = new Panel('Einverständniserklärung zur Datennutzung', $AgreementPanel,
             Panel::PANEL_TYPE_INFO);
 

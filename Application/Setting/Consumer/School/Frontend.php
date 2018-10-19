@@ -427,6 +427,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     'columnDefs' => array(
                                         array('width' => '1%', 'targets' => array(0))
                                     ),
+                                    'order' => array(
+                                        array(1, 'asc'),
+                                    ),
                                 ))
                                 , Panel::PANEL_TYPE_INFO, null)
                             : new Panel($PanelSelectCompanyTitle,

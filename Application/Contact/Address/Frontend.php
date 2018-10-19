@@ -272,7 +272,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Global = $this->getGlobal();
-        if (!isset($Global->POST['Address'])) {
+        if (!isset($Global->POST['Type'])) {
             $Global->POST['Type']['Type'] = $tblToPerson->getTblType()->getId();
             $Global->POST['Type']['Remark'] = $tblToPerson->getRemark();
             $Global->POST['Street']['Name'] = $tblToPerson->getTblAddress()->getStreetName();

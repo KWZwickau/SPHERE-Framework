@@ -194,10 +194,10 @@ class E01
         self::setBlankRow($sliceList, 'Schüler');
         self::setBlankRow($sliceList, 'HS-Abschluss', '25px');
         self::setRow($sliceList, 'HS', 'HSA', 'Pure');
-        self::setRow($sliceList, 'RS', 'HSA/RSA', 'Mixed');
+        self::setRow($sliceList, 'HS', 'HSA/RSA', 'Mixed');
         self::setBlankRow($sliceList, 'RS-Abschluss', '25px');
         self::setRow($sliceList, 'RS', 'RSA', 'Pure');
-        self::setRow($sliceList, 'HS', 'RSA/HSA', 'Mixed');
+        self::setRow($sliceList, 'RS', 'RSA/HSA', 'Mixed');
         self::setRow($sliceList, 'NoCourse', 'ohne abs. bezog.', 'Pure', '25px');
 
         self::setDivisionBlankRow($sliceList, 'Klassen');

@@ -831,7 +831,7 @@ class Service extends AbstractService
                         $remark = $tblPrepareInformation->getValue();
                     } elseif ($tblPrepareInformation->getField() == 'Transfer') {
                         $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $tblPerson->getFirstSecondName()
-                            . ' ' . $tblPerson->getLastName() . ' ' . $tblPrepareInformation->getValue();
+                            . ' ' . $tblPerson->getLastName() . ' ' . $tblPrepareInformation->getValue() . '.';
                     } elseif ($tblPrepareInformation->getField() == 'IndividualTransfer') {
                         $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $tblPerson->getFirstSecondName()
                             . ' ' . $tblPrepareInformation->getValue();

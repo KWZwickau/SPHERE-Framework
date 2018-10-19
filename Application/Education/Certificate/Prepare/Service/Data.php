@@ -903,7 +903,6 @@ class Data extends AbstractData
         if ($tblTestType
             && ($tblTask = ($tblPrepare->getServiceTblAppointedDateTask()))
             && ($tblDivision = $tblPrepare->getServiceTblDivision())
-            && ($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))
             && ($tblYear = $tblDivision->getServiceTblYear())
         ) {
 

@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\ClassRegister;
 
+use SPHERE\Application\Api\People\Meta\Agreement\ApiAgreementReadOnly;
 use SPHERE\Application\Api\People\Meta\MedicalRecord\MedicalRecordReadOnly;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
@@ -368,6 +369,8 @@ class ClassRegister implements IApplicationInterface
                     } else {
                         $MedicalRecord = '';
                     }
+                    $Agreement = (new Standard('', ApiAgreementReadOnly::getEndpoint(), new EyeOpen()))
+                        ->ajaxPipelineOnClick(ApiAgreementReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
 
                     $studentTable[] = array(
                         'Number'        => (count($studentTable) + 1),
@@ -378,6 +381,7 @@ class ClassRegister implements IApplicationInterface
                                             )),
                         'Integration'   => $IntegrationButton,
                         'MedicalRecord' => $MedicalRecord,
+                        'Agreement'     => $Agreement,
                         'Gender'        => $Gender,
                         'Address'       => $tblAddress ? $tblAddress->getGuiString() : '',
                         'Birthday'      => $birthday,
@@ -438,6 +442,11 @@ class ClassRegister implements IApplicationInterface
                     'DivisionId' => $tblDivision->getId()
                 )
             );
+            $buttonList[] = new Standard('Download Klassenliste Einverständniserklärung'
+                , '/Api/Reporting/Standard/Person/AgreementClassList/Download', new Download(), array(
+                    'DivisionId' => $tblDivision->getId()
+                )
+            );
 
             $YearString = new Muted('-NA-');
             if (( $tblYear = $tblDivision->getServiceTblYear() )) {
@@ -445,8 +454,9 @@ class ClassRegister implements IApplicationInterface
             }
 
             $Stage->setContent(
-                // gleicher Reciever für Integration & Krankenakte (Identifier)
                 ApiSupportReadOnly::receiverOverViewModal()
+                .MedicalRecordReadOnly::receiverOverViewModal()
+                .ApiAgreementReadOnly::receiverOverViewModal()
                 .new Layout(array(
                     new LayoutGroup(array(
                         new LayoutRow(array(
@@ -471,6 +481,7 @@ class ClassRegister implements IApplicationInterface
                                     'Name'          => 'Name',
                                     'Integration'   => 'Integration',
                                     'MedicalRecord' => 'Krankenakte',
+                                    'Agreement'     => 'Einverständnis',
                                     'Gender'        => 'Geschlecht',
                                     'Address'       => 'Addresse',
                                     'Birthday'      => 'Geburtsdatum',

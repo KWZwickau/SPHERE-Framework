@@ -22,6 +22,7 @@ use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialCompany;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialLetter;
 use SPHERE\Application\Reporting\SerialLetter\Service\Entity\TblSerialPerson;
 use SPHERE\Application\Reporting\SerialLetter\Service\Setup;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -288,33 +289,38 @@ class Service extends AbstractService
     /**
      * @param TblSerialLetter $tblSerialLetter
      * @param TblPerson       $tblPerson
-     * @param string          $FirstGender 'M'(ale) or 'F'(emale)
      *
      * @return bool|Service\Entity\TblAddressPerson[]
      */
     public function getAddressPersonAllByPerson(
         TblSerialLetter $tblSerialLetter,
-        TblPerson $tblPerson,
-        $FirstGender = null
+        TblPerson $tblPerson
     ) {
-//        $FirstGender = 'F';
+
+        $FirstGender = 'F';
+        if(($Setting = Consumer::useService()->getSetting('Reporting', 'SerialLetter', 'GenderSort', 'FirstFemale'))){
+            if(!$Setting->getValue()){
+                $FirstGender = 'M';
+            }
+        }
 
         $tblAddressPersonList = ( new Data($this->getBinding()) )->getAddressPersonAllBySerialLetterAndPerson($tblSerialLetter, $tblPerson);
 
         if ($tblAddressPersonList && $FirstGender != null) {
             $AddressPersonList = array();
+                // Sortierung erste Person "Geschlecht"
             foreach ($tblAddressPersonList as $AddressPerson) {
                 $tblPerson = $AddressPerson->getServiceTblPersonToAddress();
                 if ($tblPerson) {
-                    if ($FirstGender === 'M' && $tblPerson->getSalutation() === 'Herr') {
+                    if ($FirstGender === 'F' && $tblPerson->getSalutation() === 'Frau') {
                         $AddressPersonList[] = $AddressPerson;
                     }
-                    if ($FirstGender === 'F' && $tblPerson->getSalutation() === 'Frau') {
+                    if ($FirstGender === 'M' && $tblPerson->getSalutation() === 'Herr') {
                         $AddressPersonList[] = $AddressPerson;
                     }
                 }
             }
-
+                // Sortierung zweite Person "Geschlecht"
             foreach ($tblAddressPersonList as $AddressPerson) {
                 $tblPerson = $AddressPerson->getServiceTblPersonToAddress();
                 if ($tblPerson) {
@@ -326,6 +332,7 @@ class Service extends AbstractService
                     }
                 }
             }
+                // Sortierung Person ohne Anrede (Herr/Frau) am Schluss
             foreach ($tblAddressPersonList as $AddressPerson) {
                 $tblPerson = $AddressPerson->getServiceTblPersonToAddress();
                 if ($tblPerson) {
@@ -859,7 +866,7 @@ class Service extends AbstractService
             /** @var TblPerson $tblPerson */
             foreach ($tblPersonList as $tblPerson) {
                 $tblAddressPersonAllByPerson = SerialLetter::useService()->getAddressPersonAllByPerson($tblSerialLetter,
-                    $tblPerson, 'M');    // ToDO choose FirstGender
+                    $tblPerson);
                 if ($tblAddressPersonAllByPerson) {
                     /** @var TblAddressPerson $tblAddressPerson */
                     $AddressList = array();
@@ -950,7 +957,6 @@ class Service extends AbstractService
                                     }
                                 }
                             }
-
                             if ($isReady) {
                                 if (isset($Address['PersonLastName']) && !empty($Address['PersonLastName'])) {
                                     if (isset($Address['PersonSalutation'])
@@ -1026,11 +1032,13 @@ class Service extends AbstractService
                                                     $firstAddressLine = $Address['PersonSalutation'][$Key];
                                                 }
                                             } else {
+                                                // Herrn steht immer vorne (DIN 5008)
                                                 if ($Address['PersonSalutation'][$Key] == 'Herr') {
-                                                    $firstAddressLine .= ' und '.$Address['PersonSalutation'][$Key].'n';
+                                                    $firstAddressLine = $Address['PersonSalutation'][$Key].'n und '. $firstAddressLine;
                                                 }
+                                                // Frau steht immer hinten (DIN 5008)
                                                 if ($Address['PersonSalutation'][$Key] == 'Frau') {
-                                                    $firstAddressLine .= ' und '.$Address['PersonSalutation'][$Key];
+                                                    $firstAddressLine = $firstAddressLine.' und '.$Address['PersonSalutation'][$Key];
                                                 }
                                             }
                                             if ($secondAddressLine === '') {

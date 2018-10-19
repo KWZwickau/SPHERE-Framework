@@ -13,6 +13,7 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\AppTrait;
 use SPHERE\Application\Document\Storage\FilePointer;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
@@ -26,7 +27,6 @@ use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupClub;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupCustody;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupProspect;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentBasic;
-use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentIntegration;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentSubject;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentTransfer;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupTeacher;
@@ -516,9 +516,26 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             $Emitter->setGetPayload(array(
                 self::API_TARGET => 'getFilter'
             ));
-            $Emitter->setPostPayload(array(
-                'ViewType' => $ViewType
-            ));
+            // ViewType übergeben
+            $PostArray['ViewType'] = $ViewType;
+            // Spezielles Feld vorbefüllen:
+            // Nur für Schüler-View
+            if($ViewType === TblWorkSpace::VIEW_TYPE_STUDENT){
+                if(($tblWorkSpaceList = Individual::useService()->getWorkSpaceAll($ViewType))){
+                    foreach($tblWorkSpaceList as $tblWorkSpace){
+                        // aktuelles Schuljahr finden
+                        if($tblWorkSpace->getField() === 'TblYear_Year'){
+                            // Liste aller aktuellen Schuljahre
+                            if(($YearList = Term::useService()->getYearByNow())){
+                                $tblYear = current($YearList);
+                                // Speichern im Post
+                                $PostArray['TblYear_Year[1]'] = $tblYear->getName();
+                            }
+                        }
+                    }
+                }
+            }
+            $Emitter->setPostPayload($PostArray);
             $Pipeline->appendEmitter($Emitter);
         }
         return $Pipeline;
@@ -552,11 +569,22 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'getFilter'
         ));
-        $Emitter->setPostPayload(
-            array(
-            'ViewType' => $ViewType
-            )
-        );
+        // ViewType übergeben
+        $PostArray['ViewType'] = $ViewType;
+
+        // Spezielles Feld vorbefüllen:
+        if($Field === 'TblYear_Year'){
+            // Nur für Schüler-View
+            if($ViewType === TblWorkSpace::VIEW_TYPE_STUDENT) {
+                //Liste aller aktuellen Schuljahre
+                if (($YearList = Term::useService()->getYearByNow())) {
+                    $tblYear = current($YearList);
+                    // Speichern im Post
+                    $PostArray['TblYear_Year[1]'] = $tblYear->getName();
+                }
+            }
+        }
+        $Emitter->setPostPayload($PostArray);
         $Pipeline->appendEmitter($Emitter);
         $Emitter = new ServerEmitter(self::receiverNavigation(), self::getEndpoint());
         $Emitter->setLoadingMessage('Verfügbare Informationen werden aktualisiert...');
@@ -582,9 +610,27 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'getFilter'
         ));
-        $Emitter->setPostPayload(array(
-            'ViewType' => $ViewType
-        ));
+
+        // ViewType übergeben
+        $PostArray['ViewType'] = $ViewType;
+        // Spezielles Feld vorbefüllen:
+        // Nur für Schüler-View
+        if($ViewType === TblWorkSpace::VIEW_TYPE_STUDENT){
+            if(($tblWorkSpaceList = Individual::useService()->getWorkSpaceAll($ViewType))){
+                foreach($tblWorkSpaceList as $tblWorkSpace){
+                    // aktuelles Schuljahr finden
+                    if($tblWorkSpace->getField() === 'TblYear_Year'){
+                        // Liste aller aktuellen Schuljahre
+                        if(($YearList = Term::useService()->getYearByNow())){
+                            $tblYear = current($YearList);
+                            // Speichern im Post
+                            $PostArray['TblYear_Year[1]'] = $tblYear->getName();
+                        }
+                    }
+                }
+            }
+        }
+        $Emitter->setPostPayload($PostArray);
         $Pipeline->appendEmitter($Emitter);
         return $Pipeline;
     }
@@ -944,7 +990,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
      * @param $View
      * @param $ViewType
      */
-    public function addField($Field, $View, $ViewType) //ToDO keep POST data
+    public function addField($Field, $View, $ViewType)
     {
 
         $Position = 1;
@@ -1051,14 +1097,14 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                         $AccordionList[] = new Dropdown( 'Schüler Fächer:', new Scrollable( $Block ) );
                     }
                 }
-                $Block = $this->getPanelList(new ViewGroupStudentIntegration(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);
-                if( !empty( $Block ) ) {
-                    if( isset($ViewList['ViewGroupStudentIntegration']) ) {
-                        $AccordionList[] = new Panel( 'Schüler Integration:', new Scrollable( $Block, 300 ));
-                    } else {
-                        $AccordionList[] = new Dropdown( 'Schüler Integration:', new Scrollable( $Block ) );
-                    }
-                }
+//                $Block = $this->getPanelList(new ViewGroupStudentIntegration(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);
+//                if( !empty( $Block ) ) {
+//                    if( isset($ViewList['ViewGroupStudentIntegration']) ) {
+//                        $AccordionList[] = new Panel( 'Schüler Integration:', new Scrollable( $Block, 300 ));
+//                    } else {
+//                        $AccordionList[] = new Dropdown( 'Schüler Integration:', new Scrollable( $Block ) );
+//                    }
+//                }
                 $Block = $this->getPanelList(new ViewEducationStudent(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);
                 if( !empty( $Block ) ) {
                     if( isset($ViewList['ViewEducationStudent']) ) {

@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeTyp
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreCondition;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGradeTypeList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGroupList;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGroupRequirement;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroup;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroupGradeTypeList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRule;
@@ -311,6 +312,44 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
     }
 
     /**
+     * @param $Id
+     *
+     * @return false|TblScoreConditionGroupRequirement
+     */
+    public function getScoreConditionGroupRequirementById($Id)
+    {
+        return $this->getCachedEntityById(__METHOD__, $this->getEntityManager(), 'TblScoreConditionGroupRequirement', $Id);
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return bool|TblScoreConditionGroupRequirement[]
+     */
+    public function getScoreConditionGroupRequirementAllByCondition(TblScoreCondition $tblScoreCondition)
+    {
+
+        $list = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblScoreConditionGroupRequirement',
+            array(TblScoreConditionGroupRequirement::ATTR_TBL_SCORE_CONDITION => $tblScoreCondition->getId())
+        );
+
+        if ($list) {
+            /** @var TblScoreConditionGroupRequirement $item */
+            foreach ($list as &$item) {
+                if (!$item->getTblScoreGroup()) {
+                    $item = false;
+                }
+            }
+            $list = array_filter($list);
+
+            return empty($list) ? false : $list;
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * @param TblScoreRule $tblScoreRule
      *
      * @return false|TblScoreCondition[]
@@ -482,12 +521,14 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
     /**
      * @param TblGradeType $tblGradeType
      * @param TblScoreCondition $tblScoreCondition
+     * @param $count
      *
      * @return TblScoreConditionGradeTypeList
      */
     public function addScoreConditionGradeTypeList(
         TblGradeType $tblGradeType,
-        TblScoreCondition $tblScoreCondition
+        TblScoreCondition $tblScoreCondition,
+        $count
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -502,6 +543,41 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
             $Entity = new TblScoreConditionGradeTypeList();
             $Entity->setTblGradeType($tblGradeType);
             $Entity->setTblScoreCondition($tblScoreCondition);
+            $Entity->setCount($count);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblScoreGroup $tblScoreGroup
+     * @param TblScoreCondition $tblScoreCondition
+     * @param $count
+     *
+     * @return null|TblScoreConditionGroupRequirement
+     */
+    public function addScoreConditionGroupRequirement(
+        TblScoreGroup $tblScoreGroup,
+        TblScoreCondition $tblScoreCondition,
+        $count
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblScoreConditionGroupRequirement')
+            ->findOneBy(array(
+                TblScoreConditionGroupRequirement::ATTR_TBL_SCORE_GROUP => $tblScoreGroup->getId(),
+                TblScoreConditionGroupRequirement::ATTR_TBL_SCORE_CONDITION => $tblScoreCondition->getId(),
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblScoreConditionGroupRequirement();
+            $Entity->setTblScoreCondition($tblScoreCondition);
+            $Entity->setTblScoreGroup($tblScoreGroup);
+            $Entity->setCount($count);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -614,6 +690,25 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
     }
 
     /**
+     * @param TblScoreConditionGroupRequirement $tblScoreConditionGroupRequirement
+     *
+     * @return bool
+     */
+    public function removeScoreConditionGroupRequirement(TblScoreConditionGroupRequirement $tblScoreConditionGroupRequirement)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblScoreConditionGroupRequirement $Entity */
+        $Entity = $Manager->getEntityById('TblScoreConditionGroupRequirement', $tblScoreConditionGroupRequirement->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param TblScoreConditionGroupList $tblScoreConditionGroupList
      *
      * @return bool
@@ -657,6 +752,7 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
      * @param $Round
      * @param $Priority
      * @param $IsActive
+     * @param null $Period
      *
      * @return bool
      */
@@ -665,7 +761,8 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
         $Name,
         $Round,
         $Priority,
-        $IsActive
+        $IsActive,
+        $Period = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -678,6 +775,7 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
             $Entity->setRound($Round);
             $Entity->setPriority($Priority);
             $Entity->setIsActive($IsActive);
+            $Entity->setPeriod($Period);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -1097,6 +1195,11 @@ abstract class Data extends \SPHERE\Application\Education\Graduation\Gradebook\M
             if (($list = $this->getScoreConditionGroupListByCondition($tblScoreCondition))) {
                 foreach ($list as $item) {
                     $this->removeScoreConditionGroupList($item);
+                }
+            }
+            if (($list = $this->getScoreConditionGroupRequirementAllByCondition($tblScoreCondition))) {
+                foreach ($list as $item) {
+                    $this->removeScoreConditionGroupRequirement($item);
                 }
             }
 

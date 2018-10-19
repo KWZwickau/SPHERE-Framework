@@ -11,8 +11,6 @@ abstract class EssStyle extends Certificate
 {
 
     const TEXT_SIZE = '12pt';
-    const TEXT_SIZE_SMALL = '11pt';
-    const TEXT_SIZE_VERY_SMALL = '10pt';
     const TEXT_FAMILY = 'MyriadPro';
 
     /**
@@ -216,7 +214,7 @@ abstract class EssStyle extends Certificate
                     } elseif ($Subject['SubjectName'] == 'Evangelische Religionslehre') {
                         $SubjectSection->addElementColumn((new Element())
                             ->setContent('Evangelische Religionslehre')
-                            ->styleTextSize(self::TEXT_SIZE_SMALL)
+                            ->styleTextSize('10pt')
                             ->styleLineHeight('105%')
                             ->styleFontFamily(self::TEXT_FAMILY)
                             ->stylePaddingTop()

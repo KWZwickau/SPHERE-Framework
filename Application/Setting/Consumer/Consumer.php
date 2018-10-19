@@ -7,6 +7,7 @@ use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
 use SPHERE\Application\Setting\Consumer\School\School;
 use SPHERE\Application\Setting\Consumer\School\Service\Entity\TblSchool;
+use SPHERE\Application\Setting\Consumer\Setting\Setting;
 use SPHERE\Application\Setting\Consumer\SponsorAssociation\Service\Entity\TblSponsorAssociation;
 use SPHERE\Application\Setting\Consumer\SponsorAssociation\SponsorAssociation;
 use SPHERE\Common\Frontend\Icon\Repository\Building;
@@ -38,6 +39,8 @@ class Consumer implements IApplicationInterface, IModuleInterface
 
     public static function registerApplication()
     {
+
+        Setting::registerModule();
 
         School::registerModule();
         Responsibility::registerModule();

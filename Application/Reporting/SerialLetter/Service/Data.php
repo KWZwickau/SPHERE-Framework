@@ -167,7 +167,7 @@ class Data extends AbstractData
     public function getFilterCategoryAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblFilterCategory');
+        return $this->getForceEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblFilterCategory');
     }
 
     /**
@@ -178,7 +178,7 @@ class Data extends AbstractData
     public function getFilterFieldAllBySerialLetter(TblSerialLetter $tblSerialLetter)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblFilterField',
+        return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblFilterField',
             array(
                 TblFilterField::ATTR_TBL_SERIAL_LETTER => $tblSerialLetter->getId()
             ));

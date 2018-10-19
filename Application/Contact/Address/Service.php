@@ -13,8 +13,10 @@ use SPHERE\Application\Contact\Address\Service\Entity\ViewAddressToPerson;
 use SPHERE\Application\Contact\Address\Service\Setup;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Ajax\Template\Notify;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -133,10 +135,11 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblPerson      $tblPerson
+     * @param TblPerson $tblPerson
      * @param                $Street
      * @param                $City
      * @param                $Type
+     * @param TblAddress|null $tblAddress
      *
      * @return bool
      */
@@ -145,7 +148,8 @@ class Service extends AbstractService
         TblPerson $tblPerson,
         $Street,
         $City,
-        $Type
+        $Type,
+        TblAddress $tblAddress = null
     ) {
 
         $Error = false;
@@ -178,11 +182,10 @@ class Service extends AbstractService
             $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ ein');
             $Error = true;
         } else {
-            $Form->setSuccess('Type[Type]');
             // control there is no other MainAddress
             if ($tblType->getName() == 'Hauptadresse') {
                 $tblAddressMain = Address::useService()->getAddressByPerson($tblPerson);
-                if ($tblAddressMain) {
+                if ($tblAddressMain && (($tblAddress && $tblAddress->getId() != $tblAddressMain->getId()) || !$tblAddress)) {
                     $Form->setError('Type[Type]', '"'.$tblPerson->getFullName()
                         .'" besitzt bereits eine Hauptadresse');
                     $Error = true;
@@ -256,7 +259,13 @@ class Service extends AbstractService
                         array('Id' => $tblPerson->getId(), 'Group' => $Group));
             }
         }
-        return $Form;
+
+        return $Form . new Notify(
+                'Die Adresse konnte nicht angelegt werden',
+                'Bitte füllen Sie die benötigten Felder korrekt aus',
+                Notify::TYPE_DANGER,
+                5000
+            );
     }
 
     /**
@@ -479,41 +488,15 @@ class Service extends AbstractService
             return $Form;
         }
 
-        $Error = false;
-
-        if (isset( $Street['Name'] ) && empty( $Street['Name'] )) {
-            $Form->setError('Street[Name]', 'Bitte geben Sie eine Strasse an');
-            $Error = true;
+        if (($tblPerson = $tblToPerson->getServiceTblPerson())) {
+            $Error = $this->checkFormAddressToPerson($Form, $tblPerson, $Street, $City, $Type, $tblToPerson->getTblAddress() ? $tblToPerson->getTblAddress() : null);
         } else {
-            $Form->setSuccess('Street[Name]');
-        }
-        if (isset( $Street['Number'] ) && empty( $Street['Number'] )) {
-            $Form->setError('Street[Number]', 'Bitte geben Sie eine Hausnummer an');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Street[Number]');
+            return new Danger('Die Person wurde nicht gefunden.', new Exclamation());
         }
 
-        if (isset( $City['Code'] ) && empty( $City['Code'] )) {
-            $Form->setError('City[Code]', 'Bitte geben Sie eine Postleitzahl ein');
-            $Error = true;
-        } else {
-            $Form->setSuccess('City[Code]');
-        }
-        if (isset( $City['Name'] ) && empty( $City['Name'] )) {
-            $Form->setError('City[Name]', 'Bitte geben Sie einen Namen ein');
-            $Error = true;
-        } else {
-            $Form->setSuccess('City[Name]');
-        }
-        if (!( $tblType = $this->getTypeById($Type['Type']) )) {
-            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ ein');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Type[Type]');
-        }
+        $tblType = $this->getTypeById($Type['Type']);
 
-        if (!$Error) {
+        if (!$Error && $tblType) {
             $tblState = $this->getStateById($State);
             if (!$tblState) {
                 $tblState = null;
@@ -544,7 +527,13 @@ class Service extends AbstractService
                 new Danger('Person nicht gefunden', new Ban());
             }
         }
-        return $Form;
+
+        return $Form . new Notify(
+                'Die Adresse konnte nicht geändert werden',
+                'Bitte füllen Sie die benötigten Felder korrekt aus',
+                Notify::TYPE_DANGER,
+                5000
+            );
     }
 
     /**

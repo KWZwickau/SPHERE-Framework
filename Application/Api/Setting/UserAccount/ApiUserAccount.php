@@ -408,7 +408,7 @@ class ApiUserAccount extends Extension implements IApiInterface
                         )
                     )
                 ))
-                ,
+            ,
                 new FormRow(
                     new FormColumn(
                         new Panel('Listen Auswahl '.new Muted(new Small('(Max 30 Personen)')), new SelectBox('Data[GroupByCount]', '', $SelectBoxContent),

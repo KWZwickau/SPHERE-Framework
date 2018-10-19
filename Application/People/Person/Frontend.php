@@ -294,7 +294,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $MetaTable = Student::useFrontend()->frontendMeta($tblPerson, $Meta, $Group);
                         break;
                     case 'INTEGRATION':
-                        $MetaTable = Student::useFrontend()->frontendIntegration($tblPerson, $Group);
+                        $MetaTable = Student::useFrontend()->frontendIntegration($tblPerson);
                         break;
                     case 'CUSTODY':
                         $MetaTable = Custody::useFrontend()->frontendMeta($tblPerson, $Meta, $Group);
