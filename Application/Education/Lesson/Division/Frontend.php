@@ -173,7 +173,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $Temp['ClassGroup'] = $tblDivision->getDisplayName();
 
                 if ($tblDivision->getServiceTblYear()) {
-                    $tblPeriodAll = $tblDivision->getServiceTblYear()->getTblPeriodAll();
+                    $tblLevel = $tblDivision->getTblLevel();
+                    $tblPeriodAll = $tblDivision->getServiceTblYear()->getTblPeriodAll($tblLevel && $tblLevel->getName() == '12');
                 } else {
                     $tblPeriodAll = false;
                 }

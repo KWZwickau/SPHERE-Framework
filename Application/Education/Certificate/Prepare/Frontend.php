@@ -2619,7 +2619,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblSubject,
             Evaluation::useService()->getTestTypeByIdentifier('TEST'),
             $tblScoreRule ? $tblScoreRule : null,
-            $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod() : null,
+            ($tblTaskPeriod = $tblTask->getServiceTblPeriodByDivision($tblDivision)) ? $tblTaskPeriod : null,
             null,
             false,
             $tblTask->getDate() ? $tblTask->getDate() : false
@@ -3964,7 +3964,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                     $tblCurrentSubject,
                                                     Evaluation::useService()->getTestTypeByIdentifier('TEST'),
                                                     $tblScoreRule ? $tblScoreRule : null,
-                                                    $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod() : null,
+                                                    ($tblTaskPeriod = $tblTask->getServiceTblPeriodByDivision($tblDivisionItem))
+                                                        ? $tblTaskPeriod : null,
                                                     $tblTestTemp->getServiceTblSubjectGroup() ? $tblTestTemp->getServiceTblSubjectGroup() : null,
                                                     false,
                                                     $tblTask->getDate() ? $tblTask->getDate() : false

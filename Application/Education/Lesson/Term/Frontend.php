@@ -4,8 +4,6 @@ namespace SPHERE\Application\Education\Lesson\Term;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblHoliday;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
-use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
-use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
@@ -18,6 +16,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
+use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
@@ -33,6 +32,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
+use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -80,7 +80,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblYearAll) {
             array_walk($tblYearAll, function (TblYear &$tblYear) use (&$TableContent) {
 
-                $tblPeriodAll = $tblYear->getTblPeriodAll();
+                $tblPeriodAll = $tblYear->getTblPeriodAll(false, true);
                 $Temp['Year'] = $tblYear->getYear();
                 $Temp['Description'] = $tblYear->getDescription();
                 $Temp['Option'] =
@@ -137,41 +137,24 @@ class Frontend extends Extension implements IFrontendInterface
     public function formYear(TblYear $tblYear = null)
     {
 
-        $tblYearAll = Term::useService()->getYearAll();
-        $acNameAll = array();
+        $YearList = array();
+        for ($i = -1; $i < 5; $i++) {
+            $this->addYear($YearList, $i);
+        }
 
-        $YearList[] = '';
-//        $YearList[(date('Y') - 4).'/'.(date('y') - 3)] = (date('Y') - 4).'/'.(date('y') - 3);
-//        $YearList[(date('Y') - 3).'/'.(date('y') - 2)] = (date('Y') - 3).'/'.(date('y') - 2);
-        $YearList[(date('Y') - 2) . '/' . (date('y') - 1)] = (date('Y') - 2) . '/' . (date('y') - 1);
-        $YearList[date('Y') - 1 . '/' . date('y')] = date('Y') - 1 . '/' . date('y');
-        $YearList[date('Y') . '/' . (date('y') + 1)] = date('Y') . '/' . (date('y') + 1);
-        $YearList[(date('Y') + 1) . '/' . (date('y') + 2)] = (date('Y') + 1) . '/' . (date('y') + 2);
-        $YearList[(date('Y') + 2) . '/' . (date('y') + 3)] = (date('Y') + 2) . '/' . (date('y') + 3);
-        $YearList[(date('Y') + 3) . '/' . (date('y') + 4)] = (date('Y') + 3) . '/' . (date('y') + 4);
-        $YearList[(date('Y') + 4) . '/' . (date('y') + 5)] = (date('Y') + 4) . '/' . (date('y') + 5);
-//        $YearList[(date('Y') + 5).'/'.(date('y') + 6)] = (date('Y') + 5).'/'.(date('y') + 6);
-
-        $TypeList = Type::useService()->getTypeAll();
-        $TypeList[] = new TblType('');
-
-        if ($tblYearAll) {
-            array_walk($tblYearAll, function (TblYear $tblYear) use (&$acNameAll) {
-
-                if (!in_array($tblYear->getDisplayName(), $acNameAll)) {
-                    array_push($acNameAll, $tblYear->getDisplayName());
+        // bereits existierende Schuljahr stehen nicht zur Auswahl
+        if (($tblYearAll = Term::useService()->getYearAll())) {
+            foreach ($tblYearAll as $item) {
+                if (!$tblYear && isset($YearList[$item->getYear()])) {
+                    unset($YearList[$item->getYear()]);
                 }
-            });
+            }
         }
 
         $Global = $this->getGlobal();
         if (!isset($Global->POST['Year']) && $tblYear) {
             $Global->POST['Year']['Year'] = $tblYear->getYear();
             $Global->POST['Year']['Description'] = $tblYear->getDescription();
-            $Global->savePost();
-        }
-        if (!isset($Global->POST['Year'])) {
-            $Global->POST['Year']['Year'] = date('Y') . '/' . (date('y') + 1);
             $Global->savePost();
         }
 
@@ -186,7 +169,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 6),
                     new FormColumn(
                         new Panel('Sonstiges', array(
-                                new TextField('Year[Description]', 'z.B: für Gymnasium', 'Beschreibung', new Pencil())
+                                new TextField('Year[Description]', '', 'Beschreibung', new Pencil())
                             )
                             , Panel::PANEL_TYPE_INFO
                         )
@@ -194,6 +177,12 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
             ))
         );
+    }
+
+    private function addYear(&$YearList, $diff)
+    {
+        $value = (date('Y') + $diff) . '/' . (date('y') + $diff + 1);
+        $YearList[$value] = $value;
     }
 
     /**
@@ -216,6 +205,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Temp['Description'] = $tblPeriod->getDescription();
                 $Temp['PeriodFrom'] = $tblPeriod->getFromDate();
                 $Temp['PeriodTo'] = $tblPeriod->getToDate();
+                $Temp['IsLevel12'] = $tblPeriod->isLevel12() ? new Check() : new Unchecked();
                 $Temp['Option'] =
                     new Standard('', __NAMESPACE__ . '\Edit\Period', new Pencil(),
                         array('Id' => $tblPeriod->getId()))
@@ -236,18 +226,19 @@ class Frontend extends Extension implements IFrontendInterface
                                 array(
                                     'Name' => 'Name',
                                     'Description' => 'Beschreibung',
+                                    'IsLevel12' => 'Für 12. Klasse',
                                     'PeriodFrom' => 'Zeitraum von',
                                     'PeriodTo' => 'Zeitraum Bis',
                                     'Option' => '',
                                 ),
                                 array(
                                     'order' => array(
-                                        array('2', 'desc'),
                                         array('3', 'desc'),
+                                        array('4', 'desc'),
                                         array('0', 'asc'),
                                     ),
                                     'columnDefs' => array(
-                                        array('type' => 'de_date', 'targets' => array(2, 3)),
+                                        array('type' => 'de_date', 'targets' => array(3, 4)),
                                     ),
                                 )
                             )
@@ -299,6 +290,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->POST['Period']['Description'] = $tblPeriod->getDescription();
             $Global->POST['Period']['From'] = $tblPeriod->getFromDate();
             $Global->POST['Period']['To'] = $tblPeriod->getToDate();
+            $Global->POST['Period']['IsLevel12'] = $tblPeriod->isLevel12();
             $Global->savePost();
         }
 
@@ -311,7 +303,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 new AutoCompleter('Period[Name]', 'Name', 'z.B: 1.Halbjahr',
                                     $acNameAll, new Pencil()),
                                 new TextField('Period[Description]', 'z.B: für Gymnasium', 'Beschreibung',
-                                    new Pencil())
+                                    new Pencil()),
+                                new CheckBox('Period[IsLevel12]', 'Ist ein Halbjahr für die 12. Klasse', 1)
                             ), Panel::PANEL_TYPE_INFO
                         ), 6),
                     new FormColumn(
@@ -365,52 +358,60 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $tblPeriodUsedList = Term::useService()->getPeriodAllByYear($tblYear);
-
+        $tblPeriodUsedList = Term::useService()->getPeriodAllByYear($tblYear, false, true);
         $tblPeriodAll = Term::useService()->getPeriodAll();
 
+        $contentPeriodUsed = array();
+        $contentPeriodAvailable = array();
+
         if (is_array($tblPeriodUsedList)) {
-            $tblPeriodAvailable = array_udiff($tblPeriodAll, $tblPeriodUsedList,
+            $tblPeriodAvailableList = array_udiff($tblPeriodAll, $tblPeriodUsedList,
                 function (TblPeriod $ObjectA, TblPeriod $ObjectB) {
 
                     return $ObjectA->getId() - $ObjectB->getId();
                 }
             );
-        } else {
-            $tblPeriodAvailable = $tblPeriodAll;
-        }
 
-        /** @noinspection PhpUnusedParameterInspection */
-        if (is_array($tblPeriodUsedList)) {
-            array_walk($tblPeriodUsedList, function (TblPeriod &$Entity) use ($Id) {
-
-                /** @noinspection PhpUndefinedFieldInspection */
-                $Entity->Option = new PullRight(
+            foreach ($tblPeriodUsedList as $tblPeriodUsed) {
+                $contentPeriodUsed[] = array(
+                    'Name' => $tblPeriodUsed->getName(),
+                    'FromDate' => $tblPeriodUsed->getFromDate(),
+                    'ToDate' => $tblPeriodUsed->getToDate(),
+                    'Description' => $tblPeriodUsed->getDescription(),
+                    'IsLevel12' => $tblPeriodUsed->isLevel12() ? new Check() : new Unchecked(),
+                    'Option' => new PullRight(
                     new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
                         '/Education/Lesson/Term/Choose/Period', new Minus(),
                         array(
                             'Id' => $Id,
-                            'Period' => $Entity->getId(),
+                            'Period' => $tblPeriodUsed->getId(),
                             'Remove' => true
                         ))
+                    )
                 );
-            }, $Id);
+            }
+        } else {
+            $tblPeriodAvailableList = $tblPeriodAll;
         }
 
-        /** @noinspection PhpUnusedParameterInspection */
-        if (isset($tblPeriodAvailable) && is_array($tblPeriodAvailable)) {
-            array_walk($tblPeriodAvailable, function (TblPeriod &$Entity) use ($Id) {
-
-                /** @noinspection PhpUndefinedFieldInspection */
-                $Entity->Option = new PullRight(
-                    new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen',
-                        '/Education/Lesson/Term/Choose/Period', new Plus(),
-                        array(
-                            'Id' => $Id,
-                            'Period' => $Entity->getId()
-                        ))
+        if (is_array($tblPeriodAvailableList)) {
+            foreach ($tblPeriodAvailableList as $tblPeriodAvailable) {
+                $contentPeriodAvailable[] = array(
+                    'Name' => $tblPeriodAvailable->getName(),
+                    'FromDate' => $tblPeriodAvailable->getFromDate(),
+                    'ToDate' => $tblPeriodAvailable->getToDate(),
+                    'Description' => $tblPeriodAvailable->getDescription(),
+                    'IsLevel12' => $tblPeriodAvailable->isLevel12() ? new Check() : new Unchecked(),
+                    'Option' => new PullRight(
+                        new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen',
+                            '/Education/Lesson/Term/Choose/Period', new Plus(),
+                            array(
+                                'Id' => $Id,
+                                'Period' => $tblPeriodAvailable->getId()
+                            ))
+                    )
                 );
-            });
+            }
         }
 
         $Stage->setContent(
@@ -427,40 +428,48 @@ class Frontend extends Extension implements IFrontendInterface
                             new Title('Zeiträume', 'Zugewiesen'),
                             (empty($tblPeriodUsedList)
                                 ? new Warning('Kein Zeitraum zugewiesen')
-                                : new TableData($tblPeriodUsedList, null,
+                                : new TableData($contentPeriodUsed, null,
                                     array(
                                         'Name' => 'Name',
                                         'FromDate' => 'Von',
                                         'ToDate' => 'Bis',
                                         'Description' => 'Beschreibung',
+                                        'IsLevel12' => 'Für 12. Klasse',
                                         'Option' => ''
                                     ),
                                     array(
                                         'order' => array(
                                             array('0', 'asc'),
                                             array('1', 'asc'),
-                                        )
+                                        ),
+                                        'columnDefs' => array(
+                                            array('type' => 'de_date', 'targets' => array(1, 2)),
+                                        ),
                                     )
                                 )
                             )
                         ), 6),
                         new LayoutColumn(array(
                             new Title('Zeiträume', 'Verfügbar'),
-                            (empty($tblPeriodAvailable)
+                            (empty($tblPeriodAvailableList)
                                 ? new Info('Keine weiteren Zeiträume verfügbar')
-                                : new TableData($tblPeriodAvailable, null,
+                                : new TableData($contentPeriodAvailable, null,
                                     array(
                                         'Name'        => 'Name',
                                         'FromDate'    => 'Von',
                                         'ToDate'      => 'Bis',
                                         'Description' => 'Beschreibung',
+                                        'IsLevel12' => 'Für 12. Klasse',
                                         'Option'      => ' '
                                     ),
                                     array(
                                         'order' => array(
                                             array('0', 'asc'),
                                             array('1', 'asc'),
-                                        )
+                                        ),
+                                        'columnDefs' => array(
+                                            array('type' => 'de_date', 'targets' => array(1, 2)),
+                                        ),
                                     )
                                 )
                             )

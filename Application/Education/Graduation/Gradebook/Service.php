@@ -793,12 +793,14 @@ class Service extends ServiceScoreRule
             $sum = 0;
 
             if ($tblScoreRule) {
+                $tblLevel = $tblDivision->getTblLevel();
                 $tblYear = $tblDivision->getServiceTblYear();
                 $tblScoreCondition = $this->getScoreConditionByStudent(
                     $tblScoreRule,
                     $tblGradeList,
                     $tblYear ? $tblYear : null,
-                    $tblPeriod ? $tblPeriod : null
+                    $tblPeriod ? $tblPeriod : null,
+                    $tblLevel && $tblLevel->getName() == '12'
                 );
             } else {
                 $tblScoreCondition = false;
@@ -946,6 +948,7 @@ class Service extends ServiceScoreRule
      * @param $tblGradeList
      * @param TblYear|null $tblYear
      * @param TblPeriod|null $tblPeriod
+     * @param bool $isLevel12
      *
      * @return bool|TblScoreCondition
      */
@@ -953,7 +956,8 @@ class Service extends ServiceScoreRule
         TblScoreRule $tblScoreRule,
         $tblGradeList,
         TblYear $tblYear = null,
-        TblPeriod $tblPeriod = null
+        TblPeriod $tblPeriod = null,
+        $isLevel12 = false
     ){
         // get ScoreCondition
         $tblScoreCondition = false;
@@ -970,7 +974,7 @@ class Service extends ServiceScoreRule
 
                             // check period
                             if (($period = $item->getPeriod())) {
-                                if (($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear))) {
+                                if (($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $isLevel12))) {
                                     $firstPeriod = reset($tblPeriodList);
                                     if ($period == TblScoreCondition::PERIOD_FIRST_PERIOD) {
                                         if ($tblPeriod && $firstPeriod->getId() == $tblPeriod->getId()) {

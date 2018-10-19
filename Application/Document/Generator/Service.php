@@ -398,8 +398,8 @@ class Service extends AbstractService
                 $midTerm = 'I';
                 if (($tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask())
                     && $tblYear
-                    && ($tblPeriodList = $tblYear->getTblPeriodAll())
-                    && ($tblPeriod = $tblAppointedDateTask->getServiceTblPeriod())
+                    && ($tblPeriodList = $tblYear->getTblPeriodAll($tblLevel && $tblLevel->getName() == '12'))
+                    && ($tblPeriod = $tblAppointedDateTask->getServiceTblPeriodByDivision($tblDivision))
                     && ($tblFirstPeriod = current($tblPeriodList))
                     && $tblPeriod->getId() != $tblFirstPeriod->getId()
                 ) {
