@@ -476,6 +476,10 @@ class Frontend extends Extension implements IFrontendInterface
                                             $Year, $countExcused, $countUnexcused);
                                         $date = $date->modify('+1 day');
                                     }
+                                } elseif ($toDate == $fromDate) {
+                                    $this->setStatusForDay($tblPerson, $tblAbsence, $tblYear, $studentTable, $fromDate,
+                                        $Month, $Year,
+                                        $countExcused, $countUnexcused);
                                 }
                             } else {
                                 $this->setStatusForDay($tblPerson, $tblAbsence, $tblYear, $studentTable, $fromDate,
@@ -866,6 +870,14 @@ class Frontend extends Extension implements IFrontendInterface
                                         }
 
                                         $date = $date->modify('+1 day');
+                                    }
+                                } elseif ($fromDate == $toDate) {
+                                    if ($fromDate == $SelectedDate) {
+                                        $Global->POST['Data'][$tblPerson->getId()] = $tblAbsence->getStatus();
+                                    } else {
+                                        $this->setStatusForDay($tblPerson, $tblAbsence, $tblYear, $studentTable, $fromDate,
+                                            $Month, $Year,
+                                            $countExcused, $countUnexcused);
                                     }
                                 }
                             } else {
