@@ -32,6 +32,7 @@ use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupStudentTrans
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewGroupTeacher;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewPerson;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewPersonContact;
+use SPHERE\Application\Reporting\Individual\Service\Entity\ViewProspectCustody;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudent;
 use SPHERE\Application\Reporting\Individual\Service\Entity\ViewStudentCustody;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -1121,7 +1122,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                         $AccordionList[] = new Dropdown( 'Kontakt:', new Scrollable( $Block ) );
                     }
                 }
-                // View only for Students
+                // View only for Student
                 $Block = $this->getPanelList(new ViewStudentCustody(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_STUDENT);
                 if( !empty( $Block ) ) {
                     if( isset($ViewList['ViewStudentCustody']) ) {
@@ -1154,6 +1155,15 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                         $AccordionList[] = new Panel( 'Kontakt:', new Scrollable( $Block, 300 ));
                     } else {
                         $AccordionList[] = new Dropdown( 'Kontakt:', new Scrollable( $Block ) );
+                    }
+                }
+                // View only for Prospect
+                $Block = $this->getPanelList(new ViewProspectCustody(), $WorkSpaceList, TblWorkSpace::VIEW_TYPE_PROSPECT);
+                if( !empty( $Block ) ) {
+                    if( isset($ViewList['ViewProspectCustody']) ) {
+                        $AccordionList[] = new Panel( 'Sorgeberechtigte:', new Scrollable( $Block, 300 ));
+                    } else {
+                        $AccordionList[] = new Dropdown( 'Sorgeberechtigte:', new Scrollable( $Block ) );
                     }
                 }
             break;
