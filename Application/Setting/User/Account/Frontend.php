@@ -1008,7 +1008,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $item['Option'] = new External('', '/Api/Setting/UserAccount/Download', new Download()
                             , array('GroupByTime' => $GroupByTime), 'Download als Excel')
-                        .$PdfButton
+                        .$PdfButton// ->setScrollDown(10000, 1000)
                         .new Standard('', '/Setting/User/Account/Clear', new Remove(),
                             array('GroupByTime' => $GroupByTime),
                             'Entfernen der Klartext Passwörter und des damit verbundenem verfügbaren Download');
@@ -1139,6 +1139,7 @@ class Frontend extends Extension implements IFrontendInterface
         $CompanyDistrict = '';
         $CompanyStreet = '';
         $CompanyCity = '';
+        $CompanyPLZCity = '';
         $CompanyPhone = '';
         $CompanyFax = '';
         $CompanyMail = '';
