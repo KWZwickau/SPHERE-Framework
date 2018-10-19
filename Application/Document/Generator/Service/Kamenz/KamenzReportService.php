@@ -2564,9 +2564,9 @@ class KamenzReportService
                     /** @var TblCourse $tblCourse */
                     if ($level != '5' && $level != '6' && $tblCourse) {
                         if ($tblCourse->getName() == 'Hauptschule') {
-                            $identifier = $identifier = 'SecondarySchoolHs';
+                            $identifier = 'SecondarySchoolHs';
                         } elseif ($tblCourse->getName() == 'Realschule') {
-                            $identifier = $identifier = 'SecondarySchoolRs';
+                            $identifier = 'SecondarySchoolRs';
                         }
                     } else {
                         $identifier = 'SecondarySchool';
@@ -2577,6 +2577,30 @@ class KamenzReportService
             }
         } else {
             $identifier = 'Unknown';
+            // aus der Schülerakte bestimmen SSW-322
+            if (($tblStudent = $tblPerson->getStudent())
+                && ($tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ARRIVE'))
+                && ($tblStudentTransfer = Student::useService()->getStudentTransferByType(
+                    $tblStudent, $tblStudentTransferType
+                ))
+            ) {
+                if (($tblSchoolTypeTransfer = $tblStudentTransfer->getServiceTblType())) {
+                    if ($tblSchoolTypeTransfer->getName() == 'Grundschule') {
+                        $identifier = 'PrimarySchool';
+                    } elseif ($tblSchoolTypeTransfer->getName() == 'Gymnasium') {
+                        $identifier = 'GrammarSchool';
+                    } elseif ($tblSchoolTypeTransfer->getName() == 'Mittelschule / Oberschule') {
+                        $identifier = 'SecondarySchool';
+                        if (($tblCourseTransfer = $tblStudentTransfer->getServiceTblCourse())) {
+                            if($tblCourseTransfer->getName() == 'Hauptschule') {
+                                $identifier = 'SecondarySchoolHs';
+                            } elseif ($tblCourseTransfer->getName() == 'Realschule') {
+                                $identifier = 'SecondarySchoolRs';
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         if ($identifier) {
