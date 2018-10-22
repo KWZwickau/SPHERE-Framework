@@ -21,6 +21,7 @@ use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -88,11 +89,10 @@ class Service extends AbstractService
     /**
      * @param IFormInterface|null $Form
      * @param null $Data
-     * @param TblYear $tblYear
      *
      * @return IFormInterface|string
      */
-    public function createGenerateCertificate(IFormInterface $Form = null, $Data = null, TblYear $tblYear)
+    public function createGenerateCertificate(IFormInterface $Form = null, $Data = null)
     {
 
         /**
@@ -109,6 +109,10 @@ class Service extends AbstractService
         }
         if (!($tblCertificateType = Generator::useService()->getCertificateTypeById($Data['Type']))) {
             $Form->setError('Data[Type]', 'Bitte wählen Sie einen Typ aus');
+            $Error = true;
+        }
+        if (!($tblYear = Term::useService()->getYearById($Data['Year']))) {
+            $Form->setError('Data[Year]', 'Bitte wählen Sie einen Typ aus');
             $Error = true;
         }
 
