@@ -4145,10 +4145,12 @@ class Service extends AbstractService
         }
 
         $tblPerson =  $tblLeaveStudent->getServiceTblPerson();
+        $tblDivision = $tblLeaveStudent->getServiceTblDivision();
 
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Informationen wurden erfolgreich gespeichert.')
             . new Redirect('/Education/Certificate/Prepare/Leave/Student', Redirect::TIMEOUT_SUCCESS, array(
                 'PersonId' => $tblPerson ? $tblPerson->getId() : 0,
+                'DivisionId' => $tblDivision ? $tblDivision->getId() : 0,
             ));
     }
 
@@ -4311,10 +4313,12 @@ class Service extends AbstractService
         }
 
         $tblPerson = $tblLeaveStudent->getServiceTblPerson();
+        $tblDivision = $tblLeaveStudent->getServiceTblDivision();
 
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Informationen wurden erfolgreich gespeichert.')
             . new Redirect('/Education/Certificate/Prepare/Leave/Student', Redirect::TIMEOUT_SUCCESS, array(
                 'PersonId' => $tblPerson ? $tblPerson->getId() : 0,
+                'DivisionId' => $tblDivision ? $tblDivision->getId() : 0
             ));
     }
 }
