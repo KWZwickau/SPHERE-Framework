@@ -68,7 +68,7 @@ class Frontend implements IFrontendInterface
                             Token::useService()->createToken(
                                 $this->formYubiKey()
                                     ->appendFormButton(new Primary('Speichern', new Save()))
-                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+//                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
                                 , $CredentialKey, Consumer::useService()->getConsumerBySession())
                         ))
                     ), new Title(new PlusSign() . ' Hinzufügen')
