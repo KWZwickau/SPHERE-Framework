@@ -494,4 +494,66 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->restoreAbsence($tblAbsence);
     }
+
+    /**
+     * @return false|TblAbsence[]
+     */
+    public function getAbsenceAll()
+    {
+
+        return (new Data($this->getBinding()))->getAbsenceAll();
+    }
+
+    /**
+     * @param \DateTime $dateTime
+     *
+     * @return array
+     */
+    public function getAbsenceAllByDay(\DateTime $dateTime)
+    {
+        $resultList = array();
+        if (($tblAbsenceList = $this->getAbsenceAll())) {
+            foreach ($tblAbsenceList as $tblAbsence) {
+                $isAdd = false;
+                $fromDate = new \DateTime($tblAbsence->getFromDate());
+                if ($fromDate->format('d.m.Y') == $dateTime->format('d.m.Y')) {
+                    $isAdd = true;
+                } elseif ($tblAbsence->getToDate()) {
+                    $toDate = new \DateTime($tblAbsence->getToDate());
+                    if ($fromDate <= $dateTime && $toDate >= $dateTime) {
+                        $isAdd = true;
+                    }
+                }
+
+                if ($isAdd
+                    && ($tblPerson = $tblAbsence->getServiceTblPerson())
+                    && ($tblDivision = $tblAbsence->getServiceTblDivision())
+                    && ($tblLevel = $tblDivision->getTblLevel())
+                    && ($tblType = $tblLevel->getServiceTblType())
+                ) {
+                    $resultList[] = array(
+                        'Type' => $tblType->getName(),
+                        'Division' => $tblDivision->getDisplayName(),
+                        'Person' => $tblPerson->getLastFirstName(),
+                        'DateSpan' => $tblAbsence->getDateSpan(),
+                        'Status' => $tblAbsence->getStatusDisplayName(),
+                        'Remark' => $tblAbsence->getRemark()
+                    );
+                }
+            }
+        }
+
+        // Liste sortieren
+        if (!empty($resultList)) {
+            $type = $division = $person = array();
+            foreach ($resultList as $key => $row) {
+                $type[$key] = strtoupper($row['Type']);
+                $division[$key] = strtoupper($row['Division']);
+                $person[$key] = strtoupper($row['Person']);
+            }
+            array_multisort($type, SORT_ASC, $division, SORT_NATURAL, $person, SORT_ASC, $resultList);
+        }
+
+        return $resultList;
+    }
 }

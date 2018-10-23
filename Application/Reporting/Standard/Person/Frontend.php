@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Reporting\Standard\Person;
 
+use SPHERE\Application\Api\Reporting\Standard\ApiStandard;
 use SPHERE\Application\Api\Setting\UserAccount\ApiUserAccount;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -12,12 +13,14 @@ use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Search\Group\Group;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
+use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
+use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Child;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
@@ -1419,5 +1422,54 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             ))
         );
+    }
+
+    /**
+     * @param null $Date
+     *
+     * @return Stage
+     */
+    public function frontendAbsence($Date = null)
+    {
+        $stage = new Stage('Auswertung', 'Fehlzeiten');
+
+        $stage->setMessage(
+            new Danger('Die dauerhafte Speicherung des Excel-Exports ist datenschutzrechtlich nicht zulässig!', new Exclamation())
+        );
+
+        if ($Date == null) {
+            $global = $this->getGlobal();
+            $global->POST['Date'] = (new \DateTime('now'))->format('d.m.Y');
+            $global->savePost();
+        }
+
+        $receiverContent = ApiStandard::receiverFormSelect(
+            (new ApiStandard())->reloadAbsenceContent()
+        );
+
+        $datePicker = new DatePicker('Date', '', '', new Calendar());
+        $button = (new Primary('Auswählen', ''))->ajaxPipelineOnClick(ApiStandard::pipelineCreateAbsenceContent($receiverContent));
+
+        $stage->setContent(
+           new Form(new FormGroup(new FormRow(array(
+                new FormColumn(
+                    new Panel(
+                        'Datum auswählen',
+                        new Layout (new LayoutGroup(new LayoutRow(array(
+                            new LayoutColumn(
+                                $datePicker, 6
+                            ),
+                            new LayoutColumn(
+                                $button, 6
+                            ),
+                        )))),
+                        Panel::PANEL_TYPE_INFO
+                    )
+                , 4)
+           ))))
+            . $receiverContent
+        );
+
+        return $stage;
     }
 }

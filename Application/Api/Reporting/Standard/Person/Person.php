@@ -260,4 +260,21 @@ class Person
 
         return false;
     }
+
+    /**
+     * @param null $Date
+     *
+     * @return bool|string
+     */
+    public function downloadAbsenceList($Date = null)
+    {
+
+        $dateTime = new \DateTime($Date);
+        if (($fileLocation = ReportingPerson::useService()->createAbsenceListExcel($dateTime))) {
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Fehlzeiten " . $dateTime->format("Y-m-d") . ".xlsx")->__toString();
+        }
+
+        return false;
+    }
 }

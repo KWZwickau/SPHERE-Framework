@@ -14,6 +14,7 @@ use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson as TblToPersonPhone;
 use SPHERE\Application\Document\Storage\FilePointer;
 use SPHERE\Application\Document\Storage\Storage;
+use SPHERE\Application\Education\ClassRegister\Absence\Absence;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
@@ -3216,6 +3217,67 @@ class Service extends Extension
             $Row++;
             $export->setValue($export->getCell("0", $Row), 'Gesamt:');
             $export->setValue($export->getCell("1", $Row), count($tblPersonList));
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param \DateTime $dateTime
+     *
+     * @return bool|FilePointer
+     */
+    public function createAbsenceListExcel(\DateTime $dateTime)
+    {
+
+        $absenceList = Absence::useService()->getAbsenceAllByDay($dateTime);
+        if (!empty($absenceList)) {
+
+            $fileLocation = Storage::createFilePointer('xlsx');
+            /** @var PhpExcel $export */
+            $export = Document::getDocument($fileLocation->getFileLocation());
+
+            $export->setValue($export->getCell(0, 0), $dateTime->format('d.m.Y'));
+
+            $column = 0;
+            $row = 1;
+            $export->setValue($export->getCell($column++, $row), "Schulart");
+            $export->setValue($export->getCell($column++, $row), "Klasse");
+            $export->setValue($export->getCell($column++, $row), "Schüler");
+            $export->setValue($export->getCell($column++, $row), "Zeitraum");
+            $export->setValue($export->getCell($column++, $row), "Status");
+            $export->setValue($export->getCell($column, $row), "Bemerkung");
+
+            // header bold
+            $export->setStyle($export->getCell(0, $row), $export->getCell($column, $row))->setFontBold();
+
+            $row++;
+
+            foreach ($absenceList as $absence) {
+                $column = 0;
+
+                $export->setValue($export->getCell($column++, $row), $absence['Type']);
+                $export->setValue($export->getCell($column++, $row), $absence['Division']);
+                $export->setValue($export->getCell($column++, $row), $absence['Person']);
+                $export->setValue($export->getCell($column++, $row), $absence['DateSpan']);
+                $export->setValue($export->getCell($column++, $row), $absence['Status']);
+                $export->setValue($export->getCell($column, $row), $absence['Remark']);
+
+                $row++;
+            }
+
+            // Spaltenbreite
+            $column = 0;
+            $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(25);
+            $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(10);
+            $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(25);
+            $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(22);
+            $export->setStyle($export->getCell($column, 1), $export->getCell($column++, $row))->setColumnWidth(15);
+            $export->setStyle($export->getCell($column, 1), $export->getCell($column, $row))->setColumnWidth(25);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 

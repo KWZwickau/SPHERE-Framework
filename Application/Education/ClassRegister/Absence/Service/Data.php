@@ -83,6 +83,15 @@ class Data extends AbstractData
     }
 
     /**
+     * @return false|TblAbsence[]
+     */
+    public function getAbsenceAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblAbsence');
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param TblDivision $tblDivision
      * @param $FromDate
