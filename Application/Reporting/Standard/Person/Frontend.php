@@ -30,6 +30,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -1460,7 +1461,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $datePicker, 6
                             ),
                             new LayoutColumn(
-                                $button, 6
+                                new PullRight($button), 6
                             ),
                         )))),
                         Panel::PANEL_TYPE_INFO
