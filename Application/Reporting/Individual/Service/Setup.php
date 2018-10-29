@@ -43,6 +43,8 @@ class Setup extends AbstractSetup
         $Table = $this->createTable($Schema, 'tblPreset');
         $this->createColumn($Table, 'serviceTblAccount', self::FIELD_TYPE_BIGINT);
         $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'IsPublic', self::FIELD_TYPE_BOOLEAN, false, false);
+        $this->createColumn($Table, 'PersonCreator', self::FIELD_TYPE_STRING);
 
         return $Table;
     }

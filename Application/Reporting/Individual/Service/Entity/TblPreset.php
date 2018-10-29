@@ -20,6 +20,8 @@ class TblPreset extends Element
 
     const ATTR_SERVICE_TBL_ACCOUNT = 'serviceTblAccount';
     const ATTR_NAME = 'Name';
+    const ATTR_IS_PUBLIC = 'IsPublic';
+    const ATTR_PERSON_CREATOR = 'PersonCreator';
 
     /**
      * @Column(type="bigint")
@@ -29,6 +31,14 @@ class TblPreset extends Element
      * @Column(type="string")
      */
     protected $Name;
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsPublic;
+    /**
+     * @Column(type="string")
+     */
+    protected $PersonCreator;
 
     /**
      * @return bool|TblAccount
@@ -66,5 +76,37 @@ class TblPreset extends Element
     public function setName($Name)
     {
         $this->Name = $Name;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsPublic()
+    {
+        return $this->IsPublic;
+    }
+
+    /**
+     * @param bool $IsPublic
+     */
+    public function setIsPublic($IsPublic)
+    {
+        $this->IsPublic = $IsPublic;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPersonCreator()
+    {
+        return $this->PersonCreator;
+    }
+
+    /**
+     * @param string $PersonCreator
+     */
+    public function setPersonCreator($PersonCreator)
+    {
+        $this->PersonCreator = $PersonCreator;
     }
 }

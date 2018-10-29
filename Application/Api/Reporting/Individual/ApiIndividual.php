@@ -41,6 +41,7 @@ use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary as Submit;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -753,22 +754,30 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         $TableContent = array();
 
         if ($tblPresetList) {
-            array_walk($tblPresetList, function (TblPreset $tblPreset) use (&$TableContent, $ViewType) {
+            $tblAccount = Account::useService()->getAccountBySession();
+            array_walk($tblPresetList, function (TblPreset $tblPreset) use (&$TableContent, $ViewType, $tblAccount) {
 
                 $Item['Name'] = $tblPreset->getName();
+                $Item['IsPublic'] = ($tblPreset->getIsPublic() ? new SuccessText(new Check()) : new DangerText(new Disable()));
+                $Item['PersonCreator'] = $tblPreset->getPersonCreator();
                 $Item['EntityCreate'] = $tblPreset->getEntityCreate();
                 $Item['FieldCount'] = '';
                 $Item['Option'] = '';
                 $tblPresetSetting = Individual::useService()->getPresetSettingAllByPreset($tblPreset, $ViewType);
+                $tblAccountPreset = $tblPreset->getServiceTblAccount();
 
                 if ($tblPresetSetting) {
-                    $Item['FieldCount'] = count($tblPresetSetting);
+//                    $Item['FieldCount'] = count($tblPresetSetting);
                     $ViewTypeFound = $tblPresetSetting[0]->getViewType();
 
                     $Item['Option'] = (new Standard('', self::getEndpoint(), new Check(), array(), 'Laden der Vorlage'))
-                            ->ajaxPipelineOnClick(ApiIndividual::pipelineLoadPreset($tblPreset->getId(), $ViewTypeFound))
-                        .(new Standard('', self::getEndpoint(), new Remove(), array(), 'Löschen der Vorlage'))
+                            ->ajaxPipelineOnClick(ApiIndividual::pipelineLoadPreset($tblPreset->getId(), $ViewTypeFound));
+                    if($tblAccount
+                        && $tblAccountPreset
+                        && $tblAccount->getId() == $tblAccountPreset->getId()) {
+                        $Item['Option'] .= (new Standard('', self::getEndpoint(), new Remove(), array(), 'Löschen der Vorlage'))
                             ->ajaxPipelineOnClick(ApiIndividual::pipelineDeletePreset($tblPreset->getId(), $ViewTypeFound));
+                    }
                 }
 
                 // display only Filter that match the ViewType
@@ -784,18 +793,22 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
         $Content = new Layout(
             new LayoutGroup(
-                new LayoutRow(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new Title('Vorhandene Vorlagen')
+                    ),
                     new LayoutColumn(
                         new TableData($TableContent, null,
                             array(
-                                'Name'         => 'Name der Vorlage',
-//                                'FieldCount'   => 'Anzahl gewählter Felder',
-                                'EntityCreate' => 'Speicherdatum',
-                                'Option'       => ''
+                                'Name'          => 'Name der Vorlage',
+                                'IsPublic'      => 'Öffentlich',
+                                'PersonCreator' => 'Ersteller',
+                                'EntityCreate'  => 'Speicherdatum',
+                                'Option'        => ''
                             ))
                         .$Info
                     )
-                )
+                ))
             )
         );
 
@@ -886,27 +899,14 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         if ($tblPresetList) {
             array_walk($tblPresetList, function (TblPreset $tblPreset) use (&$TableContent, $viewStudent, $ViewType) {
                 $Item['Name'] = $tblPreset->getName();
+                $Item['IsPublic'] = ($tblPreset->getIsPublic() ? new SuccessText(new Check()) : new DangerText(new Disable()));
+                $Item['PersonCreator'] = $tblPreset->getPersonCreator();
                 $Item['EntityCreate'] = $tblPreset->getEntityCreate();
-                $Item['FieldCount'] = '';
 
                 $tblPresetSettingList = Individual::useService()->getPresetSettingAllByPreset($tblPreset, $ViewType);
                 $ViewTypeControl = '';
                 if ($tblPresetSettingList) {
-                    $ViewTypeControl = $tblPresetSettingList[0]->getViewType();
-                    $FieldCount = count($tblPresetSettingList);
-//                    //Anzeige der Felder als Accordion
-//                    $FieldList = array();
-//                    foreach($tblPresetSettingList as $tblPresetSetting){
-//                        if($tblPresetSetting->getView() == 'ViewStudent'){
-//                            $FieldList[] =  $viewStudent->getNameDefinition($tblPresetSetting->getField());
-//                        } else {
-//                            $FieldList[] =  $tblPresetSetting->getField();
-//                        }
-//                    }
-//                    $Item['FieldCount'] = (new Accordion())
-//                        ->addItem($FieldCount.' Felder ',(new Listing($FieldList)));
-
-                    $Item['FieldCount'] = $FieldCount;
+                    $ViewTypeControl = current($tblPresetSettingList)->getViewType();
                 }
                 if($ViewTypeControl == $ViewType){
                     array_push($TableContent, $Item);
@@ -919,7 +919,8 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                 new FormRow(array(
                     new FormColumn(
                         new Panel('Speichern', array(
-                            new TextField('PresetName', 'Name', 'Name der Vorlage')
+                            new TextField('PresetName', 'Name', 'Name der Vorlage'),
+                            new CheckBox('IsPublic', 'Vorlage ist Öffentlich', 1),
                         ), Panel::PANEL_TYPE_INFO)
                     ),
                     new FormColumn((new Primary('Speichern', self::getEndpoint(), new Save()))
@@ -944,9 +945,11 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     new LayoutColumn(
                         new TableData($TableContent, null,
                             array(
-                                'Name'         => 'Name der Vorlage',
-                                'FieldCount'   => 'Anzahl gewählter Felder',
-                                'EntityCreate' => 'Speicherdatum'
+                                'Name'          => 'Name der Vorlage',
+                                'IsPublic'      => 'Öffentlich',
+                                'PersonCreator' => 'Auswertung von',
+                                'EntityCreate'  => 'Speicherdatum'
+//                                'Option'    => ''
                             ))
                     ),
                     new LayoutColumn(
@@ -971,7 +974,17 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
         $tblWorkSpaceList = Individual::useService()->getWorkSpaceAll($ViewType);
         if ($tblWorkSpaceList && $PresetName) {
-            $tblPreset = Individual::useService()->createPreset($PresetName);
+            $Global = $this->getGlobal();
+            $Post = $Global->POST;
+            $IsPublic = false;
+            if(!empty($Post)){
+                foreach($Post as $Key => $value){
+                    if(isset($Global->POST['IsPublic'])){
+                        $IsPublic = true;
+                    }
+                }
+            }
+            $tblPreset = Individual::useService()->createPreset($PresetName, $IsPublic);
             foreach ($tblWorkSpaceList as $tblWorkSpace) {
                 Individual::useService()->createPresetSetting($tblPreset, $tblWorkSpace);
             }

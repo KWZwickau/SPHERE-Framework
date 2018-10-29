@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Reporting\Individual;
 
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Reporting\Individual\Service\Data;
@@ -90,7 +91,27 @@ class Service extends AbstractService
     {
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount) {
-            return (new Data($this->getBinding()))->gePresetAllByAccount($tblAccount);
+            $tblPresetList = array();
+            $PresetPublic = (new Data($this->getBinding()))->gePresetAllByPublic();
+            $PresetOwn = (new Data($this->getBinding()))->gePresetAllByAccount($tblAccount);
+
+            // add Own Preset's
+            if($PresetOwn){
+                foreach($PresetOwn as $tblPreset){
+                    $tblPresetList[$tblPreset->getId()] = $tblPreset;
+                }
+            }
+            // add Public Preset's
+            if($PresetPublic){
+                foreach($PresetPublic as $tblPreset){
+                    $tblPresetList[$tblPreset->getId()] = $tblPreset;
+                }
+            }
+            // return false if empty
+            if(empty($tblPresetList)){
+                $tblPresetList = false;
+            }
+            return $tblPresetList;
         }
         return false;
     }
@@ -139,15 +160,24 @@ class Service extends AbstractService
 
     /**
      * @param string $Name
+     * @param bool   $IsPublic
      *
      * @return bool|TblPreset
      */
-    public function createPreset($Name = '')
+    public function createPreset($Name = '', $IsPublic = false)
     {
 
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount) {
-            return (new Data($this->getBinding()))->createPreset($tblAccount, $Name);
+            $PersonCreator = '';
+            if(($tblPersonList = Account::useService()->getPersonAllByAccount($tblAccount))){
+                /** @var TblPerson $tblPerson */
+                $tblPerson = current($tblPersonList);
+//                $FirstLetter = substr($tblPerson->getFirstName(), 0, 1);
+                $PersonCreator = $tblPerson->getLastFirstName();
+            }
+
+            return (new Data($this->getBinding()))->createPreset($tblAccount, $Name, $IsPublic, $PersonCreator);
         }
         return false;
     }

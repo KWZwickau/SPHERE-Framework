@@ -79,6 +79,17 @@ class Data extends AbstractData
     }
 
     /**
+     * @return bool|TblWorkSpace[]
+     */
+    public function gePresetAllByPublic()
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPreset', array(
+            TblPreset::ATTR_IS_PUBLIC => true
+        ));
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblPresetSetting
@@ -202,15 +213,19 @@ class Data extends AbstractData
     /**
      * @param TblAccount $tblAccount
      * @param string     $Name
+     * @param bool       $IsPublic
+     * @param string     $PersonCreator
      *
      * @return TblPreset
      */
-    public function createPreset(TblAccount $tblAccount, $Name)
+    public function createPreset(TblAccount $tblAccount, $Name, $IsPublic = false, $PersonCreator = '')
     {
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = new TblPreset();
         $Entity->setServiceTblAccount($tblAccount);
         $Entity->setName($Name);
+        $Entity->setIsPublic($IsPublic);
+        $Entity->setPersonCreator($PersonCreator);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         return $Entity;
