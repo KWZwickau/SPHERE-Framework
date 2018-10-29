@@ -128,16 +128,20 @@ class StudentSelect extends Extension implements IApiInterface
         $tblStudentList = false;
         if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))
             && ($tblStudentList = Group::useService()->getPersonAllByGroup($tblGroup))  // Alle Schüler
-            && $tblDivision->getTblLevel()
+            && ($tblLevel = $tblDivision->getTblLevel())
             && ($tblYear = $tblDivision->getServiceTblYear())
-            && ($tblDivisionList = DivisionApplication::useService()->getDivisionByYear($tblDivision->getServiceTblYear()))
         ) {
-            foreach ($tblDivisionList as $tblSingleDivision) {
-                if (($tblDivisionStudentList = DivisionApplication::useService()->getStudentAllByDivision($tblSingleDivision))) {
-                    $tblStudentList = array_udiff($tblStudentList, $tblDivisionStudentList,
-                        function (TblPerson $tblPersonA, TblPerson $tblPersonB) {
-                            return $tblPersonA->getId() - $tblPersonB->getId();
-                        });
+            // Schüler darf nur in einer festen Klasse sein (keine Jahrgangsübergreifende Klasse
+            if (!$tblLevel->getIsChecked()
+                && ($tblDivisionList = DivisionApplication::useService()->getDivisionByYear($tblDivision->getServiceTblYear()))
+            ) {
+                foreach ($tblDivisionList as $tblSingleDivision) {
+                    if (($tblDivisionStudentList = DivisionApplication::useService()->getStudentAllByDivision($tblSingleDivision))) {
+                        $tblStudentList = array_udiff($tblStudentList, $tblDivisionStudentList,
+                            function (TblPerson $tblPersonA, TblPerson $tblPersonB) {
+                                return $tblPersonA->getId() - $tblPersonB->getId();
+                            });
+                    }
                 }
             }
         }
