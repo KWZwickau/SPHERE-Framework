@@ -1113,12 +1113,12 @@ class Frontend extends Extension implements IFrontendInterface
             new FormRow(array(
                 new FormColumn(array(
                     new Panel('Ersteinschulung', array(
-
                         ApiMassReplace::receiverField((
-                        $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeEnrollment->getId().'][School]',
-                            'Schule', array(
-                                '{{ Name }} {{ ExtendedName }} {{ Description }}' => $useCompanyAllSchoolEnrollment
-                            ), new Education())
+                            $Field = (new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeEnrollment->getId().'][School]',
+                                'Schule', array(
+                                    '{{ Name }} {{ ExtendedName }} {{ Description }}' => $useCompanyAllSchoolEnrollment
+                                ))
+                            )->configureLibrary(SelectBox::LIBRARY_SELECT2)
                         ))
                         .ApiMassReplace::receiverModal($Field, $NodeEnrollment)
                         .new PullRight((new Link('Massen-Änderung',
@@ -1242,11 +1242,11 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormColumn(array(
                     new Panel('Schüler - Aufnahme', array(
                         ApiMassReplace::receiverField((
-                        $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][School]',
+                        $Field = (new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][School]',
                             'Abgebende Schule / Kita', array(
                                 '{{ Name }} {{ ExtendedName }} {{ Description }}' => $useCompanyAllSchoolArrive
-                            ), new Education())
-                        ))
+                            ))
+                        )->configureLibrary(SelectBox::LIBRARY_SELECT2)))
                         .ApiMassReplace::receiverModal($Field, $NodeArrive)
                         .new PullRight((new Link('Massen-Änderung',
                             ApiMassReplace::getEndpoint(), null, array(
@@ -1348,11 +1348,11 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormColumn(array(
                     new Panel('Schüler - Abgabe', array(
                         ApiMassReplace::receiverField((
-                        $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][School]',
+                        $Field = (new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeLeave->getId().'][School]',
                             'Aufnehmende Schule', array(
                                 '{{ Name }} {{ ExtendedName }} {{ Description }}' => $useCompanyAllSchoolLeave
-                            ), new Education())
-                        ))
+                            ))
+                        )->configureLibrary(SelectBox::LIBRARY_SELECT2)))
                         .ApiMassReplace::receiverModal($Field, $NodeLeave)
                         .new PullRight((new Link('Massen-Änderung',
                             ApiMassReplace::getEndpoint(), null, array(
@@ -1457,11 +1457,11 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormColumn(array(
                     new Panel('Schulverlauf', array(
                         ApiMassReplace::receiverField((
-                        $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]',
+                        $Field = (new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]',
                             'Aktuelle Schule', array(
                                 '{{ Name }} {{ ExtendedName }} {{ Description }}' => $useCompanyAllSchoolProcess
-                            ), new Education())
-                        ))
+                            ))
+                        )->configureLibrary(SelectBox::LIBRARY_SELECT2)))
                         .ApiMassReplace::receiverModal($Field, $NodeProcess)
                         .new PullRight((new Link('Massen-Änderung',
                             ApiMassReplace::getEndpoint(), null, array(
