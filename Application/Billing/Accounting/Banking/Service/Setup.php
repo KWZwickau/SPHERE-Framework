@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\Billing\Accounting\Banking\Service;
 
-use Doctrine\Common\Annotations\Annotation\Target;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\System\Database\Binding\AbstractSetup;
@@ -47,13 +46,10 @@ class Setup extends AbstractSetup
     private function setTableDebtor(Schema &$Schema)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblDebtor');
-        if (!$this->getConnection()->hasColumn('tblDebtor', 'DebtorNumber')) {
-            $Table->addColumn('DebtorNumber', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblDebtor', 'serviceTblPerson')) {
-            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
-        }
+        $Table = $this->createTable($Schema, 'tblDebtor');
+        $this->createColumn($Table, 'DebtorNumber', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
+
         return $Table;
     }
 
@@ -65,29 +61,14 @@ class Setup extends AbstractSetup
     private function setTableBankReference(Schema &$Schema)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblBankReference');
+        $Table = $this->createTable($Schema, 'tblBankReference');
+        $this->createColumn($Table, 'ReferenceDate', self::FIELD_TYPE_STRING, true);
+        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'BankName', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'IBAN', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'BIC', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Owner', self::FIELD_TYPE_STRING);
 
-        if (!$this->getConnection()->hasColumn('tblBankReference', 'Reference')) {
-            $Table->addColumn('Reference', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblBankReference', 'ReferenceDate')) {
-            $Table->addColumn('ReferenceDate', 'date', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblBankReference', 'serviceTblPerson')) {
-            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblBankReference', 'BankName')) {
-            $Table->addColumn('BankName', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblBankReference', 'IBAN')) {
-            $Table->addColumn('IBAN', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblBankReference', 'BIC')) {
-            $Table->addColumn('BIC', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblBankReference', 'Owner')) {
-            $Table->addColumn('Owner', 'string');
-        }
         return $Table;
     }
 
@@ -101,21 +82,11 @@ class Setup extends AbstractSetup
     private function setTableDebtorSelection(Schema &$Schema, Table $tblDebtor, Table $tblBankReference)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblDebtorSelection');
-
-        if (!$this->getConnection()->hasColumn('tblDebtorSelection', 'serviceTblPerson')) {
-            $Table->addColumn('serviceTblPerson', 'bigint');
-        }
-        if (!$this->getConnection()->hasColumn('tblDebtorSelection', 'serviceTblPersonPayers')) {
-            $Table->addColumn('serviceTblPersonPayers', 'bigint');
-        }
-        if (!$this->getConnection()->hasColumn('tblDebtorSelection', 'serviceTblItem')) {
-            $Table->addColumn('serviceTblItem', 'bigint');
-        }
-        if (!$this->getConnection()->hasColumn('tblDebtorSelection', 'serviceTblPaymentType')) {
-            $Table->addColumn('serviceTblPaymentType', 'bigint');
-        }
-
+        $Table = $this->createTable($Schema, 'tblDebtorSelection');
+        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblPersonPayers', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblItem', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblPaymentType', self::FIELD_TYPE_BIGINT, true);
         $this->getConnection()->addForeignKey($Table, $tblDebtor, true);
         $this->getConnection()->addForeignKey($Table, $tblBankReference, true);
 

@@ -45,25 +45,14 @@ class Setup extends AbstractSetup
     private function setTableSchoolAccount(Schema &$Schema)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblSchoolAccount');
-        if (!$this->getConnection()->hasColumn('tblSchoolAccount', 'BankName')) {
-            $Table->addColumn('BankName', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblSchoolAccount', 'IBAN')) {
-            $Table->addColumn('IBAN', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblSchoolAccount', 'BIC')) {
-            $Table->addColumn('BIC', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblSchoolAccount', 'Owner')) {
-            $Table->addColumn('Owner', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblSchoolAccount', 'serviceTblCompany')) {
-            $Table->addColumn('serviceTblCompany', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblSchoolAccount', 'serviceTblType')) {
-            $Table->addColumn('serviceTblType', 'bigint', array('notnull' => false));
-        }
+        $Table = $this->createTable($Schema, 'tblSchoolAccount');
+        $this->createColumn($Table, 'BankName', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'IBAN', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'BIC', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Owner', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'serviceTblCompany', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblType', self::FIELD_TYPE_BIGINT, true);
+
         return $Table;
     }
 }

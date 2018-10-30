@@ -92,7 +92,7 @@ class Banking implements IModuleInterface
     public static function useService()
     {
 
-        return new Service(new Identifier('Billing', 'Accounting', 'Banking', null,
+        return new Service(new Identifier('Billing', 'Invoice', null, null,
             Consumer::useService()->getConsumerBySession()),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );

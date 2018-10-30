@@ -47,10 +47,8 @@ class Setup extends AbstractSetup
     private function setTableItemType(Schema &$Schema)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblItemType');
-        if (!$this->getConnection()->hasColumn('tblItemType', 'Name')) {
-            $Table->addColumn('Name', 'string');
-        }
+        $Table = $this->createTable($Schema, 'tblItemType');
+        $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
 
         return $Table;
     }
@@ -64,14 +62,9 @@ class Setup extends AbstractSetup
     private function setTableItem(Schema &$Schema, Table $tblItemType)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblItem');
-        if (!$this->getConnection()->hasColumn('tblItem', 'Name')) {
-            $Table->addColumn('Name', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblItem', 'Description')) {
-            $Table->addColumn('Description', 'text');
-        }
-
+        $Table = $this->createTable($Schema, 'tblItem');
+        $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Description', self::FIELD_TYPE_TEXT);
         $this->getConnection()->addForeignKey($Table, $tblItemType);
 
         return $Table;
@@ -85,16 +78,12 @@ class Setup extends AbstractSetup
     private function setTableCalculation(Schema &$Schema)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblCalculation');
+        $Table = $this->createTable($Schema, 'tblCalculation');
         if (!$this->getConnection()->hasColumn('tblCalculation', 'Value')) {
             $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
         }
-        if (!$this->getConnection()->hasColumn('tblCalculation', 'serviceTblSiblingRank')) {
-            $Table->addColumn('serviceTblSiblingRank', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblCalculation', 'serviceTblType')) {
-            $Table->addColumn('serviceTblType', 'bigint', array('notnull' => false));
-        }
+        $this->createColumn($Table, 'serviceTblSiblingRank', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblType', self::FIELD_TYPE_BIGINT, true);
 
         return $Table;
     }
@@ -107,7 +96,7 @@ class Setup extends AbstractSetup
     private function setTableItemCalculation(Schema &$Schema, Table $tblItem, Table $tblCalculation)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblItemCalculation');
+        $Table = $this->createTable($Schema, 'tblItemCalculation');
         $this->getConnection()->addForeignKey($Table, $tblItem);
         $this->getConnection()->addForeignKey($Table, $tblCalculation);
     }
@@ -121,12 +110,8 @@ class Setup extends AbstractSetup
     private function setTableItemAccount(Schema &$Schema, Table $tblItem)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblItemAccount');
-
-        if (!$this->getConnection()->hasColumn('tblItemAccount', 'serviceTblAccount')) {
-            $Table->addColumn('serviceTblAccount', 'bigint');
-        }
-
+        $Table = $this->createTable($Schema, 'tblItemAccount');
+        $this->createColumn($Table, 'serviceTblAccount', self::FIELD_TYPE_BIGINT, true);
         $this->getConnection()->addForeignKey($Table, $tblItem);
 
         return $Table;

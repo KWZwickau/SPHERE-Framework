@@ -12,14 +12,14 @@ use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity
- * @Table(name="tblInvoiceItem")
+ * @Table(name="tblInvoiceItemValue")
  * @Cache(usage="READ_ONLY")
  */
-class TblInvoiceItem extends Element
+class TblInvoiceItemValue extends Element
 {
 
     const ATTR_TBL_INVOICE = 'tblInvoice';
-    const ATTR_TBL_ITEM = 'tblItem';
+    const ATTR_TBL_ITEM_VALUE = 'tblItemValue';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_TBL_DEBTOR = 'tblDebtor';
 
@@ -30,7 +30,7 @@ class TblInvoiceItem extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $tblItem;
+    protected $tblItemValue;
     /**
      * @Column(type="bigint")
      */
@@ -63,25 +63,25 @@ class TblInvoiceItem extends Element
     }
 
     /**
-     * @return bool|TblItem
+     * @return bool|TblItemValue
      */
     public function getTblItem()
     {
 
-        if (null === $this->tblItem) {
+        if (null === $this->tblItemValue) {
             return false;
         } else {
-            return Invoice::useService()->getItemById($this->tblItem);
+            return Invoice::useService()->getItemById($this->tblItemValue);
         }
     }
 
     /**
-     * @param null|TblItem $tblItem
+     * @param null|TblItemValue $tblItemValue
      */
-    public function setTblItem(TblItem $tblItem = null)
+    public function setTblItem(TblItemValue $tblItemValue = null)
     {
 
-        $this->tblItem = ( null === $tblItem ? null : $tblItem->getId() );
+        $this->tblItemValue = ( null === $tblItemValue ? null : $tblItemValue->getId() );
     }
 
     /**

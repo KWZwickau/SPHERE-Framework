@@ -49,7 +49,7 @@ class Commodity implements IModuleInterface
     public static function useService()
     {
 
-        return new Service(new Identifier('Billing', 'Inventory', 'Commodity', null,
+        return new Service(new Identifier('Billing', 'Invoice', null, null,
             Consumer::useService()->getConsumerBySession()),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );

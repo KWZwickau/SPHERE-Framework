@@ -25,8 +25,8 @@ class Setup extends AbstractSetup
          * Table
          */
         $Schema = clone $this->getConnection()->getSchema();
-        $this->setTableCommodity($Schema);
-        $this->setTableCommodityItem($Schema);
+        $tblComodity = $this->setTableCommodity($Schema);
+        $this->setTableCommodityItem($Schema, $tblComodity);
 
         /**
          * Migration & Protocol
@@ -44,14 +44,9 @@ class Setup extends AbstractSetup
     private function setTableCommodity(Schema &$Schema)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblCommodity');
-
-        if (!$this->getConnection()->hasColumn('tblCommodity', 'Name')) {
-            $Table->addColumn('Name', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblCommodity', 'Description')) {
-            $Table->addColumn('Description', 'text');
-        }
+        $Table = $this->createTable($Schema, 'tblCommodity');
+        $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Description', self::FIELD_TYPE_TEXT);
 
         return $Table;
     }
@@ -61,20 +56,18 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTableCommodityItem(Schema &$Schema)
+    private function setTableCommodityItem(Schema &$Schema, Table $tblComodity)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblCommodityItem');
-
+        $Table = $this->createTable($Schema, 'tblCommodityItem');
         if (!$this->getConnection()->hasColumn('tblCommodityItem', 'Quantity')) {
             $Table->addColumn('Quantity', 'decimal', array('precision' => 14, 'scale' => 4));
         }
+        $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
         if (!$this->getConnection()->hasColumn('tblCommodityItem', 'tblItem')) {
             $Table->addColumn('tblItem', 'bigint');
         }
-        if (!$this->getConnection()->hasColumn('tblCommodityItem', 'tblCommodity')) {
-            $Table->addColumn('tblCommodity', 'bigint');
-        }
+        $this->getConnection()->addForeignKey($Table, $tblComodity);
 
         return $Table;
     }

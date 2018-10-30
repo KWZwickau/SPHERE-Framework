@@ -9,8 +9,8 @@ use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Data;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblDebtor;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
-use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItem;
-use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblItem;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemValue;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblItemValue;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Setup;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
@@ -113,7 +113,7 @@ class Service extends AbstractService
     /**
      * @param $Id
      *
-     * @return false|TblItem
+     * @return false|TblItemValue
      */
     public function getItemById($Id)
     {
@@ -135,7 +135,7 @@ class Service extends AbstractService
     /**
      * @param TblInvoice $tblInvoice
      *
-     * @return bool|TblInvoiceItem[]
+     * @return bool|TblInvoiceItemValue[]
      */
     public function getInvoiceItemAllByInvoice(TblInvoice $tblInvoice)
     {
@@ -159,7 +159,7 @@ class Service extends AbstractService
     /**
      * @param TblInvoice $tblInvoice
      *
-     * @return false|TblItem[]
+     * @return false|TblItemValue[]
      */
     public function getItemAllByInvoice(TblInvoice $tblInvoice)
     {
@@ -190,12 +190,12 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblInvoice $tblInvoice
-     * @param TblItem    $tblItem
+     * @param TblInvoice   $tblInvoice
+     * @param TblItemValue $tblItem
      *
      * @return bool|TblPerson
      */
-    public function getPersonByInvoiceAndItem(TblInvoice $tblInvoice, TblItem $tblItem)
+    public function getPersonByInvoiceAndItem(TblInvoice $tblInvoice, TblItemValue $tblItem)
     {
 
         return (new Data($this->getBinding()))->getPersonByInvoiceAndItem($tblInvoice, $tblItem);
@@ -214,12 +214,12 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblInvoice $tblInvoice
-     * @param TblItem    $tblItem
+     * @param TblInvoice   $tblInvoice
+     * @param TblItemValue $tblItem
      *
      * @return bool|TblDebtor
      */
-    public function getDebtorByInvoiceAndItem(TblInvoice $tblInvoice, TblItem $tblItem)
+    public function getDebtorByInvoiceAndItem(TblInvoice $tblInvoice, TblItemValue $tblItem)
     {
 
         return (new Data($this->getBinding()))->getDebtorByInvoiceAndItem($tblInvoice, $tblItem);
