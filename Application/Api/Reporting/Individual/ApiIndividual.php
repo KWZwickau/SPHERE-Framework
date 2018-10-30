@@ -508,10 +508,11 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
     /**
      * @param string $ViewType
+     * @param array  $newPost
      *
      * @return Pipeline
      */
-    public static function pipelinePresetSave($ViewType = TblWorkSpace::VIEW_TYPE_ALL)
+    public static function pipelinePresetSave($ViewType = TblWorkSpace::VIEW_TYPE_ALL, $newPost = array())
     {
 
         $Pipeline = new Pipeline();
@@ -520,9 +521,8 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'createPreset'
         ));
-        $Emitter->setPostPayload(array(
-            'ViewType' => $ViewType
-        ));
+        $newPost = array_merge($newPost, array('ViewType' => $ViewType));
+        $Emitter->setPostPayload($newPost);
         $Pipeline->appendEmitter($Emitter);
 
         return $Pipeline;
@@ -543,10 +543,11 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
     /**
      * @param bool   $isLoadFilter
      * @param string $ViewType
+     * @param null   $PresetId
      *
      * @return Pipeline
      */
-    public static function pipelineNavigation($isLoadFilter = true, $ViewType = TblWorkSpace::VIEW_TYPE_ALL)
+    public static function pipelineNavigation($isLoadFilter = true, $ViewType = TblWorkSpace::VIEW_TYPE_ALL, $PresetId = null)
     {
 
         $Pipeline = new Pipeline();
@@ -583,6 +584,11 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     }
                 }
             }
+            // hinzufügen der Post's wenn es geladen wird
+            if(null !== $PresetId && ($tblPreset = Individual::useService()->getPresetById($PresetId))){
+                $PostArray = array_merge($PostArray, $tblPreset->getPostValue());
+            }
+
             $Emitter->setPostPayload($PostArray);
             $Pipeline->appendEmitter($Emitter);
         }
@@ -805,6 +811,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 
                 $Item['Name'] = $tblPreset->getName();
                 $Item['IsPublic'] = ($tblPreset->getIsPublic() ? new SuccessText(new Check()) : new DangerText(new Disable()));
+                $Item['IsPost'] = (!empty($tblPreset->getPostValue()) ? new SuccessText('Filterung hinterlegt') : new SuccessText('Filterung leer'));
                 $Item['PersonCreator'] = $tblPreset->getPersonCreator();
                 $Item['EntityCreate'] = $tblPreset->getEntityCreate();
                 $Item['FieldCount'] = '';
@@ -861,6 +868,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                         new TableData($TableContent, null,
                             array(
                                 'Name'          => 'Name der Vorlage',
+                                'IsPost'        => 'Vorbelegung',
                                 'IsPublic'      => 'Öffentlich',
                                 'PersonCreator' => 'Ersteller',
                                 'EntityCreate'  => 'Speicherdatum',
@@ -903,7 +911,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
             }
 
 //            $Info = 'Laden erfolgreich';
-            return ApiIndividual::pipelineNavigation(true, $ViewType)
+            return ApiIndividual::pipelineNavigation(true, $ViewType, $PresetId)
                 .ApiIndividual::pipelineCloseModal();
         }
 
@@ -952,6 +960,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
     public function getModalSavePreset($Info = '', $ViewType = TblWorkSpace::VIEW_TYPE_ALL)
     {
 
+        $Global = $this->getGlobal();
+        $Post = $Global->POST;
+
         $tblPresetList = Individual::useService()->getPresetAll();
         $TableContent = array();
         $viewStudent = new ViewStudent();
@@ -959,6 +970,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         if ($tblPresetList) {
             array_walk($tblPresetList, function (TblPreset $tblPreset) use (&$TableContent, $viewStudent, $ViewType) {
                 $Item['Name'] = $tblPreset->getName();
+                $Item['IsPost'] = (!empty($tblPreset->getPostValue()) ? new SuccessText('hinterlegt') : new SuccessText('leer'));
                 $Item['IsPublic'] = ($tblPreset->getIsPublic() ? new SuccessText(new Check()) : new DangerText(new Disable()));
                 $Item['PersonCreator'] = $tblPreset->getPersonCreator();
                 $Item['EntityCreate'] = $tblPreset->getEntityCreate();
@@ -981,10 +993,11 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                         new Panel('Speichern', array(
                             new TextField('PresetName', 'Name', 'Name der Vorlage'),
                             new CheckBox('IsPublic', 'Vorlage Veröffentlichen', 1),
+                            new CheckBox('WithPost', 'Filterinhalt speichern', 1)
                         ), Panel::PANEL_TYPE_INFO)
                     ),
                     new FormColumn((new Primary('Speichern', self::getEndpoint(), new Save()))
-                        ->ajaxPipelineOnClick(ApiIndividual::pipelinePresetSave($ViewType))
+                        ->ajaxPipelineOnClick(ApiIndividual::pipelinePresetSave($ViewType, $Post))
                     )
                 ))
             )
@@ -1007,6 +1020,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                             array(
                                 'Name'          => 'Name der Vorlage',
                                 'IsPublic'      => 'Öffentlich',
+                                'IsPost'        => 'Filterung',
                                 'PersonCreator' => 'Ersteller',
                                 'EntityCreate'  => 'Speicherdatum'
 //                                'Option'    => ''
@@ -1036,15 +1050,21 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         if ($tblWorkSpaceList && $PresetName) {
             $Global = $this->getGlobal();
             $Post = $Global->POST;
+            $ShrinkPost = array();
             $IsPublic = false;
             if(!empty($Post)){
                 foreach($Post as $Key => $value){
+                    if(isset($Global->POST['WithPost'])) {
+                        if (strpos($Key, "Tbl") !== false) {
+                            $ShrinkPost[$Key] = $value;
+                        }
+                    }
                     if(isset($Global->POST['IsPublic'])){
                         $IsPublic = true;
                     }
                 }
             }
-            $tblPreset = Individual::useService()->createPreset($PresetName, $IsPublic);
+            $tblPreset = Individual::useService()->createPreset($PresetName, $IsPublic, $ShrinkPost);
             foreach ($tblWorkSpaceList as $tblWorkSpace) {
                 Individual::useService()->createPresetSetting($tblPreset, $tblWorkSpace);
             }

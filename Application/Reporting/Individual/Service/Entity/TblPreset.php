@@ -39,6 +39,10 @@ class TblPreset extends Element
      * @Column(type="string")
      */
     protected $PersonCreator;
+    /**
+     * @Column(type="string")
+     */
+    protected $PostValue;
 
     /**
      * @return bool|TblAccount
@@ -115,5 +119,26 @@ class TblPreset extends Element
     public function setPersonCreator($PersonCreator)
     {
         $this->PersonCreator = $PersonCreator;
+    }
+
+    /**
+     * @return array
+     */
+    public function getPostValue()
+    {
+        $return = array();
+        if($this->PostValue){
+            $return = json_decode($this->PostValue, true);
+        }
+        return $return;
+    }
+
+    /**
+     * @param array $PostValue
+     */
+    public function setPostValue($PostValue)
+    {
+        $json = json_encode($PostValue);
+        $this->PostValue = $json;
     }
 }
