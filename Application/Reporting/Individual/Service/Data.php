@@ -211,6 +211,33 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblPreset $tblPreset
+     * @param bool      $IsPublic
+     *
+     * @return bool
+     */
+    public function changePresetIsPublic(TblPreset $tblPreset, $IsPublic)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblPreset $Entity */
+        $Entity = $Manager->getEntityById('TblPreset', $tblPreset->getId());
+        $Protocol = clone $Entity;
+
+        if (null !== $Entity) {
+            $Entity->setIsPublic($IsPublic);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+
+    }
+
+    /**
      * @param TblAccount $tblAccount
      * @param string     $Name
      * @param bool       $IsPublic

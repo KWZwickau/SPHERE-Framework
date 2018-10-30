@@ -229,6 +229,19 @@ class Service extends AbstractService
     }
 
     /**
+     *
+     * @param TblPreset $tblPreset
+     * @param bool      $IsPublic
+     *
+     * @return bool
+     */
+    public function changePresetIsPublic(TblPreset $tblPreset, $IsPublic)
+    {
+
+        return (new Data($this->getBinding()))->changePresetIsPublic($tblPreset, $IsPublic);
+    }
+
+    /**
      * @param TblWorkSpace $tblWorkSpace
      *
      * @return bool

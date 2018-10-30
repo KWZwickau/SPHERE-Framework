@@ -91,6 +91,13 @@ class TblPreset extends Element
      */
     public function setIsPublic($IsPublic)
     {
+
+        if($IsPublic === 'true'){
+            $IsPublic = true;
+        } elseif($IsPublic === 'false') {
+            $IsPublic = false;
+        }
+
         $this->IsPublic = $IsPublic;
     }
 

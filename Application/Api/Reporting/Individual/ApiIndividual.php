@@ -54,6 +54,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\FolderClosed;
 use SPHERE\Common\Frontend\Icon\Repository\FolderOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
@@ -79,6 +80,7 @@ use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Structure\LinkGroup;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -177,6 +179,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
     public function exportApi($Method = '')
     {
         $Dispatcher = new Dispatcher(__CLASS__);
+        $Dispatcher->registerMethod('changePublic');
         $Dispatcher->registerMethod('getNavigation');
         $Dispatcher->registerMethod('removeField');
         $Dispatcher->registerMethod('moveFieldLeft');
@@ -193,6 +196,49 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         $Dispatcher->registerMethod('getSearchResult');
 
         return $Dispatcher->callMethod($Method);
+    }
+
+    /**
+     * @param int     $PresetId
+     * @param boolean $IsPublic
+     * @param string  $ViewType
+     *
+     * @return Pipeline
+     */
+    public static function pipelineChangePublic($PresetId, $IsPublic, $ViewType = TblWorkSpace::VIEW_TYPE_ALL)
+    {
+
+        $Pipeline = new Pipeline(false);
+        $Emitter = new ServerEmitter(self::receiverService('', 'ChangePublic'), self::getEndpoint());
+        $Emitter->setLoadingMessage('Veröffentlichung wird geändert');
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'changePublic'
+        ));
+        $Emitter->setPostPayload(array(
+            'PresetId' => $PresetId,
+            'IsPublic' => $IsPublic,
+            'ViewType' => $ViewType,
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param int     $PresetId
+     * @param boolean $IsPublic
+     * @param string  $ViewType
+     *
+     * @return string
+     */
+    public function changePublic($PresetId, $IsPublic, $ViewType = TblWorkSpace::VIEW_TYPE_ALL)
+    {
+
+        if(($tblPreset = Individual::useService()->getPresetById($PresetId))){
+            Individual::useService()->changePresetIsPublic($tblPreset, $IsPublic);
+            return self::pipelinePresetShowModal('', $ViewType);
+        }
+        return new Danger('Error: Änderung der Veröffentlichung fehltgeschlagen');
     }
 
     /**
@@ -770,13 +816,24 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
 //                    $Item['FieldCount'] = count($tblPresetSetting);
                     $ViewTypeFound = $tblPresetSetting[0]->getViewType();
 
-                    $Item['Option'] = (new Standard('', self::getEndpoint(), new Check(), array(), 'Laden der Vorlage'))
+                    $Item['Option'] = (new Standard('', self::getEndpoint(), new Download(), array(), 'Laden der Vorlage'))
                             ->ajaxPipelineOnClick(ApiIndividual::pipelineLoadPreset($tblPreset->getId(), $ViewTypeFound));
+                    // Optionen nur für Besitzer
                     if($tblAccount
                         && $tblAccountPreset
                         && $tblAccount->getId() == $tblAccountPreset->getId()) {
-                        $Item['Option'] .= (new Standard('', self::getEndpoint(), new Remove(), array(), 'Löschen der Vorlage'))
-                            ->ajaxPipelineOnClick(ApiIndividual::pipelineDeletePreset($tblPreset->getId(), $ViewTypeFound));
+                        // Freigabe bearbeiten
+                        if($tblPreset->getIsPublic()){
+                            $Item['Option'] .= (new Standard('', self::getEndpoint(), new Minus(), array(), 'Veröffentlichung sperren'))
+                                ->ajaxPipelineOnClick(ApiIndividual::pipelineChangePublic($tblPreset->getId(), false, $ViewTypeFound));
+                        } else {
+                            $Item['Option'] .= (new Standard('', self::getEndpoint(), new EyeOpen(), array(), 'Veröffentlichen'))
+                                ->ajaxPipelineOnClick(ApiIndividual::pipelineChangePublic($tblPreset->getId(), true, $ViewTypeFound));
+                        }
+                        // Vorlage löschen
+                        $Item['Option'] .= new ToolTip((new Standard('', self::getEndpoint(), new Remove(), array()))
+                            ->ajaxPipelineOnClick(ApiIndividual::pipelineDeletePreset($tblPreset->getId(), $ViewTypeFound))
+                            , 'Löschen der Vorlage', false);
                     }
                 }
 
@@ -794,6 +851,9 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
         $Content = new Layout(
             new LayoutGroup(
                 new LayoutRow(array(
+                    new LayoutColumn(
+                        self::receiverService('', 'ChangePublic')
+                    ),
                     new LayoutColumn(
                         new Title('Vorhandene Vorlagen')
                     ),
@@ -920,7 +980,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                     new FormColumn(
                         new Panel('Speichern', array(
                             new TextField('PresetName', 'Name', 'Name der Vorlage'),
-                            new CheckBox('IsPublic', 'Vorlage ist Öffentlich', 1),
+                            new CheckBox('IsPublic', 'Vorlage Veröffentlichen', 1),
                         ), Panel::PANEL_TYPE_INFO)
                     ),
                     new FormColumn((new Primary('Speichern', self::getEndpoint(), new Save()))
@@ -947,7 +1007,7 @@ class ApiIndividual extends IndividualReceiver implements IApiInterface, IModule
                             array(
                                 'Name'          => 'Name der Vorlage',
                                 'IsPublic'      => 'Öffentlich',
-                                'PersonCreator' => 'Auswertung von',
+                                'PersonCreator' => 'Ersteller',
                                 'EntityCreate'  => 'Speicherdatum'
 //                                'Option'    => ''
                             ))
