@@ -79,9 +79,22 @@ class RadebeulJahreszeugnis extends Certificate
                         )
                         ->addSection((new Section())
                             ->addElementColumn((new Element())
-                                ->setContent(
-                                    'Evangelische Grundschule Radebeul'
-                                )
+                                ->setContent('{% if( Content.P' . $personId . '.Company.Data.Name is not empty) %}
+                                        {{ Content.P' . $personId . '.Company.Data.Name }}
+                                    {% else %}
+                                        Evangelisches Schulzentrum Radebeul
+                                    {% endif %}')
+                                ->styleMarginTop('-9px')
+                                ->styleTextSize('22px')
+                                ->styleTextColor($textColorRed)
+                                ->styleAlignCenter()
+                                ->styleTextBold()
+                                ->styleFontFamily($fontFamily)
+                            )
+                        )
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element())
+                                ->setContent('- Grundschule -')
                                 ->styleMarginTop('-9px')
                                 ->styleTextSize('22px')
                                 ->styleTextColor($textColorRed)
