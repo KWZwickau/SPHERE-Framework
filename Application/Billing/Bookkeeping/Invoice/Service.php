@@ -7,7 +7,7 @@ use SPHERE\Application\Billing\Accounting\SchoolAccount\SchoolAccount;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Data;
-use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblDebtor;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceDebtor;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemValue;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblItemValue;
@@ -124,12 +124,12 @@ class Service extends AbstractService
     /**
      * @param $Id
      *
-     * @return false|TblDebtor
+     * @return false|TblInvoiceDebtor
      */
-    public function getDebtorById($Id)
+    public function getInvoiceDebtorById($Id)
     {
 
-        return (new Data($this->getBinding()))->getDebtorById($Id);
+        return (new Data($this->getBinding()))->getInvoiceDebtorById($Id);
     }
 
     /**
@@ -181,7 +181,7 @@ class Service extends AbstractService
     /**
      * @param TblInvoice $tblInvoice
      *
-     * @return false|TblDebtor[]
+     * @return false|TblInvoiceDebtor[]
      */
     public function getDebtorAllByInvoice(TblInvoice $tblInvoice)
     {
@@ -217,7 +217,7 @@ class Service extends AbstractService
      * @param TblInvoice   $tblInvoice
      * @param TblItemValue $tblItem
      *
-     * @return bool|TblDebtor
+     * @return bool|TblInvoiceDebtor
      */
     public function getDebtorByInvoiceAndItem(TblInvoice $tblInvoice, TblItemValue $tblItem)
     {
@@ -441,7 +441,7 @@ class Service extends AbstractService
             $countString = $date.'_'.str_pad($count, 5, 0, STR_PAD_LEFT);
             $InsertArray = array();
             foreach ($InvoiceList['DebtorInvoice'] as $DebtorInvoiceId) {
-                $tblDebtor = Invoice::useService()->getDebtorById($DebtorInvoiceId);
+                $tblDebtor = Invoice::useService()->getInvoiceDebtorById($DebtorInvoiceId);
                 $InsertArray['tblPersonDebtor'] = $tblDebtor->getServiceTblDebtor()->getServiceTblPerson();
                 if ($InsertArray['tblPersonDebtor']) {
 
@@ -512,7 +512,7 @@ class Service extends AbstractService
             foreach ($InvoiceList['Item'] as $key => $Item) {
 
                 $tblPerson = Person::useService()->getPersonById($InvoiceList['PersonId'][$key]);
-                $tblDebtor = Invoice::useService()->getDebtorById($InvoiceList['DebtorInvoice'][$key]);
+                $tblDebtor = Invoice::useService()->getInvoiceDebtorById($InvoiceList['DebtorInvoice'][$key]);
                 if ($tblPerson && $tblDebtor) {
                     $tblItem = Invoice::useService()->getItemById($Item);
                     (new Data($this->getBinding()))->createInvoiceItem($tblInvoice, $tblItem, $tblPerson, $tblDebtor);

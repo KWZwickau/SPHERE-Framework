@@ -10,10 +10,8 @@ use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketItem;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketPerson;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Setup;
-use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
-use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
 use SPHERE\Application\Billing\Inventory\Item\Item;
-use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblCalculation;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemCalculation;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -272,7 +270,7 @@ class Service extends AbstractService
             foreach ($tblItemList as $tblItem) {
                 $tblCalculationList = Item::useService()->getCalculationAllByItem($tblItem);
 
-                /** @var TblCalculation $tblCalculation */
+                /** @var TblItemCalculation $tblCalculation */
                 if (is_array($tblCalculationList)) {
                     // Berechnung für Sammelleistung
                     if ($tblItem->getTblItemType()->getName() === 'Sammelleistung') {

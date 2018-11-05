@@ -7,7 +7,7 @@ use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor as Tb
 use SPHERE\Application\Billing\Accounting\SchoolAccount\Service\Entity\TblSchoolAccount;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
-use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblDebtor;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceDebtor;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemValue;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblItemValue;
@@ -55,12 +55,12 @@ class Data extends AbstractData
     /**
      * @param int $Id
      *
-     * @return false|TblDebtor
+     * @return false|TblInvoiceDebtor
      */
-    public function getDebtorById($Id)
+    public function getInvoiceDebtorById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtor', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoiceDebtor', $Id);
     }
 
     /**
@@ -201,7 +201,7 @@ class Data extends AbstractData
     /**
      * @param TblInvoice $tblInvoice
      *
-     * @return false|TblDebtor[]
+     * @return false|TblInvoiceDebtor[]
      */
     public function getDebtorAllByInvoice(TblInvoice $tblInvoice)
     {
@@ -211,7 +211,7 @@ class Data extends AbstractData
         if ($EntityList) {
             /** @var TblInvoiceItemValue $Entity */
             foreach ($EntityList as &$Entity) {
-                $Entity = $Entity->getServiceTblDebtor();
+                $Entity = $Entity->getInvoiceDebtor();
             }
             $EntityList = array_filter($EntityList);
         }
@@ -263,7 +263,7 @@ class Data extends AbstractData
      * @param TblInvoice $tblInvoice
      * @param TblItemValue    $tblItem
      *
-     * @return bool|TblDebtor
+     * @return bool|TblInvoiceDebtor
      */
     public function getDebtorByInvoiceAndItem(TblInvoice $tblInvoice, TblItemValue $tblItem)
     {
@@ -275,7 +275,7 @@ class Data extends AbstractData
             ));
         if ($Entity) {
             /** @var TblInvoiceItemValue $Entity */
-            $Entity = $Entity->getServiceTblDebtor();
+            $Entity = $Entity->getInvoiceDebtor();
         }
         return ( $Entity == false ? false : $Entity );
     }
@@ -461,7 +461,7 @@ class Data extends AbstractData
      * @param TblPaymentType        $tblPaymentType
      * @param TblBankReference|null $tblBankReference
      *
-     * @return null|object|TblDebtor
+     * @return null|object|TblInvoiceDebtor
      */
     public function createDebtor(
         TblDebtorAccounting $tblDebtor,
@@ -474,13 +474,13 @@ class Data extends AbstractData
 
         if ($tblBankReference) {
 
-            $Entity = $Manager->getEntity('TblDebtor')->findOneBy(
-                array(TblDebtor::ATTR_SERVICE_TBL_DEBTOR            => $tblDebtor->getId(),
-                      TblDebtor::ATTR_SERVICE_TBL_BANKING_REFERENCE => $tblBankReference->getId(),
-                      TblDebtor::ATTR_SERVICE_TBL_PAYMENT_TYPE      => $tblPaymentType->getId()));
+            $Entity = $Manager->getEntity('TblInvoiceDebtor')->findOneBy(
+                array(TblInvoiceDebtor::ATTR_SERVICE_TBL_DEBTOR            => $tblDebtor->getId(),
+                      TblInvoiceDebtor::ATTR_SERVICE_TBL_BANKING_REFERENCE => $tblBankReference->getId(),
+                      TblInvoiceDebtor::ATTR_SERVICE_TBL_PAYMENT_TYPE      => $tblPaymentType->getId()));
 
             if ($Entity === null) {
-                $Entity = new TblDebtor();
+                $Entity = new TblInvoiceDebtor();
                 $Entity->setDebtorNumber($tblDebtor->getDebtorNumber());
                 $Entity->setDebtorPerson($tblDebtor->getServiceTblPerson());
                 $Entity->setBankReference($tblBankReference->getReference());
@@ -497,12 +497,12 @@ class Data extends AbstractData
                     $Entity);
             }
         } else {
-            $Entity = $Manager->getEntity('TblDebtor')->findOneBy(
-                array(TblDebtor::ATTR_SERVICE_TBL_DEBTOR            => $tblDebtor->getId(),
-                      TblDebtor::ATTR_SERVICE_TBL_BANKING_REFERENCE => null));
+            $Entity = $Manager->getEntity('TblInvoiceDebtor')->findOneBy(
+                array(TblInvoiceDebtor::ATTR_SERVICE_TBL_DEBTOR            => $tblDebtor->getId(),
+                      TblInvoiceDebtor::ATTR_SERVICE_TBL_BANKING_REFERENCE => null));
 
             if ($Entity === null) {
-                $Entity = new TblDebtor();
+                $Entity = new TblInvoiceDebtor();
                 $Entity->setDebtorNumber($tblDebtor->getDebtorNumber());
                 $Entity->setDebtorPerson($tblDebtor->getServiceTblPerson());
                 $Entity->setBankReference('');
@@ -562,11 +562,11 @@ class Data extends AbstractData
      * @param TblInvoice   $tblInvoice
      * @param TblItemValue $tblItem
      * @param TblPerson    $tblPerson
-     * @param TblDebtor    $tblDebtor
+     * @param TblInvoiceDebtor    $tblDebtor
      *
      * @return TblInvoiceItemValue
      */
-    public function createInvoiceItem(TblInvoice $tblInvoice, TblItemValue $tblItem, TblPerson $tblPerson, TblDebtor $tblDebtor)
+    public function createInvoiceItem(TblInvoice $tblInvoice, TblItemValue $tblItem, TblPerson $tblPerson, TblInvoiceDebtor $tblDebtor)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -574,7 +574,7 @@ class Data extends AbstractData
         $Entity->setTblInvoice($tblInvoice);
         $Entity->setTblItem($tblItem);
         $Entity->setServiceTblPerson($tblPerson);
-        $Entity->setServiceTblDebtor($tblDebtor);
+        $Entity->setTblInvoiceDebtor($tblDebtor);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),

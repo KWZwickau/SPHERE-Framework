@@ -27,8 +27,8 @@ class Setup extends AbstractSetup
         $Schema = clone $this->getConnection()->getSchema();
         $tblItemType = $this->setTableItemType($Schema);
         $tblItem = $this->setTableItem($Schema, $tblItemType);
-        $tblCalculation = $this->setTableCalculation($Schema);
-        $this->setTableItemCalculation($Schema, $tblItem, $tblCalculation);
+        $tblVariant = $this->setTableItemVariant($Schema, $tblItem);
+        $this->setTableItemCalculation($Schema, $tblVariant);
         $this->setTableItemAccount($Schema, $tblItem);
 
         /**
@@ -65,6 +65,7 @@ class Setup extends AbstractSetup
         $Table = $this->createTable($Schema, 'tblItem');
         $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Description', self::FIELD_TYPE_TEXT);
+        $this->createColumn($Table, 'Amount', self::FIELD_TYPE_INTEGER);
         $this->getConnection()->addForeignKey($Table, $tblItemType);
 
         return $Table;
@@ -72,33 +73,40 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
+     * @param Table $tblItem
      *
      * @return Table
      */
-    private function setTableCalculation(Schema &$Schema)
+    private function setTableItemVariant(Schema &$Schema, Table $tblItem)
     {
 
-        $Table = $this->createTable($Schema, 'tblCalculation');
-        if (!$this->getConnection()->hasColumn('tblCalculation', 'Value')) {
-            $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
-        }
-        $this->createColumn($Table, 'serviceTblSiblingRank', self::FIELD_TYPE_BIGINT, true);
-        $this->createColumn($Table, 'serviceTblType', self::FIELD_TYPE_BIGINT, true);
+        $Table = $this->createTable($Schema, 'tblItemVariant');
+
+        $this->createColumn($Table, 'Name', self::FIELD_TYPE_BIGINT, true);
+        $this->createForeignKey($Table, $tblItem, true);
 
         return $Table;
     }
 
     /**
      * @param Schema $Schema
-     * @param Table  $tblItem
-     * @param Table  $tblCalculation
+     * @param Table $tblVariant
+     *
+     * @return Table
      */
-    private function setTableItemCalculation(Schema &$Schema, Table $tblItem, Table $tblCalculation)
+    private function setTableItemCalculation(Schema &$Schema, Table $tblVariant)
     {
 
         $Table = $this->createTable($Schema, 'tblItemCalculation');
-        $this->getConnection()->addForeignKey($Table, $tblItem);
-        $this->getConnection()->addForeignKey($Table, $tblCalculation);
+        if (!$this->getConnection()->hasColumn('tblCalculation', 'Value')) {
+            $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
+        }
+        $this->createColumn($Table, 'DateFrom', self::FIELD_TYPE_DATETIME, true);
+        $this->createColumn($Table, 'DateTo', self::FIELD_TYPE_DATETIME, true);
+        $this->createColumn($Table, 'serviceTblType', self::FIELD_TYPE_BIGINT, true);
+        $this->createForeignKey($Table, $tblVariant, true);
+
+        return $Table;
     }
 
     /**

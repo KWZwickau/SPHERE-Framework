@@ -3,10 +3,10 @@
 namespace SPHERE\Application\Billing\Inventory\Item\Service;
 
 use SPHERE\Application\Billing\Accounting\Account\Service\Entity\TblAccount;
-use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblCalculation;
+use SPHERE\Application\Billing\Inventory\Item\Item;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemCalculation;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemAccount;
-use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemCalculation;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemType;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
@@ -29,6 +29,11 @@ class Data extends AbstractData
          */
         $this->createItemType('Einzelleistung');
         $this->createItemType('Sammelleistung');
+
+        // Einzelleistung
+        $tblItemType = Item::useService()->getItemTypeById(1);
+
+        $tblItem = $this->createItem($tblItemType, 'Schulgeld');
     }
 
     /**
@@ -81,26 +86,12 @@ class Data extends AbstractData
     /**
      * @param $Id
      *
-     * @return bool|TblCalculation
+     * @return bool|TblItemCalculation
      */
     public function getCalculationById($Id)
     {
 
-        return $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblCalculation', $Id);
-    }
-
-    /**
-     * @param TblItem        $tblItem
-     * @param TblCalculation $tblCalculation
-     *
-     * @return false|TblItemCalculation
-     */
-    public function getItemCalculationByItemAndCalculation(TblItem $tblItem, TblCalculation $tblCalculation)
-    {
-
-        return $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItemCalculation',
-            array(TblItemCalculation::ATTR_TBL_ITEM        => $tblItem->getId(),
-                  TblItemCalculation::ATTR_TBL_CALCULATION => $tblCalculation->getId()));
+        return $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblItemCalculation', $Id);
     }
 
     /**
@@ -156,106 +147,6 @@ class Data extends AbstractData
             array(TblItemAccount::ATTR_TBL_ITEM => $tblItem->getId()));
 
         return ( null === $EntityList ? false : $EntityList );
-    }
-
-    /**
-     * @param TblItem $tblItem
-     *
-     * @return bool|TblCalculation[]
-     */
-    public function getCalculationAllByItem(TblItem $tblItem)
-    {
-
-        $TempList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItemCalculation',
-            array(TblItemCalculation::ATTR_TBL_ITEM => $tblItem->getId()));
-
-
-        $EntityList = array();
-        if ($TempList) {
-            /** @var TblItemCalculation $Temp */
-            foreach ($TempList as $Temp) {
-                $EntityList[] = $Temp->getTblCalculation();
-            }
-        }
-        return ( empty( $EntityList ) ? false : $EntityList );
-    }
-
-    /**
-     * @param TblItem $tblItem
-     *
-     * @return bool|TblCalculation
-     */
-    public function getCalculationStandardValueAllByItem(TblItem $tblItem)
-    {
-
-        $TempList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItemCalculation',
-            array(TblItemCalculation::ATTR_TBL_ITEM => $tblItem->getId()));
-
-
-        $Entity = null;
-        if ($TempList) {
-            /** @var TblItemCalculation $Temp */
-            foreach ($TempList as $Temp) {
-                /** @var TblCalculation $tblCalculation */
-                $tblCalculation = $Temp->getTblCalculation();
-                if (!$tblCalculation->getServiceTblType() && !$tblCalculation->getServiceTblSiblingRank()) {
-                    $Entity = $tblCalculation;
-                }
-            }
-        }
-        return ( null === $Entity ? false : $Entity );
-    }
-
-    /**
-     * @param TblItem $tblItem
-     *
-     * @return int
-     */
-    public function countCalculationByItem(TblItem $tblItem)
-    {
-
-        return (int)$this->getConnection()->getEntityManager()->getEntity('TblItemCalculation')->countBy(array(
-            TblItemCalculation::ATTR_TBL_ITEM => $tblItem->getId()
-        ));
-    }
-
-    /**
-     * @param TblItem $tblItem
-     * @param         $SchoolType
-     * @param         $SiblingRank
-     *
-     * @return bool|TblCalculation
-     */
-    public function existsCalculation(TblItem $tblItem, $SchoolType, $SiblingRank)
-    {
-
-        if ($SchoolType === 0) {
-            $SchoolType = null;
-        }
-        if ($SiblingRank === 0) {
-            $SiblingRank = null;
-        }
-        $Exists = false;
-
-        $tblCalculationList = $this->getCalculationAllByItem($tblItem);
-        if ($tblCalculationList) {
-            /** @var TblCalculation $tblCalculation */
-            foreach ($tblCalculationList as $tblCalculation) {
-                $tblSchoolType = '0';
-                $tblChildRank = '0';
-                if ($tblCalculation->getServiceTblType()) {
-                    $tblSchoolType = $tblCalculation->getServiceTblType()->getId();
-                }
-                if ($tblCalculation->getServiceTblSiblingRank()) {
-                    $tblChildRank = $tblCalculation->getServiceTblSiblingRank()->getId();
-                }
-                if ($tblSchoolType === $SchoolType && $tblChildRank === $SiblingRank) {
-                    $Exists = true;
-                }
-            }
-        }
-
-        return $Exists;
     }
 
     /**
@@ -333,14 +224,14 @@ class Data extends AbstractData
      * @param TblType|null        $Course
      * @param TblSiblingRank|null $ChildRank
      *
-     * @return TblCalculation
+     * @return TblItemCalculation
      */
     public function createCalculation($Value, TblType $Course = null, TblSiblingRank $ChildRank = null)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
 
-        $Entity = new TblCalculation();
+        $Entity = new TblItemCalculation();
         $Entity->setValue(str_replace(',', '.', $Value));
         if (null !== $Course) {
             $Entity->setServiceTblType($Course);
@@ -351,27 +242,6 @@ class Data extends AbstractData
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
             $Entity);
-        return $Entity;
-    }
-
-    /**
-     * @param TblItem        $tblItem
-     * @param TblCalculation $tblCalculation
-     *
-     * @return TblItemCalculation
-     */
-    public function createItemCalculation(TblItem $tblItem, TblCalculation $tblCalculation)
-    {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        $Entity = new TblItemCalculation();
-        $Entity->setTblItem($tblItem);
-        $Entity->setTblCalculation($tblCalculation);
-        $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
-            $Entity);
-
         return $Entity;
     }
 
@@ -407,18 +277,18 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblCalculation   $tblCalculation
+     * @param TblItemCalculation   $tblCalculation
      * @param                  $Value
      *
      * @return bool
      */
-    public function updateCalculation(TblCalculation $tblCalculation, $Value)
+    public function updateCalculation(TblItemCalculation $tblCalculation, $Value)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
 
-        /** @var TblCalculation $Entity */
-        $Entity = $Manager->getEntityById('TblCalculation', $tblCalculation->getId());
+        /** @var TblItemCalculation $Entity */
+        $Entity = $Manager->getEntityById('TblItemCalculation', $tblCalculation->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setValue($Value);
@@ -432,53 +302,25 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblCalculation $tblCalculation
+     * @param TblItemCalculation $tblCalculation
      * @param TblItem        $tblItem
      *
      * @return bool
      */
     public function destroyCalculation(
-        TblCalculation $tblCalculation,
+        TblItemCalculation $tblCalculation,
         TblItem $tblItem
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
-        $this->removeCalculationFromItem($tblItem, $tblCalculation);
-
-        $Entity = $Manager->getEntity('TblCalculation')->findOneBy(array('Id' => $tblCalculation->getId()));
+        $Entity = $Manager->getEntity('TblItemCalculation')->findOneBy(array('Id' => $tblCalculation->getId()));
         if (null !== $Entity) {
             /** @var Element $Entity */
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
             $Manager->killEntity($Entity);
             return true;
-        }
-        return false;
-    }
-
-    /**
-     * @param TblItem        $tblItem
-     * @param TblCalculation $tblCalculation
-     *
-     * @return bool
-     */
-    public function removeCalculationFromItem(TblItem $tblItem, TblCalculation $tblCalculation)
-    {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        $tblItemCalculation = $this->getItemCalculationByItemAndCalculation($tblItem, $tblCalculation);
-
-        if ($tblItemCalculation) {
-            $Entity = $Manager->getEntity('TblItemCalculation')->findOneBy(array('Id' => $tblCalculation->getId()));
-            if (null !== $Entity) {
-                /** @var Element $Entity */
-                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
-                    $Entity);
-                $Manager->killEntity($Entity);
-                return true;
-            }
         }
         return false;
     }

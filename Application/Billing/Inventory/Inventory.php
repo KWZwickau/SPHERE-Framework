@@ -2,7 +2,6 @@
 
 namespace SPHERE\Application\Billing\Inventory;
 
-use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Common\Frontend\Icon\Repository\CommodityItem;
@@ -22,19 +21,22 @@ class Inventory implements IApplicationInterface
         /**
          * Register Module
          */
-        Commodity::registerModule();
         Item::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Inventar'))
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Einstellungen'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/Item'), new Link\Name('Artikel'),
+            new Link(new Link\Route(__NAMESPACE__.'/Item'), new Link\Name('Beitragsarten'),
                 new Link\Icon(new CommodityItem()))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/Commodity'), new Link\Name('Leistungen'),
-                new Link\Icon(new \SPHERE\Common\Frontend\Icon\Repository\Commodity()))
+            new Link(new Link\Route(__NAMESPACE__.'/Price'), new Link\Name('Beitragspreise'),
+                new Link\Icon(new CommodityItem()))
+        );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__.'/Attribute'), new Link\Name('Merkmale'),
+                new Link\Icon(new CommodityItem()))
         );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(

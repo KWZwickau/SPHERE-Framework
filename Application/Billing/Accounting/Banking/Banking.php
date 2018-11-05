@@ -35,55 +35,6 @@ class Banking implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__,
                 __NAMESPACE__.'\Frontend::frontendBanking'
             ));
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/View',
-                __NAMESPACE__.'\Frontend::frontendBankingView'
-            ));
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Debtor/Change',
-                __NAMESPACE__.'\Frontend::frontendChangeBanking'
-            ));
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/Billing/Accounting/Banking/Reference/Change',
-                __NAMESPACE__.'\Frontend::frontendChangeBankReference'
-            ));
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/Billing/Accounting/Banking/Reference/Remove',
-                __NAMESPACE__.'\Frontend::frontendRemoveBankReference'
-            ));
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/Billing/Accounting/DebtorSelection/Payment',
-                __NAMESPACE__.'\Frontend::frontendPayment'
-            ));
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/Billing/Accounting/DebtorSelection/Payment/Selection',
-                __NAMESPACE__.'\Frontend::frontendPaymentSelection'
-            ));
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/Billing/Accounting/DebtorSelection/Payment/Choose',
-                __NAMESPACE__.'\Frontend::frontendPaymentChoose'
-            ));
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/Billing/Accounting/DebtorSelection',
-                __NAMESPACE__.'\Frontend::frontendDebtorSelection'
-            ));
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/Billing/Accounting/DebtorSelection/PaymentSelection',
-                __NAMESPACE__.'\Frontend::frontendDebtorPaymentSelection'
-            ));
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/Billing/Accounting/DebtorSelection/PaymentChoose',
-                __NAMESPACE__.'\Frontend::frontendDebtorPaymentChoose'
-            ));
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/Billing/Accounting/DebtorSelection/Destroy',
-                __NAMESPACE__.'\Frontend::frontendDestroyDebtorSelection'
-            ));
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/Billing/Accounting/DebtorSelection/Person/Destroy',
-                __NAMESPACE__.'\Frontend::frontendDestroyDebtorSelectionByPerson'
-            ));
-
     }
 
     /**

@@ -6,6 +6,8 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Inventory\Item\Item;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -16,60 +18,152 @@ use SPHERE\System\Database\Fitting\Element;
 class TblItemCalculation extends Element
 {
 
-    const ATTR_TBL_ITEM = 'tblItem';
-    const ATTR_TBL_CALCULATION = 'tblCalculation';
+    const ATTR_SERVICE_TBL_TYPE = 'serviceTblType';
+    const ATTR_TBL_ITEM_VARIANT = 'tblItemVariant';
 
+    /**
+     * @Column(type="decimal", precision=14, scale=4)
+     */
+    protected $Value;
+    /**
+     * @Column(type="date")
+     */
+    protected $DateFrom;
+    /**
+     * @Column(type="date")
+     */
+    protected $DateTo;
     /**
      * @Column(type="bigint")
      */
-    protected $tblItem;
+    protected $serviceTblType;
     /**
      * @Column(type="bigint")
      */
-    protected $tblCalculation;
-
+    protected $tblItemVariant;
 
     /**
-     * @return bool|TblItem
+     * @return (type="decimal", precision=14, scale=4)
      */
-    public function getTblItem()
+    public function getValue()
     {
 
-        if (null === $this->tblItem) {
+        return $this->Value;
+    }
+
+    /**
+     * @param (type="decimal", precision=14, scale=4) $Value
+     */
+    public function setValue($Value)
+    {
+
+        $this->Value = $Value;
+    }
+
+    /**
+     * @return bool|string
+     */
+    public function getDateFrom()
+    {
+
+        if (null === $this->DateFrom) {
             return false;
+        }
+        /** @var \DateTime $DateFrom */
+        $DateFrom = $this->DateFrom;
+        if ($DateFrom instanceof \DateTime) {
+            return $DateFrom->format('d.m.Y');
         } else {
-            return Item::useService()->getItemById($this->tblItem);
+            return (string)$DateFrom;
         }
     }
 
     /**
-     * @param TblItem $tblItem
+     * @param null|\DateTime $DateFrom
      */
-    public function setTblItem(TblItem $tblItem)
+    public function setDateFrom(\DateTime $DateFrom = null)
     {
-
-        $this->tblItem = $tblItem->getId();
+        $this->DateFrom = $DateFrom;
     }
 
     /**
-     * @return bool|TblItem
+     * @return bool|string
      */
-    public function getTblCalculation()
+    public function getDateTo()
     {
-
-        if (null === $this->tblCalculation) {
+        if (null === $this->DateTo) {
             return false;
+        }
+        /** @var \DateTime $DateTo */
+        $DateTo = $this->DateTo;
+        if ($DateTo instanceof \DateTime) {
+            return $DateTo->format('d.m.Y');
         } else {
-            return Item::useService()->getCalculationById($this->tblCalculation);
+            return (string)$DateTo;
         }
     }
 
     /**
-     * @param TblCalculation $tblCalculation
+     * @param null|\DateTime $DateTo
      */
-    public function setTblCalculation(TblCalculation $tblCalculation)
+    public function setDateTo(\DateTime $DateTo = null)
+    {
+        $this->DateTo = $DateTo;
+    }
+
+
+
+    /**
+     * @return string
+     */
+    public function getPriceString()
     {
 
-        $this->tblCalculation = $tblCalculation->getId();
+        $result = sprintf("%01.2f", $this->Value);
+        return str_replace('.', ',', $result)." €";
     }
+
+    /**
+     * @return bool|TblType
+     */
+    public function getServiceTblType()
+    {
+
+        if (null === $this->serviceTblType) {
+            return false;
+        } else {
+            return Type::useService()->getTypeById($this->serviceTblType);
+        }
+    }
+
+    /**
+     * @param TblType|null $tblType
+     */
+    public function setServiceTblType(TblType $tblType = null)
+    {
+
+        $this->serviceTblType = ( null === $tblType ? null : $tblType->getId() );
+    }
+
+    /**
+     * @return false|TblItemVariant
+     */
+    public function getTblVariant()
+    {
+        if(null === null){
+            return false;
+        } else {
+            return Item::useService()->getVariantById($this->tblItemVariant);
+        }
+    }
+
+    /**
+     * @param null|TblItemVariant $tblVariant
+     */
+    public function setTblVariant(TblItemVariant $tblItemVariant = null)
+    {
+        $this->tblItemVariant = ( null === $tblItemVariant ? null : $tblItemVariant->getId() );
+    }
+
+
 }
