@@ -20,6 +20,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Meta\Club\Club;
@@ -3228,13 +3229,40 @@ class Service extends Extension
 
     /**
      * @param \DateTime $dateTime
+     * @param null $Type
+     * @param string $DivisionName
      *
      * @return bool|FilePointer
      */
-    public function createAbsenceListExcel(\DateTime $dateTime)
+    public function createAbsenceListExcel(\DateTime $dateTime, $Type = null, $DivisionName = '')
     {
 
-        $absenceList = Absence::useService()->getAbsenceAllByDay($dateTime);
+        if ($Type != null) {
+            $tblType = Type::useService()->getTypeById($Type);
+        } else {
+            $tblType = false;
+        }
+
+        if ($DivisionName != ''
+            && ($tblDivisionAll = Division::useService()->getDivisionAll())
+        ) {
+            $DivisionName = str_replace(' ','',$DivisionName);
+            $DivisionName = strtolower($DivisionName);
+            foreach ($tblDivisionAll as $tblDivision) {
+                if ($DivisionName == str_replace(' ','',strtolower($tblDivision->getDisplayName()))) {
+                    $divisionList[] = $tblDivision;
+                }
+            }
+
+            if (!empty($divisionList)) {
+                $absenceList = Absence::useService()->getAbsenceAllByDay($dateTime, $tblType ? $tblType : null, $divisionList);
+            } else {
+                $absenceList = array();
+            }
+        } else {
+            $absenceList = Absence::useService()->getAbsenceAllByDay($dateTime, $tblType ? $tblType : null);
+        }
+
         if (!empty($absenceList)) {
 
             $fileLocation = Storage::createFilePointer('xlsx');

@@ -15,6 +15,7 @@ use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -26,11 +27,11 @@ use SPHERE\Common\Frontend\Icon\Repository\Child;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
+use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -1426,11 +1427,11 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param null $Date
+     * @param null $Data
      *
      * @return Stage
      */
-    public function frontendAbsence($Date = null)
+    public function frontendAbsence($Data = null)
     {
         $stage = new Stage('Auswertung', 'Fehlzeiten');
 
@@ -1438,9 +1439,9 @@ class Frontend extends Extension implements IFrontendInterface
             new Danger('Die dauerhafte Speicherung des Excel-Exports ist datenschutzrechtlich nicht zulässig!', new Exclamation())
         );
 
-        if ($Date == null) {
+        if ($Data == null) {
             $global = $this->getGlobal();
-            $global->POST['Date'] = (new \DateTime('now'))->format('d.m.Y');
+            $global->POST['Data']['Date'] = (new \DateTime('now'))->format('d.m.Y');
             $global->savePost();
         }
 
@@ -1448,25 +1449,33 @@ class Frontend extends Extension implements IFrontendInterface
             (new ApiStandard())->reloadAbsenceContent()
         );
 
-        $datePicker = new DatePicker('Date', '', '', new Calendar());
-        $button = (new Primary('Auswählen', ''))->ajaxPipelineOnClick(ApiStandard::pipelineCreateAbsenceContent($receiverContent));
+        $datePicker = new DatePicker('Data[Date]', '', 'Datum', new Calendar());
+        $typeSelectBox = new SelectBox('Data[Type]', 'Schulart', array('Name' => Type::useService()->getTypeAll()));
+        $divisionTextField = new TextField('Data[DivisionName]', '', 'Klassenname');
+        $button = (new Primary('Filtern', '', new Filter()))->ajaxPipelineOnClick(ApiStandard::pipelineCreateAbsenceContent($receiverContent));
 
         $stage->setContent(
            new Form(new FormGroup(new FormRow(array(
                 new FormColumn(
                     new Panel(
-                        'Datum auswählen',
+                        'Filter',
                         new Layout (new LayoutGroup(new LayoutRow(array(
                             new LayoutColumn(
-                                $datePicker, 6
+                                $datePicker, 4
                             ),
                             new LayoutColumn(
-                                new PullRight($button), 6
+                                $typeSelectBox, 4
+                            ),
+                            new LayoutColumn(
+                                $divisionTextField, 4
+                            ),
+                            new LayoutColumn(
+                                $button, 4
                             ),
                         )))),
                         Panel::PANEL_TYPE_INFO
                     )
-                , 4)
+                )
            ))))
             . $receiverContent
         );

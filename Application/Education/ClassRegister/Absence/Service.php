@@ -12,8 +12,10 @@ use SPHERE\Application\Education\ClassRegister\Absence\Service\Data;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\TblAbsence;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Entity\ViewAbsence;
 use SPHERE\Application\Education\ClassRegister\Absence\Service\Setup;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -505,14 +507,41 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblDivision $tblDivision
+     *
+     * @return false|TblAbsence[]
+     */
+    public function getAbsenceAllByDivision(TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->getAbsenceAllByDivision($tblDivision);
+    }
+
+    /**
      * @param \DateTime $dateTime
+     * @param TblType|null $tblType
+     * @param array $divisionList
      *
      * @return array
      */
-    public function getAbsenceAllByDay(\DateTime $dateTime)
+    public function getAbsenceAllByDay(\DateTime $dateTime, TblType $tblType = null, $divisionList = array())
     {
         $resultList = array();
-        if (($tblAbsenceList = $this->getAbsenceAll())) {
+        $tblAbsenceList = array();
+        if (!empty($divisionList)
+            && ($tblDivisionAll = Division::useService()->getDivisionAll())
+        ) {
+            foreach ($divisionList as $tblDivision) {
+                if (($tblAbsenceDivisionList = $this->getAbsenceAllByDivision($tblDivision))) {
+                    $tblAbsenceList = array_merge($tblAbsenceList, $tblAbsenceDivisionList);
+                }
+            }
+
+        } else {
+            $tblAbsenceList = $this->getAbsenceAll();
+        }
+
+        if ($tblAbsenceList) {
             foreach ($tblAbsenceList as $tblAbsence) {
                 $isAdd = false;
                 $fromDate = new \DateTime($tblAbsence->getFromDate());
@@ -529,16 +558,18 @@ class Service extends AbstractService
                     && ($tblPerson = $tblAbsence->getServiceTblPerson())
                     && ($tblDivision = $tblAbsence->getServiceTblDivision())
                     && ($tblLevel = $tblDivision->getTblLevel())
-                    && ($tblType = $tblLevel->getServiceTblType())
+                    && ($tblTypeItem = $tblLevel->getServiceTblType())
                 ) {
-                    $resultList[] = array(
-                        'Type' => $tblType->getName(),
-                        'Division' => $tblDivision->getDisplayName(),
-                        'Person' => $tblPerson->getLastFirstName(),
-                        'DateSpan' => $tblAbsence->getDateSpan(),
-                        'Status' => $tblAbsence->getStatusDisplayName(),
-                        'Remark' => $tblAbsence->getRemark()
-                    );
+                    if (!$tblType || ($tblType->getId() == $tblTypeItem->getId())) {
+                        $resultList[] = array(
+                            'Type' => $tblTypeItem->getName(),
+                            'Division' => $tblDivision->getDisplayName(),
+                            'Person' => $tblPerson->getLastFirstName(),
+                            'DateSpan' => $tblAbsence->getDateSpan(),
+                            'Status' => $tblAbsence->getStatusDisplayName(),
+                            'Remark' => $tblAbsence->getRemark()
+                        );
+                    }
                 }
             }
         }

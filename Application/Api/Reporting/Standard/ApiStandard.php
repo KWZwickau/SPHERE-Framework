@@ -5,6 +5,8 @@ namespace SPHERE\Application\Api\Reporting\Standard;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\ClassRegister\Absence\Absence;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -12,6 +14,7 @@ use SPHERE\Common\Frontend\Ajax\Receiver\AbstractReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -70,16 +73,45 @@ class ApiStandard extends Extension implements IApiInterface
     }
 
     /**
-     * @param null $Date
+     * @param null $Data
      *
      * @return Layout|string
      */
-    public function reloadAbsenceContent($Date = null)
+    public function reloadAbsenceContent($Data = null)
     {
+        $dateTime = new \DateTime($Data['Date']);
+        if ($Data['Type'] != null) {
+            $tblType = Type::useService()->getTypeById($Data['Type']);
+        } else {
+            $tblType = false;
+        }
 
-        $dateTime = new \DateTime($Date);
-        $absenceList = Absence::useService()->getAbsenceAllByDay($dateTime);
-        $title = new Title('Fehlzeiten für den ' . $dateTime->format('d.m.Y'));
+        $divisionList = array();
+        $divisionName = $Data['DivisionName'];
+        if ($divisionName != ''
+            && ($tblDivisionAll = Division::useService()->getDivisionAll())
+        ) {
+            $divisionName = str_replace(' ','',$divisionName);
+            $divisionName = strtolower($divisionName);
+            foreach ($tblDivisionAll as $tblDivision) {
+                if ($divisionName == str_replace(' ','',strtolower($tblDivision->getDisplayName()))) {
+                    $divisionList[] = $tblDivision;
+                }
+            }
+
+            if (empty($divisionList)) {
+                return new Warning('Klasse nicht gefunden', new Exclamation());
+            }
+
+            $absenceList = Absence::useService()->getAbsenceAllByDay($dateTime, $tblType ? $tblType : null, $divisionList);
+        } else {
+            $absenceList = Absence::useService()->getAbsenceAllByDay($dateTime, $tblType ? $tblType : null);
+        }
+
+        $title = new Title(
+            'Fehlzeiten für den ' . $dateTime->format('d.m.Y')
+            . ($tblType ? ', Schulart: ' . $tblType->getName() : '')
+        );
         if (!empty($absenceList)) {
             return new Layout(new LayoutGroup(array(
                 new LayoutRow(
@@ -88,7 +120,9 @@ class ApiStandard extends Extension implements IApiInterface
                             'Herunterladen', '/Api/Reporting/Standard/Person/AbsenceList/Download',
                             new Download(),
                             array(
-                                'Date' => $Date
+                                'Date' => $Data['Date'],
+                                'Type' => $Data['Type'],
+                                'DivisionName' => $Data['DivisionName']
                             )
                         )
                     )
