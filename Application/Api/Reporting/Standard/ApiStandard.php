@@ -86,19 +86,9 @@ class ApiStandard extends Extension implements IApiInterface
             $tblType = false;
         }
 
-        $divisionList = array();
         $divisionName = $Data['DivisionName'];
-        if ($divisionName != ''
-            && ($tblDivisionAll = Division::useService()->getDivisionAll())
-        ) {
-            $divisionName = str_replace(' ','',$divisionName);
-            $divisionName = strtolower($divisionName);
-            foreach ($tblDivisionAll as $tblDivision) {
-                if ($divisionName == str_replace(' ','',strtolower($tblDivision->getDisplayName()))) {
-                    $divisionList[] = $tblDivision;
-                }
-            }
-
+        if ($divisionName != '') {
+            $divisionList = Division::useService()->getDivisionAllByName($divisionName);
             if (empty($divisionList)) {
                 return new Warning('Klasse nicht gefunden', new Exclamation());
             }

@@ -1451,7 +1451,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $datePicker = new DatePicker('Data[Date]', '', 'Datum', new Calendar());
         $typeSelectBox = new SelectBox('Data[Type]', 'Schulart', array('Name' => Type::useService()->getTypeAll()));
-        $divisionTextField = new TextField('Data[DivisionName]', '', 'Klassenname');
+        $divisionTextField = new TextField('Data[DivisionName]', '', 'Klasse');
         $button = (new Primary('Filtern', '', new Filter()))->ajaxPipelineOnClick(ApiStandard::pipelineCreateAbsenceContent($receiverContent));
 
         $stage->setContent(

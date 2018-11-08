@@ -3243,17 +3243,8 @@ class Service extends Extension
             $tblType = false;
         }
 
-        if ($DivisionName != ''
-            && ($tblDivisionAll = Division::useService()->getDivisionAll())
-        ) {
-            $DivisionName = str_replace(' ','',$DivisionName);
-            $DivisionName = strtolower($DivisionName);
-            foreach ($tblDivisionAll as $tblDivision) {
-                if ($DivisionName == str_replace(' ','',strtolower($tblDivision->getDisplayName()))) {
-                    $divisionList[] = $tblDivision;
-                }
-            }
-
+        if ($DivisionName != '') {
+            $divisionList = Division::useService()->getDivisionAllByName($DivisionName);
             if (!empty($divisionList)) {
                 $absenceList = Absence::useService()->getAbsenceAllByDay($dateTime, $tblType ? $tblType : null, $divisionList);
             } else {
