@@ -98,7 +98,7 @@ class Setup extends AbstractSetup
     {
 
         $Table = $this->createTable($Schema, 'tblItemCalculation');
-        if (!$this->getConnection()->hasColumn('tblCalculation', 'Value')) {
+        if (!$this->getConnection()->hasColumn('tblItemCalculation', 'Value')) {
             $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
         }
         $this->createColumn($Table, 'DateFrom', self::FIELD_TYPE_DATETIME, true);

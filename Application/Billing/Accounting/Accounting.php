@@ -2,7 +2,6 @@
 
 namespace SPHERE\Application\Billing\Accounting;
 
-use SPHERE\Application\Billing\Accounting\Account\Account;
 use SPHERE\Application\Billing\Accounting\Banking\Banking;
 use SPHERE\Application\Billing\Accounting\SchoolAccount\SchoolAccount;
 use SPHERE\Application\IApplicationInterface;
@@ -26,7 +25,7 @@ class Accounting implements IApplicationInterface
         /**
          * Register Module
          */
-        Account::registerModule();
+//        Account::registerModule();
         Banking::registerModule();
         SchoolAccount::registerModule();
 
