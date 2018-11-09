@@ -6,6 +6,7 @@ use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
+use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Link\Identifier;
 
 /**
@@ -21,9 +22,10 @@ class Account implements IModuleInterface
         /**
          * Register Route
          */
+        //ToDO sinnvoll implemenireren
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__,
-                __NAMESPACE__.'\Frontend::frontendAccountFibu'
+                __NAMESPACE__.'\Account::frontendAccountFibu'
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Activate',
@@ -41,7 +43,7 @@ class Account implements IModuleInterface
     public static function useService()
     {
 
-        return new Service(new Identifier('Billing', 'Accounting', 'Account', null,
+        return new Service(new Identifier('Billing', 'Invoice', null, null,
             Consumer::useService()->getConsumerBySession()),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
@@ -54,5 +56,15 @@ class Account implements IModuleInterface
     {
 
         return new Frontend();
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendAccountFibu()
+    {
+
+        $Stage =new Stage('Fibo', 'ToDO');
+        return $Stage;
     }
 }

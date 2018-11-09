@@ -12,16 +12,16 @@ use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity
- * @Table(name="tblInvoiceItem")
+ * @Table(name="tblInvoiceItemValue")
  * @Cache(usage="READ_ONLY")
  */
-class TblInvoiceItem extends Element
+class TblInvoiceItemValue extends Element
 {
 
     const ATTR_TBL_INVOICE = 'tblInvoice';
-    const ATTR_TBL_ITEM = 'tblItem';
+    const ATTR_TBL_ITEM_VALUE = 'tblItemValue';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
-    const ATTR_TBL_DEBTOR = 'tblDebtor';
+    const ATTR_TBL_INVOICE_DEBTOR = 'tblInvoiceDebtor';
 
     /**
      * @Column(type="bigint")
@@ -30,7 +30,7 @@ class TblInvoiceItem extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $tblItem;
+    protected $tblItemValue;
     /**
      * @Column(type="bigint")
      */
@@ -38,7 +38,7 @@ class TblInvoiceItem extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $tblDebtor;
+    protected $tblInvoiceDebtor;
 
     /**
      * @return bool|TblInvoice
@@ -63,25 +63,25 @@ class TblInvoiceItem extends Element
     }
 
     /**
-     * @return bool|TblItem
+     * @return bool|TblItemValue
      */
     public function getTblItem()
     {
 
-        if (null === $this->tblItem) {
+        if (null === $this->tblItemValue) {
             return false;
         } else {
-            return Invoice::useService()->getItemById($this->tblItem);
+            return Invoice::useService()->getItemById($this->tblItemValue);
         }
     }
 
     /**
-     * @param null|TblItem $tblItem
+     * @param null|TblItemValue $tblItemValue
      */
-    public function setTblItem(TblItem $tblItem = null)
+    public function setTblItem(TblItemValue $tblItemValue = null)
     {
 
-        $this->tblItem = ( null === $tblItem ? null : $tblItem->getId() );
+        $this->tblItemValue = ( null === $tblItemValue ? null : $tblItemValue->getId() );
     }
 
     /**
@@ -107,24 +107,24 @@ class TblInvoiceItem extends Element
     }
 
     /**
-     * @return bool|TblDebtor
+     * @return bool|TblInvoiceDebtor
      */
-    public function getServiceTblDebtor()
+    public function getInvoiceDebtor()
     {
 
-        if (null === $this->tblDebtor) {
+        if (null === $this->tblInvoiceDebtor) {
             return false;
         } else {
-            return Invoice::useService()->getDebtorById($this->tblDebtor);
+            return Invoice::useService()->getInvoiceDebtorById($this->tblInvoiceDebtor);
         }
     }
 
     /**
-     * @param null|TblDebtor $tblDebtor
+     * @param null|TblInvoiceDebtor $tblInvoiceDebtor
      */
-    public function setServiceTblDebtor(TblDebtor $tblDebtor = null)
+    public function setInvoiceDebtor(TblInvoiceDebtor $tblInvoiceDebtor = null)
     {
 
-        $this->tblDebtor = ( null === $tblDebtor ? null : $tblDebtor->getId() );
+        $this->tblInvoiceDebtor = ( null === $tblInvoiceDebtor ? null : $tblInvoiceDebtor->getId() );
     }
 }

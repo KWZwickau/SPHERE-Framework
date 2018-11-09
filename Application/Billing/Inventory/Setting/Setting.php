@@ -1,40 +1,32 @@
 <?php
-
-namespace SPHERE\Application\Billing\Accounting\Banking;
+namespace SPHERE\Application\Billing\Inventory\Setting;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Main;
+use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
 
-
-/**
- * Class Banking
- * @package SPHERE\Application\Billing\Accounting\Banking
- */
-class Banking implements IModuleInterface
+class Setting implements IModuleInterface
 {
 
     public static function registerModule()
     {
-
-        /**
-         * Register Module
-         */
-        //        Error::registerModule();
         /**
          * Register Navigation
          */
-//                Main::getDisplay()->addApplicationNavigation(
-//                    new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Debitoren' ), new Link\Icon( new Money() ) )
-//                );
+//        Main::getDisplay()->addModuleNavigation(
+//            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Einstellungen'),
+//                new Link\Icon(new CogWheels()))
+//        );
+
         /**
          * Register Route
          */
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__,
-                __NAMESPACE__.'\Frontend::frontendBanking'
-            ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__, 'Frontend::FrontendSetting'
+        ));
     }
 
     /**
@@ -57,5 +49,4 @@ class Banking implements IModuleInterface
 
         return new Frontend();
     }
-
 }

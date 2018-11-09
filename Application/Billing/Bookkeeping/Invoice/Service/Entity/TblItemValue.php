@@ -11,10 +11,10 @@ use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity
- * @Table(name="tblItem")
+ * @Table(name="tblItemValue")
  * @Cache(usage="READ_ONLY")
  */
-class TblItem extends Element
+class TblItemValue extends Element
 {
 
     const ATTR_SERVICE_TBL_ITEM = 'serviceTblItem';

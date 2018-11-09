@@ -48,11 +48,8 @@ class Setup extends AbstractSetup
     private function setTablePaymentType(Schema &$Schema)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblPaymentType');
-
-        if (!$this->getConnection()->hasColumn('tblPaymentType', 'Name')) {
-            $Table->addColumn('Name', 'string');
-        }
+        $Table = $this->createTable($Schema, 'tblPaymentType');
+        $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
 
         return $Table;
     }
@@ -66,15 +63,11 @@ class Setup extends AbstractSetup
     private function setTablePayment(Schema &$Schema, Table $tblPaymentType)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblPayment');
-
+        $Table = $this->createTable($Schema, 'tblPayment');
         if (!$this->getConnection()->hasColumn('tblPayment', 'Value')) {
             $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
         }
-        if (!$this->getConnection()->hasColumn('tblPayment', 'Purpose')) {
-            $Table->addColumn('Purpose', 'string');
-        }
-
+        $this->createColumn($Table, 'Purpose', self::FIELD_TYPE_STRING);
         $this->getConnection()->addForeignKey($Table, $tblPaymentType);
 
         return $Table;
@@ -89,11 +82,8 @@ class Setup extends AbstractSetup
     private function setTableInvoicePayment(Schema &$Schema, Table $tblPayment)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblInvoicePayment');
-        if (!$this->getConnection()->hasColumn('tblInvoicePayment', 'serviceTblInvoice')) {
-            $Table->addColumn('serviceTblInvoice', 'bigint', array('notnull' => false));
-        }
-
+        $Table = $this->createTable($Schema, 'tblInvoicePayment');
+        $this->createColumn($Table, 'serviceTblInvoice', self::FIELD_TYPE_BIGINT, true);
         $this->getConnection()->addForeignKey($Table, $tblPayment);
 
         return $Table;

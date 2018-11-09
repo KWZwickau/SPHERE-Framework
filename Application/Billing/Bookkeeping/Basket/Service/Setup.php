@@ -31,8 +31,6 @@ class Setup extends AbstractSetup
         $this->setTableBasketItem($Schema, $tblBasket);
         $this->setTblBasketVerification($Schema, $tblBasket);
 
-//        $tblBasketCommodity = $this->setTableBasketCommodity($Schema, $tblBasket);
-//        $this->setTableBasketCommodityDebtor($Schema, $tblBasketCommodity);
         /**
          * Migration & Protocol
          */
@@ -49,14 +47,9 @@ class Setup extends AbstractSetup
     private function setTableBasket(Schema &$Schema)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblBasket');
-
-        if (!$this->getConnection()->hasColumn('tblBasket', 'Name')) {
-            $Table->addColumn('Name', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblBasket', 'Description')) {
-            $Table->addColumn('Description', 'text');
-        }
+        $Table = $this->createTable($Schema, 'tblBasket');
+        $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Description', self::FIELD_TYPE_TEXT);
 
         return $Table;
     }
@@ -70,12 +63,8 @@ class Setup extends AbstractSetup
     private function setTableBasketPerson(Schema &$Schema, Table $tblBasket)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblBasketPerson');
-
-        if (!$this->getConnection()->hasColumn('tblBasketPerson', 'serviceTblPerson')) {
-            $Table->addColumn('serviceTblPerson', 'bigint');
-        }
-
+        $Table = $this->createTable($Schema, 'tblBasketPerson');
+        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
         $this->getConnection()->addForeignKey($Table, $tblBasket);
 
         return $Table;
@@ -90,12 +79,8 @@ class Setup extends AbstractSetup
     private function setTableBasketItem(Schema &$Schema, Table $tblBasket)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblBasketItem');
-
-        if (!$this->getConnection()->hasColumn('tblBasketItem', 'serviceTblItem')) {
-            $Table->addColumn('serviceTblItem', 'bigint');
-        }
-
+        $Table = $this->createTable($Schema, 'tblBasketItem');
+        $this->createColumn($Table, 'serviceTblItem', self::FIELD_TYPE_BIGINT, true);
         $this->getConnection()->addForeignKey($Table, $tblBasket);
 
         return $Table;
@@ -104,21 +89,13 @@ class Setup extends AbstractSetup
     private function setTblBasketVerification(Schema &$Schema, Table $tblBasket)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblBasketVerification');
-
+        $Table = $this->createTable($Schema, 'tblBasketVerification');
         if (!$this->getConnection()->hasColumn('tblBasketVerification', 'Value')) {
             $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
         }
-        if (!$this->getConnection()->hasColumn('tblBasketVerification', 'Quantity')) {
-            $Table->addColumn('Quantity', 'integer');
-        }
-        if (!$this->getConnection()->hasColumn('tblBasketVerification', 'serviceTblPerson')) {
-            $Table->addColumn('serviceTblPerson', 'bigint');
-        }
-        if (!$this->getConnection()->hasColumn('tblBasketVerification', 'serviceTblItem')) {
-            $Table->addColumn('serviceTblItem', 'bigint');
-        }
-
+        $this->createColumn($Table, 'Quantity', self::FIELD_TYPE_INTEGER);
+        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblItem', self::FIELD_TYPE_BIGINT, true);
         $this->getConnection()->addForeignKey($Table, $tblBasket);
 
         return $Table;

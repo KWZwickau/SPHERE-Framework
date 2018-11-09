@@ -4,7 +4,7 @@ namespace SPHERE\Application\Billing\Inventory\Item;
 
 use SPHERE\Application\Billing\Accounting\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Billing\Inventory\Item\Service\Data;
-use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblCalculation;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemCalculation;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemAccount;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemType;
@@ -87,7 +87,7 @@ class Service extends AbstractService
     /**
      * @param $Id
      *
-     * @return bool|TblCalculation
+     * @return bool|TblItemCalculation
      */
     public function getCalculationById($Id)
     {
@@ -118,22 +118,24 @@ class Service extends AbstractService
     /**
      * @param TblItem $tblItem
      *
-     * @return bool|TblCalculation[]
+     * @return bool|TblItemCalculation[]
      */
     public function getCalculationAllByItem(TblItem $tblItem)
     {
 
+        return false;
         return (new Data($this->getBinding()))->getCalculationAllByItem($tblItem);
     }
 
     /**
      * @param TblItem $tblItem
      *
-     * @return bool|TblCalculation
+     * @return bool|TblItemCalculation
      */
     public function getCalculationStandardValueAllByItem(TblItem $tblItem)
     {
 
+        return false;
         return (new Data($this->getBinding()))->getCalculationStandardValueAllByItem($tblItem);
     }
 
@@ -145,6 +147,7 @@ class Service extends AbstractService
     public function countCalculationByItem(TblItem $tblItem)
     {
 
+        return false;
         return (new Data($this->getBinding()))->countCalculationByItem($tblItem);
     }
 
@@ -212,12 +215,12 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblCalculation $tblCalculation
+     * @param TblItemCalculation $tblCalculation
      * @param TblItem        $tblItem
      *
      * @return bool
      */
-    public function destroyCalculation(TblCalculation $tblCalculation, TblItem $tblItem)
+    public function destroyCalculation(TblItemCalculation $tblCalculation, TblItem $tblItem)
     {
 
         if (null === $tblCalculation) {
@@ -290,7 +293,7 @@ class Service extends AbstractService
     /**
      * @param IFormInterface|null $Stage
      * @param TblItem             $tblItem
-     * @param TblCalculation      $tblCalculation
+     * @param TblItemCalculation      $tblCalculation
      * @param array               $Calculation
      *
      * @return IFormInterface|string
@@ -298,7 +301,7 @@ class Service extends AbstractService
     public function changeCalculation(
         IFormInterface &$Stage = null,
         TblItem $tblItem,
-        TblCalculation $tblCalculation,
+        TblItemCalculation $tblCalculation,
         $Calculation
     ) {
 
@@ -416,11 +419,12 @@ class Service extends AbstractService
      * @param         $SchoolType
      * @param         $SiblingRank
      *
-     * @return bool|TblCalculation
+     * @return bool|TblItemCalculation
      */
     public function existsCalculation(TblItem $tblItem, $SchoolType, $SiblingRank)
     {
 
+        return false;
         return (new Data($this->getBinding()))->existsCalculation($tblItem, $SchoolType, $SiblingRank);
     }
 
