@@ -33,7 +33,7 @@ class Data extends AbstractData
         // Einzelleistung
         $tblItemType = Item::useService()->getItemTypeById(1);
 
-        $tblItem = $this->createItem($tblItemType, 'Schulgeld');
+        $this->createItem($tblItemType, 'Schulgeld');
     }
 
     /**
@@ -164,7 +164,6 @@ class Data extends AbstractData
     /**
      * @param TblItemType             $tblItemType
      * @param                         $Name
-     * @param int                        $Amount
      * @param string                  $Description
      *
      * @return null|object|TblItem
@@ -172,7 +171,6 @@ class Data extends AbstractData
     public function createItem(
         TblItemType $tblItemType,
         $Name,
-        $Amount = 1,
         $Description = ''
     ) {
 
@@ -185,7 +183,6 @@ class Data extends AbstractData
         if ($Entity === null) {
             $Entity = new TblItem();
             $Entity->setName($Name);
-            $Entity->setAmount($Amount);
             $Entity->setTblItemType($tblItemType);
             $Entity->setDescription($Description);
             $Manager->saveEntity($Entity);

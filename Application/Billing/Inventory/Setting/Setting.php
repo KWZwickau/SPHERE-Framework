@@ -16,10 +16,10 @@ class Setting implements IModuleInterface
         /**
          * Register Navigation
          */
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Einstellungen'),
-                new Link\Icon(new CogWheels()))
-        );
+//        Main::getDisplay()->addModuleNavigation(
+//            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Einstellungen'),
+//                new Link\Icon(new CogWheels()))
+//        );
 
         /**
          * Register Route

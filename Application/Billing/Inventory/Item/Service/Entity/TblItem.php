@@ -27,10 +27,6 @@ class TblItem extends Element
      */
     protected $Name;
     /**
-     * @Column(type="integer")
-     */
-    protected $Amount;
-    /**
      * @Column(type="bigint")
      */
     protected $tblItemType;
@@ -70,22 +66,6 @@ class TblItem extends Element
     {
 
         $this->Name = $Name;
-    }
-
-    /**
-     * @return int
-     */
-    public function getAmount()
-    {
-        return (int)$this->Amount;
-    }
-
-    /**
-     * @param int $Amount
-     */
-    public function setAmount($Amount)
-    {
-        $this->Amount = (int)$Amount;
     }
 
     /**

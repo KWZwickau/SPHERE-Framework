@@ -205,8 +205,6 @@ class Service extends AbstractService
             $tblItem = (new Data($this->getBinding()))->createItem(
                 $tblItemType,
                 $Item['Name'],
-                //ToDO Ammount
-                1,
                 $Item['Description']);
             $tblCalculation = (new Data($this->getBinding()))->createCalculation($Item['Value']);
             (new Data($this->getBinding()))->createItemCalculation($tblItem, $tblCalculation);
