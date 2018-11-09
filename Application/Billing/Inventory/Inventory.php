@@ -21,7 +21,7 @@ class Inventory implements IApplicationInterface
         /**
          * Register Module
          */
-        Setting::registerModule();
+//        Setting::registerModule();
         Item::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
