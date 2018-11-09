@@ -19,9 +19,9 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-        $this->createKeyType('U', 'Umsatzsteuer');
+        $tblAccountKeyType = $this->createKeyType('U', 'Umsatzsteuer');
         $this->createKey('01.01.2007', '19', '01.01.2030', 'Mehrwertsteuer', '3',
-            $this->getAccountKeyTypeById('1')
+            $this->getAccountKeyTypeById($tblAccountKeyType->getId())
         );
         $this->createType('Erlöskonto', 'Dient zum erfassen des Erlöses');
         $this->createType('Umsatzsteuer', 'Dient zum erfassen der Umsatzsteuer');

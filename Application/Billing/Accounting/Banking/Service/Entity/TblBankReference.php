@@ -5,8 +5,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Billing\Accounting\Banking\Banking;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -17,15 +16,16 @@ use SPHERE\System\Database\Fitting\Element;
 class TblBankReference extends Element
 {
 
-    const ATTR_REFERENCE_NUMBER = 'Reference';
-    const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const ATTR_REFERENCE_NUMBER = 'ReferenceNumber';
+    const ATTR_REFERENCE_DATE = 'ReferenceDate';
+    const ATTR_TBL_DEBTOR = 'tblDebtor';
     const ATTR_TBL_BANK_ACCOUNT = 'tblBankAccount';
-    const ATTR_IBAN = 'IBAN';
+    const ATTR_IS_STANDARD = 'IsStandard';
 
     /**
      * @Column(type="string")
      */
-    protected $Reference;
+    protected $ReferenceNumber;
     /**
      * @Column(type="date")
      */
@@ -33,40 +33,33 @@ class TblBankReference extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblPerson;
+    protected $tblDebtor;
     /**
-     * @Column(type="string")
+     * @Column(type="bigint")
      */
-    protected $BankName;
+    protected $tblBankAccount;
     /**
-     * @Column(type="string")
+     * @Column(type="boolean")
      */
-    protected $IBAN;
-    /**
-     * @Column(type="string")
-     */
-    protected $BIC;
-    /**
-     * @Column(type="string")
-     */
-    protected $Owner;
+    protected $IsStandard;
+
 
     /**
-     * @return string $Reference
+     * @return string $ReferenceNumber
      */
-    public function getReference()
+    public function getReferenceNumber()
     {
 
-        return $this->Reference;
+        return $this->ReferenceNumber;
     }
 
     /**
-     * @param string $Reference
+     * @param string $ReferenceNumber
      */
-    public function setReference($Reference)
+    public function setReference($ReferenceNumber)
     {
 
-        $this->Reference = $Reference;
+        $this->ReferenceNumber = $ReferenceNumber;
     }
 
     /**
@@ -97,127 +90,65 @@ class TblBankReference extends Element
     }
 
     /**
-     * @return bool|TblPerson
+     * @return false|TblDebtor
      */
-    public function getServiceTblPerson()
+    public function getTblDebtor()
     {
 
-        if (null === $this->serviceTblPerson) {
+        if (null === $this->tblDebtor) {
             return false;
         } else {
-            return Person::useService()->getPersonById($this->serviceTblPerson);
+            return Banking::useService()->getDebtorById($this->tblDebtor);
         }
     }
 
     /**
-     * @param TblPerson|null $tblPerson
+     * @param TblDebtor|null $tblDebtor
      */
-    public function setServiceTblPerson(TblPerson $tblPerson = null)
+    public function setTblDebtor(TblDebtor $tblDebtor = null)
     {
 
-        $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
-    }
-
-    /**
-     * @return string $BankName
-     */
-    public function getBankName()
-    {
-
-        return $this->BankName;
-    }
-
-    /**
-     * @param string $BankName
-     */
-    public function setBankName($BankName)
-    {
-
-        $this->BankName = $BankName;
-    }
-
-    /**
-     * @return string $IBAN
-     */
-    public function getIBAN()
-    {
-
-        return $this->IBAN;
-    }
-
-    /**
-     * @param string $IBAN
-     */
-    public function setIBAN($IBAN)
-    {
-
-        $this->IBAN = strtoupper(substr(str_replace(' ', '', $IBAN), 0, 34));
-    }
-
-    /**
-     * @return string $BIC
-     */
-    public function getBIC()
-    {
-
-        return $this->BIC;
-    }
-
-    /**
-     * @param string $BIC
-     */
-    public function setBIC($BIC)
-    {
-
-        $this->BIC = strtoupper(substr(str_replace(' ', '', $BIC), 0, 11));
-    }
-
-    /**
-     * @return string $Owner
-     */
-    public function getOwner()
-    {
-
-        return $this->Owner;
-    }
-
-    /**
-     * @param string $Owner
-     */
-    public function setOwner($Owner)
-    {
-
-        $this->Owner = $Owner;
-    }
-
-    /**
-     * @return string
-     */
-    public function getIBANFrontend()
-    {
-
-        $IBAN = $this->IBAN;
-        $tmp = array();
-        for ($i = 0, $j = strlen($IBAN); $i < $j; $i += 4) {
-            array_push($tmp, substr($IBAN, $i, 4));
+        if(null !== $tblDebtor){
+            $this->tblDebtor = $tblDebtor->getId();
         }
-        $result = implode(' ', $tmp);
-        return $result;
     }
 
     /**
-     * @return string
+     * @return false|TblBankAccount
      */
-    public function getBICFrontend()
+    public function getTblBankAccount()
     {
-
-        $BIC = $this->BIC;
-        $tmp = array();
-        array_push($tmp, substr($BIC, 0, 4));
-        array_push($tmp, substr($BIC, 4, 2));
-        array_push($tmp, substr($BIC, 6, 2));
-        array_push($tmp, substr($BIC, 8, 3));
-        $result = implode(' ', $tmp);
-        return $result;
+        if (null === $this->tblBankAccount) {
+            return false;
+        } else {
+            return Banking::useService()->getBankAccountById($this->tblBankAccount);
+        }
     }
+
+    /**
+     * @param TblBankAccount|null $tblBankAccount
+     */
+    public function setTblBankAccount(TblBankAccount $tblBankAccount = null)
+    {
+        if(null !== $tblBankAccount) {
+            $this->tblBankAccount = $tblBankAccount->getId();
+        }
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getisStandard()
+    {
+        return $this->IsStandard;
+    }
+
+    /**
+     * @param mixed $IsStandard
+     */
+    public function setIsStandard($IsStandard)
+    {
+        $this->IsStandard = $IsStandard;
+    }
+
 }

@@ -31,12 +31,9 @@ class TblDebtorSelection extends Element
 
     /**
      * @Column(type="bigint")
+     * Beitragsverursacher (Kind etc.)
      */
     protected $serviceTblPerson;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblPersonPayers;
     /**
      * @Column(type="bigint")
      */
@@ -74,28 +71,6 @@ class TblDebtorSelection extends Element
     {
 
         $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
-    }
-
-    /**
-     * @return bool|TblPerson
-     */
-    public function getServiceTblPersonPayers()
-    {
-
-        if (null === $this->serviceTblPersonPayers) {
-            return false;
-        } else {
-            return Person::useService()->getPersonById($this->serviceTblPersonPayers);
-        }
-    }
-
-    /**
-     * @param TblPerson|null $tblPerson
-     */
-    public function setServiceTblPersonPayers(TblPerson $tblPerson = null)
-    {
-
-        $this->serviceTblPersonPayers = ( null === $tblPerson ? null : $tblPerson->getId() );
     }
 
     /**

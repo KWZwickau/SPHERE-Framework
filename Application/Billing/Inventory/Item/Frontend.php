@@ -2,7 +2,7 @@
 
 namespace SPHERE\Application\Billing\Inventory\Item;
 
-use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblCalculation;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemCalculation;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -77,7 +77,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $CalculationContent = array();
                 if ($tblCalculationList) {
                     $ItemCount = count($tblCalculationList);
-                    /** @var TblCalculation $tblCalculation */
+                    /** @var TblItemCalculation $tblCalculation */
 
                     foreach ($tblCalculationList as $Key => $tblCalculation) {
                         $CalculationContent[$Key] = 'Preis: '.new Bold($tblCalculation->getPriceString()).' Bedingung: ';
@@ -351,7 +351,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblCalculationList = Item::useService()->getCalculationAllByItem($tblItem);
         $TableContent = array();
         if (is_array($tblCalculationList)) {
-            array_walk($tblCalculationList, function (TblCalculation $tblCalculation) use (&$TableContent, $tblItem) {
+            array_walk($tblCalculationList, function (TblItemCalculation $tblCalculation) use (&$TableContent, $tblItem) {
 
                 $Item['Price'] = $tblCalculation->getPriceString();
                 $Item['Cours'] = '';

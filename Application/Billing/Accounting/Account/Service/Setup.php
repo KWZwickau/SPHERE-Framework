@@ -48,13 +48,10 @@ class Setup extends AbstractSetup
     private function setTableAccountKeyType(Schema &$Schema)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblAccountKeyType');
-        if (!$this->getConnection()->hasColumn('tblAccountKeyType', 'Name')) {
-            $Table->addColumn('Name', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblAccountKeyType', 'Description')) {
-            $Table->addColumn('Description', 'text');
-        }
+        $Table = $this->createTable($Schema, 'tblAccountKeyType');
+        $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Description', self::FIELD_TYPE_TEXT);
+
         return $Table;
     }
 
@@ -66,13 +63,10 @@ class Setup extends AbstractSetup
     private function setTableAccountType(Schema &$Schema)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblAccountType');
-        if (!$this->getConnection()->hasColumn('tblAccountType', 'Name')) {
-            $Table->addColumn('Name', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblAccountType', 'Description')) {
-            $Table->addColumn('Description', 'text');
-        }
+        $Table = $this->createTable($Schema, 'tblAccountType');
+        $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Description', self::FIELD_TYPE_TEXT);
+
         return $Table;
     }
 
@@ -85,23 +79,14 @@ class Setup extends AbstractSetup
     private function setTableAccountKey(Schema &$Schema, Table $tblAccountKeyType)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblAccountKey');
-        if (!$this->getConnection()->hasColumn('tblAccountKey', 'ValidFrom')) {
-            $Table->addColumn('ValidFrom', 'date');
-        }
-        if (!$this->getConnection()->hasColumn('tblAccountKey', 'Value')) {
-            $Table->addColumn('Value', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblAccountKey', 'ValidTo')) {
-            $Table->addColumn('ValidTo', 'date');
-        }
-        if (!$this->getConnection()->hasColumn('tblAccountKey', 'Description')) {
-            $Table->addColumn('Description', 'text');
-        }
-        if (!$this->getConnection()->hasColumn('tblAccountKey', 'Code')) {
-            $Table->addColumn('Code', 'integer');
-        }
+        $Table = $this->createTable($Schema, 'tblAccountKey');
+        $this->createColumn($Table, 'Value', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Code', self::FIELD_TYPE_INTEGER);
+        $this->createColumn($Table, 'ValidFrom', self::FIELD_TYPE_DATETIME);
+        $this->createColumn($Table, 'ValidTo', self::FIELD_TYPE_DATETIME);
+        $this->createColumn($Table, 'Description', self::FIELD_TYPE_TEXT);
         $this->getConnection()->addForeignKey($Table, $tblAccountKeyType);
+
         return $Table;
     }
 
@@ -115,18 +100,13 @@ class Setup extends AbstractSetup
     private function setTableAccount(Schema &$Schema, Table $tblAccountType, Table $tblAccountKey)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblAccount');
-        if (!$this->getConnection()->hasColumn('tblAccount', 'Number')) {
-            $Table->addColumn('Number', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblAccount', 'Description')) {
-            $Table->addColumn('Description', 'text');
-        }
-        if (!$this->getConnection()->hasColumn('tblAccount', 'IsActive')) {
-            $Table->addColumn('IsActive', 'boolean');
-        }
+        $Table = $this->createTable($Schema, 'tblAccount');
+        $this->createColumn($Table, 'Number', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Description', self::FIELD_TYPE_TEXT);
+        $this->createColumn($Table, 'IsActive', self::FIELD_TYPE_BOOLEAN);
         $this->getConnection()->addForeignKey($Table, $tblAccountType);
         $this->getConnection()->addForeignKey($Table, $tblAccountKey);
+
         return $Table;
     }
 }
