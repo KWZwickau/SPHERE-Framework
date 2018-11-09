@@ -282,4 +282,28 @@ class TblAbsence extends Element
             return true;
         }
     }
+
+    /**
+     * @return string
+     */
+    public function getStatusDisplayName()
+    {
+        switch ($this->getStatus()) {
+            case self::VALUE_STATUS_EXCUSED: return 'entschuldigt';
+            case self::VALUE_STATUS_UNEXCUSED: return 'unentschuldigt';
+            default: return '';
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getDateSpan()
+    {
+        if ($this->getToDate()) {
+            return $this->getFromDate() . ' - ' . $this->getToDate();
+        } else {
+            return $this->getFromDate();
+        }
+    }
 }
