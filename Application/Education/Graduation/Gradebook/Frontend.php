@@ -2709,7 +2709,11 @@ class Frontend extends FrontendScoreRule
                                                     }
                                                 }
 
-                                                if (($tblTestList = Evaluation::useService()->getHighlightedTestList(
+                                                // fettmarkierte Tests wie Klassenarbeiten anzeigen
+                                                if (($tblSetting = Consumer::useService()->getSetting(
+                                                        'Education', 'Graduation', 'Gradebook', 'ShowHighlightedTestsInGradeOverview'))
+                                                    && $tblSetting->getValue()
+                                                    && ($tblTestList = Evaluation::useService()->getHighlightedTestList(
                                                     $tblDivision, $tblSubject, $tblPeriod
                                                 ))) {
                                                     /** @var TblTest $tblTestItem */
