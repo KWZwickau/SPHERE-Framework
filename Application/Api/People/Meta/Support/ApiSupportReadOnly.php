@@ -75,10 +75,11 @@ class ApiSupportReadOnly extends Extension implements IApiInterface
 
     /**
      * @param $PersonId
+     * @param bool $showPersonPanel
      *
      * @return string
      */
-    public function openOverViewModal($PersonId)
+    public static function openOverViewModal($PersonId, $showPersonPanel = true)
     {
 
         $tblPerson = Person::useService()->getPersonById($PersonId);
@@ -156,29 +157,28 @@ class ApiSupportReadOnly extends Extension implements IApiInterface
             }
         }
 
-
-        return new Title('Integration')
-        .new Layout(
-            new LayoutGroup(array(
-                new LayoutRow(array(
-                    new LayoutColumn(
-                        $HeadPanel
-                    , 12),
-                    new LayoutColumn(
-                        $WellFocus
-                    , 6),
-                    new LayoutColumn(
-                        $WellDisorder
-                    , 6),
-                )),
-                new LayoutRow(array(
-                    $WellLegalBasis,
-                    $WellLearnTarget,
-                    new LayoutColumn(
-                        $WellHandyCap
-                    , 12),
+        return ($showPersonPanel ? new Title('Integration') : '')
+            . new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            $showPersonPanel ? $HeadPanel : null
+                            , 12),
+                        new LayoutColumn(
+                            $WellFocus
+                            , 6),
+                        new LayoutColumn(
+                            $WellDisorder
+                            , 6),
+                    )),
+                    new LayoutRow(array(
+                        $WellLegalBasis,
+                        $WellLearnTarget,
+                        new LayoutColumn(
+                            $WellHandyCap
+                            , 12),
+                    ))
                 ))
-            ))
-        );
+            );
     }
 }
