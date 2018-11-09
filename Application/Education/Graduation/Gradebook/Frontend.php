@@ -2452,6 +2452,7 @@ class Frontend extends FrontendScoreRule
         } else {
             $date = $tblTest->getDate();
         }
+        $dateTime = new \DateTime($date);
         if (strlen($date) > 6) {
             $date = substr($date, 0, 6);
         }
@@ -2483,8 +2484,10 @@ class Frontend extends FrontendScoreRule
             }
         }
 
-        $subTableHeaderList['Test' . $tblTest->getId()] =
-            (new ToolTip($text, htmlspecialchars($toolTip)))->enableHtml();
+        $subTableHeaderList['Test' . $tblTest->getId()] = array(
+            'Date' => $dateTime->format('Y.m.d'),
+            'Text' => (new ToolTip($text, htmlspecialchars($toolTip)))->enableHtml()
+        );
 
         if ($tblGrade) {
             $gradeValue = $tblGrade->getGrade();
@@ -2723,7 +2726,18 @@ class Frontend extends FrontendScoreRule
                                                 }
 
                                                 if (!empty($subTableHeaderList)) {
-                                                    // todo sortieren
+                                                    // nach Datum Sortieren
+                                                    uasort($subTableHeaderList, function ($a, $b)
+                                                    {
+                                                        return strnatcmp($a['Date'], $b['Date']);
+                                                    });
+
+                                                    $tempList = array();
+                                                    foreach ($subTableHeaderList as $key => $array) {
+                                                        $tempList[$key] = $array['Text'];
+                                                    }
+                                                    $subTableHeaderList = $tempList;
+
                                                     if ($isShownAverage) {
                                                         $subTableHeaderList['Average'] = '&#216;';
                                                         /*
