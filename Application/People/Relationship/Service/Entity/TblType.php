@@ -24,6 +24,8 @@ class TblType extends Element
     const ATTR_TBL_GROUP = 'tblGroup';
     const ATTR_IS_BIDIRECTIONAL = 'IsBidirectional';
 
+    const CHILD_ID = -1;
+
     /**
      * @Column(type="string")
      */

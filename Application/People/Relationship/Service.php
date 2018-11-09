@@ -214,7 +214,18 @@ class Service extends AbstractService
                 $Error = true;
             }
         }
-        if (!($tblType = $this->getTypeById($Type['Type']))){
+
+        // bei der virtuellen Beziehung vom Typ Kind werden die Personen getauscht
+        $tempPerson = $tblPersonFrom;
+        if ($Type['Type'] == TblType::CHILD_ID) {
+            $tblType = $this->getTypeByName('Sorgeberechtigt');
+            $tblPersonFrom = $tblPersonTo;
+            $tblPersonTo = $tempPerson;
+        } else {
+            $tblType = $this->getTypeById($Type['Type']);
+        }
+
+        if (!$tblType) {
             $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
             $Error = true;
         } else {
@@ -227,10 +238,10 @@ class Service extends AbstractService
                 $Type['Remark'])
             ) {
                 return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Beziehung wurde erfolgreich hinzugefügt')
-                . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPersonFrom->getId(), 'Group' => $Group));
+                . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tempPerson->getId(), 'Group' => $Group));
             } else {
                 return new Danger(new Ban() . ' Die Beziehung konnte nicht hinzugefügt werden')
-                . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR, array('Id' => $tblPersonFrom->getId(), 'Group' => $Group));
+                . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR, array('Id' => $tempPerson->getId(), 'Group' => $Group));
             }
         }
         return $Form;
@@ -380,7 +391,18 @@ class Service extends AbstractService
                 $Error = true;
             }
         }
-        if (!($tblType = $this->getTypeById($Type['Type']))){
+
+        // bei der virtuellen Beziehung vom Typ Kind werden die Personen getauscht
+        $tempPerson = $tblPersonFrom;
+        if ($Type['Type'] == TblType::CHILD_ID) {
+            $tblType = $this->getTypeByName('Sorgeberechtigt');
+            $tblPersonFrom = $tblPersonTo;
+            $tblPersonTo = $tempPerson;
+        } else {
+            $tblType = $this->getTypeById($Type['Type']);
+        }
+
+        if (!$tblType) {
             $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ an');
             $Error = true;
         } else {
@@ -396,11 +418,11 @@ class Service extends AbstractService
             ) {
                 return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Beziehung wurde erfolgreich geändert')
                 . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
-                    array('Id' => $tblToPerson->getServiceTblPersonFrom() ? $tblToPerson->getServiceTblPersonFrom()->getId() : 0, 'Group' => $Group));
+                    array('Id' => $tempPerson->getId(), 'Group' => $Group));
             } else {
                 return new Danger(new Ban() . ' Die Beziehung konnte nicht geändert werden')
                 . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
-                    array('Id' => $tblToPerson->getServiceTblPersonFrom() ? $tblToPerson->getServiceTblPersonFrom()->getId() : 0, 'Group' => $Group));
+                    array('Id' => $tempPerson->getId(), 'Group' => $Group));
             }
         }
         return $Form;
