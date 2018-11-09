@@ -7,7 +7,6 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Database\Link\Identifier;
 
 /**
  * Class Test
@@ -62,15 +61,12 @@ class Test implements IModuleInterface
         );
     }
 
-    /**
-     * @return Service
-     */
     public static function useService()
     {
-
-        return new Service(new Identifier('Platform', 'System', 'Test'),
-            __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
-        );
+        // TODO: Implement useService() method.
+        //        return new Service(new Identifier('Platform', 'System', 'Test'),
+        //            __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
+        //        );
     }
 
     /**
