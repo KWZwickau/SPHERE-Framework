@@ -407,7 +407,7 @@ class Service extends Extension
                 $Item['Guardian2'] = '';
                 $Item['PhoneGuardian1'] = '';
                 $Item['PhoneGuardian2'] = '';
-                $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = '';
+                $Item['StreetName'] = $Item['StreetNumber'] = $Item['Code'] = $Item['City'] = $Item['District'] = '';
                 $Item['Address'] = '';
                 $Item['Birthday'] = $Item['Birthplace'] = '';
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
