@@ -2441,10 +2441,10 @@ class Frontend extends FrontendScoreRule
      * @param $subTableDataList
      * @param bool $hasScore
      */
-    private function addTest(TblTest $tblTest,TblGrade $tblGrade, &$subTableHeaderList, &$subTableDataList, $hasScore)
+    private function addTest(TblTest $tblTest,TblGrade $tblGrade = null, &$subTableHeaderList, &$subTableDataList, $hasScore)
     {
         if ($tblTest->isContinues()) {
-            if ($tblGrade->getDate()) {
+            if ($tblGrade && $tblGrade->getDate()) {
                 $date = $tblGrade->getDate();
             } else {
                 $date = $tblTest->getFinishDate();
@@ -2486,23 +2486,27 @@ class Frontend extends FrontendScoreRule
         $subTableHeaderList['Test' . $tblTest->getId()] =
             (new ToolTip($text, htmlspecialchars($toolTip)))->enableHtml();
 
-        $gradeValue = $tblGrade->getGrade();
-        if ($gradeValue !== null && $gradeValue !== '') {
-            $trend = $tblGrade->getTrend();
-            if (TblGrade::VALUE_TREND_PLUS === $trend) {
-                $gradeValue .= '+';
-            } elseif (TblGrade::VALUE_TREND_MINUS === $trend) {
-                $gradeValue .= '-';
+        if ($tblGrade) {
+            $gradeValue = $tblGrade->getGrade();
+            if ($gradeValue !== null && $gradeValue !== '') {
+                $trend = $tblGrade->getTrend();
+                if (TblGrade::VALUE_TREND_PLUS === $trend) {
+                    $gradeValue .= '+';
+                } elseif (TblGrade::VALUE_TREND_MINUS === $trend) {
+                    $gradeValue .= '-';
+                }
             }
+
+            if (($tblGradeType = $tblGrade->getTblGradeType())
+                && $tblGradeType->isHighlighted()
+            ) {
+                $gradeValue = new Bold($gradeValue);
+            }
+        } else {
+            $gradeValue = null;
         }
 
-        if (($tblGradeType = $tblGrade->getTblGradeType())
-            && $tblGradeType->isHighlighted()
-        ) {
-            $gradeValue = new Bold($gradeValue);
-        }
-
-        $subTableDataList[0]['Test' . $tblTest->getId()] = $gradeValue !== null && $gradeValue !== '' ? $gradeValue : '';
+        $subTableDataList[0]['Test' . $tblTest->getId()] = $gradeValue !== null && $gradeValue !== '' ? $gradeValue : '&nbsp;';
     }
 
     /**
@@ -2542,10 +2546,10 @@ class Frontend extends FrontendScoreRule
                     $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
                     if ($tblDivisionSubjectList) {
                         foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
-                            if ($tblDivisionSubject->getServiceTblSubject() && $tblDivisionSubject->getTblDivision()) {
+                            if (($tblSubject = $tblDivisionSubject->getServiceTblSubject()) && $tblDivisionSubject->getTblDivision()) {
                                 $tblScoreRule = Gradebook::useService()->getScoreRuleByDivisionAndSubjectAndGroup(
                                     $tblDivisionSubject->getTblDivision(),
-                                    $tblDivisionSubject->getServiceTblSubject(),
+                                    $tblSubject,
                                     $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
                                 );
                                 if (!$tblDivisionSubject->getTblSubjectGroup()) {
@@ -2553,7 +2557,7 @@ class Frontend extends FrontendScoreRule
                                     $tblDivisionSubjectWhereGroup =
                                         Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
                                             $tblDivision,
-                                            $tblDivisionSubject->getServiceTblSubject()
+                                            $tblSubject
                                         );
                                     if ($tblDivisionSubjectWhereGroup) {
                                         foreach ($tblDivisionSubjectWhereGroup as $tblDivisionSubjectGroup) {
@@ -2568,7 +2572,7 @@ class Frontend extends FrontendScoreRule
                                         $hasStudentSubject = true;
                                     }
                                     if ($hasStudentSubject) {
-                                        $tableDataList[$tblDivisionSubject->getServiceTblSubject()->getId()]['Subject'] = $tblDivisionSubject->getServiceTblSubject()->getName();
+                                        $tableDataList[$tblSubject->getId()]['Subject'] = $tblSubject->getName();
 
                                         if ($tblPeriodList) {
                                             if ($isParentView
@@ -2587,7 +2591,7 @@ class Frontend extends FrontendScoreRule
                                                 $tblGradeList = Gradebook::useService()->getGradesByStudent(
                                                     $tblPerson,
                                                     $tblDivision,
-                                                    $tblDivisionSubject->getServiceTblSubject(),
+                                                    $tblSubject,
                                                     $tblTestType,
                                                     $tblPeriod
                                                 );
@@ -2702,7 +2706,24 @@ class Frontend extends FrontendScoreRule
                                                     }
                                                 }
 
+                                                if (($tblTestList = Evaluation::useService()->getHighlightedTestList(
+                                                    $tblDivision, $tblSubject, $tblPeriod
+                                                ))) {
+                                                    /** @var TblTest $tblTestItem */
+                                                    foreach ($tblTestList as $tblTestItem) {
+                                                        if (!isset($subTableHeaderList['Test' . $tblTestItem->getId()])) {
+                                                            $this->addTest($tblTestItem,
+                                                                null,
+                                                                $subTableHeaderList,
+                                                                $subTableDataList,
+                                                                $hasScore
+                                                            );
+                                                        }
+                                                    }
+                                                }
+
                                                 if (!empty($subTableHeaderList)) {
+                                                    // todo sortieren
                                                     if ($isShownAverage) {
                                                         $subTableHeaderList['Average'] = '&#216;';
                                                         /*
@@ -2711,7 +2732,7 @@ class Frontend extends FrontendScoreRule
                                                         $average = Gradebook::useService()->calcStudentGrade(
                                                             $tblPerson,
                                                             $tblDivisionSubject->getTblDivision(),
-                                                            $tblDivisionSubject->getServiceTblSubject(),
+                                                            $tblSubject,
                                                             Evaluation::useService()->getTestTypeByIdentifier('TEST'),
                                                             $tblScoreRule ? $tblScoreRule : null,
                                                             $tblPeriod,
@@ -2741,9 +2762,9 @@ class Frontend extends FrontendScoreRule
                                                     }
                                                     $table = new Table(new TableHead(new TableRow($headerColumns)), new TableBody(new TableRow($bodyColumns)));
 
-                                                    $tableDataList[$tblDivisionSubject->getServiceTblSubject()->getId()]['Period' . $tblPeriod->getId()] = $table;
+                                                    $tableDataList[$tblSubject->getId()]['Period' . $tblPeriod->getId()] = $table;
                                                 } else {
-                                                    $tableDataList[$tblDivisionSubject->getServiceTblSubject()->getId()]['Period' . $tblPeriod->getId()] = '';
+                                                    $tableDataList[$tblSubject->getId()]['Period' . $tblPeriod->getId()] = '';
                                                 }
                                             }
                                         }
@@ -2751,7 +2772,7 @@ class Frontend extends FrontendScoreRule
                                         $average = Gradebook::useService()->calcStudentGrade(
                                             $tblPerson,
                                             $tblDivisionSubject->getTblDivision(),
-                                            $tblDivisionSubject->getServiceTblSubject(),
+                                            $tblSubject,
                                             Evaluation::useService()->getTestTypeByIdentifier('TEST'),
                                             $tblScoreRule ? $tblScoreRule : null,
                                             null,
@@ -2767,7 +2788,7 @@ class Frontend extends FrontendScoreRule
                                             $average = substr($average, 0,
                                                 strpos($average, '('));
                                         }
-                                        $tableDataList[$tblDivisionSubject->getServiceTblSubject()->getId()]['Average'] = new Bold($average);
+                                        $tableDataList[$tblSubject->getId()]['Average'] = new Bold($average);
                                     }
                                 }
                             }
