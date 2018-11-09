@@ -184,7 +184,7 @@ class Service extends AbstractService
         } else {
             // control there is no other MainAddress
             if ($tblType->getName() == 'Hauptadresse') {
-                $tblAddressMain = Address::useService()->getAddressByPerson($tblPerson);
+                $tblAddressMain = $tblPerson->fetchMainAddress();
                 if ($tblAddressMain && (($tblAddress && $tblAddress->getId() != $tblAddressMain->getId()) || !$tblAddress)) {
                     $Form->setError('Type[Type]', '"'.$tblPerson->getFullName()
                         .'" besitzt bereits eine Hauptadresse');
@@ -571,39 +571,12 @@ class Service extends AbstractService
             return $Form;
         }
 
-        $Error = false;
-
-        if (isset( $Street['Name'] ) && empty( $Street['Name'] )) {
-            $Form->setError('Street[Name]', 'Bitte geben Sie eine Strasse an');
-            $Error = true;
+        if (($tblCompany = $tblToCompany->getServiceTblCompany())) {
+            $Error = $this->checkFormAddressToCompany($Form, $tblCompany, $Street, $City, $Type, $tblToCompany->getTblAddress() ? $tblToCompany->getTblAddress() : null);
         } else {
-            $Form->setSuccess('Street[Name]');
+            return new Danger('Die Institution wurde nicht gefunden.', new Exclamation());
         }
-        if (isset( $Street['Number'] ) && empty( $Street['Number'] )) {
-            $Form->setError('Street[Number]', 'Bitte geben Sie eine Hausnummer an');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Street[Number]');
-        }
-
-        if (isset( $City['Code'] ) && empty( $City['Code'] )) {
-            $Form->setError('City[Code]', 'Bitte geben Sie eine Postleitzahl ein');
-            $Error = true;
-        } else {
-            $Form->setSuccess('City[Code]');
-        }
-        if (isset( $City['Name'] ) && empty( $City['Name'] )) {
-            $Form->setError('City[Name]', 'Bitte geben Sie einen Namen ein');
-            $Error = true;
-        } else {
-            $Form->setSuccess('City[Name]');
-        }
-        if (!( $tblType = $this->getTypeById($Type['Type']) )) {
-            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ ein');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Type[Type]');
-        }
+        $tblType = $this->getTypeById($Type['Type']);
 
         if (!$Error) {
             $tblState = $this->getStateById($State);
@@ -638,7 +611,13 @@ class Service extends AbstractService
                 new Danger('Institution nicht gefunden', new Ban());
             }
         }
-        return $Form;
+
+        return $Form . new Notify(
+                'Die Adresse konnte nicht geändert werden',
+                'Bitte füllen Sie die benötigten Felder korrekt aus',
+                Notify::TYPE_DANGER,
+                5000
+            );
     }
 
     /**
@@ -676,39 +655,8 @@ class Service extends AbstractService
             return $Form;
         }
 
-        $Error = false;
-
-        if (isset( $Street['Name'] ) && empty( $Street['Name'] )) {
-            $Form->setError('Street[Name]', 'Bitte geben Sie eine Strasse an');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Street[Name]');
-        }
-        if (isset( $Street['Number'] ) && empty( $Street['Number'] )) {
-            $Form->setError('Street[Number]', 'Bitte geben Sie eine Hausnummer an');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Street[Number]');
-        }
-
-        if (isset( $City['Code'] ) && empty( $City['Code'] )) {
-            $Form->setError('City[Code]', 'Bitte geben Sie eine Postleitzahl ein');
-            $Error = true;
-        } else {
-            $Form->setSuccess('City[Code]');
-        }
-        if (isset( $City['Name'] ) && empty( $City['Name'] )) {
-            $Form->setError('City[Name]', 'Bitte geben Sie einen Namen ein');
-            $Error = true;
-        } else {
-            $Form->setSuccess('City[Name]');
-        }
-        if (!( $tblType = $this->getTypeById($Type['Type']) )) {
-            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ ein');
-            $Error = true;
-        } else {
-            $Form->setSuccess('Type[Type]');
-        }
+        $Error = $this->checkFormAddressToCompany($Form, $tblCompany, $Street, $City, $Type);
+        $tblType = $this->getTypeById($Type['Type']);
 
         if (!$Error) {
             if ($State) {
@@ -735,7 +683,76 @@ class Service extends AbstractService
                     array('Id' => $tblCompany->getId(), 'Group' => $Group));
             }
         }
-        return $Form;
+
+        return $Form . new Notify(
+                'Die Adresse konnte nicht angelegt werden',
+                'Bitte füllen Sie die benötigten Felder korrekt aus',
+                Notify::TYPE_DANGER,
+                5000
+            );
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param TblCompany $tblCompany
+     * @param $Street
+     * @param $City
+     * @param $Type
+     * @param TblAddress|null $tblAddress
+     *
+     * @return bool
+     */
+    public function checkFormAddressToCompany(
+        IFormInterface &$Form,
+        TblCompany $tblCompany,
+        $Street,
+        $City,
+        $Type,
+        TblAddress $tblAddress = null
+    ) {
+
+        $Error = false;
+        if (isset($Street['Name']) && empty($Street['Name'])) {
+            $Form->setError('Street[Name]', 'Bitte geben Sie eine Strasse an');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Street[Name]');
+        }
+        if (isset($Street['Number']) && empty($Street['Number'])) {
+            $Form->setError('Street[Number]', 'Bitte geben Sie eine Hausnummer an');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Street[Number]');
+        }
+
+        if (isset($City['Code']) && empty($City['Code'])) {
+            $Form->setError('City[Code]', 'Bitte geben Sie eine Postleitzahl ein');
+            $Error = true;
+        } else {
+            $Form->setSuccess('City[Code]');
+        }
+        if (isset($City['Name']) && empty($City['Name'])) {
+            $Form->setError('City[Name]', 'Bitte geben Sie einen Namen ein');
+            $Error = true;
+        } else {
+            $Form->setSuccess('City[Name]');
+        }
+        if (!($tblType = $this->getTypeById($Type['Type']))) {
+            $Form->setError('Type[Type]', 'Bitte geben Sie einen Typ ein');
+            $Error = true;
+        } else {
+            // control there is no other MainAddress
+            if ($tblType->getName() == 'Hauptadresse') {
+                $tblAddressMain =  $tblCompany->fetchMainAddress();
+                if ($tblAddressMain && (($tblAddress && $tblAddress->getId() != $tblAddressMain->getId()) || !$tblAddress)) {
+                    $Form->setError('Type[Type]', '"'.$tblCompany->getDisplayName()
+                        .'" besitzt bereits eine Hauptadresse');
+                    $Error = true;
+                }
+            }
+        }
+
+        return $Error;
     }
 
     /**
