@@ -48,13 +48,14 @@ abstract class IndividualReceiver extends Extension
 
     /**
      * @param string $Content
+     * @param string $Identifier
      *
      * @return BlockReceiver
      */
-    public static function receiverService($Content = '')
+    public static function receiverService($Content = '', $Identifier = '')
     {
         return (new BlockReceiver($Content))
-            ->setIdentifier('ReceiverService');
+            ->setIdentifier('ReceiverService'.$Identifier);
     }
 
     /**

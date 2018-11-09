@@ -101,9 +101,8 @@ select
             vCP.TblType_Name,
             ': ',
             vCP.TblPhone_Number,
-            ' - ',
             vCP.TblToPerson_Remark
-            ) separator '\n\r'
+            ) separator ' - \n\r'
         ) from SettingConsumer_{{ ConsumerAcronym }}.viewContactPhone vCP
         where vCP.TblPerson_Id = TblPerson_S1_Id
     ) TblPhone_Number_S1,
@@ -240,9 +239,8 @@ select
             vCP.TblType_Name,
             ': ',
             vCP.TblPhone_Number,
-            ' - ',
             vCP.TblToPerson_Remark
-            ) separator '\n\r'
+            ) separator ' - \n\r'
         ) from SettingConsumer_{{ ConsumerAcronym }}.viewContactPhone vCP
         where vCP.TblPerson_Id = TblPerson_S2_Id
     ) TblPhone_Number_S2,
@@ -379,9 +377,8 @@ select
             vCP.TblType_Name,
             ': ',
             vCP.TblPhone_Number,
-            ' - ',
             vCP.TblToPerson_Remark
-            ) separator '\n\r'
+            ) separator ' - \n\r'
         ) from SettingConsumer_{{ ConsumerAcronym }}.viewContactPhone vCP
         where vCP.TblPerson_Id = TblPerson_S3_Id
     ) TblPhone_Number_S3,
