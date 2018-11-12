@@ -23,7 +23,7 @@ class Billing implements IClusterInterface
         /**
          * Register Application
          */
-        Inventory::registerApplication();
+//        Inventory::registerApplication();
 //        Accounting::registerApplication();
 //        Bookkeeping::registerApplication();
 
