@@ -7,8 +7,10 @@ use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemCalculation;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemAccount;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemGroup;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemType;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
@@ -46,6 +48,48 @@ class Data extends AbstractData
 
 //        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblItem', $Id);
         $Entity = $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblItem', $Id);
+        return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
+     * @param integer $Id
+     *
+     * @return bool|TblItemGroup
+     */
+    public function getItemGroupById($Id)
+    {
+
+        $Entity = $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblItemGroup', $Id);
+        return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
+     * @param TblItem $tblItem
+     *
+     * @return bool|TblItemGroup[]
+     */
+    public function getItemGroupByItem(TblItem $tblItem)
+    {
+
+        $Entity = $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItemGroup',
+            array(
+                TblItemGroup::ATTR_TBL_ITEM => $tblItem->getId()
+            ));
+        return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     *
+     * @return bool|TblItemGroup[]
+     */
+    public function getItemGroupByGroup(TblGroup $tblGroup)
+    {
+
+        $Entity = $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItemGroup',
+            array(
+                TblItemGroup::ATTR_SERVICE_TBL_GROUP => $tblGroup->getId()
+            ));
         return ( null === $Entity ? false : $Entity );
     }
 
