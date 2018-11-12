@@ -27,6 +27,7 @@ class Setup extends AbstractSetup
         $Schema = clone $this->getConnection()->getSchema();
         $tblItemType = $this->setTableItemType($Schema);
         $tblItem = $this->setTableItem($Schema, $tblItemType);
+        $this->setTableItemGroup($Schema, $tblItemType);
         $tblVariant = $this->setTableItemVariant($Schema, $tblItem);
         $this->setTableItemCalculation($Schema, $tblVariant);
         $this->setTableItemAccount($Schema, $tblItem);
@@ -67,6 +68,22 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'Description', self::FIELD_TYPE_TEXT);
         $this->createColumn($Table, 'Amount', self::FIELD_TYPE_INTEGER);
         $this->getConnection()->addForeignKey($Table, $tblItemType);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblItem
+     *
+     * @return Table
+     */
+    private function setTableItemGroup(Schema &$Schema, Table $tblItem)
+    {
+
+        $Table = $this->createTable($Schema, 'tblItemGroup');
+        $this->getConnection()->addForeignKey($Table, $tblItem);
+        $this->createColumn($Table, 'serviceTblGroup', self::FIELD_TYPE_BIGINT);
 
         return $Table;
     }

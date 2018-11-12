@@ -7,9 +7,11 @@ use SPHERE\Application\Billing\Inventory\Item\Service\Data;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemCalculation;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemAccount;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemGroup;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemType;
 use SPHERE\Application\Billing\Inventory\Item\Service\Setup;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -51,6 +53,39 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getItemById($Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblItemGroup
+     */
+    public function getItemGroupById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getItemGroupById($Id);
+    }
+
+    /**
+     * @param TblItem $tblItem
+     *
+     * @return bool|TblItemGroup
+     */
+    public function getItemGroupByItem(TblItem $tblItem)
+    {
+
+        return (new Data($this->getBinding()))->getItemGroupByItem($tblItem);
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     *
+     * @return bool|TblItemGroup
+     */
+    public function getItemGroupByGroup(TblGroup $tblGroup)
+    {
+
+        return (new Data($this->getBinding()))->getItemGroupByGroup($tblGroup);
     }
 
     /**
