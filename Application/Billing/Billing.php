@@ -1,8 +1,6 @@
 <?php
 namespace SPHERE\Application\Billing;
 
-use SPHERE\Application\Billing\Accounting\Accounting;
-use SPHERE\Application\Billing\Bookkeeping\Bookkeeping;
 use SPHERE\Application\Billing\Inventory\Inventory;
 use SPHERE\Application\IClusterInterface;
 use SPHERE\Common\Main;
@@ -23,7 +21,7 @@ class Billing implements IClusterInterface
         /**
          * Register Application
          */
-//        Inventory::registerApplication();
+        Inventory::registerApplication();
 //        Accounting::registerApplication();
 //        Bookkeeping::registerApplication();
 

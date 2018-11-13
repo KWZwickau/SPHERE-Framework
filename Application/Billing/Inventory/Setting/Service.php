@@ -86,7 +86,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @return bool|Service\Entity\TblSettingGroupPerson[]
+     * @return bool|TblSettingGroupPerson[]
      */
     public function getSettingGroupPersonAll()
     {
