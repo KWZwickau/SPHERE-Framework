@@ -151,42 +151,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblItem $tblItem
-     *
-     * @return bool|TblItemCalculation[]
-     */
-    public function getCalculationAllByItem(TblItem $tblItem)
-    {
-
-        return false;
-        return (new Data($this->getBinding()))->getCalculationAllByItem($tblItem);
-    }
-
-    /**
-     * @param TblItem $tblItem
-     *
-     * @return bool|TblItemCalculation
-     */
-    public function getCalculationStandardValueAllByItem(TblItem $tblItem)
-    {
-
-        return false;
-        return (new Data($this->getBinding()))->getCalculationStandardValueAllByItem($tblItem);
-    }
-
-    /**
-     * @param TblItem $tblItem
-     *
-     * @return int
-     */
-    public function countCalculationByItem(TblItem $tblItem)
-    {
-
-        return false;
-        return (new Data($this->getBinding()))->countCalculationByItem($tblItem);
-    }
-
-    /**
      * @param $Id
      *
      * @return bool|TblItemAccount

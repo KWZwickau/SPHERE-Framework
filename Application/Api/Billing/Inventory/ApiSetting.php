@@ -77,19 +77,19 @@ class ApiSetting extends Extension implements IApiInterface
     public static function pipelineOpenSetting($Identifier, $FieldLabel = '')
     {
         $Receiver = self::receiverModalSetting();
-        $ComparePasswordPipeline = new Pipeline();
-        $ComparePasswordEmitter = new ServerEmitter($Receiver, ApiSetting::getEndpoint());
-        $ComparePasswordEmitter->setGetPayload(array(
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter($Receiver, ApiSetting::getEndpoint());
+        $Emitter->setGetPayload(array(
             ApiSetting::API_TARGET => 'showEdit'
         ));
 //        $ComparePasswordEmitter->setLoadingMessage('Information gespeichert.');
-        $ComparePasswordEmitter->setPostPayload(array(
+        $Emitter->setPostPayload(array(
             'Identifier' => $Identifier,
             'FieldLabel' => $FieldLabel
         ));
-        $ComparePasswordPipeline->appendEmitter($ComparePasswordEmitter);
+        $Pipeline->appendEmitter($Emitter);
 
-        return $ComparePasswordPipeline;
+        return $Pipeline;
     }
 
     /**
@@ -101,29 +101,29 @@ class ApiSetting extends Extension implements IApiInterface
     {
         // Save Settings from Modal form
         $Receiver = self::receiverModalSetting();
-        $SettingPipeline = new Pipeline();
-        $SettingEmitter = new ServerEmitter($Receiver, ApiSetting::getEndpoint());
-        $SettingEmitter->setGetPayload(array(
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter($Receiver, ApiSetting::getEndpoint());
+        $Emitter->setGetPayload(array(
             ApiSetting::API_TARGET => 'changeEdit'
         ));
-        $SettingEmitter->setPostPayload(array(
+        $Emitter->setPostPayload(array(
             'Identifier' => $Identifier
         ));
-        $SettingPipeline->appendEmitter($SettingEmitter);
+        $Pipeline->appendEmitter($Emitter);
         // Close Modal
-        $SettingPipeline->appendEmitter((new CloseModal(self::receiverModalSetting()))->getEmitter());
+        $Pipeline->appendEmitter((new CloseModal(self::receiverModalSetting()))->getEmitter());
         // Reload Page Info
         $Receiver = self::receiverDisplaySetting('', $Identifier);
-        $SettingEmitter = new ServerEmitter($Receiver, ApiSetting::getEndpoint());
-        $SettingEmitter->setGetPayload(array(
+        $Emitter = new ServerEmitter($Receiver, ApiSetting::getEndpoint());
+        $Emitter->setGetPayload(array(
             ApiSetting::API_TARGET => 'changeDisplay'
         ));
-        $SettingEmitter->setPostPayload(array(
+        $Emitter->setPostPayload(array(
             'Identifier' => $Identifier
         ));
-        $SettingPipeline->appendEmitter($SettingEmitter);
+        $Pipeline->appendEmitter($Emitter);
 
-        return $SettingPipeline;
+        return $Pipeline;
     }
 
     /**
@@ -135,26 +135,26 @@ class ApiSetting extends Extension implements IApiInterface
     {
         // Save Settings from Modal form
         $Receiver = self::receiverModalSetting();
-        $SettingPipeline = new Pipeline();
-        $SettingEmitter = new ServerEmitter($Receiver, ApiSetting::getEndpoint());
-        $SettingEmitter->setGetPayload(array(
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter($Receiver, ApiSetting::getEndpoint());
+        $Emitter->setGetPayload(array(
             ApiSetting::API_TARGET => 'changePersonGroup'
         ));
-        $SettingPipeline->appendEmitter($SettingEmitter);
+        $Pipeline->appendEmitter($Emitter);
         // Close Modal
-        $SettingPipeline->appendEmitter((new CloseModal(self::receiverModalSetting()))->getEmitter());
+        $Pipeline->appendEmitter((new CloseModal(self::receiverModalSetting()))->getEmitter());
         // Reload Page Info
         $Receiver = self::receiverDisplaySetting('', $Identifier);
-        $SettingEmitter = new ServerEmitter($Receiver, ApiSetting::getEndpoint());
-        $SettingEmitter->setGetPayload(array(
+        $Emitter = new ServerEmitter($Receiver, ApiSetting::getEndpoint());
+        $Emitter->setGetPayload(array(
             ApiSetting::API_TARGET => 'changeDisplayPersonGroup'
         ));
-        $SettingEmitter->setPostPayload(array(
+        $Emitter->setPostPayload(array(
             'Identifier' => $Identifier
         ));
-        $SettingPipeline->appendEmitter($SettingEmitter);
+        $Pipeline->appendEmitter($Emitter);
 
-        return $SettingPipeline;
+        return $Pipeline;
     }
 
     /**
