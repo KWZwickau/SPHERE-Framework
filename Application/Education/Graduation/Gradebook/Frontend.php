@@ -93,6 +93,7 @@ use SPHERE\Common\Frontend\Text\Repository\Italic;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\NotAvailable;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
@@ -1015,12 +1016,14 @@ class Frontend extends FrontendScoreRule
             // Ermittlung der Zensuren zu den Schülern
             /** @var TblPerson $tblPerson */
             foreach ($tblStudentList as $tblPerson) {
+                $isStrikeThrough = isset($addStudentList[$tblPerson->getId()]);
                 $countPeriod++;
                 $data = array();
-                $data['Number'] = $count % 5 == 0 ? new Bold($count) : $count;
+                $number = $count % 5 == 0 ? new Bold($count) : $count;
+                $data['Number'] = $isStrikeThrough ? new Strikethrough($number) : $number;
                 $count++;
-                $data['Student'] = isset($addStudentList[$tblPerson->getId()])
-                    ? new Muted($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName();
+                $data['Student'] = $isStrikeThrough
+                    ? new Strikethrough($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName();
                 if(Student::useService()->getIsSupportByPerson($tblPerson)) {
                     $Integration = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
                         ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));

@@ -951,15 +951,16 @@ class Service extends AbstractService
 
     /**
      * @param TblDivisionSubject $tblDivisionSubject
+     * @param bool $withInActive
      *
      * @return bool|TblPerson[]
      */
-    public
-    function getStudentByDivisionSubject(
-        TblDivisionSubject $tblDivisionSubject
+    public function getStudentByDivisionSubject(
+        TblDivisionSubject $tblDivisionSubject,
+        $withInActive = false
     ) {
 
-        return (new Data($this->getBinding()))->getStudentByDivisionSubject($tblDivisionSubject);
+        return (new Data($this->getBinding()))->getStudentByDivisionSubject($tblDivisionSubject, $withInActive);
     }
 
     /**
@@ -1352,14 +1353,16 @@ class Service extends AbstractService
 
     /**
      * @param TblDivision $tblDivision
+     * @param bool $withInActive
      *
      * @return bool|TblPerson[]
      */
     public function getStudentAllByDivision(
-        TblDivision $tblDivision
+        TblDivision $tblDivision,
+        $withInActive = false
     ) {
 
-        return (new Data($this->getBinding()))->getStudentAllByDivision($tblDivision);
+        return (new Data($this->getBinding()))->getStudentAllByDivision($tblDivision, $withInActive);
     }
 
     /**

@@ -393,11 +393,13 @@ class Data extends AbstractData
 
     /**
      * @param TblDivisionSubject $tblDivisionSubject
-     *
+     * @param bool $withInActive
      * @return bool|TblPerson[]
      */
-    public function getStudentByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
-    {
+    public function getStudentByDivisionSubject(
+        TblDivisionSubject $tblDivisionSubject,
+        $withInActive = false
+    ) {
 
         $TempList = $this->getSubjectStudentByDivisionSubject($tblDivisionSubject);
         $tblDivision = $tblDivisionSubject->getTblDivision();
@@ -416,10 +418,16 @@ class Data extends AbstractData
             /** @var TblSubjectStudent $tblSubjectStudent */
             foreach ($TempList as $tblSubjectStudent) {
                 if ($tblSubjectStudent->getServiceTblPerson()) {
+                    if (($tblDivisionStudent = $this->getDivisionStudentByDivisionAndPerson(
+                        $tblDivision, $tblSubjectStudent->getServiceTblPerson()
+                    ))
+                        && !$withInActive
+                        && $tblDivisionStudent->isInActive()
+                    ) {
+                        continue;
+                    }
+
                     if ($isSorted) {
-                        $tblDivisionStudent = $this->getDivisionStudentByDivisionAndPerson(
-                            $tblDivision, $tblSubjectStudent->getServiceTblPerson()
-                        );
                         if ($tblDivisionStudent) {
                             $key = $tblDivisionStudent->getSortOrder() !== null
                                 ? $tblDivisionStudent->getSortOrder()

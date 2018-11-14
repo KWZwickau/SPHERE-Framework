@@ -19,6 +19,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 
 /**
  * Class Gradebook
@@ -545,7 +546,7 @@ class Gradebook
             $number = 1;
             foreach ($tblPersonList as $tblPerson) {
                 $isMissing = isset($addStudentList[$tblPerson->getId()]);
-                $name = $isMissing ? '<s>' . $tblPerson->getLastFirstName() . '</s>' : $tblPerson->getLastFirstName();
+                $name = $isMissing ? new Strikethrough($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName();
 
                 $courseName = '&nbsp;';
                 if ($showCourse
@@ -561,10 +562,12 @@ class Gradebook
                     }
                 }
 
+                $number++;
+
                 $subSection = new Section();
                 $subSection
                     ->addElementColumn((new Element())
-                        ->setContent($number++)
+                        ->setContent($isMissing ? new Strikethrough($number) : $number)
                         ->styleTextSize(self::TEXT_SIZE_BODY)
                         ->stylePaddingLeft($paddingLeft)
                         ->styleBorderTop()
