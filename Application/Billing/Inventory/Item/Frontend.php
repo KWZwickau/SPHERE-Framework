@@ -4,27 +4,26 @@ namespace SPHERE\Application\Billing\Inventory\Item;
 
 use SPHERE\Application\Api\Billing\Inventory\ApiItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
-use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
-use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
+use SPHERE\Application\Billing\Inventory\Setting\Setting;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
-use SPHERE\Common\Frontend\Icon\Repository\Conversation;
-use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
-use SPHERE\Common\Frontend\Icon\Repository\Money;
-use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Listing;
-use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
@@ -44,48 +43,64 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Beitragsart', 'Übersicht');
-        $tblItemAll = Item::useService()->getItemAll();
+        $Stage->addButton((new Primary('Beitragsart hinzufügen', ApiItem::getEndpoint(), new Plus()))
+            ->ajaxPipelineOnClick(ApiItem::pipelineOpenAddItemModal('AddItem')));
 
+        //ToDO Table as receiver Content
+        $tblItemAll = Item::useService()->getItemAll();
         $TableContent = array();
         if (!empty( $tblItemAll )) {
             array_walk($tblItemAll, function (TblItem $tblItem) use (&$TableContent) {
 
                 $Item['Name'] = $tblItem->getName();
-                $Item['Description'] = $tblItem->getDisplayDescription();
+                $Item['PersonGroup'] = '';
 //                $Item['ItemType'] = $tblItem->getTblItemType()->getName();
-                $CalculationContent = array();
-                $Item['Condition'] = new Listing($CalculationContent);
+                $Item['Variant'] = '';
 
                 $Item['Option'] =
-                    (new Standard('', ApiItem::getEndpoint(), new Pencil(), array(), 'Bearbeiten'))
-                    ->ajaxPipelineOnClick(ApiItem::pipelineOpenModal(ApiItem::MODAL_SHOW_EDIT_ITEM))
+                    (new Standard('', ApiItem::getEndpoint(), new Edit(), array(), 'Bearbeiten'))
+                    ->ajaxPipelineOnClick(ApiItem::pipelineOpenEditItemModal('EditItem', $tblItem->getId()))
                     .(new Standard('', ApiItem::getEndpoint(), new Plus(), array(), 'Varianten hinzufügen'))
-                        ->ajaxPipelineOnClick(ApiItem::pipelineOpenModal(ApiItem::MODAL_SHOW_ADD_VARIANT))
-                    .(new Standard('', ApiItem::getEndpoint(), new Disable(), array(), 'Löschen'))
-                        ->ajaxPipelineOnClick(ApiItem::pipelineOpenModal(ApiItem::MODAL_SHOW_DELETE_ITEM));
+                        ->ajaxPipelineOnClick(ApiItem::pipelineOpenAddVariantModal('AddVariant'))
+                    .(new Standard('', ApiItem::getEndpoint(), new Remove(), array(), 'Löschen'))
+                        ->ajaxPipelineOnClick(ApiItem::pipelineOpenDeleteItemModal('deleteItem', $tblItem->getId()));
+
+                $GroupList = array();
+                if(($PersonGroupList = Item::useService()->getItemGroupByItem($tblItem))){
+                    foreach($PersonGroupList as $PersonGroup){
+                        if(($tblGroup = $PersonGroup->getServiceTblGroup())){
+                            $GroupList[] = $tblGroup->getName();
+                        }
+                    }
+                }
+                if(!empty($GroupList)){
+                    $Item['PersonGroup'] = implode(', ', $GroupList);
+                }
 
                 array_push($TableContent, $Item);
             });
         }
 
         $Stage->setContent(
-            ApiItem::receiverModal()
+            ApiItem::receiverModal('Anlegen einer neuen Beitragsart', 'AddItem')
+            .ApiItem::receiverModal('Beitragsart bearbeiten', 'EditItem')
+            .ApiItem::receiverModal('Anlegen einer neuen Beitrags-Variante', 'AddVariant')
+            .ApiItem::receiverModal('Entfernen einer Beitragsart', 'deleteItem')
             .new Layout(
-                new LayoutGroup(
+                new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
                             new TableData($TableContent, null,
                                 array(
                                     'Name'        => 'Name',
-                                    'Description' => 'Beschreibung',
-//                                    'ItemType'    => 'Art',
-                                    'Condition'   => 'Preis - Schulart - Geschwister',
+                                    'PersonGroup' => 'zugewiesene Personengruppen',
+                                    'Variant'     => 'Preis-Varianten',
                                     'Option'      => ''
                                 )
                             )
                         )
                     ), new Title(new ListingTable().' Übersicht')
-                )
+                ))
             )
         );
 
@@ -93,33 +108,67 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param string     $Identifier
+     * @param int|string $ItemId
+     *
      * @return Form
      */
-    public function formItem()
+    public function formItem($Identifier = '', $ItemId = '')
     {
 
-        return new Form(array(
-            new FormGroup(array(
+        $CheckboxList = array();
+        $tblGroupList = array();
+
+        if('' !== $ItemId && ($tblItem = Item::useService()->getItemById($ItemId))){
+            $Global = $this->getGlobal();
+            $Global->POST['Item']['Name'] = $tblItem->getName();
+            if(($tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem))){
+                foreach($tblItemGroupList as $tblItemGroup){
+                    if(($tblGroup = $tblItemGroup->getServiceTblGroup())){
+                        $Global->POST['Group'][$tblGroup->getId()] = $tblGroup->getId();
+                    }
+                }
+            }
+            $Global->savePost();
+            $SaveButton =(new Primary('Speichern', ApiItem::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiItem::pipelineSaveEditItem($Identifier, $ItemId));
+        } else {
+            $SaveButton =(new Primary('Speichern', ApiItem::getEndpoint(), new Save()))
+                ->ajaxPipelineOnClick(ApiItem::pipelineSaveAddItem($Identifier));
+        }
+
+        if(($tblSettingGroupPersonAll = Setting::useService()->getSettingGroupPersonAll())){
+            foreach($tblSettingGroupPersonAll as $tblSettingGroupPerson){
+                if(($tblGroup = $tblSettingGroupPerson->getServiceTblGroupPerson())){
+                    $tblGroupList[] = $tblGroup;
+                }
+            }
+        }
+        if(($tblGroupList = $this->getSorter($tblGroupList)->sortObjectBy('Name'))){
+            /** @var TblGroup $tblGroup */
+            foreach($tblGroupList as $tblGroup){
+                $CheckboxList[] = new CheckBox('Group['.$tblGroup->getId().']', $tblGroup->getName(), $tblGroup->getId());
+            }
+        }
+
+
+        return (new Form(
+            new FormGroup(
                 new FormRow(array(
                     new FormColumn(
-                        new Panel('Artikel',
-                            array(
-                                new TextField('Item[Name]', 'Name', 'Name', new Conversation()),
-                                new TextField('Item[Value]', 'Preis', 'Standardpreis', new Money()),
-                                new RadioBox('Item[ItemType]', 'Einzelleistung', 'Einzelleistung'),
-                                new RadioBox('Item[ItemType]', 'Sammelleistung', 'Sammelleistung'),
-
-//                                new CheckBox('Item[ItemType]', 'Einzelleistung', 'Einzelleistung', array('Item[CalculationType]')),
-                            ), Panel::PANEL_TYPE_INFO)
-                        , 6),
+                        (new TextField('Item[Name]', 'Beitragsart', 'Beitragsart'))->setRequired()
+                    , 6),
                     new FormColumn(
-                        new Panel('Sonstiges',
-                            array(
-                                new TextArea('Item[Description]', 'Beschreibung', 'Beschreibung', new Conversation()),
-                            ), Panel::PANEL_TYPE_INFO)
-                        , 6)
+                        $CheckboxList
+                    , 6),
+//                    new FormColumn(
+//                        new TextField('Item[Description]', 'Beschreibung', 'Beschreibung')
+//                    , 6),
+                    new FormColumn(
+                        $SaveButton
+                )
                 ))
-            ))
-        ));
+            )
+        ))->disableSubmitAction();
     }
 }

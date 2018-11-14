@@ -27,7 +27,7 @@ class Setup extends AbstractSetup
         $Schema = clone $this->getConnection()->getSchema();
         $tblItemType = $this->setTableItemType($Schema);
         $tblItem = $this->setTableItem($Schema, $tblItemType);
-        $this->setTableItemGroup($Schema, $tblItemType);
+        $this->setTableItemGroup($Schema, $tblItem);
         $tblVariant = $this->setTableItemVariant($Schema, $tblItem);
         $this->setTableItemCalculation($Schema, $tblVariant);
         $this->setTableItemAccount($Schema, $tblItem);

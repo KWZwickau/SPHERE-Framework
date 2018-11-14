@@ -3,13 +3,14 @@
 namespace SPHERE\Application\Billing\Inventory\Item\Service;
 
 use SPHERE\Application\Billing\Accounting\Account\Service\Entity\TblAccount;
-use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemCalculation;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemAccount;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemGroup;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemType;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemVariant;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -29,13 +30,12 @@ class Data extends AbstractData
         /**
          * ItemType
          */
-        $this->createItemType('Einzelleistung');
-        $this->createItemType('Sammelleistung');
+        $tblItemType = $this->createItemType(TblItemType::TYPE_SINGLE);
+        $this->createItemType(TblItemType::TYPE_CROWD);
 
-        // Einzelleistung
-        $tblItemType = Item::useService()->getItemTypeById(1);
-
-        $this->createItem($tblItemType, 'Schulgeld');
+        $tblItem = $this->createItem($tblItemType, 'Schulgeld');
+        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
+        $this->createItemGroup($tblItem, $tblGroup);
     }
 
     /**
@@ -71,9 +71,24 @@ class Data extends AbstractData
     public function getItemGroupByItem(TblItem $tblItem)
     {
 
-        $Entity = $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItemGroup',
+        $Entity = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItemGroup',
             array(
                 TblItemGroup::ATTR_TBL_ITEM => $tblItem->getId()
+            ));
+        return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
+     * @param TblItem $tblItem
+     *
+     * @return bool|TblItemVariant[]
+     */
+    public function getItemVariantByItem(TblItem $tblItem)
+    {
+
+        $Entity = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItemVariant',
+            array(
+                TblItemVariant::ATTR_TBL_ITEM => $tblItem->getId()
             ));
         return ( null === $Entity ? false : $Entity );
     }
@@ -91,6 +106,14 @@ class Data extends AbstractData
                 TblItemGroup::ATTR_SERVICE_TBL_GROUP => $tblGroup->getId()
             ));
         return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
+     * @return bool|TblItemGroup[]
+     */
+    public function getItemGroupAll()
+    {
+        return $this->getCachedEntityList(__Method__, $this->getConnection()->getEntityManager(), 'TblItemGroup');
     }
 
     /**
@@ -229,6 +252,37 @@ class Data extends AbstractData
             $Entity->setName($Name);
             $Entity->setTblItemType($tblItemType);
             $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+                $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblItem  $tblItem
+     * @param TblGroup $tblGroup
+     *
+     * @return null|object|TblItemGroup
+     */
+    public function createItemGroup(
+        TblItem $tblItem,
+        TblGroup $tblGroup
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblItemGroup')->findOneBy(array(
+            TblItemGroup::ATTR_TBL_ITEM => $tblItem->getId(),
+            TblItemGroup::ATTR_SERVICE_TBL_GROUP => $tblGroup->getId(),
+        ));
+
+        if ($Entity === null) {
+            $Entity = new TblItemGroup();
+            $Entity->setTblItem($tblItem);
+            $Entity->setServiceTblGroup($tblGroup);
             $Manager->saveEntity($Entity);
 
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
@@ -399,6 +453,67 @@ class Data extends AbstractData
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param TblItem $tblItem
+     *
+     * @return bool
+     */
+    public function removeItem(
+        TblItem $tblItem
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntityById('TblItem', $tblItem->getId());
+        if (null !== $Entity) {
+            /** @var Element $Entity */
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblItemGroup $tblItemGroup
+     *
+     * @return string
+     */
+    public function removeItemGroup(TblItemGroup $tblItemGroup)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntityById('TblItemGroup', $tblItemGroup->getId());
+        if (null !== $Entity) {
+            /** @var Element $Entity */
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblItemVariant $tblItemVariant
+     *
+     * @return string
+     */
+    public function removeItemVariant(TblItemVariant $tblItemVariant)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntityById('TblItemVariant', $tblItemVariant->getId());
+        if (null !== $Entity) {
+            /** @var Element $Entity */
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
     }
 
     /**

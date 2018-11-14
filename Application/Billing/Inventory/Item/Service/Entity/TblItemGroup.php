@@ -19,7 +19,7 @@ class TblItemGroup extends Element
 {
 
     const ATTR_TBL_ITEM = 'tblItem';
-    const ATTR_SERVICE_TBL_GROUP = 'tblGroup';
+    const ATTR_SERVICE_TBL_GROUP = 'serviceTblGroup';
 
     /**
      * @Column(type="bigint")
@@ -55,7 +55,7 @@ class TblItemGroup extends Element
     /**
      * @return bool|TblGroup
      */
-    public function getTblGroup()
+    public function getServiceTblGroup()
     {
 
         if (null === $this->serviceTblGroup) {
