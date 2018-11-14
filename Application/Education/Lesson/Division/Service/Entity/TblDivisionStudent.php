@@ -39,6 +39,16 @@ class TblDivisionStudent extends Element
     protected $SortOrder;
 
     /**
+     * @Column(type="datetime")
+     */
+    protected $LeaveDate;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected $UseGradesInNewDivision;
+
+    /**
      * @param bool $IsForce
      *
      * @return bool|TblDivision
@@ -100,5 +110,67 @@ class TblDivisionStudent extends Element
     public function setSortOrder($SortOrder)
     {
         $this->SortOrder = $SortOrder;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLeaveDate()
+    {
+
+        if (null === $this->LeaveDate) {
+            return false;
+        }
+        /** @var \DateTime $Date */
+        $Date = $this->LeaveDate;
+        if ($Date instanceof \DateTime) {
+            return $Date->format('d.m.Y');
+        } else {
+            return (string)$Date;
+        }
+    }
+
+    /**
+     * @param null|\DateTime $Date
+     */
+    public function setLeaveDate(\DateTime $Date = null)
+    {
+
+        $this->LeaveDate = $Date;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getUseGradesInNewDivision()
+    {
+        return $this->UseGradesInNewDivision;
+    }
+
+    /**
+     * @param boolean $UseGradesInNewDivision
+     */
+    public function setUseGradesInNewDivision($UseGradesInNewDivision)
+    {
+        $this->UseGradesInNewDivision = (boolean) $UseGradesInNewDivision;
+    }
+
+    /**
+     * @return \DateTime|null
+     */
+    public function getLeaveDateTime()
+    {
+
+        return $this->LeaveDate;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isInActive()
+    {
+        $now = new \DateTime('now');
+
+        return $this->getLeaveDateTime() !== null && $now > $this->getLeaveDateTime();
     }
 }

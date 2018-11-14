@@ -709,10 +709,11 @@ class Data extends AbstractData
 
     /**
      * @param TblDivision $tblDivision
+     * @param bool $withInActive
      *
      * @return bool|TblPerson[]
      */
-    public function getStudentAllByDivision(TblDivision $tblDivision)
+    public function getStudentAllByDivision(TblDivision $tblDivision, $withInActive = false)
     {
 
         $TempList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(),
@@ -723,6 +724,21 @@ class Data extends AbstractData
 
         $EntityList = array();
         if (!empty ($TempList)) {
+            // inaktive aussortieren
+            if (!$withInActive) {
+                $list = array();
+                $now = new \DateTime('now');
+                /** @var TblDivisionStudent $tblDivisionStudent */
+                foreach ($TempList as $tblDivisionStudent) {
+                    if ($tblDivisionStudent->getLeaveDateTime() !== null && $now > $tblDivisionStudent->getLeaveDateTime()) {
+
+                    } else {
+                        $list[] = $tblDivisionStudent;
+                    }
+                }
+
+                $TempList = $list;
+            }
 
             // ist Klassenliste sortiert
             $isSorted = false;
@@ -749,6 +765,7 @@ class Data extends AbstractData
                 $EntityList = $this->getSorter($EntityList)->sortObjectBy('LastFirstName', new StringGermanOrderSorter());
             }
         }
+
         return empty($EntityList) ? false : $EntityList;
     }
 
@@ -1660,30 +1677,11 @@ class Data extends AbstractData
     public function countDivisionStudentAllByDivision(TblDivision $tblDivision)
     {
 
-        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verkn�pfungstabelle
-//        $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionStudent',
-//            array(TblDivisionStudent::ATTR_TBL_DIVISION => $tblDivision->getId()));
-//
-//        return $result ? $result : 0;
-
-        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblDivisionStudent',
-            array(
-                TblDivisionStudent::ATTR_TBL_DIVISION => $tblDivision->getId()
-            ));
-
-        if ($EntityList) {
-            $count = 0;
-            /** @var TblDivisionStudent $item */
-            foreach ($EntityList as &$item) {
-                if ($item->getServiceTblPerson() && $item->getTblDivision()) {
-                    $count++;
-                }
-            }
-            return $count;
-        } else {
-            return 0;
+        if (($tblStudentList = $this->getStudentAllByDivision($tblDivision))) {
+            return count($tblStudentList);
         }
+
+        return 0;
     }
 
     /**
@@ -2035,43 +2033,23 @@ class Data extends AbstractData
 
     /**
      * @param TblDivision $tblDivision
+     * @param bool $withInActive
      *
      * @return bool|TblDivisionStudent[]
      */
-    public function getDivisionStudentAllByDivision(TblDivision $tblDivision)
+    public function getDivisionStudentAllByDivision(TblDivision $tblDivision, $withInActive = false)
     {
 
-        if ($this->isDivisionSorted($tblDivision)) {
-            $TempList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(),
-                'TblDivisionStudent',
-                array(
-                    TblDivisionStudent::ATTR_TBL_DIVISION => $tblDivision->getId()
-                ));
-
-            $EntityList = array();
-            if (!empty ($TempList)) {
-                /** @var TblDivisionStudent $tblDivisionStudent */
-                foreach ($TempList as $tblDivisionStudent) {
-                    if ($tblDivisionStudent->getServiceTblPerson() && $tblDivisionStudent->getTblDivision()) {
-                        array_push($EntityList, $tblDivisionStudent);
-                    }
+        $tempList = array();
+        if (($tblStudentAll = $this->getStudentAllByDivision($tblDivision, $withInActive))) {
+            foreach ($tblStudentAll as $tblPerson){
+                if (($item = $this->getDivisionStudentByDivisionAndPerson($tblDivision, $tblPerson) )){
+                    $tempList[] = $item;
                 }
             }
+        };
 
-            return empty($EntityList) ? false : $this->getSorter($EntityList)->sortObjectBy('SortOrder');
-        } else {
-
-            $tempList = array();
-            if (($tblStudentAll = $this->getStudentAllByDivision($tblDivision))) {
-                foreach ($tblStudentAll as $tblPerson){
-                    if (($item = $this->getDivisionStudentByDivisionAndPerson($tblDivision, $tblPerson) )){
-                        $tempList[] = $item;
-                    }
-                }
-            };
-
-            return empty($tempList) ? false : $tempList;
-        }
+        return empty($tempList) ? false : $tempList;
     }
 
     /**
@@ -2082,7 +2060,7 @@ class Data extends AbstractData
     public function getDivisionStudentSortOrderMax(TblDivision $tblDivision)
     {
 
-        $list = $this->getDivisionStudentAllByDivision($tblDivision);
+        $list = $this->getDivisionStudentAllByDivision($tblDivision, true);
         $max = 0;
         if ($list) {
             $max = 0;

@@ -1355,8 +1355,7 @@ class Service extends AbstractService
      *
      * @return bool|TblPerson[]
      */
-    public
-    function getStudentAllByDivision(
+    public function getStudentAllByDivision(
         TblDivision $tblDivision
     ) {
 
@@ -1517,8 +1516,7 @@ class Service extends AbstractService
      *
      * @return int
      */
-    public
-    function countDivisionStudentAllByDivision(
+    public function countDivisionStudentAllByDivision(
         TblDivision $tblDivision
     ) {
 
@@ -2290,15 +2288,16 @@ class Service extends AbstractService
 
     /**
      * @param TblDivision $tblDivision
+     * @param bool $withInActive
      *
      * @return bool|TblDivisionStudent[]
      */
-    public
-    function getDivisionStudentAllByDivision(
-        TblDivision $tblDivision
+    public function getDivisionStudentAllByDivision(
+        TblDivision $tblDivision,
+        $withInActive = false
     ) {
 
-        return (new Data($this->getBinding()))->getDivisionStudentAllByDivision($tblDivision);
+        return (new Data($this->getBinding()))->getDivisionStudentAllByDivision($tblDivision, $withInActive);
     }
 
     /**

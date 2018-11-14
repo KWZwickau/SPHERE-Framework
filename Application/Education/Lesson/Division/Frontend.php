@@ -6,7 +6,6 @@ use SPHERE\Application\Api\Education\Division\StudentSelect;
 use SPHERE\Application\Api\Education\Division\SubjectSelect as SubjectSelectAPI;
 use SPHERE\Application\Api\Education\Division\SubjectSelect;
 use SPHERE\Application\Api\Education\Division\ValidationFilter;
-use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Education\Lesson\Division\Filter\Filter;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
@@ -77,6 +76,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
@@ -1630,8 +1630,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->addButton(new Standard('Schüler', '/Education/Lesson/Division/Student/Add',
                 new \SPHERE\Common\Frontend\Icon\Repository\Group(), array('Id' => $tblDivision->getId()),
                 'Auswählen'));
-            $StudentTableCount = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
-            $tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
+
             $personSubjectList = array();
             $personAdvancedCourseList = array();
             $personBasicCourseList = array();
@@ -1646,39 +1645,14 @@ class Frontend extends Extension implements IFrontendInterface
             } else {
                 $IsSekTwo = false;
             }
-            if ($tblDivisionStudentList) {
-                foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                    $tblDivisionStudent->FullName = $tblDivisionStudent->getLastFirstName();
-                    $tblCommon = Common::useService()->getCommonByPerson($tblDivisionStudent);
-                    if ($tblCommon) {
-                        $tblDivisionStudent->Birthday = $tblCommon->getTblCommonBirthDates()->getBirthday();
-                    } else {
-                        $tblDivisionStudent->Birthday = 'Nicht hinterlegt';
-                    }
 
-                    $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($tblDivisionStudent);
-                    $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
-                    if (!empty( $tblAddressAll )) {
-                        $tblAddress = current($tblAddressAll)->getGuiString();
-                    } else {
-                        $tblAddress = false;
-                    }
-                    if (isset( $tblAddress ) && $tblAddress) {
-                        $tblDivisionStudent->Address = $tblAddress;
-                    } else {
-                        $tblDivisionStudent->Address = new WarningText('Keine Adresse hinterlegt');
-                    }
+            $studentCount = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
+            $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByDivision($tblDivision, true);
 
-                    $tblCourse = Student::useService()->getCourseByPerson($tblDivisionStudent);
-                    $tblDivisionStudent->Course = $tblCourse ? $tblCourse ->getName() : '';
-                }
-            } else {
-                $tblDivisionStudentList = array();
-            }
             $tblPersonList = Division::useService()->getTeacherAllByDivision($tblDivision);
             if ($tblPersonList) {
                 $TeacherList = array();
-                foreach ($tblPersonList as &$tblPerson) {
+                foreach ($tblPersonList as $tblPerson) {
                     $Description = Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblDivision,
                         $tblPerson)->getDescription();
                     $TeacherList[] = $tblPerson->getFullName().' '.new Muted($Description);
@@ -1700,9 +1674,8 @@ class Frontend extends Extension implements IFrontendInterface
             } else {
                 $tblCustodyList = new Warning('Kein Elternvertreter festgelegt');
             }
-            $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
 
-            if ($tblDivisionSubjectList) {
+            if (($tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision))) {
                 foreach ($tblDivisionSubjectList as $Index => $tblDivisionSubject) {
                     if ($tblDivisionSubject->getTblSubjectGroup()) {
                         $tblDivisionSubjectList[$Index] = false;
@@ -1733,7 +1706,7 @@ class Frontend extends Extension implements IFrontendInterface
                             : '')
                         . ($tblDivisionSubject->getHasGrading() ? '' : new Small(' (Fach wird nicht benotet)'))
                         : '',
-                        $StudentTableCount.' / '.$StudentTableCount.' Schüler aus der Klasse',
+                        $studentCount.' / '.$studentCount.' Schüler aus der Klasse',
                         $tblDivisionSubject->getHasGrading() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_WARNING) : '';
 
                     $tblDivisionTeachersList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubject);
@@ -1796,7 +1769,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             'DivisionSubjectId' => $tblDivisionSubjectTest->getId()
                                         ), 'Gruppenlehrer festlegen'));
                                 $countSubjectStudent = Division::useService()->countSubjectStudentByDivisionSubject($tblDivisionSubjectTest);
-                                $subText = ' (' . $countSubjectStudent . ' / ' . $StudentTableCount . ' Schüler)';
+                                $subText = ' (' . $countSubjectStudent . ' / ' . $studentCount . ' Schüler)';
                                 $text = $tblDivisionSubjectTest->getTblSubjectGroup()->getName()
                                     . ($countSubjectStudent > 0
                                         ? new Muted($subText)
@@ -1867,7 +1840,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ksort($StudentPanel);
                         $StudentPanel = implode (' ', $StudentPanel);
 
-                        if ($StudentTableCount > $StudentsGroupCount && $tblDivisionSubject->getServiceTblSubject()) {
+                        if ($studentCount > $StudentsGroupCount && $tblDivisionSubject->getServiceTblSubject()) {
                             $tblDivisionSubject->Subject = new Panel($tblDivisionSubject->getServiceTblSubject()
                                 ? $tblDivisionSubject->getServiceTblSubject()->getAcronym()
                                 . ' - ' . $tblDivisionSubject->getServiceTblSubject()->getName()
@@ -1875,7 +1848,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     ? ' - ' . new Small($tblDivisionSubject->getServiceTblSubject()->getDescription())
                                     : '')
                                 :'',
-                                new WarningText($StudentsGroupCount.' / '.$StudentTableCount.' Schüler aus der Klasse'),
+                                new WarningText($StudentsGroupCount.' / '.$studentCount.' Schüler aus der Klasse'),
                                 $tblDivisionSubject->getHasGrading() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_WARNING);
                         }
 
@@ -1902,8 +1875,10 @@ class Frontend extends Extension implements IFrontendInterface
 
                         $tblDivisionSubject->SubjectTeacher = $SubjectTeacherPanel;
 
-                        foreach ($tblDivisionStudentList as $tblTempPerson) {
-                            if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())) {
+                        foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                            if (($tblSubject = $tblDivisionSubject->getServiceTblSubject())
+                                && ($tblTempPerson = $tblDivisionStudent->getServiceTblPerson())
+                            ) {
                                 if ($IsSekTwo) {
                                     $missingCourseList[$tblSubject->getAcronym()]
                                         = $tblSubject->getAcronym();
@@ -1927,56 +1902,91 @@ class Frontend extends Extension implements IFrontendInterface
                 'Birthday' => 'Geburtsdatum',
                 'Course'   => 'Bildungsgang'
             );
+            if ($IsSekTwo) {
+                $columnList['AdvancedCourse1'] = '1. LK';
+                $columnList['AdvancedCourse2'] = '2. LK';
+                $columnList['BasicCourses'] = 'Grundkurse';
+            } else {
+                $columnList['Subjects'] =  'Fächer';
+            }
 
+            $tblStudentList = array();
             if ($tblDivisionStudentList) {
-                if ($IsSekTwo) {
-                    $columnList['AdvancedCourse1'] = '1. LK';
-                    $columnList['AdvancedCourse2'] = '2. LK';
-                    $columnList['BasicCourses'] = 'Grundkurse';
-                    foreach ($tblDivisionStudentList as $tblPerson) {
-                        if (isset($personAdvancedCourseList[$tblPerson->getId()])
-                            && !empty($personAdvancedCourseList[$tblPerson->getId()])
+                foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                    if (($tblPerson = $tblDivisionStudent->getServiceTblPerson())) {
+                        $isInActive = $tblDivisionStudent->isInActive();
+                        $fullName = $tblPerson->getLastFirstName();
+                        $address = ($tblAddress = $tblPerson->fetchMainAddress())
+                            ? $tblAddress->getGuiString()
+                            : new WarningText('Keine Adresse hinterlegt');
+                        $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
+                        $course = $tblCourse ? $tblCourse->getName() : '';
+
+                        $birthday = 'Nicht hinterlegt';
+                        if (($tblCommon = Common::useService()->getCommonByPerson($tblPerson))
+                            && ($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())
+                            && $tblCommonBirthDates->getBirthday()
                         ) {
-                            ksort($personAdvancedCourseList[$tblPerson->getId()]);
-                            if (isset($personAdvancedCourseList[$tblPerson->getId()][0])) {
-                                $tblPerson->AdvancedCourse1 = $personAdvancedCourseList[$tblPerson->getId()][0];
+                            $birthday = $tblCommonBirthDates->getBirthday();
+                        }
+
+                        $item = array(
+                            'FullName' => $isInActive ? new Strikethrough($fullName) : $fullName,
+                            'Address' => $isInActive ? new Strikethrough($address) : $address,
+                            'Birthday' => $isInActive ? new Strikethrough($birthday) : $birthday,
+                            'Course' => $isInActive ? new Strikethrough($course) : $course,
+                        );
+
+                        if ($IsSekTwo) {
+                            if (isset($personAdvancedCourseList[$tblPerson->getId()])
+                                && !empty($personAdvancedCourseList[$tblPerson->getId()])
+                            ) {
+                                ksort($personAdvancedCourseList[$tblPerson->getId()]);
+                                if (isset($personAdvancedCourseList[$tblPerson->getId()][0])) {
+                                    $item['AdvancedCourse1'] = $isInActive
+                                        ? new Strikethrough($personAdvancedCourseList[$tblPerson->getId()][0])
+                                        : $personAdvancedCourseList[$tblPerson->getId()][0];
+                                } else {
+                                    $item['AdvancedCourse1'] = '';
+                                }
+                                if (isset($personAdvancedCourseList[$tblPerson->getId()][1])) {
+                                    $item['AdvancedCourse2'] = $isInActive
+                                        ? new Strikethrough($personAdvancedCourseList[$tblPerson->getId()][1])
+                                        : $personAdvancedCourseList[$tblPerson->getId()][1];
+                                } else {
+                                    $item['AdvancedCourse2'] = '';
+                                }
                             } else {
-                                $tblPerson->AdvancedCourse1 = '';
+                                $item['AdvancedCourse1'] = '';
+                                $item['AdvancedCourse2'] = '';
                             }
-                            if (isset($personAdvancedCourseList[$tblPerson->getId()][1])) {
-                                $tblPerson->AdvancedCourse2 = $personAdvancedCourseList[$tblPerson->getId()][1];
+                            if (isset($personBasicCourseList[$tblPerson->getId()])
+                                && !empty($personBasicCourseList[$tblPerson->getId()])
+                            ) {
+                                ksort($personBasicCourseList[$tblPerson->getId()]);
+                                $item['BasicCourses'] = $isInActive
+                                    ? new Strikethrough(implode(', ', $personBasicCourseList[$tblPerson->getId()]))
+                                    : implode(', ', $personBasicCourseList[$tblPerson->getId()]);
                             } else {
-                                $tblPerson->AdvancedCourse2 = '';
+                                $item['BasicCourses'] = '';
                             }
                         } else {
-                            $tblPerson->AdvancedCourse1 = '';
-                            $tblPerson->AdvancedCourse2 = '';
+                            if (isset($personSubjectList[$tblPerson->getId()])
+                                && !empty($personSubjectList[$tblPerson->getId()])
+                            ) {
+                                ksort($personSubjectList[$tblPerson->getId()]);
+                                $item['Subjects'] = $isInActive
+                                    ? new Strikethrough(implode(', ', $personSubjectList[$tblPerson->getId()]))
+                                    : implode(', ', $personSubjectList[$tblPerson->getId()]);
+                            } else {
+                                $item['Subjects'] = '';
+                            }
                         }
-                        if (isset($personBasicCourseList[$tblPerson->getId()])
-                            && !empty($personBasicCourseList[$tblPerson->getId()])
-                        ) {
-                            ksort($personBasicCourseList[$tblPerson->getId()]);
-                            $tblPerson->BasicCourses = implode(', ', $personBasicCourseList[$tblPerson->getId()]);
-                        } else {
-                            $tblPerson->BasicCourses = '';
-                        }
-                    }
-                } else {
-                    foreach ($tblDivisionStudentList as $tblPerson) {
-                        $columnList['Subjects'] =  'Fächer';
-                        if (isset($personSubjectList[$tblPerson->getId()])
-                            && !empty($personSubjectList[$tblPerson->getId()])
-                        ) {
-                            ksort($personSubjectList[$tblPerson->getId()]);
-                            $tblPerson->Subjects = implode(', ', $personSubjectList[$tblPerson->getId()]);
-                        } else {
-                            $tblPerson->Subjects = '';
-                        }
+
+                        $tblStudentList[] = $item;
                     }
                 }
             }
-
-//            ksort($missingCourseList);
 
             $table = new TableData($tblDivisionSubjectList, null,
                 array(
@@ -2009,8 +2019,8 @@ class Frontend extends Extension implements IFrontendInterface
 //                        ),
                         new LayoutRow(array(
                             new LayoutColumn(array(
-                                ( ( !empty( $tblDivisionStudentList ) ) ?
-                                    new TableData($tblDivisionStudentList, null
+                                ( ( !empty( $tblStudentList ) ) ?
+                                    new TableData($tblStudentList, null
                                         , $columnList, false)
                                     : new Warning('Keine Schüer der Klasse zugewiesen') )
                             ,
