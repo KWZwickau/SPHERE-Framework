@@ -213,8 +213,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $subjectList[] = $orientationSubject;
                 }
-            }
-            if (strpos($tblDocument->getName(), 'Gymnasium') !== false){
+            } elseif (strpos($tblDocument->getName(), 'Gymnasium') !== false){
                 if (($tblSetting = Consumer::useService()->getSetting(
                         'Api',
                         'Education',
@@ -240,6 +239,19 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $subjectList[] = $profileSubject;
                 }
+            } elseif (strpos($tblDocument->getName(), 'Grundschule') !== false){
+                if ($tblSubjectAll) {
+                    foreach ($tblSubjectAll as $tblSubject) {
+                        // NKs und Profile ausblenden
+                        if ((!Subject::useService()->isOrientation($tblSubject))
+                            && (!Subject::useService()->isProfile($tblSubject))
+                        ) {
+                            $subjectList[] = $tblSubject;
+                        }
+                    }
+                }
+            } else {
+                $subjectList = $tblSubjectAll;
             }
 
             $contentList = array();
