@@ -2942,7 +2942,7 @@ class Frontend extends FrontendScoreRule
 
                     if (!empty($tblDivisionList)) {
                         foreach ($tblDivisionList as $tblDivisionLoop) {
-                            if (!Division::useService()->exitsDivisionStudent($tblDivisionLoop,$tblPerson)) {
+                            if (!Division::useService()->existsDivisionStudent($tblDivisionLoop,$tblPerson)) {
                                 continue;
                             }
                             $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivisionLoop,

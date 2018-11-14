@@ -1986,7 +1986,7 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function exitsDivisionStudent(TblDivision $tblDivision, TblPerson $tblPerson)
+    public function existsDivisionStudent(TblDivision $tblDivision, TblPerson $tblPerson)
     {
 
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionStudent',

@@ -2206,13 +2206,12 @@ class Service extends AbstractService
      *
      * @return bool
      */
-    public
-    function exitsDivisionStudent(
+    public function existsDivisionStudent(
         TblDivision $tblDivision,
         TblPerson $tblPerson
     ) {
 
-        return (new Data($this->getBinding()))->exitsDivisionStudent($tblDivision, $tblPerson);
+        return (new Data($this->getBinding()))->existsDivisionStudent($tblDivision, $tblPerson);
     }
 
     /**
@@ -2246,7 +2245,7 @@ class Service extends AbstractService
         $tblDivisionList = Division::useService()->getDivisionByYear($tblYear);
         if ($tblDivisionList) {
             foreach ($tblDivisionList as $tblDivision) {
-                if ($this->exitsDivisionStudent($tblDivision, $tblPerson)) {
+                if ($this->existsDivisionStudent($tblDivision, $tblPerson)) {
                     $tblDivisionSubjectList = $this->getDivisionSubjectByDivision($tblDivision);
                     if ($tblDivisionSubjectList) {
                         foreach ($tblDivisionSubjectList as $tblDivisionSubject) {

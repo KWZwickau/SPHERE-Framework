@@ -3847,7 +3847,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $countStudents++;
                         }
                     } else {
-                        if (!Division::useService()->exitsDivisionStudent($tblDivision, $tblPerson)) {
+                        if (!Division::useService()->existsDivisionStudent($tblDivision, $tblPerson)) {
                             $countStudents++;
                         }
                     }
