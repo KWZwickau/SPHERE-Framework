@@ -972,6 +972,7 @@ class Data extends AbstractData
             $Entity->setTblDivision($tblDivision);
             $Entity->setServiceTblPerson($tblPerson);
             $Entity->setSortOrder($SortOrder);
+            $Entity->setUseGradesInNewDivision(false);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
