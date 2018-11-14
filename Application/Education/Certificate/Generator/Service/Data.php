@@ -3203,6 +3203,47 @@ class Data extends AbstractData
                             $this->setCertificateSubject($tblCertificate, 'SPO', 2, 8);
                         }
                     }
+
+                    // Kurshalbjahreszeugnis
+                    $tblCertificate = $this->createCertificate('Gymnasium Kurshalbjahreszeugnis', '', 'EZSH\EzshKurshalbjahreszeugnis',
+                        $tblConsumerCertificate, false, false, false, $tblCertificateTypeMidTermCourse, $tblSchoolTypeGym);
+                    if ($tblCertificate) {
+                        // Begrenzung des Bemerkungsfeld
+                        $FieldName = 'Remark';
+                        if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)){
+                            $this->createCertificateField($tblCertificate, $FieldName, 270);
+                        }
+                    }
+                    if ($tblCertificate && !$this->getCertificateSubjectAll($tblCertificate)) {
+                        $row = 1;
+                        $this->setCertificateSubject($tblCertificate, 'DE', $row, 1);
+                        $this->setCertificateSubject($tblCertificate, 'EN', $row, 2, false);
+                        $this->setCertificateSubject($tblCertificate, 'EN2', $row, 3, false);
+                        $this->setCertificateSubject($tblCertificate, 'EN3', $row, 4, false);
+                        $this->setCertificateSubject($tblCertificate, 'TSCN', $row, 5, false);
+                        $this->setCertificateSubject($tblCertificate, 'TSCF', $row, 6, false);
+                        $this->setCertificateSubject($tblCertificate, 'LA', $row, 7, false);
+                        $this->setCertificateSubject($tblCertificate, 'LA-F', $row, 8, false);
+                        $this->setCertificateSubject($tblCertificate, 'SPA', $row, 9, false);
+
+                        $this->setCertificateSubject($tblCertificate, 'KU', $row, 10, false);
+                        $this->setCertificateSubject($tblCertificate, 'MU', $row, 11, false);
+                        $this->setCertificateSubject($tblCertificate, 'GE', $row, 12);
+                        $this->setCertificateSubject($tblCertificate, 'GEO', $row, 13);
+                        $this->setCertificateSubject($tblCertificate, 'GRW', $row, 14);
+
+                        $row = 2;
+                        $this->setCertificateSubject($tblCertificate, 'MA', $row, 1);
+                        $this->setCertificateSubject($tblCertificate, 'BIO', $row, 2);
+                        $this->setCertificateSubject($tblCertificate, 'CH', $row, 3);
+                        $this->setCertificateSubject($tblCertificate, 'PH', $row, 4);
+                        $this->setCertificateSubject($tblCertificate, 'REE', $row, 5, false);
+                        $this->setCertificateSubject($tblCertificate, 'REK', $row, 6, false);
+                        $this->setCertificateSubject($tblCertificate, 'ETH', $row, 7, false);
+                        $this->setCertificateSubject($tblCertificate, 'SPO', $row, 8);
+                        $this->setCertificateSubject($tblCertificate, 'INF', $row, 9);
+                        $this->setCertificateSubject($tblCertificate, 'PHI', $row, 10);
+                    }
                 }
             }
 
