@@ -79,6 +79,18 @@ class Data extends AbstractData
     }
 
     /**
+     * @param int Id
+     *
+     * @return bool|TblItemVariant
+     */
+    public function getItemVariantById($Id)
+    {
+
+        $Entity = $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblItemVariant', $Id);
+        return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
      * @param TblItem $tblItem
      *
      * @return bool|TblItemVariant[]
@@ -89,6 +101,23 @@ class Data extends AbstractData
         $Entity = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItemVariant',
             array(
                 TblItemVariant::ATTR_TBL_ITEM => $tblItem->getId()
+            ));
+        return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
+     * @param TblItem $tblItem
+     * @param string  $Name
+     *
+     * @return bool|TblItemVariant
+     */
+    public function getItemVariantByItemAndName(TblItem $tblItem, $Name)
+    {
+
+        $Entity = $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItemVariant',
+            array(
+                TblItemVariant::ATTR_TBL_ITEM => $tblItem->getId(),
+                TblItemVariant::ATTR_NAME => $Name
             ));
         return ( null === $Entity ? false : $Entity );
     }
@@ -159,6 +188,19 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblItemCalculation', $Id);
+    }
+
+    /**
+     * @param TblItemVariant $tblItemVariant
+     *
+     * @return bool|TblItemCalculation[]
+     */
+    public function getItemCalculationByItem(TblItemVariant $tblItemVariant)
+    {
+
+        $Entity = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItemCalculation',
+            array(TblItemCalculation::ATTR_TBL_ITEM_VARIANT => $tblItemVariant));
+        return ( null === $Entity ? false : $Entity );
     }
 
     /**
@@ -233,7 +275,7 @@ class Data extends AbstractData
      * @param                         $Name
      * @param string                  $Description
      *
-     * @return null|object|TblItem
+     * @return TblItem
      */
     public function createItem(
         TblItemType $tblItemType,
@@ -265,7 +307,7 @@ class Data extends AbstractData
      * @param TblItem  $tblItem
      * @param TblGroup $tblGroup
      *
-     * @return null|object|TblItemGroup
+     * @return TblItemGroup
      */
     public function createItemGroup(
         TblItem $tblItem,
@@ -283,6 +325,37 @@ class Data extends AbstractData
             $Entity = new TblItemGroup();
             $Entity->setTblItem($tblItem);
             $Entity->setServiceTblGroup($tblGroup);
+            $Manager->saveEntity($Entity);
+
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+                $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblItem $tblItem
+     * @param string  $Name
+     * @param string  $Description
+     *
+     * @return TblItemVariant
+     */
+    public function createItemVariant(TblItem $tblItem, $Name, $Description = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblItemVariant')->findOneBy(array(
+            TblItemVariant::ATTR_TBL_ITEM => $tblItem->getId(),
+            TblItemVariant::ATTR_NAME => $Name,
+        ));
+
+        if ($Entity === null) {
+            $Entity = new TblItemVariant();
+            $Entity->setTblItem($tblItem);
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
             $Manager->saveEntity($Entity);
 
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
@@ -360,6 +433,33 @@ class Data extends AbstractData
 
         /** @var TblItem $Entity */
         $Entity = $Manager->getEntityById('TblItem', $tblItem->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblItemVariant $tblItemVariant
+     * @param string         $Name
+     * @param string         $Description
+     *
+     * @return bool
+     */
+    public function updateItemVariant(TblItemVariant $tblItemVariant, $Name, $Description) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblItemVariant $Entity */
+        $Entity = $Manager->getEntityById('TblItemVariant', $tblItemVariant->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setName($Name);

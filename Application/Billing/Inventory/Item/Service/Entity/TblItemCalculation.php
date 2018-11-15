@@ -69,12 +69,12 @@ class TblItemCalculation extends Element
         if (null === $this->DateFrom) {
             return false;
         }
-        /** @var \DateTime $DateFrom */
-        $DateFrom = $this->DateFrom;
-        if ($DateFrom instanceof \DateTime) {
-            return $DateFrom->format('d.m.Y');
+        /** @var \DateTime $Date */
+        $Date = $this->DateFrom;
+        if ($Date instanceof \DateTime) {
+            return $Date->format('d.m.Y');
         } else {
-            return (string)$DateFrom;
+            return (string)$Date;
         }
     }
 
@@ -94,12 +94,12 @@ class TblItemCalculation extends Element
         if (null === $this->DateTo) {
             return false;
         }
-        /** @var \DateTime $DateTo */
-        $DateTo = $this->DateTo;
-        if ($DateTo instanceof \DateTime) {
-            return $DateTo->format('d.m.Y');
+        /** @var \DateTime $Date */
+        $Date = $this->DateTo;
+        if ($Date instanceof \DateTime) {
+            return $Date->format('d.m.Y');
         } else {
-            return (string)$DateTo;
+            return (string)$Date;
         }
     }
 
@@ -153,12 +153,12 @@ class TblItemCalculation extends Element
         if(null === null){
             return false;
         } else {
-            return Item::useService()->getVariantById($this->tblItemVariant);
+            return Item::useService()->getItemVariantById($this->tblItemVariant);
         }
     }
 
     /**
-     * @param null|TblItemVariant $tblVariant
+     * @param null|TblItemVariant $tblItemVariant
      */
     public function setTblVariant(TblItemVariant $tblItemVariant = null)
     {

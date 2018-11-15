@@ -90,6 +90,16 @@ class Service extends AbstractService
     }
 
     /**
+     * @param int $Id
+     * @return bool|TblItemVariant
+     */
+    public function getItemVariantById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getItemVariantById($Id);
+    }
+
+    /**
      * @param TblItem $tblItem
      *
      * @return bool|TblItemVariant[]
@@ -98,6 +108,18 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getItemVariantByItem($tblItem);
+    }
+
+    /**
+     * @param TblItem $tblItem
+     * @param string  $Name
+     *
+     * @return bool|TblItemVariant
+     */
+    public function getItemVariantByItemAndName(TblItem $tblItem, $Name)
+    {
+
+        return (new Data($this->getBinding()))->getItemVariantByItemAndName($tblItem, $Name);
     }
 
     /**
@@ -163,6 +185,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblItemVariant $tblItemVariant
+     *
+     * @return bool|TblItemCalculation[]
+     */
+    public function getItemCalculationByItem(TblItemVariant $tblItemVariant)
+    {
+
+        return (new Data($this->getBinding()))->getItemCalculationByItem($tblItemVariant);
+    }
+
+    /**
      * @return bool|TblItem[]
      */
     public function getItemAll()
@@ -194,28 +227,42 @@ class Service extends AbstractService
     }
 
     /**
-     * @param array $Item
+     * @param string $ItemName
+     * @param string $Description
      *
-     * @return null|object|TblItem
+     * @return TblItem
      */
-    public function createItem($Item = array())
+    public function createItem($ItemName, $Description = '')
     {
 
         // ToDO Standard Einzelleistung (later choosable)
         $tblItemType = Item::useService()->getItemTypeByName(TblItemType::TYPE_SINGLE);
-        return (new Data($this->getBinding()))->createItem($tblItemType, $Item['Name'],'');
+        return (new Data($this->getBinding()))->createItem($tblItemType, $ItemName, $Description);
     }
 
     /**
      * @param TblItem  $tblItem
      * @param TblGroup $tblGroup
      *
-     * @return null|object|TblItemGroup
+     * @return TblItemGroup
      */
     public function createItemGroup(TblItem $tblItem, TblGroup $tblGroup)
     {
 
         return (new Data($this->getBinding()))->createItemGroup($tblItem, $tblGroup);
+    }
+
+    /**
+     * @param TblItem $tblItem
+     * @param string  $Name
+     * @param string  $Description
+     *
+     * @return TblItemVariant
+     */
+    public function createItemVariant(TblItem $tblItem, $Name, $Description = '')
+    {
+
+        return (new Data($this->getBinding()))->createItemVariant($tblItem, $Name, $Description);
     }
 
     /**
@@ -247,6 +294,19 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->updateItem($tblItem, $ItemName, '');
+    }
+
+    /**
+     * @param TblItemVariant $tblItemVariant
+     * @param $Name
+     * @param $Description
+     *
+     * @return bool
+     */
+    public function changeItemVariant(TblItemVariant $tblItemVariant, $Name, $Description)
+    {
+
+        return (new Data($this->getBinding()))->updateItemVariant($tblItemVariant, $Name, $Description);
     }
 
     /**

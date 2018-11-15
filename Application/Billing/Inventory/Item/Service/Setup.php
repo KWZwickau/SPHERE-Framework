@@ -99,7 +99,8 @@ class Setup extends AbstractSetup
 
         $Table = $this->createTable($Schema, 'tblItemVariant');
 
-        $this->createColumn($Table, 'Name', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Description', self::FIELD_TYPE_TEXT);
         $this->createForeignKey($Table, $tblItem, true);
 
         return $Table;

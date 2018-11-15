@@ -17,12 +17,17 @@ class TblItemVariant extends Element
 {
 
     const ATTR_NAME = 'Name';
+    const ATTR_DESCRIPTION = 'Description';
     const ATTR_TBL_ITEM = 'tblItem';
 
     /**
-     * @Column(type="text")
+     * @Column(type="string")
      */
     protected $Name;
+    /**
+     * @Column(type="text")
+     */
+    protected $Description;
     /**
      * @Column(type="bigint")
      */
@@ -44,6 +49,24 @@ class TblItemVariant extends Element
     {
 
         $this->Name = $Name;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDescription()
+    {
+
+        return nl2br($this->Description);
+    }
+
+    /**
+     * @param string $Description
+     */
+    public function setDescription($Description)
+    {
+
+        $this->Description = $Description;
     }
 
     /**
