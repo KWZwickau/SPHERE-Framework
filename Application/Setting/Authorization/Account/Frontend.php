@@ -291,6 +291,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblToken = false;
         }
         if ($tblTokenAll) {
+            $tblTokenAll = $this->getSorter($tblTokenAll)->sortObjectBy(TblToken::ATTR_SERIAL);
             array_walk($tblTokenAll, function (TblToken &$tblTokenItem) use ($tblToken) {
 
                 if (

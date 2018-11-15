@@ -207,6 +207,12 @@ class ApiMassReplace extends Extension implements IApiInterface
         // Create new Field
         /** @var AbstractField $NewField */
         $NewField = $Reflection->newInstanceArgs($Constructor);
+        // für die SelectBox2 muss das korrekte Twig geladen werden
+        if ($Reflection->getName() == 'SPHERE\Common\Frontend\Form\Repository\Field\SelectBox') {
+            /** @var SelectBox $Field */
+            /** @var SelectBox $NewField */
+            $NewField = $NewField->configureLibrary($Field->getLibrary());
+        }
         // Set Field Value to Parent
         if (preg_match(
             '!(^|&)'.preg_quote($Field->getName()).'=(.*?)(&|$)!is',

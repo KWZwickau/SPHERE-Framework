@@ -72,6 +72,21 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblDivision $tblDivision
+     *
+     * @return false|TblAbsence[]
+     */
+    public function getAbsenceAllByDivision(TblDivision $tblDivision)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAbsence',
+            array(
+                TblAbsence::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
+            )
+        );
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblAbsence
@@ -80,6 +95,15 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAbsence', $Id);
+    }
+
+    /**
+     * @return false|TblAbsence[]
+     */
+    public function getAbsenceAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'TblAbsence');
     }
 
     /**

@@ -2,9 +2,9 @@
 namespace SPHERE\Application\Api\Education;
 
 use SPHERE\Application\Api\Education\Certificate\Certificate;
+use SPHERE\Application\Api\Education\Certificate\Generate\ApiGenerate;
 use SPHERE\Application\Api\Education\ClassRegister\ClassRegister;
 use SPHERE\Application\Api\Education\Division\StudentGroupSelect;
-use SPHERE\Application\Api\Education\Division\StudentGroupSelectWithFilter;
 use SPHERE\Application\Api\Education\Division\StudentSelect;
 use SPHERE\Application\Api\Education\Division\SubjectSelect;
 use SPHERE\Application\Api\Education\Division\ValidationFilter;
@@ -29,5 +29,6 @@ class Education implements IApplicationInterface
         StudentSelect::registerApi();
         StudentGroupSelect::registerApi();
         ValidationFilter::registerApi();
+        ApiGenerate::registerApi();
     }
 }

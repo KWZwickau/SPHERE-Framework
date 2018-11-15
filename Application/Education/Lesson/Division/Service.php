@@ -2666,4 +2666,33 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->restoreDivisionStudent($tblDivisionStudent);
     }
+
+    /**
+     * @param $divisionName
+     *
+     * @return TblDivision[]
+     */
+    public function getDivisionAllByName($divisionName)
+    {
+
+        $divisionList = array();
+        $divisionName = str_replace(' ', '', $divisionName);
+        $divisionName = strtolower($divisionName);
+        // bei der Eingabe einer Klassenstufen werden alle Klassen dieser Klassenstufe zurückgegeben
+        if (preg_match('/^[1-9][0-9]*$/', $divisionName)
+            && ($tblDivisionList= $this->getDivisionAllByLevelName($divisionName))
+        ) {
+            return $tblDivisionList;
+        } else {
+            if (($tblDivisionAll = $this->getDivisionAll())) {
+                foreach ($tblDivisionAll as $tblDivision) {
+                    if ($divisionName == str_replace(' ', '', strtolower($tblDivision->getDisplayName()))) {
+                        $divisionList[] = $tblDivision;
+                    }
+                }
+            }
+        }
+
+        return $divisionList;
+    }
 }

@@ -178,7 +178,7 @@ class ViewPersonContact extends AbstractView
         $this->setNameDefinition(self::TBL_ADDRESS_STATE_2, 'Nebenadresse: Bundesland');
         $this->setNameDefinition(self::TBL_ADDRESS_NATION_2, 'Nebenadresse: Land');
 
-        $this->setNameDefinition(self::TBL_PHONE_NUMBER, 'Person: Telefonnummer');
+        $this->setNameDefinition(self::TBL_PHONE_NUMBER, 'Person: Telefon');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS, 'Person: E-Mail');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_PRIVATE, 'Person: E-Mail Privat');
         $this->setNameDefinition(self::TBL_MAIL_ADDRESS_COMPANY, 'Person: E-Mail Geschäftlich');
