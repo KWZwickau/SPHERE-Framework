@@ -3347,6 +3347,38 @@ class Data extends AbstractData
                     }
                 }
             }
+
+            if ($tblConsumer->getAcronym() == 'FES' || $tblConsumer->getAcronym() == 'DEMO') {
+                // declare active Consumer
+                $tblConsumerCertificate = Consumer::useService()->getConsumerByAcronym('FES');
+                if ($tblConsumerCertificate) {
+                    $tblCertificate = $this->createCertificate('Grundschule Halbjahresinformation', 'der ersten Klasse',
+                        'FES\FesGsHjOneInfo', $tblConsumerCertificate);
+                    if ($tblCertificate) {
+                        if ($tblSchoolTypePrimary) {
+                            $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypePrimary, null, true);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                            }
+                        }
+                    }
+
+                    $tblCertificate = $this->createCertificate('Grundschule Jahreszeugnis', 'der ersten Klasse',
+                        'FES\FesGsJOne', $tblConsumerCertificate);
+                    if ($tblCertificate) {
+                        if ($tblSchoolTypePrimary) {
+                            $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypePrimary);
+                            if (!$this->getCertificateLevelAllByCertificate($tblCertificate)) {
+                                if (($tblLevel = Division::useService()->getLevelBy($tblSchoolTypePrimary, '1'))) {
+                                    $this->createCertificateLevel($tblCertificate, $tblLevel);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
