@@ -124,6 +124,8 @@ abstract class Certificate extends Extension
         // für Lernentwicklungsbericht von Radebeul 2cm Rand (1,4 cm scheint Standard zu seien)
         if (strpos(get_class($this), 'RadebeulLernentwicklungsbericht') !== false) {
             $InjectStyle = 'body { margin-left: 1.2cm !important; margin-right: 1.3cm !important; }';
+        } elseif (strpos(get_class($this), 'RadebeulOs') !== false) {
+            $InjectStyle = 'body { margin-left: 0.7cm !important; margin-right: 0.8cm !important; }';
         } else {
             $InjectStyle = '';
         }
@@ -2290,6 +2292,7 @@ abstract class Certificate extends Extension
      * @param string $MarginTop
      * @param int $GradeFieldWidth
      * @param string $fontFamily
+     * @param bool|string $height
      *
      * @return Slice
      */
@@ -2301,7 +2304,8 @@ abstract class Certificate extends Extension
         $IsGradeUnderlined = false,
         $MarginTop = '8px',
         $GradeFieldWidth = 28,
-        $fontFamily = 'MetaPro'
+        $fontFamily = 'MetaPro',
+        $height = false
     ) {
 
 //        $tblPerson = Person::useService()->getPersonById($personId);
@@ -2445,7 +2449,7 @@ abstract class Certificate extends Extension
             }
         }
 
-        return $SubjectSlice;
+        return $height ? $SubjectSlice->styleHeight($height) : $SubjectSlice;
     }
 
     /**
