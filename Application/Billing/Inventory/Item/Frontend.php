@@ -19,6 +19,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -129,27 +130,36 @@ class Frontend extends Extension implements IFrontendInterface
                                     && new \DateTime($tblItemCalculation->getDateTo()) >= new \DateTime()){
                                     $IsNow = true;
                                 }
-                                $RowContent = '<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;'
-                                    .'Preis: '.$tblItemCalculation->getPriceString()
-                                    .'</td><td>&nbsp;&nbsp;&nbsp;&nbsp;'
-                                    .($tblItemCalculation->getDateFrom()
-                                        ?$tblItemCalculation->getDateFrom().
-                                        ($tblItemCalculation->getDateTo()
-                                            ? ' - '.$tblItemCalculation->getDateTo()
-                                            : '')
+                                $Price = 'Preis: '.$tblItemCalculation->getPriceString();
+                                $Span = ($tblItemCalculation->getDateFrom()
+                                    ?$tblItemCalculation->getDateFrom().
+                                    ($tblItemCalculation->getDateTo()
+                                        ? ' - '.$tblItemCalculation->getDateTo()
                                         : '')
-                                    . '</td><td>&nbsp;&nbsp;'
-                                    .(new Link('', ApiItem::getEndpoint(), new Pencil()))
+                                    : '');
+                                $Option = (new Link('', ApiItem::getEndpoint(), new Pencil()))
                                         ->ajaxPipelineOnClick(ApiItem::pipelineOpenEditCalculationModal('editCalculation', $tblItemVariant->getId(), $tblItemCalculation->getId()))
                                     .'|'.
                                     (new Link(new DangerText(new Disable()), ApiItem::getEndpoint()))
-                                        ->ajaxPipelineOnClick(ApiItem::pipelineOpenDeleteCalculationModal('deleteCalculation', $tblItemCalculation->getId()))
+                                        ->ajaxPipelineOnClick(ApiItem::pipelineOpenDeleteCalculationModal('deleteCalculation', $tblItemCalculation->getId()));
+
+                                if($IsNow){
+                                    $Price = new Bold($Price);
+                                    $Span = new Bold($Span);
+                                }
+
+                                $RowContent = '<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;'
+                                    . $Price
+                                    .'</td><td>&nbsp;&nbsp;&nbsp;&nbsp;'
+                                    . $Span
+                                    . '</td><td>&nbsp;&nbsp;'
+                                    . $Option
                                     . '</td></tr>';
-//                                if($IsNow){
-//                                    $Row .= new Bold($RowContent);
-//                                } else {
+                                if($IsNow){
+                                    $Row .= str_replace('<tr>', '<tr style="font-weight:bold">', $RowContent);
+                                } else {
                                     $Row .= $RowContent;
-//                                }
+                                }
                             }
                             $Row .= '</table>';
                             $Row .= '&nbsp;&nbsp;&nbsp;&nbsp;'.$PriceAddButton;
