@@ -175,6 +175,11 @@ class Frontend extends Extension implements IFrontendInterface
                 'PersonGroup' => 'Personengruppen',
                 'Variant'     => 'Preis-Varianten',
 //                'Option'      => ''
+            ), array(
+                "paging"         => false, // Deaktivieren Blättern
+                "iDisplayLength" => -1,    // Alle Einträge zeigen
+//                "searching"      => false, // Deaktivieren Suchen
+                "info"           => false,  // Deaktivieren Such-Info
             )
         );
     }
