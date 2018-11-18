@@ -20,17 +20,20 @@ class TblItemCalculation extends Element
 
     const ATTR_SERVICE_TBL_TYPE = 'serviceTblType';
     const ATTR_TBL_ITEM_VARIANT = 'tblItemVariant';
+    const ATTR_VALUE = 'Value';
+    const ATTR_DATE_FROM = 'DateFrom';
+    const ATTR_DATE_TO = 'DateTo';
 
     /**
      * @Column(type="decimal", precision=14, scale=4)
      */
     protected $Value;
     /**
-     * @Column(type="date")
+     * @Column(type="datetime")
      */
     protected $DateFrom;
     /**
-     * @Column(type="date")
+     * @Column(type="datetime")
      */
     protected $DateTo;
     /**
@@ -43,11 +46,16 @@ class TblItemCalculation extends Element
     protected $tblItemVariant;
 
     /**
-     * @return (type="decimal", precision=14, scale=4)
+     * @param bool $IsShort
+     *
+     * @return (type="decimal", precision=14, scale=4)|string
      */
-    public function getValue()
+    public function getValue($IsShort = false)
     {
 
+        if($IsShort){
+            return number_format($this->Value, 2);
+        }
         return $this->Value;
     }
 
@@ -61,7 +69,7 @@ class TblItemCalculation extends Element
     }
 
     /**
-     * @return bool|string
+     * @return string
      */
     public function getDateFrom()
     {
@@ -87,7 +95,7 @@ class TblItemCalculation extends Element
     }
 
     /**
-     * @return bool|string
+     * @return string
      */
     public function getDateTo()
     {
@@ -148,7 +156,7 @@ class TblItemCalculation extends Element
     /**
      * @return false|TblItemVariant
      */
-    public function getTblVariant()
+    public function getTblItemVariant()
     {
         if(null === null){
             return false;
@@ -160,7 +168,7 @@ class TblItemCalculation extends Element
     /**
      * @param null|TblItemVariant $tblItemVariant
      */
-    public function setTblVariant(TblItemVariant $tblItemVariant = null)
+    public function setTblItemVariant(TblItemVariant $tblItemVariant = null)
     {
         $this->tblItemVariant = ( null === $tblItemVariant ? null : $tblItemVariant->getId() );
     }

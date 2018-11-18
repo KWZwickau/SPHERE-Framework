@@ -52,12 +52,18 @@ class TblItemVariant extends Element
     }
 
     /**
+     * @param bool $IsFrontend
+     *
      * @return string
      */
-    public function getDescription()
+    public function getDescription($IsFrontend = true)
     {
 
-        return nl2br($this->Description);
+        if($IsFrontend){
+            return nl2br($this->Description);
+        } else {
+            return $this->Description;
+        }
     }
 
     /**

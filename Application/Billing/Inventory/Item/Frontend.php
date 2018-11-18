@@ -4,6 +4,7 @@ namespace SPHERE\Application\Billing\Inventory\Item;
 
 use SPHERE\Application\Api\Billing\Inventory\ApiItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemCalculation;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
@@ -21,6 +22,8 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Sorter;
+use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 /**
  * Class Frontend
@@ -40,11 +43,15 @@ class Frontend extends Extension implements IFrontendInterface
             ->ajaxPipelineOnClick(ApiItem::pipelineOpenAddItemModal('addItem')));
 
         $Stage->setContent(
-            ApiItem::receiverModal('Anlegen einer neuen Beitragsart', 'addItem')
+            ApiItem::receiverModal('Beitragsart hinzufügen', 'addItem')
             .ApiItem::receiverModal('Beitragsart bearbeiten', 'editItem')
-            .ApiItem::receiverModal('Entfernen einer Beitragsart', 'deleteItem')
-            .ApiItem::receiverModal('Anlegen einer neuen Beitrags-Variante', 'addVariant')
-            .ApiItem::receiverModal('Entfernen einer Beitragsart', 'editVariant')
+            .ApiItem::receiverModal('Beitragsart entfernen', 'deleteItem')
+            .ApiItem::receiverModal('Beitrags-Variante hinzufügen', 'addVariant')
+            .ApiItem::receiverModal('Beitrags-Variante bearbeiten', 'editVariant')
+            .ApiItem::receiverModal('Beitrags-Variante entfernen', 'deleteVariant')
+            .ApiItem::receiverModal('Preis hinzufügen', 'addCalculation')
+            .ApiItem::receiverModal('Preis bearbeiten', 'editCalculation')
+            .ApiItem::receiverModal('Preis entfernen', 'deleteCalculation')
             .new Layout(
                 new LayoutGroup(array(
                     new LayoutRow(
@@ -91,31 +98,69 @@ class Frontend extends Extension implements IFrontendInterface
                     sort($GroupList);
                 }
                 if (!empty($GroupList)) {
-                    $Item['PersonGroup'] = new Listing($GroupList);
+//                    $Item['PersonGroup'] = new Listing($GroupList);
+                    $Item['PersonGroup'] = implode('<br/>', $GroupList);
                 }
 
                 $RowList = array();
                 if(($tblItemVariantList = Item::useService()->getItemVariantByItem($tblItem))){
                     foreach($tblItemVariantList as $tblItemVariant){
                         $Row = $tblItemVariant->getName().
-                            (new Link('', '', new Pencil()))
+                            (new Link('', ApiItem::getEndpoint(), new Pencil()))
                             ->ajaxPipelineOnClick(ApiItem::pipelineOpenEditVariantModal('editVariant', $tblItem->getId(), $tblItemVariant->getId()))
                             .'|'.
-                            new Link(new DangerText(new Disable()), '')
-                            .'<br/>'.$tblItemVariant->getDescription();
-                        if(($tblItemCalculationList = Item::useService()->getItemCalculationByItem($tblItemVariant))){
+                            (new Link(new DangerText(new Disable()), ApiItem::getEndpoint()))
+                            ->ajaxPipelineOnClick(ApiItem::pipelineOpenDeleteVariantModal('deleteVariant', $tblItemVariant->getId()))
+                            .($tblItemVariant->getDescription() ? '<br/>'.$tblItemVariant->getDescription() : '');
+
+                        $PriceAddButton = (new Link('Preis hinzufügen', ApiItem::getEndpoint(), new Plus()))
+                            ->ajaxPipelineOnClick(ApiItem::pipelineOpenAddCalculationModal('addCalculation', $tblItemVariant->getId()));
+
+                        if(($tblItemCalculationList = Item::useService()->getItemCalculationByItemVariant($tblItemVariant))){
+                            /** @var TblItemCalculation[] $tblItemCalculationList */
+                            $tblItemCalculationList = $this->getSorter($tblItemCalculationList)->sortObjectBy('DateFrom', new DateTimeSorter(), Sorter::ORDER_DESC);
+
+                            $Row .= '<table>';
                             foreach($tblItemCalculationList as $tblItemCalculation){
-                                $Row .= '<br/>&nbsp;&nbsp;&nbsp;&nbsp;Preis: '.$tblItemCalculation->getPriceString().'&nbsp;&nbsp;&nbsp;&nbsp;'.'PlatzhalterDatumVon - PlatzhalterDatumBis '
-                                .new Link('', '', new Pencil()).'|'.new Link(new DangerText(new Disable()), '');
-//                                    .$tblItemCalculation->getDateFrom().' - '.$tblItemCalculation->getDateTo();
+
+                                //ToDO aktuellen Eintrag markieren
+                                $IsNow = false;
+                                if(new \DateTime($tblItemCalculation->getDateFrom()) <= new \DateTime()
+                                    && new \DateTime($tblItemCalculation->getDateTo()) >= new \DateTime()){
+                                    $IsNow = true;
+                                }
+                                $RowContent = '<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;'
+                                    .'Preis: '.$tblItemCalculation->getPriceString()
+                                    .'</td><td>&nbsp;&nbsp;&nbsp;&nbsp;'
+                                    .($tblItemCalculation->getDateFrom()
+                                        ?$tblItemCalculation->getDateFrom().
+                                        ($tblItemCalculation->getDateTo()
+                                            ? ' - '.$tblItemCalculation->getDateTo()
+                                            : '')
+                                        : '')
+                                    . '</td><td>&nbsp;&nbsp;'
+                                    .(new Link('', ApiItem::getEndpoint(), new Pencil()))
+                                        ->ajaxPipelineOnClick(ApiItem::pipelineOpenEditCalculationModal('editCalculation', $tblItemVariant->getId(), $tblItemCalculation->getId()))
+                                    .'|'.
+                                    (new Link(new DangerText(new Disable()), ApiItem::getEndpoint()))
+                                        ->ajaxPipelineOnClick(ApiItem::pipelineOpenDeleteCalculationModal('deleteCalculation', $tblItemCalculation->getId()))
+                                    . '</td></tr>';
+//                                if($IsNow){
+//                                    $Row .= new Bold($RowContent);
+//                                } else {
+                                    $Row .= $RowContent;
+//                                }
                             }
-                            $Row .= '<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.new Link('Preis hinzufügen', '', new Plus());
+                            $Row .= '</table>';
+                            $Row .= '&nbsp;&nbsp;&nbsp;&nbsp;'.$PriceAddButton;
+                        } else {
+                            $Row .= '&nbsp;&nbsp;&nbsp;&nbsp;'.$PriceAddButton;
                         }
                         $RowList[] = $Row;
                     }
                 }
 
-                $RowList[] = (new Link('Variante hinzufügen', '', new Plus()))
+                $RowList[] = (new Link('Variante hinzufügen', ApiItem::getEndpoint(), new Plus()))
                     ->ajaxPipelineOnClick(ApiItem::pipelineOpenAddVariantModal('addVariant', $tblItem->getId()));
 
                 $Item['Variant'] = new Listing($RowList);

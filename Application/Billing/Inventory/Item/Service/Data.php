@@ -9,10 +9,8 @@ use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemAccount;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemGroup;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemType;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemVariant;
-use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
-use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
@@ -36,6 +34,27 @@ class Data extends AbstractData
         $tblItem = $this->createItem($tblItemType, 'Schulgeld');
         $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
         $this->createItemGroup($tblItem, $tblGroup);
+
+        $tblVariant = $this->createItemVariant($tblItem, 'Voll', 'Keine ermäßigung des Schulgeldes');
+        $this->createItemCalculation($tblVariant, '70.00', '01.01.2018', '31.12.2020');
+
+        $tblVariant = $this->createItemVariant($tblItem, 'Teilermäßigung', 'Ermäßigung für Geschwisterkind oder Einkommensgruppe');
+        $this->createItemCalculation($tblVariant, '60.55', '01.01.2018', '31.12.2020');
+
+        $tblVariant = $this->createItemVariant($tblItem, 'Vollermäßigung', 'Ermäßigung für Geschwisterkind und Einkommensgruppe');
+        $this->createItemCalculation($tblVariant, '53.95', '01.01.2018', '31.12.2019');
+        $this->createItemCalculation($tblVariant, '54.00', '01.01.2020', '31.12.2020');
+
+        $tblItem = $this->createItem($tblItemType, 'Essensgeld');
+        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
+        $this->createItemGroup($tblItem, $tblGroup);
+        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STAFF);
+        $this->createItemGroup($tblItem, $tblGroup);
+
+        $tblVariant = $this->createItemVariant($tblItem, 'Essen', 'Standardpreis pro Malzeit');
+        $this->createItemCalculation($tblVariant, '3.40', '01.01.2018', '31.05.2018');
+        $this->createItemCalculation($tblVariant, '3.50', '01.06.2018', '31.12.2018');
+        $this->createItemCalculation($tblVariant, '3.55', '01.01.2019', '31.12.2020');
     }
 
     /**
@@ -101,7 +120,7 @@ class Data extends AbstractData
         $Entity = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItemVariant',
             array(
                 TblItemVariant::ATTR_TBL_ITEM => $tblItem->getId()
-            ));
+            ), array('EntityCreate' => self::ORDER_ASC ));
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -184,7 +203,7 @@ class Data extends AbstractData
      *
      * @return bool|TblItemCalculation
      */
-    public function getCalculationById($Id)
+    public function getItemCalculationById($Id)
     {
 
         return $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblItemCalculation', $Id);
@@ -195,7 +214,7 @@ class Data extends AbstractData
      *
      * @return bool|TblItemCalculation[]
      */
-    public function getItemCalculationByItem(TblItemVariant $tblItemVariant)
+    public function getItemCalculationByItemVariant(TblItemVariant $tblItemVariant)
     {
 
         $Entity = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItemCalculation',
@@ -366,6 +385,39 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblItemVariant $tblItemVariant
+     * @param string         $Value
+     * @param string         $DateFrom
+     * @param string         $DateTo
+     *
+     * @return TblItemCalculation
+     */
+    public function createItemCalculation(TblItemVariant $tblItemVariant, $Value, $DateFrom, $DateTo = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblItemCalculation')->findOneBy(array(
+            TblItemCalculation::ATTR_TBL_ITEM_VARIANT => $tblItemVariant->getId(),
+            TblItemCalculation::ATTR_VALUE => $Value,
+            TblItemCalculation::ATTR_DATE_FROM => (new \DateTime($DateFrom))
+        ));
+
+        if(null === $Entity){
+            $Entity = new TblItemCalculation();
+            $Entity->setTblItemVariant($tblItemVariant);
+            $Entity->setValue($Value);
+            $Entity->setDateFrom(new \DateTime($DateFrom));
+            $Entity->setDateTo(($DateTo ? new \DateTime($DateTo) : null));
+            $Manager->saveEntity($Entity);
+
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+                $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
      * @param string $Name
      *
      * @return TblItemType
@@ -387,32 +439,6 @@ class Data extends AbstractData
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);
         }
-        return $Entity;
-    }
-
-    /**
-     * @param                     $Value
-     * @param TblType|null        $Course
-     * @param TblSiblingRank|null $ChildRank
-     *
-     * @return TblItemCalculation
-     */
-    public function createCalculation($Value, TblType $Course = null, TblSiblingRank $ChildRank = null)
-    {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        $Entity = new TblItemCalculation();
-        $Entity->setValue(str_replace(',', '.', $Value));
-        if (null !== $Course) {
-            $Entity->setServiceTblType($Course);
-        }
-        if (null !== $ChildRank) {
-            $Entity->setServiceTblSiblingRank($ChildRank);
-        }
-        $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
-            $Entity);
         return $Entity;
     }
 
@@ -475,12 +501,14 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblItemCalculation   $tblCalculation
-     * @param                  $Value
+     * @param TblItemCalculation $tblCalculation
+     * @param string $Value
+     * @param string $DateFrom
+     * @param string $DateTo
      *
      * @return bool
      */
-    public function updateCalculation(TblItemCalculation $tblCalculation, $Value)
+    public function updateItemCalculation(TblItemCalculation $tblCalculation, $Value, $DateFrom, $DateTo = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -489,35 +517,13 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblItemCalculation', $tblCalculation->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $Entity->setValue($Value);
+            $Entity->setValue((float)$Value);
+            $Entity->setDateFrom(new \DateTime($DateFrom));
+            $Entity->setDateTo(($DateTo ? new \DateTime($DateTo) : null));
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
                 $Entity);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * @param TblItemCalculation $tblCalculation
-     * @param TblItem        $tblItem
-     *
-     * @return bool
-     */
-    public function destroyCalculation(
-        TblItemCalculation $tblCalculation,
-        TblItem $tblItem
-    ) {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        $Entity = $Manager->getEntity('TblItemCalculation')->findOneBy(array('Id' => $tblCalculation->getId()));
-        if (null !== $Entity) {
-            /** @var Element $Entity */
-            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
-                $Entity);
-            $Manager->killEntity($Entity);
             return true;
         }
         return false;
@@ -579,7 +585,7 @@ class Data extends AbstractData
     /**
      * @param TblItemGroup $tblItemGroup
      *
-     * @return string
+     * @return bool
      */
     public function removeItemGroup(TblItemGroup $tblItemGroup)
     {
@@ -599,13 +605,33 @@ class Data extends AbstractData
     /**
      * @param TblItemVariant $tblItemVariant
      *
-     * @return string
+     * @return bool
      */
     public function removeItemVariant(TblItemVariant $tblItemVariant)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntityById('TblItemVariant', $tblItemVariant->getId());
+        if (null !== $Entity) {
+            /** @var Element $Entity */
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblItemCalculation $tblItemCalculation
+     *
+     * @return bool
+     */
+    public function removeItemCalculation(TblItemCalculation $tblItemCalculation)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntityById('TblItemCalculation', $tblItemCalculation->getId());
         if (null !== $Entity) {
             /** @var Element $Entity */
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),

@@ -15,7 +15,6 @@ use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
-use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -36,17 +35,17 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\System\Extension\Extension;
 
 /**
  * Class ApiItem
  * @package SPHERE\Application\Api\Billing\Inventory
+ *
+ *  ApiItem -> ItemVariant -> ItemCalculation
  */
-class ApiItem extends Extension implements IApiInterface
+class ApiItem extends ItemVariant implements IApiInterface
 {
 
     // registered method
-
     use ApiTrait;
 
     public function exportApi($Method = '')
@@ -66,6 +65,15 @@ class ApiItem extends Extension implements IApiInterface
         $Dispatcher->registerMethod('saveAddVariant');
         $Dispatcher->registerMethod('showEditVariant');
         $Dispatcher->registerMethod('saveEditVariant');
+        $Dispatcher->registerMethod('showDeleteVariant');
+        $Dispatcher->registerMethod('deleteVariant');
+        // Calculation / Preis
+        $Dispatcher->registerMethod('showAddCalculation');
+        $Dispatcher->registerMethod('saveAddCalculation');
+        $Dispatcher->registerMethod('showEditCalculation');
+        $Dispatcher->registerMethod('saveEditCalculation');
+        $Dispatcher->registerMethod('showDeleteCalculation');
+        $Dispatcher->registerMethod('deleteCalculation');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -195,105 +203,6 @@ class ApiItem extends Extension implements IApiInterface
     /**
      * @param string     $Identifier
      * @param int|string $ItemId
-     * @return Pipeline
-     */
-    public static function pipelineOpenAddVariantModal($Identifier, $ItemId)
-    {
-
-        $Receiver = self::receiverModal(null, $Identifier);
-        $Pipeline = new Pipeline();
-        $Emitter = new ServerEmitter($Receiver, ApiItem::getEndpoint());
-        $Emitter->setGetPayload(array(
-            ApiItem::API_TARGET => 'showAddVariant'
-        ));
-        $Emitter->setPostPayload(array(
-            'Identifier' => $Identifier,
-            'ItemId' => $ItemId
-        ));
-        $Pipeline->appendEmitter($Emitter);
-
-        return $Pipeline;
-    }
-
-    /**
-     * @param string     $Identifier
-     * @param int|string $ItemId
-     *
-     * @return Pipeline
-     */
-    public static function pipelineSaveAddVariant($Identifier, $ItemId)
-    {
-
-        $Receiver = self::receiverModal(null, $Identifier);
-        $Pipeline = new Pipeline();
-        $Emitter = new ServerEmitter($Receiver, ApiItem::getEndpoint());
-        $Emitter->setGetPayload(array(
-            ApiItem::API_TARGET => 'saveAddVariant'
-        ));
-        $Emitter->setPostPayload(array(
-            'Identifier' => $Identifier,
-            'ItemId' => $ItemId
-        ));
-        $Pipeline->appendEmitter($Emitter);
-
-        return $Pipeline;
-    }
-
-    /**
-     * @param string     $Identifier
-     * @param int|string $ItemId
-     * @param int|string $VariantId
-     *
-     * @return Pipeline
-     */
-    public static function pipelineOpenEditVariantModal($Identifier, $ItemId, $VariantId)
-    {
-
-        $Receiver = self::receiverModal(null, $Identifier);
-        $Pipeline = new Pipeline();
-        $Emitter = new ServerEmitter($Receiver, ApiItem::getEndpoint());
-        $Emitter->setGetPayload(array(
-            ApiItem::API_TARGET => 'showEditVariant'
-        ));
-        $Emitter->setPostPayload(array(
-            'Identifier' => $Identifier,
-            'ItemId' => $ItemId,
-            'VariantId' => $VariantId
-        ));
-        $Pipeline->appendEmitter($Emitter);
-
-        return $Pipeline;
-    }
-
-    /**
-     * @param string     $Identifier
-     * @param int|string $ItemId
-     * @param int|string $VariantId
-     *
-     * @return Pipeline
-     */
-    public static function pipelineSaveEditVariant($Identifier, $ItemId, $VariantId)
-    {
-
-        $Receiver = self::receiverModal(null, $Identifier);
-        $Pipeline = new Pipeline(true);
-        $Emitter = new ServerEmitter($Receiver, ApiItem::getEndpoint());
-        $Emitter->setGetPayload(array(
-            ApiItem::API_TARGET => 'saveEditVariant'
-        ));
-        $Emitter->setPostPayload(array(
-            'Identifier' => $Identifier,
-            'ItemId'     => $ItemId,
-            'VariantId'  => $VariantId
-        ));
-        $Pipeline->appendEmitter($Emitter);
-
-        return $Pipeline;
-    }
-
-    /**
-     * @param string     $Identifier
-     * @param int|string $ItemId
      *
      * @return Pipeline
      */
@@ -391,7 +300,19 @@ class ApiItem extends Extension implements IApiInterface
                 }
             }
         }
+        $tblGroupMetaALL = false;
+        foreach($tblGroupList as &$tblGroup){
+            if($tblGroup->getMetaTable() === 'COMMON'){
+                $tblGroupMetaALL = $tblGroup;
+                $tblGroup = false;
+            }
+        }
+        $tblGroupList = array_filter($tblGroupList);
+
         if(($tblGroupList = $this->getSorter($tblGroupList)->sortObjectBy('Name'))){
+            if($tblGroupMetaALL){
+                $CheckboxList[] = new CheckBox('Group['.$tblGroupMetaALL->getId().']', $tblGroupMetaALL->getName(), $tblGroupMetaALL->getId());
+            }
             /** @var TblGroup $tblGroup */
             foreach($tblGroupList as $tblGroup){
                 $CheckboxList[] = new CheckBox('Group['.$tblGroup->getId().']', $tblGroup->getName(), $tblGroup->getId());
@@ -407,44 +328,6 @@ class ApiItem extends Extension implements IApiInterface
                         , 6),
                     new FormColumn(
                         $CheckboxList
-                        , 6),
-//                    new FormColumn(
-//                        new TextField('Item[Description]', 'Beschreibung', 'Beschreibung')
-//                    , 6),
-                    new FormColumn(
-                        $SaveButton
-                    )
-                ))
-            )
-        ))->disableSubmitAction();
-    }
-
-    /**
-     * @param string     $Identifier
-     * @param int|string $ItemId
-     * @param int|string $VariantId
-     *
-     * @return Form
-     */
-    public function formVariant($Identifier, $ItemId, $VariantId = '')
-    {
-
-        // choose between Add and Edit
-        $SaveButton = new Primary('Speichern', ApiItem::getEndpoint(), new Save());
-        if('' !== $VariantId){
-            $SaveButton->ajaxPipelineOnClick(ApiItem::pipelineSaveEditVariant($Identifier, $ItemId, $VariantId));
-        } else {
-            $SaveButton->ajaxPipelineOnClick(ApiItem::pipelineSaveAddVariant($Identifier, $ItemId));
-        }
-
-        return (new Form(
-            new FormGroup(
-                new FormRow(array(
-                    new FormColumn(
-                        (new TextField('Variant[Name]', 'Beitrags-Variante', 'Beitragsart'))->setRequired()
-                        , 6),
-                    new FormColumn(
-                        new TextArea('Variant[Description]', 'Beschreibung', 'Beschreibung')
                         , 6),
                     new FormColumn(
                         $SaveButton
@@ -490,55 +373,6 @@ class ApiItem extends Extension implements IApiInterface
             } else {
                 return $form;
             }
-        }
-
-        return $Error;
-    }
-
-    /**
-     * @param string $Identifier
-     * @param string $ItemId
-     * @param string $VariantId
-     * @param array $Variant
-     *
-     * @return false|string|Form
-     */
-    private function checkInputVariant($Identifier, $ItemId, $VariantId, $Variant = array())
-    {
-        $Error = false;
-        $form = $this->formVariant($Identifier, $ItemId, $VariantId);
-
-        $Warning = '';
-        if(!($tblItem = Item::useService()->getItemById($ItemId))){
-            $Warning = new Danger('Beitragsart ist nicht mehr vorhanden!');
-            $Error = true;
-        } else {
-            if (isset($Variant['Name']) && empty($Variant['Name'])) {
-                $form->setError('Variant[Name]', 'Bitte geben Sie den Namen der Bezahl-Variante an');
-                $Error = true;
-                // disable save for duplicated names
-            } elseif(isset($Variant['Name']) && ($tblItemVariantList = Item::useService()->getItemVariantByItem($tblItem))){
-                // look vor same Variant name in Item range
-                foreach($tblItemVariantList as $tblItemVariant){
-                    // ignore own Name
-                    if($tblItemVariant->getName() == $Variant['Name'] && $tblItemVariant->getId() != $VariantId){
-                        $form->setError('Variant[Name]','Der Name der Variante exisitiert bereits');
-                        $Error = true;
-                    }
-                }
-
-                if($tblItem->getId() != $ItemId){
-                    $form->setError('Item[Name]','Beitragsart exisitiert bereits, sie darf nicht doppelt angelegt werden');
-                    $Error = true;
-                }
-            }
-        }
-
-        if ($Error) {
-            if($Warning){
-                return $Warning.$form;
-            }
-            return $form;
         }
 
         return $Error;
@@ -658,103 +492,6 @@ class ApiItem extends Extension implements IApiInterface
     }
 
     /**
-     * @param string     $Identifier
-     * @param int|string $ItemId
-     * @return string
-     */
-    public function showAddVariant($Identifier, $ItemId)
-    {
-
-        return self::formVariant($Identifier, $ItemId);
-    }
-
-    /**
-     * @param $Identifier
-     * @param $ItemId
-     * @param array $Variant
-     *
-     * @return string
-     */
-    public function saveAddVariant($Identifier, $ItemId, $Variant = array())
-    {
-
-        // Handle error's
-        if ($form = $this->checkInputVariant($Identifier, $ItemId, '', $Variant)) {
-            // display Errors on form
-            $Global = $this->getGlobal();
-            $Global->POST['Variant']['Name'] = $Variant['Name'];
-            $Global->POST['Variant']['Description'] = $Variant['Description'];
-            $Global->savePost();
-            return $form;
-        }
-
-        $tblVariant = false;
-        if(($tblItem = Item::useService()->getItemById($ItemId))){
-            //ignore create if already exist
-            if(!(Item::useService()->getItemVariantByItemAndName($tblItem, $Variant['Name']))){
-                $tblVariant = Item::useService()->createItemVariant($tblItem, $Variant['Name'], $Variant['Description']);
-            }
-        }
-
-        return ($tblVariant
-            ? new Success('Beitrags-Variante erfolgreich angelegt'). self::pipelineCloseModal($Identifier)
-            : new Danger('Beitrags-Variante konnte nicht gengelegt werden'));
-    }
-
-    /**
-     * @param string     $Identifier
-     * @param int|string $ItemId
-     * @param int|string $VariantId
-     *
-     * @return string
-     */
-    public function showEditVariant($Identifier, $ItemId, $VariantId)
-    {
-
-        if('' !== $VariantId && ($tblItemVariant = Item::useService()->getItemVariantById($VariantId))){
-            $Global = $this->getGlobal();
-            $Global->POST['Variant']['Name'] = $tblItemVariant->getName();
-            $Global->POST['Variant']['Description'] = $tblItemVariant->getDescription();
-            $Global->savePost();
-        }
-
-        return self::formVariant($Identifier, $ItemId, $VariantId);
-    }
-
-    /**
-     * @param string     $Identifier
-     * @param int|string $ItemId
-     * @param int|string $VariantId
-     * @param array      $Variant
-     *
-     * @return string
-     */
-    public function saveEditVariant($Identifier, $ItemId,$VariantId , $Variant = array())
-    {
-
-        // Handle error's
-        if ($form = $this->checkInputVariant($Identifier, $ItemId, $VariantId, $Variant)) {
-            // display Errors on form
-            $Global = $this->getGlobal();
-            $Global->POST['Variant']['Name'] = $Variant['Name'];
-            $Global->POST['Variant']['Description'] = $Variant['Description'];
-            $Global->savePost();
-            return $form;
-        }
-
-        $Success = false;
-        if(($tblItemVariant = Item::useService()->getItemVariantById($VariantId))){
-            if((Item::useService()->changeItemVariant($tblItemVariant, $Variant['Name'], $Variant['Description']))){
-                $Success = true;
-            }
-        }
-
-        return ($Success
-            ? new Success('Beitrags-Variante erfolgreich angelegt') . self::pipelineCloseModal($Identifier)
-            : new Danger('Beitrags-Variante konnte nicht gengelegt werden'));
-    }
-
-    /**
      * @param string $Identifier
      * @param string $ItemId
      *
@@ -774,15 +511,14 @@ class ApiItem extends Extension implements IApiInterface
                 }
             }
 
-            $Content[] = new Bold('Beitragsart: '. $tblItem->getName());
             $Content[] ='hinterlegte Personengruppen: '. new Bold(implode(', ', $GroupArray));
 
             return new Layout(
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel('Soll die Beitragsart wirklich entfernt werden?'
-                                , new Listing($Content))
+                            new Panel('Soll die Beitragsart '.new Bold($tblItem->getName()).' wirklich entfernt werden?'
+                                , new Listing($Content), Panel::PANEL_TYPE_DANGER)
                         ),
                         new LayoutColumn(
                             (new DangerLink('Ja', self::getEndpoint(), new Ok()))
