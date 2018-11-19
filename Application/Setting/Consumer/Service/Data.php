@@ -160,7 +160,7 @@ class Data extends AbstractData
         if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'SortHighlighted',
             TblSetting::TYPE_BOOLEAN, '0'))) {
             $this->updateSettingDescription($tblSetting, 'Notenbücher',
-                'Sortierung der Zensuren im Notenbuch nach Großen (fettmarkiert) und Kleinen Noten [Standard: Nein]',
+                'Sortierung der Zensuren im Notenbuch nach Großen (fettmarkiert) und Kleinen Noten. Bei Deaktivierung erfolgt Sortierung nach Datum. [Standard: Nein]',
                 true);
         }
         if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsHighlightedSortedRight',
