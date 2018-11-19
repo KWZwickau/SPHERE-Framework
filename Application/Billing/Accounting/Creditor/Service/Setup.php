@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\Billing\Accounting\SchoolAccount\Service;
+namespace SPHERE\Application\Billing\Accounting\Creditor\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
@@ -25,7 +25,7 @@ class Setup extends AbstractSetup
          * Table
          */
         $Schema = clone $this->getConnection()->getSchema();
-        $this->setTableSchoolAccount($Schema);
+        $this->setTableCreditor($Schema);
 
         /**
          * Migration & Protocol
@@ -42,16 +42,22 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTableSchoolAccount(Schema &$Schema)
+    private function setTableCreditor(Schema &$Schema)
     {
 
-        $Table = $this->createTable($Schema, 'tblSchoolAccount');
+        $Table = $this->createTable($Schema, 'tblCreditor');
+        $this->createColumn($Table, 'Owner', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Street', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Number', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Code', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'City', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'District', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'CreditorId', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'BankName', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'IBAN', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'BIC', self::FIELD_TYPE_STRING);
-        $this->createColumn($Table, 'Owner', self::FIELD_TYPE_STRING);
-        $this->createColumn($Table, 'serviceTblCompany', self::FIELD_TYPE_BIGINT, true);
-        $this->createColumn($Table, 'serviceTblType', self::FIELD_TYPE_BIGINT, true);
+//        $this->createColumn($Table, 'serviceTblCompany', self::FIELD_TYPE_BIGINT, true);
+//        $this->createColumn($Table, 'serviceTblType', self::FIELD_TYPE_BIGINT, true);
 
         return $Table;
     }
