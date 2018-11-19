@@ -2696,4 +2696,28 @@ class Service extends AbstractService
 
         return $divisionList;
     }
+
+    /**
+     * @param TblDivisionStudent $tblDivisionStudent
+     *
+     * @return bool
+     */
+    public function activateDivisionStudent(TblDivisionStudent $tblDivisionStudent)
+    {
+
+        return (new Data($this->getBinding()))->updateDivisionStudentActivation($tblDivisionStudent, null, true);
+    }
+
+    /**
+     * @param TblDivisionStudent $tblDivisionStudent
+     * @param \DateTime $LeaveDate
+     * @param $UseGradesInNewDivision
+     *
+     * @return bool
+     */
+    public function deactivateDivisionStudent(TblDivisionStudent $tblDivisionStudent, \DateTime $LeaveDate, $UseGradesInNewDivision)
+    {
+
+        return (new Data($this->getBinding()))->updateDivisionStudentActivation($tblDivisionStudent, $LeaveDate, $UseGradesInNewDivision);
+    }
 }

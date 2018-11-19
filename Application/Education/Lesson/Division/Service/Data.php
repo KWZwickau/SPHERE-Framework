@@ -2041,6 +2041,36 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblDivisionStudent $tblDivisionStudent
+     * @param \DateTime|null $LeaveDate
+     * @param bool $UseGradesInNewDivision
+     *
+     * @return bool
+     */
+    public function updateDivisionStudentActivation(TblDivisionStudent $tblDivisionStudent, \DateTime $LeaveDate = null, $UseGradesInNewDivision = true)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblDivisionStudent $Entity */
+        $Entity = $Manager->getEntityById('TblDivisionStudent', $tblDivisionStudent->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setLeaveDate($LeaveDate);
+            $Entity->setUseGradesInNewDivision($UseGradesInNewDivision);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param TblDivision $tblDivision
      * @param bool $withInActive
      *

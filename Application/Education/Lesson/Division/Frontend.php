@@ -3,6 +3,7 @@ namespace SPHERE\Application\Education\Lesson\Division;
 
 use SPHERE\Application\Api\Education\Division\StudentGroupSelect;
 use SPHERE\Application\Api\Education\Division\StudentSelect;
+use SPHERE\Application\Api\Education\Division\StudentStatus;
 use SPHERE\Application\Api\Education\Division\SubjectSelect as SubjectSelectAPI;
 use SPHERE\Application\Api\Education\Division\SubjectSelect;
 use SPHERE\Application\Api\Education\Division\ValidationFilter;
@@ -66,6 +67,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger as DangerMessage;
 use SPHERE\Common\Frontend\Message\Repository\Info;
@@ -1909,6 +1911,7 @@ class Frontend extends Extension implements IFrontendInterface
             } else {
                 $columnList['Subjects'] =  'Fächer';
             }
+            $columnList['Status'] = 'Status';
 
             $tblStudentList = array();
             if ($tblDivisionStudentList) {
@@ -1930,11 +1933,30 @@ class Frontend extends Extension implements IFrontendInterface
                             $birthday = $tblCommonBirthDates->getBirthday();
                         }
 
+                        if ($isInActive) {
+                            $status = new Danger(new Disable());
+                            if ($tblYear && !Student::useService()->getMainDivisionByPersonAndYear($tblPerson, $tblYear)) {
+                                $status .=  StudentStatus::receiverModal()
+                                    . (new Link('aktivieren', '#'))->ajaxPipelineOnClick(StudentStatus::pipelineActivateStudentSave(
+                                        $tblDivision->getId(),
+                                        $tblPerson->getId())
+                                    );
+                            }
+                        } else {
+                            $status = new \SPHERE\Common\Frontend\Text\Repository\Success(new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                                .  StudentStatus::receiverModal()
+                                . (new Link('deaktivieren', '#'))->ajaxPipelineOnClick(StudentStatus::pipelineOpenDeactivateStudentModal(
+                                    $tblDivision->getId(),
+                                    $tblPerson->getId())
+                                );
+                        }
+
                         $item = array(
                             'FullName' => $isInActive ? new Strikethrough($fullName) : $fullName,
                             'Address' => $isInActive ? new Strikethrough($address) : $address,
                             'Birthday' => $isInActive ? new Strikethrough($birthday) : $birthday,
                             'Course' => $isInActive ? new Strikethrough($course) : $course,
+                            'Status' => $status
                         );
 
                         if ($IsSekTwo) {
