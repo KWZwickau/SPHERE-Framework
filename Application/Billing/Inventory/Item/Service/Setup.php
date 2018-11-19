@@ -121,7 +121,7 @@ class Setup extends AbstractSetup
         }
         $this->createColumn($Table, 'DateFrom', self::FIELD_TYPE_DATETIME, true);
         $this->createColumn($Table, 'DateTo', self::FIELD_TYPE_DATETIME, true);
-        $this->createColumn($Table, 'serviceTblType', self::FIELD_TYPE_BIGINT, true);
+//        $this->createColumn($Table, 'serviceTblType', self::FIELD_TYPE_BIGINT, true);
         $this->createForeignKey($Table, $tblVariant, true);
 
         return $Table;

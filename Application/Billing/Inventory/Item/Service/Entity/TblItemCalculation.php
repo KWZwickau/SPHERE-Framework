@@ -6,8 +6,6 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Inventory\Item\Item;
-use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
-use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -18,11 +16,10 @@ use SPHERE\System\Database\Fitting\Element;
 class TblItemCalculation extends Element
 {
 
-    const ATTR_SERVICE_TBL_TYPE = 'serviceTblType';
-    const ATTR_TBL_ITEM_VARIANT = 'tblItemVariant';
     const ATTR_VALUE = 'Value';
     const ATTR_DATE_FROM = 'DateFrom';
     const ATTR_DATE_TO = 'DateTo';
+    const ATTR_TBL_ITEM_VARIANT = 'tblItemVariant';
 
     /**
      * @Column(type="decimal", precision=14, scale=4)
@@ -36,10 +33,6 @@ class TblItemCalculation extends Element
      * @Column(type="datetime")
      */
     protected $DateTo;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblType;
     /**
      * @Column(type="bigint")
      */
@@ -131,27 +124,27 @@ class TblItemCalculation extends Element
         return str_replace('.', ',', $result)." €";
     }
 
-    /**
-     * @return bool|TblType
-     */
-    public function getServiceTblType()
-    {
-
-        if (null === $this->serviceTblType) {
-            return false;
-        } else {
-            return Type::useService()->getTypeById($this->serviceTblType);
-        }
-    }
-
-    /**
-     * @param TblType|null $tblType
-     */
-    public function setServiceTblType(TblType $tblType = null)
-    {
-
-        $this->serviceTblType = ( null === $tblType ? null : $tblType->getId() );
-    }
+//    /**
+//     * @return bool|TblType
+//     */
+//    public function getServiceTblType()
+//    {
+//
+//        if (null === $this->serviceTblType) {
+//            return false;
+//        } else {
+//            return Type::useService()->getTypeById($this->serviceTblType);
+//        }
+//    }
+//
+//    /**
+//     * @param TblType|null $tblType
+//     */
+//    public function setServiceTblType(TblType $tblType = null)
+//    {
+//
+//        $this->serviceTblType = ( null === $tblType ? null : $tblType->getId() );
+//    }
 
     /**
      * @return false|TblItemVariant

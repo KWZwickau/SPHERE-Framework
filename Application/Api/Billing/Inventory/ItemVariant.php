@@ -5,12 +5,14 @@ use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
+use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Clock;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
@@ -196,7 +198,7 @@ class ItemVariant extends ItemCalculation
         }
 
         return (new Form(
-            new FormGroup(
+            new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
                         (new TextField('Variant[Name]', 'Beitrags-Variante', 'Beitrags-Variante'))->setRequired()
@@ -204,11 +206,26 @@ class ItemVariant extends ItemCalculation
                     new FormColumn(
                         new TextArea('Variant[Description]', 'Beschreibung', 'Beschreibung')
                         , 6),
+                )),
+                ('' === $VariantId
+                ? new FormRow(array(
+                        new FormColumn(
+                            (new TextField('Calculation[Value]', '0,00', 'Preis'))->setRequired()
+                            , 4),
+                        new FormColumn(
+                            (new DatePicker('Calculation[DateFrom]', 'z.B.(01.01.2019)', 'Gültig ab', new Clock()))->setRequired()
+                            , 4),
+                        new FormColumn(
+                            new DatePicker('Calculation[DateTo]', 'z.B.(01.01.2020)', 'Gültig bis', new Clock())
+                            , 4),
+                    ))
+                : ''),
+                new FormRow(
                     new FormColumn(
                         $SaveButton
                     )
-                ))
-            )
+                )
+            ))
         ))->disableSubmitAction();
     }
 
@@ -217,10 +234,11 @@ class ItemVariant extends ItemCalculation
      * @param string $ItemId
      * @param string $VariantId
      * @param array $Variant
+     * @param array $Calculation
      *
      * @return false|string|Form
      */
-    private function checkInputVariant($Identifier, $ItemId, $VariantId, $Variant = array())
+    private function checkInputVariant($Identifier, $ItemId, $VariantId, $Variant = array(), $Calculation = array())
     {
         $Error = false;
         $form = $this->formVariant($Identifier, $ItemId, $VariantId);
@@ -242,6 +260,16 @@ class ItemVariant extends ItemCalculation
                         $form->setError('Variant[Name]','Der Name der Variante exisitiert bereits');
                         $Error = true;
                     }
+                }
+            }
+            if(!$VariantId){
+                if (isset($Calculation['Value']) && empty($Calculation['Value'])) {
+                    $form->setError('Calculation[Value]', 'Bitte geben Sie einen Preis an');
+                    $Error = true;
+                }
+                if (isset($Calculation['DateFrom']) && empty($Calculation['DateFrom'])) {
+                    $form->setError('Calculation[DateFrom]', 'Bitte geben Sie einen Begin der Gültigkeit an');
+                    $Error = true;
                 }
             }
         }
@@ -271,18 +299,22 @@ class ItemVariant extends ItemCalculation
      * @param $Identifier
      * @param $ItemId
      * @param array $Variant
+     * @param array $Calculation
      *
      * @return string
      */
-    public function saveAddVariant($Identifier, $ItemId, $Variant = array())
+    public function saveAddVariant($Identifier, $ItemId, $Variant = array(), $Calculation = array())
     {
 
         // Handle error's
-        if ($form = $this->checkInputVariant($Identifier, $ItemId, '', $Variant)) {
+        if ($form = $this->checkInputVariant($Identifier, $ItemId, '', $Variant, $Calculation)) {
             // display Errors on form
             $Global = $this->getGlobal();
             $Global->POST['Variant']['Name'] = $Variant['Name'];
             $Global->POST['Variant']['Description'] = $Variant['Description'];
+            $Global->POST['Calculation']['Value'] = $Calculation['Value'];
+            $Global->POST['Calculation']['DateFrom'] = $Calculation['DateFrom'];
+            $Global->POST['Calculation']['DateTo'] = $Calculation['DateTo'];
             $Global->savePost();
             return $form;
         }
@@ -292,6 +324,7 @@ class ItemVariant extends ItemCalculation
             //ignore create if already exist
             if(!(Item::useService()->getItemVariantByItemAndName($tblItem, $Variant['Name']))){
                 $tblVariant = Item::useService()->createItemVariant($tblItem, $Variant['Name'], $Variant['Description']);
+                Item::useService()->createItemCalculation($tblVariant, $Calculation['Value'], $Calculation['DateFrom'], $Calculation['DateTo']);
             }
         }
 
