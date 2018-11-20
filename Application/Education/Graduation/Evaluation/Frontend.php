@@ -85,6 +85,7 @@ use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\NotAvailable;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
@@ -3602,22 +3603,47 @@ class Frontend extends Extension implements IFrontendInterface
         $isDivisionSubjectNamed = false
     ) {
         if ($tblDivisionSubject->getTblSubjectGroup()) {
-            $tblStudentAll = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
+            $tblStudentAll = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject, true);
         } else {
-            $tblStudentAll = Division::useService()->getStudentAllByDivision($tblDivisionSubject->getTblDivision());
+            $tblStudentAll = Division::useService()->getStudentAllByDivision($tblDivisionSubject->getTblDivision(), true);
         }
-        if ($tblStudentAll) {
+        if ($tblStudentAll
+            && ($tblDivision = $tblDivisionSubject->getTblDivision())
+        ) {
+            if ($tblTest->getDate()) {
+                $testDate = new DateTime($tblTest->getDate());
+            } elseif ($tblTest->getFinishDate()) {
+                $testDate = new DateTime($tblTest->getFinishDate());
+            } else {
+                $testDate = false;
+            }
+
             /** @var TblPerson $tblPerson */
             foreach ($tblStudentAll as $tblPerson) {
+                $isInActive = false;
+                // inaktive Schüler abhängig vom Austrittsdatum ignorieren
+                if (($tblDivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson(
+                        $tblDivision, $tblPerson
+                    ))
+                    && ($leaveDate = $tblDivisionStudent->getLeaveDateTime()) !== null
+                ) {
+                    $isInActive = $tblDivisionStudent->isInActive();
+                    if ($testDate && $testDate > $leaveDate) {
+                        continue;
+                    }
+                }
+
                 $studentTestList[$tblPerson->getId()] = $tblTest;
-                $studentList[$tblPerson->getId()]['Number'] = count($studentList) + 1;
-                $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName() . ($isDivisionSubjectNamed
+                $count = count($studentList) + 1;
+                $name = $tblPerson->getLastFirstName() . ($isDivisionSubjectNamed
                         ? new Muted(' (' . $tblDivisionSubject->getTblDivision()->getDisplayName()
                             . ' - ' . $tblDivisionSubject->getServiceTblSubject()->getAcronym()
                             . ($tblDivisionSubject->getTblSubjectGroup() ? ' - ' . $tblDivisionSubject->getTblSubjectGroup()->getName() : '')
                             . ')')
                         : ''
                     );
+                $studentList[$tblPerson->getId()]['Number'] = $count;
+                $studentList[$tblPerson->getId()]['Name'] = $isInActive ? new Strikethrough($name) : $name;
                 if(Student::useService()->getIsSupportByPerson($tblPerson)) {
                     $Integration = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
                         ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
@@ -3625,11 +3651,12 @@ class Frontend extends Extension implements IFrontendInterface
                     $Integration = '';
                 }
                 $studentList[$tblPerson->getId()]['Integration'] = $Integration;
-                $studentList[$tblPerson->getId()]['Course'] = '';
-                $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
-                if ($tblCourse) {
-                    $studentList[$tblPerson->getId()]['Course'] = $tblCourse->getName();
+                if (($tblCourse = Student::useService()->getCourseByPerson($tblPerson))) {
+                    $course = $tblCourse->getName();
+                } else {
+                    $course = '';
                 }
+                $studentList[$tblPerson->getId()]['Course'] = $isInActive ? new Strikethrough($course) : $course;
             }
         }
 
@@ -3861,13 +3888,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $countStudents += count($tblSubjectStudentAll);
             }
         } else {
-            $tblDivisionStudentAll = Division::useService()->getDivisionStudentAllByDivision($tblDivision);
+            $tblDivisionStudentAll = Division::useService()->getDivisionStudentAllByDivision($tblDivision, true);
             if ($tblDivisionStudentAll) {
                 $countStudents += count($tblDivisionStudentAll);
             }
         }
     }
-
 
     /**
      * @param $Route
