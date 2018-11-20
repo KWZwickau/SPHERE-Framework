@@ -79,6 +79,7 @@ use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
@@ -1934,7 +1935,7 @@ class Frontend extends Extension implements IFrontendInterface
                         }
 
                         if ($isInActive) {
-                            $status = new Danger(new Disable());
+                            $status = new ToolTip(new Danger(new Disable()), 'Deaktivierung: ' . $tblDivisionStudent->getLeaveDate());
                             if ($tblYear && !Student::useService()->getMainDivisionByPersonAndYear($tblPerson, $tblYear)) {
                                 $status .=  StudentStatus::receiverModal()
                                     . (new Link('aktivieren', '#'))->ajaxPipelineOnClick(StudentStatus::pipelineActivateStudentSave(

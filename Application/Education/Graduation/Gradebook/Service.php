@@ -1650,4 +1650,87 @@ class Service extends ServiceScoreRule
 
         return $tblGradeList;
     }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param $tblStudentList
+     *
+     * @return array|bool
+     */
+    public function getGradesFromAnotherDivision(
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        $tblStudentList
+    ) {
+        // Zensuren aus einer deaktivierten Klasse
+        $resultList = array();
+        if (($tblYear = $tblDivision->getServiceTblYear())
+            && ($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST'))
+        ){
+            /** @var TblPerson $tblPerson */
+            foreach ($tblStudentList as $tblPerson) {
+                $resultList = $this->getGradesFromAnotherDivisionByStudent(
+                    $tblDivision,
+                    $tblSubject,
+                    $tblYear,
+                    $tblPerson,
+                    $tblTestType,
+                    $resultList
+                );
+            }
+        }
+
+        return empty($resultList) ? false : $resultList;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblYear $tblYear
+     * @param TblPerson $tblPerson
+     * @param TblTestType $tblTestType
+     * @param $resultList
+     *
+     * @return array
+     */
+    public function getGradesFromAnotherDivisionByStudent(
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblYear $tblYear,
+        TblPerson $tblPerson,
+        TblTestType $tblTestType,
+        $resultList
+    ) {
+        if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
+            foreach ($tblDivisionStudentList as $tblDivisionStudentItem) {
+                if ($tblDivisionStudentItem->getLeaveDateTime() !== null
+                    && $tblDivisionStudentItem->getUseGradesInNewDivision()
+                    && ($tblDivisionItem = $tblDivisionStudentItem->getTblDivision())
+                    && $tblDivision->getId() != $tblDivisionItem->getId()
+                    && ($tblYearItem = $tblDivisionItem->getServiceTblYear())
+                    && $tblYear->getId() == $tblYearItem->getId()
+                    && ($tblGradeListFromAnotherDivision = Gradebook::useService()->getGradesByStudent(
+                        $tblPerson, $tblDivisionItem, $tblSubject, $tblTestType
+                    ))
+                ) {
+                    $tblGradeListFromAnotherDivision = $this->getSorter($tblGradeListFromAnotherDivision)
+                        ->sortObjectBy('DateForSorter', new DateTimeSorter());
+                    /** @var TblGrade $tblGrade */
+                    foreach ($tblGradeListFromAnotherDivision as $tblGrade) {
+                        if (($tblPeriod = $tblGrade->getServiceTblPeriod())
+                            && ($tblGradeType = $tblGrade->getTblGradeType())
+                        ) {
+                            $resultList[$tblPeriod->getId()][$tblPerson->getId()][$tblGrade->getId()] =
+                                $tblGradeType->isHighlighted()
+                                    ? new Bold($tblGrade->getDisplayGrade())
+                                    : $tblGrade->getDisplayGrade();
+                        }
+                    }
+                }
+            }
+        }
+
+        return $resultList;
+    }
 }

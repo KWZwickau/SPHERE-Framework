@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Graduation\Gradebook;
 
+use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradebook;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Certificate\Prepare\Prepare;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
@@ -916,6 +917,9 @@ class Frontend extends FrontendScoreRule
             }
         }
 
+        // für Schüler die in einer anderen Klasse deaktiviert sind
+        $gradeListFromAnotherDivision = Gradebook::useService()->getGradesFromAnotherDivision($tblDivision, $tblSubject, $tblStudentList);
+
         $dataList = array();
         $columnDefinition = array();
         $periodListCount = array();
@@ -929,8 +933,13 @@ class Frontend extends FrontendScoreRule
         if ($tblPeriodList) {
             /** @var TblPeriod $tblPeriod */
             foreach ($tblPeriodList as $tblPeriod) {
+                $count = 0;
+                if ($gradeListFromAnotherDivision && isset($gradeListFromAnotherDivision[$tblPeriod->getId()])) {
+                    $count++;
+                    $columnDefinition['ExtraGrades' . $tblPeriod->getId()] = 'Vornoten';
+                }
+
                 if ($tblDivisionSubject->getServiceTblSubject()) {
-                    $count = 0;
                     $countPeriod++;
                     $tblTestList = Evaluation::useService()->getTestAllByTypeAndDivisionAndSubjectAndPeriodAndSubjectGroup(
                         $tblDivision,
@@ -1010,18 +1019,15 @@ class Frontend extends FrontendScoreRule
 
         // Tabellen-Inhalt erstellen
         if ($tblStudentList) {
-
-            $count = 1;
-            $countPeriod = 0;
+            $studentCount = 0;
             // Ermittlung der Zensuren zu den Schülern
             /** @var TblPerson $tblPerson */
             foreach ($tblStudentList as $tblPerson) {
                 $isStrikeThrough = isset($addStudentList[$tblPerson->getId()]);
-                $countPeriod++;
+                $studentCount++;
                 $data = array();
-                $number = $count % 5 == 0 ? new Bold($count) : $count;
+                $number = $studentCount % 5 == 0 ? new Bold($studentCount) : $studentCount;
                 $data['Number'] = $isStrikeThrough ? new Strikethrough($number) : $number;
-                $count++;
                 $data['Student'] = $isStrikeThrough
                     ? new Strikethrough($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName();
                 if(Student::useService()->getIsSupportByPerson($tblPerson)) {
@@ -1043,6 +1049,9 @@ class Frontend extends FrontendScoreRule
                     }
                 }
                 $data['Course'] = $CourseName;
+
+                // todo Durchschnitt bei Vornoten anpassen
+                // todo Pdf um Vornoten ergänzen
 
                 // Zensur des Schülers zum Test zuordnen und Durchschnitte berechnen
                 if (!empty($columnDefinition)) {
@@ -1148,6 +1157,17 @@ class Frontend extends FrontendScoreRule
                             if (($tblMinimumGradeCount = Gradebook::useService()->getMinimumGradeCountById($minimumGradeCountId))) {
                                 $data[$column] = Gradebook::useService()->getMinimumGradeCountInfo($tblDivisionSubject,
                                     $tblPerson, $tblMinimumGradeCount);
+                            }
+                        // Vornoten
+                        } elseif (strpos($column, 'ExtraGrades') !== false) {
+                            $periodId = str_replace('ExtraGrades', '', $column);
+                            if ($gradeListFromAnotherDivision && isset($gradeListFromAnotherDivision[$periodId][$tblPerson->getId()])) {
+                                $data[$column] = implode(', ', $gradeListFromAnotherDivision[$periodId][$tblPerson->getId()])
+                                    . '&nbsp;'
+                                    . ApiGradebook::receiverModal()
+                                    . (new Standard('', '#', new EyeOpen()))->ajaxPipelineOnClick(ApiGradebook::pipelineOpenExtraGradesModal(
+                                        $tblDivision->getId(), $tblSubject->getId(), $periodId, $tblPerson->getId()
+                                    ));
                             }
                         }
                     }
