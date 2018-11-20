@@ -29,6 +29,12 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 
+/**
+ * Class ItemVariant
+ * @package SPHERE\Application\Api\Billing\Inventory
+ *
+ * ApiItem -> ItemVariant -> ItemCalculation
+ */
 class ItemVariant extends ItemCalculation
 {
 
