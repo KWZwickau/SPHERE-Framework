@@ -697,6 +697,7 @@ class Service extends ServiceScoreRule
      * @param TblSubjectGroup|null $tblSubjectGroup
      * @param bool $isStudentView
      * @param bool $taskDate
+     * @param bool $useGradesFromAnotherDivision
      *
      * @return array|bool|float|string
      */
@@ -709,12 +710,51 @@ class Service extends ServiceScoreRule
         TblPeriod $tblPeriod = null,
         TblSubjectGroup $tblSubjectGroup = null,
         $isStudentView = false,
-        $taskDate = false
+        $taskDate = false,
+        $useGradesFromAnotherDivision = false
     ) {
 
         $tblGradeList = $this->getGradesByStudent(
             $tblPerson, $tblDivision, $tblSubject, $tblTestType, $tblPeriod, $tblSubjectGroup
         );
+
+        // Vornoten berücksichtigen
+        if ($useGradesFromAnotherDivision) {
+            if (!$tblGradeList) {
+                $tblGradeList = array();
+            }
+            $list = array();
+            if (($tblYear = $tblDivision->getServiceTblYear())
+                && ($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST'))
+                && ($list = $this->getGradesFromAnotherDivisionByStudent(
+                    $tblDivision, $tblSubject, $tblYear, $tblPerson, $tblTestType, $list
+                ))
+            ) {
+                if ($tblPeriod) {
+                    if (isset($list[$tblPeriod->getId()][$tblPerson->getId()])) {
+                        foreach ($list[$tblPeriod->getId()][$tblPerson->getId()] as $gradeId => $value) {
+                            if (($tblGrade = $this->getGradeById($gradeId))) {
+                                $tblGradeList[] = $tblGrade;
+                            }
+                        }
+                    }
+                } else {
+                    foreach ($list as $periodId => $personArray){
+                        foreach ($personArray as $gradeArray) {
+                            foreach ($gradeArray as $gradeId => $value) {
+                                if (($tblGrade = $this->getGradeById($gradeId))) {
+                                    $tblGradeList[] = $tblGrade;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (empty($tblGradeList)) {
+                $tblGradeList = false;
+            }
+        }
 
         // entfernen aller Noten nach dem Stichtag (bei Stichtagsnotenauftägen)
         if ($taskDate && $tblGradeList) {

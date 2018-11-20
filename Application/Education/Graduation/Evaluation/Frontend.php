@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Education\Graduation\Evaluation;
 
 use DateTime;
+use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradebook;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
@@ -2072,12 +2073,30 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
 
+                // Vornoten für Schüler die in einer anderen Klasse deaktiviert sind
+                if ($tblDivisionSubject->getTblSubjectGroup()) {
+                    $tblStudentList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
+                } else {
+                    $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
+                }
+                if ($tblStudentList) {
+                    $gradeListFromAnotherDivision = Gradebook::useService()->getGradesFromAnotherDivision($tblDivision,
+                        $tblSubject, $tblStudentList);
+                } else {
+                    $gradeListFromAnotherDivision = false;
+                }
+
                 // Tabellenkopf mit Test-Code und Datum erstellen
                 if ($tblPeriodList) {
                     /** @var TblPeriod $tblPeriod */
                     foreach ($tblPeriodList as $tblPeriod) {
+                        $count = 0;
+                        if ($gradeListFromAnotherDivision && isset($gradeListFromAnotherDivision[$tblPeriod->getId()])) {
+                            $count++;
+                            $columnDefinition['ExtraGrades' . $tblPeriod->getId()] = 'Vornoten';
+                        }
+
                         if ($tblDivisionSubject->getServiceTblSubject()) {
-                            $count = 0;
                             $tblTestList = Evaluation::useService()->getTestAllByTypeAndDivisionAndSubjectAndPeriodAndSubjectGroup(
                                 $tblDivision,
                                 $tblDivisionSubject->getServiceTblSubject(),
@@ -2131,7 +2150,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 }
                                 $periodListCount[$tblPeriod->getId()] = $count;
                             } else {
-                                $periodListCount[$tblPeriod->getId()] = 1;
+                                $count++;
+                                $periodListCount[$tblPeriod->getId()] = $count;
                                 $columnDefinition['Period' . $tblPeriod->getId()] = "";
                             }
                         }
@@ -2140,12 +2160,6 @@ class Frontend extends Extension implements IFrontendInterface
                 }
 
                 // Tabellen-Inhalt erstellen
-                if ($tblDivisionSubject->getTblSubjectGroup()) {
-                    $tblStudentList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
-                } else {
-                    $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
-                }
-
                 if ($tblStudentList) {
 
                     $count = 1;
@@ -2221,7 +2235,8 @@ class Frontend extends Extension implements IFrontendInterface
                                             $tblPeriod,
                                             $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null,
                                             false,
-                                            $tblTask->getDate() ? $tblTask->getDate() : false
+                                            $tblTask->getDate() ? $tblTask->getDate() : false,
+                                            $gradeListFromAnotherDivision
                                         );
 
                                         if (is_array($average)) {
@@ -2249,7 +2264,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         ($tblTaskPeriod = $tblTask->getServiceTblPeriodByDivision($tblDivision)) ? $tblTaskPeriod : null,
                                         $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null,
                                         false,
-                                        $tblTask->getDate() ? $tblTask->getDate() : false
+                                        $tblTask->getDate() ? $tblTask->getDate() : false,
+                                        $gradeListFromAnotherDivision
                                     );
                                     if (is_array($average)) {
                                         $errorRowList = $average;
@@ -2275,6 +2291,17 @@ class Frontend extends Extension implements IFrontendInterface
                                 } elseif (strpos($column, 'Period') !== false) {
                                     // keine Tests in der Periode vorhanden
                                     $data[$column] = '';
+                                    // Vornoten
+                                } elseif (strpos($column, 'ExtraGrades') !== false) {
+                                    $periodId = str_replace('ExtraGrades', '', $column);
+                                    if ($gradeListFromAnotherDivision && isset($gradeListFromAnotherDivision[$periodId][$tblPerson->getId()])) {
+                                        $data[$column] = implode(', ', $gradeListFromAnotherDivision[$periodId][$tblPerson->getId()])
+                                            . '&nbsp;'
+                                            . ApiGradebook::receiverModal()
+                                            . (new Standard('', '#', new EyeOpen()))->ajaxPipelineOnClick(ApiGradebook::pipelineOpenExtraGradesModal(
+                                                $tblDivision->getId(), $tblSubject->getId(), $periodId, $tblPerson->getId()
+                                            ));
+                                    }
                                 }
                             }
                         }
@@ -3323,7 +3350,8 @@ class Frontend extends Extension implements IFrontendInterface
             ($tblTaskPeriod = $tblTask->getServiceTblPeriodByDivision($tblDivision)) ? $tblTaskPeriod : null,
             null,
             false,
-            $tblTask->getDate() ? $tblTask->getDate() : false
+            $tblTask->getDate() ? $tblTask->getDate() : false,
+            true
         );
         if (is_array($average)) {
 //            $errorRowList = $average;

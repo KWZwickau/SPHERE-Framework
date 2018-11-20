@@ -917,8 +917,13 @@ class Frontend extends FrontendScoreRule
             }
         }
 
-        // für Schüler die in einer anderen Klasse deaktiviert sind
-        $gradeListFromAnotherDivision = Gradebook::useService()->getGradesFromAnotherDivision($tblDivision, $tblSubject, $tblStudentList);
+        // Vornoten für Schüler die in einer anderen Klasse deaktiviert sind
+        if ($tblStudentList) {
+            $gradeListFromAnotherDivision = Gradebook::useService()->getGradesFromAnotherDivision($tblDivision,
+                $tblSubject, $tblStudentList);
+        } else {
+            $gradeListFromAnotherDivision = false;
+        }
 
         $dataList = array();
         $columnDefinition = array();
@@ -1050,7 +1055,6 @@ class Frontend extends FrontendScoreRule
                 }
                 $data['Course'] = $CourseName;
 
-                // todo Durchschnitt bei Vornoten anpassen
                 // todo Pdf um Vornoten ergänzen
 
                 // Zensur des Schülers zum Test zuordnen und Durchschnitte berechnen
@@ -1099,7 +1103,10 @@ class Frontend extends FrontendScoreRule
                                     $tblTestType,
                                     $tblScoreRule ? $tblScoreRule : null,
                                     $tblPeriod,
-                                    $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
+                                    $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null,
+                                    false,
+                                    false,
+                                    $gradeListFromAnotherDivision
                                 );
                                 $priority = '';
                                 if (is_array($average)) {
@@ -1130,7 +1137,10 @@ class Frontend extends FrontendScoreRule
                                 $tblTestType,
                                 $tblScoreRule ? $tblScoreRule : null,
                                 null,
-                                $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
+                                $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null,
+                                false,
+                                false,
+                                $gradeListFromAnotherDivision
                             );
                             $priority = '';
                             if (is_array($average)) {
