@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Billing\Accounting\Creditor;
 
 use SPHERE\Application\IModuleInterface;
@@ -10,8 +9,8 @@ use SPHERE\System\Database\Link\Identifier;
 
 
 /**
- * Class Banking
- * @package SPHERE\Application\Billing\Accounting\SchoolAccount
+ * Class Creditor
+ * @package SPHERE\Application\Billing\Accounting\Creditor
  */
 class Creditor implements IModuleInterface
 {

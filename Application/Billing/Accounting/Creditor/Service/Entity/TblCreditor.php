@@ -21,6 +21,7 @@ class TblCreditor extends Element
     const ATTR_NUMBER = 'Number';
     const ATTR_CODE = 'Code';
     const ATTR_CITY = 'City';
+    const ATTR_DISTRICT = 'District';
     const ATTR_CREDITOR_ID = 'CreditorId';
     const ATTR_BANK_NAME = 'BankName';
     const ATTR_IBAN = 'IBAN';
@@ -208,11 +209,21 @@ class TblCreditor extends Element
     }
 
     /**
+     * @param bool $IsFormat
+     *
      * @return string $IBAN
      */
-    public function getIBAN()
+    public function getIBAN($IsFormat = true)
     {
 
+        if($IsFormat){
+            $countLetter = strlen($this->IBAN);
+            $IBANParts = array();
+            for($i = 0; $i < $countLetter; $i+=4){
+                $IBANParts[] = substr($this->IBAN, $i, 4);
+            }
+            return implode(' ', $IBANParts);
+        }
         return $this->IBAN;
     }
 
