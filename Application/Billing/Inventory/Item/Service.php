@@ -117,7 +117,7 @@ class Service extends AbstractService
     /**
      * @param TblGroup $tblGroup
      *
-     * @return bool|TblItemGroup
+     * @return bool|TblItemGroup[]
      */
     public function getItemGroupByGroup(TblGroup $tblGroup)
     {

@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Billing\Accounting;
 
+use SPHERE\Application\Billing\Accounting\Causer\Causer;
 use SPHERE\Application\Billing\Accounting\Creditor\Creditor;
 use SPHERE\Application\IApplicationInterface;
 
@@ -21,5 +22,6 @@ class Accounting implements IApplicationInterface
 //        Account::registerModule();
 //        Banking::registerModule();
         Creditor::registerModule();
+        Causer::registerModule();
     }
 }

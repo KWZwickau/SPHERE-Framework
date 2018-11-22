@@ -149,7 +149,7 @@ class Data extends AbstractData
     public function getItemGroupByGroup(TblGroup $tblGroup)
     {
 
-        $Entity = $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItemGroup',
+        $Entity = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItemGroup',
             array(
                 TblItemGroup::ATTR_SERVICE_TBL_GROUP => $tblGroup->getId()
             ));
