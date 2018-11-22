@@ -1033,6 +1033,8 @@ class Frontend extends FrontendScoreRule
             }
         }
 
+        $averages = array();
+
         // Tabellen-Inhalt erstellen
         if ($tblStudentList) {
             $studentCount = 0;
@@ -1132,6 +1134,17 @@ class Frontend extends FrontendScoreRule
                                         }
                                         $average = substr($average, 0, $posStart);
                                     }
+
+                                    // für Fach-Klassen-Durchschnitt;
+                                    if ($average != '') {
+                                        if (isset($averages[$column])) {
+                                            $averages[$column]['Count']++;
+                                            $averages[$column]['Sum'] += $average;
+                                        } else {
+                                            $averages[$column]['Count'] = 1;
+                                            $averages[$column]['Sum'] = $average;
+                                        }
+                                    }
                                 }
                                 $data[$column] = $showPriority
                                     ? new ToolTip(new Bold($average), 'Priorität ' . $priority)
@@ -1165,6 +1178,17 @@ class Frontend extends FrontendScoreRule
                                         $priority = substr($average, $posStart + 1, $posEnd - ($posStart + 1));
                                     }
                                     $average = substr($average, 0, $posStart);
+                                }
+
+                                // für Fach-Klassen-Durchschnitt;
+                                if ($average != '') {
+                                    if (isset($averages[$column])) {
+                                        $averages[$column]['Count']++;
+                                        $averages[$column]['Sum'] += $average;
+                                    } else {
+                                        $averages[$column]['Count'] = 1;
+                                        $averages[$column]['Sum'] = $average;
+                                    }
                                 }
                             }
                             $data[$column] = $showPriority
@@ -1208,6 +1232,8 @@ class Frontend extends FrontendScoreRule
                             $average = Gradebook::useService()->getAverageByTest($tblTest);
                             $data[$column] = new Muted($average ? $average : '');
                         }
+                    } elseif (strpos($column, 'Average') !== false && isset($averages[$column])) {
+                        $data[$column] = new Muted(round($averages[$column]['Sum'] / $data[$column] = $averages[$column]['Count'], 2));
                     } elseif (strpos($column, 'Number') !== false) {
 //                        $data[$column] = new Muted('&#216;');
                     } elseif (strpos($column, 'Student') !== false) {
