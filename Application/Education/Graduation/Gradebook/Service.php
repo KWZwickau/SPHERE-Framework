@@ -1134,6 +1134,22 @@ class Service extends ServiceScoreRule
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
+     * @param TblGradeType $tblGradeType
+     *
+     * @return false|TblGrade[]
+     */
+    public function getGradesByStudentAndGradeType(
+        TblPerson $tblPerson,
+        TblDivision $tblDivision,
+        TblGradeType $tblGradeType
+    ) {
+
+        return (new Data($this->getBinding()))->getGradesByStudentAndGradeType($tblPerson, $tblDivision, $tblGradeType);
+    }
+
+    /**
      * @param IFormInterface|null $Stage
      * @param null $Select
      * @param string $Redirect

@@ -32,6 +32,7 @@ class Education implements IApplicationInterface
         StudentGroupSelect::registerApi();
         ValidationFilter::registerApi();
         ApiGenerate::registerApi();
+        StudentStatus::registerApi();
         ApiGradebook::registerApi();
     }
 }
