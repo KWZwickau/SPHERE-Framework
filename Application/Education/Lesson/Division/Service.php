@@ -2720,4 +2720,39 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->updateDivisionStudentActivation($tblDivisionStudent, $LeaveDate, $UseGradesInNewDivision);
     }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson $tblPerson
+     * @param bool $withCurrentDivision
+     *
+     * @return TblDivision[]|bool
+     */
+    public function getOtherDivisionsByStudent(
+        TblDivision $tblDivision,
+        TblPerson $tblPerson,
+        $withCurrentDivision = true
+    ) {
+
+        $list = array();
+        if ($withCurrentDivision) {
+            $list[] = $tblDivision;
+        }
+
+        if (($tblYear = $tblDivision->getServiceTblYear())
+            && ($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))
+        ) {
+            foreach ($tblDivisionStudentList as $tblDivisionStudentItem) {
+                if (($tblDivisionItem = $tblDivisionStudentItem->getTblDivision())
+                    && $tblDivision->getId() != $tblDivisionItem->getId()
+                    && ($tblYearItem = $tblDivisionItem->getServiceTblYear())
+                    && $tblYear->getId() == $tblYearItem->getId()
+                ) {
+                    $list[] = $tblDivisionItem;
+                }
+            }
+        }
+
+        return empty($list) ? false : $list;
+    }
 }
