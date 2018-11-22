@@ -1906,6 +1906,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblScoreRule = false;
         $scoreRuleText = array();
         $tblScoreType = false;
+        $showCourse = false;
         if ($tblDivision && $tblSubject) {
             if ($tblTest->getTblTask() && $tblTest->getTblTask()->getServiceTblScoreType()) {
                 $tblScoreType = $tblTest->getTblTask()->getServiceTblScoreType();
@@ -1930,6 +1931,14 @@ class Frontend extends Extension implements IFrontendInterface
                         new Ban() . ' Keine Berechnungsvariante hinterlegt. Alle Zensuren-Typen sind gleichwertig.'
                     ));
                 }
+            }
+
+            if (($tblLevel = $tblDivision->getTblLevel())
+                && ($tblType = $tblLevel->getServiceTblType())
+                && $tblType->getName() == 'Mittelschule / Oberschule'
+                && intval($tblLevel->getName()) > 6
+            ) {
+                $showCourse = true;
             }
         }
 
@@ -2038,8 +2047,11 @@ class Frontend extends Extension implements IFrontendInterface
             $tableColumns = array(
                 'Number' => '#',
                 'Name'   => 'Schüler',
-                'Course' => 'Bildungsgang',
+                'Integration' => 'Integration'
             );
+            if ($showCourse) {
+                $tableColumns['Course'] = 'Bildungsgang';
+            }
 
             // Stichtagsnotenauftrag
             if ($isTestAppointedDateTask) {
@@ -2053,7 +2065,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $columnDefinition['Number'] = '#';
                 $columnDefinition['Student'] = "Schüler";
                 $columnDefinition['Integration'] = "Integration";
-                $columnDefinition['Course'] = 'Bildungsgang';
+                if ($showCourse) {
+                    $columnDefinition['Course'] = 'Bildungsgang';
+                }
 
                 $tblPeriodList = false;
                 $tblLevel = $tblDivision->getTblLevel();
@@ -2337,7 +2351,10 @@ class Frontend extends Extension implements IFrontendInterface
             $tableColumns['Number'] = '#';
             $tableColumns['Name'] = 'Schüler';
             $tableColumns['Integration'] = 'Integration';
-            $tableColumns['Course'] = 'Bildungsgang';
+            if ($showCourse) {
+                $tableColumns['Course'] = 'Bildungsgang';
+            }
+
             $tableColumns['Grade'] = 'Zensur';
             if ($tblTest->isContinues()) {
                 $tableColumns['Date'] = 'Datum' . ($tblTest->getFinishDate() ? ' (' . $tblTest->getFinishDate() . ')' : '');
@@ -2406,7 +2423,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             // oberste Tabellen-Kopf-Zeile erstellen
             $headTableColumnList = array();
-            $headTableColumnList[] = new TableColumn('', 4, '20%');
+            $headTableColumnList[] = new TableColumn('', $showCourse ? 4 : 3, '20%');
             $countHeaderColumns = 2;
             if (!empty($periodListCount)) {
                 foreach ($periodListCount as $periodId => $count) {

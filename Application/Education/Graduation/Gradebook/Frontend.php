@@ -837,6 +837,16 @@ class Frontend extends FrontendScoreRule
             );
         }
 
+        if ($tblLevel
+            && ($tblType = $tblLevel->getServiceTblType())
+            && $tblType->getName() == 'Mittelschule / Oberschule'
+            && intval($tblLevel->getName()) > 6
+        ) {
+            $showCourse = true;
+        } else {
+            $showCourse = false;
+        }
+
         // Berechnungsvorschrift und Berechnungssystem der ausgewählten Fach-Klasse ermitteln
         $tblScoreRule = false;
         $scoreRuleText = array();
@@ -871,9 +881,8 @@ class Frontend extends FrontendScoreRule
         }
 
         // Mindestnotenanzahlen
-        if ($tblDivisionSubject) {
-            if (($tblDivision = $tblDivisionSubject->getTblDivision())
-                && ($tblLevel)
+        if ($tblDivision) {
+            if ($tblLevel
                 && ($levelName = $tblLevel->getName())
                 && ($levelName == '11' || $levelName == '12')
             ) {
@@ -931,7 +940,9 @@ class Frontend extends FrontendScoreRule
         $columnDefinition['Number'] = '#';
         $columnDefinition['Student'] = "Schüler";
         $columnDefinition['Integration'] = "Integration";
-        $columnDefinition['Course'] = new ToolTip('Bg', 'Bildungsgang');
+        if ($showCourse) {
+            $columnDefinition['Course'] = new ToolTip('Bg', 'Bildungsgang');
+        }
         $countPeriod = 0;
         $countMinimumGradeCount = 1;
         // Tabellenkopf mit Test-Code und Datum erstellen
@@ -1229,7 +1240,7 @@ class Frontend extends FrontendScoreRule
 
         // oberste Tabellen-Kopf-Zeile erstellen
         $headTableColumnList = array();
-        $headTableColumnList[] = new TableColumn('', 4, '20%');
+        $headTableColumnList[] = new TableColumn('', $showCourse ? 4 : 3, '20%');
         if (!empty($periodListCount)) {
             foreach ($periodListCount as $periodId => $count) {
                 $tblPeriod = Term::useService()->getPeriodById($periodId);
@@ -2901,7 +2912,19 @@ class Frontend extends FrontendScoreRule
                 }
             }
 
-            $tableHeaderList['Course'] = 'Bildungsgang';
+            $showCourse = $tblGroup;
+            if ($tblDivision
+                && ($tblLevel = $tblDivision->getTblLevel())
+                && ($tblType = $tblLevel->getServiceTblType())
+                && $tblType->getName() == 'Mittelschule / Oberschule'
+                && intval($tblLevel->getName()) > 6
+            ) {
+                $showCourse = true;
+            }
+            if ($showCourse) {
+                $tableHeaderList['Course'] = 'Bildungsgang';
+            }
+
             $SubjectList = array();
             // definition of dynamic SubjectTableHead
             if (!empty($tblDivisionList)) {
