@@ -32,6 +32,6 @@ class RadebeulOsHalbjahresinformation extends Certificate
 
         return (new Page())
             ->addSlice(RadebeulOsJahreszeugnis::getHeader('Halbjahresinformation'))
-            ->addSliceArray((new RadebeulOsJahreszeugnis())->getBody($personId));
+            ->addSliceArray((new RadebeulOsJahreszeugnis($this->getTblDivision()))->getBody($personId, false));
     }
 }

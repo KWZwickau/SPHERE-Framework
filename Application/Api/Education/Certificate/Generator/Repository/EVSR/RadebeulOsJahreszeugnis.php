@@ -28,6 +28,17 @@ class RadebeulOsJahreszeugnis extends Certificate
     const LINE_HEIGHT = '85%';
 
     /**
+     * @return array
+     */
+    public function selectValuesTransfer()
+    {
+        return array(
+            1 => "wird versetzt",
+            2 => "wird nicht versetzt"
+        );
+    }
+
+    /**
      * @param TblPerson|null $tblPerson
      *
      * @return Page
@@ -39,7 +50,7 @@ class RadebeulOsJahreszeugnis extends Certificate
 
         return (new Page())
             ->addSlice(self::getHeader('Jahreszeugnis'))
-            ->addSliceArray($this->getBody($personId));
+            ->addSliceArray($this->getBody($personId, true));
     }
 
     /**
@@ -120,10 +131,11 @@ class RadebeulOsJahreszeugnis extends Certificate
 
     /**
      * @param $personId
+     * @param bool $hasTransfer
      *
      * @return Slice[]
      */
-    public function getBody($personId)
+    public function getBody($personId, $hasTransfer)
     {
         // zusammen 100%
         $width1 = '20%';
@@ -135,7 +147,7 @@ class RadebeulOsJahreszeugnis extends Certificate
         $sliceArray = array();
 
         $sliceArray[] = (new Slice())
-            ->styleMarginTop('30px')
+            ->styleMarginTop('15px')
             ->addSection((new Section())
                 ->addElementColumn(self::getBodyElement(
                     'Vor- und Zuname:'
@@ -177,19 +189,37 @@ class RadebeulOsJahreszeugnis extends Certificate
                 ), $width5)
             );
 
+        $course = 'nahm am Unterricht der Schulart Mittelschule teil.';
+        if (($tblDivision = $this->getTblDivision())
+            && ($tblLevel = $tblDivision->getTblLevel())
+            && intval($tblLevel->getName()) > 6
+            && ($tblPerson = Person::useService()->getPersonById($personId))
+            && ($tblStudent = $tblPerson->getStudent())
+            && ($tblCourse = $tblStudent->getCourse())
+        ) {
+            if ($tblCourse->getName() == 'Realschule') {
+                $course = 'nahm am Unterricht der Schulart Mittelschule mit dem Ziel des Realschulabschlusses teil.';
+            } elseif ($tblCourse->getName() == 'Hauptschule') {
+                $course = 'nahm am Unterricht der Schulart Mittelschule mit dem Ziel des Hauptschulabschlusses teil.';
+            }
+        }
+
+        $sliceArray[] = (new Slice)
+            ->addElement(self::getBodyElement($course));
+
         $sliceArray[] = $this->getGradeLanesForRadebeul(
             $personId,
             'black',
             self::TEXT_SIZE,
             'rgb(224,226,231)',
             false,
-            '20px',
+            '10px',
             18,
             self::FONT_FAMILY
         );
 
         $sliceArray[] = (new Slice())
-            ->addElement(self::getBodyElement('Leistungen in den einzelnen Fächern:', true, '15px'));
+            ->addElement(self::getBodyElement('Leistungen in den einzelnen Fächern:', true, '10px'));
 
         $sliceArray[] = $this->getSubjectLanesForRadebeul(
             $personId,
@@ -224,8 +254,23 @@ class RadebeulOsJahreszeugnis extends Certificate
                     ->styleFontFamily(self::FONT_FAMILY)
                     ->styleLineHeight(self::LINE_HEIGHT)
                     ->styleMarginTop('0px')
-                    ->styleHeight('40px'))
+                    ->styleHeight($hasTransfer ? '25px' : '55px'))
             );
+
+        if ($hasTransfer) {
+            $sliceArray[] = (new Slice)
+                ->addSection((new Section())
+                    ->addElementColumn(self::getBodyElement('Versetzungsvermerk:')
+                        , '22%')
+                    ->addElementColumn(self::getBodyElement(
+                        '{% if(Content.P' . $personId . '.Input.Transfer) %}
+                            {{ Content.P' . $personId . '.Input.Transfer }}
+                        {% else %}
+                              &nbsp;
+                        {% endif %}'
+                    ))
+                );
+        }
 
         $sliceArray[] = (new Slice)
             ->addSection((new Section())
@@ -600,7 +645,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                                 5 = mangelhaft, 6 = ungenügend')
                     ->styleTextSize('9px')
                     ->styleFontFamily($fontFamily)
-                    ->styleMarginTop('5px')
+                    ->styleMarginTop('0px')
                 )
             );
     }
