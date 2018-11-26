@@ -35,7 +35,10 @@ class TblSpecial extends Element
      * @Column(type="string")
      */
     protected $Remark;
-
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsCanceled;
 
 
     /**
@@ -135,5 +138,21 @@ class TblSpecial extends Element
     {
 
         $this->Remark = $Remark;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isCanceled()
+    {
+        return $this->IsCanceled;
+    }
+
+    /**
+     * @param boolean $IsCanceled
+     */
+    public function setIsCanceled($IsCanceled)
+    {
+        $this->IsCanceled = $IsCanceled;
     }
 }

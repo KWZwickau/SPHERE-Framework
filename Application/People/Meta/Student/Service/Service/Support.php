@@ -222,10 +222,14 @@ abstract class Support extends Integration
         }
 
         $Date = new \DateTime($Data['Date']);
-        $Remark = $Data['Remark'];
+        if (($IsCanceled = isset($Data['IsCanceled']))) {
+            $Remark = 'Aufhebung';
+        } else {
+            $Remark = isset($Data['Remark']) ? $Data['Remark'] : '';
+        }
 
         if($tblPerson && $Date){
-            $tblSpecial = (new Data($this->getBinding()))->createSpecial($tblPerson, $Date, $PersonEditor, $Remark);
+            $tblSpecial = (new Data($this->getBinding()))->createSpecial($tblPerson, $Date, $PersonEditor, $Remark, $IsCanceled);
 
             if(isset($Data['CheckboxList'])) {
                 $CheckboxList = $Data['CheckboxList'];
@@ -410,7 +414,11 @@ abstract class Support extends Integration
         }
 
         $Date = new \DateTime($Data['Date']);
-        $Remark = $Data['Remark'];
+        if (($IsCanceled = isset($Data['IsCanceled']))) {
+            $Remark = 'Aufhebung';
+        } else {
+            $Remark = isset($Data['Remark']) ? $Data['Remark'] : '';
+        }
 
         if($tblSpecial && $tblPerson && $Date){
             (new Data($this->getBinding()))->updateSpecial($tblSpecial, $Date, $PersonEditor, $Remark);
@@ -631,17 +639,15 @@ abstract class Support extends Integration
     public function getSpecialByPersonNewest(TblPerson $tblPerson)
     {
 
-        $tblSpecialMatch = false;
+        $tblSpecial = false;
         if(($tblSpecialList = $this->getSpecialByPerson($tblPerson))){
-            $tblSpecialMatch = $tblSpecialList[0];
-            foreach($tblSpecialList as $tblSpecial){
-                if(new \DateTime($tblSpecialMatch->getDate()) < new \DateTime($tblSpecial->getDate())) {
-                    $tblSpecialMatch = $tblSpecial;
-                }
+            $tblSpecial = $tblSpecialList[0];
+            if ($tblSpecial->isCanceled()) {
+                return false;
             }
         }
 
-        return $tblSpecialMatch;
+        return $tblSpecial;
     }
 
     /**
@@ -652,17 +658,15 @@ abstract class Support extends Integration
     public function getHandyCapByPersonNewest(TblPerson $tblPerson)
     {
 
-        $tblHandyCapMatch = false;
+        $tblHandyCap = false;
         if(($tblHandyCapList = $this->getHandyCapByPerson($tblPerson))){
-            $tblHandyCapMatch = $tblHandyCapList[0];
-            foreach($tblHandyCapList as $tblHandyCap){
-                if(new \DateTime($tblHandyCapMatch->getDate()) < new \DateTime($tblHandyCap->getDate())) {
-                    $tblHandyCapMatch = $tblHandyCap;
-                }
+            $tblHandyCap = $tblHandyCapList[0];
+            if ($tblHandyCap->isCanceled()) {
+                return false;
             }
         }
 
-        return $tblHandyCapMatch;
+        return $tblHandyCap;
     }
 
     /**
@@ -674,8 +678,18 @@ abstract class Support extends Integration
 
         $return = false;
         $tblSupport = Student::useService()->getSupportByPersonNewest($tblPerson, array('Förderbescheid'));
-        $tblSpecial = Student::useService()->getSpecialByPerson($tblPerson);
-        $tblHandyCap = Student::useService()->getHandyCapByPerson($tblPerson);
+        if ($tblSupport) {
+            // canceled
+            if (($tblSupportCancel = Student::useService()->getSupportByPersonNewest($tblPerson, array('Aufhebung')))
+                && new \DateTime($tblSupportCancel->getDate()) >= new \DateTime($tblSupport->getDate())
+            ) {
+                $tblSupport = false;
+            }
+        }
+
+        $tblSpecial = Student::useService()->getSpecialByPersonNewest($tblPerson);
+        $tblHandyCap = Student::useService()->getHandyCapByPersonNewest($tblPerson);
+
         // Button's nur anzeigen, wenn Integrationen hinterlegt sind
         if($tblSupport || $tblSpecial || $tblHandyCap){
             $return = true;
@@ -825,6 +839,15 @@ abstract class Support extends Integration
             $form->setError('Data[SupportType]', 'Bitte wählen Sie einen Vorgang aus');
             $Error = true;
         }
+        if (isset($Data['PrimaryFocus'])
+            && isset($Data['SupportType'])
+            && ($tblSupportType = Student::useService()->getSupportTypeById($Data['SupportType']))
+            && ($tblSupportType->getName() == 'Förderantrag' || $tblSupportType->getName() == 'Förderbescheid')
+            && !($tblPrimaryFocusType = Student::useService()->getSupportFocusTypeById($Data['PrimaryFocus']))
+        ) {
+            $form->setError('Data[PrimaryFocus]', 'Bitte wählen Sie einen Primär geförderten Schwerpunkt aus');
+            $Error = true;
+        }
         if ($Error) {
             return new Well($form);
         }
@@ -843,12 +866,12 @@ abstract class Support extends Integration
     {
 
         $Error = false;
-        $form = Student::useFrontend()->formSpecial($PersonId, $SpecialId);
+        $form = Student::useFrontend()->formSpecial($PersonId, $SpecialId, isset($Data['IsCanceled']));
         if (isset($Data['Date']) && empty($Data['Date'])) {
             $form->setError('Data[Date]', 'Bitte geben Sie ein Datum an');
             $Error = true;
         }
-        if (!isset($Data['CheckboxList'])) {
+        if (!isset($Data['IsCanceled']) && !isset($Data['CheckboxList'])) {
             $form .= new Danger('Bitte geben Sie mindestens eine Entwicklungsbesonderheit an');
             $Error = true;
         }
@@ -901,10 +924,12 @@ abstract class Support extends Integration
                     $IsRemove = (new Data($this->getBinding()))->deleteSupportFocus($tblSupportFocus);
                 }
             }
-            if($IsRemove){
-                $IsRemove = (new Data($this->getBinding()))->deleteSupport($tblSupport);
-            }
         }
+
+        if($IsRemove){
+            $IsRemove = (new Data($this->getBinding()))->deleteSupport($tblSupport);
+        }
+
         return $IsRemove;
     }
 
@@ -945,10 +970,11 @@ abstract class Support extends Integration
                     $IsRemove = (new Data($this->getBinding()))->deleteSpecialDisorder($tblSpecialDisorder);
                 }
             }
-            if($IsRemove){
-                $IsRemove = (new Data($this->getBinding()))->deleteSpecial($tblSpecial);
-            }
         }
+        if($IsRemove){
+            $IsRemove = (new Data($this->getBinding()))->deleteSpecial($tblSpecial);
+        }
+
         return $IsRemove;
     }
 

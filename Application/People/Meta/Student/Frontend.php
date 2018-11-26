@@ -405,9 +405,10 @@ class Frontend extends Extension implements IFrontendInterface
                         (new SelectBox('Data[SupportType]', 'Vorgang', array('{{ Name }}' => $SupportTypeList), new Education()))->setRequired(),
                         new Warning('Nur "Förderbescheid" ist für Lehrer sichtbar')
                         ), 6),
-                    new FormColumn(
-                        new Listing($CheckboxList)
-                        , 6),
+                    new FormColumn(array(
+                            new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Bold('Förderschwerpunkte'))))),
+                            new Listing($CheckboxList)
+                        ), 6),
                 )),
                 new FormRow(array(
                     new FormColumn(array(
@@ -422,9 +423,9 @@ class Frontend extends Extension implements IFrontendInterface
                         , 6),
                 )),
                 new FormRow(array(
-                    new FormColumn(
+                    new FormColumn(array(
                         $SaveButton
-                    )
+                    ))
                 )),
             ))
         );
@@ -465,17 +466,20 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int      $PersonId
+     * @param int $PersonId
      * @param null|int $SpecialId
+     * @param bool $IsCanceled
      *
      * @return Form
      */
-    public function formSpecial($PersonId, $SpecialId = null)
+    public function formSpecial($PersonId, $SpecialId = null, $IsCanceled = false)
     {
 
         $Global = $this->getGlobal();
         if($SpecialId != null && !isset($Global->POST['Data']['Date'])) {
-            if (($tblSpecial = Student::useService()->getSpecialById($SpecialId))) {
+            if ($IsCanceled) {
+
+            } elseif (($tblSpecial = Student::useService()->getSpecialById($SpecialId))) {
                 $Global = $this->fillGlobalSpecial($tblSpecial, $Global);
 
                 $Global->savePost();
@@ -498,27 +502,39 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         if($SpecialId === null){
+            // create
             $SaveButton = (new PrimaryLink('Speichern', ApiSupport::getEndpoint(), new Save()))
                 ->ajaxPipelineOnClick(ApiSupport::pipelineCreateSpecialSave($PersonId));
+            $cancelCheckbox = (new CheckBox('Data[IsCanceled]', new Bold('Aufhebung'), 1))->ajaxPipelineOnClick(ApiSupport::pipelineOpenCreateSpecialModal($PersonId));
         } else {
+            // edit
             $SaveButton = (new PrimaryLink('Speichern', ApiSupport::getEndpoint(), new Save()))
                 ->ajaxPipelineOnClick(ApiSupport::pipelineUpdateSpecialSave($PersonId, $SpecialId));
+            $cancelCheckbox = (new CheckBox('Data[IsCanceled]', new Bold('Aufhebung'), 1))->ajaxPipelineOnClick(ApiSupport::pipelineOpenEditSpecialModal($PersonId, $SpecialId));
         }
+
+        $arrayRight = array();
+
+//        $arrayLeft[] = new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+//            'Test' . ($tblSpecial ? $tblSpecial->getId() : '' ) . ($IsCanceled ? 'Canceled' : '')
+//        ))));
+
+        $arrayLeft[] = (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired();
+        $arrayLeft[] = $cancelCheckbox;
+        if (!$IsCanceled) {
+            $arrayLeft[] = new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Bold('Entwicklungsbesonderheiten '.new DangerText('*'))))));
+            $arrayLeft[] = new Listing($CheckboxList);
+
+            $arrayRight[] = new TextArea('Data[Remark]', 'Bemerkung', 'Bemerkung', new Edit());
+        }
+
+        $arrayRight[] = new HiddenField('SpecialId');
 
         return new Form(
             new FormGroup(array(
                 new FormRow(array(
-                    new FormColumn(array(
-                        (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired(),
-                        new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Bold('Entwicklungsbesonderheiten '.new DangerText('*')))))),
-                        new Listing($CheckboxList)
-                        ), 6),
-                    new FormColumn(
-                        new TextArea('Data[Remark]', 'Bemerkung', 'Bemerkung', new Edit())
-                        , 6),
-                    new FormColumn(
-                        new HiddenField('SpecialId')
-                        , 6),
+                    new FormColumn($arrayLeft, 6),
+                    new FormColumn($arrayRight, 6)
                 )),
                 new FormRow(array(
                     new FormColumn(

@@ -13,6 +13,7 @@ use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
+use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
@@ -33,6 +34,11 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\System\Extension\Extension;
 
+/**
+ * Class ApiSupport
+ *
+ * @package SPHERE\Application\Api\People\Meta\Support
+ */
 class ApiSupport extends Extension implements IApiInterface
 {
 
@@ -77,9 +83,15 @@ class ApiSupport extends Extension implements IApiInterface
     public static function receiverModal()
     {
 
-        return (new ModalReceiver())->setIdentifier('ModalReciever');
+        return (new ModalReceiver(null, new Close()))->setIdentifier('ModalReciever');
     }
 
+    /**
+     * @param string $Content
+     * @param string $Identifier
+     *
+     * @return BlockReceiver
+     */
     public static function receiverTableBlock($Content = '', $Identifier = '')
     {
 
@@ -552,19 +564,23 @@ class ApiSupport extends Extension implements IApiInterface
      */
     public function openCreateSpecialModal($PersonId)
     {
+        $global =  $this->getGlobal();
+        $IsCanceled = isset($global->POST['Data']['IsCanceled']);
+
+        $form = Student::useFrontend()->formSpecial($PersonId, $SpecialId = null, $IsCanceled);
 
         return new Title('Entwicklungsbesonderheiten hinzufügen')
-        .new Layout(
-            new LayoutGroup(
-                new LayoutRow(
-                    new LayoutColumn(
-                        new Well(
-                            Student::useFrontend()->formSpecial($PersonId)
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Well(
+                                $form
+                            )
                         )
                     )
                 )
-            )
-        );
+            );
     }
 
     /**
@@ -621,13 +637,16 @@ class ApiSupport extends Extension implements IApiInterface
     public function openEditSpecialModal($PersonId, $SpecialId)
     {
 
+        $global =  $this->getGlobal();
+        $IsCanceled = isset($global->POST['Data']['IsCanceled']);
+
         return new Title('Entwicklungsbesonderheiten bearbeiten')
         .new Layout(
             new LayoutGroup(
                 new LayoutRow(
                     new LayoutColumn(
                         new Well(
-                            Student::useFrontend()->formSpecial($PersonId, $SpecialId)
+                            Student::useFrontend()->formSpecial($PersonId, $SpecialId, $IsCanceled)
                         )
                     )
                 )
@@ -682,11 +701,8 @@ class ApiSupport extends Extension implements IApiInterface
             // display Errors on form
             return $form;
         }
-        // do service
 
-//        return 'Alles ok für\'s speichern';
-        if (Student::useService()->createSupport($PersonId, $Data)
-        ) {
+        if (Student::useService()->createSupport($PersonId, $Data)) {
              return new Success('Förderantrag wurde erfolgreich gespeichert.')
                  .self::pipelineLoadTable($PersonId)
                  .self::pipelineClose();
