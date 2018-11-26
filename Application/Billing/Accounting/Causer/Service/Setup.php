@@ -25,7 +25,7 @@ class Setup extends AbstractSetup
          * Table
          */
         $Schema = clone $this->getConnection()->getSchema();
-//        $this->setTableCreditor($Schema);
+//        $this->setTableCauser($Schema);
 
         /**
          * Migration & Protocol
@@ -45,7 +45,7 @@ class Setup extends AbstractSetup
 //    private function setTableCauser(Schema &$Schema)
 //    {
 //
-//        $Table = $this->createTable($Schema, 'tblCreditor');
+//        $Table = $this->createTable($Schema, 'tblCauser');
 //        $this->createColumn($Table, 'Owner', self::FIELD_TYPE_STRING);
 //
 //        return $Table;

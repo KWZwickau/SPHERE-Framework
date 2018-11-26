@@ -35,13 +35,13 @@ class Causer implements IModuleInterface
          * Register Route
          */
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, __NAMESPACE__.'/Frontend::frontendCreditor'
+            __NAMESPACE__, __NAMESPACE__.'/Frontend::frontendCauser'
         ));
         /**
          * Register Route
          */
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/View', __NAMESPACE__.'/Frontend::frontendCreditorView'
+            __NAMESPACE__.'/View', __NAMESPACE__.'/Frontend::frontendCauserView'
         ));
 
     }

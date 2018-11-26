@@ -5,7 +5,7 @@ use SPHERE\System\Database\Binding\AbstractData;
 
 /**
  * Class Data
- * @package SPHERE\Application\Billing\Accounting\Creditor\Service
+ * @package SPHERE\Application\Billing\Accounting\Causer\Service
  */
 class Data extends AbstractData
 {

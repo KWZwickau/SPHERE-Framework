@@ -32,7 +32,7 @@ use SPHERE\System\Extension\Extension;
 
 /**
  * Class Frontend
- * @package SPHERE\Application\Billing\Accounting\Creditor
+ * @package SPHERE\Application\Billing\Accounting\Causer
  */
 class Frontend extends Extension implements IFrontendInterface
 {
@@ -42,7 +42,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendCreditor($GroupId = null)
+    public function frontendCauser($GroupId = null)
     {
 
         $Stage = new Stage('Auswahl Gruppe der', 'Beitragsverursacher');
@@ -117,7 +117,7 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
-    public function frontendCreditorView($GroupId = null)
+    public function frontendCauserView($GroupId = null)
     {
 
         $GroupName = '';
