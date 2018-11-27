@@ -309,17 +309,19 @@ abstract class Support extends Integration
 
     /**
      * @param TblSpecial $tblSpecial
-     * @param \DateTime  $Date
-     * @param string     $PersonEditor
-     * @param string     $Remark
+     * @param \DateTime $Date
+     * @param string $PersonEditor
+     * @param string $Remark
+     * @param bool $IsCanceled
      *
      * @return bool
      */
     public function updateSpecial(TblSpecial $tblSpecial,
         $Date,
         $PersonEditor = '',
-        $Remark = '')
-    {
+        $Remark = '',
+        $IsCanceled = false
+    ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -330,6 +332,8 @@ abstract class Support extends Integration
             $Entity->setDate($Date);
             $Entity->setPersonEditor($PersonEditor);
             $Entity->setRemark($Remark);
+            $Entity->setIsCanceled($IsCanceled);
+
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
@@ -341,12 +345,13 @@ abstract class Support extends Integration
 
     /**
      * @param TblHandyCap $tblHandyCap
-     * @param \DateTime   $Date
-     * @param string      $PersonEditor
-     * @param string      $LegalBasis
-     * @param string      $LearnTarget
-     * @param string      $RemarkLesson
-     * @param string      $RemarkRating
+     * @param \DateTime $Date
+     * @param string $PersonEditor
+     * @param string $LegalBasis
+     * @param string $LearnTarget
+     * @param string $RemarkLesson
+     * @param string $RemarkRating
+     * @param bool $IsCanceled
      *
      * @return bool
      */
@@ -356,8 +361,9 @@ abstract class Support extends Integration
         $LegalBasis = '',
         $LearnTarget = '',
         $RemarkLesson = '',
-        $RemarkRating = '')
-    {
+        $RemarkRating = '',
+        $IsCanceled = false
+    ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -371,6 +377,8 @@ abstract class Support extends Integration
             $Entity->setLearnTarget($LearnTarget);
             $Entity->setRemarkLesson($RemarkLesson);
             $Entity->setRemarkRating($RemarkRating);
+            $Entity->setIsCanceled($IsCanceled);
+
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,

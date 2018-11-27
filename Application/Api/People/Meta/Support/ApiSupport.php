@@ -227,10 +227,11 @@ class ApiSupport extends Extension implements IApiInterface
     /**
      * @param int $PersonId
      * @param int $SpecialId
+     * @param bool $IsInit
      *
      * @return Pipeline
      */
-    public static function pipelineOpenEditSpecialModal($PersonId, $SpecialId)
+    public static function pipelineOpenEditSpecialModal($PersonId, $SpecialId, $IsInit = false)
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(ApiSupport::receiverModal(), ApiSupport::getEndpoint());
@@ -239,7 +240,8 @@ class ApiSupport extends Extension implements IApiInterface
         ));
         $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId,
-            'SpecialId' => $SpecialId
+            'SpecialId' => $SpecialId,
+            'IsInit' => $IsInit ? '1' : '0'
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -249,10 +251,11 @@ class ApiSupport extends Extension implements IApiInterface
     /**
      * @param int $PersonId
      * @param int $HandyCapId
+     * @param bool $IsInit
      *
      * @return Pipeline
      */
-    public static function pipelineOpenEditHandyCapModal($PersonId, $HandyCapId)
+    public static function pipelineOpenEditHandyCapModal($PersonId, $HandyCapId, $IsInit = false)
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(ApiSupport::receiverModal(), ApiSupport::getEndpoint());
@@ -261,7 +264,8 @@ class ApiSupport extends Extension implements IApiInterface
         ));
         $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId,
-            'HandyCapId' => $HandyCapId
+            'HandyCapId' => $HandyCapId,
+            'IsInit' => $IsInit ? '1' : '0'
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -567,7 +571,7 @@ class ApiSupport extends Extension implements IApiInterface
         $global =  $this->getGlobal();
         $IsCanceled = isset($global->POST['Data']['IsCanceled']);
 
-        $form = Student::useFrontend()->formSpecial($PersonId, $SpecialId = null, $IsCanceled);
+        $form = Student::useFrontend()->formSpecial($PersonId, null, $IsCanceled);
 
         return new Title('Entwicklungsbesonderheiten hinzufügen')
             .new Layout(
@@ -591,18 +595,21 @@ class ApiSupport extends Extension implements IApiInterface
     public function openCreateHandyCapModal($PersonId)
     {
 
+        $global =  $this->getGlobal();
+        $IsCanceled = isset($global->POST['Data']['IsCanceled']);
+
         return new Title('Nachteilsausgleich hinzufügen')
-        .new Layout(
-            new LayoutGroup(
-                new LayoutRow(
-                    new LayoutColumn(
-                        new Well(
-                            Student::useFrontend()->formHandyCap($PersonId)
+            . new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Well(
+                                Student::useFrontend()->formHandyCap($PersonId, null, $IsCanceled)
+                            )
                         )
                     )
                 )
-            )
-        );
+            );
     }
 
     /**
@@ -631,14 +638,22 @@ class ApiSupport extends Extension implements IApiInterface
     /**
      * @param int $PersonId
      * @param int $SpecialId
+     * @param bool $IsInit
      *
      * @return string
      */
-    public function openEditSpecialModal($PersonId, $SpecialId)
+    public function openEditSpecialModal($PersonId, $SpecialId, $IsInit)
     {
-
+        $IsCanceled = false;
         $global =  $this->getGlobal();
-        $IsCanceled = isset($global->POST['Data']['IsCanceled']);
+        if ($IsInit) {
+            if (($tblSpecial = Student::useService()->getSpecialById($SpecialId))) {
+                $IsCanceled = $tblSpecial->isCanceled();
+            }
+
+        } else {
+            $IsCanceled = isset($global->POST['Data']['IsCanceled']);
+        }
 
         return new Title('Entwicklungsbesonderheiten bearbeiten')
         .new Layout(
@@ -646,7 +661,7 @@ class ApiSupport extends Extension implements IApiInterface
                 new LayoutRow(
                     new LayoutColumn(
                         new Well(
-                            Student::useFrontend()->formSpecial($PersonId, $SpecialId, $IsCanceled)
+                            Student::useFrontend()->formSpecial($PersonId, $SpecialId, $IsCanceled, $IsInit)
                         )
                     )
                 )
@@ -657,11 +672,22 @@ class ApiSupport extends Extension implements IApiInterface
     /**
      * @param int $PersonId
      * @param int $HandyCapId
+     * @param bool $IsInit
      *
      * @return string
      */
-    public function openEditHandyCapModal($PersonId, $HandyCapId)
+    public function openEditHandyCapModal($PersonId, $HandyCapId, $IsInit)
     {
+        $IsCanceled = false;
+        $global =  $this->getGlobal();
+        if ($IsInit) {
+            if (($tblHandyCap = Student::useService()->getHandyCapById($HandyCapId))) {
+                $IsCanceled = $tblHandyCap->isCanceled();
+            }
+
+        } else {
+            $IsCanceled = isset($global->POST['Data']['IsCanceled']);
+        }
 
         return new Title('Nachteilsausgleich bearbeiten')
         .new Layout(
@@ -669,7 +695,7 @@ class ApiSupport extends Extension implements IApiInterface
                 new LayoutRow(
                     new LayoutColumn(
                         new Well(
-                            Student::useFrontend()->formHandyCap($PersonId, $HandyCapId)
+                            Student::useFrontend()->formHandyCap($PersonId, $HandyCapId, $IsCanceled, $IsInit)
                         )
                     )
                 )

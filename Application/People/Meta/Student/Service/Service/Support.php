@@ -18,6 +18,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -306,14 +307,20 @@ abstract class Support extends Integration
         }
 
         $Date = new \DateTime($Data['Date']);
+        if (($IsCanceled = isset($Data['IsCanceled']))) {
+            $RemarkLesson = 'Aufhebung';
+            $RemarkRating = 'Aufhebung';
+        } else {
+            $RemarkLesson = isset($Data['RemarkLesson']) ? $Data['RemarkLesson'] : '';
+            $RemarkRating = isset($Data['RemarkRating']) ? $Data['RemarkRating'] : '';
+        }
+
         $LegalBasis = (isset($Data['LegalBasis']) ? $Data['LegalBasis'] : '' );
         $LearnTarget = (isset($Data['LearnTarget']) ? $Data['LearnTarget'] : '' );
-        $RemarkLesson = $Data['RemarkLesson'];
-        $RemarkRating = $Data['RemarkRating'];
 
         if($tblPerson && $Date){
             (new Data($this->getBinding()))->createHandyCap($tblPerson, $Date, $PersonEditor, $LegalBasis, $LearnTarget,
-                $RemarkLesson, $RemarkRating);
+                $RemarkLesson, $RemarkRating, $IsCanceled);
         }
 
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Daten wurde erfolgreich gespeichert');
@@ -421,7 +428,7 @@ abstract class Support extends Integration
         }
 
         if($tblSpecial && $tblPerson && $Date){
-            (new Data($this->getBinding()))->updateSpecial($tblSpecial, $Date, $PersonEditor, $Remark);
+            (new Data($this->getBinding()))->updateSpecial($tblSpecial, $Date, $PersonEditor, $Remark, $IsCanceled);
             //delete old entry's
             if(($SpecialDisorderList = Student::useService()->getSpecialDisorderAllBySpecial($tblSpecial))){
                 foreach($SpecialDisorderList as $SpecialDisorder){
@@ -472,14 +479,19 @@ abstract class Support extends Integration
         }
 
         $Date = new \DateTime($Data['Date']);
+        if (($IsCanceled = isset($Data['IsCanceled']))) {
+            $RemarkLesson = 'Aufhebung';
+            $RemarkRating = 'Aufhebung';
+        } else {
+            $RemarkLesson = isset($Data['RemarkLesson']) ? $Data['RemarkLesson'] : '';
+            $RemarkRating = isset($Data['RemarkRating']) ? $Data['RemarkRating'] : '';
+        }
         $LegalBasis = (isset($Data['LegalBasis']) ? $Data['LegalBasis'] : '' );
         $LearnTarget = (isset($Data['LearnTarget']) ? $Data['LearnTarget'] : '' );
-        $RemarkLesson = $Data['RemarkLesson'];
-        $RemarkRating = $Data['RemarkRating'];
 
         if($tblHandyCap && $tblPerson && $Date){
             (new Data($this->getBinding()))->updateHandyCap($tblHandyCap, $Date, $PersonEditor, $LegalBasis,
-                $LearnTarget, $RemarkLesson, $RemarkRating);
+                $LearnTarget, $RemarkLesson, $RemarkRating, $IsCanceled);
         }
 
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Daten wurde erfolgreich gespeichert');
@@ -849,7 +861,8 @@ abstract class Support extends Integration
             $Error = true;
         }
         if ($Error) {
-            return new Well($form);
+            return new Title($SupportId === null ? 'Förderantrag/ Förderbescheid hinzufügen' : 'Förderantrag/ Förderbescheid bearbeiten')
+                . new Well($form);
         }
 
         return $Error;
@@ -876,7 +889,8 @@ abstract class Support extends Integration
             $Error = true;
         }
         if ($Error) {
-            return new Well($form);
+            return new Title($SpecialId === null ? 'Entwicklungsbesonderheiten hinzufügen' : 'Entwicklungsbesonderheiten bearbeiten')
+                . new Well($form);
         }
 
         return $Error;
@@ -893,17 +907,14 @@ abstract class Support extends Integration
     {
 
         $Error = false;
-        $form = Student::useFrontend()->formHandyCap($PersonId, $HandyCapId);
+        $form = Student::useFrontend()->formHandyCap($PersonId, $HandyCapId, isset($Data['IsCanceled']));
         if (isset($Data['Date']) && empty($Data['Date'])) {
             $form->setError('Data[Date]', 'Bitte geben Sie ein Datum an');
             $Error = true;
         }
-//        if (isset($Data['Remark']) && empty($Data['Remark'])) {
-//            $form->setError('Data[Remark]','Bitte geben Sie eine Bemerkung an');
-//            $Error = true;
-//        }
         if ($Error) {
-            return new Well($form);
+            return new Title($HandyCapId === null ? 'Nachteilsausgleich hinzufügen' : 'Nachteilsausgleich bearbeiten')
+                . new Well($form);
         }
 
         return $Error;
