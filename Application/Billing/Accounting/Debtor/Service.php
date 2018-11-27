@@ -1,8 +1,8 @@
 <?php
-namespace SPHERE\Application\Billing\Accounting\Causer;
+namespace SPHERE\Application\Billing\Accounting\Debtor;
 
-use SPHERE\Application\Billing\Accounting\Causer\Service\Data;
-use SPHERE\Application\Billing\Accounting\Causer\Service\Setup;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Data;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Window\RedirectScript;
@@ -10,7 +10,7 @@ use SPHERE\System\Database\Binding\AbstractService;
 
 /**
  * Class Service
- * @package SPHERE\Application\Billing\Accounting\Causer
+ * @package SPHERE\Application\Billing\Accounting\Debtor
  */
 class Service extends AbstractService
 {

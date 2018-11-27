@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\Billing\Accounting\Causer;
+namespace SPHERE\Application\Billing\Accounting\Debtor;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
@@ -9,10 +9,10 @@ use SPHERE\System\Database\Link\Identifier;
 
 
 /**
- * Class Causer
- * @package SPHERE\Application\Billing\Accounting\Causer
+ * Class Debtor
+ * @package SPHERE\Application\Billing\Accounting\Debtor
  */
-class Causer implements IModuleInterface
+class Debtor implements IModuleInterface
 {
 
     public static function registerModule()
@@ -26,19 +26,17 @@ class Causer implements IModuleInterface
          * Register Navigation
          */
         Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Beitragsverursacher'))
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Beitragszahler'))
         );
-//                Main::getDisplay()->addApplicationNavigation(
-//                    new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Konto Einstellungen' ), new Link\Icon( new Money() ) )
-//                );
         /**
          * Register Route
          */
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, __NAMESPACE__.'/Frontend::frontendCauser'
+            __NAMESPACE__, __NAMESPACE__.'/Frontend::frontendDebtor'
         ));
+
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/View', __NAMESPACE__.'/Frontend::frontendCauserView'
+            __NAMESPACE__.'/View', __NAMESPACE__.'/Frontend::frontendDebtorView'
         ));
 
     }
