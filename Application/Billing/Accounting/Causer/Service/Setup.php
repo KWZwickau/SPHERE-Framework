@@ -8,7 +8,7 @@ use SPHERE\System\Database\Binding\AbstractSetup;
 /**
  * Class Setup
  *
- * @package SPHERE\Application\Billing\Accounting\SchoolAccount\Service
+ * @package SPHERE\Application\Billing\Accounting\Causer\Service
  */
 class Setup extends AbstractSetup
 {

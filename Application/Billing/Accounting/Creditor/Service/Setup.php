@@ -37,7 +37,7 @@ class Setup extends AbstractSetup
     /**
      * @param Schema $Schema
      *
-     * @return Table $tblSchoolAccount
+     * @return Table $tblCreditor
      *
      * @return Table
      */

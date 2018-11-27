@@ -1,7 +1,7 @@
 <?php
 namespace SPHERE\Application\Billing\Accounting\Creditor;
 
-use SPHERE\Application\Api\Billing\Creditor\ApiCreditor;
+use SPHERE\Application\Api\Billing\Accounting\ApiCreditor;
 use SPHERE\Application\Billing\Accounting\Creditor\Service\Entity\TblCreditor;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;

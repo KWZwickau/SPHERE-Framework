@@ -203,7 +203,7 @@ class ItemVariant extends ItemCalculation
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveAddVariant($Identifier, $ItemId));
         }
 
-        return (new Form(
+        return (new Form(array(
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
@@ -213,8 +213,11 @@ class ItemVariant extends ItemCalculation
                         new TextArea('Variant[Description]', 'Beschreibung', 'Beschreibung')
                         , 6),
                 )),
-                ('' === $VariantId
-                ? new FormRow(array(
+            )),
+            ('' === $VariantId
+                ?
+                new FormGroup(array(
+                    new FormRow(array(
                         new FormColumn(
                             (new TextField('Calculation[Value]', '0,00', 'Preis'))->setRequired()
                             , 4),
@@ -224,15 +227,20 @@ class ItemVariant extends ItemCalculation
                         new FormColumn(
                             new DatePicker('Calculation[DateTo]', 'z.B.(01.01.2020)', 'Gültig bis', new Clock())
                             , 4),
-                    ))
-                : ''),
-                new FormRow(
+                    )),
+                    new FormRow(
+                        new FormColumn(
+                            $SaveButton
+                        )
+                    )
+                ))
+                : new FormGroup(new FormRow(
                     new FormColumn(
                         $SaveButton
                     )
-                )
-            ))
-        ))->disableSubmitAction();
+                ))
+            )
+        )))->disableSubmitAction();
     }
 
     /**

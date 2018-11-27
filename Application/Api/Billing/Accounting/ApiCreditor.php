@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\Api\Billing\Creditor;
+namespace SPHERE\Application\Api\Billing\Accounting;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;

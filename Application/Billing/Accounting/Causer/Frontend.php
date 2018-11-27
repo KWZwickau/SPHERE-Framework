@@ -48,57 +48,41 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Auswahl Gruppe der', 'Beitragsverursacher');
 
         $Content = array();
+
+
         if(($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))){
-            if(($tblGroupList = Group::useService()->getGroupAll())){
-                foreach($tblGroupList as &$tblGroup){
-                    if($tblGroup->getMetaTable() === 'STUDENT'
-                    || $tblGroup->getMetaTable() === 'PROSPECT'
-                    || $tblGroup->getMetaTable() === 'CUSTODY'
-                    || $tblGroup->getMetaTable() === 'TEACHER'
-                    || $tblGroup->getMetaTable() === 'CLUB'){
-                        $tblGroup = false;
-                    }
+            $Content[] = new Center('Auswahl für '.$tblGroup->getName()
+                .new Container(new Standard('', __NAMESPACE__.'/View', new ListingIcon(), array('GroupId' => $tblGroup->getId()))));
+        }
+
+        if(($tblGroupList = Group::useService()->getGroupAll())){
+            foreach($tblGroupList as &$tblGroup){
+                if($tblGroup->getMetaTable() === 'STUDENT'
+//                    || $tblGroup->getMetaTable() === 'PROSPECT'
+//                    || $tblGroup->getMetaTable() === 'CUSTODY'
+//                    || $tblGroup->getMetaTable() === 'TEACHER'
+//                    || $tblGroup->getMetaTable() === 'CLUB'
+                ){
+                    $tblGroup = false;
                 }
-                $tblGroupList = array_filter($tblGroupList);
             }
-            if(false === $tblGroupList
-            || empty($tblGroupList)){
-                $tblGroupList = array();
-            }
-
-            $Content[] = new Center('Auswahl für Personen'
-            .new Container(
-                new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn('', 3),
-                    new LayoutColumn(Causer::useService()->directRoute(
-                        new Form(new FormGroup(new FormRow(array(new FormColumn(new SelectBox('GroupId', '', array('{{ Name }}' => $tblGroupList)), 11)
-                        , new FormColumn(new StandardForm('', new ListingIcon()), 1))))), $GroupId)
-                    , 6)
-                ))))
-            ));
+            $tblGroupList = array_filter($tblGroupList);
         }
-        if(($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))){
-            $Content[] = new Center('Auswahl für '.$tblGroup->getName()
-            .new Container(new Standard('', __NAMESPACE__.'/View', new ListingIcon(), array('GroupId' => $tblGroup->getId()))));
-        }
-        if(($tblGroup = Group::useService()->getGroupByMetaTable('PROSPECT'))){
-            $Content[] = new Center('Auswahl für '.$tblGroup->getName()
-            .new Container(new Standard('', __NAMESPACE__.'/View', new ListingIcon(), array('GroupId' => $tblGroup->getId()))));
-        }
-        if(($tblGroup = Group::useService()->getGroupByMetaTable('CUSTODY'))){
-            $Content[] = new Center('Auswahl für '.$tblGroup->getName()
-            .new Container(new Standard('', __NAMESPACE__.'/View', new ListingIcon(), array('GroupId' => $tblGroup->getId()))));
-        }
-        if(($tblGroup = Group::useService()->getGroupByMetaTable('TEACHER'))){
-            $Content[] = new Center('Auswahl für '.$tblGroup->getName()
-            .new Container(new Standard('', __NAMESPACE__.'/View', new ListingIcon(), array('GroupId' => $tblGroup->getId()))));
-        }
-        if(($tblGroup = Group::useService()->getGroupByMetaTable('CLUB'))){
-            $Content[] = new Center('Auswahl für '.$tblGroup->getName()
-            .new Container(new Standard('', __NAMESPACE__.'/View', new ListingIcon(), array('GroupId' => $tblGroup->getId()))));
+        if(false === $tblGroupList
+        || empty($tblGroupList)){
+            $tblGroupList = array();
         }
 
-
+        $Content[] = new Center('Auswahl für Personen'
+        .new Container(
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('', 3),
+                new LayoutColumn(Causer::useService()->directRoute(
+                    new Form(new FormGroup(new FormRow(array(new FormColumn(new SelectBox('GroupId', '', array('{{ Name }}' => $tblGroupList)), 11)
+                    , new FormColumn(new StandardForm('', new ListingIcon()), 1))))), $GroupId)
+                , 6)
+            ))))
+        ));
 
         $Stage->setContent(new Layout(
             new LayoutGroup(
@@ -146,7 +130,8 @@ class Frontend extends Extension implements IFrontendInterface
         $TableContent = array();
         if(($tblGroup = Group::useService()->getGroupById($GroupId))){
             if(($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))){
-                array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblGroup){
+                $i = 0;
+                array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblGroup, &$i){
                     $Item['Name'] = $tblPerson->getLastFirstName();
                     $Item['ContentRow'] = ''; // ToDO Anzeige der vorhandenen Zahlungszuweisungen
 //                    $Item['Option'] = new Standard('', '', new Edit());
@@ -164,10 +149,13 @@ class Frontend extends Extension implements IFrontendInterface
                             if(($tblItem = $tblItemGroup->getTblItem())){
                                 //ToDO clean up DIRTY Test
                                 //ToDO Korrekte Variante mit Preis ziehen
-                                $tblItemVariantList = Item::useService()->getItemVariantByItem($tblItem);
-                                $tblItemVariant = current($tblItemVariantList);
-                                $tblItemCalculationList = Item::useService()->getItemCalculationByItemVariant($tblItemVariant);
-                                $tblItemCalculation = current($tblItemCalculationList);
+                                $tblItemCalculation = false;
+                                if(($tblItemVariantList = Item::useService()->getItemVariantByItem($tblItem))){
+                                    $tblItemVariant = current($tblItemVariantList);
+                                    if(($tblItemCalculationList = Item::useService()->getItemCalculationByItemVariant($tblItemVariant))){
+                                        $tblItemCalculation = current($tblItemCalculationList);
+                                    }
+                                }
                                 // ToDO Umbruchtest -> realen Debitor ziehen
                                 $Debitor = 'Klara Kolumna';
                                 if($tblPerson->getFirstName() == 'Charlotte'){
@@ -179,7 +167,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new LayoutColumn($Debitor, 4),
                                     new LayoutColumn(new SuccessText(new Check()), 1),
                                     new LayoutColumn($tblItem->getName(), 3),
-                                    new LayoutColumn($tblItemCalculation->getPriceString(), 2),
+                                    new LayoutColumn(($tblItemCalculation ? $tblItemCalculation->getPriceString() : 'Test'), 2),
                                     new LayoutColumn(new Standard('', '', new Edit()). new Standard('', '', new Remove()), 2)
                                 ))));
                             }
@@ -187,7 +175,10 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['ContentRow'] = new Listing($ContentSingleRow);
                     }
 
-                    array_push($TableContent, $Item);
+                    $i++;
+                    if($i <= 2000){
+                        array_push($TableContent, $Item);
+                    }
                 });
             }
         }
