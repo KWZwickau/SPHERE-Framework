@@ -140,12 +140,14 @@ class ApiGradebook extends Extension implements IApiInterface
                 if (($tblGrade = Gradebook::useService()->getGradeById($gradeId))
                     && ($tblGradeType = $tblGrade->getTblGradeType())
                     && ($tblTest = $tblGrade->getServiceTblTest())
+                    && ($tblDivisionTest = $tblTest->getServiceTblDivision())
                 ) {
                     $isHighlighted = $tblGradeType->isHighlighted();
                     $date = $tblGrade->getDateForSorter();
                     $dataList[] = array(
                         'Date' => $date ? $date->format('d.m.Y') : '',
                         'GradeType' => $isHighlighted ? new Bold($tblGradeType->getDisplayName()) : $tblGradeType->getDisplayName(),
+                        'Division' => $tblDivisionTest ? $tblDivisionTest->getDisplayName() : '',
                         'Description' => $tblTest->getDescription(),
                         'Grade' => $isHighlighted ? new Bold($value) : $value
                     );
@@ -158,6 +160,7 @@ class ApiGradebook extends Extension implements IApiInterface
                 array(
                     'Date' => 'Datum',
                     'GradeType' => 'Zensuren-Typ',
+                    'Division' => 'Klasse',
                     'Description' => 'Thema',
                     'Grade' => 'Zensur'
                 ),

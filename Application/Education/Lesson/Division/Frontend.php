@@ -1913,6 +1913,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $columnList['Subjects'] =  'Fächer';
             }
             $columnList['Status'] = 'Status';
+            $columnList['Option'] = ' ';
 
             $tblStudentList = array();
             if ($tblDivisionStudentList) {
@@ -1937,15 +1938,17 @@ class Frontend extends Extension implements IFrontendInterface
                         if ($isInActive) {
                             $status = new ToolTip(new Danger(new Disable()), 'Deaktivierung: ' . $tblDivisionStudent->getLeaveDate());
                             if ($tblYear && !Student::useService()->getMainDivisionByPersonAndYear($tblPerson, $tblYear)) {
-                                $status .=  StudentStatus::receiverModal()
+                                $option =  StudentStatus::receiverModal()
                                     . (new Link('aktivieren', '#'))->ajaxPipelineOnClick(StudentStatus::pipelineActivateStudentSave(
                                         $tblDivision->getId(),
                                         $tblPerson->getId())
                                     );
+                            } else {
+                                $option = '';
                             }
                         } else {
-                            $status = new \SPHERE\Common\Frontend\Text\Repository\Success(new \SPHERE\Common\Frontend\Icon\Repository\Success())
-                                .  StudentStatus::receiverModal()
+                            $status = new \SPHERE\Common\Frontend\Text\Repository\Success(new \SPHERE\Common\Frontend\Icon\Repository\Success());
+                            $option = StudentStatus::receiverModal()
                                 . (new Link('deaktivieren', '#'))->ajaxPipelineOnClick(StudentStatus::pipelineOpenDeactivateStudentModal(
                                     $tblDivision->getId(),
                                     $tblPerson->getId())
@@ -1957,7 +1960,8 @@ class Frontend extends Extension implements IFrontendInterface
                             'Address' => $isInActive ? new Strikethrough($address) : $address,
                             'Birthday' => $isInActive ? new Strikethrough($birthday) : $birthday,
                             'Course' => $isInActive ? new Strikethrough($course) : $course,
-                            'Status' => $status
+                            'Status' => $status,
+                            'Option' => $option
                         );
 
                         if ($IsSekTwo) {

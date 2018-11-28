@@ -2499,8 +2499,9 @@ class Frontend extends FrontendScoreRule
      * @param $subTableHeaderList
      * @param $subTableDataList
      * @param bool $hasScore
+     * @param bool $showDivisionInToolTip
      */
-    private function addTest(TblTest $tblTest,TblGrade $tblGrade, &$subTableHeaderList, &$subTableDataList, $hasScore)
+    private function addTest(TblTest $tblTest,TblGrade $tblGrade, &$subTableHeaderList, &$subTableDataList, $hasScore, $showDivisionInToolTip)
     {
         if ($tblTest->isContinues()) {
             if ($tblGrade->getDate()) {
@@ -2524,7 +2525,12 @@ class Frontend extends FrontendScoreRule
                 : new Muted($tblTest->getServiceTblGradeType()->getCode()));
 
 
-        $toolTip = $description ? 'Thema: ' . $description : '';
+        if ($showDivisionInToolTip && ($tblDivision = $tblTest->getServiceTblDivision())) {
+            $toolTip = 'Klasse: ' . $tblDivision->getDisplayName() . '</br>';
+        } else {
+            $toolTip = '';
+        }
+        $toolTip .= $description ? 'Thema: ' . $description : '';
         if ($hasScore) {
             if (!empty($gradeMirror)) {
                 $toolTip .= ($toolTip ? '<br />' : '');
@@ -2753,11 +2759,20 @@ class Frontend extends FrontendScoreRule
                                                             }
 
                                                             if ($isAddTest && ($tblGrade->getGrade() !== null && $tblGrade->getGrade() !== '')) {
+                                                                if (($tblDivisionTest = $tblTest->getServiceTblDivision())
+                                                                    && $tblDivision->getId() != $tblDivisionTest->getId()
+                                                                ) {
+                                                                    $showDivisionInToolTip = true;
+                                                                } else {
+                                                                    $showDivisionInToolTip = false;
+                                                                }
+
                                                                 $this->addTest($tblTest,
                                                                     $tblGrade,
                                                                     $subTableHeaderList,
                                                                     $subTableDataList,
-                                                                    $hasScore
+                                                                    $hasScore,
+                                                                    $showDivisionInToolTip
                                                                 );
 
                                                                 $gradeListForAverage[] = $tblGrade;
