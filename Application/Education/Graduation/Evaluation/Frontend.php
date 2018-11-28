@@ -2241,14 +2241,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         * Calc Average
                                         */
                                         $average = Gradebook::useService()->calcStudentGrade(
-                                            $tblPerson,
-                                            $tblDivision,
-                                            $tblDivisionSubject->getServiceTblSubject(),
+                                            $tblPerson, $tblDivision, $tblDivisionSubject->getServiceTblSubject(),
                                             Evaluation::useService()->getTestTypeByIdentifier('TEST'),
-                                            $tblScoreRule ? $tblScoreRule : null,
-                                            $tblPeriod,
+                                            $tblScoreRule ? $tblScoreRule : null, $tblPeriod,
                                             $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null,
-                                            false,
                                             $tblTask->getDate() ? $tblTask->getDate() : false,
                                             $gradeListFromAnotherDivision
                                         );
@@ -2270,16 +2266,12 @@ class Frontend extends Extension implements IFrontendInterface
                                     * Calc Average
                                     */
                                     $average = Gradebook::useService()->calcStudentGrade(
-                                        $tblPerson,
-                                        $tblDivision,
-                                        $tblDivisionSubject->getServiceTblSubject(),
+                                        $tblPerson, $tblDivision, $tblDivisionSubject->getServiceTblSubject(),
                                         Evaluation::useService()->getTestTypeByIdentifier('TEST'),
                                         $tblScoreRule ? $tblScoreRule : null,
                                         ($tblTaskPeriod = $tblTask->getServiceTblPeriodByDivision($tblDivision)) ? $tblTaskPeriod : null,
                                         $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null,
-                                        false,
-                                        $tblTask->getDate() ? $tblTask->getDate() : false,
-                                        $gradeListFromAnotherDivision
+                                        $tblTask->getDate() ? $tblTask->getDate() : false, $gradeListFromAnotherDivision
                                     );
                                     if (is_array($average)) {
                                         $errorRowList = $average;
@@ -3359,16 +3351,10 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         $average = Gradebook::useService()->calcStudentGrade(
-            $tblPerson,
-            $tblDivision,
-            $tblSubject,
-            Evaluation::useService()->getTestTypeByIdentifier('TEST'),
+            $tblPerson, $tblDivision, $tblSubject, Evaluation::useService()->getTestTypeByIdentifier('TEST'),
             $tblScoreRule ? $tblScoreRule : null,
-            ($tblTaskPeriod = $tblTask->getServiceTblPeriodByDivision($tblDivision)) ? $tblTaskPeriod : null,
-            null,
-            false,
-            $tblTask->getDate() ? $tblTask->getDate() : false,
-            true
+            ($tblTaskPeriod = $tblTask->getServiceTblPeriodByDivision($tblDivision)) ? $tblTaskPeriod : null, null,
+            $tblTask->getDate() ? $tblTask->getDate() : false, true
         );
         if (is_array($average)) {
 //            $errorRowList = $average;

@@ -695,9 +695,9 @@ class Service extends ServiceScoreRule
      * @param TblScoreRule $tblScoreRule
      * @param TblPeriod|null $tblPeriod
      * @param TblSubjectGroup|null $tblSubjectGroup
-     * @param bool $isStudentView
      * @param bool $taskDate
      * @param bool $useGradesFromAnotherDivision
+     * @param bool|TblGrade[] $tblGradeList
      *
      * @return array|bool|float|string
      */
@@ -709,50 +709,53 @@ class Service extends ServiceScoreRule
         TblScoreRule $tblScoreRule = null,
         TblPeriod $tblPeriod = null,
         TblSubjectGroup $tblSubjectGroup = null,
-        $isStudentView = false,
         $taskDate = false,
-        $useGradesFromAnotherDivision = false
+        $useGradesFromAnotherDivision = false,
+        $tblGradeList = false
     ) {
 
-        $tblGradeList = $this->getGradesByStudent(
-            $tblPerson, $tblDivision, $tblSubject, $tblTestType, $tblPeriod, $tblSubjectGroup
-        );
+        // bei übergebener Notenliste diese verwenden
+        if (!$tblGradeList) {
+            $tblGradeList = $this->getGradesByStudent(
+                $tblPerson, $tblDivision, $tblSubject, $tblTestType, $tblPeriod, $tblSubjectGroup
+            );
 
-        // Vornoten berücksichtigen
-        if ($useGradesFromAnotherDivision) {
-            if (!$tblGradeList) {
-                $tblGradeList = array();
-            }
-            $list = array();
-            if (($tblYear = $tblDivision->getServiceTblYear())
-                && ($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST'))
-                && ($list = $this->getGradesFromAnotherDivisionByStudent(
-                    $tblDivision, $tblSubject, $tblYear, $tblPerson, $tblTestType, $list
-                ))
-            ) {
-                if ($tblPeriod) {
-                    if (isset($list[$tblPeriod->getId()][$tblPerson->getId()])) {
-                        foreach ($list[$tblPeriod->getId()][$tblPerson->getId()] as $gradeId => $value) {
-                            if (($tblGrade = $this->getGradeById($gradeId))) {
-                                $tblGradeList[] = $tblGrade;
-                            }
-                        }
-                    }
-                } else {
-                    foreach ($list as $periodId => $personArray){
-                        foreach ($personArray as $gradeArray) {
-                            foreach ($gradeArray as $gradeId => $value) {
+            // Vornoten berücksichtigen
+            if ($useGradesFromAnotherDivision) {
+                if (!$tblGradeList) {
+                    $tblGradeList = array();
+                }
+                $list = array();
+                if (($tblYear = $tblDivision->getServiceTblYear())
+                    && ($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST'))
+                    && ($list = $this->getGradesFromAnotherDivisionByStudent(
+                        $tblDivision, $tblSubject, $tblYear, $tblPerson, $tblTestType, $list
+                    ))
+                ) {
+                    if ($tblPeriod) {
+                        if (isset($list[$tblPeriod->getId()][$tblPerson->getId()])) {
+                            foreach ($list[$tblPeriod->getId()][$tblPerson->getId()] as $gradeId => $value) {
                                 if (($tblGrade = $this->getGradeById($gradeId))) {
                                     $tblGradeList[] = $tblGrade;
                                 }
                             }
                         }
+                    } else {
+                        foreach ($list as $periodId => $personArray) {
+                            foreach ($personArray as $gradeArray) {
+                                foreach ($gradeArray as $gradeId => $value) {
+                                    if (($tblGrade = $this->getGradeById($gradeId))) {
+                                        $tblGradeList[] = $tblGrade;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
-            }
 
-            if (empty($tblGradeList)) {
-                $tblGradeList = false;
+                if (empty($tblGradeList)) {
+                    $tblGradeList = false;
+                }
             }
         }
 
@@ -796,33 +799,6 @@ class Service extends ServiceScoreRule
                 }
             }
             $tblGradeList = empty($tempGradeList) ? false : $tempGradeList;
-        }
-
-        // filter by Test Return for StudentView
-        if ($isStudentView && $tblGradeList) {
-            $filteredGradeList = array();
-            foreach ($tblGradeList as $tblGrade) {
-                $tblTest = $tblGrade->getServiceTblTest();
-                if ($tblTest) {
-                    // Noten-Datum
-                    if ($tblTest->isContinues() && $tblGrade->getDate()) {
-                        $gradeDate = (new \DateTime($tblGrade->getDate()))->format("Y-m-d");
-                        $now = (new \DateTime('now'))->format("Y-m-d");
-                        if ($gradeDate <= $now) {
-                            $filteredGradeList[$tblGrade->getId()] = $tblGrade;
-                        }
-                    } // Test-Datum
-                    elseif ($tblTest->getReturnDate()) {
-                        $testDate = (new \DateTime($tblTest->getReturnDate()))->format("Y-m-d");
-                        $now = (new \DateTime('now'))->format("Y-m-d");
-                        if ($testDate <= $now) {
-                            $filteredGradeList[$tblGrade->getId()] = $tblGrade;
-                        }
-                    }
-                }
-            }
-
-            $tblGradeList = empty($filteredGradeList) ? false : $filteredGradeList;
         }
 
         if ($tblGradeList) {
@@ -1788,5 +1764,44 @@ class Service extends ServiceScoreRule
         }
 
         return $resultList;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     * @param TblSubject $tblSubject
+     * @param TblTestType $tblTestType
+     * @param TblPeriod|null $tblPeriod
+     *
+     * @return array|bool
+     */
+    public function getGradesAllByStudentAndYearAndSubject(
+        TblPerson $tblPerson,
+        TblYear $tblYear,
+        TblSubject $tblSubject,
+        TblTestType $tblTestType,
+        TblPeriod $tblPeriod = null
+    ) {
+
+        $grades = array();
+        if (($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))) {
+            foreach ($tblDivisionStudentList as $tblDivisionStudentItem) {
+                if (($tblDivision = $tblDivisionStudentItem->getTblDivision())
+                    && ($tblYearItem = $tblDivision->getServiceTblYear())
+                    && $tblYear->getId() == $tblYearItem->getId())
+                {
+                    // deaktivierte Schüler bei denen die Noten nicht übernommen werden sollen ignorieren
+                    if ($tblDivisionStudentItem->getLeaveDateTime() !== null && !$tblDivisionStudentItem->getUseGradesInNewDivision()) {
+                        continue;
+                    }
+
+                    if (($tblGradeList = $this->getGradesByStudent($tblPerson, $tblDivision, $tblSubject, $tblTestType, $tblPeriod ? $tblPeriod : null))) {
+                        $grades = array_merge($grades, $tblGradeList);
+                    }
+                }
+            }
+        }
+
+        return empty($grades) ? false : $grades;
     }
 }

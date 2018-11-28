@@ -656,12 +656,8 @@ class Gradebook
                              * Calc Average Period or Average Total
                              */
                             $average = \SPHERE\Application\Education\Graduation\Gradebook\Gradebook::useService()->calcStudentGrade(
-                                $tblPerson,
-                                $tblDivision,
-                                $tblSubject,
-                                $tblTestType,
-                                $tblScoreRule ? $tblScoreRule : null,
-                                !$isSekTwo && $isLastPeriod ? null : $tblPeriod,
+                                $tblPerson, $tblDivision, $tblSubject, $tblTestType,
+                                $tblScoreRule ? $tblScoreRule : null, !$isSekTwo && $isLastPeriod ? null : $tblPeriod,
                                 $tblSubjectGroup ? $tblSubjectGroup : null
                             );
 

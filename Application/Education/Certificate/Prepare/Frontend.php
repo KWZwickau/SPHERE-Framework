@@ -2604,14 +2604,9 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         $average = Gradebook::useService()->calcStudentGrade(
-            $tblPerson,
-            $tblDivision,
-            $tblSubject,
-            Evaluation::useService()->getTestTypeByIdentifier('TEST'),
+            $tblPerson, $tblDivision, $tblSubject, Evaluation::useService()->getTestTypeByIdentifier('TEST'),
             $tblScoreRule ? $tblScoreRule : null,
-            ($tblTaskPeriod = $tblTask->getServiceTblPeriodByDivision($tblDivision)) ? $tblTaskPeriod : null,
-            null,
-            false,
+            ($tblTaskPeriod = $tblTask->getServiceTblPeriodByDivision($tblDivision)) ? $tblTaskPeriod : null, null,
             $tblTask->getDate() ? $tblTask->getDate() : false
         );
         if (is_array($average)) {
@@ -3949,15 +3944,12 @@ class Frontend extends Extension implements IFrontendInterface
                                                     $tblTestTemp->getServiceTblSubjectGroup() ? $tblTestTemp->getServiceTblSubjectGroup() : null
                                                 );
                                                 $average = Gradebook::useService()->calcStudentGrade(
-                                                    $tblPerson,
-                                                    $tblDivisionItem,
-                                                    $tblCurrentSubject,
+                                                    $tblPerson, $tblDivisionItem, $tblCurrentSubject,
                                                     Evaluation::useService()->getTestTypeByIdentifier('TEST'),
                                                     $tblScoreRule ? $tblScoreRule : null,
                                                     ($tblTaskPeriod = $tblTask->getServiceTblPeriodByDivision($tblDivisionItem))
                                                         ? $tblTaskPeriod : null,
                                                     $tblTestTemp->getServiceTblSubjectGroup() ? $tblTestTemp->getServiceTblSubjectGroup() : null,
-                                                    false,
                                                     $tblTask->getDate() ? $tblTask->getDate() : false
                                                 );
 
@@ -4646,13 +4638,8 @@ class Frontend extends Extension implements IFrontendInterface
                              * Average
                              */
                             $average = Gradebook::useService()->calcStudentGrade(
-                                $tblPerson,
-                                $tblDivisionItem,
-                                $tblSubjectItem,
-                                $tblTestType,
-                                $tblScoreRule ? $tblScoreRule : null,
-                                null,
-                                $tblSubjectGroup ? $tblSubjectGroup : null
+                                $tblPerson, $tblDivisionItem, $tblSubjectItem, $tblTestType,
+                                $tblScoreRule ? $tblScoreRule : null, null, $tblSubjectGroup ? $tblSubjectGroup : null
                             );
                             if (is_array($average)) {
                                 $average = 'Fehler';
