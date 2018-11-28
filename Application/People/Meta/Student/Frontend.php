@@ -99,6 +99,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -985,9 +986,12 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblLevel = $tblDivision->getTblLevel();
                         $tblYear = $tblDivision->getServiceTblYear();
                         if ($tblLevel && $tblYear) {
-                            $VisitedDivisions[] = $tblYear->getDisplayName().' Klasse '.$tblDivision->getDisplayName()
+                            $text = $tblYear->getDisplayName().' Klasse '.$tblDivision->getDisplayName()
                                 .new Muted(new Small(' '.($tblLevel->getServiceTblType() ? $tblLevel->getServiceTblType()->getName() : '')))
                                 .$TeacherString;
+                            $VisitedDivisions[] = $tblDivisionStudent->isInActive()
+                                ? new Strikethrough($text)
+                                : $text;
                             foreach ($tblDivisionStudentAllByPerson as &$tblDivisionStudentTemp) {
                                 if ($tblDivisionStudent->getId() !== $tblDivisionStudentTemp->getId()
                                     && $tblDivisionStudentTemp->getTblDivision()
@@ -1003,10 +1007,6 @@ class Frontend extends Extension implements IFrontendInterface
                             }
                         }
                     }
-                }
-
-                if (!empty($VisitedDivisions)) {
-                    rsort($VisitedDivisions);
                 }
             }
         }
