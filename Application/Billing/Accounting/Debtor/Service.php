@@ -2,7 +2,12 @@
 namespace SPHERE\Application\Billing\Accounting\Debtor;
 
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Data;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankAccount;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankReference;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorNumber;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorSelection;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Setup;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Window\RedirectScript;
@@ -55,5 +60,217 @@ class Service extends AbstractService
         return 'Lädt...'
             .(new ProgressBar(0, 100, 0, 12))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS)
             .new RedirectScript('/Billing/Accounting/Causer/View', 0, array('GroupId' => $GroupId));
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblDebtorNumber
+     */
+    public function getDebtorNumberById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getDebtorNumberById($Id);
+    }
+
+    /**
+     * @param $Number
+     *
+     * @return false|TblDebtorNumber
+     */
+    public function getDebtorNumberByNumber($Number)
+    {
+
+        return (new Data($this->getBinding()))->getDebtorNumberByNumber($Number);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblDebtorNumber[]
+     */
+    public function getDebtorNumberByPerson(TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->getDebtorNumberByPerson($tblPerson);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblBankAccount
+     */
+    public function getBankAccountById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getBankAccountById($Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblBankReference
+     */
+    public function getBankReferenceById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getBankReferenceById($Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblDebtorSelection
+     */
+    public function getDebtorSelectionById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getDebtorSelectionById($Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblBankAccount
+     */
+    public function getBankAccountAll($Id)
+    {
+
+        return (new Data($this->getBinding()))->getBankAccountAll($Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblBankReference
+     */
+    public function getBankReferenceAll($Id)
+    {
+
+        return (new Data($this->getBinding()))->getBankReferenceAll($Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblDebtorSelection
+     */
+    public function getDebtorSelectionAll($Id)
+    {
+
+        return (new Data($this->getBinding()))->getDebtorSelectionAll($Id);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param string    $DebtorNumber
+     *
+     * @return null|TblDebtorNumber
+     */
+    public function createDebtorNumber(TblPerson $tblPerson, $DebtorNumber)
+    {
+
+        return (new Data($this->getBinding()))->createDebtorNumber($tblPerson, $DebtorNumber);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param string $BankName
+     * @param string $IBAN
+     * @param string $BIC
+     * @param string $Owner
+     *
+     * @return null|TblBankAccount
+     */
+    public function createBankAccount(TblPerson $tblPerson, $BankName = '', $IBAN = '', $BIC = '', $Owner = '')
+    {
+
+        return (new Data($this->getBinding()))->createBankAccount($tblPerson, $BankName, $IBAN, $BIC, $Owner);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param string $ReferenceNumber
+     * @param string $ReferenceDate
+     *
+     * @return null|TblBankReference
+     */
+    public function createBankReference(TblPerson $tblPerson, $ReferenceNumber = '', $ReferenceDate = '')
+    {
+
+        return (new Data($this->getBinding()))->createBankReference($tblPerson, $ReferenceNumber, $ReferenceDate);
+    }
+
+    /**
+     * @param TblDebtorNumber $tblDebtorNumber
+     * @param string $Number
+     *
+     * @return bool
+     */
+    public function changeDebtorNumber(TblDebtorNumber $tblDebtorNumber, $Number = '')
+    {
+
+        return(new Data($this->getBinding()))->updateDebtorNumber($tblDebtorNumber, $Number);
+    }
+
+    /**
+     * @param TblBankAccount $tblBankAccount
+     * @param string $BankName
+     * @param string $IBAN
+     * @param string $BIC
+     * @param string $Owner
+     *
+     * @return bool
+     */
+    public function changeBankAccount(TblBankAccount $tblBankAccount, $BankName = '', $IBAN = '', $BIC = '', $Owner = '')
+    {
+
+        return(new Data($this->getBinding()))->updateBankAccount($tblBankAccount, $BankName, $IBAN, $BIC, $Owner);
+    }
+
+    /**
+     * @param TblBankReference $tblBankReference
+     * @param string $ReferenceNumber
+     * @param string $ReferenceDate
+     *
+     * @return bool
+     */
+    public function changeBankReference(TblBankReference $tblBankReference, $ReferenceNumber = '', $ReferenceDate = '')
+    {
+
+        return(new Data($this->getBinding()))->updateBankReference($tblBankReference, $ReferenceNumber, $ReferenceDate);
+    }
+
+    /**
+     * @param TblDebtorNumber $tblDebtorNumber
+     *
+     * @return bool
+     */
+    public function removeDebtorNumber(TblDebtorNumber $tblDebtorNumber)
+    {
+
+        return(new Data($this->getBinding()))->removeDebtorNumber($tblDebtorNumber);
+    }
+
+    /**
+     * @param TblBankAccount $tblBankAccount
+     *
+     * @return bool
+     */
+    public function removeBankAccount(TblBankAccount $tblBankAccount)
+    {
+
+        return(new Data($this->getBinding()))->removeBankAccount($tblBankAccount);
+    }
+
+    /**
+     * @param TblBankReference $tblBankReference
+     *
+     * @return bool
+     */
+    public function removeBankReference(TblBankReference $tblBankReference)
+    {
+
+        return(new Data($this->getBinding()))->removeBankReference($tblBankReference);
     }
 }

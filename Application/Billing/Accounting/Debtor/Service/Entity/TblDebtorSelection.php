@@ -1,15 +1,16 @@
 <?php
-namespace SPHERE\Application\Billing\Accounting\Banking\Service\Entity;
+namespace SPHERE\Application\Billing\Accounting\Debtor\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Billing\Accounting\Banking\Banking;
+use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemVariant;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
@@ -26,7 +27,9 @@ class TblDebtorSelection extends Element
     const ATTR_SERVICE_TBL_PERSON_PAYERS = 'serviceTblPersonPayers';
     const ATTR_SERVICE_TBL_PAYMENT_TYPE = 'serviceTblPaymentType';
     const ATTR_SERVICE_TBL_ITEM = 'serviceTblItem';
-    const ATTR_TBL_DEBTOR = 'tblDebtor';
+    const ATTR_SERVICE_TBL_ITEM_VARIANT = 'serviceTblItemVariant';
+    const ATTR_VALUE = 'Value';
+    const ATTR_TBL_BANK_ACCOUNT = 'tblBankAccount';
     const ATTR_TBL_BANK_REFERENCE = 'tblBankReference';
 
     /**
@@ -45,7 +48,15 @@ class TblDebtorSelection extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $tblDebtor;
+    protected $serviceTblItemVariant;
+    /**
+     * @Column(type="decimal", precision=14, scale=4)
+     */
+    protected $Value;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblBankAccount;
     /**
      * @Column(type="bigint")
      */
@@ -98,7 +109,7 @@ class TblDebtorSelection extends Element
     /**
      * @return bool|TblItem
      */
-    public function getServiceTblInventoryItem()
+    public function getServiceTblItem()
     {
 
         if (null === $this->serviceTblItem) {
@@ -111,32 +122,77 @@ class TblDebtorSelection extends Element
     /**
      * @param TblItem|null $tblItem
      */
-    public function setServiceTblInventoryItem(TblItem $tblItem = null)
+    public function setServiceTblItem(TblItem $tblItem = null)
     {
 
         $this->serviceTblItem = ( null === $tblItem ? null : $tblItem->getId() );
     }
 
     /**
-     * @return bool|TblDebtor
+     * @return bool|TblItemVariant
      */
-    public function getTblDebtor()
+    public function getServiceTblItemVariant()
     {
 
-        if (null === $this->tblDebtor) {
+        if (null === $this->serviceTblItemVariant) {
             return false;
         } else {
-            return Banking::useService()->getDebtorById($this->tblDebtor);
+            return Item::useService()->getItemVariantById($this->serviceTblItemVariant);
         }
     }
 
     /**
-     * @param null|TblDebtor $tblDebtor
+     * @param TblItemVariant|null $tblItemVariant
      */
-    public function setTblDebtor(TblDebtor $tblDebtor = null)
+    public function setServiceTblItemVariant(TblItemVariant $tblItemVariant = null)
     {
 
-        $this->tblDebtor = ( null === $tblDebtor ? null : $tblDebtor->getId() );
+        $this->serviceTblItemVariant = ( null === $tblItemVariant ? null : $tblItemVariant->getId() );
+    }
+
+    /**
+     * @param bool $IsShort
+     *
+     * @return (type="decimal", precision=14, scale=4)|string
+     */
+    public function getValue($IsShort = false)
+    {
+
+        if($IsShort){
+            return number_format($this->Value, 2);
+        }
+        return $this->Value;
+    }
+
+    /**
+     * @param (type="decimal", precision=14, scale=4) $Value
+     */
+    public function setValue($Value)
+    {
+
+        $this->Value = $Value;
+    }
+
+    /**
+     * @return bool|TblBankAccount
+     */
+    public function getTblBankAccount()
+    {
+
+        if (null === $this->tblBankAccount) {
+            return false;
+        } else {
+            return Debtor::useService()->getBankAccountById($this->tblBankAccount);
+        }
+    }
+
+    /**
+     * @param null|TblBankAccount $tblBankAccount
+     */
+    public function setTblBankAccount(TblBankAccount $tblBankAccount = null)
+    {
+
+        $this->tblBankAccount = ( null === $tblBankAccount ? null : $tblBankAccount->getId() );
     }
 
     /**
@@ -148,7 +204,7 @@ class TblDebtorSelection extends Element
         if (null === $this->tblBankReference) {
             return false;
         } else {
-            return Banking::useService()->getBankReferenceById($this->tblBankReference);
+            return Debtor::useService()->getBankReferenceById($this->tblBankReference);
         }
     }
 

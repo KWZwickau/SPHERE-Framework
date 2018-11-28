@@ -1,11 +1,12 @@
 <?php
-namespace SPHERE\Application\Billing\Accounting\Banking\Service\Entity;
+namespace SPHERE\Application\Billing\Accounting\Debtor\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Billing\Accounting\Banking\Banking;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -17,7 +18,7 @@ class TblBankAccount extends Element
 {
 
 
-    const ATTR_TBL_DEBTOR = 'tblDebtor';
+    const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_BANK_NAME = 'BankName';
     const ATTR_IBAN = 'IBAN';
     const ATTR_BIC = 'BIC';
@@ -26,7 +27,7 @@ class TblBankAccount extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $tblDebtor;
+    protected $serviceTblPerson;
     /**
      * @Column(type="string")
      */
@@ -45,25 +46,25 @@ class TblBankAccount extends Element
     protected $Owner;
 
     /**
-     * @return bool|TblDebtor
+     * @return bool|TblPerson
      */
-    public function getTblDebtor()
+    public function getServiceTblPerson()
     {
 
-        if (null === $this->tblDebtor) {
+        if (null === $this->serviceTblPerson) {
             return false;
         } else {
-            return Banking::useService()->getDebtorById($this->tblDebtor);
+            return Person::useService()->getPersonById($this->serviceTblPerson);
         }
     }
 
     /**
-     * @param TblDebtor $tblDebtor
+     * @param TblPerson $tblPerson
      */
-    public function setTblDebtor(TblDebtor $tblDebtor)
+    public function setServiceTblPerson(TblPerson $tblPerson)
     {
 
-        $this->tblDebtor = $tblDebtor->getId();
+        $this->serviceTblPerson = $tblPerson->getId();
     }
 
     /**

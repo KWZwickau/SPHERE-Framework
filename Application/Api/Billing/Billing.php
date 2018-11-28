@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Api\Billing;
 
 use SPHERE\Application\Api\Billing\Accounting\ApiCreditor;
+use SPHERE\Application\Api\Billing\Accounting\ApiDebtor;
 use SPHERE\Application\Api\Billing\Inventory\ApiItem;
 use SPHERE\Application\Api\Billing\Inventory\ApiSetting;
 use SPHERE\Application\IApplicationInterface;
@@ -21,5 +22,6 @@ class Billing implements IApplicationInterface
         ApiSetting::registerApi();
         ApiItem::registerApi();
         ApiCreditor::registerApi();
+        ApiDebtor::registerApi();
     }
 }

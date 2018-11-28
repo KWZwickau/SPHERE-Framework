@@ -21,7 +21,6 @@ class Accounting implements IApplicationInterface
          * Register Module
          */
 //        Account::registerModule();
-//        Banking::registerModule();
         Creditor::registerModule();
         Causer::registerModule();
         Debtor::registerModule();

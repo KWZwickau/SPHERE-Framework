@@ -1,7 +1,10 @@
 <?php
 namespace SPHERE\Application\Billing\Accounting\Debtor\Service;
 
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankAccount;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankReference;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorNumber;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorSelection;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
@@ -31,6 +34,65 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $Number
+     *
+     * @return false|TblDebtorNumber
+     */
+    public function getDebtorNumberByNumber($Number)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorNumber', array(
+            TblDebtorNumber::ATTR_DEBTOR_NUMBER => $Number
+        ));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblDebtorNumber[]
+     */
+    public function getDebtorNumberByPerson(TblPerson $tblPerson)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorNumber', array(
+            TblDebtorNumber::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+        ));
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblBankAccount
+     */
+    public function getBankAccountById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBankAccount', $Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblBankReference
+     */
+    public function getBankReferenceById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBankReference', $Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblDebtorSelection
+     */
+    public function getDebtorSelectionById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorSelection', $Id);
+    }
+
+    /**
      * @return false|TblDebtorNumber[]
      */
     public function getDebtorNumberAll()
@@ -40,12 +102,57 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string    $DebtorNumber
+     * @param $Id
+     *
+     * @return false|TblBankAccount
+     */
+    public function getBankAccountAll($Id)
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBankAccount', $Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblBankReference
+     */
+    public function getBankReferenceAll($Id)
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBankReference', $Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblDebtorSelection
+     */
+    public function getDebtorSelectionAll($Id)
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorSelection', $Id);
+    }
+
+    /**
+     * @param $Reference
+     *
+     * @return false|TblBankReference
+     */
+    public function getBankReferenceByNumber($Reference)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBankReference',
+            array(TblBankReference::ATTR_REFERENCE_NUMBER => $Reference));
+    }
+
+    /**
      * @param TblPerson $tblPerson
+     * @param string    $DebtorNumber
      *
      * @return null|TblDebtorNumber
      */
-    public function createDebtorNumber($DebtorNumber, TblPerson $tblPerson)
+    public function createDebtorNumber(TblPerson $tblPerson, $DebtorNumber)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -67,6 +174,154 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param string $BankName
+     * @param string $IBAN
+     * @param string $BIC
+     * @param string $Owner
+     *
+     * @return null|TblBankAccount
+     */
+    public function createBankAccount(TblPerson $tblPerson, $BankName = '', $IBAN = '', $BIC = '', $Owner = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblBankAccount')->findOneBy(array(
+            TblBankAccount::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            TblBankAccount::ATTR_IBAN => $IBAN,
+        ));
+
+        if ($Entity === null) {
+            $Entity = new TblBankAccount();
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setBankName($BankName);
+            $Entity->setIBAN($IBAN);
+            $Entity->setBIC($BIC);
+            $Entity->setOwner($Owner);
+            $Manager->saveEntity($Entity);
+
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+                $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param string $ReferenceNumber
+     * @param string $ReferenceDate
+     *
+     * @return null|TblBankReference
+     */
+    public function createBankReference(TblPerson $tblPerson, $ReferenceNumber = '', $ReferenceDate = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblBankReference')->findOneBy(array(
+            TblBankReference::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            TblBankReference::ATTR_REFERENCE_NUMBER => $ReferenceNumber,
+        ));
+
+        if ($Entity === null) {
+            $Entity = new TblBankReference();
+            $Entity->setReference($ReferenceNumber);
+            $Entity->setReferenceDate(($ReferenceDate ? new \DateTime($ReferenceDate) : new \DateTime()));
+            $Entity->setServiceTblPerson($tblPerson);
+            $Manager->saveEntity($Entity);
+
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+                $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblBankAccount $tblBankAccount
+     * @param string $BankName
+     * @param string $IBAN
+     * @param string $BIC
+     * @param string $Owner
+     *
+     * @return bool
+     */
+    public function updateBankAccount(TblBankAccount $tblBankAccount, $BankName = '', $IBAN = '', $BIC = '', $Owner = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblBankAccount $Entity */
+        $Entity = $Manager->getEntityById('TblBankAccount', $tblBankAccount->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setBankName($BankName);
+            $Entity->setIBAN($IBAN);
+            $Entity->setBIC($BIC);
+            $Entity->setOwner($Owner);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblDebtorNumber $tblDebtorNumber
+     * @param string $Number
+     *
+     * @return bool
+     */
+    public function updateDebtorNumber(TblDebtorNumber $tblDebtorNumber, $Number = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblDebtorNumber $Entity */
+        $Entity = $Manager->getEntityById('TblDebtorNumber', $tblDebtorNumber->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setDebtorNumber($Number);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblBankReference $tblBankReference
+     * @param string $ReferenceNumber
+     * @param string $ReferenceDate
+     *
+     * @return bool
+     */
+    public function updateBankReference(TblBankReference $tblBankReference, $ReferenceNumber = '', $ReferenceDate = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblBankReference $Entity */
+        $Entity = $Manager->getEntityById('TblBankReference', $tblBankReference->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setReference($ReferenceNumber);
+            $Entity->setReferenceDate(($ReferenceDate ? new \DateTime($ReferenceDate) : new \DateTime()));
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param TblDebtorNumber $tblDebtorNumber
      *
      * @return bool
@@ -76,6 +331,46 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntityById('TblDebtorNumber', $tblDebtorNumber->getId());
+        if (null !== $Entity) {
+            /** @var Element $Entity */
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblBankAccount $tblBankAccount
+     *
+     * @return bool
+     */
+    public function removeBankAccount(TblBankAccount $tblBankAccount)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntityById('TblBankAccount', $tblBankAccount->getId());
+        if (null !== $Entity) {
+            /** @var Element $Entity */
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblBankReference $tblBankReference
+     *
+     * @return bool
+     */
+    public function removeBankReference(TblBankReference $tblBankReference)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntityById('TblBankReference', $tblBankReference->getId());
         if (null !== $Entity) {
             /** @var Element $Entity */
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),

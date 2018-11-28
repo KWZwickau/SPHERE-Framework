@@ -1,11 +1,12 @@
 <?php
-namespace SPHERE\Application\Billing\Accounting\Banking\Service\Entity;
+namespace SPHERE\Application\Billing\Accounting\Debtor\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Billing\Accounting\Banking\Banking;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -18,9 +19,7 @@ class TblBankReference extends Element
 
     const ATTR_REFERENCE_NUMBER = 'ReferenceNumber';
     const ATTR_REFERENCE_DATE = 'ReferenceDate';
-    const ATTR_TBL_DEBTOR = 'tblDebtor';
-    const ATTR_TBL_BANK_ACCOUNT = 'tblBankAccount';
-    const ATTR_IS_STANDARD = 'IsStandard';
+    const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
 
     /**
      * @Column(type="string")
@@ -33,15 +32,7 @@ class TblBankReference extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $tblDebtor;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $tblBankAccount;
-    /**
-     * @Column(type="boolean")
-     */
-    protected $IsStandard;
+    protected $serviceTblPerson;
 
 
     /**
@@ -90,65 +81,24 @@ class TblBankReference extends Element
     }
 
     /**
-     * @return false|TblDebtor
+     * @return false|TblPerson
      */
-    public function getTblDebtor()
+    public function getServiceTblPerson()
     {
 
-        if (null === $this->tblDebtor) {
+        if (null === $this->serviceTblPerson) {
             return false;
         } else {
-            return Banking::useService()->getDebtorById($this->tblDebtor);
+            return Person::useService()->getPersonById($this->serviceTblPerson);
         }
     }
 
     /**
-     * @param TblDebtor|null $tblDebtor
+     * @param TblPerson $tblPerson
      */
-    public function setTblDebtor(TblDebtor $tblDebtor = null)
+    public function setServiceTblPerson(TblPerson $tblPerson)
     {
 
-        if(null !== $tblDebtor){
-            $this->tblDebtor = $tblDebtor->getId();
-        }
+        $this->serviceTblPerson = $tblPerson;
     }
-
-    /**
-     * @return false|TblBankAccount
-     */
-    public function getTblBankAccount()
-    {
-        if (null === $this->tblBankAccount) {
-            return false;
-        } else {
-            return Banking::useService()->getBankAccountById($this->tblBankAccount);
-        }
-    }
-
-    /**
-     * @param TblBankAccount|null $tblBankAccount
-     */
-    public function setTblBankAccount(TblBankAccount $tblBankAccount = null)
-    {
-        if(null !== $tblBankAccount) {
-            $this->tblBankAccount = $tblBankAccount->getId();
-        }
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getisStandard()
-    {
-        return $this->IsStandard;
-    }
-
-    /**
-     * @param mixed $IsStandard
-     */
-    public function setIsStandard($IsStandard)
-    {
-        $this->IsStandard = $IsStandard;
-    }
-
 }
