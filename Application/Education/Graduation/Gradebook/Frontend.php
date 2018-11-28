@@ -2493,9 +2493,9 @@ class Frontend extends FrontendScoreRule
 
     /**
      * @param TblTest $tblTest
-     * @param TblGrade $tblGrade
-     * @param $subTableHeaderList
-     * @param $subTableDataList
+     * @param TblGrade|null $tblGrade
+     * @param array $subTableHeaderList
+     * @param array $subTableDataList
      * @param bool $hasScore
      * @param bool $showDivisionInToolTip
      */
@@ -2572,7 +2572,7 @@ class Frontend extends FrontendScoreRule
             $gradeValue = null;
         }
 
-        $subTableDataList[0]['Test' . $tblTest->getId()] = $gradeValue !== null && $gradeValue !== '' ? $gradeValue : '&nbsp;';
+        $subTableDataList[0]['Test' . $tblTest->getId()] = ($gradeValue !== null && $gradeValue !== '') ? $gradeValue : '&nbsp;';
     }
 
     /**
@@ -2772,7 +2772,8 @@ class Frontend extends FrontendScoreRule
                                                                     $showDivisionInToolTip = false;
                                                                 }
 
-                                                                $this->addTest($tblTest,
+                                                                $this->addTest(
+                                                                    $tblTest,
                                                                     $tblGrade,
                                                                     $subTableHeaderList,
                                                                     $subTableDataList,
@@ -2796,11 +2797,13 @@ class Frontend extends FrontendScoreRule
                                                     /** @var TblTest $tblTestItem */
                                                     foreach ($tblTestList as $tblTestItem) {
                                                         if (!isset($subTableHeaderList['Test' . $tblTestItem->getId()])) {
-                                                            $this->addTest($tblTestItem,
+                                                            $this->addTest(
+                                                                $tblTestItem,
                                                                 null,
                                                                 $subTableHeaderList,
                                                                 $subTableDataList,
-                                                                $hasScore
+                                                                $hasScore,
+                                                                false
                                                             );
                                                         }
                                                     }
