@@ -1536,4 +1536,38 @@ class Service extends AbstractService
 
         return $tblTestList;
     }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblPeriod $tblPeriod
+     *
+     * @return array|bool
+     */
+    public function getHighlightedTestList(
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblPeriod $tblPeriod
+    ) {
+
+        $list = array();
+
+        if (($tblTestType = $this->getTestTypeByIdentifier('TEST'))
+            && ($tblTestList = $this->getTestAllByTypeAndDivisionAndSubjectAndPeriodAndSubjectGroup(
+            $tblDivision, $tblSubject, $tblTestType, $tblPeriod
+        ))) {
+            // Sortieren
+            $tblTestList = $this->getSorter($tblTestList)->sortObjectBy('DateForSorter', new DateTimeSorter());
+            /** @var TblTest $tblTest */
+            foreach ($tblTestList as $tblTest) {
+                if (($tblGradeType = $tblTest->getServiceTblGradeType())
+                    && $tblGradeType->isHighlighted()
+                ) {
+                    $list[$tblTest->getId()] = $tblTest;
+                }
+            }
+        }
+
+        return empty($list) ? false : $list;
+    }
 }
