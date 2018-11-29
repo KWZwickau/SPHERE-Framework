@@ -31,7 +31,14 @@ class MsAbsRs extends Certificate
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $Header = $this->getHead($this->isSample(), true, 'auto', '50px');
+        $showPictureOnSecondPage = true;
+        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                'Education', 'Certificate', 'Generate', 'PictureDisplayLocationForDiplomaCertificate'))
+        ) {
+            $showPictureOnSecondPage = $tblSetting->getValue();
+        }
+
+        $Header = self::getHeadForDiploma($this->isSample(), !$showPictureOnSecondPage);
 
         // leere Seite
         $pageList[] = new Page();
@@ -128,7 +135,9 @@ class MsAbsRs extends Certificate
                 )
                 ->styleAlignCenter()
                 ->styleMarginTop('22%')
-            );
+            )
+            ->addSlice(self::getPictureForDiploma($showPictureOnSecondPage))
+        ;
 
         $pageList[] = (new Page())
             ->addSlice((new Slice())
@@ -252,7 +261,7 @@ class MsAbsRs extends Certificate
 //                )
 //            )
             ->addSlice($this->getExaminationsBoard('10px','11px'))
-            ->addSlice($this->getInfo('60px',
+            ->addSlice($this->getInfo('50px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend')
             );
@@ -614,5 +623,123 @@ class MsAbsRs extends Certificate
         ;
 
         return $slice;
+    }
+
+    /**
+     * @param string $marginTop
+     *
+     * @return Slice
+     */
+    public static function getPictureForDiploma($showPicture, $marginTop = '40px')
+    {
+
+        if (!$showPicture) {
+            return new Slice();
+        }
+
+        $pictureAddress = '';
+        if (($tblSettingAddress = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+            'Education', 'Certificate', 'Generate', 'PictureAddressForDiplomaCertificate'))
+        ) {
+            $pictureAddress = trim($tblSettingAddress->getValue());
+        }
+        $pictureHeight = '50px';
+        if (($tblSettingHeight = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+            'Education', 'Certificate', 'Generate', 'PictureHeightForDiplomaCertificate'))
+            && ($value = trim($tblSettingHeight->getValue()))
+        ) {
+            $pictureHeight = $value;
+        }
+
+        if ($pictureAddress !== '') {
+            return (new Slice)
+                ->addElement((new Element\Image($pictureAddress, 'auto', $pictureHeight))
+                    ->styleAlignCenter()
+                )
+                ->styleMarginTop($marginTop);
+        } else {
+            return new Slice();
+        }
+    }
+
+    /**
+     * @param $IsSample
+     * @param $showPicture
+     *
+     * @return Slice
+     */
+    public static function getHeadForDiploma($IsSample, $showPicture)
+    {
+
+        if ($showPicture) {
+            $pictureAddress = '';
+            if (($tblSettingAddress = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                'Education', 'Certificate', 'Generate', 'PictureAddressForDiplomaCertificate'))
+            ) {
+                $pictureAddress = trim($tblSettingAddress->getValue());
+            }
+            $pictureHeight = '50px';
+            if (($tblSettingHeight = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+                    'Education', 'Certificate', 'Generate', 'PictureHeightForDiplomaCertificate'))
+                && ($value = trim($tblSettingHeight->getValue()))
+            ) {
+                $pictureHeight = $value;
+            }
+
+            if ($pictureAddress !== '') {
+                if ($IsSample) {
+                    $Header = (new Slice())
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element\Image($pictureAddress, 'auto', $pictureHeight))
+                                ->styleAlignCenter()
+                                , '25%')
+                            ->addElementColumn((new Element\Sample())
+                                ->styleTextSize('30px')
+                            )
+                            ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
+                                '165px', '50px'))
+                                , '25%')
+                        );
+                } else {
+                    $Header = (new Slice())
+                        ->addSection((new Section())
+                            ->addElementColumn((new Element\Image($pictureAddress, 'auto', $pictureHeight))
+                                ->styleAlignCenter()
+                                , '25%')
+                            ->addElementColumn((new Element()), '50%')
+                            ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
+                                '165px', '50px'))
+                                , '25%')
+                        );
+                }
+
+                return $Header;
+            }
+        }
+
+        if ($IsSample) {
+            $Header = (new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        , '25%'
+                    )
+                    ->addElementColumn((new Element\Sample())
+                        ->styleTextSize('30px')
+                    )
+                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
+                        '165px', '50px'))
+                        , '25%')
+                );
+        } else {
+            $Header = (new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element()), '75%')
+                    ->addElementColumn((new Element\Image('/Common/Style/Resource/Logo/ClaimFreistaatSachsen.jpg',
+                        '165px', '50px'))
+                        , '25%')
+                );
+        }
+
+        return $Header;
     }
 }

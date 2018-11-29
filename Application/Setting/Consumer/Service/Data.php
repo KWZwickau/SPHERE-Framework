@@ -94,13 +94,21 @@ class Data extends AbstractData
                 'Für die Standard-Zeugnisse kann ein Bild (Logo) hinterlegt werden. Logo für das Zeugnis darf skalliert 
                 nicht breiter sein als 182px (bei einer höhe von 50px [Bsp.: 546 * 150 ist noch ok]). Höhe des Bildes: [Standard: ]');
         }
+        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Generate', 'PictureAddressForDiplomaCertificate', TblSetting::TYPE_STRING, ''))) {
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Für die Standard-Abschluss-Zeugnisse kann ein Bild (Logo) hinterlegt werden. Adresse des Bildes: []');
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Generate', 'PictureHeightForDiplomaCertificate', TblSetting::TYPE_STRING, ''))) {
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Für die Standard-Abschluss-Zeugnisse kann ein Bild (Logo) hinterlegt werden. Höhe des Bildes: []');
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Generate', 'PictureDisplayLocationForDiplomaCertificate', TblSetting::TYPE_BOOLEAN, '1'))) {
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Für die Standard-Abschluss-Zeugnisse wird das Logo auf der 2. Seite unter dem Abschluss angezeigt (ansonsten auf dem Cover oben links): [Ja]');
+        }
         if (($tblSetting = $this->createSetting('Api', 'Education', 'Certificate', 'OrientationAcronym',
             TblSetting::TYPE_STRING, ''))) {
             $this->updateSettingDescription($tblSetting, 'Zeugnisse',
                 'Werden die Neigungskurse in der Bildung nicht einzeln gepflegt, sondern nur ein einzelner Standard-Neigungskurs, 
                 kann hier das Kürzel des Standard-Neigungskurses (z.B. NK) hinterlegt werden. Für die Zeugnisse wir dann der
                 eigentliche Neigungskurs aus der Schülerakte des Schülers gezogen. [Standard: ]');
-        }
         if (($tblSetting = $this->createSetting('Api', 'Education', 'Certificate', 'ProfileAcronym',
             TblSetting::TYPE_STRING, ''))) {
             $this->updateSettingDescription($tblSetting, 'Zeugnisse',
