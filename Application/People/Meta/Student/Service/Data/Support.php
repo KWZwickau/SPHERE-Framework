@@ -157,16 +157,18 @@ abstract class Support extends Integration
     /**
      * @param TblPerson $serviceTblPerson
      * @param \DateTime $Date
-     * @param string    $PersonEditor
-     * @param string    $Remark
+     * @param string $PersonEditor
+     * @param string $Remark
+     * @param bool $IsCanceled
      *
      * @return TblSpecial
      */
     public function createSpecial(TblPerson $serviceTblPerson,
         $Date,
         $PersonEditor = '',
-        $Remark = '')
-    {
+        $Remark = '',
+        $IsCanceled = false
+    ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -175,6 +177,8 @@ abstract class Support extends Integration
         $Entity->setServiceTblPerson($serviceTblPerson);
         $Entity->setPersonEditor($PersonEditor);
         $Entity->setRemark($Remark);
+        $Entity->setIsCanceled($IsCanceled);
+
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         return $Entity;
@@ -183,11 +187,12 @@ abstract class Support extends Integration
     /**
      * @param TblPerson $serviceTblPerson
      * @param \DateTime $Date
-     * @param string    $PersonEditor
-     * @param string    $LegalBasis
-     * @param string    $LearnTarget
-     * @param string    $RemarkLesson
-     * @param string    $RemarkRating
+     * @param string $PersonEditor
+     * @param string $LegalBasis
+     * @param string $LearnTarget
+     * @param string $RemarkLesson
+     * @param string $RemarkRating
+     * @param bool $IsCanceled
      *
      * @return TblHandyCap
      */
@@ -197,8 +202,9 @@ abstract class Support extends Integration
         $LegalBasis = '',
         $LearnTarget = '',
         $RemarkLesson = '',
-        $RemarkRating = '')
-    {
+        $RemarkRating = '',
+        $IsCanceled = false
+    ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -210,6 +216,8 @@ abstract class Support extends Integration
         $Entity->setLearnTarget($LearnTarget);
         $Entity->setRemarkLesson($RemarkLesson);
         $Entity->setRemarkRating($RemarkRating);
+        $Entity->setIsCanceled($IsCanceled);
+
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         return $Entity;
@@ -301,17 +309,19 @@ abstract class Support extends Integration
 
     /**
      * @param TblSpecial $tblSpecial
-     * @param \DateTime  $Date
-     * @param string     $PersonEditor
-     * @param string     $Remark
+     * @param \DateTime $Date
+     * @param string $PersonEditor
+     * @param string $Remark
+     * @param bool $IsCanceled
      *
      * @return bool
      */
     public function updateSpecial(TblSpecial $tblSpecial,
         $Date,
         $PersonEditor = '',
-        $Remark = '')
-    {
+        $Remark = '',
+        $IsCanceled = false
+    ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -322,6 +332,8 @@ abstract class Support extends Integration
             $Entity->setDate($Date);
             $Entity->setPersonEditor($PersonEditor);
             $Entity->setRemark($Remark);
+            $Entity->setIsCanceled($IsCanceled);
+
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
@@ -333,12 +345,13 @@ abstract class Support extends Integration
 
     /**
      * @param TblHandyCap $tblHandyCap
-     * @param \DateTime   $Date
-     * @param string      $PersonEditor
-     * @param string      $LegalBasis
-     * @param string      $LearnTarget
-     * @param string      $RemarkLesson
-     * @param string      $RemarkRating
+     * @param \DateTime $Date
+     * @param string $PersonEditor
+     * @param string $LegalBasis
+     * @param string $LearnTarget
+     * @param string $RemarkLesson
+     * @param string $RemarkRating
+     * @param bool $IsCanceled
      *
      * @return bool
      */
@@ -348,8 +361,9 @@ abstract class Support extends Integration
         $LegalBasis = '',
         $LearnTarget = '',
         $RemarkLesson = '',
-        $RemarkRating = '')
-    {
+        $RemarkRating = '',
+        $IsCanceled = false
+    ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -363,6 +377,8 @@ abstract class Support extends Integration
             $Entity->setLearnTarget($LearnTarget);
             $Entity->setRemarkLesson($RemarkLesson);
             $Entity->setRemarkRating($RemarkRating);
+            $Entity->setIsCanceled($IsCanceled);
+
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
@@ -576,9 +592,11 @@ abstract class Support extends Integration
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSpecial',
-        array(
-            TblSpecial::SERVICE_TBL_PERSON => $tblPerson->getId()
-        ));
+            array(
+                TblSpecial::SERVICE_TBL_PERSON => $tblPerson->getId()
+            ),
+            array('Date' => self::ORDER_DESC)
+        );
     }
 
     /**
@@ -590,9 +608,11 @@ abstract class Support extends Integration
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblHandyCap',
-        array(
-            TblHandyCap::SERVICE_TBL_PERSON => $tblPerson->getId()
-        ));
+            array(
+                TblHandyCap::SERVICE_TBL_PERSON => $tblPerson->getId()
+            ),
+            array('Date' => self::ORDER_DESC)
+        );
     }
 
     /**

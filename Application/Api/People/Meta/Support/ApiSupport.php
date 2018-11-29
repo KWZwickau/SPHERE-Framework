@@ -13,6 +13,7 @@ use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
+use SPHERE\Common\Frontend\Form\Repository\Button\Close;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
@@ -33,6 +34,11 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\System\Extension\Extension;
 
+/**
+ * Class ApiSupport
+ *
+ * @package SPHERE\Application\Api\People\Meta\Support
+ */
 class ApiSupport extends Extension implements IApiInterface
 {
 
@@ -77,9 +83,15 @@ class ApiSupport extends Extension implements IApiInterface
     public static function receiverModal()
     {
 
-        return (new ModalReceiver())->setIdentifier('ModalReciever');
+        return (new ModalReceiver(null, new Close()))->setIdentifier('ModalReciever');
     }
 
+    /**
+     * @param string $Content
+     * @param string $Identifier
+     *
+     * @return BlockReceiver
+     */
     public static function receiverTableBlock($Content = '', $Identifier = '')
     {
 
@@ -215,10 +227,11 @@ class ApiSupport extends Extension implements IApiInterface
     /**
      * @param int $PersonId
      * @param int $SpecialId
+     * @param bool $IsInit
      *
      * @return Pipeline
      */
-    public static function pipelineOpenEditSpecialModal($PersonId, $SpecialId)
+    public static function pipelineOpenEditSpecialModal($PersonId, $SpecialId, $IsInit = false)
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(ApiSupport::receiverModal(), ApiSupport::getEndpoint());
@@ -227,7 +240,8 @@ class ApiSupport extends Extension implements IApiInterface
         ));
         $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId,
-            'SpecialId' => $SpecialId
+            'SpecialId' => $SpecialId,
+            'IsInit' => $IsInit ? '1' : '0'
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -237,10 +251,11 @@ class ApiSupport extends Extension implements IApiInterface
     /**
      * @param int $PersonId
      * @param int $HandyCapId
+     * @param bool $IsInit
      *
      * @return Pipeline
      */
-    public static function pipelineOpenEditHandyCapModal($PersonId, $HandyCapId)
+    public static function pipelineOpenEditHandyCapModal($PersonId, $HandyCapId, $IsInit = false)
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(ApiSupport::receiverModal(), ApiSupport::getEndpoint());
@@ -249,7 +264,8 @@ class ApiSupport extends Extension implements IApiInterface
         ));
         $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId,
-            'HandyCapId' => $HandyCapId
+            'HandyCapId' => $HandyCapId,
+            'IsInit' => $IsInit ? '1' : '0'
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -552,19 +568,23 @@ class ApiSupport extends Extension implements IApiInterface
      */
     public function openCreateSpecialModal($PersonId)
     {
+        $global =  $this->getGlobal();
+        $IsCanceled = isset($global->POST['Data']['IsCanceled']);
+
+        $form = Student::useFrontend()->formSpecial($PersonId, null, $IsCanceled);
 
         return new Title('Entwicklungsbesonderheiten hinzufügen')
-        .new Layout(
-            new LayoutGroup(
-                new LayoutRow(
-                    new LayoutColumn(
-                        new Well(
-                            Student::useFrontend()->formSpecial($PersonId)
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Well(
+                                $form
+                            )
                         )
                     )
                 )
-            )
-        );
+            );
     }
 
     /**
@@ -575,18 +595,21 @@ class ApiSupport extends Extension implements IApiInterface
     public function openCreateHandyCapModal($PersonId)
     {
 
+        $global =  $this->getGlobal();
+        $IsCanceled = isset($global->POST['Data']['IsCanceled']);
+
         return new Title('Nachteilsausgleich hinzufügen')
-        .new Layout(
-            new LayoutGroup(
-                new LayoutRow(
-                    new LayoutColumn(
-                        new Well(
-                            Student::useFrontend()->formHandyCap($PersonId)
+            . new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Well(
+                                Student::useFrontend()->formHandyCap($PersonId, null, $IsCanceled)
+                            )
                         )
                     )
                 )
-            )
-        );
+            );
     }
 
     /**
@@ -615,11 +638,22 @@ class ApiSupport extends Extension implements IApiInterface
     /**
      * @param int $PersonId
      * @param int $SpecialId
+     * @param bool $IsInit
      *
      * @return string
      */
-    public function openEditSpecialModal($PersonId, $SpecialId)
+    public function openEditSpecialModal($PersonId, $SpecialId, $IsInit)
     {
+        $IsCanceled = false;
+        $global =  $this->getGlobal();
+        if ($IsInit) {
+            if (($tblSpecial = Student::useService()->getSpecialById($SpecialId))) {
+                $IsCanceled = $tblSpecial->isCanceled();
+            }
+
+        } else {
+            $IsCanceled = isset($global->POST['Data']['IsCanceled']);
+        }
 
         return new Title('Entwicklungsbesonderheiten bearbeiten')
         .new Layout(
@@ -627,7 +661,7 @@ class ApiSupport extends Extension implements IApiInterface
                 new LayoutRow(
                     new LayoutColumn(
                         new Well(
-                            Student::useFrontend()->formSpecial($PersonId, $SpecialId)
+                            Student::useFrontend()->formSpecial($PersonId, $SpecialId, $IsCanceled, $IsInit)
                         )
                     )
                 )
@@ -638,11 +672,22 @@ class ApiSupport extends Extension implements IApiInterface
     /**
      * @param int $PersonId
      * @param int $HandyCapId
+     * @param bool $IsInit
      *
      * @return string
      */
-    public function openEditHandyCapModal($PersonId, $HandyCapId)
+    public function openEditHandyCapModal($PersonId, $HandyCapId, $IsInit)
     {
+        $IsCanceled = false;
+        $global =  $this->getGlobal();
+        if ($IsInit) {
+            if (($tblHandyCap = Student::useService()->getHandyCapById($HandyCapId))) {
+                $IsCanceled = $tblHandyCap->isCanceled();
+            }
+
+        } else {
+            $IsCanceled = isset($global->POST['Data']['IsCanceled']);
+        }
 
         return new Title('Nachteilsausgleich bearbeiten')
         .new Layout(
@@ -650,7 +695,7 @@ class ApiSupport extends Extension implements IApiInterface
                 new LayoutRow(
                     new LayoutColumn(
                         new Well(
-                            Student::useFrontend()->formHandyCap($PersonId, $HandyCapId)
+                            Student::useFrontend()->formHandyCap($PersonId, $HandyCapId, $IsCanceled, $IsInit)
                         )
                     )
                 )
@@ -682,11 +727,8 @@ class ApiSupport extends Extension implements IApiInterface
             // display Errors on form
             return $form;
         }
-        // do service
 
-//        return 'Alles ok für\'s speichern';
-        if (Student::useService()->createSupport($PersonId, $Data)
-        ) {
+        if (Student::useService()->createSupport($PersonId, $Data)) {
              return new Success('Förderantrag wurde erfolgreich gespeichert.')
                  .self::pipelineLoadTable($PersonId)
                  .self::pipelineClose();
