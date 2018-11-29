@@ -3,10 +3,12 @@ namespace SPHERE\Application\People\Relationship;
 
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToCompany;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson;
+use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -101,7 +103,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new Well(
                                 Relationship::useService()->createRelationshipToPerson(
-                                    $this->formRelationshipToPerson()
+                                    $this->formRelationshipToPerson($tblPerson)
                                         ->appendFormButton(new Primary('Speichern', new Save()))
                                         ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
                                     , $tblPerson, $To, $Type, $Group
@@ -117,11 +119,12 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param TblPerson $tblPerson
      * @param TblToPerson $tblToPerson
      *
      * @return Form
      */
-    private function formRelationshipToPerson(TblToPerson $tblToPerson = null)
+    private function formRelationshipToPerson(TblPerson $tblPerson, TblToPerson $tblToPerson = null)
     {
 
         if ($tblToPerson) {
@@ -140,7 +143,20 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tblGroup = Relationship::useService()->getGroupByIdentifier('PERSON');
-        $tblTypeAll = Relationship::useService()->getTypeAllByGroup($tblGroup);
+        if ((($tblGroupStudent = Group::useService()->getGroupByMetaTable('STUDENT'))
+            && (Group::useService()->existsGroupPerson($tblGroupStudent, $tblPerson)))
+            || (($tblGroupProspect = Group::useService()->getGroupByMetaTable('PROSPECT'))
+                && (Group::useService()->existsGroupPerson($tblGroupStudent, $tblPerson)))
+        ) {
+            $tblTypeAll[] = Relationship::useService()->getTypeByName('Geschwisterkind');
+            $tblTypeChild = new TblType();
+            $tblTypeChild->setId(TblType::CHILD_ID);
+            $tblTypeChild->setName('Kind');
+            $tblTypeAll[] = $tblTypeChild;
+        } else {
+            $tblTypeAll = Relationship::useService()->getTypeAllByGroup($tblGroup);
+        }
+
         $tblPersonAll = Person::useService()->getPersonAll();
 
         if ($tblPersonAll) {
@@ -488,7 +504,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new Well(
                                 Relationship::useService()->updateRelationshipToPerson(
-                                    $this->formRelationshipToPerson($tblToPerson)
+                                    $this->formRelationshipToPerson($tblToPerson->getServiceTblPersonFrom(), $tblToPerson)
                                         ->appendFormButton(new Primary('Speichern', new Save()))
                                         ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
                                     , $tblToPerson, $tblToPerson->getServiceTblPersonFrom(), $To, $Type, $Group
