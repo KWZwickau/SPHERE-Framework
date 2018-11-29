@@ -162,6 +162,9 @@ class Setup extends AbstractSetup
         if (!$Table->hasColumn('SortOrder')) {
             $Table->addColumn('SortOrder', 'integer', array('notnull' => false));
         }
+        $this->createColumn($Table, 'LeaveDate', self::FIELD_TYPE_DATETIME, true);
+        $this->createColumn($Table, 'UseGradesInNewDivision', self::FIELD_TYPE_BOOLEAN, false, false);
+
         $this->getConnection()->addForeignKey($Table, $tblDivision);
         $this->createIndex( $Table, array( 'serviceTblPerson', 'tblDivision' ), false );
         return $Table;

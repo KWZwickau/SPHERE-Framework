@@ -418,6 +418,26 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
+     * @param TblGradeType $tblGradeType
+     *
+     * @return false|TblGrade[]
+     */
+    public function getGradesByStudentAndGradeType(
+        TblPerson $tblPerson,
+        TblDivision $tblDivision,
+        TblGradeType $tblGradeType
+    ) {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getEntityManager(), 'TblGrade', array(
+           TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+           TblGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+           TblGrade::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId()
+        ));
+    }
+
+    /**
      * @param TblGrade $tblGrade
      * @param $Grade
      * @param string $Comment

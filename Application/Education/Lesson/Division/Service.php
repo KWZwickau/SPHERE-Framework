@@ -951,15 +951,16 @@ class Service extends AbstractService
 
     /**
      * @param TblDivisionSubject $tblDivisionSubject
+     * @param bool $withInActive
      *
      * @return bool|TblPerson[]
      */
-    public
-    function getStudentByDivisionSubject(
-        TblDivisionSubject $tblDivisionSubject
+    public function getStudentByDivisionSubject(
+        TblDivisionSubject $tblDivisionSubject,
+        $withInActive = false
     ) {
 
-        return (new Data($this->getBinding()))->getStudentByDivisionSubject($tblDivisionSubject);
+        return (new Data($this->getBinding()))->getStudentByDivisionSubject($tblDivisionSubject, $withInActive);
     }
 
     /**
@@ -1352,15 +1353,16 @@ class Service extends AbstractService
 
     /**
      * @param TblDivision $tblDivision
+     * @param bool $withInActive
      *
      * @return bool|TblPerson[]
      */
-    public
-    function getStudentAllByDivision(
-        TblDivision $tblDivision
+    public function getStudentAllByDivision(
+        TblDivision $tblDivision,
+        $withInActive = false
     ) {
 
-        return (new Data($this->getBinding()))->getStudentAllByDivision($tblDivision);
+        return (new Data($this->getBinding()))->getStudentAllByDivision($tblDivision, $withInActive);
     }
 
     /**
@@ -1517,8 +1519,7 @@ class Service extends AbstractService
      *
      * @return int
      */
-    public
-    function countDivisionStudentAllByDivision(
+    public function countDivisionStudentAllByDivision(
         TblDivision $tblDivision
     ) {
 
@@ -2205,13 +2206,12 @@ class Service extends AbstractService
      *
      * @return bool
      */
-    public
-    function exitsDivisionStudent(
+    public function existsDivisionStudent(
         TblDivision $tblDivision,
         TblPerson $tblPerson
     ) {
 
-        return (new Data($this->getBinding()))->exitsDivisionStudent($tblDivision, $tblPerson);
+        return (new Data($this->getBinding()))->existsDivisionStudent($tblDivision, $tblPerson);
     }
 
     /**
@@ -2245,7 +2245,7 @@ class Service extends AbstractService
         $tblDivisionList = Division::useService()->getDivisionByYear($tblYear);
         if ($tblDivisionList) {
             foreach ($tblDivisionList as $tblDivision) {
-                if ($this->exitsDivisionStudent($tblDivision, $tblPerson)) {
+                if ($this->existsDivisionStudent($tblDivision, $tblPerson)) {
                     $tblDivisionSubjectList = $this->getDivisionSubjectByDivision($tblDivision);
                     if ($tblDivisionSubjectList) {
                         foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
@@ -2290,15 +2290,16 @@ class Service extends AbstractService
 
     /**
      * @param TblDivision $tblDivision
+     * @param bool $withInActive
      *
      * @return bool|TblDivisionStudent[]
      */
-    public
-    function getDivisionStudentAllByDivision(
-        TblDivision $tblDivision
+    public function getDivisionStudentAllByDivision(
+        TblDivision $tblDivision,
+        $withInActive = false
     ) {
 
-        return (new Data($this->getBinding()))->getDivisionStudentAllByDivision($tblDivision);
+        return (new Data($this->getBinding()))->getDivisionStudentAllByDivision($tblDivision, $withInActive);
     }
 
     /**
@@ -2694,5 +2695,64 @@ class Service extends AbstractService
         }
 
         return $divisionList;
+    }
+
+    /**
+     * @param TblDivisionStudent $tblDivisionStudent
+     *
+     * @return bool
+     */
+    public function activateDivisionStudent(TblDivisionStudent $tblDivisionStudent)
+    {
+
+        return (new Data($this->getBinding()))->updateDivisionStudentActivation($tblDivisionStudent, null, true);
+    }
+
+    /**
+     * @param TblDivisionStudent $tblDivisionStudent
+     * @param \DateTime $LeaveDate
+     * @param $UseGradesInNewDivision
+     *
+     * @return bool
+     */
+    public function deactivateDivisionStudent(TblDivisionStudent $tblDivisionStudent, \DateTime $LeaveDate, $UseGradesInNewDivision)
+    {
+
+        return (new Data($this->getBinding()))->updateDivisionStudentActivation($tblDivisionStudent, $LeaveDate, $UseGradesInNewDivision);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson $tblPerson
+     * @param bool $withCurrentDivision
+     *
+     * @return TblDivision[]|bool
+     */
+    public function getOtherDivisionsByStudent(
+        TblDivision $tblDivision,
+        TblPerson $tblPerson,
+        $withCurrentDivision = true
+    ) {
+
+        $list = array();
+        if ($withCurrentDivision) {
+            $list[] = $tblDivision;
+        }
+
+        if (($tblYear = $tblDivision->getServiceTblYear())
+            && ($tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson))
+        ) {
+            foreach ($tblDivisionStudentList as $tblDivisionStudentItem) {
+                if (($tblDivisionItem = $tblDivisionStudentItem->getTblDivision())
+                    && $tblDivision->getId() != $tblDivisionItem->getId()
+                    && ($tblYearItem = $tblDivisionItem->getServiceTblYear())
+                    && $tblYear->getId() == $tblYearItem->getId()
+                ) {
+                    $list[] = $tblDivisionItem;
+                }
+            }
+        }
+
+        return empty($list) ? false : $list;
     }
 }
