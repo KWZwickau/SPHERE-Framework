@@ -794,8 +794,8 @@ class Service extends AbstractService
             if ($tblPrepare
                 && ($tblAppointedDateTask = $tblPrepare->getServiceTblAppointedDateTask())
                 && $tblYear
-                && ($tblPeriodList = $tblYear->getTblPeriodAll())
-                && ($tblPeriod = $tblAppointedDateTask->getServiceTblPeriod())
+                && ($tblPeriodList = $tblYear->getTblPeriodAll($tblLevel && $tblLevel->getName() == '12'))
+                && ($tblPeriod = $tblAppointedDateTask->getServiceTblPeriodByDivision($tblDivision))
                 && ($tblFirstPeriod = current($tblPeriodList))
                 && $tblPeriod->getId() != $tblFirstPeriod->getId()
             ) {
@@ -3210,7 +3210,7 @@ class Service extends AbstractService
 
         if (($tblTaskList = Evaluation::useService()->getTaskAllByDivision($tblDivision, $tblTestType))) {
             foreach ($tblTaskList as $tblTask) {
-                if (($tblPeriod = $tblTask->getServiceTblPeriod())
+                if (($tblPeriod = $tblTask->getServiceTblPeriodByDivision($tblDivision))
                     && strpos($tblPeriod->getName(), '2.') !== false
                 ) {
                     if (($tblTestList = Evaluation::useService()->getTestAllByTask($tblTask))) {
@@ -4145,10 +4145,12 @@ class Service extends AbstractService
         }
 
         $tblPerson =  $tblLeaveStudent->getServiceTblPerson();
+        $tblDivision = $tblLeaveStudent->getServiceTblDivision();
 
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Informationen wurden erfolgreich gespeichert.')
             . new Redirect('/Education/Certificate/Prepare/Leave/Student', Redirect::TIMEOUT_SUCCESS, array(
                 'PersonId' => $tblPerson ? $tblPerson->getId() : 0,
+                'DivisionId' => $tblDivision ? $tblDivision->getId() : 0,
             ));
     }
 
@@ -4311,10 +4313,12 @@ class Service extends AbstractService
         }
 
         $tblPerson = $tblLeaveStudent->getServiceTblPerson();
+        $tblDivision = $tblLeaveStudent->getServiceTblDivision();
 
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Informationen wurden erfolgreich gespeichert.')
             . new Redirect('/Education/Certificate/Prepare/Leave/Student', Redirect::TIMEOUT_SUCCESS, array(
                 'PersonId' => $tblPerson ? $tblPerson->getId() : 0,
+                'DivisionId' => $tblDivision ? $tblDivision->getId() : 0
             ));
     }
 }

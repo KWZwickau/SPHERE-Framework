@@ -26,7 +26,7 @@ class Api implements IClusterInterface
     public static function registerCluster()
     {
 
-        Billing::registerApplication();
+//        Billing::registerApplication();
         Contact::registerApplication();
         Corporation::registerApplication();
         Document::registerApplication();

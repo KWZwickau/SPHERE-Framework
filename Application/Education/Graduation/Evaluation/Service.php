@@ -429,7 +429,11 @@ class Service extends AbstractService
         }
 
         if (!$Error) {
-            $tblPeriod = Term::useService()->getPeriodById($Task['Period']);
+            if ($Task['Period'] < 0) {
+                $tblPeriod = TblTask::getPseudoPeriod($Task['Period']);
+            } else {
+                $tblPeriod = Term::useService()->getPeriodById($Task['Period']);
+            }
             $tblScoreType = Gradebook::useService()->getScoreTypeById($Task['ScoreType']);
             $tblTask = (new Data($this->getBinding()))->createTask(
                 $tblTestType, $Task['Name'], $Task['Date'], $Task['FromDate'], $Task['ToDate'],
@@ -506,7 +510,11 @@ class Service extends AbstractService
 
         if (!$Error) {
             $tblTask = $this->getTaskById($Id);
-            $tblPeriod = Term::useService()->getPeriodById($Task['Period']);
+            if ($Task['Period'] < 0) {
+                $tblPeriod = TblTask::getPseudoPeriod($Task['Period']);
+            } else {
+                $tblPeriod = Term::useService()->getPeriodById($Task['Period']);
+            }
             $tblScoreType = Gradebook::useService()->getScoreTypeById($Task['ScoreType']);
             (new Data($this->getBinding()))->updateTask(
                 $tblTask,

@@ -6,6 +6,7 @@ use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Graduation\Gradebook\MinimumGradeCount\SelectBoxItem;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeText;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
@@ -720,7 +721,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->POST['Select']['Year'] = $tblYear->getId();
             $Global->savePost();
         }
-        $Form = ($this->formTask($tblYear ? $tblYear : null));
+        $Form = $this->formTask();
         $Form
             ->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
@@ -773,35 +774,16 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param TblYear $tblYear
-     *
      * @return Form
      */
-    private function formTask(TblYear $tblYear = null)
+    private function formTask()
     {
 
         $tblTestTypeAllWhereTask = Evaluation::useService()->getTestTypeAllWhereTask();
-        $tblYearAllByNow = Term::useService()->getYearByNow();
-        $periodSelect[] = '';
-        if ($tblYear === null) {
-            if ($tblYearAllByNow) {
-                foreach ($tblYearAllByNow as $tblYear) {
-                    $tblPeriodAllByYear = Term::useService()->getPeriodAllByYear($tblYear);
-                    if ($tblPeriodAllByYear) {
-                        foreach ($tblPeriodAllByYear as $tblPeriod) {
-                            $periodSelect[$tblPeriod->getId()] = $tblPeriod->getDisplayName();
-                        }
-                    }
-                }
-            }
-        } else {
-            $tblPeriodAllByYear = Term::useService()->getPeriodAllByYear($tblYear);
-            if ($tblPeriodAllByYear) {
-                foreach ($tblPeriodAllByYear as $tblPeriod) {
-                    $periodSelect[$tblPeriod->getId()] = $tblPeriod->getDisplayName();
-                }
-            }
-        }
+
+        $periodList[] = new SelectBoxItem(0, '');
+        $periodList[] = new SelectBoxItem(TblTask::FIRST_PERIOD_ID, TblTask::FIRST_PERIOD_NAME);
+        $periodList[] = new SelectBoxItem(TblTask::SECOND_PERIOD_ID, TblTask::SECOND_PERIOD_NAME);
 
         $tblScoreTypeAll = Gradebook::useService()->getScoreTypeAll();
         if ($tblScoreTypeAll) {
@@ -814,7 +796,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new SelectBox('Task[Type]', 'Kategorie', array('Name' => $tblTestTypeAllWhereTask)), 4
                 ),
                 new FormColumn(
-                    new SelectBox('Task[Period]', 'Noten-Zeitraum beschränken', $periodSelect), 4
+                    new SelectBox('Task[Period]', 'Noten-Zeitraum beschränken', array('Name' => $periodList)), 4
                 ),
                 new FormColumn(
                     new SelectBox('Task[ScoreType]', 'Bewertungssystem überschreiben',
@@ -1091,6 +1073,7 @@ class Frontend extends Extension implements IFrontendInterface
             );
             $isTeacher = (strpos($BasicRoute, 'Teacher') !== false);
             $Form = $this->formTest(
+                $tblDivision,
                 $tblDivision->getServiceTblYear(),
                 $tblScoreRule ? $tblScoreRule : null,
                 $isTeacher ? $tblDivisionSubject : null
@@ -1344,6 +1327,7 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param TblDivision $tblDivision
      * @param TblYear $tblYear
      * @param TblScoreRule $tblScoreRule
      * @param TblDivisionSubject $tblDivisionSubjectSelected
@@ -1351,6 +1335,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @return Form
      */
     private function formTest(
+        TblDivision $tblDivision,
         TblYear $tblYear,
         TblScoreRule $tblScoreRule = null,
         TblDivisionSubject $tblDivisionSubjectSelected = null
@@ -1365,7 +1350,8 @@ class Frontend extends Extension implements IFrontendInterface
             $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType);
         }
 
-        $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+        $tblLevel = $tblDivision->getTblLevel();
+        $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12');
 
         // select current period
         $Global = $this->getGlobal();
@@ -2055,9 +2041,9 @@ class Frontend extends Extension implements IFrontendInterface
 
             // Stichtagsnotenauftrag
             if ($isTestAppointedDateTask) {
-
-                $gradeType = 'Stichtagsnote' . ($tblTask->getServiceTblPeriod()
-                        ? new Small(new Muted(' ' . $tblTask->getServiceTblPeriod()->getDisplayName()))
+                $tblPeriodByDivision = $tblTask->getServiceTblPeriodByDivision($tblDivision);
+                $gradeType = 'Stichtagsnote' . ($tblPeriodByDivision
+                        ? new Small(new Muted(' ' . $tblPeriodByDivision->getDisplayName()))
                         : new Small(new Muted(' Gesamtes Schuljahr')));
 
                 $dataList = array();
@@ -2068,22 +2054,19 @@ class Frontend extends Extension implements IFrontendInterface
                 $columnDefinition['Course'] = 'Bildungsgang';
 
                 $tblPeriodList = false;
+                $tblLevel = $tblDivision->getTblLevel();
                 // ist Stichtagsnotenauftrag auf eine Periode beschränkt oder wird das gesamte Schuljahr genutzt
-                if ($tblTask->getServiceTblPeriod()) {
-                    $tblPeriodList[] = $tblTask->getServiceTblPeriod();
+                if ($tblPeriodByDivision) {
+                    $tblPeriodList[] = $tblPeriodByDivision;
                 } elseif ($tblTask->getServiceTblYear()) {
-                    $tblPeriodList = Term::useService()->getPeriodAllByYear($tblTask->getServiceTblYear());
+                    $tblPeriodList = Term::useService()->getPeriodAllByYear($tblTask->getServiceTblYear(), $tblLevel && $tblLevel->getName() == '12');
                 } else {
                     // alte Daten wo noch kein Schuljahr ausgewählt werde musste bei der Erstellung des Stichtagsnotenauftrags
                     $tblYearAll = Term::useService()->getYearAllByDate(DateTime::createFromFormat('d.m.Y',
                         $tblTask->getDate()));
                     if ($tblYearAll) {
                         foreach ($tblYearAll as $tblYear) {
-                            if ($tblTask->getServiceTblPeriod()) {
-                                $tblPeriodList = array($tblTask->getServiceTblPeriod());
-                            } else {
-                                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
-                            }
+                            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
                         }
                     }
                 }
@@ -2262,7 +2245,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         $tblDivisionSubject->getServiceTblSubject(),
                                         Evaluation::useService()->getTestTypeByIdentifier('TEST'),
                                         $tblScoreRule ? $tblScoreRule : null,
-                                        $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod() : null,
+                                        ($tblTaskPeriod = $tblTask->getServiceTblPeriodByDivision($tblDivision)) ? $tblTaskPeriod : null,
                                         $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null,
                                         false,
                                         $tblTask->getDate() ? $tblTask->getDate() : false
@@ -2702,7 +2685,6 @@ class Frontend extends Extension implements IFrontendInterface
                 new ChevronLeft())
         );
 
-
         $Global = $this->getGlobal();
         if (!$Global->POST) {
             $Global->POST['Task']['Type'] = $tblTask->getTblTestType()->getId();
@@ -2715,7 +2697,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->savePost();
         }
 
-        $Form = ($this->formTask($tblTask->getServiceTblYear() ? $tblTask->getServiceTblYear() : null));
+        $Form = $this->formTask();
         $Form
             ->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
@@ -3337,7 +3319,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblSubject,
             Evaluation::useService()->getTestTypeByIdentifier('TEST'),
             $tblScoreRule ? $tblScoreRule : null,
-            $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod() : null,
+            ($tblTaskPeriod = $tblTask->getServiceTblPeriodByDivision($tblDivision)) ? $tblTaskPeriod : null,
             null,
             false,
             $tblTask->getDate() ? $tblTask->getDate() : false
@@ -3965,8 +3947,8 @@ class Frontend extends Extension implements IFrontendInterface
         &$buttonList
     ) {
         $gradeType = 'Kopfnote: ' . ($tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType()->getName() : '')
-            . ($tblTask->getServiceTblPeriod()
-                ? new Small(new Muted(' ' . $tblTask->getServiceTblPeriod()->getDisplayName()))
+            . (($tblTaskPeriod = $tblTask->getServiceTblPeriodByDivision($tblDivision))
+                ? new Small(new Muted(' ' . $tblTaskPeriod->getDisplayName()))
                 : new Small(new Muted(' Gesamtes Schuljahr')));
 
         // Navigation zwischen den Kopfnotentypen

@@ -50,7 +50,8 @@ class Gradebook
         $pageList = array();
         if (($tblDivision = $tblDivisionSubject->getTblDivision())
             && ($tblYear = $tblDivision->getServiceTblYear())
-            && ($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear))
+            && ($tblLevel = $tblDivision->getTblLevel())
+            && ($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12'))
         ) {
             $count = 0;
             foreach ($tblPeriodList as $tblPeriod) {
@@ -273,7 +274,7 @@ class Gradebook
                     if ($isSekTwo) {
                         if ($tblCertificateType->getIdentifier() == 'MID_TERM_COURSE'
                             && ($tblTask = $tblPrepareCertificate->getServiceTblAppointedDateTask())
-                            && ($tblPeriodOfPrepareCertificate = $tblTask->getServiceTblPeriod())
+                            && ($tblPeriodOfPrepareCertificate = $tblTask->getServiceTblPeriodByDivision($tblDivision))
                             && $tblPeriod->getId() == $tblPeriodOfPrepareCertificate->getId()
                         ) {
                             $tblPrepareForCertificateGrade = $tblPrepareCertificate;
@@ -347,7 +348,7 @@ class Gradebook
 
         $tblYear = $tblDivision->getServiceTblYear();
         if ($tblYear) {
-            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12');
         } else {
             $tblPeriodList = false;
         }

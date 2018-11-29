@@ -12,8 +12,6 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYearPeriod;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Cache\CacheFactory;
-use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
 use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
@@ -86,10 +84,11 @@ class Data extends AbstractData
      * @param string $From
      * @param string $To
      * @param string $Description
+     * @param bool $IsLevel12
      *
      * @return TblPeriod
      */
-    public function createPeriod($Name, $From, $To, $Description = '')
+    public function createPeriod($Name, $From, $To, $Description = '', $IsLevel12 = false)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -105,6 +104,8 @@ class Data extends AbstractData
             $Entity->setDescription($Description);
             $Entity->setFromDate(new \DateTime($From));
             $Entity->setToDate(new \DateTime($To));
+            $Entity->setIsLevel12($IsLevel12);
+
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -148,6 +149,7 @@ class Data extends AbstractData
      * @param           $Description
      * @param           $From
      * @param           $To
+     * @param bool $IsLevel12
      *
      * @return bool
      */
@@ -156,7 +158,8 @@ class Data extends AbstractData
         $Name,
         $Description,
         $From,
-        $To
+        $To,
+        $IsLevel12 = false
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -169,6 +172,8 @@ class Data extends AbstractData
             $Entity->setDescription($Description);
             $Entity->setFromDate(new \DateTime($From));
             $Entity->setToDate(new \DateTime($To));
+            $Entity->setIsLevel12($IsLevel12);
+
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
@@ -271,35 +276,83 @@ class Data extends AbstractData
 
     /**
      * @param TblYear $tblYear
+     * @param bool $IsLevel12
+     * @param bool $IsAll
      *
      * @return bool|TblPeriod[]
      */
-    public function getPeriodAllByYear(TblYear $tblYear)
+    public function getPeriodAllByYear(TblYear $tblYear, $IsLevel12 = false, $IsAll = false)
     {
 
+        $periodAllList = array();
         /** @var TblYearPeriod[] $EntityList */
         $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblYearPeriod',
             array(
                 TblYearPeriod::ATTR_TBL_YEAR => $tblYear->getId()
             ));
-        $Cache = (new CacheFactory())->createHandler(new MemcachedHandler());
-        if (null === ($ResultList = $Cache->getValue($tblYear->getId(), __METHOD__))
-            && !empty($EntityList)
-        ) {
+//        $Cache = (new CacheFactory())->createHandler(new MemcachedHandler());
+//        if (null === ($ResultList = $Cache->getValue($tblYear->getId(), __METHOD__))
+//            && !empty($EntityList)
+//        ) {
+//
+//            array_walk($EntityList, function (TblYearPeriod &$V) {
+//
+//                $V = $V->getTblPeriod();
+//            });
+//            /** @var TblPeriod[] $EntityList */
+//            $EntityList = $this->getSorter($EntityList)->sortObjectBy(TblPeriod::ATTR_FROM_DATE, new DateTimeSorter());
+//
+//            $Cache->setValue($tblYear->getId(), $EntityList, 0, __METHOD__);
+//        } else {
+//            $EntityList = $ResultList;
+//        }
 
-            array_walk($EntityList, function (TblYearPeriod &$V) {
+        if ($EntityList) {
+            $periodListForLevel12 = array();
+            $periodListOthers = array();
+            $hasLevel12Periods = false;
+            foreach ($EntityList as $tblYearPeriod) {
+                if (($tblPeriod = $tblYearPeriod->getTblPeriod())) {
 
-                $V = $V->getTblPeriod();
-            });
-            /** @var TblPeriod[] $EntityList */
-            $EntityList = $this->getSorter($EntityList)->sortObjectBy(TblPeriod::ATTR_FROM_DATE, new DateTimeSorter());
+                    $periodAllList[] = $tblPeriod;
 
-            $Cache->setValue($tblYear->getId(), $EntityList, 0, __METHOD__);
-        } else {
-            $EntityList = $ResultList;
+                    if ($tblPeriod->isLevel12()) {
+                        $periodListForLevel12[] = $tblPeriod;
+                        $hasLevel12Periods = true;
+                    } else {
+                        $periodListOthers[] = $tblPeriod;
+                    }
+                }
+            }
+
+            if ($IsAll) {
+                if (!empty($periodAllList)) {
+                    $periodAllList = $this->getSorter($periodAllList)->sortObjectBy(TblPeriod::ATTR_FROM_DATE,
+                        new DateTimeSorter());
+
+                    return $periodAllList;
+                }
+            } else {
+                if ($hasLevel12Periods && $IsLevel12) {
+                    if (!empty($periodListForLevel12)) {
+                        $periodListForLevel12 = $this->getSorter($periodListForLevel12)->sortObjectBy(TblPeriod::ATTR_FROM_DATE,
+                            new DateTimeSorter());
+
+                        return $periodListForLevel12;
+                    }
+                } else {
+                    if (!empty($periodListOthers)) {
+                        $periodListOthers = $this->getSorter($periodListOthers)->sortObjectBy(TblPeriod::ATTR_FROM_DATE,
+                            new DateTimeSorter());
+
+                        return $periodListOthers;
+                    }
+                }
+            }
         }
-        return (null === $EntityList ? false : $EntityList);
+
+        return false;
     }
 
     /**
@@ -347,12 +400,16 @@ class Data extends AbstractData
         ));
     }
 
-    public function checkYearExist($Year, $Description)
+    /**
+     * @param $Year
+     *
+     * @return false|TblYear
+     */
+    public function checkYearExist($Year)
     {
 
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblYear', array(
-            TblYear::ATTR_YEAR => $Year,
-            TblYear::ATTR_DESCRIPTION => $Description
+            TblYear::ATTR_YEAR => $Year
         ));
 
     }
@@ -538,7 +595,7 @@ class Data extends AbstractData
 
         $fromDate = false;
         $toDate = false;
-        $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+        $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, false, true);
         if ($tblPeriodList) {
             foreach ($tblPeriodList as $tblPeriod) {
                 if ($fromDate) {

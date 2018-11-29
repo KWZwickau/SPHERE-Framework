@@ -26,9 +26,9 @@ class Setup extends AbstractSetup
          */
         $Schema = clone $this->getConnection()->getSchema();
         $tblDebtor = $this->setTableDebtor($Schema);
-        $tblItem = $this->setTableItem($Schema);
+        $tblItemValue = $this->setTableItemValue($Schema);
         $tblInvoice = $this->setTableInvoice($Schema);
-        $this->setTableInvoiceItem($Schema, $tblInvoice, $tblItem, $tblDebtor);
+        $this->setTableInvoiceItem($Schema, $tblInvoice, $tblItemValue, $tblDebtor);
 
         /**
          * Migration & Protocol
@@ -46,37 +46,17 @@ class Setup extends AbstractSetup
     private function setTableDebtor(Schema $Schema)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblDebtor');
-        if (!$this->getConnection()->hasColumn('tblDebtor', 'DebtorNumber')) {
-            $Table->addColumn('DebtorNumber', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblDebtor', 'DebtorPerson')) {
-            $Table->addColumn('DebtorPerson', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblDebtor', 'BankReference')) {
-            $Table->addColumn('BankReference', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblDebtor', 'Owner')) {
-            $Table->addColumn('Owner', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblDebtor', 'BankName')) {
-            $Table->addColumn('BankName', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblDebtor', 'IBAN')) {
-            $Table->addColumn('IBAN', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblDebtor', 'BIC')) {
-            $Table->addColumn('BIC', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblDebtor', 'serviceTblDebtor')) {
-            $Table->addColumn('serviceTblDebtor', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblDebtor', 'serviceTblBankReference')) {
-            $Table->addColumn('serviceTblBankReference', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblDebtor', 'serviceTblPaymentType')) {
-            $Table->addColumn('serviceTblPaymentType', 'bigint', array('notnull' => false));
-        }
+        $Table = $this->createTable($Schema, 'tblDebtor');
+        $this->createColumn($Table, 'DebtorNumber', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'DebtorPerson', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'BankReference', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Owner', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'BankName', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'IBAN', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'BIC', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'serviceTblDebtor', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblBankReference', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblPaymentType', self::FIELD_TYPE_BIGINT, true);
 
         return $Table;
     }
@@ -86,25 +66,17 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTableItem(Schema $Schema)
+    private function setTableItemValue(Schema $Schema)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblItem');
-        if (!$this->getConnection()->hasColumn('tblItem', 'Name')) {
-            $Table->addColumn('Name', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblItem', 'Description')) {
-            $Table->addColumn('Description', 'text');
-        }
-        if (!$this->getConnection()->hasColumn('tblItem', 'Value')) {
+        $Table = $this->createTable($Schema, 'tblItemValue');
+        $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Description', self::FIELD_TYPE_TEXT);
+        if (!$this->getConnection()->hasColumn('tblItemValue', 'Value')) {
             $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
         }
-        if (!$this->getConnection()->hasColumn('tblItem', 'Quantity')) {
-            $Table->addColumn('Quantity', 'integer');
-        }
-        if (!$this->getConnection()->hasColumn('tblItem', 'serviceTblItem')) {
-            $Table->addColumn('serviceTblItem', 'bigint', array('notnull' => false));
-        }
+        $this->createColumn($Table, 'Quantity', self::FIELD_TYPE_INTEGER);
+        $this->createColumn($Table, 'serviceTblItem', self::FIELD_TYPE_BIGINT, true);
 
         return $Table;
     }
@@ -118,46 +90,20 @@ class Setup extends AbstractSetup
     private function setTableInvoice(Schema &$Schema)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblInvoice');
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'InvoiceNumber')) {
-            $Table->addColumn('InvoiceNumber', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'TargetTime')) {
-            $Table->addColumn('TargetTime', 'datetime');
-        }
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'SchoolName')) {
-            $Table->addColumn('SchoolName', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'SchoolOwner')) {
-            $Table->addColumn('SchoolOwner', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'SchoolBankName')) {
-            $Table->addColumn('SchoolBankName', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'SchoolIBAN')) {
-            $Table->addColumn('SchoolIBAN', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'SchoolBIC')) {
-            $Table->addColumn('SchoolBIC', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'IsPaid')) {
-            $Table->addColumn('IsPaid', 'boolean');
-        }
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'IsReversal')) {
-            $Table->addColumn('IsReversal', 'boolean');
-        }
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'serviceTblAddress')) {
-            $Table->addColumn('serviceTblAddress', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'serviceTblPerson')) {
-            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'serviceTblMail')) {
-            $Table->addColumn('serviceTblMail', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'serviceTblPhone')) {
-            $Table->addColumn('serviceTblPhone', 'bigint', array('notnull' => false));
-        }
+        $Table = $this->createTable($Schema, 'tblInvoice');
+        $this->createColumn($Table, 'InvoiceNumber', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'TargetTime', self::FIELD_TYPE_DATETIME);
+        $this->createColumn($Table, 'SchoolName', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'SchoolOwner', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'SchoolBankName', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'SchoolIBAN', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'SchoolBIC', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'IsPaid', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($Table, 'IsReversal', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($Table, 'serviceTblAddress', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblMail', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblPhone', self::FIELD_TYPE_BIGINT, true);
 
         return $Table;
     }
@@ -173,10 +119,8 @@ class Setup extends AbstractSetup
     private function setTableInvoiceItem(Schema $Schema, Table $tblInvoice, Table $tblItem, Table $tblDebtor)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblInvoiceItem');
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'serviceTblPerson')) {
-            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
-        }
+        $Table = $this->createTable($Schema, 'tblInvoiceItem');
+        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
         $this->getConnection()->addForeignKey($Table, $tblInvoice);
         $this->getConnection()->addForeignKey($Table, $tblItem);
         $this->getConnection()->addForeignKey($Table, $tblDebtor);

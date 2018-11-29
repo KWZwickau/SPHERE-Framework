@@ -55,9 +55,13 @@ class RadebeulLernentwicklungsberichtHj extends Certificate
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
                         ->setContent(
-                            new Container('Lernentwicklungsbericht') .
-                            new Container('der') .
-                            new Container('Evangelischen Grundschule Radebeul')
+                            new Container('Lernentwicklungsbericht')
+                            .new Container('{% if( Content.P' . $personId . '.Company.Data.Name is not empty) %}
+                                        {{ Content.P' . $personId . '.Company.Data.Name }}
+                                    {% else %}
+                                        Evangelisches Schulzentrum Radebeul
+                                    {% endif %}')
+                            .new Container('- Grundschule -')
                         )
                         ->styleLineHeight('80%')
                         ->styleTextSize('20pt')

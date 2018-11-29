@@ -126,6 +126,7 @@ abstract class AbstractLink extends Extension implements ILinkInterface
                 $this->Template->setVariable('ElementToolTip', $Name);
             }
         }
+        $this->Template->setVariable('PageHeight', 1);
 
         $this->Template->setVariable('ElementHash', $this->getHash());
     }
@@ -158,6 +159,22 @@ abstract class AbstractLink extends Extension implements ILinkInterface
     {
 
         $this->Template->setVariable('Disabled', true);
+        return $this;
+    }
+
+    /**
+     * only work's with ajax Link
+     *
+     * @param int $Height
+     * @param int $Delay
+     *
+     * @return ILinkInterface
+     */
+    public function setScrollDown($Height = 10000, $Delay = 0)
+    {
+
+        $this->Template->setVariable('PageHeight', $Height);
+        $this->Template->setVariable('ScrollDelay', $Delay);
         return $this;
     }
 

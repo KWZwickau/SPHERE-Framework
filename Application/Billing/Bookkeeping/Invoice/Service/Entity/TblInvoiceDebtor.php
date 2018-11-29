@@ -18,7 +18,7 @@ use SPHERE\System\Database\Fitting\Element;
  * @Table(name="tblDebtor")
  * @Cache(usage="READ_ONLY")
  */
-class TblDebtor extends Element
+class TblInvoiceDebtor extends Element
 {
 
     const ATTR_SERVICE_TBL_DEBTOR = 'serviceTblDebtor';

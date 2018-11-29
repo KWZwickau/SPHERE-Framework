@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreType;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -24,6 +25,11 @@ class TblTask extends Element
     const ATTR_TBL_TEST_TYPE = 'tblTestType';
     const ATTR_SERVICE_TBL_PERIOD = 'serviceTblPeriod';
     const ATTR_SERVICE_TBL_YEAR = 'serviceTblYear';
+
+    const FIRST_PERIOD_ID = -1;
+    const FIRST_PERIOD_NAME = '1. Halbjahr';
+    const SECOND_PERIOD_ID = -2;
+    const SECOND_PERIOD_NAME = '2. Halbjahr';
 
     /**
      * @Column(type="string")
@@ -145,9 +151,41 @@ class TblTask extends Element
 
         if (null === $this->serviceTblPeriod) {
             return false;
+        }
+        // ist Pseudo-Period
+        elseif ($this->serviceTblPeriod < 0) {
+            return self::getPseudoPeriod($this->serviceTblPeriod);
         } else {
             return Term::useService()->getPeriodById($this->serviceTblPeriod);
         }
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return bool|TblPeriod
+     */
+    public function getServiceTblPeriodByDivision(TblDivision $tblDivision)
+    {
+
+        if ($this->serviceTblPeriod < 0) {
+            if (($tblLevel = $tblDivision->getTblLevel())
+                && ($tblYear = $tblDivision->getServiceTblYear())
+            ) {
+                if (($tblPeriodList = $tblYear->getTblPeriodAll($tblLevel->getName() == '12'))) {
+                    if (isset($tblPeriodList[0]) && $this->serviceTblPeriod == self::FIRST_PERIOD_ID) {
+                        return $tblPeriodList[0];
+                    }
+                    if (isset($tblPeriodList[1]) && $this->serviceTblPeriod == self::SECOND_PERIOD_ID) {
+                        return $tblPeriodList[1];
+                    }
+                }
+            }
+        } else {
+            return $this->getServiceTblPeriod();
+        }
+
+        return false;
     }
 
     /**
@@ -365,4 +403,23 @@ class TblTask extends Element
         $this->IsLocked = (boolean) $IsLocked;
     }
 
+    /**
+     * @param $Id
+     *
+     * @return TblPeriod|false
+     */
+    public static function getPseudoPeriod($Id)
+    {
+
+        if ($Id == self::FIRST_PERIOD_ID || $Id == self::SECOND_PERIOD_ID) {
+
+            $tblPeriod = new TblPeriod();
+            $tblPeriod->setId($Id);
+            $tblPeriod->setName($Id == self::FIRST_PERIOD_ID ? self::FIRST_PERIOD_NAME: self::SECOND_PERIOD_NAME);
+
+            return $tblPeriod;
+        } else {
+            return false;
+        }
+    }
 }

@@ -17,35 +17,19 @@ use SPHERE\System\Database\Fitting\Element;
 class TblDebtor extends Element
 {
 
-    const ATTR_DEBTOR_NUMBER = 'DebtorNumber';
-    const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
 
-    /**
-     * @Column(type="string")
-     */
-    protected $DebtorNumber;
+    const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const ATTR_TBL_PERSON_BILLING = 'tblPersonBilling';
+
+
     /**
      * @Column(type="bigint")
      */
     protected $serviceTblPerson;
-
     /**
-     * @return string $DebtorNumber
+     * @Column(type="bigint")
      */
-    public function getDebtorNumber()
-    {
-
-        return $this->DebtorNumber;
-    }
-
-    /**
-     * @param string $DebtorNumber
-     */
-    public function setDebtorNumber($DebtorNumber)
-    {
-
-        $this->DebtorNumber = $DebtorNumber;
-    }
+    protected $tblPersonBilling;
 
     /**
      * @return bool|TblPerson

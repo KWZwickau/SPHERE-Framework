@@ -212,7 +212,7 @@ class Service extends Extension
             $row++;
 
             $export->setValue($export->getCell(0, $row),
-                "Evangelische Grundschule Radebeul Staatlich genehmigte Ersatzschule                       "
+                "Evangelisches Schulzentrum Radebeul Staatlich genehmigte Ersatzschule                       "
                 . date('d.m.Y'));
             $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->mergeCells();
 
@@ -668,7 +668,7 @@ class Service extends Extension
             $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->setFontBold();
             $row++;
             $export->setValue($export->getCell(0, $row),
-                'Evangelische Grundschule Radebeul Staatlich genehmigte Ersatzschule                 '
+                'Evangelisches Schulzentrum Radebeul Staatlich genehmigte Ersatzschule                 '
                 . date('d.m.Y')
             );
             $export->setStyle($export->getCell(0, $row), $export->getCell(3, $row))->mergeCells();
@@ -959,7 +959,7 @@ class Service extends Extension
                 ->setAlignmentTop()
                 ->mergeCells()
                 ->setBorderAll();
-            $export->setValue($export->getCell(2, 2), 'Hort der Ev. Grundschule Radebeul');
+            $export->setValue($export->getCell(2, 2), 'Hort des Ev. Schulzentrum Radebeul');
             $export->setValue($export->getCell(2, 3), 'Wilhelm-Eichler-Straße 13');
             $export->setValue($export->getCell(2, 4), '01445 Radebeul');
             $export->setStyle($export->getCell(2, 2), $export->getCell(4, 2))

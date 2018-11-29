@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer;
 
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -30,8 +31,14 @@ class Frontend
 
         $Stage = new Stage('Mandanten');
         $tblConsumerAll = Consumer::useService()->getConsumerAll();
+        $TableContent = array();
+        array_walk($tblConsumerAll, function(TblConsumer $tblConsumer) use (&$TableContent){
+            $Item['Acronym'] = $tblConsumer->getAcronym();
+            $Item['Name'] = $tblConsumer->getName();
+            array_push($TableContent, $Item);
+        });
         $Stage->setContent(
-            new TableData($tblConsumerAll, new Title('Bestehende Mandanten'), array(
+            new TableData($TableContent, new Title('Bestehende Mandanten'), array(
                 'Acronym' => 'Mandanten-Kürzel',
                 'Name'    => 'Mandanten-Name'
             ))

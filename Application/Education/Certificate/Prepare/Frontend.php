@@ -2619,7 +2619,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblSubject,
             Evaluation::useService()->getTestTypeByIdentifier('TEST'),
             $tblScoreRule ? $tblScoreRule : null,
-            $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod() : null,
+            ($tblTaskPeriod = $tblTask->getServiceTblPeriodByDivision($tblDivision)) ? $tblTaskPeriod : null,
             null,
             false,
             $tblTask->getDate() ? $tblTask->getDate() : false
@@ -3964,7 +3964,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                     $tblCurrentSubject,
                                                     Evaluation::useService()->getTestTypeByIdentifier('TEST'),
                                                     $tblScoreRule ? $tblScoreRule : null,
-                                                    $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod() : null,
+                                                    ($tblTaskPeriod = $tblTask->getServiceTblPeriodByDivision($tblDivisionItem))
+                                                        ? $tblTaskPeriod : null,
                                                     $tblTestTemp->getServiceTblSubjectGroup() ? $tblTestTemp->getServiceTblSubjectGroup() : null,
                                                     false,
                                                     $tblTask->getDate() ? $tblTask->getDate() : false
@@ -4537,6 +4538,12 @@ class Frontend extends Extension implements IFrontendInterface
         $isApproved = false;
         $hasMissingSubjects = false;
 
+        if (Student::useService()->getIsSupportByPerson($tblPerson)) {
+            $support = ApiSupportReadOnly::openOverViewModal($tblPerson->getId(), false);
+        } else {
+            $support = false;
+        }
+
         if ($tblCertificate) {
             if ($tblLeaveStudent) {
                 $isApproved = $tblLeaveStudent->isApproved();
@@ -4759,6 +4766,10 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                     , 3)
             )),
+            ($support
+                ? new LayoutRow(new LayoutColumn(new Panel('Integration', $support, Panel::PANEL_TYPE_INFO)))
+                : null
+            ),
             ($hasMissingSubjects
                 ? new LayoutRow(new LayoutColumn(new Warning(
                     'Es sind nicht alle Fächer auf der Zeugnisvorlage eingestellt.', new Exclamation()
@@ -4940,6 +4951,12 @@ class Frontend extends Extension implements IFrontendInterface
 
         $form = false;
 
+        if (Student::useService()->getIsSupportByPerson($tblPerson)) {
+            $support = ApiSupportReadOnly::openOverViewModal($tblPerson->getId(), false);
+        } else {
+            $support = false;
+        }
+
         if ($tblCertificate) {
             if ($tblLeaveStudent) {
                 $stage->addButton(new External(
@@ -4996,7 +5013,11 @@ class Frontend extends Extension implements IFrontendInterface
                             . ' Keine Zeugnisvorlage verfügbar!'),
                         $tblCertificate ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_WARNING
                     )
-                    , 3)
+                    , 3),
+                ($support
+                    ? new LayoutColumn(new Panel('Integration', $support, Panel::PANEL_TYPE_INFO))
+                    : null
+                ),
             )),
         ));
 
@@ -5083,12 +5104,15 @@ class Frontend extends Extension implements IFrontendInterface
         ) {
             $stage = new Stage(new Stage('Zeugnisvorbereitung', 'Abgangszeugnis - Punkte'));
 
-            $stage->addButton(new Standard(
-                'Zurück', '/Education/Certificate/Prepare/Leave/Student', new ChevronLeft(), array('PersonId' => $tblPerson->getId())
-            ));
-
             $tblDivision = $tblLeaveStudent->getServiceTblDivision();
             $tblCertificate = $tblLeaveStudent->getServiceTblCertificate();
+
+            $stage->addButton(new Standard(
+                'Zurück', '/Education/Certificate/Prepare/Leave/Student', new ChevronLeft(), array(
+                    'PersonId' => $tblPerson->getId(),
+                    'DivisionId' => $tblDivision ? $tblDivision->getId() : 0
+                )
+            ));
 
             if ($tblDivision
                 && ($tblLevel = $tblDivision->getTblLevel())
@@ -5102,6 +5126,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblCourse = $tblStudent->getCourse();
             } else {
                 $tblCourse = false;
+            }
+
+            if (Student::useService()->getIsSupportByPerson($tblPerson)) {
+                $support = ApiSupportReadOnly::openOverViewModal($tblPerson->getId(), false);
+            } else {
+                $support = false;
             }
 
             $layoutGroups[] = new LayoutGroup(array(
@@ -5144,7 +5174,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 . ' Keine Zeugnisvorlage verfügbar!'),
                             $tblCertificate ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_WARNING
                         )
-                        , 3)
+                        , 3),
+                    ($support
+                        ? new LayoutColumn(new Panel('Integration', $support, Panel::PANEL_TYPE_INFO))
+                        : null
+                    )
                 )),
             ));
 
@@ -5180,13 +5214,17 @@ class Frontend extends Extension implements IFrontendInterface
             && ($tblPerson = $tblLeaveStudent->getServiceTblPerson())
         ) {
             $stage = new Stage(new Stage('Zeugnisvorbereitung', 'Abgangszeugnis - Sonstige Informationen'));
-            $stage->addButton(new Standard(
-                'Zurück', '/Education/Certificate/Prepare/Leave/Student', new ChevronLeft(), array('PersonId' => $tblPerson->getId())
-            ));
 
             $tblDivision = $tblLeaveStudent->getServiceTblDivision();
             $tblCertificate = $tblLeaveStudent->getServiceTblCertificate();
             $isApproved = $tblLeaveStudent->isApproved();
+
+            $stage->addButton(new Standard(
+                'Zurück', '/Education/Certificate/Prepare/Leave/Student', new ChevronLeft(), array(
+                    'PersonId' => $tblPerson->getId(),
+                    'DivisionId' => $tblDivision ? $tblDivision->getId() : 0
+                )
+            ));
 
             if ($tblDivision
                 && ($tblLevel = $tblDivision->getTblLevel())
@@ -5200,6 +5238,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblCourse = $tblStudent->getCourse();
             } else {
                 $tblCourse = false;
+            }
+
+            if (Student::useService()->getIsSupportByPerson($tblPerson)) {
+                $support = ApiSupportReadOnly::openOverViewModal($tblPerson->getId(), false);
+            } else {
+                $support = false;
             }
 
             $layoutGroups[] = new LayoutGroup(array(
@@ -5242,7 +5286,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 . ' Keine Zeugnisvorlage verfügbar!'),
                             $tblCertificate ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_WARNING
                         )
-                        , 3)
+                        , 3),
+                    ($support
+                        ? new LayoutColumn(new Panel('Integration', $support, Panel::PANEL_TYPE_INFO))
+                        : null
+                    )
                 )),
             ));
 

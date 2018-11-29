@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Api\Billing;
 
+use SPHERE\Application\Api\Billing\Inventory\ApiSetting;
 use SPHERE\Application\Api\Billing\Invoice\Invoice;
 use SPHERE\Application\IApplicationInterface;
 
@@ -15,6 +16,7 @@ class Billing implements IApplicationInterface
     public static function registerApplication()
     {
 
-        Invoice::registerModule();
+//        Invoice::registerModule();
+//        ApiSetting::registerApi();
     }
 }

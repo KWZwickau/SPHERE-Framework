@@ -11,7 +11,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\MoreItems;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Header;
 use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
@@ -26,7 +25,6 @@ use SPHERE\Common\Frontend\Message\Repository\Danger as DangerMessage;
 use SPHERE\Common\Frontend\Message\Repository\Success as SuccessMessage;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
-use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -134,17 +132,14 @@ class Frontend extends Extension implements IFrontendInterface
             Schulsoftware alle gesetzlich vorgeschriebenen Maßnahmen zum Schutz Ihrer personenbezogenen Daten und die 
             Ihres Kindes , entsprechend der geltenden Bestimmungen, insbesondere des Kirchengesetzes über den Datenschutz 
             der Evangelischen Kirche in Deutschland (DSG-EKD),  des Telemediengesetzes (TMG) und anderer 
-            datenschutzrechtlicher Bestimmungen implementiert. Alle Schulen, welche diese Software anwenden, haben sich 
-            als evangelische Schulen dem kirchlichen Datenschutzrecht unterworfen und stehen unter der Aufsicht des 
-            Datenschutzbeauftragten der Evangelisch-Lutherischen Landeskirche Sachsen, der uns regelmäßig berät und die 
-            Einhaltung aller einschlägigen Bestimmungen des Datenschutzes überwacht.  ')
+            datenschutzrechtlicher Bestimmungen implementiert. Der Datenschutzbeauftragte der Evangelisch-Lutherischen 
+            Landeskirche Sachsen überwacht dabei regelmäßig die Einhaltung aller einschlägigen Bestimmungen
+            des Datenschutzes.')
             . new Headline('Gegenstand des Datenschutzes ')
-            . new Paragraph(new Container(new DangerText('ACHTUNG: HIER wird es Veränderungen nach Verabschiedung des neuen 
-            Datenschutzgesetzes (Oktober oder November 2017) geben.')) . 'Gegenstand des Datenschutzes sind personenbezogene Daten. Diese sind nach § 2 Abs. 1  
-            DSG-EKD „Einzelangaben über persönlich oder sachliche Verhältnisse einer bestimmten oder bestimmbaren 
-            natürlichen Person (betroffene Person)“. Hierunter fallen z. B. Angaben wie Name, Post-Adresse, 
-            E-Mail-Adresse, Telefonnummer, die Benotung von Schülerinnen und Schülern, ggf. aber auch Nutzungsdaten wie 
-            IP-Adressen. ')
+            . new Paragraph('Gegenstand des Datenschutzes sind personenbezogene Daten. Diese sind nach § 4 Punkt 1. DSG-EKD
+            „Personenbezogene Daten alle Informationen, die sich auf eine identifizierte oder identifizierbare natürliche Person 
+            (im folgenden „betroffene Person“) beziehen;“ Hierunter fallen z. B. Angaben wie Name, Post-Adresse, E-Mail-Adresse,
+            Telefonnummer, die Benotung von Schülerinnen und Schülern, ggf. aber auch Nutzungsdaten wie IP-Adressen.')
             . new Headline('Umfang der Datenerhebung und -speicherung')
             . new Paragraph('Wir erheben und speichern persönliche Daten grundsätzlich nur, soweit es für die Erbringung 
             unserer Dienstleistungen als Schule notwendig ist. Die Schulsoftware stellt die elektronische Notenübersicht 
@@ -190,17 +185,13 @@ class Frontend extends Extension implements IFrontendInterface
             Schulsoftware alle gesetzlich vorgeschriebenen Maßnahmen zum Schutz Ihrer personenbezogenen Daten, entsprechend 
             der geltenden Bestimmungen, insbesondere des Kirchengesetzes über den Datenschutz der Evangelischen Kirche in 
             Deutschland (DSG-EKD),  des Telemediengesetzes (TMG) und anderer datenschutzrechtlicher Bestimmungen 
-            implementiert. Alle Schulen, welche diese Software anwenden,  haben sich als evangelische Schulen  dem 
-            kirchlichen Datenschutzrecht unterworfen und stehen unter der Aufsicht des Datenschutzbeauftragten der 
-            Evangelisch-Lutherischen Landeskirche Sachsen, der uns regelmäßig berät und die Einhaltung aller einschlägigen 
-            Bestimmungen des Datenschutzes überwacht.')
+            implementiert. Der Datenschutzbeauftragte der Evangelisch-Lutherischen Landeskirche Sachsen überwacht dabei
+            regelmäßig die Einhaltung aller einschlägigen Bestimmungen des Datenschutzes.')
             .new Headline('Gegenstand des Datenschutzes ')
-            .new Paragraph(new Container(new DangerText('ACHTUNG: HIER wird es Veränderungen nach Verabschiedung des neuen 
-            Datenschutzgesetzes (Oktober oder November 2017) geben.')).'Gegenstand des Datenschutzes sind personenbezogene
-            Daten. Diese sind nach § 2 Abs. 1  DSG-EKD „Einzelangaben über persönlich oder sachliche Verhältnisse einer 
-            bestimmten oder bestimmbaren natürlichen Person (betroffene Person)“. Hierunter fallen z. B. Angaben wie Name, 
-            Post-Adresse, E-Mail-Adresse, Telefonnummer, die Benotung von Schülerinnen und Schülern, ggf. aber auch 
-            Nutzungsdaten wie IP-Adressen. ')
+            . new Paragraph('Gegenstand des Datenschutzes sind personenbezogene Daten. Diese sind nach § 4 Punkt 1. DSG-EKD
+            „Personenbezogene Daten alle Informationen, die sich auf eine identifizierte oder identifizierbare natürliche Person 
+            (im folgenden „betroffene Person“) beziehen;“ Hierunter fallen z. B. Angaben wie Name, Post-Adresse, E-Mail-Adresse,
+            Telefonnummer, die Benotung von Schülerinnen und Schülern, ggf. aber auch Nutzungsdaten wie IP-Adressen.')
             .new Headline('Umfang der Datenerhebung und -speicherung')
             .new Paragraph('Wir erheben und speichern persönliche Daten grundsätzlich nur, soweit es für die Erbringung 
             unserer Dienstleistungen als Schule notwendig ist. Die Schulsoftware stellt die elektronische Notenübersicht 

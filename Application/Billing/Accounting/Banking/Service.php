@@ -2,25 +2,17 @@
 namespace SPHERE\Application\Billing\Accounting\Banking;
 
 use SPHERE\Application\Billing\Accounting\Banking\Service\Data;
+use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblBankAccount;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblBankReference;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor;
+use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtorNumber;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtorSelection;
+use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblPersonBilling;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Setup;
-use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
-use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
-use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
-use SPHERE\Application\Billing\Inventory\Item\Item;
-use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
-use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
-use SPHERE\Common\Frontend\Form\Structure\FormColumn;
-use SPHERE\Common\Frontend\Form\Structure\FormGroup;
-use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -49,41 +41,14 @@ class Service extends AbstractService
     }
 
     /**
-     * @return bool|TblDebtor[]
-     */
-    public function getDebtorAll()
-    {
-
-        return (new Data($this->getBinding()))->getDebtorAll();
-    }
-
-    /**
-     * @return false|TblBankReference[]
-     */
-    public function getBankReferenceAll()
-    {
-
-        return (new Data($this->getBinding()))->getBankReferenceAll();
-    }
-
-    /**
-     * @return false|TblDebtorSelection[]
-     */
-    public function getDebtorSelectionAll()
-    {
-
-        return (new Data($this->getBinding()))->getDebtorSelectionAll();
-    }
-
-    /**
      * @param $Id
      *
-     * @return bool|TblDebtor
+     * @return false|TblBankAccount
      */
-    public function getDebtorById($Id)
+    public function getBankAccountById($Id)
     {
 
-        return (new Data($this->getBinding()))->getDebtorById($Id);
+        return (new Data($this->getBinding()))->getBankAccountById($Id);
     }
 
     /**
@@ -100,6 +65,28 @@ class Service extends AbstractService
     /**
      * @param $Id
      *
+     * @return false|TblDebtor
+     */
+    public function getDebtorById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getDebtorById($Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblDebtorNumber
+     */
+    public function getDebtorNumberById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getDebtorNumberById($Id);
+    }
+
+    /**
+     * @param $Id
+     *
      * @return false|TblDebtorSelection
      */
     public function getDebtorSelectionById($Id)
@@ -109,128 +96,80 @@ class Service extends AbstractService
     }
 
     /**
-     * @deprecated
+     * @param $Id
      *
-*@param TblPerson $Person
-     *
-     * @return false|TblDebtor[]
+     * @return false|TblPersonBilling
      */
-    public function getDebtorByPerson(TblPerson $Person)
+    public function getPersonBillingById($Id)
     {
 
-        return ( new Data($this->getBinding()) )->getDebtorAllByPerson($Person);
+        return (new Data($this->getBinding()))->getPersonBillingById($Id);
     }
 
     /**
-     * @param TblPerson $Person
+     * @param $Id
      *
-     * @return false|TblDebtor[]
+     * @return false|TblBankAccount
      */
-    public function getDebtorAllByPerson(TblPerson $Person)
+    public function getBankAccountAll($Id)
     {
 
-        return ( new Data($this->getBinding()) )->getDebtorAllByPerson($Person);
+        return (new Data($this->getBinding()))->getBankAccountAll($Id);
     }
 
     /**
-     * @param $DebtorNumber
-     *
-     * @return bool|TblDebtor
-     */
-    public function getDebtorByDebtorNumber($DebtorNumber)
-    {
-
-        return (new Data($this->getBinding()))->getDebtorByDebtorNumber($DebtorNumber);
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     *
-     * @return false|TblBankReference[]
-     */
-    public function getBankReferenceByPerson(TblPerson $tblPerson)
-    {
-
-        return (new Data($this->getBinding()))->getBankReferenceByPerson($tblPerson);
-    }
-
-    /**
-     * @param $Reference
+     * @param $Id
      *
      * @return false|TblBankReference
      */
-    public function getBankReferenceByNumber($Reference)
+    public function getBankReferenceAll($Id)
     {
 
-        return (new Data($this->getBinding()))->getBankReferenceByNumber($Reference);
+        return (new Data($this->getBinding()))->getBankReferenceAll($Id);
     }
 
     /**
-     * @param TblPerson $tblPerson
+     * @param $Id
      *
-     * @return false|TblDebtorSelection[]
+     * @return false|TblDebtor
      */
-    public function getDebtorSelectionByPerson(TblPerson $tblPerson)
+    public function getDebtorAll($Id)
     {
 
-        return (new Data($this->getBinding()))->getDebtorSelectionByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getDebtorAll($Id);
     }
 
     /**
-     * @param TblBankReference $tblBankReference
+     * @param $Id
      *
-     * @return false|TblDebtorSelection[]
+     * @return false|TblDebtorNumber
      */
-    public function getDebtorSelectionByBankReference(TblBankReference $tblBankReference)
+    public function getDebtorNumberAll($Id)
     {
 
-        return (new Data($this->getBinding()))->getDebtorSelectionByBankReference($tblBankReference);
+        return (new Data($this->getBinding()))->getDebtorNumberAll($Id);
     }
 
     /**
-     * @param TblPerson $tblPerson
-     * @param TblItem   $tblItem
-     *
-     * @return false|TblDebtorSelection
-     */
-    public function getDebtorSelectionByPersonAndItem(TblPerson $tblPerson, TblItem $tblItem)
-    {
-
-        return (new Data($this->getBinding()))->getDebtorSelectionByPersonAndItem($tblPerson, $tblItem);
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     * @param TblItem   $tblItem
+     * @param $Id
      *
      * @return false|TblDebtorSelection
      */
-    public function getDebtorSelectionByPersonAndItemWithoutDebtor(TblPerson $tblPerson, TblItem $tblItem)
+    public function getDebtorSelectionAll($Id)
     {
 
-        return (new Data($this->getBinding()))->getDebtorSelectionByPersonAndItem($tblPerson, $tblItem);
+        return (new Data($this->getBinding()))->getDebtorSelectionAll($Id);
     }
 
     /**
-     * @param $Reference
+     * @param $Id
      *
-     * @return false|TblBankReference
+     * @return false|TblPersonBilling
      */
-    public function getReferenceIsUsed($Reference)
+    public function getPersonBillingAll($Id)
     {
 
-        return (new Data($this->getBinding()))->getReferenceIsUsed($Reference);
-    }
-
-    /**
-     * @param TblDebtorSelection $tblDebtorSelection
-     *
-     * @return false|TblDebtorSelection
-     */
-    public function checkDebtorSelectionDebtor(TblDebtorSelection $tblDebtorSelection)
-    {
-
-        return (new Data($this->getBinding()))->checkDebtorSelectionDebtor($tblDebtorSelection);
+        return (new Data($this->getBinding()))->getPersonBillingAll($Id);
     }
 
     /**
@@ -240,7 +179,7 @@ class Service extends AbstractService
      *
      * @return IFormInterface|string
      */
-    public function createDebtor(IFormInterface &$Stage = null, $Debtor, $Id)
+    public function createDebtor(IFormInterface &$Stage, $Debtor, $Id)
     {
 
         /**
@@ -279,235 +218,12 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param TblPerson           $tblPerson
-     * @param null                $Reference
-     *
-     * @return IFormInterface|string
-     */
-    public function createReference(
-        IFormInterface &$Stage = null,
-        TblPerson $tblPerson,
-        $Reference = null
-    ) {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Reference) {
-            return $Stage;
-        }
-
-        $Error = false;
-        if (isset( $Reference['Reference'] ) && empty( $Reference['Reference'] )) {
-            $Stage->setError('Reference[Reference]', 'Bitte geben sie eine Mandatsreferenz an');
-            $Error = true;
-        } else {
-            if (Banking::useService()->getReferenceIsUsed($Reference['Reference'])) {
-                $Stage->setError('Reference[Reference]', 'Mandatsreferenz ist schon vergeben');
-                $Error = true;
-            }
-        }
-
-        if (!$Error) {
-            (new Data($this->getBinding()))->createReference(
-                $tblPerson,
-                $Reference['Reference'],
-                $Reference['ReferenceDate'],
-                $Reference['BankName'],
-                $Reference['Owner'],
-                $Reference['IBAN'],
-                $Reference['BIC']);
-            return new Success('Die Mandatsreferenz ist erfasst worden')
-            .new Redirect('/Billing/Accounting/Banking/View', Redirect::TIMEOUT_SUCCESS,
-                array('Id' => $tblPerson->getId()));
-        }
-
-        return $Stage;
-    }
-
-    /**
-     * @param IFormInterface|null $Stage
-     * @param TblPerson           $tblPersonPayers
-     * @param TblPaymentType      $tblPaymentType
-     * @param null                $Data
-     *
-     * @return IFormInterface|string
-     */
-    public function createDebtorSelectionComplete(
-        IFormInterface &$Stage = null,
-        TblPerson $tblPersonPayers,
-        TblPaymentType $tblPaymentType,
-        $Data = null
-    ) {
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Data) {
-            return $Stage;
-        }
-
-        $Error = false;
-        $WarningColumn = array();
-
-        if (!isset( $Data['Person'] ) || empty( $Data['Person'] )) {
-//            $Stage->setError('Data[Person]', 'Bitte geben sie eine Person an');
-            $WarningColumn[] = new FormColumn(new Warning('Bitte geben sie eine Person an'), 4);
-            $Error = true;
-        } else {
-
-            $tblPerson = Person::useService()->getPersonById($Data['Person']);
-            if (!$tblPerson) {
-                $WarningColumn[] = new FormColumn(new Warning('PersonenID nicht gefunden'), 4);
-//                $Stage->setError('Data[Person]', 'PersonenID nicht gefunden');
-                $Error = true;
-            } else {
-                $WarningColumn[] = new FormColumn(new HiddenField(''), 4);
-            }
-        }
-
-        if (!isset( $Data['Item'] ) || empty( $Data['Item'] )) {
-            $WarningColumn[] = new FormColumn(new Warning('Bitte geben sie einen Artikel an'), 4);
-//            $Stage->setError('Data[Item]', 'Bitte geben sie einen Artikel an');
-            $Error = true;
-        } else {
-            $tblItem = Item::useService()->getItemById($Data['Item']);
-            if (!$tblItem) {
-                $WarningColumn[] = new FormColumn(new Warning('ArtikelID nicht gefunden'), 4);
-//                $Stage->setError('Data[Item]', 'ArtikelID nicht gefunden');
-                $Error = true;
-            } else {
-                $WarningColumn[] = new FormColumn(new HiddenField(''), 4);
-            }
-
-        }
-        if ($Error) {
-            $Stage->appendGridGroup(new FormGroup(new FormRow($WarningColumn)));
-        }
-
-        if (!isset( $Data['Debtor'] ) || empty( $Data['Debtor'] )) {
-            $Stage->setError('Data[Debtor]', 'Bitte geben sie eine Debitor-Nr. an');
-            $Error = true;
-        } else {
-            $tblDebtor = Banking::useService()->getDebtorById($Data['Debtor']);
-            if (!$tblDebtor) {
-                $Stage->setError('Data[Debtor]', 'Debitor-Nr nicht gefunden');
-                $Error = true;
-            }
-        }
-
-        if ($tblPaymentType->getName() === 'SEPA-Lastschrift') {
-            if (!isset( $Data['Reference'] ) || empty( $Data['Reference'] )) {
-                $Stage->setError('Data[Reference]', 'Bitte geben sie eine Mandatsreferenz an');
-                $Error = true;
-            } else {
-                $tblBankReference = Banking::useService()->getBankReferenceById($Data['Reference']);
-                if (!$tblBankReference) {
-                    $Stage->setError('Data[Reference]', 'MandatsreferenzID nicht gefunden');
-                    $Error = true;
-                }
-            }
-        }
-
-        if (!$Error) {
-            if (!isset( $tblBankReference )) {
-                $tblBankReference = 'empty';
-            }
-
-            if (isset( $tblPerson ) && isset( $tblItem ) && isset( $tblDebtor ) && isset( $tblBankReference )) {
-                if ($tblBankReference == 'empty') {
-                    $tblBankReference = null;
-                }
-                $tblDebtorSelection = Banking::useService()->getDebtorSelectionByPersonAndItem($tblPerson, $tblItem);
-                if (!$tblDebtorSelection) {
-                    ( new Data ($this->getBinding()) )->createDebtorSelectionComplete(
-                        $tblPerson,
-                        $tblPersonPayers,
-                        $tblPaymentType,
-                        $tblItem,
-                        $tblDebtor,
-                        $tblBankReference);
-                } else {
-                    ( new Data($this->getBinding()) )->updateDebtorSelectionComplete(
-                        $tblDebtorSelection,
-                        $tblPersonPayers,
-                        $tblPaymentType,
-                        $tblDebtor,
-                        $tblBankReference
-                    );
-                }
-
-                return $Stage.new Redirect('/Billing/Accounting/DebtorSelection/Payment', Redirect::TIMEOUT_SUCCESS,
-                    array('Id'            => $tblPersonPayers->getId(),
-                          'PaymentTypeId' => $tblPaymentType->getId()));
-            }
-        }
-
-        $Stage->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Warning('Ihr Eintrag wurde nicht gespeichert!'), 4))));
-        return $Stage;
-    }
-
-    /**
-     * @param IFormInterface|null $Stage
-     * @param TblBasket           $tblBasket
-     * @param null                $Data
-     *
-     * @return IFormInterface|string
-     */
-    public function createDebtorSelection(IFormInterface &$Stage = null, TblBasket $tblBasket, $Data = null)
-    {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Data) {
-            return $Stage;
-        }
-
-        $Error = false;
-        $PersonArray = array();
-        if (is_array($Data)) {
-            foreach ($Data as $Key => $Row) {
-                if (!isset( $Row['PersonPayers'] ) || empty( $Row['PersonPayers'] )) {
-                    $PersonArray[$Row['Person']] = Person::useService()->getPersonById($Row['Person']);
-                    $Error = true;
-                }
-                if (!$Error) {
-
-                    $tblPerson = Person::useService()->getPersonById($Row['Person']);
-                    $tblPersonPayers = Person::useService()->getPersonById($Row['PersonPayers']);
-                    $tblPaymentType = Balance::useService()->getPaymentTypeById($Row['Payment']);
-                    $tblItem = Item::useService()->getItemById($Row['Item']);
-
-                    (new Data ($this->getBinding()))->createDebtorSelection(
-                        $tblPerson,
-                        $tblPersonPayers,
-                        $tblPaymentType,
-                        $tblItem);
-                }
-            }
-            if (!$Error) {
-                return new Success('Daten erfasst')
-                .new Redirect('/Billing/Accounting/DebtorSelection/Payment/Choose', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
-            }
-            if ($Error === true && !empty( $PersonArray )) {
-                /** @var TblPerson $Person */
-                foreach ($PersonArray as $Person) {
-                    $Stage .= new Warning('Bezahler für '.$Person->getFullName().' ist noch nicht eingerichtet');
-                }
-            }
-        }
-
-        return $Stage;
-    }
-
-    /**
-     * @param IFormInterface|null $Stage
      * @param TblDebtor           $tblDebtor
      * @param                     $Debtor
      *
      * @return IFormInterface|string
      */
-    public function changeDebtor(IFormInterface &$Stage = null, TblDebtor $tblDebtor, $Debtor)
+    public function changeDebtor(IFormInterface &$Stage, TblDebtor $tblDebtor, $Debtor)
     {
 
         /**
@@ -551,295 +267,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface|null $Stage
-     * @param TblBankReference    $tblBankReference
-     * @param                     $Reference
-     *
-     * @return IFormInterface|string
-     */
-    public function changeReference(
-        IFormInterface &$Stage = null,
-        TblBankReference $tblBankReference,
-        $Reference
-    ) {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Reference) {
-            return $Stage;
-        }
-
-        $Error = false;
-        if (isset( $Reference['Reference'] ) && empty( $Reference['Reference'] )) {
-            $Stage->setError('Reference[Reference]', 'Bitte geben sie eine Mandatsreferenz an');
-            $Error = true;
-        } else {
-            if (( $FindBankReference = Banking::useService()->getBankReferenceByNumber($Reference['Reference']) )) {
-                if ($FindBankReference->getId() !== $tblBankReference->getId()) {
-                    $Stage->setError('Reference[Reference]', 'Mandatsreferenz ist schon vergeben');
-                    $Error = true;
-                }
-            }
-        }
-        if (isset( $Reference['ReferenceDate'] ) && empty( $Reference['ReferenceDate'] )) {
-            $Stage->setError('Reference[ReferenceDate]', 'Bitte geben sie ein Datum an');
-            $Error = true;
-        }
-
-        if (!$Error) {
-
-            (new Data($this->getBinding()))->updateReference(
-                $tblBankReference,
-                $Reference['Reference'],
-                $Reference['ReferenceDate'],
-                $Reference['Owner'],
-                $Reference['BankName'],
-                $Reference['IBAN'],
-                $Reference['BIC']);
-            if ($tblBankReference->getServiceTblPerson()) {
-                return new Success('Änderungen an Informationen zur Mandatsreferenz sind erfasst')
-                .new Redirect('/Billing/Accounting/Banking/View', Redirect::TIMEOUT_SUCCESS,
-                    array('Id' => $tblBankReference->getServiceTblPerson()->getId()));
-            } else {
-                return new Warning('Person nicht mehr gefunden')
-                .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_SUCCESS);
-            }
-
-        }
-
-        return $Stage;
-    }
-
-    /**
-     * @param IFormInterface|null $Stage
-     * @param TblPerson           $tblPerson
-     * @param null                $Data
-     *
-     * @return IFormInterface|string
-     */
-    public function changeDebtorSelectionPayer(IFormInterface &$Stage = null, TblPerson $tblPerson, $Data = null)
-    {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Data) {
-            return $Stage;
-        }
-
-        $Error = false;
-        $PersonPayers = false;
-
-        if (is_array($Data)) {
-            // Testdurchlauf durch alle Eingaben
-            foreach ($Data as $Key => $Row) {
-                $tblDebtorSelection = Banking::useService()->getDebtorSelectionById($Key);
-
-                if ($tblDebtorSelection) {
-                    if (!isset( $Row['PersonPayers'] ) || empty( $Row['PersonPayers'] )) {
-                        $Stage->setError('[Data]['.$Key.'][PersonPayers]', 'Bezahler benötigt!');
-                        $Error = true;
-                        $PersonPayers = true;
-                    }
-                }
-            }
-            if (!$Error) {
-                // Durchführung nach bestehen des Testdurchlauf's
-                foreach ($Data as $Key => $Row) {
-                    $tblPersonPayers = Person::useService()->getPersonById($Row['PersonPayers']);
-                    $tblPaymentType = Balance::useService()->getPaymentTypeById($Row['Payment']);
-                    $tblDebtorSelection = Banking::useService()->getDebtorSelectionById($Key);
-
-                    if ($tblDebtorSelection) {
-                        if (!$Error) {
-                            (new Data ($this->getBinding()))->changeDebtorSelection(
-                                $tblDebtorSelection,
-                                $tblPersonPayers,
-                                $tblPaymentType,
-                                null,
-                                null);
-                        }
-                    }
-                }
-            }
-
-            if (!$Error) {
-                return new Success('Daten erfasst')
-                .new Redirect('/Billing/Accounting/DebtorSelection/PaymentChoose', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPerson->getId()));
-            }
-            if ($Error && $PersonPayers) {
-                $Stage .= new Warning('Bitte zuerst Daten zum bezahlen für die Beziehungstehenden (bezahlenden) Personen anlegen');
-            }
-        }
-
-        return $Stage;
-    }
-
-    /**
-     * @param IFormInterface|null $Stage
-     * @param null                $Data
-     *
-     * @return IFormInterface|string
-     */
-    public function changeDebtorSelectionInfo(IFormInterface &$Stage = null, $Data = null)
-    {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Data) {
-            return $Stage;
-        }
-
-        $Error = false;
-        $Debtor = false;
-        $Bank = false;
-
-        if (is_array($Data)) {
-            // Testdurchlauf durch alle Eingaben
-            foreach ($Data as $Key => $Row) {
-                $tblDebtorSelection = Banking::useService()->getDebtorSelectionById($Key);
-
-                if ($tblDebtorSelection) {
-                    if (!isset( $Row['Debtor'] ) || empty( $Row['Debtor'] )) {
-                        $Stage->setError('[Data]['.$Key.'][Debtor]', 'Debitor benötigt!');
-                        $Error = true;
-                        $Debtor = true;
-                    }
-                    if ($tblDebtorSelection->getServiceTblPaymentType()->getName() == 'SEPA-Lastschrift') {
-                        if (!isset( $Row['Reference'] ) || empty( $Row['Reference'] )) {
-                            $Stage->setError('[Data]['.$Key.'][Reference]', 'Auswahl treffen!');
-                            $Error = true;
-                            $Bank = true;
-                        }
-                    }
-                }
-            }
-            if (!$Error) {
-                // Durchführung nach bestehen des Testdurchlauf's
-                foreach ($Data as $Key => $Row) {
-                    $tblDebtorSelection = Banking::useService()->getDebtorSelectionById($Key);
-
-                    if ($tblDebtorSelection) {
-
-                        if (!$Error) {
-
-                            $tblDebtor = Banking::useService()->getDebtorById($Row['Debtor']);
-
-                            if (isset( $Row['Reference'] )) {
-                                $tblBankReference = Banking::useService()->getBankReferenceById($Row['Reference']);
-                            } else {
-                                $tblBankReference = null;
-                            }
-
-
-                            (new Data ($this->getBinding()))->updateDebtorSelection(
-                                $tblDebtorSelection,
-                                $tblDebtor,
-                                $tblBankReference);
-                        }
-                    }
-                }
-            }
-
-            if (!$Error) {
-                return new Success('Daten erfasst')
-                .new Redirect('/Billing/Accounting/DebtorSelection', Redirect::TIMEOUT_SUCCESS);
-            }
-            if ($Error && $Debtor) {
-                $Stage .= new Warning('Gewählte Bezahler haben keine Debitor-Nummer ausgewählt');
-            }
-            if ($Error && $Bank) {
-                $Stage .= new Warning('Gewählte Bezahler haben keine Referenz-Nummer ausgeählt');
-            }
-        }
-
-        return $Stage;
-    }
-
-    /**
-     * @param IFormInterface|null $Stage
-     * @param TblBasket           $tblBasket
-     * @param null                $Data
-     *
-     * @return IFormInterface|string
-     */
-    public function updateDebtorSelection(IFormInterface &$Stage = null, TblBasket $tblBasket, $Data = null)
-    {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Data) {
-            return $Stage;
-        }
-
-        $Error = false;
-        $Debtor = false;
-        $Bank = false;
-
-        if (is_array($Data)) {
-            // Testdurchlauf durch alle Eingaben
-            foreach ($Data as $Key => $Row) {
-                $tblDebtorSelection = Banking::useService()->getDebtorSelectionById($Key);
-
-                if ($tblDebtorSelection) {
-                    if (!isset( $Row['Debtor'] ) || empty( $Row['Debtor'] )) {
-                        $Stage->setError('[Data]['.$Key.'][Debtor]', 'Debitor benötigt!');
-                        $Error = true;
-                        $Debtor = true;
-                    }
-                    if ($tblDebtorSelection->getServiceTblPaymentType()->getName() == 'SEPA-Lastschrift') {
-                        if (!isset( $Row['Reference'] ) || empty( $Row['Reference'] )) {
-                            $Stage->setError('[Data]['.$Key.'][Reference]', 'Auswahl treffen!');
-                            $Error = true;
-                            $Bank = true;
-                        }
-                    }
-                }
-            }
-            if (!$Error) {
-                // Durchführung nach bestehen des Testdurchlauf's
-                foreach ($Data as $Key => $Row) {
-                    $tblDebtorSelection = Banking::useService()->getDebtorSelectionById($Key);
-
-                    if ($tblDebtorSelection) {
-
-                        if (!$Error) {
-
-                            $tblDebtor = Banking::useService()->getDebtorById($Row['Debtor']);
-                            if (isset( $Row['Reference'] )) {
-                                $tblBankReference = Banking::useService()->getBankReferenceById($Row['Reference']);
-                            } else {
-                                $tblBankReference = null;
-                            }
-
-                            (new Data ($this->getBinding()))->updateDebtorSelection(
-                                $tblDebtorSelection,
-                                $tblDebtor,
-                                $tblBankReference);
-                        }
-                    }
-                }
-            }
-
-            if (!$Error) {
-                return new Success('Daten erfasst')
-                .new Redirect('/Billing/Bookkeeping/Basket/Verification', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
-            }
-            if ($Error && $Debtor) {
-                $Stage .= new Warning('Gewählte Bezahler haben keine Debitor-Nummer ausgewählt');
-            }
-            if ($Error && $Bank) {
-                $Stage .= new Warning('Gewählte Bezahler haben keine Referenz-Nummer ausgeählt');
-            }
-        }
-
-        return $Stage;
-    }
-
-    /**
      * @param TblDebtor $tblDebtor
      *
      * @return bool|string
@@ -858,62 +285,5 @@ class Service extends AbstractService
 
         return new Danger('Der Debitor konnte nicht gelöscht werden')
         .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_ERROR);
-    }
-
-    /**
-     * @param TblBankReference $tblBankReference
-     *
-     * @return bool|string
-     */
-    public function removeBankReference(TblBankReference $tblBankReference)
-    {
-
-        if (null === $tblBankReference) {
-            return '';
-        }
-
-        $tblDebtorSelectionList = Banking::useService()->getDebtorSelectionByBankReference($tblBankReference);
-        if ($tblDebtorSelectionList) {
-            foreach ($tblDebtorSelectionList as $tblDebtorSelection) {
-                Banking::useService()->destroyDebtorSelection($tblDebtorSelection);
-            }
-        }
-
-        return (new Data($this->getBinding()))->removeReference($tblBankReference);
-    }
-
-    /**
-     * @param TblDebtorSelection $tblDebtorSelection
-     *
-     * @return bool
-     */
-    public function destroyDebtorSelection(TblDebtorSelection $tblDebtorSelection)
-    {
-
-        if (null === $tblDebtorSelection) {
-            return false;
-        }
-
-        return (new Data($this->getBinding()))->destroyDebtorSelection($tblDebtorSelection);
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     *
-     * @return bool
-     */
-    public function destroyDebtorSelectionByPerson(TblPerson $tblPerson)
-    {
-
-        $tblDebtorSelectionList = Banking::useService()->getDebtorSelectionByPerson($tblPerson);
-        $Complete = true;
-        if ($tblDebtorSelectionList) {
-            foreach ($tblDebtorSelectionList as $tblDebtorSelection) {
-                if (!$this->destroyDebtorSelection($tblDebtorSelection)) {
-                    $Complete = false;
-                }
-            }
-        }
-        return $Complete;
     }
 }

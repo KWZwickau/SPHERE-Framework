@@ -21,7 +21,7 @@ class TblPeriod extends Element
     const ATTR_DESCRIPTION = 'Description';
     const ATTR_FROM_DATE = 'FromDate';
     const ATTR_TO_DATE = 'ToDate';
-
+    const ATTR_Is_Level_12 = 'IsLevel12';
 
     /**
      * @Column(type="string")
@@ -39,6 +39,11 @@ class TblPeriod extends Element
      * @Column(type="datetime")
      */
     protected $ToDate;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsLevel12;
 
     /**
      * @return string
@@ -136,6 +141,26 @@ class TblPeriod extends Element
     public function getDisplayName()
     {
 
-        return $this->getName() . ' ' . new Small(new Muted('(' .$this->getFromDate() . ' - ' . $this->getToDate() . ')'));
+        return $this->getName()
+            . ($this->getFromDate() && $this->getToDate()
+                ? ' ' . new Small(new Muted('(' .$this->getFromDate() . ' - ' . $this->getToDate() . ')'))
+                : ''
+            );
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isLevel12()
+    {
+        return $this->IsLevel12;
+    }
+
+    /**
+     * @param boolean $IsLevel12
+     */
+    public function setIsLevel12($IsLevel12)
+    {
+        $this->IsLevel12 = $IsLevel12;
     }
 }

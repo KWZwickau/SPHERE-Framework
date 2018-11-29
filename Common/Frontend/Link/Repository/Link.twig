@@ -1,7 +1,11 @@
 {% if( Disabled is empty ) %}
-    <a id="{{ ElementHash }}" href="{{ UrlBase }}{{ ElementPath }}" class="{{ ElementType }}" data-trigger="hover"
+    <a id="{{ ElementHash }}"
+        {% if( AjaxEventClick is empty ) %} href="{{ UrlBase }}{{ ElementPath }}" {% endif %}
+       class="{{ ElementType }}" data-trigger="hover"
        data-toggle="popover" data-content="{{ ElementToolTip }}"
+        {% if( AjaxEventClick is not empty ) %} oncontextmenu="return false;" {% endif %}
     >{{ ElementIcon }} {{ ElementName }}</a>
+
     {% if( AjaxEventClick is not empty ) %}
         <script language=javascript>
             //noinspection JSUnresolvedFunction
@@ -9,9 +13,34 @@
             {
                 Client.Use("ModAjax", function ()
                 {
-                    jQuery("a#{{ ElementHash }}").on("click", function(Event) {
-                        Event.preventDefault();
-                        {{ AjaxEventClick }}
+
+                    jQuery("a#{{ ElementHash }}").on("mouseup", function(Event) {
+
+                        // Left click
+                        if(Event.which === 1){
+                            if (Event.ctrlKey) {
+                                // Ctrl+LeftClick behaviour.
+                            } else {
+                                // Standard LeftClick behaviour.
+                                Event.preventDefault();
+                                {{ AjaxEventClick }}
+
+                                {# Scroll down funktioniert live nicht #}
+                                var PageHeight = {{ PageHeight }};
+                                if( PageHeight > 1 ){
+                                    {#// When the user clicks on the button, scroll to the PageHeight position#}
+                                    setTimeout(function(){
+                                        window.scroll(0, PageHeight)
+                                    }, {{ ScrollDelay }});
+                                }
+                            }
+                            // Middle click
+                        } else if (Event.which === 2) {
+                            return false;
+                            // Right click
+                        } else {
+                            return false;
+                        }
                     });
                 });
             });

@@ -7,10 +7,10 @@ use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor as Tb
 use SPHERE\Application\Billing\Accounting\SchoolAccount\Service\Entity\TblSchoolAccount;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
-use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblDebtor;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceDebtor;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
-use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItem;
-use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblItem;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemValue;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblItemValue;
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Contact\Mail\Service\Entity\TblMail;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblPhone;
@@ -44,7 +44,7 @@ class Data extends AbstractData
     /**
      * @param int $Id
      *
-     * @return false|TblItem
+     * @return false|TblItemValue
      */
     public function getItemById($Id)
     {
@@ -55,12 +55,12 @@ class Data extends AbstractData
     /**
      * @param int $Id
      *
-     * @return false|TblDebtor
+     * @return false|TblInvoiceDebtor
      */
-    public function getDebtorById($Id)
+    public function getInvoiceDebtorById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtor', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoiceDebtor', $Id);
     }
 
     /**
@@ -110,7 +110,7 @@ class Data extends AbstractData
      */
     public function getInvoiceByNumber($InvoiceNumber)
     {
-
+        /** @var TblInvoice|null $Entity */
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblInvoice')
             ->findOneBy(array(TblInvoice::ATTR_INVOICE_NUMBER => $InvoiceNumber));
         return ( null === $Entity ? false : $Entity );
@@ -119,13 +119,13 @@ class Data extends AbstractData
     /**
      * @param TblInvoice $tblInvoice
      *
-     * @return TblInvoiceItem[]|bool
+     * @return TblInvoiceItemValue[]|bool
      */
     public function getInvoiceItemAllByInvoice(TblInvoice $tblInvoice)
     {
 
         $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblInvoiceItem')
-            ->findBy(array(TblInvoiceItem::ATTR_TBL_INVOICE => $tblInvoice->getId()));
+            ->findBy(array(TblInvoiceItemValue::ATTR_TBL_INVOICE => $tblInvoice->getId()));
         return ( null === $EntityList ? false : $EntityList );
     }
 
@@ -140,9 +140,9 @@ class Data extends AbstractData
     {
 
         $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoiceItem',
-            array(TblInvoiceItem::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()));
+            array(TblInvoiceItemValue::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()));
         if ($EntityList) {
-            /** @var TblInvoiceItem $Entity */
+            /** @var TblInvoiceItemValue $Entity */
             foreach ($EntityList as &$Entity) {
                 $tblInvoice = $Entity->getTblInvoice();
                 if ($tblInvoice) {
@@ -161,15 +161,15 @@ class Data extends AbstractData
     /**
      * @param TblInvoice $tblInvoice
      *
-     * @return false|TblItem[]
+     * @return false|TblItemValue[]
      */
     public function getItemAllByInvoice(TblInvoice $tblInvoice)
     {
 
         $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoiceItem',
-            array(TblInvoiceItem::ATTR_TBL_INVOICE => $tblInvoice->getId()));
+            array(TblInvoiceItemValue::ATTR_TBL_INVOICE => $tblInvoice->getId()));
         if ($EntityList) {
-            /** @var TblInvoiceItem $Entity */
+            /** @var TblInvoiceItemValue $Entity */
             foreach ($EntityList as &$Entity) {
                 $Entity = $Entity->getTblItem();
             }
@@ -187,9 +187,9 @@ class Data extends AbstractData
     {
 
         $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoiceItem',
-            array(TblInvoiceItem::ATTR_TBL_INVOICE => $tblInvoice->getId()));
+            array(TblInvoiceItemValue::ATTR_TBL_INVOICE => $tblInvoice->getId()));
         if ($EntityList) {
-            /** @var TblInvoiceItem $Entity */
+            /** @var TblInvoiceItemValue $Entity */
             foreach ($EntityList as &$Entity) {
                 $Entity = $Entity->getServiceTblPerson();
             }
@@ -201,17 +201,17 @@ class Data extends AbstractData
     /**
      * @param TblInvoice $tblInvoice
      *
-     * @return false|TblDebtor[]
+     * @return false|TblInvoiceDebtor[]
      */
     public function getDebtorAllByInvoice(TblInvoice $tblInvoice)
     {
 
         $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoiceItem',
-            array(TblInvoiceItem::ATTR_TBL_INVOICE => $tblInvoice->getId()));
+            array(TblInvoiceItemValue::ATTR_TBL_INVOICE => $tblInvoice->getId()));
         if ($EntityList) {
-            /** @var TblInvoiceItem $Entity */
+            /** @var TblInvoiceItemValue $Entity */
             foreach ($EntityList as &$Entity) {
-                $Entity = $Entity->getServiceTblDebtor();
+                $Entity = $Entity->getInvoiceDebtor();
             }
             $EntityList = array_filter($EntityList);
         }
@@ -220,18 +220,18 @@ class Data extends AbstractData
 
     /**
      * @param TblInvoice $tblInvoice
-     * @param TblItem    $tblItem
+     * @param TblItemValue    $tblItem
      *
      * @return bool|TblPerson
      */
-    public function getPersonByInvoiceAndItem(TblInvoice $tblInvoice, TblItem $tblItem)
+    public function getPersonByInvoiceAndItem(TblInvoice $tblInvoice, TblItemValue $tblItem)
     {
-        /** @param TblInvoiceItem $Entity */
+        /** @param TblInvoiceItemValue $Entity */
         $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoiceItem',
-            array(TblInvoiceItem::ATTR_TBL_INVOICE => $tblInvoice->getId(),
-                  TblInvoiceItem::ATTR_TBL_ITEM    => $tblItem->getId()));
+            array(TblInvoiceItemValue::ATTR_TBL_INVOICE => $tblInvoice->getId(),
+                  TblInvoiceItemValue::ATTR_TBL_ITEM_VALUE    => $tblItem->getId()));
         if ($Entity) {
-            /** @var TblInvoiceItem $Entity */
+            /** @var TblInvoiceItemValue $Entity */
             $Entity = $Entity->getServiceTblPerson();
         }
         return ( $Entity == false ? false : $Entity );
@@ -241,16 +241,16 @@ class Data extends AbstractData
      * @param TblInvoice $tblInvoice
      * @param TblPerson  $tblPerson
      *
-     * @return bool|TblInvoiceItem
+     * @return bool|TblInvoiceItemValue
      */
     public function getItemAllInvoiceAndPerson(TblInvoice $tblInvoice, TblPerson $tblPerson)
     {
-        /** @param TblInvoiceItem $Entity */
+        /** @param TblInvoiceItemValue $Entity */
         $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoiceItem',
-            array(TblInvoiceItem::ATTR_TBL_INVOICE        => $tblInvoice->getId(),
-                  TblInvoiceItem::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()));
+            array(TblInvoiceItemValue::ATTR_TBL_INVOICE        => $tblInvoice->getId(),
+                  TblInvoiceItemValue::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()));
         if ($EntityList) {
-            /** @var TblInvoiceItem $Entity */
+            /** @var TblInvoiceItemValue $Entity */
             foreach ($EntityList as &$Entity) {
                 $Entity = $Entity->getTblItem();
             }
@@ -261,19 +261,21 @@ class Data extends AbstractData
 
     /**
      * @param TblInvoice $tblInvoice
-     * @param TblItem    $tblItem
+     * @param TblItemValue    $tblItem
      *
-     * @return bool|TblDebtor
+     * @return bool|TblInvoiceDebtor
      */
-    public function getDebtorByInvoiceAndItem(TblInvoice $tblInvoice, TblItem $tblItem)
+    public function getDebtorByInvoiceAndItem(TblInvoice $tblInvoice, TblItemValue $tblItem)
     {
-        /** @param TblInvoiceItem $Entity */
+        /** @param TblInvoiceItemValue $Entity */
         $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoiceItem',
-            array(TblInvoiceItem::ATTR_TBL_INVOICE => $tblInvoice->getId(),
-                  TblInvoiceItem::ATTR_TBL_ITEM    => $tblItem->getId()));
+            array(
+                TblInvoiceItemValue::ATTR_TBL_INVOICE    => $tblInvoice->getId(),
+                TblInvoiceItemValue::ATTR_TBL_ITEM_VALUE => $tblItem->getId()
+            ));
         if ($Entity) {
-            /** @var TblInvoiceItem $Entity */
-            $Entity = $Entity->getServiceTblDebtor();
+            /** @var TblInvoiceItemValue $Entity */
+            $Entity = $Entity->getInvoiceDebtor();
         }
         return ( $Entity == false ? false : $Entity );
     }
@@ -459,7 +461,7 @@ class Data extends AbstractData
      * @param TblPaymentType        $tblPaymentType
      * @param TblBankReference|null $tblBankReference
      *
-     * @return null|object|TblDebtor
+     * @return null|object|TblInvoiceDebtor
      */
     public function createDebtor(
         TblDebtorAccounting $tblDebtor,
@@ -472,13 +474,13 @@ class Data extends AbstractData
 
         if ($tblBankReference) {
 
-            $Entity = $Manager->getEntity('TblDebtor')->findOneBy(
-                array(TblDebtor::ATTR_SERVICE_TBL_DEBTOR            => $tblDebtor->getId(),
-                      TblDebtor::ATTR_SERVICE_TBL_BANKING_REFERENCE => $tblBankReference->getId(),
-                      TblDebtor::ATTR_SERVICE_TBL_PAYMENT_TYPE      => $tblPaymentType->getId()));
+            $Entity = $Manager->getEntity('TblInvoiceDebtor')->findOneBy(
+                array(TblInvoiceDebtor::ATTR_SERVICE_TBL_DEBTOR            => $tblDebtor->getId(),
+                      TblInvoiceDebtor::ATTR_SERVICE_TBL_BANKING_REFERENCE => $tblBankReference->getId(),
+                      TblInvoiceDebtor::ATTR_SERVICE_TBL_PAYMENT_TYPE      => $tblPaymentType->getId()));
 
             if ($Entity === null) {
-                $Entity = new TblDebtor();
+                $Entity = new TblInvoiceDebtor();
                 $Entity->setDebtorNumber($tblDebtor->getDebtorNumber());
                 $Entity->setDebtorPerson($tblDebtor->getServiceTblPerson());
                 $Entity->setBankReference($tblBankReference->getReference());
@@ -495,12 +497,12 @@ class Data extends AbstractData
                     $Entity);
             }
         } else {
-            $Entity = $Manager->getEntity('TblDebtor')->findOneBy(
-                array(TblDebtor::ATTR_SERVICE_TBL_DEBTOR            => $tblDebtor->getId(),
-                      TblDebtor::ATTR_SERVICE_TBL_BANKING_REFERENCE => null));
+            $Entity = $Manager->getEntity('TblInvoiceDebtor')->findOneBy(
+                array(TblInvoiceDebtor::ATTR_SERVICE_TBL_DEBTOR            => $tblDebtor->getId(),
+                      TblInvoiceDebtor::ATTR_SERVICE_TBL_BANKING_REFERENCE => null));
 
             if ($Entity === null) {
-                $Entity = new TblDebtor();
+                $Entity = new TblInvoiceDebtor();
                 $Entity->setDebtorNumber($tblDebtor->getDebtorNumber());
                 $Entity->setDebtorPerson($tblDebtor->getServiceTblPerson());
                 $Entity->setBankReference('');
@@ -524,7 +526,7 @@ class Data extends AbstractData
     /**
      * @param TblBasketVerification $tblBasketVerification
      *
-     * @return TblItem
+     * @return TblItemValue
      */
     public function createItem(TblBasketVerification $tblBasketVerification)
     {
@@ -533,15 +535,15 @@ class Data extends AbstractData
         $Entity = null;
         if ($tblBasketVerification->getServiceTblItem()) {
             $Entity = $Manager->getEntity('TblItem')->findOneBy(
-                array(TblItem::ATTR_NAME             => $tblBasketVerification->getServiceTblItem()->getName(),
-                      TblItem::ATTR_DESCRIPTION      => $tblBasketVerification->getServiceTblItem()->getDescription(),
-                      TblItem::ATTR_VALUE            => $tblBasketVerification->getValue(),
-                      TblItem::ATTR_QUANTITY         => $tblBasketVerification->getQuantity(),
-                      TblItem::ATTR_SERVICE_TBL_ITEM => $tblBasketVerification->getServiceTblItem()->getId()));
+                array(TblItemValue::ATTR_NAME             => $tblBasketVerification->getServiceTblItem()->getName(),
+                      TblItemValue::ATTR_DESCRIPTION      => $tblBasketVerification->getServiceTblItem()->getDescription(),
+                      TblItemValue::ATTR_VALUE            => $tblBasketVerification->getValue(),
+                      TblItemValue::ATTR_QUANTITY         => $tblBasketVerification->getQuantity(),
+                      TblItemValue::ATTR_SERVICE_TBL_ITEM => $tblBasketVerification->getServiceTblItem()->getId()));
         }
 
         if ($Entity === null) {
-            $Entity = new TblItem();
+            $Entity = new TblItemValue();
             $Entity->setName($tblBasketVerification->getServiceTblItem()->getName());
             $Entity->setDescription($tblBasketVerification->getServiceTblItem()->getDescription());
             $Entity->setValue($tblBasketVerification->getValue());
@@ -557,22 +559,22 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblInvoice $tblInvoice
-     * @param TblItem    $tblItem
-     * @param TblPerson  $tblPerson
-     * @param TblDebtor  $tblDebtor
+     * @param TblInvoice   $tblInvoice
+     * @param TblItemValue $tblItem
+     * @param TblPerson    $tblPerson
+     * @param TblInvoiceDebtor    $tblDebtor
      *
-     * @return TblInvoiceItem
+     * @return TblInvoiceItemValue
      */
-    public function createInvoiceItem(TblInvoice $tblInvoice, TblItem $tblItem, TblPerson $tblPerson, TblDebtor $tblDebtor)
+    public function createInvoiceItem(TblInvoice $tblInvoice, TblItemValue $tblItem, TblPerson $tblPerson, TblInvoiceDebtor $tblDebtor)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
-        $Entity = new TblInvoiceItem();
+        $Entity = new TblInvoiceItemValue();
         $Entity->setTblInvoice($tblInvoice);
         $Entity->setTblItem($tblItem);
         $Entity->setServiceTblPerson($tblPerson);
-        $Entity->setServiceTblDebtor($tblDebtor);
+        $Entity->setTblInvoiceDebtor($tblDebtor);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),

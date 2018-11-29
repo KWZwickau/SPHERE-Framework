@@ -53,7 +53,10 @@ class TblHandyCap extends Element
      * @Column(type="string")
      */
     protected $RemarkRating;
-
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsCanceled;
 
 
     /**
@@ -210,5 +213,21 @@ class TblHandyCap extends Element
     {
 
         $this->RemarkRating = $RemarkRating;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isCanceled()
+    {
+        return $this->IsCanceled;
+    }
+
+    /**
+     * @param boolean $IsCanceled
+     */
+    public function setIsCanceled($IsCanceled)
+    {
+        $this->IsCanceled = $IsCanceled;
     }
 }

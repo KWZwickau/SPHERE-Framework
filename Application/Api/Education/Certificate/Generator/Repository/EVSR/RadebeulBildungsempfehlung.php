@@ -68,9 +68,11 @@ class RadebeulBildungsempfehlung extends Certificate
                     ->addSliceColumn((new Slice())
                         ->addSection((new Section())
                             ->addElementColumn((new Element())
-                                ->setContent(
-                                    'Evangelische Grundschule Radebeul'
-                                )
+                                ->setContent('{% if( Content.P' . $personId . '.Company.Data.Name is not empty) %}
+                                        {{ Content.P' . $personId . '.Company.Data.Name }}
+                                    {% else %}
+                                        Evangelisches Schulzentrum Radebeul
+                                    {% endif %}')
                                 ->styleAlignCenter()
                             )
                         )

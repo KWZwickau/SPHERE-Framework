@@ -6,7 +6,6 @@ use MOC\V\Component\Document\Component\Exception\Repository\TypeFileException;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use MOC\V\Component\Document\Exception\DocumentTypeException;
-use SPHERE\Application\Billing\Accounting\Banking\Banking;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
@@ -329,15 +328,16 @@ class Service extends Extension
                 $Item['FatherSalutation'] = $Item['FatherTitle'] = $Item['FatherLastName'] = $Item['FatherFirstName'] = $Item['Father'] = '';
                 $Item['MotherSalutation'] = $Item['MotherTitle'] = $Item['MotherLastName'] = $Item['MotherFirstName'] = $Item['Mother'] = '';
                 $Item['Reply'] = $Item['Records'] = $Item['LastSchoolFee'] = $Item['Remarks'] = '';
-                if (( $tblDebtorList = Banking::useService()->getDebtorByPerson($tblPerson) )) {
-                    foreach ($tblDebtorList as $tblDebtor) {
-                        if ($Item['DebtorNumber'] === '') {
-                            $Item['DebtorNumber'] = $tblDebtor->getDebtorNumber();
-                        } else {
-                            $Item['DebtorNumber'] = ' '.$tblDebtor->getDebtorNumber();
-                        }
-                    }
-                }
+                // Does'nt exist (rebuild Fakturierung)
+//                if (( $tblDebtorList = Banking::useService()->getDebtorByPerson($tblPerson) )) {
+//                    foreach ($tblDebtorList as $tblDebtor) {
+//                        if ($Item['DebtorNumber'] === '') {
+//                            $Item['DebtorNumber'] = $tblDebtor->getDebtorNumber();
+//                        } else {
+//                            $Item['DebtorNumber'] = ' '.$tblDebtor->getDebtorNumber();
+//                        }
+//                    }
+//                }
 
                 if (($tblToPersonAddressList = Address::useService()->getAddressAllByPerson($tblPerson))) {
                     $tblToPersonAddress = $tblToPersonAddressList[0];
@@ -366,31 +366,32 @@ class Service extends Extension
                                 } elseif ($salutation->getId() == 2) {
                                     $mother = $guardian->getServiceTblPersonFrom();
                                 }
-                            } else {
-                                if ($father === null) {
-                                    $father = $guardian->getServiceTblPersonFrom();
-                                    if (( $tblDebtorList = Banking::useService()->getDebtorByPerson($father) )) {
-
-                                        foreach ($tblDebtorList as $tblDebtor) {
-                                            if ($Item['DebtorNumber'] === '') {
-                                                $Item['DebtorNumber'] = $tblDebtor->getDebtorNumber();
-                                            } else {
-                                                $Item['DebtorNumber'] = ' '.$tblDebtor->getDebtorNumber();
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    $mother = $guardian->getServiceTblPersonFrom();
-                                    if (( $tblDebtorList = Banking::useService()->getDebtorByPerson($mother) )) {
-                                        foreach ($tblDebtorList as $tblDebtor) {
-                                            if ($Item['DebtorNumber'] === '') {
-                                                $Item['DebtorNumber'] = $tblDebtor->getDebtorNumber();
-                                            } else {
-                                                $Item['DebtorNumber'] = ' '.$tblDebtor->getDebtorNumber();
-                                            }
-                                        }
-                                    }
-                                }
+                                // Does'nt exist (rebuild Fakturierung)
+//                            } else {
+//                                if ($father === null) {
+//                                    $father = $guardian->getServiceTblPersonFrom();
+//                                    if (( $tblDebtorList = Banking::useService()->getDebtorByPerson($father) )) {
+//
+//                                        foreach ($tblDebtorList as $tblDebtor) {
+//                                            if ($Item['DebtorNumber'] === '') {
+//                                                $Item['DebtorNumber'] = $tblDebtor->getDebtorNumber();
+//                                            } else {
+//                                                $Item['DebtorNumber'] = ' '.$tblDebtor->getDebtorNumber();
+//                                            }
+//                                        }
+//                                    }
+//                                } else {
+//                                    $mother = $guardian->getServiceTblPersonFrom();
+//                                    if (( $tblDebtorList = Banking::useService()->getDebtorByPerson($mother) )) {
+//                                        foreach ($tblDebtorList as $tblDebtor) {
+//                                            if ($Item['DebtorNumber'] === '') {
+//                                                $Item['DebtorNumber'] = $tblDebtor->getDebtorNumber();
+//                                            } else {
+//                                                $Item['DebtorNumber'] = ' '.$tblDebtor->getDebtorNumber();
+//                                            }
+//                                        }
+//                                    }
+//                                }
                             }
                         }
                     }
