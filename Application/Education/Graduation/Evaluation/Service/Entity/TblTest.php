@@ -419,4 +419,21 @@ class TblTest extends Element
 
         $this->FinishDate = $FinishDate;
     }
+
+    /**
+     * @return bool|\DateTime
+     */
+    public function getDateForSorter()
+    {
+
+        if ($this->getFinishDate()) {
+            return new \DateTime($this->getFinishDate());
+        }
+
+        if ($this->getDate()) {
+            return new \DateTime($this->getDate());
+        }
+
+        return false;
+    }
 }

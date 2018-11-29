@@ -165,6 +165,10 @@ class Data extends AbstractData
                 'Anzeige des Notenspiegels und des Fach-Klassen-Durchschnitts in der Eltern/Schüler-Übersicht. [Standard: Nein]',
                 true);
         }
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'ShowHighlightedTestsInGradeOverview', TblSetting::TYPE_BOOLEAN, '1'))) {
+            $this->updateSettingDescription($tblSetting, 'Notenbücher',
+                'Anzeige der geplanten Großen Noten (fettmarkiert, z.B. Klassenarbeiten) in der Notenübersicht für Schüler/Eltern und in der Schülerübersicht [Ja]', true);
+        }
         if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'SortHighlighted',
             TblSetting::TYPE_BOOLEAN, '0'))) {
             $this->updateSettingDescription($tblSetting, 'Notenbücher',
