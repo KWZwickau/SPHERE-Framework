@@ -1,4 +1,5 @@
 <?php
+
 namespace SPHERE\Application\Setting\Consumer\Service;
 
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
@@ -24,130 +25,216 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-        if (($tblSetting = $this->createSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber', TblSetting::TYPE_BOOLEAN, '0'))) {
+        if (($tblSetting = $this->createSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber',
+            TblSetting::TYPE_BOOLEAN, '0'))) {
             $this->updateSettingDescription($tblSetting, 'Allgemein', 'Die Schülernummern werden automatisch vom System erstellt.
-                In diesem Fall können die Schülernummern nicht per Hand vergeben werden. [Nein]');
+                In diesem Fall können die Schülernummern nicht per Hand vergeben werden. [Standard: Nein]');
         }
 
-        if (($tblSetting = $this->createSetting('Transfer', 'Indiware', 'Import', 'Lectureship_ConvertDivisionLatinToGreek', TblSetting::TYPE_BOOLEAN, '0'))) {
-            $this->updateSettingDescription($tblSetting,'Indiware', 'Ersetzung der Klassengruppennamen beim Import in ausgeschriebene Griechische Buchstaben. (z.B. a => alpha) [Nein]');
+        if (($tblSetting = $this->createSetting('Transfer', 'Indiware', 'Import',
+            'Lectureship_ConvertDivisionLatinToGreek', TblSetting::TYPE_BOOLEAN, '0'))) {
+            $this->updateSettingDescription($tblSetting, 'Indiware',
+                'Ersetzung der Klassengruppennamen beim Import in ausgeschriebene Griechische Buchstaben. (z.B. a => alpha) [Standard: Nein]');
         }
 
-        if (($tblSetting = $this->createSetting('Contact', 'Address', 'Address', 'Format_GuiString', TblSetting::TYPE_STRING, TblAddress::VALUE_PLZ_ORT_OT_STR_NR))) {
-            $this->updateSettingDescription($tblSetting, 'Allgemein', 'Reihenfolge der Adressanzeige [PLZ_ORT_OT_STR_NR]');
+        if (($tblSetting = $this->createSetting('Contact', 'Address', 'Address', 'Format_GuiString',
+            TblSetting::TYPE_STRING, TblAddress::VALUE_PLZ_ORT_OT_STR_NR))) {
+            $this->updateSettingDescription($tblSetting, 'Allgemein',
+                'Reihenfolge der Adressanzeige [Standard: PLZ_ORT_OT_STR_NR]');
         }
 
-        if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'PasswordChange_PictureAddress', TblSetting::TYPE_STRING, ''))) {
-            $this->updateSettingDescription($tblSetting, 'Dokumente', 'Für die Eltern und Schülerzugänge kann für das Passwortänderungsanschreiben ein Bild (Logo) hinterlegt werden. Adresse des Bildes: []');
+        if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'PasswordChange_PictureAddress',
+            TblSetting::TYPE_STRING, ''))) {
+            $this->updateSettingDescription($tblSetting, 'Dokumente',
+                'Für die Eltern und Schülerzugänge kann für das Passwortänderungsanschreiben ein Bild (Logo) hinterlegt werden.
+                Adresse des Bildes: [Standard: ]');
         }
-        if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'PasswordChange_PictureHeight', TblSetting::TYPE_STRING, ''))) {
-            $this->updateSettingDescription($tblSetting, 'Dokumente', 'Für die Eltern und Schülerzugänge kann für das Passwortänderungsanschreiben ein Bild (Logo) hinterlegt werden. Höhe des Bildes (Maximal 140px): [120px]');
+        if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'PasswordChange_PictureHeight',
+            TblSetting::TYPE_STRING, ''))) {
+            $this->updateSettingDescription($tblSetting, 'Dokumente',
+                'Für die Eltern und Schülerzugänge kann für das Passwortänderungsanschreiben ein Bild (Logo) hinterlegt werden.
+                Höhe des Bildes (Maximal 140px): [Standard: 120px]');
         }
-        if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'SignOutCertificate_PictureAddress', TblSetting::TYPE_STRING, ''))) {
-            $this->updateSettingDescription($tblSetting, 'Dokumente', 'Für die Abmeldebescheinigung kann ein Bild (Logo) hinterlegt werden. Adresse des Bildes: []');
+        if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'SignOutCertificate_PictureAddress',
+            TblSetting::TYPE_STRING, ''))) {
+            $this->updateSettingDescription($tblSetting, 'Dokumente',
+                'Für die Abmeldebescheinigung kann ein Bild (Logo) hinterlegt werden. Adresse des Bildes: [Standard: ]');
         }
-        if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'SignOutCertificate_PictureHeight', TblSetting::TYPE_STRING, ''))) {
-            $this->updateSettingDescription($tblSetting, 'Dokumente', 'Für die Abmeldebescheinigung kann ein Bild (Logo) hinterlegt werden. Höhe des Bildes (Maximal 120px): [80px]');
+        if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'SignOutCertificate_PictureHeight',
+            TblSetting::TYPE_STRING, ''))) {
+            $this->updateSettingDescription($tblSetting, 'Dokumente',
+                'Für die Abmeldebescheinigung kann ein Bild (Logo) hinterlegt werden. Höhe des Bildes (Maximal 120px): [Standard: 80px]');
         }
-        if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'EnrollmentDocument_PictureAddress', TblSetting::TYPE_STRING, ''))) {
-            $this->updateSettingDescription($tblSetting, 'Dokumente', 'Für die Schulbescheinigung kann ein Bild (Logo) hinterlegt werden. Adresse des Bildes: []');
+        if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'EnrollmentDocument_PictureAddress',
+            TblSetting::TYPE_STRING, ''))) {
+            $this->updateSettingDescription($tblSetting, 'Dokumente',
+                'Für die Schulbescheinigung kann ein Bild (Logo) hinterlegt werden. Adresse des Bildes: [Standard: ]');
         }
-        if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'EnrollmentDocument_PictureHeight', TblSetting::TYPE_STRING, ''))) {
-            $this->updateSettingDescription($tblSetting, 'Dokumente', 'Für die Schulbescheinigung kann ein Bild (Logo) hinterlegt werden. Höhe des Bildes (Maximal 120px): [90px]');
+        if (($tblSetting = $this->createSetting('Api', 'Document', 'Standard', 'EnrollmentDocument_PictureHeight',
+            TblSetting::TYPE_STRING, ''))) {
+            $this->updateSettingDescription($tblSetting, 'Dokumente',
+                'Für die Schulbescheinigung kann ein Bild (Logo) hinterlegt werden. Höhe des Bildes (Maximal 120px): [Standard: 90px]');
         }
-        if (($tblSetting = $this->createSetting('Api', 'Document', 'StudentCard_PrimarySchool', 'ShowSchoolName', TblSetting::TYPE_BOOLEAN, '1'))) {
-            $this->updateSettingDescription($tblSetting, 'Dokumente', 'Anzeige des Schulnamens oben rechts (Stempel-Feld) auf der Schülerkartei für die Grundschule [Ja]', true);
-        }
-
-        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Generate', 'PictureAddress', TblSetting::TYPE_STRING, ''))) {
-            $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Für die Standard-Zeugnisse kann ein Bild (Logo) hinterlegt werden. Logo für das Zeugnis darf skalliert nicht breiter sein als 182px (bei einer höhe von 50px [Bsp.: 546 * 150 ist noch ok]). Adresse des Bildes: []');
-        }
-        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Generate', 'PictureHeight', TblSetting::TYPE_STRING, ''))) {
-            $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Für die Standard-Zeugnisse kann ein Bild (Logo) hinterlegt werden. Logo für das Zeugnis darf skalliert nicht breiter sein als 182px (bei einer höhe von 50px [Bsp.: 546 * 150 ist noch ok]). Höhe des Bildes: []');
-        }
-        if (($tblSetting = $this->createSetting('Api', 'Education', 'Certificate', 'OrientationAcronym', TblSetting::TYPE_STRING, ''))) {
-            $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Werden die Neigungskurse in der Bildung nicht einzeln gepflegt, sondern nur ein einzelner Standard-Neigungskurs, kann hier das Kürzel des Standard-Neigungskurses (z.B. NK) hinterlegt werden. Für die Zeugnisse wir dann der eigentliche Neigungskurs aus der Schülerakte des Schülers gezogen. []');
-        }
-        if (($tblSetting = $this->createSetting('Api', 'Education', 'Certificate', 'ProfileAcronym', TblSetting::TYPE_STRING, ''))) {
-            $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Werden die Profile in der Bildung nicht einzeln gepflegt, sondern nur ein einzelnes Standard-Profil, kann hier das Kürzel des Standard-Profils (z.B. PRO) hinterlegt werden. Für die Zeugnisse wir dann das eigentliche Profil aus der Schülerakte des Schülers gezogen. []');
-        }
-        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnDiploma', TblSetting::TYPE_BOOLEAN, '0'))) {
-            $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Anzeige der Zensuren im Wortlaut auf Abschlusszeugnissen [Nein]', true);
-        }
-        if (($tblSetting =  $this->createSetting('Education', 'Certificate', 'Prepare', 'IsSchoolExtendedNameDisplayed', TblSetting::TYPE_BOOLEAN, '0'))) {
-            $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Anzeige des Schul-Zusatzes (Institutionszusatz) auf Zeugnissen [Nein]', true);
-        }
-        if (($tblSetting =  $this->createSetting('Education', 'Certificate', 'Prepare', 'SchoolExtendedNameSeparator', TblSetting::TYPE_STRING, ''))) {
-            $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Anzeige des Schul-Zusatzes (Institutionszusatz) auf Zeugnissen mit dem Trennzeichen: []');
-        }
-        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Prepare', 'UseMultipleBehaviorTasks', TblSetting::TYPE_BOOLEAN, '0'))) {
-            $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Verwendung aller Kopfnotenaufträge des Schuljahres für die Zeugnisvorbereitung [Nein]', true);
-        }
-        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Generate', 'UseCourseForCertificateChoosing', TblSetting::TYPE_BOOLEAN, '1'))) {
-            $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Es wird der Bildungsgang des Schülers verwendet, um die entsprechende Zeugnisvorlage (Mittelschule) dem Schüler automatisch zuzuordnen. [Ja]');
-        }
-        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnLeave', TblSetting::TYPE_BOOLEAN, '0'))) {
-            $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Anzeige der Zensuren im Wortlaut auf Abgangszeugnissen [Nein]', true);
-        }
-        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Diploma', 'PreArticleForSchoolName', TblSetting::TYPE_STRING, ''))) {
-            $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Artikel vor dem Schulnamen auf Abschluszeugnissen (z.B. das): []');
+        if (($tblSetting = $this->createSetting('Api', 'Document', 'StudentCard_PrimarySchool', 'ShowSchoolName',
+            TblSetting::TYPE_BOOLEAN, '1'))) {
+            $this->updateSettingDescription($tblSetting, 'Dokumente',
+                'Anzeige des Schulnamens (Stempel-Feld oben rechts) auf der Schülerkartei für die Grundschule. [Standard: Ja]',
+                true);
         }
 
-        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsShownAverageInStudentOverview', TblSetting::TYPE_BOOLEAN, false))) {
-            $this->updateSettingDescription($tblSetting, 'Notenbücher', 'Anzeige des Notendurchschnitts in der Eltern/Schüler-Übersicht [Nein]', true);
+        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Generate', 'PictureAddress',
+            TblSetting::TYPE_STRING, ''))) {
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse',
+                'Für die Standard-Zeugnisse kann ein Bild (Logo) hinterlegt werden. Logo für das Zeugnis darf skalliert 
+                nicht breiter sein als 182px (bei einer höhe von 50px [Bsp.: 546 * 150 ist noch ok]). Adresse des Bildes: [Standard: ]');
         }
-        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsShownScoreInStudentOverview', TblSetting::TYPE_BOOLEAN, false))) {
-            $this->updateSettingDescription($tblSetting, 'Notenbücher', 'Anzeige des Notenspiegels und des Fach-Klassendurchschnitts in der Eltern/Schüler-Übersicht [Nein]', true);
+        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Generate', 'PictureHeight',
+            TblSetting::TYPE_STRING, ''))) {
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse',
+                'Für die Standard-Zeugnisse kann ein Bild (Logo) hinterlegt werden. Logo für das Zeugnis darf skalliert 
+                nicht breiter sein als 182px (bei einer höhe von 50px [Bsp.: 546 * 150 ist noch ok]). Höhe des Bildes: [Standard: ]');
         }
-        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'SortHighlighted', TblSetting::TYPE_BOOLEAN, '0'))) {
-            $this->updateSettingDescription($tblSetting, 'Notenbücher', 'Sortierung der Zensuren im Notenbuch nach Großen (fettmarkiert) und Kleinen Noten [Nein]', true);
+        if (($tblSetting = $this->createSetting('Api', 'Education', 'Certificate', 'OrientationAcronym',
+            TblSetting::TYPE_STRING, ''))) {
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse',
+                'Werden die Neigungskurse in der Bildung nicht einzeln gepflegt, sondern nur ein einzelner Standard-Neigungskurs, 
+                kann hier das Kürzel des Standard-Neigungskurses (z.B. NK) hinterlegt werden. Für die Zeugnisse wir dann der
+                eigentliche Neigungskurs aus der Schülerakte des Schülers gezogen. [Standard: ]');
         }
-        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsHighlightedSortedRight', TblSetting::TYPE_BOOLEAN, '1'))) {
-            $this->updateSettingDescription($tblSetting, 'Notenbücher', 'Bei der Sortierung der Zensuren im Notenbuch nach Großen (fettmarkiert) und Kleinen Noten, werden die Großen Noten nach rechts sortiert. [Ja]', true);
+        if (($tblSetting = $this->createSetting('Api', 'Education', 'Certificate', 'ProfileAcronym',
+            TblSetting::TYPE_STRING, ''))) {
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse',
+                'Werden die Profile in der Bildung nicht einzeln gepflegt, sondern nur ein einzelnes Standard-Profil, 
+                kann hier das Kürzel des Standard-Profils (z.B. PRO) hinterlegt werden. Für die Zeugnisse wir dann das
+                eigentliche Profil aus der Schülerakte des Schülers gezogen. [Standard: ]');
         }
-        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'ShowAverageInPdf', TblSetting::TYPE_BOOLEAN, '1'))) {
-            $this->updateSettingDescription($tblSetting, 'Notenbücher', 'Anzeige des Notendurchschnitts im heruntergeladenen Notenbuch (PDF) [Ja]', true);
+        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnDiploma',
+            TblSetting::TYPE_BOOLEAN, '0'))) {
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse',
+                'Anzeige der Zensuren im Wortlaut auf Abschlusszeugnissen [Standard: Nein]', true);
         }
-        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'ShowCertificateGradeInPdf', TblSetting::TYPE_BOOLEAN, '1'))) {
-            $this->updateSettingDescription($tblSetting,  'Notenbücher','Anzeige der Zeugnisnote im heruntergeladenen Notenbuch (PDF) [Ja]', true);
+        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Prepare', 'IsSchoolExtendedNameDisplayed',
+            TblSetting::TYPE_BOOLEAN, '0'))) {
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse',
+                'Anzeige des Schul-Zusatzes (Institutionszusatz) auf Zeugnissen [Standard: Nein]', true);
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Prepare', 'SchoolExtendedNameSeparator',
+            TblSetting::TYPE_STRING, ''))) {
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse',
+                'Anzeige des Schul-Zusatzes (Institutionszusatz) auf Zeugnissen mit dem Trennzeichen: [Standard: ]');
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Prepare', 'UseMultipleBehaviorTasks',
+            TblSetting::TYPE_BOOLEAN, '0'))) {
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse',
+                'Anzeige der Kopfnoten aus allen Kopfnotenaufträge bei der Zeugnisvorbereitung, wenn pro Halbjahr mehrere Kopfnotenaufträge erteilt wurden. [Standard: Nein]',
+                true);
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Generate',
+            'UseCourseForCertificateChoosing', TblSetting::TYPE_BOOLEAN, '1'))) {
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse',
+                'Es wird der Bildungsgang des Schülers verwendet, um die entsprechende Zeugnisvorlage (Mittelschule) dem
+                Schüler automatisch zuzuordnen. [Standard: Ja]');
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Prepare', 'IsGradeVerbalOnLeave',
+            TblSetting::TYPE_BOOLEAN, '0'))) {
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse',
+                'Anzeige der Zensuren im Wortlaut auf Abgangszeugnissen [Standard: Nein]', true);
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Diploma', 'PreArticleForSchoolName',
+            TblSetting::TYPE_STRING, ''))) {
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse',
+                'Artikel vor dem Schulnamen auf Abschluszeugnissen (z.B. das): [Standard: ]');
         }
 
-        if (($tblSetting = $this->createSetting('Reporting', 'KamenzReport', 'Validation', 'FirstForeignLanguageLevel', TblSetting::TYPE_INTEGER, 1))) {
-            $this->updateSettingDescription($tblSetting, 'Allgemein', 'Validierung (Kamenz + Schnittstelle), ob die 1. Fremdsprache in der Schülerakte gepflegt ist, ab Klassenstufe: [1]', true);
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook',
+            'IsShownAverageInStudentOverview', TblSetting::TYPE_BOOLEAN, false))) {
+            $this->updateSettingDescription($tblSetting, 'Notenbücher',
+                'Anzeige des Notendurchschnitts in der Eltern/Schüler-Übersicht [Standard: Nein]', true);
         }
-        if(($tblSetting = $this->createSetting('Reporting', 'SerialLetter', 'GenderSort', 'FirstFemale', TblSetting::TYPE_BOOLEAN, 1, 'Serienbrief', 'Beginnt mit der Frau im Briefkopf (Sehr geehrte Frau, sehr geehrter Herr) DIN 5008', true))){
-            $this->updateSettingDescription($tblSetting, 'Serienbrief', 'Beginnt mit der Frau im Briefkopf (Sehr geehrte Frau, sehr geehrter Herr) DIN 5008 [Ja]', true);
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsShownScoreInStudentOverview',
+            TblSetting::TYPE_BOOLEAN, false))) {
+            $this->updateSettingDescription($tblSetting, 'Notenbücher',
+                'Anzeige des Notenspiegels und des Fach-Klassen-Durchschnitts in der Eltern/Schüler-Übersicht. [Standard: Nein]',
+                true);
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'SortHighlighted',
+            TblSetting::TYPE_BOOLEAN, '0'))) {
+            $this->updateSettingDescription($tblSetting, 'Notenbücher',
+                'Sortierung der Zensuren im Notenbuch nach Großen (fettmarkiert) und Kleinen Noten. Bei Deaktivierung erfolgt Sortierung nach Datum. [Standard: Nein]',
+                true);
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'IsHighlightedSortedRight',
+            TblSetting::TYPE_BOOLEAN, '1'))) {
+            $this->updateSettingDescription($tblSetting, 'Notenbücher',
+                'Bei der Sortierung der Zensuren im Notenbuch nach Großen (fettmarkiert) und Kleinen Noten, stehen die Großen Noten rechts. [Standard: Ja]',
+                true);
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'ShowAverageInPdf',
+            TblSetting::TYPE_BOOLEAN, '1'))) {
+            $this->updateSettingDescription($tblSetting, 'Notenbücher',
+                'Anzeige des Notendurchschnitts im heruntergeladenen Notenbuch (PDF) [Standard: Ja]', true);
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'ShowCertificateGradeInPdf',
+            TblSetting::TYPE_BOOLEAN, '1'))) {
+            $this->updateSettingDescription($tblSetting, 'Notenbücher',
+                'Anzeige der Zeugnisnote im heruntergeladenen Notenbuch (PDF) [Standard: Ja]', true);
         }
 
-        if (($tblSetting = $this->createSetting('Education', 'ClassRegister', 'Sort', 'SortMaleFirst', TblSetting::TYPE_BOOLEAN, '1'))) {
-            $this->updateSettingDescription($tblSetting, 'Klassenbücher', 'Bei der Sortierung der Schüler im Klassenbuch nach Geschlecht, stehen die männlichen Schüler zuerst. [Ja]', true);
+        if (($tblSetting = $this->createSetting('Reporting', 'KamenzReport', 'Validation', 'FirstForeignLanguageLevel',
+            TblSetting::TYPE_INTEGER, 1))) {
+            $this->updateSettingDescription($tblSetting, 'Allgemein', 'Validierung 1. Fremdsprache im Stammdaten- und Bildungsmodul sowie Modul Kamenzstatistik.
+             Klassenstufe, ab welcher ist 1. Fremdsprache unterrichtet wird. [Standard: 1]', true);
         }
-        if (($tblSetting = $this->createSetting('Education', 'ClassRegister', 'Frontend', 'ShowDownloadButton', TblSetting::TYPE_BOOLEAN, '1'))) {
-            $this->updateSettingDescription($tblSetting, 'Klassenbücher', 'Fachlehrer können sich im Klassenbuch die Standard-Klassenlisten-Auswertung (Excel) herunterladen. [Ja]', true);
-        }
-
-        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Evaluation', 'HasBehaviorGradesForSubjectsWithNoGrading', TblSetting::TYPE_BOOLEAN, '0'))) {
-            $this->updateSettingDescription($tblSetting, 'Leistungsüberprüfungen', 'Bei Kopfnotenaufträgen können auch Kopfnoten für Fächer vergebenen werden, welche nicht benotet werden. [Nein]', true);
-        }
-        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Evaluation', 'AutoPublicationOfTestsAfterXDays', TblSetting::TYPE_INTEGER, '28'))) {
-            $this->updateSettingDescription($tblSetting, 'Leistungsüberprüfungen', 'Automatische Bekanntgabe von Leistungsüberprüfungen für die Notenübersicht der Schüler/Eltern nach x Tagen: [28]', true);
+        if (($tblSetting = $this->createSetting('Reporting', 'SerialLetter', 'GenderSort', 'FirstFemale',
+            TblSetting::TYPE_BOOLEAN, 1))) {
+            $this->updateSettingDescription($tblSetting, 'Adresslisten für Serienbriefe',
+                'Im Excel-Download wird in den Briefanreden nach DIN 5008 die Frau zuerst angesprochen (Sehr geehrte Frau, sehr geehrter Herr). [Standard: Ja]',
+                true);
         }
 
-        if(($tblSetting = $this->createSetting('Education','Lesson','Subject', 'HasOrientationSubjects', TblSetting::TYPE_BOOLEAN, '1', 'Allgemein', 'Es werden Neigungskurse verwendet. [Ja]'))){
-            $this->updateSettingDescription($tblSetting, 'Allgemein', 'Es werden Neigungskurse verwendet. [Ja]');
+        if (($tblSetting = $this->createSetting('Education', 'ClassRegister', 'Sort', 'SortMaleFirst',
+            TblSetting::TYPE_BOOLEAN, '1'))) {
+            $this->updateSettingDescription($tblSetting, 'Klassenbücher',
+                'Bei der Sortierung der Schüler im Klassenbuch nach Geschlecht, stehen die männlichen Schüler zuerst. [Standard: Ja]',
+                true);
+        }
+        if (($tblSetting = $this->createSetting('Education', 'ClassRegister', 'Frontend', 'ShowDownloadButton',
+            TblSetting::TYPE_BOOLEAN, '1'))) {
+            $this->updateSettingDescription($tblSetting, 'Klassenbücher',
+                'Fachlehrer können sich im Klassenbuch die Standard-Klassenlisten-Auswertung (Excel) herunterladen. [Standard: Ja]',
+                true);
         }
 
-        if (($tblSetting = $this->createSetting('Setting', 'Consumer', 'Service', 'Sort_UmlautWithE', TblSetting::TYPE_BOOLEAN, '1'))) {
-            $this->updateSettingDescription($tblSetting, 'Allgemein', 'Bei der alphabetischen Sortierung von Namen werden Umlaute ersetzt durch Vokal + e (z.B. ä => ae) [Ja]', true);
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Evaluation',
+            'HasBehaviorGradesForSubjectsWithNoGrading', TblSetting::TYPE_BOOLEAN, '0'))) {
+            $this->updateSettingDescription($tblSetting, 'Leistungsüberprüfungen',
+                'Bei Kopfnotenaufträgen können auch Kopfnoten für Fächer vergebenen werden, welche nicht benotet werden. [Standard: Nein]',
+                true);
         }
-        if (($tblSetting = $this->createSetting('Setting', 'Consumer', 'Service', 'Sort_WithShortWords', TblSetting::TYPE_BOOLEAN, '1'))) {
-            $this->updateSettingDescription($tblSetting, 'Allgemein', 'Bei der alphabetischen Sortierung von Namen werden kurze Zwischenworte (z.B. von, der, die, ein) für die Sortierung berücksichtigt [Ja]', true);
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Evaluation',
+            'AutoPublicationOfTestsAfterXDays', TblSetting::TYPE_INTEGER, '28'))) {
+            $this->updateSettingDescription($tblSetting, 'Leistungsüberprüfungen',
+                'Automatische Bekanntgabe von Leistungsüberprüfungen für die Notenübersicht der Schüler/Eltern nach x Tagen: [Standard: 28]',
+                true);
         }
 
-//        $tblAccount = Account::useService()->getAccountBySession();
-//        if ($tblAccount && ($tblConsumer = $tblAccount->getServiceTblConsumer())) {
-//
-//        }
+        if (($tblSetting = $this->createSetting('Education', 'Lesson', 'Subject', 'HasOrientationSubjects',
+            TblSetting::TYPE_BOOLEAN, '1', 'Allgemein', 'Es werden Neigungskurse verwendet. [Standard: Ja]'))) {
+            $this->updateSettingDescription($tblSetting, 'Allgemein', 'Validierung Neigungskurse im Stammdaten- und Bildungsmodul
+             sowie Modul Kamenzstatistik. Schulträger unterrichtet Neigungskurse. [Standard: Ja]', true);
+        }
+
+        if (($tblSetting = $this->createSetting('Setting', 'Consumer', 'Service', 'Sort_UmlautWithE',
+            TblSetting::TYPE_BOOLEAN, '1'))) {
+            $this->updateSettingDescription($tblSetting, 'Allgemein', 'Bei der alphabetischen Sortierung von Namen werden Umlaute ersetzt nach DIN 5007-2 (z.B. ä => ae). 
+            Bei Deaktivierung erfolgt Sortierung nach DIN 5007-1 (z.B. Ä/ä und a sind gleich) [Standard: Ja]', true);
+        }
+        if (($tblSetting = $this->createSetting('Setting', 'Consumer', 'Service', 'Sort_WithShortWords',
+            TblSetting::TYPE_BOOLEAN, '1'))) {
+            $this->updateSettingDescription($tblSetting, 'Allgemein',
+                'Bei der alphabetischen Sortierung von Namen werden Präpositionen (z.B. von, de, etc.) für die Sortierung berücksichtigt [Standard: Ja]',
+                true);
+        }
     }
 
     /**
@@ -170,10 +257,10 @@ class Data extends AbstractData
             $this->getConnection()->getEntityManager(),
             'TblSetting',
             array(
-                TblSetting::ATTR_CLUSTER     => $Cluster,
+                TblSetting::ATTR_CLUSTER => $Cluster,
                 TblSetting::ATTR_APPLICATION => $Application,
-                TblSetting::ATTR_MODULE      => $Module ? $Module : null,
-                TblSetting::ATTR_IDENTIFIER  => $Identifier,
+                TblSetting::ATTR_MODULE => $Module ? $Module : null,
+                TblSetting::ATTR_IDENTIFIER => $Identifier,
             )
         );
     }
@@ -280,10 +367,10 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblSetting')->findOneBy(array(
-            TblSetting::ATTR_CLUSTER     => $Cluster,
+            TblSetting::ATTR_CLUSTER => $Cluster,
             TblSetting::ATTR_APPLICATION => $Application,
-            TblSetting::ATTR_MODULE      => $Module ? $Module : null,
-            TblSetting::ATTR_IDENTIFIER  => $Identifier,
+            TblSetting::ATTR_MODULE => $Module ? $Module : null,
+            TblSetting::ATTR_IDENTIFIER => $Identifier,
         ));
         if ($Entity === null) {
             $Entity = new TblSetting();
@@ -443,7 +530,7 @@ class Data extends AbstractData
                     $array = $result->fetch();
 
                     if (isset($array['Value'])) {
-                       $value = $array['Value'];
+                        $value = $array['Value'];
                     }
 
                     $connection->getConnection()->close();
