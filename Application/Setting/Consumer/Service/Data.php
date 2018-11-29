@@ -109,6 +109,7 @@ class Data extends AbstractData
                 'Werden die Neigungskurse in der Bildung nicht einzeln gepflegt, sondern nur ein einzelner Standard-Neigungskurs, 
                 kann hier das Kürzel des Standard-Neigungskurses (z.B. NK) hinterlegt werden. Für die Zeugnisse wir dann der
                 eigentliche Neigungskurs aus der Schülerakte des Schülers gezogen. [Standard: ]');
+        }
         if (($tblSetting = $this->createSetting('Api', 'Education', 'Certificate', 'ProfileAcronym',
             TblSetting::TYPE_STRING, ''))) {
             $this->updateSettingDescription($tblSetting, 'Zeugnisse',
