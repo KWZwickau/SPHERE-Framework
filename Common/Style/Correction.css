@@ -414,3 +414,7 @@ fieldset[disabled] .twitter-typeahead .tt-input {
 .btn {
     margin-bottom: 2px;
 }
+
+a {
+    cursor: pointer !important;
+}

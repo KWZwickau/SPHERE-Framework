@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Education\Graduation\Evaluation;
 
 use DateTime;
+use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradebook;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
@@ -85,6 +86,7 @@ use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\NotAvailable;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
@@ -1904,6 +1906,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblScoreRule = false;
         $scoreRuleText = array();
         $tblScoreType = false;
+        $showCourse = false;
         if ($tblDivision && $tblSubject) {
             if ($tblTest->getTblTask() && $tblTest->getTblTask()->getServiceTblScoreType()) {
                 $tblScoreType = $tblTest->getTblTask()->getServiceTblScoreType();
@@ -1928,6 +1931,14 @@ class Frontend extends Extension implements IFrontendInterface
                         new Ban() . ' Keine Berechnungsvariante hinterlegt. Alle Zensuren-Typen sind gleichwertig.'
                     ));
                 }
+            }
+
+            if (($tblLevel = $tblDivision->getTblLevel())
+                && ($tblType = $tblLevel->getServiceTblType())
+                && $tblType->getName() == 'Mittelschule / Oberschule'
+                && intval($tblLevel->getName()) > 6
+            ) {
+                $showCourse = true;
             }
         }
 
@@ -2036,8 +2047,11 @@ class Frontend extends Extension implements IFrontendInterface
             $tableColumns = array(
                 'Number' => '#',
                 'Name'   => 'Schüler',
-                'Course' => 'Bildungsgang',
+                'Integration' => 'Integration'
             );
+            if ($showCourse) {
+                $tableColumns['Course'] = 'Bildungsgang';
+            }
 
             // Stichtagsnotenauftrag
             if ($isTestAppointedDateTask) {
@@ -2051,7 +2065,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $columnDefinition['Number'] = '#';
                 $columnDefinition['Student'] = "Schüler";
                 $columnDefinition['Integration'] = "Integration";
-                $columnDefinition['Course'] = 'Bildungsgang';
+                if ($showCourse) {
+                    $columnDefinition['Course'] = 'Bildungsgang';
+                }
 
                 $tblPeriodList = false;
                 $tblLevel = $tblDivision->getTblLevel();
@@ -2071,12 +2087,30 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
 
+                // Vornoten für Schüler die in einer anderen Klasse deaktiviert sind
+                if ($tblDivisionSubject->getTblSubjectGroup()) {
+                    $tblStudentList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
+                } else {
+                    $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
+                }
+                if ($tblStudentList) {
+                    $gradeListFromAnotherDivision = Gradebook::useService()->getGradesFromAnotherDivision($tblDivision,
+                        $tblSubject, $tblStudentList);
+                } else {
+                    $gradeListFromAnotherDivision = false;
+                }
+
                 // Tabellenkopf mit Test-Code und Datum erstellen
                 if ($tblPeriodList) {
                     /** @var TblPeriod $tblPeriod */
                     foreach ($tblPeriodList as $tblPeriod) {
+                        $count = 0;
+                        if ($gradeListFromAnotherDivision && isset($gradeListFromAnotherDivision[$tblPeriod->getId()])) {
+                            $count++;
+                            $columnDefinition['ExtraGrades' . $tblPeriod->getId()] = 'Vornoten';
+                        }
+
                         if ($tblDivisionSubject->getServiceTblSubject()) {
-                            $count = 0;
                             $tblTestList = Evaluation::useService()->getTestAllByTypeAndDivisionAndSubjectAndPeriodAndSubjectGroup(
                                 $tblDivision,
                                 $tblDivisionSubject->getServiceTblSubject(),
@@ -2130,7 +2164,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 }
                                 $periodListCount[$tblPeriod->getId()] = $count;
                             } else {
-                                $periodListCount[$tblPeriod->getId()] = 1;
+                                $count++;
+                                $periodListCount[$tblPeriod->getId()] = $count;
                                 $columnDefinition['Period' . $tblPeriod->getId()] = "";
                             }
                         }
@@ -2139,12 +2174,6 @@ class Frontend extends Extension implements IFrontendInterface
                 }
 
                 // Tabellen-Inhalt erstellen
-                if ($tblDivisionSubject->getTblSubjectGroup()) {
-                    $tblStudentList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
-                } else {
-                    $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
-                }
-
                 if ($tblStudentList) {
 
                     $count = 1;
@@ -2212,15 +2241,12 @@ class Frontend extends Extension implements IFrontendInterface
                                         * Calc Average
                                         */
                                         $average = Gradebook::useService()->calcStudentGrade(
-                                            $tblPerson,
-                                            $tblDivision,
-                                            $tblDivisionSubject->getServiceTblSubject(),
+                                            $tblPerson, $tblDivision, $tblDivisionSubject->getServiceTblSubject(),
                                             Evaluation::useService()->getTestTypeByIdentifier('TEST'),
-                                            $tblScoreRule ? $tblScoreRule : null,
-                                            $tblPeriod,
+                                            $tblScoreRule ? $tblScoreRule : null, $tblPeriod,
                                             $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null,
-                                            false,
-                                            $tblTask->getDate() ? $tblTask->getDate() : false
+                                            $tblTask->getDate() ? $tblTask->getDate() : false,
+                                            $gradeListFromAnotherDivision
                                         );
 
                                         if (is_array($average)) {
@@ -2240,15 +2266,12 @@ class Frontend extends Extension implements IFrontendInterface
                                     * Calc Average
                                     */
                                     $average = Gradebook::useService()->calcStudentGrade(
-                                        $tblPerson,
-                                        $tblDivision,
-                                        $tblDivisionSubject->getServiceTblSubject(),
+                                        $tblPerson, $tblDivision, $tblDivisionSubject->getServiceTblSubject(),
                                         Evaluation::useService()->getTestTypeByIdentifier('TEST'),
                                         $tblScoreRule ? $tblScoreRule : null,
                                         ($tblTaskPeriod = $tblTask->getServiceTblPeriodByDivision($tblDivision)) ? $tblTaskPeriod : null,
                                         $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null,
-                                        false,
-                                        $tblTask->getDate() ? $tblTask->getDate() : false
+                                        $tblTask->getDate() ? $tblTask->getDate() : false, $gradeListFromAnotherDivision
                                     );
                                     if (is_array($average)) {
                                         $errorRowList = $average;
@@ -2274,6 +2297,17 @@ class Frontend extends Extension implements IFrontendInterface
                                 } elseif (strpos($column, 'Period') !== false) {
                                     // keine Tests in der Periode vorhanden
                                     $data[$column] = '';
+                                    // Vornoten
+                                } elseif (strpos($column, 'ExtraGrades') !== false) {
+                                    $periodId = str_replace('ExtraGrades', '', $column);
+                                    if ($gradeListFromAnotherDivision && isset($gradeListFromAnotherDivision[$periodId][$tblPerson->getId()])) {
+                                        $data[$column] = implode(', ', $gradeListFromAnotherDivision[$periodId][$tblPerson->getId()])
+                                            . '&nbsp;'
+                                            . ApiGradebook::receiverModal()
+                                            . (new Standard('', '#', new EyeOpen()))->ajaxPipelineOnClick(ApiGradebook::pipelineOpenExtraGradesModal(
+                                                $tblDivision->getId(), $tblSubject->getId(), $periodId, $tblPerson->getId()
+                                            ));
+                                    }
                                 }
                             }
                         }
@@ -2309,7 +2343,10 @@ class Frontend extends Extension implements IFrontendInterface
             $tableColumns['Number'] = '#';
             $tableColumns['Name'] = 'Schüler';
             $tableColumns['Integration'] = 'Integration';
-            $tableColumns['Course'] = 'Bildungsgang';
+            if ($showCourse) {
+                $tableColumns['Course'] = 'Bildungsgang';
+            }
+
             $tableColumns['Grade'] = 'Zensur';
             if ($tblTest->isContinues()) {
                 $tableColumns['Date'] = 'Datum' . ($tblTest->getFinishDate() ? ' (' . $tblTest->getFinishDate() . ')' : '');
@@ -2378,7 +2415,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             // oberste Tabellen-Kopf-Zeile erstellen
             $headTableColumnList = array();
-            $headTableColumnList[] = new TableColumn('', 4, '20%');
+            $headTableColumnList[] = new TableColumn('', $showCourse ? 4 : 3, '20%');
             $countHeaderColumns = 2;
             if (!empty($periodListCount)) {
                 foreach ($periodListCount as $periodId => $count) {
@@ -3314,15 +3351,10 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         $average = Gradebook::useService()->calcStudentGrade(
-            $tblPerson,
-            $tblDivision,
-            $tblSubject,
-            Evaluation::useService()->getTestTypeByIdentifier('TEST'),
+            $tblPerson, $tblDivision, $tblSubject, Evaluation::useService()->getTestTypeByIdentifier('TEST'),
             $tblScoreRule ? $tblScoreRule : null,
-            ($tblTaskPeriod = $tblTask->getServiceTblPeriodByDivision($tblDivision)) ? $tblTaskPeriod : null,
-            null,
-            false,
-            $tblTask->getDate() ? $tblTask->getDate() : false
+            ($tblTaskPeriod = $tblTask->getServiceTblPeriodByDivision($tblDivision)) ? $tblTaskPeriod : null, null,
+            $tblTask->getDate() ? $tblTask->getDate() : false, true
         );
         if (is_array($average)) {
 //            $errorRowList = $average;
@@ -3602,22 +3634,47 @@ class Frontend extends Extension implements IFrontendInterface
         $isDivisionSubjectNamed = false
     ) {
         if ($tblDivisionSubject->getTblSubjectGroup()) {
-            $tblStudentAll = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
+            $tblStudentAll = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject, true);
         } else {
-            $tblStudentAll = Division::useService()->getStudentAllByDivision($tblDivisionSubject->getTblDivision());
+            $tblStudentAll = Division::useService()->getStudentAllByDivision($tblDivisionSubject->getTblDivision(), true);
         }
-        if ($tblStudentAll) {
+        if ($tblStudentAll
+            && ($tblDivision = $tblDivisionSubject->getTblDivision())
+        ) {
+            if ($tblTest->getDate()) {
+                $testDate = new DateTime($tblTest->getDate());
+            } elseif ($tblTest->getFinishDate()) {
+                $testDate = new DateTime($tblTest->getFinishDate());
+            } else {
+                $testDate = false;
+            }
+
             /** @var TblPerson $tblPerson */
             foreach ($tblStudentAll as $tblPerson) {
+                $isInActive = false;
+                // inaktive Schüler abhängig vom Austrittsdatum ignorieren
+                if (($tblDivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson(
+                        $tblDivision, $tblPerson
+                    ))
+                    && ($leaveDate = $tblDivisionStudent->getLeaveDateTime()) !== null
+                ) {
+                    $isInActive = $tblDivisionStudent->isInActive();
+                    if ($testDate && $testDate > $leaveDate) {
+                        continue;
+                    }
+                }
+
                 $studentTestList[$tblPerson->getId()] = $tblTest;
-                $studentList[$tblPerson->getId()]['Number'] = count($studentList) + 1;
-                $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName() . ($isDivisionSubjectNamed
+                $count = count($studentList) + 1;
+                $name = $tblPerson->getLastFirstName() . ($isDivisionSubjectNamed
                         ? new Muted(' (' . $tblDivisionSubject->getTblDivision()->getDisplayName()
                             . ' - ' . $tblDivisionSubject->getServiceTblSubject()->getAcronym()
                             . ($tblDivisionSubject->getTblSubjectGroup() ? ' - ' . $tblDivisionSubject->getTblSubjectGroup()->getName() : '')
                             . ')')
                         : ''
                     );
+                $studentList[$tblPerson->getId()]['Number'] = $count;
+                $studentList[$tblPerson->getId()]['Name'] = $isInActive ? new Strikethrough($name) : $name;
                 if(Student::useService()->getIsSupportByPerson($tblPerson)) {
                     $Integration = (new Standard('', ApiSupportReadOnly::getEndpoint(), new EyeOpen()))
                         ->ajaxPipelineOnClick(ApiSupportReadOnly::pipelineOpenOverViewModal($tblPerson->getId()));
@@ -3625,11 +3682,12 @@ class Frontend extends Extension implements IFrontendInterface
                     $Integration = '';
                 }
                 $studentList[$tblPerson->getId()]['Integration'] = $Integration;
-                $studentList[$tblPerson->getId()]['Course'] = '';
-                $tblCourse = Student::useService()->getCourseByPerson($tblPerson);
-                if ($tblCourse) {
-                    $studentList[$tblPerson->getId()]['Course'] = $tblCourse->getName();
+                if (($tblCourse = Student::useService()->getCourseByPerson($tblPerson))) {
+                    $course = $tblCourse->getName();
+                } else {
+                    $course = '';
                 }
+                $studentList[$tblPerson->getId()]['Course'] = $isInActive ? new Strikethrough($course) : $course;
             }
         }
 
@@ -3847,7 +3905,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $countStudents++;
                         }
                     } else {
-                        if (!Division::useService()->exitsDivisionStudent($tblDivision, $tblPerson)) {
+                        if (!Division::useService()->existsDivisionStudent($tblDivision, $tblPerson)) {
                             $countStudents++;
                         }
                     }
@@ -3861,13 +3919,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $countStudents += count($tblSubjectStudentAll);
             }
         } else {
-            $tblDivisionStudentAll = Division::useService()->getDivisionStudentAllByDivision($tblDivision);
+            $tblDivisionStudentAll = Division::useService()->getDivisionStudentAllByDivision($tblDivision, true);
             if ($tblDivisionStudentAll) {
                 $countStudents += count($tblDivisionStudentAll);
             }
         }
     }
-
 
     /**
      * @param $Route

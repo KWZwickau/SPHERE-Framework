@@ -94,20 +94,32 @@ class ApiSupportReadOnly extends Extension implements IApiInterface
             $HeadPanel = new Panel('Schüler', $tblPerson->getLastFirstName(), Panel::PANEL_TYPE_INFO);
             $WellFocus = new Well('Keine Förderschwerpunkte');
             if(($tblSupport = Student::useService()->getSupportByPersonNewest($tblPerson, array('Förderbescheid')))){
-                $WellFocus = new Title('Förderschwerpunkte:');
-                if(($tblFocusPrimary = Student::useService()->getPrimaryFocusBySupport($tblSupport))) {
-                    $WellFocus .= new Container(new Bold($tblFocusPrimary->getName()));
+                // wenn nach einen Förderbescheid eine Aufhebung kommt, darf dieser und die dazugehörigen Schwerpunkte nicht mehr in der Leseansicht (Lehrer) angezeigt werden
+                $isCanceled = false;
+                if (($tblSupportCancel = Student::useService()->getSupportByPersonNewest($tblPerson, array('Aufhebung')))
+                    && new \DateTime($tblSupportCancel->getDate()) >= new \DateTime($tblSupport->getDate())
+                ) {
+                    $isCanceled = true;
                 }
-                if(($tblFocusList = Student::useService()->getFocusListBySupport($tblSupport))){
-                    foreach($tblFocusList as $tblFocus){
-                        // doppelter Focus nicht doppelt abbilden
-                        if($tblFocusPrimary && $tblFocusPrimary->getId() != $tblFocus->getId()){
+
+                if (!$isCanceled) {
+                    $WellFocus = new Title('Förderschwerpunkte:');
+                    if (($tblFocusPrimary = Student::useService()->getPrimaryFocusBySupport($tblSupport))) {
+                        $WellFocus .= new Container(new Bold($tblFocusPrimary->getName()));
+                    }
+                    if (($tblFocusList = Student::useService()->getFocusListBySupport($tblSupport))) {
+                        foreach ($tblFocusList as $tblFocus) {
+                            // primärer Focus nicht doppelt abbilden
+                            if ($tblFocusPrimary && $tblFocusPrimary->getId() == $tblFocus->getId()) {
+                                continue;
+                            }
+
                             $WellFocus .= new Container($tblFocus->getName());
                         }
+                        $WellFocus .= new Ruler() . new Container(new Bold('letzter Bearbeiter: ') . $tblSupport->getPersonEditor());
                     }
-                    $WellFocus .= new Ruler().new Container(new Bold('letzter Bearbeiter: ').$tblSupport->getPersonEditor());
+                    $WellFocus = new Well($WellFocus);
                 }
-                $WellFocus = new Well($WellFocus);
             }
 
             $WellLegalBasis = new LayoutColumn('');

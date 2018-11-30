@@ -26,7 +26,14 @@ class MsAbsHs extends Certificate
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
 
-        $Header = $this->getHead($this->isSample(), true, 'auto', '50px');
+        $showPictureOnSecondPage = true;
+        if (($tblSetting = \SPHERE\Application\Setting\Consumer\Consumer::useService()->getSetting(
+            'Education', 'Certificate', 'Generate', 'PictureDisplayLocationForDiplomaCertificate'))
+        ) {
+            $showPictureOnSecondPage = $tblSetting->getValue();
+        }
+
+        $Header = MsAbsRs::getHeadForDiploma($this->isSample(), !$showPictureOnSecondPage);
 
         // leere Seite
         $pageList[] = new Page();
@@ -122,7 +129,9 @@ class MsAbsHs extends Certificate
                 )
                 ->styleAlignCenter()
                 ->styleMarginTop('20%')
-            );
+            )
+            ->addSlice(MsAbsRs::getPictureForDiploma($showPictureOnSecondPage))
+        ;
 
         $pageList[] = (new Page())
             ->addSlice((new Slice())

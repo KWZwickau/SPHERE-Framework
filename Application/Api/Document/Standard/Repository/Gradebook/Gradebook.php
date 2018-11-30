@@ -19,6 +19,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 
 /**
  * Class Gradebook
@@ -35,6 +36,8 @@ class Gradebook
     const COLOR_BODY_ALTERNATE_1 = '#E4E4E4';
     const COLOR_BODY_ALTERNATE_2 = '#FFF';
     const MINIMUM_TEST_COUNT = 4;
+    // Anzahl der Spalten für die Vornoten
+    const EXTRA_GRADES_WIDTH = 2;
 
     /** @var null|Frame $Document */
     private $Document = null;
@@ -255,6 +258,12 @@ class Gradebook
         } else {
             $tblPersonList = false;
         }
+        if ($tblPersonList) {
+            $gradeListFromAnotherDivision = \SPHERE\Application\Education\Graduation\Gradebook\Gradebook::useService()
+                ->getGradesFromAnotherDivision($tblDivision, $tblSubject, $tblPersonList);
+        } else {
+            $gradeListFromAnotherDivision = false;
+        }
 
         $addStudentList = array();
         $existingPersonList = array();
@@ -358,6 +367,12 @@ class Gradebook
         $testList = array();
 
         $count = 0;
+        // Vornoten
+        if ($gradeListFromAnotherDivision && isset($gradeListFromAnotherDivision[$tblPeriod->getId()])) {
+            $count += self::EXTRA_GRADES_WIDTH;
+            $testList[$tblPeriod->getId()]['ExtraGrades'] = 'Vornoten';
+        }
+
         $tblTestList = Evaluation::useService()->getTestAllByTypeAndDivisionAndSubjectAndPeriodAndSubjectGroup(
             $tblDivision,
             $tblSubject,
@@ -444,10 +459,20 @@ class Gradebook
             $countTests = 0;
             if (isset($testList[$tblPeriod->getId()])) {
                 foreach ($testList[$tblPeriod->getId()] as $testId => $text) {
-                    $countTests++;
-                    if (($tblTest = Evaluation::useService()->getTestById($testId))
+                    // Vornoten
+                    if ($testId == 'ExtraGrades') {
+                        $countTests += self::EXTRA_GRADES_WIDTH;
+                        $headerSection = $this->setHeaderTest(
+                            $headerSection,
+                            $text,
+                            ($widthColumnTest * self::EXTRA_GRADES_WIDTH) . '%',
+                            false,
+                            $isLastTestLastColumn && $countTests == $countTestPeriod
+                        );
+                    } elseif (($tblTest = Evaluation::useService()->getTestById($testId))
                         && ($tblGradeType = $tblTest->getServiceTblGradeType())
                     ) {
+                        $countTests++;
                         $headerSection = $this->setHeaderTest(
                             $headerSection,
                             $text,
@@ -545,7 +570,7 @@ class Gradebook
             $number = 1;
             foreach ($tblPersonList as $tblPerson) {
                 $isMissing = isset($addStudentList[$tblPerson->getId()]);
-                $name = $isMissing ? '<s>' . $tblPerson->getLastFirstName() . '</s>' : $tblPerson->getLastFirstName();
+                $name = $isMissing ? new Strikethrough($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName();
 
                 $courseName = '&nbsp;';
                 if ($showCourse
@@ -561,10 +586,12 @@ class Gradebook
                     }
                 }
 
+                $number++;
+
                 $subSection = new Section();
                 $subSection
                     ->addElementColumn((new Element())
-                        ->setContent($number++)
+                        ->setContent($isMissing ? new Strikethrough($number) : $number)
                         ->styleTextSize(self::TEXT_SIZE_BODY)
                         ->stylePaddingLeft($paddingLeft)
                         ->styleBorderTop()
@@ -605,7 +632,24 @@ class Gradebook
                         $countTests = 0;
                         if (isset($testList[$tblPeriod->getId()])) {
                             foreach ($testList[$tblPeriod->getId()] as $testId => $text) {
-                                if (($tblTest = Evaluation::useService()->getTestById($testId))
+                                // Vornoten
+                                if ($testId == 'ExtraGrades') {
+                                    $countTests += self::EXTRA_GRADES_WIDTH;
+                                    $grade = isset($gradeListFromAnotherDivision[$tblPeriod->getId()][$tblPerson->getId()])
+                                        ? implode(', ', $gradeListFromAnotherDivision[$tblPeriod->getId()][$tblPerson->getId()])
+                                        : '&nbsp;';
+
+                                    $periodSection->addElementColumn((new Element())
+                                        ->setContent($grade)
+                                        ->styleTextSize(self::TEXT_SIZE_BODY)
+                                        ->stylePaddingLeft($paddingLeft)
+                                        ->styleBorderTop()
+                                        ->styleBorderLeft()
+                                        ->styleBorderRight($isLastTestLastColumn && $countTests == $countTestPeriod
+                                            ? '1px' : '0px')
+                                        ->styleBackgroundColor($number % 2 == 1 ? self::COLOR_BODY_ALTERNATE_1 : self::COLOR_BODY_ALTERNATE_2)
+                                        , ($widthColumnTest * self::EXTRA_GRADES_WIDTH) . '%');
+                                } elseif (($tblTest = Evaluation::useService()->getTestById($testId))
                                     && ($tblGradeType = $tblTest->getServiceTblGradeType())
                                 ) {
                                     $countTests++;
@@ -659,7 +703,9 @@ class Gradebook
                                 $tblTestType,
                                 $tblScoreRule ? $tblScoreRule : null,
                                 !$isSekTwo && $isLastPeriod ? null : $tblPeriod,
-                                $tblSubjectGroup ? $tblSubjectGroup : null
+                                $tblSubjectGroup ? $tblSubjectGroup : null,
+                                false,
+                                $gradeListFromAnotherDivision
                             );
 
                             if (is_array($average)) {
@@ -667,10 +713,11 @@ class Gradebook
                             } elseif (is_string($average) && strpos($average,
                                     '(')
                             ) {
-                                $average = substr($average, 0,
-                                    strpos($average, '('));
-                                $average = str_replace('.', ',', $average);
-                            } else {
+                                $average = substr($average, 0, strpos($average, '('));
+                            }
+
+                            $average = str_replace('.', ',', $average);
+                            if ($average == '') {
                                 $average = '&nbsp;';
                             }
 
@@ -778,7 +825,22 @@ class Gradebook
                 $countTests = 0;
                 if (isset($testList[$tblPeriod->getId()])) {
                     foreach ($testList[$tblPeriod->getId()] as $testId => $text) {
-                        if (($tblTest = Evaluation::useService()->getTestById($testId))
+                        // Vornoten
+                        if ($testId == 'ExtraGrades') {
+                            $countTests += self::EXTRA_GRADES_WIDTH;
+
+                            $periodSection->addElementColumn((new Element())
+                                ->setContent('&nbsp;')
+                                ->styleTextSize(self::TEXT_SIZE_BODY)
+                                ->stylePaddingLeft($paddingLeft)
+                                ->styleBorderTop()
+                                ->styleBorderLeft()
+                                ->styleBorderBottom()
+                                ->styleBorderRight($isLastTestLastColumn && $countTests == $countTestPeriod
+                                    ? '1px' : '0px')
+                                ->styleBackgroundColor(self::COLOR_HEADER)
+                                , ($widthColumnTest * self::EXTRA_GRADES_WIDTH) . '%');
+                        } elseif (($tblTest = Evaluation::useService()->getTestById($testId))
                             && ($tblGradeType = $tblTest->getServiceTblGradeType())
                         ) {
                             $countTests++;

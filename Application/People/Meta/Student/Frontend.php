@@ -99,6 +99,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -405,9 +406,10 @@ class Frontend extends Extension implements IFrontendInterface
                         (new SelectBox('Data[SupportType]', 'Vorgang', array('{{ Name }}' => $SupportTypeList), new Education()))->setRequired(),
                         new Warning('Nur "Förderbescheid" ist für Lehrer sichtbar')
                         ), 6),
-                    new FormColumn(
-                        new Listing($CheckboxList)
-                        , 6),
+                    new FormColumn(array(
+                            new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Bold('Förderschwerpunkte'))))),
+                            new Listing($CheckboxList)
+                        ), 6),
                 )),
                 new FormRow(array(
                     new FormColumn(array(
@@ -422,9 +424,9 @@ class Frontend extends Extension implements IFrontendInterface
                         , 6),
                 )),
                 new FormRow(array(
-                    new FormColumn(
+                    new FormColumn(array(
                         $SaveButton
-                    )
+                    ))
                 )),
             ))
         );
@@ -465,17 +467,25 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int      $PersonId
+     * @param int $PersonId
      * @param null|int $SpecialId
+     * @param bool $IsCanceled
+     * @param bool $IsInit
      *
      * @return Form
      */
-    public function formSpecial($PersonId, $SpecialId = null)
+    public function formSpecial($PersonId, $SpecialId = null, $IsCanceled = false, $IsInit = false)
     {
 
         $Global = $this->getGlobal();
         if($SpecialId != null && !isset($Global->POST['Data']['Date'])) {
             if (($tblSpecial = Student::useService()->getSpecialById($SpecialId))) {
+                if ($IsInit) {
+                    if ($tblSpecial->isCanceled()) {
+                       $Global->POST['Data']['IsCanceled'] = $tblSpecial->isCanceled() ? '1' : '0';
+                    }
+                }
+
                 $Global = $this->fillGlobalSpecial($tblSpecial, $Global);
 
                 $Global->savePost();
@@ -498,27 +508,35 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         if($SpecialId === null){
+            // create
             $SaveButton = (new PrimaryLink('Speichern', ApiSupport::getEndpoint(), new Save()))
                 ->ajaxPipelineOnClick(ApiSupport::pipelineCreateSpecialSave($PersonId));
+            $cancelCheckbox = (new CheckBox('Data[IsCanceled]', new Bold('Aufhebung'), '1'))->ajaxPipelineOnClick(ApiSupport::pipelineOpenCreateSpecialModal($PersonId));
         } else {
+            // edit
             $SaveButton = (new PrimaryLink('Speichern', ApiSupport::getEndpoint(), new Save()))
                 ->ajaxPipelineOnClick(ApiSupport::pipelineUpdateSpecialSave($PersonId, $SpecialId));
+            $cancelCheckbox = (new CheckBox('Data[IsCanceled]', new Bold('Aufhebung'), '1'))->ajaxPipelineOnClick(ApiSupport::pipelineOpenEditSpecialModal($PersonId, $SpecialId));
         }
+
+        $arrayRight = array();
+
+        $arrayLeft[] = (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired();
+        $arrayLeft[] = $cancelCheckbox;
+        if (!$IsCanceled) {
+            $arrayLeft[] = new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Bold('Entwicklungsbesonderheiten '.new DangerText('*'))))));
+            $arrayLeft[] = new Listing($CheckboxList);
+
+            $arrayRight[] = new TextArea('Data[Remark]', 'Bemerkung', 'Bemerkung', new Edit());
+        }
+
+        $arrayRight[] = new HiddenField('SpecialId');
 
         return new Form(
             new FormGroup(array(
                 new FormRow(array(
-                    new FormColumn(array(
-                        (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired(),
-                        new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Bold('Entwicklungsbesonderheiten '.new DangerText('*')))))),
-                        new Listing($CheckboxList)
-                        ), 6),
-                    new FormColumn(
-                        new TextArea('Data[Remark]', 'Bemerkung', 'Bemerkung', new Edit())
-                        , 6),
-                    new FormColumn(
-                        new HiddenField('SpecialId')
-                        , 6),
+                    new FormColumn($arrayLeft, 6),
+                    new FormColumn($arrayRight, 6)
                 )),
                 new FormRow(array(
                     new FormColumn(
@@ -556,15 +574,23 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param int      $PersonId
      * @param null|int $HandyCapId
+     * @param bool $IsCanceled
+     * @param bool $IsInit
      *
      * @return Form
      */
-    public function formHandyCap($PersonId, $HandyCapId = null)
+    public function formHandyCap($PersonId, $HandyCapId = null, $IsCanceled = false, $IsInit = false)
     {
 
         $Global = $this->getGlobal();
         if($HandyCapId != null && !isset($Global->POST['Data']['Date'])){
             if(($tblHandyCap = Student::useService()->getHandyCapById($HandyCapId))){
+                if ($IsInit) {
+                    if ($tblHandyCap->isCanceled()) {
+                        $Global->POST['Data']['IsCanceled'] = $tblHandyCap->isCanceled() ? '1' : '0';
+                    }
+                }
+
                 $Global->POST['Data']['Date'] = $tblHandyCap->getDate();
                 $Global->POST['Data']['LegalBasis'] = $tblHandyCap->getLegalBasis();
                 $Global->POST['Data']['LearnTarget'] = $tblHandyCap->getLearnTarget();
@@ -575,62 +601,87 @@ class Frontend extends Extension implements IFrontendInterface
         }// don't need pre fill for create new Entity's
 
         if($HandyCapId === null){
+            // create
             $SaveButton = (new PrimaryLink('Speichern', ApiSupport::getEndpoint(), new Save()))
                 ->ajaxPipelineOnClick(ApiSupport::pipelineCreateHandyCapSave($PersonId));
+
+            $cancelCheckbox = (new CheckBox('Data[IsCanceled]', new Bold('Aufhebung'), '1'))->ajaxPipelineOnClick(ApiSupport::pipelineOpenCreateHandyCapModal($PersonId));
         } else {
+            // edit
             $SaveButton = (new PrimaryLink('Speichern', ApiSupport::getEndpoint(), new Save()))
                 ->ajaxPipelineOnClick(ApiSupport::pipelineUpdateHandyCapSave($PersonId, $HandyCapId));
+
+            $cancelCheckbox = (new CheckBox('Data[IsCanceled]', new Bold('Aufhebung'), '1'))->ajaxPipelineOnClick(ApiSupport::pipelineOpenEditHandyCapModal($PersonId, $HandyCapId));
         }
 
-        return new Form(
-            new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(array(
-                        (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired(),
-                    ), 6),
-                )),
-                new FormRow(new FormColumn(new Ruler())),
-                new FormRow(array(
-                    new FormColumn(array(
-                        new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Bold('Rechtliche Grundlage'))))),
-                    ), 6),
-                    new FormColumn(array(
-                        new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Bold('Lernziel'))))),
-                    ), 6)
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        new RadioBox('Data[LegalBasis]', 'Schulaufsicht', TblHandyCap::LEGAL_BASES_SCHOOL_VIEW)
-                    , 3),
-                    new FormColumn(
-                        new RadioBox('Data[LegalBasis]', 'Schulintern', TblHandyCap::LEGAL_BASES_INTERN)
-                    , 3),
-                    new FormColumn(
-                        new RadioBox('Data[LearnTarget]', 'lernzielgleich', TblHandyCap::LEARN_TARGET_EQUAL)
-                    , 3),
-                    new FormColumn(
-                        new RadioBox('Data[LearnTarget]', 'lernzieldifferenziert', TblHandyCap::LEARN_TARGET_DIFFERENT)
-                    , 3)
-                )),
-                new FormRow(new FormColumn(new Ruler())),
-                new FormRow(
-                    new FormColumn(
-                        new TextArea('Data[RemarkLesson]', 'Bemerkung', 'Besonderheiten im Unterricht', new Edit())
-                        , 12)
-                ),
-                new FormRow(new FormColumn(new Ruler())),
-                new FormRow(
-                    new FormColumn(
-                        new TextArea('Data[RemarkRating]', 'Bemerkung', 'Besonderheiten bei Leistungsbewertungen', new Edit())
-                    , 12)
-                ),
-                new FormRow(array(
-                    new FormColumn(
-                        $SaveButton
-                    )
-                )),
-            ))
-        );
+        $array[] = (new DatePicker('Data[Date]', '', 'Datum', new Calendar()))->setRequired();
+        $array[] = $cancelCheckbox;
+
+        if ($IsCanceled) {
+            return new Form(
+                new FormGroup(array(
+                    new FormRow(array(
+                        new FormColumn($array, 6),
+                    )),
+                    new FormRow(array(
+                        new FormColumn(
+                            $SaveButton
+                        )
+                    )),
+                ))
+            );
+        } else {
+
+            return new Form(
+                new FormGroup(array(
+                    new FormRow(array(
+                        new FormColumn($array, 6),
+                    )),
+                    new FormRow(new FormColumn(new Ruler())),
+                    new FormRow(array(
+                        new FormColumn(array(
+                            new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Bold('Rechtliche Grundlage'))))),
+                        ), 6),
+                        new FormColumn(array(
+                            new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Bold('Lernziel'))))),
+                        ), 6)
+                    )),
+                    new FormRow(array(
+                        new FormColumn(
+                            new RadioBox('Data[LegalBasis]', 'Schulaufsicht', TblHandyCap::LEGAL_BASES_SCHOOL_VIEW)
+                            , 3),
+                        new FormColumn(
+                            new RadioBox('Data[LegalBasis]', 'Schulintern', TblHandyCap::LEGAL_BASES_INTERN)
+                            , 3),
+                        new FormColumn(
+                            new RadioBox('Data[LearnTarget]', 'lernzielgleich', TblHandyCap::LEARN_TARGET_EQUAL)
+                            , 3),
+                        new FormColumn(
+                            new RadioBox('Data[LearnTarget]', 'lernzieldifferenziert',
+                                TblHandyCap::LEARN_TARGET_DIFFERENT)
+                            , 3)
+                    )),
+                    new FormRow(new FormColumn(new Ruler())),
+                    new FormRow(
+                        new FormColumn(
+                            new TextArea('Data[RemarkLesson]', 'Bemerkung', 'Besonderheiten im Unterricht', new Edit())
+                            , 12)
+                    ),
+                    new FormRow(new FormColumn(new Ruler())),
+                    new FormRow(
+                        new FormColumn(
+                            new TextArea('Data[RemarkRating]', 'Bemerkung', 'Besonderheiten bei Leistungsbewertungen',
+                                new Edit())
+                            , 12)
+                    ),
+                    new FormRow(array(
+                        new FormColumn(
+                            $SaveButton
+                        )
+                    )),
+                ))
+            );
+        }
     }
 
     /**
@@ -724,7 +775,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Remark'] = $tblSpecial->getRemark();
                 $Item['Editor'] = $tblSpecial->getPersonEditor();
                 $Item['Option'] = (new Standard('', '#', new Edit()))
-                    ->ajaxPipelineOnClick(ApiSupport::pipelineOpenEditSpecialModal($tblPerson->getId(), $tblSpecial->getId()))
+                    ->ajaxPipelineOnClick(ApiSupport::pipelineOpenEditSpecialModal($tblPerson->getId(), $tblSpecial->getId(), true))
                     .(new Standard('', '#', new Remove()))
                     ->ajaxPipelineOnClick(ApiSupport::pipelineOpenDeleteSpecial($tblPerson->getId(), $tblSpecial->getId()));
 
@@ -787,7 +838,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['RemarkRating'] = $tblHandyCap->getRemarkRating();
                 $Item['Editor'] = $tblHandyCap->getPersonEditor();
                 $Item['Option'] = (new Standard('', '#', new Edit()))
-                    ->ajaxPipelineOnClick(ApiSupport::pipelineOpenEditHandyCapModal($tblPerson->getId(), $tblHandyCap->getId()))
+                    ->ajaxPipelineOnClick(ApiSupport::pipelineOpenEditHandyCapModal($tblPerson->getId(), $tblHandyCap->getId(), true))
                     .(new Standard('', '#', new Remove()))
                     ->ajaxPipelineOnClick(ApiSupport::pipelineOpenDeleteHandyCap($tblPerson->getId(), $tblHandyCap->getId()));
 
@@ -985,9 +1036,12 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblLevel = $tblDivision->getTblLevel();
                         $tblYear = $tblDivision->getServiceTblYear();
                         if ($tblLevel && $tblYear) {
-                            $VisitedDivisions[] = $tblYear->getDisplayName().' Klasse '.$tblDivision->getDisplayName()
+                            $text = $tblYear->getDisplayName().' Klasse '.$tblDivision->getDisplayName()
                                 .new Muted(new Small(' '.($tblLevel->getServiceTblType() ? $tblLevel->getServiceTblType()->getName() : '')))
                                 .$TeacherString;
+                            $VisitedDivisions[] = $tblDivisionStudent->isInActive()
+                                ? new Strikethrough($text)
+                                : $text;
                             foreach ($tblDivisionStudentAllByPerson as &$tblDivisionStudentTemp) {
                                 if ($tblDivisionStudent->getId() !== $tblDivisionStudentTemp->getId()
                                     && $tblDivisionStudentTemp->getTblDivision()
@@ -1003,10 +1057,6 @@ class Frontend extends Extension implements IFrontendInterface
                             }
                         }
                     }
-                }
-
-                if (!empty($VisitedDivisions)) {
-                    rsort($VisitedDivisions);
                 }
             }
         }

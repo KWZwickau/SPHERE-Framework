@@ -12,6 +12,7 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Education\Lesson\Division\Division as DivisionApplication;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -32,6 +33,7 @@ use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -97,19 +99,26 @@ class StudentSelect extends Extension implements IApiInterface
     public static function getTableContentUsed(TblDivision $tblDivision)
     {
 
-        $tblPersonUsedList = DivisionApplication::useService()->getStudentAllByDivision($tblDivision);
+        $tblDivisionStudentList = DivisionApplication::useService()->getDivisionStudentAllByDivision($tblDivision, true);
 
         $usedList = array();
-        if ($tblPersonUsedList) {
-            array_walk($tblPersonUsedList, function (TblPerson $tblPerson) use ($tblDivision, &$usedList) {
-                $Item['Id'] = $tblPerson->getId();
-                $Item['DivisionId'] = $tblDivision->getId();
-                $Item['Name'] = $tblPerson->getLastFirstName();
-                $Item['Address'] = ($tblAddress = $tblPerson->fetchMainAddress())
-                    ? $tblAddress->getGuiString()
-                    : new \SPHERE\Common\Frontend\Text\Repository\Warning('Keine Adresse hinterlegt');
-                $Item['Course'] = ($tblCourse = Student::useService()->getCourseByPerson($tblPerson)) ? $tblCourse->getName() : '';
-                array_push($usedList, $Item);
+        if ($tblDivisionStudentList) {
+            array_walk($tblDivisionStudentList, function (TblDivisionStudent $tblDivisionStudent) use ($tblDivision, &$usedList) {
+                $isInActive = $tblDivisionStudent->isInActive();
+                if (($tblPerson = $tblDivisionStudent->getServiceTblPerson())) {
+                    $address = ($tblAddress = $tblPerson->fetchMainAddress())
+                        ? $tblAddress->getGuiString()
+                        : new \SPHERE\Common\Frontend\Text\Repository\Warning('Keine Adresse hinterlegt');
+                    $course = ($tblCourse = Student::useService()->getCourseByPerson($tblPerson)) ? $tblCourse->getName() : '';
+
+                    $Item['Id'] = $tblPerson->getId();
+                    $Item['DivisionId'] = $tblDivision->getId();
+                    $Item['Name'] = $isInActive ? new Strikethrough($tblPerson->getLastFirstName()) : $tblPerson->getLastFirstName();
+                    $Item['Address'] = $isInActive ? new Strikethrough($address) : $address;
+                    $Item['Course'] = $isInActive ? new Strikethrough($course) : $course;
+
+                    array_push($usedList, $Item);
+                }
             });
         }
 
@@ -124,7 +133,7 @@ class StudentSelect extends Extension implements IApiInterface
     public static function getTableContentAvailable(TblDivision $tblDivision)
     {
 
-        $tblPersonUsedList = DivisionApplication::useService()->getStudentAllByDivision($tblDivision);
+        $tblPersonUsedList = DivisionApplication::useService()->getStudentAllByDivision($tblDivision, true);
         $tblStudentList = false;
         if (($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))
             && ($tblStudentList = Group::useService()->getPersonAllByGroup($tblGroup))  // Alle Schüler

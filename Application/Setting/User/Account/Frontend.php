@@ -1529,7 +1529,7 @@ class Frontend extends Extension implements IFrontendInterface
                     .new Redirect('/Setting/User/Account/Export', Redirect::TIMEOUT_ERROR);
             }
             $Stage->addButton(
-                new Standard('Zurück', '/Setting/User', new ChevronLeft())
+                new Standard('Zurück', '/Setting/User/Account/Export', new ChevronLeft())
             );
             if (!$Confirm) {
 

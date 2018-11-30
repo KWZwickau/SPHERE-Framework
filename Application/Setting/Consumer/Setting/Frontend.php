@@ -34,6 +34,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -59,11 +60,17 @@ class Frontend extends Extension implements IFrontendInterface
             && $tblIdentification->getName() == 'System'
         ) {
             $isSystem = true;
+
+            $stage->setMessage(new Warning(
+                'Für die Mandanten Hormersdorf (FESH) und Radebeul (EVSR) gibt es jeweils noch eigene Einstellungen:' . '</br>'
+                . '&nbsp;&nbsp;&nbsp;&nbsp; &#9679; Hormersdorf: Schriftgröße des Bemerkungsfeldes für jede einzelne Zeugnisvorlage
+                    (RemarkTextSizeHorHj, RemarkTextSizeHorHjOne, RemarkTextSizeHorJ, RemarkTextSizeHorJOne)' . '</br>'
+                . '&nbsp;&nbsp;&nbsp;&nbsp; &#9679; Radebeul: Sind die Zensuren auf Zeugnissen im Wortlaut (IsGradeVerbal).'
+            ));
         } else {
             $isSystem = false;
         }
 
-//        $isSystem = false;
         if (($tblSettingList = Consumer::useService()->getSettingAll($isSystem))) {
             if ($Data == null) {
                 $global = $this->getGlobal();
@@ -107,7 +114,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 if ($field) {
                     if ($isSystem) {
-                        $fields[$tblSetting->getCategory()][] = new Layout(
+                        $item = new Layout(
                             new LayoutGroup(
                                 new LayoutRow(array(
                                     new LayoutColumn($field, 11),
@@ -116,19 +123,28 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         );
                     } else {
-                        $fields[$tblSetting->getCategory()][] = $field;
+                        $item = $field;
                     }
+
+                    $fields[$tblSetting->getCategory()][] = $item;
                 }
             }
 
             ksort($fields);
             $formColumns = array();
             foreach ($fields as $category => $content) {
-                $formColumns[] = new FormColumn(new Panel(
+                $isIndividual = $category == 'Individuell';
+                $column = new FormColumn(new Panel(
                     $category,
                     $content,
-                    Panel::PANEL_TYPE_INFO
+                    $isIndividual ? Panel::PANEL_TYPE_WARNING: Panel::PANEL_TYPE_INFO
                 ));
+
+                if ($isIndividual) {
+                    array_unshift($formColumns, $column);
+                } else {
+                    $formColumns[] = $column;
+                }
             }
 
             $form = new Form(new FormGroup(new FormRow($formColumns)));
