@@ -221,6 +221,25 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblTestType $tblTestType
+     * @param TblGradeType $tblGradeType
+     * @param TblDivision $tblDivision
+     *
+     * @return bool|TblTest[]
+     */
+    public function getTestAllByTestTypeAndGradeTypeAndDivision(TblTestType $tblTestType, TblGradeType $tblGradeType, TblDivision $tblDivision)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
+            array(
+                TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
+                TblTest::ATTR_SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId(),
+                TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
+            )
+        );
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblTask
@@ -1065,4 +1084,6 @@ class Data extends AbstractData
                 ? $tblDivisionSubject->getTblSubjectGroup() : null
         )) ? true : false;
     }
+
+
 }

@@ -9,6 +9,7 @@ use SPHERE\Application\Api\Education\Division\StudentSelect;
 use SPHERE\Application\Api\Education\Division\StudentStatus;
 use SPHERE\Application\Api\Education\Division\SubjectSelect;
 use SPHERE\Application\Api\Education\Division\ValidationFilter;
+use SPHERE\Application\Api\Education\Graduation\Evaluation\ApiEvaluation;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradebook;
 use SPHERE\Application\Api\Education\Prepare\Prepare;
 use SPHERE\Application\IApplicationInterface;
@@ -34,5 +35,6 @@ class Education implements IApplicationInterface
         ApiGenerate::registerApi();
         StudentStatus::registerApi();
         ApiGradebook::registerApi();
+        ApiEvaluation::registerApi();
     }
 }
