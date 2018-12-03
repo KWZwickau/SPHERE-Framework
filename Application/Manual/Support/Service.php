@@ -76,7 +76,7 @@ class Service extends Extension
             try {
                 /** @var EdenPhpSmtp $Mail */
                 $Mail = Mail::getSmtpMail()->connectServer(
-                    'mail.ims-firmen.de', 'kreda.schule1', '20!Kreide!15', 465, true
+                    'Host', 'UserName', 'PW', 465, true
                 );
                 $Mail->setMailSubject(utf8_decode($Ticket['Subject']).' - Account: '.Account::useService()->getAccountBySession()->getId().' ('.$Ticket['Mail'].')');
                 if (!empty( $Ticket['CallBackNumber'] )) {
@@ -85,11 +85,11 @@ class Service extends Extension
                 } else {
                     $Mail->setMailBody($Ticket['Body']);
                 }
-                $Mail->addRecipientTO('helpdesk@kreda.schule');
+                $Mail->addRecipientTO('Mail');
                 if (isset( $Upload )) {
                     $Mail->addAttachment(new FileParameter($Upload->getLocation().DIRECTORY_SEPARATOR.$Upload->getFilename()));
                 }
-                $Mail->setFromHeader('helpdesk@kreda.schule');
+                $Mail->setFromHeader('Mail');
                 $Mail->sendMail();
                 $Mail->disconnectServer();
             } catch (\Exception $Exception) {
