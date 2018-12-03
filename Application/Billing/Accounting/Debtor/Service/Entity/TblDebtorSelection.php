@@ -23,8 +23,8 @@ use SPHERE\System\Database\Fitting\Element;
 class TblDebtorSelection extends Element
 {
 
+    const ATTR_SERVICE_TBL_PERSON_CAUSER = 'serviceTblPersonCauser';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
-    const ATTR_SERVICE_TBL_PERSON_PAYERS = 'serviceTblPersonPayers';
     const ATTR_SERVICE_TBL_PAYMENT_TYPE = 'serviceTblPaymentType';
     const ATTR_SERVICE_TBL_ITEM = 'serviceTblItem';
     const ATTR_SERVICE_TBL_ITEM_VARIANT = 'serviceTblItemVariant';
@@ -35,6 +35,11 @@ class TblDebtorSelection extends Element
     /**
      * @Column(type="bigint")
      * Beitragsverursacher (Kind etc.)
+     */
+    protected $serviceTblPersonCauser;
+    /**
+     * @Column(type="bigint")
+     * Beitragszahler (Sorgeberechtigte etc.)
      */
     protected $serviceTblPerson;
     /**
@@ -64,11 +69,36 @@ class TblDebtorSelection extends Element
 
     /**
      * @return bool|TblPerson
+     * Beitragsverursacher (Kind etc.)
+     */
+    public function getServiceTblPersonCauser()
+    {
+
+        if(null === $this->serviceTblPersonCauser) {
+            return false;
+        } else {
+            return Person::useService()->getPersonById($this->serviceTblPersonCauser);
+        }
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     * Beitragsverursacher (Kind etc.)
+     */
+    public function setServiceTblPersonCauser(TblPerson $tblPerson = null)
+    {
+
+        $this->serviceTblPersonCauser = (null === $tblPerson ? null : $tblPerson->getId());
+    }
+
+    /**
+     * @return bool|TblPerson
+     * Beitragszahler (Sorgeberechtigte etc.)
      */
     public function getServiceTblPerson()
     {
 
-        if (null === $this->serviceTblPerson) {
+        if(null === $this->serviceTblPerson) {
             return false;
         } else {
             return Person::useService()->getPersonById($this->serviceTblPerson);
@@ -77,11 +107,12 @@ class TblDebtorSelection extends Element
 
     /**
      * @param TblPerson|null $tblPerson
+     * Beitragszahler (Sorgeberechtigte etc.)
      */
     public function setServiceTblPerson(TblPerson $tblPerson = null)
     {
 
-        $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
+        $this->serviceTblPerson = (null === $tblPerson ? null : $tblPerson->getId());
     }
 
     /**
@@ -90,7 +121,7 @@ class TblDebtorSelection extends Element
     public function getServiceTblPaymentType()
     {
 
-        if (null === $this->serviceTblPaymentType) {
+        if(null === $this->serviceTblPaymentType) {
             return false;
         } else {
             return Balance::useService()->getPaymentTypeById($this->serviceTblPaymentType);
@@ -103,7 +134,7 @@ class TblDebtorSelection extends Element
     public function setServiceTblPaymentType(TblPaymentType $tblPaymentType = null)
     {
 
-        $this->serviceTblPaymentType = ( null === $tblPaymentType ? null : $tblPaymentType->getId() );
+        $this->serviceTblPaymentType = (null === $tblPaymentType ? null : $tblPaymentType->getId());
     }
 
     /**
@@ -112,7 +143,7 @@ class TblDebtorSelection extends Element
     public function getServiceTblItem()
     {
 
-        if (null === $this->serviceTblItem) {
+        if(null === $this->serviceTblItem) {
             return false;
         } else {
             return Item::useService()->getItemById($this->serviceTblItem);
@@ -125,7 +156,7 @@ class TblDebtorSelection extends Element
     public function setServiceTblItem(TblItem $tblItem = null)
     {
 
-        $this->serviceTblItem = ( null === $tblItem ? null : $tblItem->getId() );
+        $this->serviceTblItem = (null === $tblItem ? null : $tblItem->getId());
     }
 
     /**
@@ -134,7 +165,7 @@ class TblDebtorSelection extends Element
     public function getServiceTblItemVariant()
     {
 
-        if (null === $this->serviceTblItemVariant) {
+        if(null === $this->serviceTblItemVariant) {
             return false;
         } else {
             return Item::useService()->getItemVariantById($this->serviceTblItemVariant);
@@ -147,7 +178,7 @@ class TblDebtorSelection extends Element
     public function setServiceTblItemVariant(TblItemVariant $tblItemVariant = null)
     {
 
-        $this->serviceTblItemVariant = ( null === $tblItemVariant ? null : $tblItemVariant->getId() );
+        $this->serviceTblItemVariant = (null === $tblItemVariant ? null : $tblItemVariant->getId());
     }
 
     /**
@@ -158,7 +189,7 @@ class TblDebtorSelection extends Element
     public function getValue($IsShort = false)
     {
 
-        if($IsShort){
+        if($IsShort) {
             return number_format($this->Value, 2);
         }
         return $this->Value;
@@ -179,7 +210,7 @@ class TblDebtorSelection extends Element
     public function getTblBankAccount()
     {
 
-        if (null === $this->tblBankAccount) {
+        if(null === $this->tblBankAccount) {
             return false;
         } else {
             return Debtor::useService()->getBankAccountById($this->tblBankAccount);
@@ -192,7 +223,7 @@ class TblDebtorSelection extends Element
     public function setTblBankAccount(TblBankAccount $tblBankAccount = null)
     {
 
-        $this->tblBankAccount = ( null === $tblBankAccount ? null : $tblBankAccount->getId() );
+        $this->tblBankAccount = (null === $tblBankAccount ? null : $tblBankAccount->getId());
     }
 
     /**
@@ -201,7 +232,7 @@ class TblDebtorSelection extends Element
     public function getTblBankReference()
     {
 
-        if (null === $this->tblBankReference) {
+        if(null === $this->tblBankReference) {
             return false;
         } else {
             return Debtor::useService()->getBankReferenceById($this->tblBankReference);
@@ -214,6 +245,6 @@ class TblDebtorSelection extends Element
     public function setTblBankReference(TblBankReference $tblBankReference = null)
     {
 
-        $this->tblBankReference = ( null === $tblBankReference ? null : $tblBankReference->getId() );
+        $this->tblBankReference = (null === $tblBankReference ? null : $tblBankReference->getId());
     }
 }

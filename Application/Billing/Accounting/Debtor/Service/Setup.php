@@ -92,8 +92,8 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table $tblBankAccount
-     * @param Table $tblBankReference
+     * @param Table  $tblBankAccount
+     * @param Table  $tblBankReference
      *
      * @return Table
      */
@@ -101,10 +101,11 @@ class Setup extends AbstractSetup
     {
 
         $Table = $this->createTable($Schema, 'tblDebtorSelection');
+        $this->createColumn($Table, 'serviceTblPersonCauser', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblItem', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblItemVariant', self::FIELD_TYPE_BIGINT, true);
-        if (!$this->getConnection()->hasColumn('tblDebtorSelection', 'Value')) {
+        if(!$this->getConnection()->hasColumn('tblDebtorSelection', 'Value')) {
             $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
         }
         $this->createColumn($Table, 'serviceTblPaymentType', self::FIELD_TYPE_BIGINT, true);
