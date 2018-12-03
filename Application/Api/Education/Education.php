@@ -11,6 +11,7 @@ use SPHERE\Application\Api\Education\Division\SubjectSelect;
 use SPHERE\Application\Api\Education\Division\ValidationFilter;
 use SPHERE\Application\Api\Education\Graduation\Evaluation\ApiEvaluation;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradebook;
+use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiMinimumGradeCount;
 use SPHERE\Application\Api\Education\Prepare\Prepare;
 use SPHERE\Application\IApplicationInterface;
 
@@ -36,5 +37,6 @@ class Education implements IApplicationInterface
         StudentStatus::registerApi();
         ApiGradebook::registerApi();
         ApiEvaluation::registerApi();
+        ApiMinimumGradeCount::registerApi();
     }
 }

@@ -257,6 +257,15 @@ class Gradebook implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\MinimumGradeCount\Destroy',
                 __NAMESPACE__.'\MinimumGradeCount\Frontend::frontendDestroyMinimumGradeCount')
         );
+
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\MinimumGradeCount\Teacher\Reporting',
+                __NAMESPACE__.'\Frontend::frontendTeacherMinimumGradeCountReporting')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\MinimumGradeCount\Headmaster\Reporting',
+                __NAMESPACE__.'\Frontend::frontendHeadmasterMinimumGradeCountReporting')
+        );
     }
 
     /**

@@ -124,4 +124,20 @@ class TblDivisionSubject extends Element
     {
         $this->HasGrading = (boolean) $HasGrading;
     }
+
+    /**
+     * @return string
+     */
+    public function getNameForSorter()
+    {
+        if (($tblSubject = $this->getServiceTblSubject())) {
+            if (($tblSubjectGroup = $this->getTblSubjectGroup())) {
+                return $tblSubject->getDisplayName() . ' ' . $tblSubjectGroup->getName();
+            } else {
+                return $tblSubject->getDisplayName();
+            }
+        }
+
+        return '';
+    }
 }
