@@ -23,6 +23,8 @@ class YouTrackMail extends Extension implements ITypeInterface
     private $Username = null;
     /** @var null|string $Password */
     private $Password = null;
+    /** @var null|string $Mail */
+    private $Mail = null;
 
     /** @var null|string $Cookie */
     private $Cookie = null;
@@ -57,6 +59,15 @@ class YouTrackMail extends Extension implements ITypeInterface
     }
 
     /**
+     * @return null|string
+     */
+    public function getMail()
+    {
+
+        return $this->Mail;
+    }
+
+    /**
      * @param array $Configuration
      */
     public function setConfiguration($Configuration)
@@ -70,6 +81,9 @@ class YouTrackMail extends Extension implements ITypeInterface
         }
         if (isset( $Configuration['Password'] )) {
             $this->Password = $Configuration['Password'];
+        }
+        if (isset( $Configuration['Mail'] )) {
+            $this->Mail = $Configuration['Mail'];
         }
 
     }

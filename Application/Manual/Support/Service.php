@@ -75,6 +75,7 @@ class Service extends Extension
         if (!$Error) {
 
             try {
+                /** @var YouTrackMail $Config */
                 $Config = (new \SPHERE\System\Support\Support(new YouTrackMail()))->getSupport();
                 /** @var EdenPhpSmtp $Mail */
                 $Mail = Mail::getSmtpMail()->connectServer(
@@ -87,11 +88,11 @@ class Service extends Extension
                 } else {
                     $Mail->setMailBody($Ticket['Body']);
                 }
-                $Mail->addRecipientTO('helpdesk@schulsoftware.schule');
+                $Mail->addRecipientTO($Config->getMail());
                 if (isset( $Upload )) {
                     $Mail->addAttachment(new FileParameter($Upload->getLocation().DIRECTORY_SEPARATOR.$Upload->getFilename()));
                 }
-                $Mail->setFromHeader('helpdesk@schulsoftware.schule');
+                $Mail->setFromHeader($Config->getMail());
                 $Mail->sendMail();
                 $Mail->disconnectServer();
             } catch (\Exception $Exception) {
