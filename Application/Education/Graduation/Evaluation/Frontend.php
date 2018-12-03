@@ -4072,11 +4072,8 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             $tblGradeTypeList = array();
         }
-//        $tblGradeTypeList[] = new SelectBoxItem(-SelectBoxItem::HIGHLIGHTED_ALL, 'Alle Zensuren-Typen');
         $tblGradeTypeList[] = new SelectBoxItem(-SelectBoxItem::HIGHLIGHTED_IS_HIGHLIGHTED,
             'Nur große Zensuren-Typen (Fett marktiert)');
-        $tblGradeTypeList[] = new SelectBoxItem(-SelectBoxItem::HIGHLIGHTED_IS_NOT_HIGHLIGHTED,
-            'Nur kleine Zensuren-Typen (nicht Fett markiert)');
         $gradeTypeSelectBox = (new SelectBox('Data[GradeType]', 'Zensuren-Typ',
             array('{{ Code }} - {{ Name }}' => $tblGradeTypeList)))
             ->setRequired();
@@ -4089,35 +4086,37 @@ class Frontend extends Extension implements IFrontendInterface
         $button = (new \SPHERE\Common\Frontend\Link\Repository\Primary('Filtern', '', new Filter()))
             ->ajaxPipelineOnClick(ApiEvaluation::pipelineCreateTestPlanningContent($receiverContent, $Data, $IsDivisionTeacher, $PersonId));
 
-        $stage->setContent(
-            new Form(new FormGroup(new FormRow(array(
-                new FormColumn(
-                    new Panel(
-                        'Filter',
-                        new Layout (new LayoutGroup(new LayoutRow(array(
-                            new LayoutColumn(
-                                $yearSelectBox, 4
-                            ),
-                            new LayoutColumn(
-                                $typeSelectBox, 4
-                            ),
-                            new LayoutColumn(
-                                $divisionTextField, 4
-                            ),
-                            new LayoutColumn(
-                                $gradeTypeSelectBox, 4
-                            ),
-                            new LayoutColumn(
-                                $option, 4
-                            ),
-                            new LayoutColumn(
-                                $button
-                            ),
-                        )))),
-                        Panel::PANEL_TYPE_INFO
-                    )
+        $form = (new Form(new FormGroup(new FormRow(array(
+            new FormColumn(
+                new Panel(
+                    'Filter',
+                    new Layout (new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn(
+                            $yearSelectBox, 4
+                        ),
+                        new LayoutColumn(
+                            $typeSelectBox, 4
+                        ),
+                        new LayoutColumn(
+                            $divisionTextField, 4
+                        ),
+                        new LayoutColumn(
+                            $gradeTypeSelectBox, 4
+                        ),
+                        new LayoutColumn(
+                            $option, 4
+                        ),
+                        new LayoutColumn(
+                            $button
+                        ),
+                    )))),
+                    Panel::PANEL_TYPE_INFO
                 )
-            ))))
+            )
+        )))))->disableSubmitAction();
+
+        $stage->setContent(
+            $form
             . $receiverContent
         );
 
