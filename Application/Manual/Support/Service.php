@@ -12,6 +12,7 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Error;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Support\Type\YouTrackMail;
 
 /**
  * Class Service
@@ -74,9 +75,11 @@ class Service extends Extension
         if (!$Error) {
 
             try {
+                /** @var YouTrackMail $Config */
+                $Config = (new \SPHERE\System\Support\Support(new YouTrackMail()))->getSupport();
                 /** @var EdenPhpSmtp $Mail */
                 $Mail = Mail::getSmtpMail()->connectServer(
-                    'Host', 'UserName', 'PW', 465, true
+                    $Config->getHost(), $Config->getUsername(), $Config->getPassword(), 465, true
                 );
                 $Mail->setMailSubject(utf8_decode($Ticket['Subject']).' - Account: '.Account::useService()->getAccountBySession()->getId().' ('.$Ticket['Mail'].')');
                 if (!empty( $Ticket['CallBackNumber'] )) {
@@ -85,11 +88,11 @@ class Service extends Extension
                 } else {
                     $Mail->setMailBody($Ticket['Body']);
                 }
-                $Mail->addRecipientTO('Mail');
+                $Mail->addRecipientTO($Config->getMail());
                 if (isset( $Upload )) {
                     $Mail->addAttachment(new FileParameter($Upload->getLocation().DIRECTORY_SEPARATOR.$Upload->getFilename()));
                 }
-                $Mail->setFromHeader('Mail');
+                $Mail->setFromHeader($Config->getMail());
                 $Mail->sendMail();
                 $Mail->disconnectServer();
             } catch (\Exception $Exception) {
