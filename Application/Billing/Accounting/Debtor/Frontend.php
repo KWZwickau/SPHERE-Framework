@@ -2,6 +2,8 @@
 namespace SPHERE\Application\Billing\Accounting\Debtor;
 
 use SPHERE\Application\Api\Billing\Accounting\ApiDebtor;
+use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Address\Service\Entity\TblType;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Person;
@@ -13,6 +15,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Listing as ListingIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
@@ -52,7 +55,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Content = array();
 
-
+        if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR))){
+            $Content[] = new Center('Auswahl für '.$tblGroup->getName()
+                .new Container(new Standard('', __NAMESPACE__.'/View', new ListingIcon(), array('GroupId' => $tblGroup->getId()))));
+        }
         if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CUSTODY))){
             $Content[] = new Center('Auswahl für '.$tblGroup->getName()
                 .new Container(new Standard('', __NAMESPACE__.'/View', new ListingIcon(), array('GroupId' => $tblGroup->getId()))));
@@ -61,6 +67,7 @@ class Frontend extends Extension implements IFrontendInterface
         if(($tblGroupList = Group::useService()->getGroupAll())){
             foreach($tblGroupList as &$tblGroup){
                 if($tblGroup->getMetaTable() === TblGroup::META_TABLE_CUSTODY
+                    || $tblGroup->getMetaTable() === TblGroup::META_TABLE_DEBTOR
                 ){
                     $tblGroup = false;
                 }
@@ -107,7 +114,7 @@ class Frontend extends Extension implements IFrontendInterface
         if(($tblGroup = Group::useService()->getGroupById($GroupId))){
             $GroupName = $tblGroup->getName();
         }
-        $Stage = new Stage('Beitragsverursacher der Gruppe: '.$GroupName);
+        $Stage = new Stage('Beitragszahler ', 'Gruppe: '.$GroupName);
         $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
 
         $Stage->setContent(ApiDebtor::receiverModal('Hinzufügen einer Debitor-Nummer', 'addDebtorNumber')
@@ -136,7 +143,13 @@ class Frontend extends Extension implements IFrontendInterface
                 array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblGroup, &$i){
                     $Item['Name'] = $tblPerson->getLastFirstName();
                     $Item['DebtorNumber'] = (new Link('Debitor-Nummer hinzufügen', ApiDebtor::getEndpoint(), new Plus()))
-                    ->ajaxPipelineOnClick(ApiDebtor::pipelineOpenAddDebtorNumberModal('addDebtorNumber', $tblGroup->getId(), $tblPerson->getId()));
+                        ->ajaxPipelineOnClick(ApiDebtor::pipelineOpenAddDebtorNumberModal('addDebtorNumber', $tblGroup->getId(), $tblPerson->getId()));
+                    $Item['Address'] = '';
+                    $Item['Option'] = new Standard('', __NAMESPACE__.'/Edit', new Edit(), array(
+                        'GroupId' => $tblGroup->getId(),
+                        'PersonId' => $tblPerson->getId(),
+                        ));
+                    // get Debtor edit / delete options
                     if($tblDebtorNumberList = Debtor::useService()->getDebtorNumberByPerson($tblPerson)){
                         $NumberList = array();
                         foreach($tblDebtorNumberList as $tblDebtorNumber){
@@ -146,12 +159,28 @@ class Frontend extends Extension implements IFrontendInterface
                                 ->ajaxPipelineOnClick(ApiDebtor::pipelineOpenEditDebtorNumberModal('editDebtorNumber'
                                     , $tblGroup->getId(), $tblPerson->getId(), $tblDebtorNumber->getId()))
                                 .' | '
-                                .(new Link(new DangerText(new Remove()), ApiDebtor::getEndpoint(), null, array(), 'Debitor-Nummer bearbeiten'))
+                                .(new Link(new DangerText(new Remove()), ApiDebtor::getEndpoint(), null, array(), 'Debitor-Nummer entfernen'))
                                     ->ajaxPipelineOnClick(ApiDebtor::pipelineOpenDeleteDebtorNumberModal('deleteDebtorNumber'
                                         , $tblGroup->getId(), $tblDebtorNumber->getId()));
                         }
                         $Item['DebtorNumber'] = implode('<br/>', $NumberList);
                     }
+                    // fill Address if exist
+                    $tblAddress = false;
+                    $tblType = Address::useService()->getTypeByName(TblType::META_INVOICE_ADDRESS);
+                    if($tblType){
+                        $tblAddressList = Address::useService()->getAddressAllByPersonAndType($tblPerson, $tblType);
+                        if($tblAddressList){
+                            $tblAddress = current($tblAddressList);
+                        }
+                    }
+                    if(!$tblAddress){
+                        $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+                    }
+                    if($tblAddress){
+                        $Item['Address'] = $tblAddress->getGuiLayout();
+                    }
+
 
                     array_push($TableContent, $Item);
                 });
@@ -161,7 +190,8 @@ class Frontend extends Extension implements IFrontendInterface
         return new TableData($TableContent, null, array(
             'Name' => 'Person',
             'DebtorNumber' => 'Debitor Nr.',
-//            'Option' => '',
+            'Address' => 'Adresse',
+            'Option' => '',
         ));
     }
 

@@ -62,7 +62,7 @@ class Service extends AbstractService
 
         return 'Lädt...'
             . (new ProgressBar(0, 100, 0, 12))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS)
-            . new RedirectScript('/Billing/Accounting/Causer/View', 0, array('GroupId' => $GroupId));
+            . new RedirectScript('/Billing/Accounting/Debtor/View', 0, array('GroupId' => $GroupId));
     }
 
     /**
@@ -129,6 +129,18 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getDebtorSelectionById($Id);
+    }
+
+    /**
+     * @param TblPerson $tblPersonCauser
+     * @param TblItem   $tblItem
+     *
+     * @return false|TblDebtorSelection
+     */
+    public function getDebtorSelectionByPersonCauserAndItem(TblPerson $tblPersonCauser, TblItem $tblItem)
+    {
+
+        return (new Data($this->getBinding()))->getDebtorSelectionByPersonCauserAndItem($tblPersonCauser, $tblItem);
     }
 
     /**

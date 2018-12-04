@@ -40,6 +40,9 @@ class Causer implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/View', __NAMESPACE__.'/Frontend::frontendCauserView'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Edit', __NAMESPACE__.'/Frontend::frontendCauserEdit'
+        ));
 
     }
 

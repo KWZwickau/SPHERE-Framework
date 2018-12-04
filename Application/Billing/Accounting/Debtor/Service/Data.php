@@ -102,6 +102,22 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblItem   $tblItem
+     *
+     * @return false|TblDebtorSelection
+     */
+    public function getDebtorSelectionByPersonCauserAndItem(TblPerson $tblPerson, TblItem $tblItem)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorSelection',
+            array(
+                TblDebtorSelection::ATTR_SERVICE_TBL_PERSON_CAUSER => $tblPerson->getId(),
+                TblDebtorSelection::ATTR_SERVICE_TBL_ITEM => $tblItem->getId()
+            ));
+    }
+
+    /**
      * @return false|TblDebtorNumber[]
      */
     public function getDebtorNumberAll()

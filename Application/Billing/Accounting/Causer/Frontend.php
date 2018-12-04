@@ -1,8 +1,10 @@
 <?php
 namespace SPHERE\Application\Billing\Accounting\Causer;
 
+use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Standard as StandardForm;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -14,7 +16,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Listing as ListingIcon;
-use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
@@ -108,7 +109,7 @@ class Frontend extends Extension implements IFrontendInterface
         if(($tblGroup = Group::useService()->getGroupById($GroupId))){
             $GroupName = $tblGroup->getName();
         }
-        $Stage = new Stage('Beitragsverursacher der Gruppe: '.$GroupName);
+        $Stage = new Stage('Beitragsverursacher', 'Gruppe: '.$GroupName);
         $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
 
         $Stage->setContent(new Layout(
@@ -168,14 +169,19 @@ class Frontend extends Extension implements IFrontendInterface
                                     new LayoutColumn(new SuccessText(new Check()), 1),
                                     new LayoutColumn($tblItem->getName(), 3),
                                     new LayoutColumn(($tblItemCalculation ? $tblItemCalculation->getPriceString() : 'Test'), 2),
-                                    new LayoutColumn(new Standard('', '', new Edit()). new Standard('', '', new Remove()), 2)
+//                                    new LayoutColumn(new Standard('', '', new Edit()). new Standard('', '', new Remove()), 2)
                                 ))));
                             }
                         }
                         $Item['ContentRow'] = new Listing($ContentSingleRow);
                     }
 
+                    $Item['Option'] = new Standard('', __NAMESPACE__.'/Edit', new Edit(), array(
+                        'GroupId' => $tblGroup->getId(),
+                        'PersonId' => $tblPerson->getId()
+                    ));
                     $i++;
+                    // Display Problem
                     if($i <= 2000){
                         array_push($TableContent, $Item);
                     }
@@ -186,7 +192,51 @@ class Frontend extends Extension implements IFrontendInterface
         return new TableData($TableContent, null, array(
             'Name' => 'Person',
             'ContentRow' => 'Zahlungszuweisungen',
-//            'Option' => '',
+            'Option' => '',
         ));
+    }
+
+    /**
+     * @param string $GroupId
+     * @param string $PersonId
+     *
+     * @return Stage
+     */
+    public function frontendCauserEdit($GroupId = '', $PersonId = '')
+    {
+
+        $Stage = new Stage('Beitragsverursacher', 'bearbeiten');
+        $Stage->addButton(new Standard('Zurück', __NAMESPACE__.'/View', new ChevronLeft(), array('GroupId' => $GroupId)));
+
+        $ItemList = false;
+        $ColumnList = array();
+        if(($tblPerson = Person::useService()->getPersonById($PersonId))){
+            $ItemList = Item::useService()->getItemAllByPerson($tblPerson);
+        }
+        if($ItemList){
+            foreach($ItemList as $tblItem){
+                $ItemVairant = '';
+                // choosen Variant of Item Payment
+                if(($tblDebtorSelection = Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPerson, $tblItem))){
+                    if(($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())){
+                        $ItemVairant = $tblItemVariant->getName();
+                    }
+                }
+
+                //ToDO Inhalt
+                $ColumnList[] = new LayoutColumn(new Panel($tblItem->getName(), $ItemVairant, Panel::PANEL_TYPE_INFO), 4);
+            }
+        }
+
+
+        $Stage->setContent(new Layout(
+            new LayoutGroup(
+                new LayoutRow(
+                    $ColumnList
+                )
+            )
+        ));
+
+        return $Stage;
     }
 }

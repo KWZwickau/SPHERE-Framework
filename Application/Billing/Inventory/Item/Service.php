@@ -10,7 +10,9 @@ use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemGroup;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemType;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemVariant;
 use SPHERE\Application\Billing\Inventory\Item\Service\Setup;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -216,6 +218,30 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getItemAccountById($Id);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return TblItem[]|bool
+     */
+    public function getItemAllByPerson(TblPerson $tblPerson)
+    {
+
+        $ItemList = array();
+        if(($tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson))){
+            foreach($tblGroupList as $tblGroup){
+                if(($tblItemGroupList = $this->getItemGroupByGroup($tblGroup))){
+                    foreach($tblItemGroupList as $tblItemGroup){
+                        if(($tblItem = $tblItemGroup->getTblItem())){
+                            $ItemList[$tblItem->getId()] = $tblItem;
+                        }
+                    }
+                }
+            }
+        }
+
+        return (empty($ItemList) ? false : $ItemList);
     }
 
     /**
