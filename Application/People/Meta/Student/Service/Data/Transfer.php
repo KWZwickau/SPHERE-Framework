@@ -100,6 +100,7 @@ abstract class Transfer extends Agreement
      * @param TblStudent $tblStudent
      * @param TblStudentTransferType $tblStudentTransferType
      * @param TblCompany|null $tblCompany
+     * @param TblCompany|null $tblStateCompany
      * @param TblType|null $tblType
      * @param TblCourse|null $tblCourse
      * @param $TransferDate
@@ -112,6 +113,7 @@ abstract class Transfer extends Agreement
         TblStudent $tblStudent,
         TblStudentTransferType $tblStudentTransferType,
         TblCompany $tblCompany = null,
+        TblCompany $tblStateCompany = null,
         TblType $tblType = null,
         TblCourse $tblCourse = null,
         $TransferDate,
@@ -130,6 +132,7 @@ abstract class Transfer extends Agreement
             $Entity->setTblStudent($tblStudent);
             $Entity->setTblStudentTransferType($tblStudentTransferType);
             $Entity->setServiceTblCompany($tblCompany);
+            $Entity->setServiceTblStateCompany($tblStateCompany);
             $Entity->setServiceTblType($tblType);
             $Entity->setServiceTblCourse($tblCourse);
             $Entity->setTransferDate(( $TransferDate ? new \DateTime($TransferDate) : null ));
@@ -148,6 +151,7 @@ abstract class Transfer extends Agreement
      * @param TblStudent $tblStudent
      * @param TblStudentTransferType $tblStudentTransferType
      * @param TblCompany|null $tblCompany
+     * @param TblCompany|null $tblStateCompany
      * @param TblType|null $tblType
      * @param TblCourse|null $tblCourse
      * @param $TransferDate
@@ -161,6 +165,7 @@ abstract class Transfer extends Agreement
         TblStudent $tblStudent,
         TblStudentTransferType $tblStudentTransferType,
         TblCompany $tblCompany = null,
+        TblCompany $tblStateCompany = null,
         TblType $tblType = null,
         TblCourse $tblCourse = null,
         $TransferDate,
@@ -177,6 +182,7 @@ abstract class Transfer extends Agreement
             $Entity->setTblStudent($tblStudent);
             $Entity->setTblStudentTransferType($tblStudentTransferType);
             $Entity->setServiceTblCompany($tblCompany);
+            $Entity->setServiceTblStateCompany($tblStateCompany);
             $Entity->setServiceTblType($tblType);
             $Entity->setServiceTblCourse($tblCourse);
             $Entity->setTransferDate(( $TransferDate ? new \DateTime($TransferDate) : null ));

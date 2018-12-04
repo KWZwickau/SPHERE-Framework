@@ -415,6 +415,8 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblStudentTransfer', 'Remark')) {
             $Table->addColumn('Remark', 'text');
         }
+        $this->createColumn($Table, 'serviceTblStateCompany', self::FIELD_TYPE_INTEGER, true);
+
         $this->getConnection()->addForeignKey($Table, $tblStudent);
         $this->getConnection()->addForeignKey($Table, $tblStudentTransferType);
         $this->getConnection()->addForeignKey($Table, $tblStudentSchoolEnrollmentType, true);

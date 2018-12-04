@@ -63,14 +63,14 @@ abstract class Transfer extends Agreement
     }
 
     /**
-     * @param TblStudent             $tblStudent
+     * @param TblStudent $tblStudent
      * @param TblStudentTransferType $tblStudentTransferType
-     * @param TblCompany|null        $tblCompany
-     * @param TblType|null           $tblType
-     * @param TblCourse|null         $tblCourse
+     * @param TblCompany|null $tblCompany
+     * @param TblType|null $tblType
+     * @param TblCourse|null $tblCourse
      * @param                        $TransferDate
-     *
      * @param                        $Remark
+     * @param TblCompany|null $tblStateCompany
      */
     public function insertStudentTransfer(
         TblStudent $tblStudent,
@@ -79,7 +79,8 @@ abstract class Transfer extends Agreement
         TblType $tblType = null,
         TblCourse $tblCourse = null,
         $TransferDate,
-        $Remark
+        $Remark,
+        TblCompany $tblStateCompany = null
     ) {
 
         $tblStudentTransfer = $this->getStudentTransferByType(
@@ -92,6 +93,7 @@ abstract class Transfer extends Agreement
                 $tblStudent,
                 $tblStudentTransferType,
                 $tblCompany,
+                $tblStateCompany,
                 $tblType,
                 $tblCourse,
                 $TransferDate,
@@ -102,6 +104,7 @@ abstract class Transfer extends Agreement
                 $tblStudent,
                 $tblStudentTransferType,
                 $tblCompany,
+                $tblStateCompany,
                 $tblType,
                 $tblCourse,
                 $TransferDate,
