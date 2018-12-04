@@ -90,6 +90,8 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblPerson', 'ImportId')) {
             $Table->addColumn('ImportId', 'string');
         }
+        $this->createColumn($Table, 'CallName', self::FIELD_TYPE_STRING);
+
         $this->getConnection()->addForeignKey($Table, $tblSalutation, true);
         return $Table;
     }
