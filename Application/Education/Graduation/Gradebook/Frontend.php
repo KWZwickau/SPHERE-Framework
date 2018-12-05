@@ -2572,7 +2572,15 @@ class Frontend extends FrontendScoreRule
             $gradeValue = null;
         }
 
-        $subTableDataList[0]['Test' . $tblTest->getId()] = ($gradeValue !== null && $gradeValue !== '') ? $gradeValue : '&nbsp;';
+        if ($gradeValue !== null && $gradeValue !== '') {
+            $displayGrade = $gradeValue . (($tblGrade && ($tblGrade->getPublicComment() != ''))
+                ? new ToolTip(' ' . new \SPHERE\Common\Frontend\Icon\Repository\Info(), $tblGrade->getPublicComment())
+                : '');
+        } else {
+            $displayGrade = '&nbsp;';
+        }
+
+        $subTableDataList[0]['Test' . $tblTest->getId()] = $displayGrade;
     }
 
     /**

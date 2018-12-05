@@ -138,6 +138,7 @@ class Setup extends AbstractSetup
             $Table->addColumn('Date', 'datetime', array('notnull' => false));
         }
         $this->createColumn($Table, 'serviceTblPersonTeacher', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'PublicComment', self::FIELD_TYPE_STRING);
 
         $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
         $this->createForeignKey($Table, $tblGradeText, true);

@@ -1978,6 +1978,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $Global->POST['Grade'][$tblGrade->getServiceTblPerson()->getId()]['Grade'] = $gradeValue;
                     }
                     $Global->POST['Grade'][$tblGrade->getServiceTblPerson()->getId()]['Comment'] = $tblGrade->getComment();
+                    $Global->POST['Grade'][$tblGrade->getServiceTblPerson()->getId()]['PublicComment'] = $tblGrade->getPublicComment();
                     if ($tblTest->isContinues()) {
                         $Global->POST['Grade'][$tblGrade->getServiceTblPerson()->getId()]['Date'] = $tblGrade->getDate();
                     }
@@ -2353,6 +2354,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
             $tableColumns['Comment'] = 'Vermerk Notenänderung';
             $tableColumns['Attendance'] = 'Nicht teilgenommen';
+            $tableColumns['PublicComment'] = 'Öffentlicher Kommentar';
         }
 
         if ($studentList) {
@@ -2655,6 +2657,12 @@ class Frontend extends Extension implements IFrontendInterface
             ) {
                 $student[$tblPerson->getId()]['Text'] = new SelectBox('Grade[' . $tblPerson->getId() . '][Text]',
                     '', array(TblGradeText::ATTR_NAME => $tblGradeTextList));
+            }
+
+            // öffentlicher Kommentar für die Elternansicht
+            if (!$tblTask) {
+                $student[$tblPerson->getId()]['PublicComment'] = (new TextField('Grade[' . $tblPerson->getId() . '][PublicComment]',
+                    'z.B.: für Betrugsversuch', '', new Comment()))->setTabIndex(1000 + $tabIndex);
             }
         }
 
