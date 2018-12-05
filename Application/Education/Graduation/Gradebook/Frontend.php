@@ -1088,14 +1088,19 @@ class Frontend extends FrontendScoreRule
                                         }
                                     }
 
-                                    $data[$column] =
-                                        ($tblTest->getServiceTblGradeType()
-                                            ? ($tblTest->getServiceTblGradeType()->isHighlighted()
-                                                ? new Bold($tblGrade->getDisplayGrade()) : $tblGrade->getDisplayGrade().' ')
-                                            : $tblGrade->getDisplayGrade().' ')
-                                        . ($displayGradeDate
-                                            ? new Small(new Muted(' (' . $displayGradeDate . ')'))
-                                            : '');
+                                    $displayGrade = ($tblTest->getServiceTblGradeType()
+                                        ? ($tblTest->getServiceTblGradeType()->isHighlighted()
+                                            ? new Bold($tblGrade->getDisplayGrade()) : $tblGrade->getDisplayGrade() . ' ')
+                                        : $tblGrade->getDisplayGrade() . ' ');
+
+                                    // öffentlicher Kommentar
+                                    $displayGrade .= ($tblGrade->getPublicComment() != '')
+                                        ? new ToolTip(' ' . new \SPHERE\Common\Frontend\Icon\Repository\Info(), $tblGrade->getPublicComment())
+                                        : '';
+
+                                    $data[$column] = $displayGrade . ($displayGradeDate
+                                        ? new Small(new Muted(' (' . $displayGradeDate . ')'))
+                                        : '');
                                 } else {
                                     $data[$column] = '';
                                 }
