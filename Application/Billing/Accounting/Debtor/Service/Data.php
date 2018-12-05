@@ -78,6 +78,20 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblBankAccount[]
+     */
+    public function getBankAccountByPerson(TblPerson $tblPerson)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBankAccount',
+            array(
+                TblBankAccount::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblBankReference

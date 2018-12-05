@@ -110,6 +110,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblBankAccount[]
+     */
+    public function getBankAccountByPerson(TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->getBankAccountByPerson($tblPerson);
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblBankReference

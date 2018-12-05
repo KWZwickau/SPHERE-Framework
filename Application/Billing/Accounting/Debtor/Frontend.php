@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Billing\Accounting\Debtor;
 
 use SPHERE\Application\Api\Billing\Accounting\ApiDebtor;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankAccount;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblType;
 use SPHERE\Application\People\Group\Group;
@@ -204,5 +205,107 @@ class Frontend extends Extension implements IFrontendInterface
             return new Panel('Person nicht gefunden', '', Panel::PANEL_TYPE_INFO);
         }
 
+    }
+
+    public function frontendDebtorEdit($GroupId, $PersonId)
+    {
+
+        $Stage = new Stage('Beitragszahler', 'Informationen');
+
+        $Stage->addButton(new Standard('Zurück', __NAMESPACE__.'/View', new ChevronLeft(), array('GroupId' =>$GroupId)));
+        $DebtorNumber = '&nbsp;';
+        $tableContent = array();
+        $PanelBankAccountList = array();
+
+        if(($tblPerson = Person::useService()->getPersonById($PersonId))){
+            // DebtorNumber
+            if(($tblDebtorNumberList = Debtor::useService()->getDebtorNumberByPerson($tblPerson))){
+                if($tblDebtorNumberList && count($tblDebtorNumberList) == 1){
+                    $tblDebtorNumber = current($tblDebtorNumberList);
+                    $DebtorNumber = $tblDebtorNumber->getDebtorNumber();
+                } elseif($tblDebtorNumberList) {
+                    $DebtorNumber = array();
+                    foreach($tblDebtorNumberList as $tblDebtorNumber){
+                        $DebtorNumber[] = $tblDebtorNumber->getDebtorNumber();
+                    }
+                    if(!empty($DebtorNumber)){
+                        $DebtorNumber = implode(', ', $DebtorNumber);
+                    }
+                }
+            }
+            // BankAccount
+            if(($tblBankAccountList = Debtor::useService()->getBankAccountByPerson($tblPerson))){
+                array_walk($tblBankAccountList, function(TblBankAccount $tblBankAccount) use (&$tableContent, &$PanelBankAccountList){
+
+                    $ContentArray[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn('Name der Bank:', 4),
+                        new LayoutColumn($tblBankAccount->getBankName(), 8),
+                    ))));
+                    $ContentArray[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn('Name der Bank:', 4),
+                        new LayoutColumn($tblBankAccount->getIBANFrontend(), 8),
+                    ))));
+                    $ContentArray[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn('Name der Bank:', 4),
+                        new LayoutColumn($tblBankAccount->getBICFrontend(), 8),
+                    ))));
+
+                    $PanelBankAccountList[] = new Panel(new Layout(new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn('Besitzer:', 4),
+                        new LayoutColumn($tblBankAccount->getOwner(), 8),
+                    )))),
+                        $ContentArray
+                        );
+                });
+            }
+
+        }
+
+        $PanelDebtorNumber = new Panel('Debitoren Nummer', $DebtorNumber);
+
+
+
+        $Stage->setContent(new Layout(
+            new LayoutGroup(
+                new LayoutRow(array(
+                    new LayoutColumn($PanelDebtorNumber, 3),
+                    new LayoutColumn($PanelBankAccountList, 9),
+                ))
+            )
+        ));
+
+        return $Stage;
+    }
+
+    public function getBankAccountTable(TblPerson $tblPerson = null)
+    {
+
+        $PanelBankAccountList = array();
+        if($tblPerson && ($tblBankAccountList = Debtor::useService()->getBankAccountByPerson($tblPerson))){
+            array_walk($tblBankAccountList, function(TblBankAccount $tblBankAccount) use (&$tableContent, &$PanelBankAccountList){
+
+                $ContentArray[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Name der Bank:', 4),
+                    new LayoutColumn($tblBankAccount->getBankName(), 8),
+                ))));
+                $ContentArray[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Name der Bank:', 4),
+                    new LayoutColumn($tblBankAccount->getIBANFrontend(), 8),
+                ))));
+                $ContentArray[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Name der Bank:', 4),
+                    new LayoutColumn($tblBankAccount->getBICFrontend(), 8),
+                ))));
+
+                $PanelBankAccountList[] = new Panel(new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('Besitzer:', 4),
+                    new LayoutColumn($tblBankAccount->getOwner(), 8),
+                )))),
+                    $ContentArray
+                );
+            });
+        }
+
+        return $PanelBankAccountList;
     }
 }

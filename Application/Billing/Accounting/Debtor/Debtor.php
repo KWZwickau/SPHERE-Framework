@@ -39,6 +39,10 @@ class Debtor implements IModuleInterface
             __NAMESPACE__.'/View', __NAMESPACE__.'/Frontend::frontendDebtorView'
         ));
 
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Edit', __NAMESPACE__.'/Frontend::frontendDebtorEdit'
+        ));
+
     }
 
     /**
