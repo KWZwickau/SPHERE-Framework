@@ -24,6 +24,7 @@ class ViewDivisionStudent extends AbstractView
     const TBL_DIVISION_STUDENT_TBL_DIVISION = 'TblDivisionStudent_tblDivision';
     const TBL_DIVISION_STUDENT_SERVICE_TBL_PERSON = 'TblDivisionStudent_serviceTblPerson';
     const TBL_DIVISION_STUDENT_SORT_ORDER = 'TblDivisionStudent_SortOrder';
+    const TBL_DIVISION_STUDENT_LEAVE_DATE = 'TblDivisionStudent_LeaveDate';
 
     const TBL_LEVEL_ID = 'TblLevel_Id';
     const TBL_LEVEL_NAME = 'TblLevel_Name';
@@ -53,6 +54,10 @@ class ViewDivisionStudent extends AbstractView
      * @Column(type="string")
      */
     protected $TblDivisionStudent_SortOrder;
+    /**
+     * @Column(type="DateTime")
+     */
+    protected $TblDivisionStudent_LeaveDate;
 
     /**
      * @Column(type="string")
