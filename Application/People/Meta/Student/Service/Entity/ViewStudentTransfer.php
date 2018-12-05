@@ -22,6 +22,7 @@ class ViewStudentTransfer extends AbstractView
 
     const TBL_STUDENT_TRANSFER_ID = 'TblStudentTransfer_Id';
     const TBL_STUDENT_TRANSFER_SERVICE_TBL_COMPANY = 'TblStudentTransfer_serviceTblCompany';
+    const TBL_STUDENT_TRANSFER_SERVICE_TBL_STATE_COMPANY = 'TblStudentTransfer_serviceTblStateCompany';
     const TBL_STUDENT_TRANSFER_SERVICE_TBL_TYPE = 'TblStudentTransfer_serviceTblType';
     const TBL_STUDENT_TRANSFER_SERVICE_TBL_COURSE = 'TblStudentTransfer_serviceTblCourse';
     const TBL_STUDENT_TRANSFER_TRANSFER_DATE = 'TblStudentTransfer_TransferDate';

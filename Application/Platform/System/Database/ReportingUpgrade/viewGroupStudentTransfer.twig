@@ -80,6 +80,20 @@ SELECT
         where vST.TblStudent_Id =  vS.TblStudent_Id
         and vST.TblStudentTransferType_Identifier = 'ARRIVE'
     ) TblCompanyArrive_Name,
+
+    -- Company Aufnahme Staatliche Stammschule
+    (select
+    CONCAT (vC.TblCompany_Name,
+    ' ',
+    vC.TblCompany_ExtendedName,
+    ' ',
+    vC.TblCompany_Description)
+    from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
+    LEFT JOIN CorporationCompany_{{ ConsumerAcronym }}.viewCompany vC ON vST.TblStudentTransfer_serviceTblStateCompany = vC.TblCompany_Id
+    where vST.TblStudent_Id =  vS.TblStudent_Id
+    and vST.TblStudentTransferType_Identifier = 'ARRIVE'
+    ) TblStateCompanyArrive_Name,
+
 --    (select vC.TblCompany_ExtendedName
 --        from PeopleMeta_{{ ConsumerAcronym }}.viewStudentTransfer vST
 --        LEFT JOIN CorporationCompany_{{ ConsumerAcronym }}.viewCompany vC ON vST.TblStudentTransfer_serviceTblCompany = vC.TblCompany_Id
