@@ -1403,7 +1403,8 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new Title('Filterung')
                             . (!empty($TableContent) ? new Primary('Herunterladen', '\Api\Reporting\Standard\Person\MetaDataComparison\Download', new Download(),
-                                        array('Person' => $Person, 'Year' => $Year, 'Division' => $Division)).'<br /><br />' . $Table : new Warning('Keine Personen gefunden'))
+                                        array('Person' => $Person, 'Year' => $Year, 'Division' => $Division, 'Option' => $Option))
+                                .'<br /><br />' . $Table : new Warning('Keine Personen gefunden'))
                         )
                     )
                 ))

@@ -2830,15 +2830,16 @@ class Service extends Extension
      * @param null $Person
      * @param null $Year
      * @param null $Division
+     * @param null $Option
      *
      * @return FilePointer
      */
-    public function createMetaDataComparisonExcel($Person = null, $Year = null, $Division = null)
+    public function createMetaDataComparisonExcel($Person = null, $Year = null, $Division = null, $Option = null)
     {
 
         $Result = $this->getStudentFilterResult($Person, $Year, $Division);
 
-        $TableContent = $this->getStudentTableContent($Result);
+        $TableContent = $this->getStudentTableContent($Result, $Option);
 
         $fileLocation = Storage::createFilePointer('xlsx');
         /** @var PhpExcel $export */

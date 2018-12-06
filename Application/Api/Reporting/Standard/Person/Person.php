@@ -201,13 +201,14 @@ class Person
      * @param null $Person
      * @param null $Year
      * @param null $Division
+     * @param null $Option
      *
      * @return string
      */
-    public function downloadMetaDataComparison($Person = null, $Year = null, $Division = null)
+    public function downloadMetaDataComparison($Person = null, $Year = null, $Division = null, $Option = null)
     {
 
-        $fileLocation = ReportingPerson::useService()->createMetaDataComparisonExcel($Person, $Year, $Division);
+        $fileLocation = ReportingPerson::useService()->createMetaDataComparisonExcel($Person, $Year, $Division, $Option);
         return FileSystem::getDownload($fileLocation->getRealPath(),"Stammdatenabfrage"." ".date("Y-m-d H:i:s").".xlsx")->__toString();
     }
 
