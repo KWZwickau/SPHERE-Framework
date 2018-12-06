@@ -55,7 +55,7 @@ class ViewDivisionStudent extends AbstractView
      */
     protected $TblDivisionStudent_SortOrder;
     /**
-     * @Column(type="DateTime")
+     * @Column(type="datetime")
      */
     protected $TblDivisionStudent_LeaveDate;
 
