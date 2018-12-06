@@ -22,7 +22,6 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
-use SPHERE\Application\People\Group\Service\Entity\ViewPeopleGroupMember;
 use SPHERE\Application\People\Meta\Club\Club;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Custody\Custody;
@@ -2265,9 +2264,6 @@ class Service extends Extension
     {
 
         $Pile = new Pile(Pile::JOIN_TYPE_INNER);
-        $Pile->addPile((new ViewPeopleGroupMember())->getViewService(), new ViewPeopleGroupMember(),
-            null, ViewPeopleGroupMember::TBL_MEMBER_SERVICE_TBL_PERSON
-        );
         $Pile->addPile((new ViewPerson())->getViewService(), new ViewPerson(),
             ViewPerson::TBL_PERSON_ID, ViewPerson::TBL_PERSON_ID
         );
@@ -2323,12 +2319,10 @@ class Service extends Extension
                 $FilterDivision = array();
             }
 
-            $StudentGroup = Group::useService()->getGroupByMetaTable('STUDENT');
             $Result = $Pile->searchPile(array(
-                0 => array(ViewPeopleGroupMember::TBL_GROUP_ID => array($StudentGroup->getId())),
-                1 => $FilterPerson,
-                2 => $FilterDivision,
-                3 => $FilterYear
+                0 => $FilterPerson,
+                1 => $FilterDivision,
+                2 => $FilterYear
             ));
         }
 
@@ -2337,10 +2331,11 @@ class Service extends Extension
 
     /**
      * @param array $Result
+     * @param null $Option
      *
      * @return array
      */
-    public function getStudentTableContent($Result)
+    public function getStudentTableContent($Result, $Option = null)
     {
 
         $SearchResult = array();
@@ -2352,11 +2347,11 @@ class Service extends Extension
             foreach ($Result as $Index => $Row) {
 
                 /** @var ViewPerson $DataPerson */
-                $DataPerson = $Row[1]->__toArray();
+                $DataPerson = $Row[0]->__toArray();
                 /** @var ViewDivisionStudent $DivisionStudent */
-                $DivisionStudent = $Row[2]->__toArray();
+                $DivisionStudent = $Row[1]->__toArray();
                 /** @var ViewYear $Year */
-                $Year = $Row[3]->__toArray();
+                $Year = $Row[2]->__toArray();
 
                 $tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($DataPerson['TblPerson_Id']);
 
@@ -2366,6 +2361,17 @@ class Service extends Extension
 
                     $DataPerson['Division'] = '';
                     if (($tblDivision = Division::useService()->getDivisionById($DivisionStudent['TblDivision_Id']))) {
+                        // jahrgangsübergreifende Klassen ignorieren
+                        if (($tblLevel = $tblDivision->getTblLevel()) && $tblLevel->getIsChecked()) {
+                            continue;
+                        }
+                        // inaktive ignorieren
+                        if (($tblDivisionStudent = Division::useService()->getDivisionStudentByDivisionAndPerson($tblDivision, $tblPerson))
+                            && ($tblDivisionStudent->isInActive())
+                        ) {
+                            continue;
+                        }
+
                         /** @var TblDivision $tblDivision */
                         $DataPerson['Division'] = $tblDivision->getDisplayName();
                     }
@@ -2565,10 +2571,13 @@ class Service extends Extension
                                                 $SiblingString .= ' ' . $tblPersonSibling->getSecondName();
                                             }
                                             if (($tblYear = Term::useService()->getYearById($Year[ViewYear::TBL_YEAR_ID]))) {
-                                                if (($SiblingDivision = Division::useService()->getDivisionByPersonAndYear($tblPersonSibling, $tblYear))) {
-                                                    if (($tblSiblingLevel = $SiblingDivision->getTblLevel())
-                                                        && ($SiblingLevel = $tblSiblingLevel->getName())) {
-                                                        $SiblingString .= ' ' . $SiblingLevel . $SiblingDivision->getName();
+                                                if (($SiblingDivision = Student::useService()->getMainDivisionByPersonAndYear($tblPersonSibling, $tblYear))) {
+                                                    $SiblingString .= ' (' . $SiblingDivision->getDisplayName() . ')';
+                                                } else {
+                                                    if ($Option) {
+                                                        $SiblingString .= ' (Ehemalig)';
+                                                    } else {
+                                                        $SiblingString = '';
                                                     }
                                                 }
                                             }

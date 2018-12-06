@@ -2,7 +2,6 @@
 namespace SPHERE\Application\Reporting\Standard\Person;
 
 use SPHERE\Application\Api\Reporting\Standard\ApiStandard;
-use SPHERE\Application\Api\Setting\UserAccount\ApiUserAccount;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivision;
@@ -13,6 +12,7 @@ use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Search\Group\Group;
 use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -1306,17 +1306,18 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $Person
      * @param null $Year
      * @param null $Division
+     * @param null $Option
      *
      * @return Stage
      */
-    public function frontendMetaDataComparison($Person = null, $Year = null, $Division = null) {
+    public function frontendMetaDataComparison($Person = null, $Year = null, $Division = null, $Option = null) {
         $Stage = new Stage('Auswertung', 'Stammdatenabfrage');
 
         $FilterForm = $this->getStudentFilterForm();
 
         $Result = Person::useService()->getStudentFilterResult($Person, $Year, $Division);
 
-        $TableContent = Person::useService()->getStudentTableContent($Result);
+        $TableContent = Person::useService()->getStudentTableContent($Result, $Option);
 
         $Table = new TableData($TableContent, null, array(
             'Division' => 'Klasse',
@@ -1400,11 +1401,9 @@ class Frontend extends Extension implements IFrontendInterface
                     ),
                     new LayoutRow(
                         new LayoutColumn(
-                            ApiUserAccount::receiverAccountModal()
-                            .new Panel('Filterung',
-                                (!empty($TableContent) ? new Primary('Herunterladen', '\Api\Reporting\Standard\Person\MetaDataComparison\Download', new Download(),
+                            new Title('Filterung')
+                            . (!empty($TableContent) ? new Primary('Herunterladen', '\Api\Reporting\Standard\Person\MetaDataComparison\Download', new Download(),
                                         array('Person' => $Person, 'Year' => $Year, 'Division' => $Division)).'<br /><br />' . $Table : new Warning('Keine Personen gefunden'))
-                            )
                         )
                     )
                 ))
@@ -1453,6 +1452,13 @@ class Frontend extends Extension implements IFrontendInterface
                             new AutoCompleter('Division['.ViewDivision::TBL_DIVISION_NAME.']', 'Gruppe',
                                 'Klasse: Gruppe', array('Name' => Division::useService()->getDivisionAll()))
                         ), Panel::PANEL_TYPE_INFO)
+                        , 4),
+                    new FormColumn(
+                        new Panel('Geschwister',
+                            array(
+                                new CheckBox('Option', 'ehemalige Geschwister mit anzeigen', '1')
+                            )
+                        , Panel::PANEL_TYPE_INFO)
                         , 4),
                 )),
                 new FormRow(
