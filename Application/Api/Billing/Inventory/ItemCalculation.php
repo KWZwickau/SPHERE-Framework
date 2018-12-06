@@ -246,7 +246,7 @@ class ItemCalculation extends Extension
                 $Error = true;
             }
             if (isset($Calculation['DateFrom']) && empty($Calculation['DateFrom'])) {
-                $form->setError('Calculation[DateFrom]', 'Bitte geben Sie einen Begin der Gültigkeit an');
+                $form->setError('Calculation[DateFrom]', 'Bitte geben Sie einen Beginn der Gültigkeit an');
                 $Error = true;
             }
         }

@@ -151,7 +151,7 @@ class TblItemCalculation extends Element
      */
     public function getTblItemVariant()
     {
-        if(null === null){
+        if(null === $this->tblItemVariant){
             return false;
         } else {
             return Item::useService()->getItemVariantById($this->tblItemVariant);

@@ -363,7 +363,6 @@ class ApiItem extends ItemVariant implements IApiInterface
         }
         if (empty($Group)) {
             $Warning = 'Bitte geben Sie mindestens eine Personengruppe an';
-            $form->setError('Group[1]', 'Bitte geben Sie eine Hausnummer an');
             $Error = true;
         }
 
@@ -417,7 +416,7 @@ class ApiItem extends ItemVariant implements IApiInterface
             }
         }
 
-        return ($Item
+        return ($tblItem
                     ? new Success('Beitragsart erfolgreich angelegt'). self::pipelineCloseModal($Identifier)
                     : new Danger('Beitragsart konnte nicht gengelegt werden'));
     }

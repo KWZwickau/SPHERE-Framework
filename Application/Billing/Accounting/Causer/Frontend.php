@@ -182,9 +182,9 @@ class Frontend extends Extension implements IFrontendInterface
                     ));
                     $i++;
                     // Display Problem
-                    if($i <= 2000){
+//                    if($i <= 2000){
                         array_push($TableContent, $Item);
-                    }
+//                    }
                 });
             }
         }
