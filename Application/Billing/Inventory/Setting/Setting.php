@@ -17,7 +17,7 @@ class Setting implements IModuleInterface
          * Register Navigation
          */
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Einstellungen'),
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Allgemein'),
                 new Link\Icon(new CogWheels()))
         );
 
@@ -37,7 +37,7 @@ class Setting implements IModuleInterface
 
         return new Service(new Identifier('Billing', 'Invoice', null, null,
             Consumer::useService()->getConsumerBySession()),
-            __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
+            __DIR__ . '/Service/Entity', __NAMESPACE__ . '\Service\Entity'
         );
     }
 

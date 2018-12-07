@@ -20,6 +20,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -67,11 +68,12 @@ class ApiCreditor extends Extension implements IApiInterface
     public static function receiverModal($Header = '', $Identifier = '')
     {
 
-        return (new ModalReceiver($Header,  new Close()))->setIdentifier('Modal'.$Identifier);
+        return (new ModalReceiver($Header, new Close()))->setIdentifier('Modal' . $Identifier);
     }
 
     /**
      * @param string $Content
+     *
      * @return BlockReceiver
      */
     public static function receiverCreditorTable($Content = '')
@@ -97,7 +99,7 @@ class ApiCreditor extends Extension implements IApiInterface
         ));
         $Emitter->setPostPayload(array(
             'Identifier' => $Identifier,
-            'Creditor' => $Creditor
+            'Creditor'   => $Creditor
         ));
         $Pipeline->appendEmitter($Emitter);
 
@@ -133,7 +135,7 @@ class ApiCreditor extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineOpenEditCreditorModal($Identifier = '', $CreditorId = '',$Creditor = array())
+    public static function pipelineOpenEditCreditorModal($Identifier = '', $CreditorId = '', $Creditor = array())
     {
 
         $Receiver = self::receiverModal(null, $Identifier);
@@ -144,8 +146,8 @@ class ApiCreditor extends Extension implements IApiInterface
         ));
         $Emitter->setPostPayload(array(
             'Identifier' => $Identifier,
-            'CreditorId'     => $CreditorId,
-            'Creditor'       => $Creditor
+            'CreditorId' => $CreditorId,
+            'Creditor'   => $Creditor
         ));
         $Pipeline->appendEmitter($Emitter);
 
@@ -193,7 +195,7 @@ class ApiCreditor extends Extension implements IApiInterface
         ));
         $Emitter->setPostPayload(array(
             'Identifier' => $Identifier,
-            'CreditorId'     => $CreditorId,
+            'CreditorId' => $CreditorId,
         ));
         $Pipeline->appendEmitter($Emitter);
 
@@ -217,7 +219,7 @@ class ApiCreditor extends Extension implements IApiInterface
         ));
         $Emitter->setPostPayload(array(
             'Identifier' => $Identifier,
-            'CreditorId'     => $CreditorId,
+            'CreditorId' => $CreditorId,
         ));
         $Pipeline->appendEmitter($Emitter);
 
@@ -259,7 +261,7 @@ class ApiCreditor extends Extension implements IApiInterface
 
         // choose between Add and Edit
         $SaveButton = new Primary('Speichern', self::getEndpoint(), new Save());
-        if('' !== $CreditorId){
+        if('' !== $CreditorId) {
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveEditCreditor($Identifier, $CreditorId));
         } else {
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveAddCreditor($Identifier));
@@ -293,23 +295,23 @@ class ApiCreditor extends Extension implements IApiInterface
                 )),
                 new FormRow(
                     new FormColumn(
-                        (new TextField('Creditor[BankName]', 'Name der Bank', 'Name der Bank'))->setRequired()
-                    , 6)
+                        new TextField('Creditor[BankName]', 'Name der Bank', 'Name der Bank')
+                        , 6)
                 ),
                 new FormRow(
                     new FormColumn(
-                        (new TextField('Creditor[CreditorId]', 'Gläubiger Id', 'Gläubiger Id'))->setRequired()
-                    , 6)
+                        new TextField('Creditor[CreditorId]', 'Gläubiger Id', 'Gläubiger Id')
+                        , 6)
                 ),
                 new FormRow(
                     new FormColumn(
                         (new TextField('Creditor[IBAN]', 'IBAN', 'IBAN'))->setRequired()
-                    , 6)
+                        , 6)
                 ),
                 new FormRow(
                     new FormColumn(
-                        (new TextField('Creditor[BIC]', 'BIC', 'BIC'))->setRequired()
-                    , 6)
+                        new TextField('Creditor[BIC]', 'BIC', 'BIC')
+                        , 6)
                 ),
                 new FormRow(
                     new FormColumn(
@@ -323,53 +325,41 @@ class ApiCreditor extends Extension implements IApiInterface
     /**
      * @param string $Identifier
      * @param string $CreditorId
-     * @param array $Creditor
+     * @param array  $Creditor
      *
      * @return false|string|Form
      */
-    private function checkInputCreditor($Identifier = '', $CreditorId = '',$Creditor = array())
+    private function checkInputCreditor($Identifier = '', $CreditorId = '', $Creditor = array())
     {
         $Error = false;
         $form = $this->formCreditor($Identifier, $CreditorId);
-        if (isset($Creditor['Owner']) && empty($Creditor['Owner'])) {
+        if(isset($Creditor['Owner']) && empty($Creditor['Owner'])) {
             $form->setError('Creditor[Owner]', 'Bitte geben Sie einen Kontoinhaber an');
             $Error = true;
         }
-        if (isset($Creditor['Street']) && empty($Creditor['Street'])) {
+        if(isset($Creditor['Street']) && empty($Creditor['Street'])) {
             $form->setError('Creditor[Street]', 'Bitte geben Sie eine Straße an');
             $Error = true;
         }
-        if (isset($Creditor['Number']) && empty($Creditor['Number'])) {
+        if(isset($Creditor['Number']) && empty($Creditor['Number'])) {
             $form->setError('Creditor[Number]', 'Bitte geben Sie eine Hausnummer an');
             $Error = true;
         }
-        if (isset($Creditor['Code']) && empty($Creditor['Code'])) {
+        if(isset($Creditor['Code']) && empty($Creditor['Code'])) {
             $form->setError('Creditor[Code]', 'Bitte geben Sie eine Postleitzahl an');
             $Error = true;
         }
-        if (isset($Creditor['City']) && empty($Creditor['City'])) {
+        if(isset($Creditor['City']) && empty($Creditor['City'])) {
             $form->setError('Creditor[City]', 'Bitte geben Sie eine Stadt an');
             $Error = true;
         }
-        if (isset($Creditor['BankName']) && empty($Creditor['BankName'])) {
-            $form->setError('Creditor[BankName]', 'Bitte geben Sie den Namen der Bank an');
-            $Error = true;
-        }
-        if (isset($Creditor['CreditorId']) && empty($Creditor['CreditorId'])) {
-            $form->setError('Creditor[CreditorId]', 'Bitte geben Sie eine Gläubiger Id an');
-            $Error = true;
-        }
-        if (isset($Creditor['IBAN']) && empty($Creditor['IBAN'])) {
+        if(isset($Creditor['IBAN']) && empty($Creditor['IBAN'])) {
             $form->setError('Creditor[IBAN]', 'Bitte geben Sie eine IBAN an');
             $Error = true;
         }
-        if (isset($Creditor['BIC']) && empty($Creditor['BIC'])) {
-            $form->setError('Creditor[BIC]', 'Bitte geben Sie eine BIC an');
-            $Error = true;
-        }
 
-        if ($Error) {
-            return $form;
+        if($Error) {
+            return new Well($form);
         }
 
         return $Error;
@@ -383,7 +373,7 @@ class ApiCreditor extends Extension implements IApiInterface
     public function showAddCreditor($Identifier = '')
     {
 
-        return $this->formCreditor($Identifier);
+        return new Well($this->formCreditor($Identifier));
     }
 
     /**
@@ -396,7 +386,7 @@ class ApiCreditor extends Extension implements IApiInterface
     {
 
         // Handle error's
-        if ($form = $this->checkInputCreditor($Identifier, '', $Creditor)) {
+        if($form = $this->checkInputCreditor($Identifier, '', $Creditor)) {
             // display Errors on form
             $Global = $this->getGlobal();
             $Global->POST['Creditor']['Owner'] = $Creditor['Owner'];
@@ -413,13 +403,15 @@ class ApiCreditor extends Extension implements IApiInterface
             return $form;
         }
 
-        $tblCreditor = Creditor::useService()->createCreditor($Creditor['Owner'], $Creditor['Street'], $Creditor['Number']
-            ,$Creditor['Code'], $Creditor['City'], $Creditor['District'], $Creditor['CreditorId'], $Creditor['BankName'], $Creditor['IBAN']
-            ,$Creditor['BIC']);
+        $tblCreditor = Creditor::useService()->createCreditor($Creditor['Owner'], $Creditor['Street'],
+            $Creditor['Number']
+            , $Creditor['Code'], $Creditor['City'], $Creditor['District'], $Creditor['CreditorId'],
+            $Creditor['BankName'], $Creditor['IBAN']
+            , $Creditor['BIC']);
 
         return ($tblCreditor
-                    ? new Success('Gläubiger erfolgreich angelegt'). self::pipelineCloseModal($Identifier)
-                    : new Danger('Gläubiger konnte nicht gengelegt werden'));
+            ? new Success('Gläubiger erfolgreich angelegt') . self::pipelineCloseModal($Identifier)
+            : new Danger('Gläubiger konnte nicht gengelegt werden'));
     }
 
     /**
@@ -429,11 +421,11 @@ class ApiCreditor extends Extension implements IApiInterface
      *
      * @return string
      */
-    public function saveEditCreditor($Identifier = '', $CreditorId = '',$Creditor = array())
+    public function saveEditCreditor($Identifier = '', $CreditorId = '', $Creditor = array())
     {
 
         // Handle error's
-        if ($form = $this->checkInputCreditor($Identifier, $CreditorId, $Creditor)) {
+        if($form = $this->checkInputCreditor($Identifier, $CreditorId, $Creditor)) {
             // display Errors on form
             $Global = $this->getGlobal();
             $Global->POST['Creditor']['Owner'] = $Creditor['Owner'];
@@ -450,11 +442,12 @@ class ApiCreditor extends Extension implements IApiInterface
             return $form;
         }
 
-        $IsChange= false;
-        if(($tblCreditor = Creditor::useService()->getCreditorById($CreditorId))){
+        $IsChange = false;
+        if(($tblCreditor = Creditor::useService()->getCreditorById($CreditorId))) {
             $IsChange = Creditor::useService()->changeCreditor($tblCreditor, $Creditor['Owner'], $Creditor['Street']
-                ,$Creditor['Number'], $Creditor['Code'], $Creditor['City'], $Creditor['District'], $Creditor['CreditorId']
-                ,$Creditor['BankName'], $Creditor['IBAN'], $Creditor['BIC']);
+                , $Creditor['Number'], $Creditor['Code'], $Creditor['City'], $Creditor['District'],
+                $Creditor['CreditorId']
+                , $Creditor['BankName'], $Creditor['IBAN'], $Creditor['BIC']);
         }
 
         return ($IsChange
@@ -471,7 +464,7 @@ class ApiCreditor extends Extension implements IApiInterface
     public function showEditCreditor($Identifier = '', $CreditorId = '')
     {
 
-        if('' !== $CreditorId && ($tblCreditor = Creditor::useService()->getCreditorById($CreditorId))){
+        if('' !== $CreditorId && ($tblCreditor = Creditor::useService()->getCreditorById($CreditorId))) {
             $Global = $this->getGlobal();
             $Global->POST['Creditor']['Owner'] = $tblCreditor->getOwner();
             $Global->POST['Creditor']['Street'] = $tblCreditor->getStreet();
@@ -486,7 +479,7 @@ class ApiCreditor extends Extension implements IApiInterface
             $Global->savePost();
         }
 
-        return self::formCreditor($Identifier, $CreditorId);
+        return new Well(self::formCreditor($Identifier, $CreditorId));
     }
 
     /**
@@ -501,15 +494,15 @@ class ApiCreditor extends Extension implements IApiInterface
         $tblCreditor = Creditor::useService()->getCreditorById($CreditorId);
 
 
-        if($tblCreditor){
+        if($tblCreditor) {
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn('Kontoinhaber: ', 2),
                 new LayoutColumn(new Bold($tblCreditor->getOwner()), 10),
             ))));
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn('Adresse: ', 2),
-                new LayoutColumn(new Bold($tblCreditor->getStreet().' '.$tblCreditor->getNumber().', '.$tblCreditor->getCode()
-                    .' '.$tblCreditor->getCity().' '.$tblCreditor->getDistrict()), 10),
+                new LayoutColumn(new Bold($tblCreditor->getStreet() . ' ' . $tblCreditor->getNumber() . ', ' . $tblCreditor->getCode()
+                    . ' ' . $tblCreditor->getCity() . ' ' . $tblCreditor->getDistrict()), 10),
             ))));
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn('Gläubiger Id: ', 2),
@@ -537,8 +530,8 @@ class ApiCreditor extends Extension implements IApiInterface
                         ),
                         new LayoutColumn(
                             (new DangerLink('Ja', self::getEndpoint(), new Ok()))
-                            ->ajaxPipelineOnClick(self::pipelineDeleteCreditor($Identifier, $CreditorId))
-                            .new Close('Nein', new Disable())
+                                ->ajaxPipelineOnClick(self::pipelineDeleteCreditor($Identifier, $CreditorId))
+                            . new Close('Nein', new Disable())
                         )
                     ))
                 )
@@ -552,15 +545,16 @@ class ApiCreditor extends Extension implements IApiInterface
     /**
      * @param string $Identifier
      * @param string $CreditorId
+     *
      * @return string
      */
     public function deleteCreditor($Identifier = '', $CreditorId = '')
     {
 
-        if(($tblCreditor = Creditor::useService()->getCreditorById($CreditorId))){
+        if(($tblCreditor = Creditor::useService()->getCreditorById($CreditorId))) {
             Creditor::useService()->removeCreditor($tblCreditor);
 
-            return new Success('Gläubiger wurde erfolgreich entfernt'). self::pipelineCloseModal($Identifier);
+            return new Success('Gläubiger wurde erfolgreich entfernt') . self::pipelineCloseModal($Identifier);
         }
         return new Danger('Gläubiger konnte nicht entfernt werden');
     }

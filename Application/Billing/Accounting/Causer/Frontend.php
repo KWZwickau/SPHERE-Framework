@@ -51,49 +51,53 @@ class Frontend extends Extension implements IFrontendInterface
         $Content = array();
 
 
-        if(($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))){
-            $Content[] = new Center('Auswahl für '.$tblGroup->getName()
-                .new Container(new Standard('', __NAMESPACE__.'/View', new ListingIcon(), array('GroupId' => $tblGroup->getId()))));
+        if(($tblGroup = Group::useService()->getGroupByMetaTable('STUDENT'))) {
+            $Content[] = new Center('Auswahl für ' . $tblGroup->getName()
+                . new Container(new Standard('', __NAMESPACE__ . '/View', new ListingIcon(),
+                    array('GroupId' => $tblGroup->getId()))));
         }
 
-        if(($tblGroupList = Group::useService()->getGroupAll())){
-            foreach($tblGroupList as &$tblGroup){
+        if(($tblGroupList = Group::useService()->getGroupAll())) {
+            foreach ($tblGroupList as &$tblGroup) {
                 if($tblGroup->getMetaTable() === 'STUDENT'
 //                    || $tblGroup->getMetaTable() === 'PROSPECT'
 //                    || $tblGroup->getMetaTable() === 'CUSTODY'
 //                    || $tblGroup->getMetaTable() === 'TEACHER'
 //                    || $tblGroup->getMetaTable() === 'CLUB'
-                ){
+                ) {
                     $tblGroup = false;
                 }
             }
             $tblGroupList = array_filter($tblGroupList);
         }
         if(false === $tblGroupList
-        || empty($tblGroupList)){
+            || empty($tblGroupList)) {
             $tblGroupList = array();
         }
 
         $Content[] = new Center('Auswahl für Personen'
-        .new Container(
-            new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn('', 3),
-                new LayoutColumn(Causer::useService()->directRoute(
-                    new Form(new FormGroup(new FormRow(array(new FormColumn(new SelectBox('GroupId', '', array('{{ Name }}' => $tblGroupList)), 11)
-                    , new FormColumn(new StandardForm('', new ListingIcon()), 1))))), $GroupId)
-                , 6)
-            ))))
-        ));
+            . new Container(
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn('', 2),
+                    new LayoutColumn(Causer::useService()->directRoute(
+                        new Form(new FormGroup(new FormRow(array(
+                            new FormColumn(new SelectBox('GroupId', '', array('{{ Name }}' => $tblGroupList)), 11)
+                        ,
+                            new FormColumn(new StandardForm('', new ListingIcon()), 1)
+                        )))), $GroupId)
+                        , 8)
+                ))))
+            ));
 
         $Stage->setContent(new Layout(
             new LayoutGroup(
                 new LayoutRow(array(
                     new LayoutColumn(
                         ''
-                    , 3),
+                        , 3),
                     new LayoutColumn(
                         new Panel('Kategorien:', new Listing($Content))
-                    , 6)
+                        , 6)
                 ))
             )
         ));
@@ -106,10 +110,10 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $GroupName = '';
-        if(($tblGroup = Group::useService()->getGroupById($GroupId))){
+        if(($tblGroup = Group::useService()->getGroupById($GroupId))) {
             $GroupName = $tblGroup->getName();
         }
-        $Stage = new Stage('Beitragsverursacher', 'Gruppe: '.$GroupName);
+        $Stage = new Stage('Beitragsverursacher', 'Gruppe: ' . $GroupName);
         $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
 
         $Stage->setContent(new Layout(
@@ -129,16 +133,16 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $TableContent = array();
-        if(($tblGroup = Group::useService()->getGroupById($GroupId))){
-            if(($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))){
+        if(($tblGroup = Group::useService()->getGroupById($GroupId))) {
+            if(($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
                 $i = 0;
-                array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblGroup, &$i){
+                array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblGroup, &$i) {
                     $Item['Name'] = $tblPerson->getLastFirstName();
                     $Item['ContentRow'] = ''; // ToDO Anzeige der vorhandenen Zahlungszuweisungen
 //                    $Item['Option'] = new Standard('', '', new Edit());
                     // Herraussuchen aller Beitragsarten die aktuell eingestellt werden müssen
                     $ContentSingleRow = array();
-                    if(($tblItemGroupList = Item::useService()->getItemGroupByGroup($tblGroup))){
+                    if(($tblItemGroupList = Item::useService()->getItemGroupByGroup($tblGroup))) {
                         $ContentSingleRow[] = new Layout(new LayoutGroup(new LayoutRow(array(
                             new LayoutColumn('Beitragszahler', 4),
                             new LayoutColumn('Bankdaten', 1),
@@ -146,20 +150,20 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn('Preis', 2),
                             new LayoutColumn('', 2),
                         ))));
-                        foreach($tblItemGroupList as $tblItemGroup){
-                            if(($tblItem = $tblItemGroup->getTblItem())){
+                        foreach ($tblItemGroupList as $tblItemGroup) {
+                            if(($tblItem = $tblItemGroup->getTblItem())) {
                                 //ToDO clean up DIRTY Test
                                 //ToDO Korrekte Variante mit Preis ziehen
                                 $tblItemCalculation = false;
-                                if(($tblItemVariantList = Item::useService()->getItemVariantByItem($tblItem))){
+                                if(($tblItemVariantList = Item::useService()->getItemVariantByItem($tblItem))) {
                                     $tblItemVariant = current($tblItemVariantList);
-                                    if(($tblItemCalculationList = Item::useService()->getItemCalculationByItemVariant($tblItemVariant))){
+                                    if(($tblItemCalculationList = Item::useService()->getItemCalculationByItemVariant($tblItemVariant))) {
                                         $tblItemCalculation = current($tblItemCalculationList);
                                     }
                                 }
                                 // ToDO Umbruchtest -> realen Debitor ziehen
                                 $Debitor = 'Klara Kolumna';
-                                if($tblPerson->getFirstName() == 'Charlotte'){
+                                if($tblPerson->getFirstName() == 'Charlotte') {
                                     $Debitor = 'Dr. VanWegenIckeHabNenLangenNamen, NaDirWerdIckeEsNochSoRichtigZeigenWa';
                                 }
 
@@ -168,7 +172,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     new LayoutColumn($Debitor, 4),
                                     new LayoutColumn(new SuccessText(new Check()), 1),
                                     new LayoutColumn($tblItem->getName(), 3),
-                                    new LayoutColumn(($tblItemCalculation ? $tblItemCalculation->getPriceString() : 'Test'), 2),
+                                    new LayoutColumn(($tblItemCalculation ? $tblItemCalculation->getPriceString() : 'Test'),
+                                        2),
 //                                    new LayoutColumn(new Standard('', '', new Edit()). new Standard('', '', new Remove()), 2)
                                 ))));
                             }
@@ -176,23 +181,23 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['ContentRow'] = new Listing($ContentSingleRow);
                     }
 
-                    $Item['Option'] = new Standard('', __NAMESPACE__.'/Edit', new Edit(), array(
-                        'GroupId' => $tblGroup->getId(),
+                    $Item['Option'] = new Standard('', __NAMESPACE__ . '/Edit', new Edit(), array(
+                        'GroupId'  => $tblGroup->getId(),
                         'PersonId' => $tblPerson->getId()
                     ));
                     $i++;
                     // Display Problem
 //                    if($i <= 2000){
-                        array_push($TableContent, $Item);
+                    array_push($TableContent, $Item);
 //                    }
                 });
             }
         }
 
         return new TableData($TableContent, null, array(
-            'Name' => 'Person',
+            'Name'       => 'Person',
             'ContentRow' => 'Zahlungszuweisungen',
-            'Option' => '',
+            'Option'     => '',
         ));
     }
 
@@ -206,25 +211,28 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Beitragsverursacher', 'bearbeiten');
-        $Stage->addButton(new Standard('Zurück', __NAMESPACE__.'/View', new ChevronLeft(), array('GroupId' => $GroupId)));
+        $Stage->addButton(new Standard('Zurück', __NAMESPACE__ . '/View', new ChevronLeft(),
+            array('GroupId' => $GroupId)));
 
         $ItemList = false;
         $ColumnList = array();
-        if(($tblPerson = Person::useService()->getPersonById($PersonId))){
+        if(($tblPerson = Person::useService()->getPersonById($PersonId))) {
             $ItemList = Item::useService()->getItemAllByPerson($tblPerson);
         }
-        if($ItemList){
-            foreach($ItemList as $tblItem){
+        if($ItemList) {
+            foreach ($ItemList as $tblItem) {
                 $ItemVairant = '';
                 // choosen Variant of Item Payment
-                if(($tblDebtorSelection = Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPerson, $tblItem))){
-                    if(($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())){
+                if(($tblDebtorSelection = Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPerson,
+                    $tblItem))) {
+                    if(($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())) {
                         $ItemVairant = $tblItemVariant->getName();
                     }
                 }
 
                 //ToDO Inhalt
-                $ColumnList[] = new LayoutColumn(new Panel($tblItem->getName(), $ItemVairant, Panel::PANEL_TYPE_INFO), 4);
+                $ColumnList[] = new LayoutColumn(new Panel($tblItem->getName(), $ItemVairant, Panel::PANEL_TYPE_INFO),
+                    4);
             }
         }
 

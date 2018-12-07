@@ -82,7 +82,7 @@ class Data extends AbstractData
      *
      * @return false|TblBankAccount[]
      */
-    public function getBankAccountByPerson(TblPerson $tblPerson)
+    public function getBankAccountAllByPerson(TblPerson $tblPerson)
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBankAccount',
@@ -127,7 +127,7 @@ class Data extends AbstractData
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorSelection',
             array(
                 TblDebtorSelection::ATTR_SERVICE_TBL_PERSON_CAUSER => $tblPerson->getId(),
-                TblDebtorSelection::ATTR_SERVICE_TBL_ITEM => $tblItem->getId()
+                TblDebtorSelection::ATTR_SERVICE_TBL_ITEM          => $tblItem->getId()
             ));
     }
 

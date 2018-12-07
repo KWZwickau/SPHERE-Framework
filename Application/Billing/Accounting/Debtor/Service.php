@@ -114,10 +114,10 @@ class Service extends AbstractService
      *
      * @return false|TblBankAccount[]
      */
-    public function getBankAccountByPerson(TblPerson $tblPerson)
+    public function getBankAccountAllByPerson(TblPerson $tblPerson)
     {
 
-        return (new Data($this->getBinding()))->getBankAccountByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getBankAccountAllByPerson($tblPerson);
     }
 
     /**
@@ -201,14 +201,14 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
+     * @param string    $Owner
      * @param string    $BankName
      * @param string    $IBAN
      * @param string    $BIC
-     * @param string    $Owner
      *
      * @return null|TblBankAccount
      */
-    public function createBankAccount(TblPerson $tblPerson, $BankName = '', $IBAN = '', $BIC = '', $Owner = '')
+    public function createBankAccount(TblPerson $tblPerson, $Owner = '', $BankName = '', $IBAN = '', $BIC = '')
     {
 
         return (new Data($this->getBinding()))->createBankAccount($tblPerson, $BankName, $IBAN, $BIC, $Owner);
@@ -262,14 +262,14 @@ class Service extends AbstractService
 
     /**
      * @param TblBankAccount $tblBankAccount
+     * @param string         $Owner
      * @param string         $BankName
      * @param string         $IBAN
      * @param string         $BIC
-     * @param string         $Owner
      *
      * @return bool
      */
-    public function changeBankAccount(TblBankAccount $tblBankAccount, $BankName = '', $IBAN = '', $BIC = '', $Owner = ''
+    public function changeBankAccount(TblBankAccount $tblBankAccount, $Owner = '', $BankName = '', $IBAN = '', $BIC = ''
     ) {
 
         return (new Data($this->getBinding()))->updateBankAccount($tblBankAccount, $BankName, $IBAN, $BIC, $Owner);

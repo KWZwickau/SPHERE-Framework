@@ -22,6 +22,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -354,7 +355,8 @@ class ApiDebtor extends Extension implements IApiInterface
     public function showAddDebtorNumber($Identifier = '', $PersonId = '')
     {
 
-        return Debtor::useFrontend()->getPersonPanel($PersonId) . $this->formDebtorNumber($Identifier, $PersonId);
+        return Debtor::useFrontend()->getPersonPanel($PersonId) . new Well($this->formDebtorNumber($Identifier,
+                $PersonId));
     }
 
     /**
@@ -436,7 +438,8 @@ class ApiDebtor extends Extension implements IApiInterface
             $Global->savePost();
         }
 
-        return self::formDebtorNumber($Identifier, $PersonId, $DebtorNumberId);
+        return Debtor::useFrontend()->getPersonPanel($PersonId)
+            . new Well(self::formDebtorNumber($Identifier, $PersonId, $DebtorNumberId));
     }
 
     /**

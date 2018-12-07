@@ -22,6 +22,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -48,7 +49,7 @@ class ApiBankAccount extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
         // reload Table
-        $Dispatcher->registerMethod('getBankAccountTable');
+        $Dispatcher->registerMethod('getBankAccountPanel');
         // BankAccount
         $Dispatcher->registerMethod('showAddBankAccount');
         $Dispatcher->registerMethod('saveAddBankAccount');
@@ -77,10 +78,10 @@ class ApiBankAccount extends Extension implements IApiInterface
      *
      * @return BlockReceiver
      */
-    public static function receiverDebtorTable($Content = '')
+    public static function receiverBankAccountPanel($Content = '')
     {
 
-        return (new BlockReceiver($Content))->setIdentifier('BlockTableContent');
+        return (new BlockReceiver($Content))->setIdentifier('BlockPanels');
     }
 
     /**
@@ -251,9 +252,9 @@ class ApiBankAccount extends Extension implements IApiInterface
     {
         $Pipeline = new Pipeline();
         // reload the whole Table
-        $Emitter = new ServerEmitter(self::receiverDebtorTable(''), self::getEndpoint());
+        $Emitter = new ServerEmitter(self::receiverBankAccountPanel(''), self::getEndpoint());
         $Emitter->setGetPayload(array(
-            self::API_TARGET => 'getBankAccountTable'
+            self::API_TARGET => 'getBankAccountPanel'
         ));
         $Emitter->setPostPayload(array(
             'PersonId' => $PersonId
@@ -266,15 +267,12 @@ class ApiBankAccount extends Extension implements IApiInterface
     /**
      * @param $PersonId
      *
-     * @return array|Danger
+     * @return string
      */
-    public function getBankAccountTable($PersonId)
+    public function getBankAccountPanel($PersonId)
     {
 
-        if(($tblPerson = Person::useService()->getPersonById($PersonId))) {
-            return Debtor::useFrontend()->getBankAccountTable($tblPerson);
-        }
-        return new Danger('Person nicht mehr gefunden');
+        return Debtor::useFrontend()->getBankAccountPanel($PersonId);
     }
 
     /**
@@ -287,6 +285,15 @@ class ApiBankAccount extends Extension implements IApiInterface
     public function formBankAccount($Identifier = '', $PersonId = '', $BankAccountId = '')
     {
 
+        $Global = $this->getGlobal();
+        if(!isset($Global->POST['BankAccount']['Owner'])) {
+            $tblPerson = Person::useService()->getPersonById($PersonId);
+            if($tblPerson) {
+                $Global->POST['BankAccount']['Owner'] = $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName();
+                $Global->savePost();
+            }
+        }
+
         // choose between Add and Edit
         $SaveButton = new Primary('Speichern', self::getEndpoint(), new Save());
         if('' !== $BankAccountId) {
@@ -298,11 +305,22 @@ class ApiBankAccount extends Extension implements IApiInterface
 
         return (new Form(
             new FormGroup(array(
-                new FormRow(
+                new FormRow(array(
                     new FormColumn(
-                        (new TextField('BankAccount[Number]', 'IBAN', 'IBAN'))->setRequired()
+                        new TextField('BankAccount[Owner]', 'Kontoinhaber', 'Kontoinhaber')
+                        , 6),
+                    new FormColumn(
+                        new TextField('BankAccount[BankName]', 'Name der Bank', 'Name der Bank')
                         , 6)
-                ),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        (new TextField('BankAccount[IBAN]', 'IBAN', 'IBAN'))->setRequired()
+                        , 6),
+                    new FormColumn(
+                        new TextField('BankAccount[BIC]', 'BIC', 'BIC')
+                        , 6)
+                )),
                 new FormRow(
                     new FormColumn(
                         $SaveButton
@@ -320,8 +338,8 @@ class ApiBankAccount extends Extension implements IApiInterface
      *
      * @return false|string|Form
      */
-    private function checkInputBankAccount($Identifier = '', $PersonId = '', $BankAccountId = '', $BankAccount = array())
-    {
+    private function checkInputBankAccount($Identifier = '', $PersonId = '', $BankAccountId = '', $BankAccount = array()
+    ) {
 
         $Error = false;
         $form = $this->formBankAccount($Identifier, $PersonId, $BankAccountId);
@@ -347,7 +365,8 @@ class ApiBankAccount extends Extension implements IApiInterface
     public function showAddBankAccount($Identifier = '', $PersonId = '')
     {
 
-        return Debtor::useFrontend()->getPersonPanel($PersonId) . $this->formBankAccount($Identifier, $PersonId);
+        return Debtor::useFrontend()->getPersonPanel($PersonId) . new Well($this->formBankAccount($Identifier,
+                $PersonId));
     }
 
     /**
@@ -365,14 +384,17 @@ class ApiBankAccount extends Extension implements IApiInterface
 
             // display Errors on form
             $Global = $this->getGlobal();
+            $Global->POST['BankAccount']['Owner'] = $BankAccount['Owner'];
+            $Global->POST['BankAccount']['BankName'] = $BankAccount['BankName'];
             $Global->POST['BankAccount']['IBAN'] = $BankAccount['IBAN'];
+            $Global->POST['BankAccount']['BIC'] = $BankAccount['BIC'];
             $Global->savePost();
             return Debtor::useFrontend()->getPersonPanel($PersonId) . $form;
         }
 
         if(($tblPerson = Person::useService()->getPersonById($PersonId))) {
-            $tblBankAccount = Debtor::useService()->createBankAccount($tblPerson, $BankAccount['Name'],
-                $BankAccount['IBAN'], $BankAccount['BIC'], $BankAccount['Owner']);
+            $tblBankAccount = Debtor::useService()->createBankAccount($tblPerson, $BankAccount['Owner'],
+                $BankAccount['BankName'], $BankAccount['IBAN'], $BankAccount['BIC']);
             if($tblBankAccount) {
                 return new Success('Konto erfolgreich angelegt') . self::pipelineCloseModal($Identifier,
                         $PersonId);
@@ -406,7 +428,8 @@ class ApiBankAccount extends Extension implements IApiInterface
 
         $IsChange = false;
         if(($tblBankAccount = Debtor::useService()->getBankAccountById($BankAccountId))) {
-            $IsChange = Debtor::useService()->changeBankAccount($tblBankAccount, $BankAccount['Number']);
+            $IsChange = Debtor::useService()->changeBankAccount($tblBankAccount, $BankAccount['Owner'],
+                $BankAccount['BankName'], $BankAccount['IBAN'], $BankAccount['BIC']);
         }
 
         return ($IsChange
@@ -426,11 +449,15 @@ class ApiBankAccount extends Extension implements IApiInterface
 
         if('' !== $BankAccountId && ($tblBankAccount = Debtor::useService()->getBankAccountById($BankAccountId))) {
             $Global = $this->getGlobal();
+            $Global->POST['BankAccount']['Owner'] = $tblBankAccount->getOwner();
+            $Global->POST['BankAccount']['BankName'] = $tblBankAccount->getBankName();
             $Global->POST['BankAccount']['IBAN'] = $tblBankAccount->getIBAN();
+            $Global->POST['BankAccount']['BIC'] = $tblBankAccount->getBIC();
             $Global->savePost();
         }
 
-        return self::formBankAccount($Identifier, $PersonId, $BankAccountId);
+        return Debtor::useFrontend()->getPersonPanel($PersonId)
+            . new Well(self::formBankAccount($Identifier, $PersonId, $BankAccountId));
     }
 
     /**
@@ -447,17 +474,21 @@ class ApiBankAccount extends Extension implements IApiInterface
 
 
         if($tblBankAccount) {
-            $PersonString = 'Person nicht gefunden!';
-            if(($tblPerson = $tblBankAccount->getServiceTblPerson())) {
-                $PersonString = $tblPerson->getFullName();
-            }
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn('Person: ', 2),
-                new LayoutColumn(new Bold($PersonString), 10),
+                new LayoutColumn('Owner: ', 2),
+                new LayoutColumn(new Bold($tblBankAccount->getOwner()), 10),
+            ))));
+            $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Name der Bank: ', 2),
+                new LayoutColumn(new Bold($tblBankAccount->getBankName()), 10),
             ))));
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn('IBAN: ', 2),
                 new LayoutColumn(new Bold($tblBankAccount->getIBANFrontend()), 10),
+            ))));
+            $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('BIC: ', 2),
+                new LayoutColumn(new Bold($tblBankAccount->getBICFrontend()), 10),
             ))));
 
             return new Layout(
