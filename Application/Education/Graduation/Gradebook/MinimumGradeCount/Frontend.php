@@ -273,6 +273,24 @@ class Frontend extends Extension implements IFrontendInterface
 
         return new Form(new FormGroup(array(
             new FormRow(array(
+                new FormColumn(array(
+                    new Panel(
+                        'Fächer',
+                        $layoutSubjects,
+                        Panel::PANEL_TYPE_INFO
+                    )
+                ))
+            )),
+            new FormRow(array(
+                new FormColumn(array(
+                    new Panel(
+                        'Klassenstufen'  . new DangerText('*'),
+                        new Layout(new LayoutGroup(new LayoutRow($levelColumns))),
+                        Panel::PANEL_TYPE_INFO
+                    )
+                ))
+            )),
+            new FormRow(array(
                 new FormColumn(
                     new SelectBox('MinimumGradeCount[GradeType]', 'Zensuren-Typ', array('{{ Code }} - {{ Name }}' => $tblGradeTypeList)), 3
                 ),
@@ -285,24 +303,6 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormColumn(
                     (new NumberField('MinimumGradeCount[Count]', '', 'Anzahl ', new Quantity()))->setRequired(), 3
                 ),
-            )),
-            new FormRow(array(
-               new FormColumn(array(
-                   new Panel(
-                       'Klassenstufen'  . new DangerText('*'),
-                       new Layout(new LayoutGroup(new LayoutRow($levelColumns))),
-                       Panel::PANEL_TYPE_INFO
-                   )
-               ))
-            )),
-            new FormRow(array(
-                new FormColumn(array(
-                    new Panel(
-                        'Fächer',
-                        $layoutSubjects,
-                        Panel::PANEL_TYPE_INFO
-                    )
-                ))
             )),
             new FormRow(array(
                 new FormColumn(array(
