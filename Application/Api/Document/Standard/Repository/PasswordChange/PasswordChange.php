@@ -58,7 +58,7 @@ class PasswordChange extends AbstractDocument
         $this->FieldValue['PersonFirstLastName'] = '';
         $this->FieldValue['PersonTitle'] = '';
         $this->FieldValue['PersonLastName'] = '';
-        $this->FieldValue['Gender'] = '';
+        $this->FieldValue['Gender'] = 0;
         $this->FieldValue['UserAccount'] = '';
         $this->FieldValue['Street'] = '';
         $this->FieldValue['District'] = '';
@@ -115,7 +115,12 @@ class PasswordChange extends AbstractDocument
             if(($tblCommon = $tblPerson->getCommon())) {
                 if(($tblCommonBirthDates = $tblCommon->getTblCommonBirthDates())){
                     if(($tblCommonGender = $tblCommonBirthDates->getTblCommonGender())){
-                        $this->FieldValue['Gender'] = $tblCommonGender->getName();
+                        if($tblCommonGender->getName() == "Männlich"){
+                            $this->FieldValue['Gender'] = 1;
+                        }
+                        if($tblCommonGender->getName() == "Weiblich") {
+                            $this->FieldValue['Gender'] = 2;
+                        }
                     }
                 }
             }
@@ -289,9 +294,9 @@ class PasswordChange extends AbstractDocument
                 )
                 ->addElementColumn((new Element())
                     ->setContent('
-                    {% if '.$this->FieldValue['Gender'].' == Männlich %}
+                    {% if '.$this->FieldValue['Gender'].' == 1 %}
                         Lieber 
-                    {% elseif '.$this->FieldValue['Gender'].' == Weiblich %}
+                    {% elseif '.$this->FieldValue['Gender'].' == 2 %}
                         Liebe 
                     {% else %}
                         Liebe(r) 
@@ -506,9 +511,9 @@ class PasswordChange extends AbstractDocument
                 )
                 ->addElementColumn((new Element())
                     ->setContent('
-                    {% if '.$this->FieldValue['Gender'].' == Männlich %}
+                    {% if '.$this->FieldValue['Gender'].' == 1 %}
                         Lieber 
-                    {% elseif '.$this->FieldValue['Gender'].' == Weiblich %}
+                    {% elseif '.$this->FieldValue['Gender'].' == 2 %}
                         Liebe 
                     {% else %}
                         Liebe(r) 
