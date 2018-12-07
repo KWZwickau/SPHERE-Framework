@@ -93,25 +93,22 @@ class EssGsJOne extends Certificate
                 )
                 ->addSection((new Section())
                     ->addElementColumn((new Element())
-                        ->setContent('{{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}')
-                        ->styleTextSize(self::TEXT_SIZE)
-                        ->styleLineHeight('105%')
-                        ->styleFontFamily(self::TEXT_FAMILY)
-                        , '18%'
+                        ->setContent('&nbsp;')
+                        , '0%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('2. Schulhalbjahr der Klasse {{ Content.P' . $personId . '.Division.Data.Level.Name }}')
+                        ->setContent('Klasse {{ Content.P' . $personId . '.Division.Data.Level.Name }}')
                         ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
-                        , '30%'
+                        , '25%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('{{ Content.P' . $personId . '.Division.Data.Year }}')
+                        ->setContent('2. Schulhalbjahr {{ Content.P' . $personId . '.Division.Data.Year }}')
                         ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
-                        , '22%'
+                        , '45%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('Schneeberg, den 
@@ -125,6 +122,10 @@ class EssGsJOne extends Certificate
                         ->styleFontFamily(self::TEXT_FAMILY)
                         ->styleAlignRight()
                         , '30%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '0%'
                     )
                 )
                 ->stylePaddingBottom('30px')
