@@ -47,8 +47,8 @@ class ApiDebtor extends Extension implements IApiInterface
     public function exportApi($Method = '')
     {
         $Dispatcher = new Dispatcher(__CLASS__);
-        // reload Table
-        $Dispatcher->registerMethod('getDebtorTable');
+        // reload Panel content
+        $Dispatcher->registerMethod('getDebtorNumberContent');
         // DebtorNumber / Debitor Nummer
         $Dispatcher->registerMethod('showAddDebtorNumber');
         $Dispatcher->registerMethod('saveAddDebtorNumber');
@@ -69,28 +69,28 @@ class ApiDebtor extends Extension implements IApiInterface
     public static function receiverModal($Header = '', $Identifier = '')
     {
 
-        return (new ModalReceiver($Header,  new Close()))->setIdentifier('Modal'.$Identifier);
+        return (new ModalReceiver($Header, new Close()))->setIdentifier('Modal' . $Identifier);
     }
 
     /**
      * @param string $Content
+     *
      * @return BlockReceiver
      */
-    public static function receiverDebtorTable($Content = '')
+    public static function receiverPanelContent($Content = '')
     {
 
-        return (new BlockReceiver($Content))->setIdentifier('BlockTableContent');
+        return (new BlockReceiver($Content))->setIdentifier('BlockPanelContent');
     }
 
     /**
      * @param string $Identifier
-     * @param string $GroupId
      * @param string $PersonId
-     * @param array $DebtorNumber
+     * @param array  $DebtorNumber
      *
      * @return Pipeline
      */
-    public static function pipelineOpenAddDebtorNumberModal($Identifier = '', $GroupId = '', $PersonId = '', $DebtorNumber = array())
+    public static function pipelineOpenAddDebtorNumberModal($Identifier = '', $PersonId = '', $DebtorNumber = array())
     {
 
         $Receiver = self::receiverModal(null, $Identifier);
@@ -100,10 +100,9 @@ class ApiDebtor extends Extension implements IApiInterface
             self::API_TARGET => 'showAddDebtorNumber'
         ));
         $Emitter->setPostPayload(array(
-            'Identifier' => $Identifier,
-            'GroupId'    => $GroupId,
-            'PersonId'   => $PersonId,
-            'DebtorNumber'   => $DebtorNumber
+            'Identifier'   => $Identifier,
+            'PersonId'     => $PersonId,
+            'DebtorNumber' => $DebtorNumber
         ));
         $Pipeline->appendEmitter($Emitter);
 
@@ -112,12 +111,11 @@ class ApiDebtor extends Extension implements IApiInterface
 
     /**
      * @param string $Identifier
-     * @param string $GroupId
      * @param string $PersonId
      *
      * @return Pipeline
      */
-    public static function pipelineSaveAddDebtorNumber($Identifier = '', $GroupId = '', $PersonId = '')
+    public static function pipelineSaveAddDebtorNumber($Identifier = '', $PersonId = '')
     {
 
         $Receiver = self::receiverModal(null, $Identifier);
@@ -128,7 +126,6 @@ class ApiDebtor extends Extension implements IApiInterface
         ));
         $Emitter->setPostPayload(array(
             'Identifier' => $Identifier,
-            'GroupId'    => $GroupId,
             'PersonId'   => $PersonId
         ));
         $Pipeline->appendEmitter($Emitter);
@@ -137,16 +134,16 @@ class ApiDebtor extends Extension implements IApiInterface
     }
 
     /**
-     * @param string $Identifier
-     * @param string $GroupId
-     * @param string $PersonId
+     * @param string     $Identifier
+     * @param string     $PersonId
      * @param int|string $DebtorNumberId
-     * @param array $DebtorNumber
+     * @param array      $DebtorNumber
      *
      * @return Pipeline
      */
-    public static function pipelineOpenEditDebtorNumberModal($Identifier = '', $GroupId = '', $PersonId = '', $DebtorNumberId = '',$DebtorNumber = array())
-    {
+    public static function pipelineOpenEditDebtorNumberModal($Identifier = '', $PersonId = '', $DebtorNumberId = '',
+        $DebtorNumber = array()
+    ) {
 
         $Receiver = self::receiverModal(null, $Identifier);
         $Pipeline = new Pipeline(true);
@@ -155,8 +152,7 @@ class ApiDebtor extends Extension implements IApiInterface
             self::API_TARGET => 'showEditDebtorNumber'
         ));
         $Emitter->setPostPayload(array(
-            'Identifier' => $Identifier,
-            'GroupId'    => $GroupId,
+            'Identifier'     => $Identifier,
             'PersonId'       => $PersonId,
             'DebtorNumberId' => $DebtorNumberId,
             'DebtorNumber'   => $DebtorNumber
@@ -167,14 +163,13 @@ class ApiDebtor extends Extension implements IApiInterface
     }
 
     /**
-     * @param string $Identifier
-     * @param string $GroupId
-     * @param string $PersonId
+     * @param string     $Identifier
+     * @param string     $PersonId
      * @param int|string $DebtorNumberId
      *
      * @return Pipeline
      */
-    public static function pipelineSaveEditDebtorNumber($Identifier = '', $GroupId = '', $PersonId = '', $DebtorNumberId = '')
+    public static function pipelineSaveEditDebtorNumber($Identifier = '', $PersonId = '', $DebtorNumberId = '')
     {
 
         $Receiver = self::receiverModal(null, $Identifier);
@@ -185,7 +180,6 @@ class ApiDebtor extends Extension implements IApiInterface
         ));
         $Emitter->setPostPayload(array(
             'Identifier'     => $Identifier,
-            'GroupId'        => $GroupId,
             'PersonId'       => $PersonId,
             'DebtorNumberId' => $DebtorNumberId
         ));
@@ -195,13 +189,13 @@ class ApiDebtor extends Extension implements IApiInterface
     }
 
     /**
-     * @param string $Identifier
-     * @param string $GroupId
+     * @param string     $Identifier
+     * @param string     $PersonId
      * @param int|string $DebtorNumberId
      *
      * @return Pipeline
      */
-    public static function pipelineOpenDeleteDebtorNumberModal($Identifier = '', $GroupId = '', $DebtorNumberId = '')
+    public static function pipelineOpenDeleteDebtorNumberModal($Identifier = '', $PersonId = '', $DebtorNumberId = '')
     {
 
         $Receiver = self::receiverModal(null, $Identifier);
@@ -211,8 +205,8 @@ class ApiDebtor extends Extension implements IApiInterface
             self::API_TARGET => 'showDeleteDebtorNumber'
         ));
         $Emitter->setPostPayload(array(
-            'Identifier' => $Identifier,
-            'GroupId'    => $GroupId,
+            'Identifier'     => $Identifier,
+            'PersonId'       => $PersonId,
             'DebtorNumberId' => $DebtorNumberId,
         ));
         $Pipeline->appendEmitter($Emitter);
@@ -221,13 +215,13 @@ class ApiDebtor extends Extension implements IApiInterface
     }
 
     /**
-     * @param string $Identifier
-     * @param string $GroupId
+     * @param string     $Identifier
+     * @param string     $PersonId
      * @param int|string $DebtorNumberId
      *
      * @return Pipeline
      */
-    public static function pipelineDeleteDebtorNumber($Identifier = '', $GroupId = '', $DebtorNumberId = '')
+    public static function pipelineDeleteDebtorNumber($Identifier = '', $PersonId = '', $DebtorNumberId = '')
     {
 
         $Receiver = self::receiverModal(null, $Identifier);
@@ -237,8 +231,8 @@ class ApiDebtor extends Extension implements IApiInterface
             self::API_TARGET => 'deleteDebtorNumber'
         ));
         $Emitter->setPostPayload(array(
-            'Identifier' => $Identifier,
-            'GroupId'    => $GroupId,
+            'Identifier'     => $Identifier,
+            'PersonId'       => $PersonId,
             'DebtorNumberId' => $DebtorNumberId,
         ));
         $Pipeline->appendEmitter($Emitter);
@@ -248,49 +242,54 @@ class ApiDebtor extends Extension implements IApiInterface
 
     /**
      * @param string $Identifier
-     * @param string $GroupId
+     * @param string $PersonId
      *
      * @return Pipeline
      */
-    public static function pipelineCloseModal($Identifier = '', $GroupId = '')
+    public static function pipelineCloseModal($Identifier = '', $PersonId = '')
     {
         $Pipeline = new Pipeline();
         // reload the whole Table
-        $Emitter = new ServerEmitter(self::receiverDebtorTable(''), self::getEndpoint());
+        $Emitter = new ServerEmitter(self::receiverPanelContent(''), self::getEndpoint());
         $Emitter->setGetPayload(array(
-            self::API_TARGET => 'getDebtorTable'
+            self::API_TARGET => 'getDebtorNumberContent'
         ));
         $Emitter->setPostPayload(array(
-            'GroupId' => $GroupId
+            'PersonId' => $PersonId
         ));
         $Pipeline->appendEmitter($Emitter);
         $Pipeline->appendEmitter((new CloseModal(self::receiverModal('', $Identifier)))->getEmitter());
         return $Pipeline;
     }
 
-    public function getDebtorTable($GroupId)
+    /**
+     * @param $PersonId
+     *
+     * @return string
+     */
+    public function getDebtorNumberContent($PersonId)
     {
 
-        return Debtor::useFrontend()->getDebtorTable($GroupId);
+        return Debtor::useFrontend()->getDebtorNumberContent($PersonId);
     }
 
     /**
-     * @param string $Identifier
-     * @param string $GroupId
-     * @param string $PersonId
+     * @param string     $Identifier
+     * @param string     $PersonId
      * @param int|string $DebtorNumberId
      *
      * @return IFormInterface $Form
      */
-    public function formDebtorNumber($Identifier = '', $GroupId = '', $PersonId = '', $DebtorNumberId = '')
+    public function formDebtorNumber($Identifier = '', $PersonId = '', $DebtorNumberId = '')
     {
 
         // choose between Add and Edit
         $SaveButton = new Primary('Speichern', self::getEndpoint(), new Save());
-        if('' !== $DebtorNumberId){
-            $SaveButton->ajaxPipelineOnClick(self::pipelineSaveEditDebtorNumber($Identifier, $GroupId, $PersonId, $DebtorNumberId));
+        if('' !== $DebtorNumberId) {
+            $SaveButton->ajaxPipelineOnClick(self::pipelineSaveEditDebtorNumber($Identifier, $PersonId,
+                $DebtorNumberId));
         } else {
-            $SaveButton->ajaxPipelineOnClick(self::pipelineSaveAddDebtorNumber($Identifier, $GroupId, $PersonId));
+            $SaveButton->ajaxPipelineOnClick(self::pipelineSaveAddDebtorNumber($Identifier, $PersonId));
         }
 
         return (new Form(
@@ -311,33 +310,34 @@ class ApiDebtor extends Extension implements IApiInterface
 
     /**
      * @param string $Identifier
-     * @param string $GroupId
      * @param string $PersonId
      * @param string $DebtorNumberId
      * @param array  $DebtorNumber
      *
      * @return false|string|Form
      */
-    private function checkInputDebtorNumber($Identifier = '', $GroupId = '', $PersonId = '', $DebtorNumberId = '',$DebtorNumber = array())
-    {
+    private function checkInputDebtorNumber($Identifier = '', $PersonId = '', $DebtorNumberId = '',
+        $DebtorNumber = array()
+    ) {
 
         $Error = false;
-        $form = $this->formDebtorNumber($Identifier, $GroupId, $PersonId, $DebtorNumberId);
-        if (isset($DebtorNumber['Number']) && empty($DebtorNumber['Number'])) {
+        $form = $this->formDebtorNumber($Identifier, $PersonId, $DebtorNumberId);
+        if(isset($DebtorNumber['Number']) && empty($DebtorNumber['Number'])) {
             $form->setError('DebtorNumber[Number]', 'Bitte geben Sie eine Debitor-Nummer an');
             $Error = true;
         } else {
-            if(($tblDebtorNumber = Debtor::useService()->getDebtorNumberByNumber($DebtorNumber['Number']))){
+            if(($tblDebtorNumber = Debtor::useService()->getDebtorNumberByNumber($DebtorNumber['Number']))) {
                 $tblPerson = Person::useService()->getPersonById($PersonId);
                 if($tblPerson && ($tblPersonCompare = $tblDebtorNumber->getServiceTblPerson())
-                && $tblPerson->getId() !== $tblPersonCompare->getId()){
-                    $form->setError('DebtorNumber[Number]', 'Bitte geben sie eine noch nicht vergebene Debitor-Nummer an');
+                    && $tblPerson->getId() !== $tblPersonCompare->getId()) {
+                    $form->setError('DebtorNumber[Number]',
+                        'Bitte geben sie eine noch nicht vergebene Debitor-Nummer an');
                     $Error = true;
                 }
             }
         }
 
-        if ($Error) {
+        if($Error) {
             // Debtor::useFrontend()->getPersonPanel($PersonId).
             return $form;
         }
@@ -347,42 +347,41 @@ class ApiDebtor extends Extension implements IApiInterface
 
     /**
      * @param string $Identifier
-     * @param string $GroupId
      * @param string $PersonId
      *
      * @return string
      */
-    public function showAddDebtorNumber($Identifier = '', $GroupId = '', $PersonId = '')
+    public function showAddDebtorNumber($Identifier = '', $PersonId = '')
     {
 
-        return Debtor::useFrontend()->getPersonPanel($PersonId).$this->formDebtorNumber($Identifier, $GroupId, $PersonId);
+        return Debtor::useFrontend()->getPersonPanel($PersonId) . $this->formDebtorNumber($Identifier, $PersonId);
     }
 
     /**
      * @param string $Identifier
-     * @param string $GroupId
      * @param string $PersonId
-     * @param array $DebtorNumber
+     * @param array  $DebtorNumber
      *
      * @return string
      */
-    public function saveAddDebtorNumber($Identifier = '', $GroupId = '', $PersonId = '', $DebtorNumber = array())
+    public function saveAddDebtorNumber($Identifier = '', $PersonId = '', $DebtorNumber = array())
     {
 
         // Handle error's
-        if ($form = $this->checkInputDebtorNumber($Identifier, $GroupId, $PersonId , '', $DebtorNumber)) {
+        if($form = $this->checkInputDebtorNumber($Identifier, $PersonId, '', $DebtorNumber)) {
 
             // display Errors on form
             $Global = $this->getGlobal();
             $Global->POST['DebtorNumber']['Number'] = $DebtorNumber['Number'];
             $Global->savePost();
-            return Debtor::useFrontend()->getPersonPanel($PersonId).$form;
+            return Debtor::useFrontend()->getPersonPanel($PersonId) . $form;
         }
 
-        if(($tblPerson = Person::useService()->getPersonById($PersonId))){
+        if(($tblPerson = Person::useService()->getPersonById($PersonId))) {
             $tblDebtorNumber = Debtor::useService()->createDebtorNumber($tblPerson, $DebtorNumber['Number']);
-            if($tblDebtorNumber){
-                return new Success('Debitor-Nummer erfolgreich angelegt'). self::pipelineCloseModal($Identifier, $GroupId);
+            if($tblDebtorNumber) {
+                return new Success('Debitor-Nummer erfolgreich angelegt') . self::pipelineCloseModal($Identifier,
+                        $PersonId);
             } else {
                 return new Danger('Debitor-Nummer konnte nicht gengelegt werden');
             }
@@ -392,19 +391,18 @@ class ApiDebtor extends Extension implements IApiInterface
     }
 
     /**
-     * @param string $Identifier
-     * @param string $GroupId
-     * @param string $PersonId
+     * @param string     $Identifier
+     * @param string     $PersonId
      * @param int|string $DebtorNumberId
-     * @param array $DebtorNumber
+     * @param array      $DebtorNumber
      *
      * @return string
      */
-    public function saveEditDebtorNumber($Identifier = '', $GroupId = '', $PersonId = '', $DebtorNumberId = '',$DebtorNumber = array())
-    {
+    public function saveEditDebtorNumber($Identifier = '', $PersonId = '', $DebtorNumberId = '', $DebtorNumber = array()
+    ) {
 
         // Handle error's
-        if ($form = $this->checkInputDebtorNumber($Identifier, $GroupId, $PersonId, $DebtorNumberId, $DebtorNumber)) {
+        if($form = $this->checkInputDebtorNumber($Identifier, $PersonId, $DebtorNumberId, $DebtorNumber)) {
             // display Errors on form
             $Global = $this->getGlobal();
             $Global->POST['DebtorNumber']['Number'] = $DebtorNumber['Number'];
@@ -412,52 +410,51 @@ class ApiDebtor extends Extension implements IApiInterface
             return $form;
         }
 
-        $IsChange= false;
-        if(($tblDebtorNumber = Debtor::useService()->getDebtorNumberById($DebtorNumberId))){
+        $IsChange = false;
+        if(($tblDebtorNumber = Debtor::useService()->getDebtorNumberById($DebtorNumberId))) {
             $IsChange = Debtor::useService()->changeDebtorNumber($tblDebtorNumber, $DebtorNumber['Number']);
         }
 
         return ($IsChange
-            ? new Success('Debitor-Nummer erfolgreich geändert') . self::pipelineCloseModal($Identifier, $GroupId)
+            ? new Success('Debitor-Nummer erfolgreich geändert') . self::pipelineCloseModal($Identifier, $PersonId)
             : new Danger('Debitor-Nummer konnte nicht geändert werden'));
     }
 
     /**
-     * @param string $Identifier
-     * @param string $GroupId
-     * @param string $PersonId
+     * @param string     $Identifier
+     * @param string     $PersonId
      * @param int|string $DebtorNumberId
      *
      * @return string
      */
-    public function showEditDebtorNumber($Identifier = '', $GroupId = '', $PersonId = '', $DebtorNumberId = '')
+    public function showEditDebtorNumber($Identifier = '', $PersonId = '', $DebtorNumberId = '')
     {
 
-        if('' !== $DebtorNumberId && ($tblDebtorNumber = Debtor::useService()->getDebtorNumberById($DebtorNumberId))){
+        if('' !== $DebtorNumberId && ($tblDebtorNumber = Debtor::useService()->getDebtorNumberById($DebtorNumberId))) {
             $Global = $this->getGlobal();
             $Global->POST['DebtorNumber']['Number'] = $tblDebtorNumber->getDebtorNumber();
             $Global->savePost();
         }
 
-        return self::formDebtorNumber($Identifier, $GroupId, $PersonId, $DebtorNumberId);
+        return self::formDebtorNumber($Identifier, $PersonId, $DebtorNumberId);
     }
 
     /**
      * @param string $Identifier
-     * @param string $GroupId
+     * @param string $PersonId
      * @param string $DebtorNumberId
      *
      * @return string
      */
-    public function showDeleteDebtorNumber($Identifier = '', $GroupId = '', $DebtorNumberId = '')
+    public function showDeleteDebtorNumber($Identifier = '', $PersonId = '', $DebtorNumberId = '')
     {
 
         $tblDebtorNumber = Debtor::useService()->getDebtorNumberById($DebtorNumberId);
 
 
-        if($tblDebtorNumber){
+        if($tblDebtorNumber) {
             $PersonString = 'Person nicht gefunden!';
-            if(($tblPerson = $tblDebtorNumber->getServiceTblPerson())){
+            if(($tblPerson = $tblDebtorNumber->getServiceTblPerson())) {
                 $PersonString = $tblPerson->getFullName();
             }
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
@@ -478,8 +475,9 @@ class ApiDebtor extends Extension implements IApiInterface
                         ),
                         new LayoutColumn(
                             (new DangerLink('Ja', self::getEndpoint(), new Ok()))
-                            ->ajaxPipelineOnClick(self::pipelineDeleteDebtorNumber($Identifier, $GroupId, $DebtorNumberId))
-                            .new Close('Nein', new Disable())
+                                ->ajaxPipelineOnClick(self::pipelineDeleteDebtorNumber($Identifier, $PersonId,
+                                    $DebtorNumberId))
+                            . new Close('Nein', new Disable())
                         )
                     ))
                 )
@@ -492,17 +490,19 @@ class ApiDebtor extends Extension implements IApiInterface
 
     /**
      * @param string $Identifier
-     * @param string $GroupId
+     * @param string $PersonId
      * @param string $DebtorNumberId
+     *
      * @return string
      */
-    public function deleteDebtorNumber($Identifier = '', $GroupId = '', $DebtorNumberId = '')
+    public function deleteDebtorNumber($Identifier = '', $PersonId = '', $DebtorNumberId = '')
     {
 
-        if(($tblDebtorNumber = Debtor::useService()->getDebtorNumberById($DebtorNumberId))){
+        if(($tblDebtorNumber = Debtor::useService()->getDebtorNumberById($DebtorNumberId))) {
             Debtor::useService()->removeDebtorNumber($tblDebtorNumber);
 
-            return new Success('Debitor-Nummer wurde erfolgreich entfernt'). self::pipelineCloseModal($Identifier, $GroupId);
+            return new Success('Debitor-Nummer wurde erfolgreich entfernt') . self::pipelineCloseModal($Identifier,
+                    $PersonId);
         }
         return new Danger('Debitor-Nummer konnte nicht entfernt werden');
     }
