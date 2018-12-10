@@ -3,6 +3,7 @@ namespace SPHERE\Application\Api\Billing\Accounting;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Billing\Accounting\Causer\Causer;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
@@ -13,6 +14,7 @@ use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Repository\Button\Close;
+use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -36,10 +38,10 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\System\Extension\Extension;
 
 /**
- * Class ApiDebtor
+ * Class ApiBankReference
  * @package SPHERE\Application\Api\Billing\Accounting
  */
-class ApiDebtor extends Extension implements IApiInterface
+class ApiBankReference extends Extension implements IApiInterface
 {
 
     // registered method
@@ -49,14 +51,14 @@ class ApiDebtor extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
         // reload Panel content
-        $Dispatcher->registerMethod('getDebtorNumberContent');
-        // DebtorNumber / Debitor Nummer
-        $Dispatcher->registerMethod('showAddDebtorNumber');
-        $Dispatcher->registerMethod('saveAddDebtorNumber');
-        $Dispatcher->registerMethod('showEditDebtorNumber');
-        $Dispatcher->registerMethod('saveEditDebtorNumber');
-        $Dispatcher->registerMethod('showDeleteDebtorNumber');
-        $Dispatcher->registerMethod('deleteDebtorNumber');
+        $Dispatcher->registerMethod('getReferenceContent');
+        // Reference
+        $Dispatcher->registerMethod('showAddReference');
+        $Dispatcher->registerMethod('saveAddReference');
+        $Dispatcher->registerMethod('showEditReference');
+        $Dispatcher->registerMethod('saveEditReference');
+        $Dispatcher->registerMethod('showDeleteReference');
+        $Dispatcher->registerMethod('deleteReference');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -87,23 +89,23 @@ class ApiDebtor extends Extension implements IApiInterface
     /**
      * @param string $Identifier
      * @param string $PersonId
-     * @param array  $DebtorNumber
+     * @param array  $Reference
      *
      * @return Pipeline
      */
-    public static function pipelineOpenAddDebtorNumberModal($Identifier = '', $PersonId = '', $DebtorNumber = array())
+    public static function pipelineOpenAddReferenceModal($Identifier = '', $PersonId = '', $Reference = array())
     {
 
         $Receiver = self::receiverModal(null, $Identifier);
         $Pipeline = new Pipeline();
         $Emitter = new ServerEmitter($Receiver, self::getEndpoint());
         $Emitter->setGetPayload(array(
-            self::API_TARGET => 'showAddDebtorNumber'
+            self::API_TARGET => 'showAddReference'
         ));
         $Emitter->setPostPayload(array(
             'Identifier'   => $Identifier,
             'PersonId'     => $PersonId,
-            'DebtorNumber' => $DebtorNumber
+            'Reference' => $Reference
         ));
         $Pipeline->appendEmitter($Emitter);
 
@@ -116,14 +118,14 @@ class ApiDebtor extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineSaveAddDebtorNumber($Identifier = '', $PersonId = '')
+    public static function pipelineSaveAddReference($Identifier = '', $PersonId = '')
     {
 
         $Receiver = self::receiverModal(null, $Identifier);
         $Pipeline = new Pipeline();
         $Emitter = new ServerEmitter($Receiver, self::getEndpoint());
         $Emitter->setGetPayload(array(
-            self::API_TARGET => 'saveAddDebtorNumber'
+            self::API_TARGET => 'saveAddReference'
         ));
         $Emitter->setPostPayload(array(
             'Identifier' => $Identifier,
@@ -137,26 +139,26 @@ class ApiDebtor extends Extension implements IApiInterface
     /**
      * @param string     $Identifier
      * @param string     $PersonId
-     * @param int|string $DebtorNumberId
-     * @param array      $DebtorNumber
+     * @param int|string $ReferenceId
+     * @param array      $Reference
      *
      * @return Pipeline
      */
-    public static function pipelineOpenEditDebtorNumberModal($Identifier = '', $PersonId = '', $DebtorNumberId = '',
-        $DebtorNumber = array()
+    public static function pipelineOpenEditReferenceModal($Identifier = '', $PersonId = '', $ReferenceId = '',
+        $Reference = array()
     ) {
 
         $Receiver = self::receiverModal(null, $Identifier);
         $Pipeline = new Pipeline(true);
         $Emitter = new ServerEmitter($Receiver, self::getEndpoint());
         $Emitter->setGetPayload(array(
-            self::API_TARGET => 'showEditDebtorNumber'
+            self::API_TARGET => 'showEditReference'
         ));
         $Emitter->setPostPayload(array(
             'Identifier'     => $Identifier,
             'PersonId'       => $PersonId,
-            'DebtorNumberId' => $DebtorNumberId,
-            'DebtorNumber'   => $DebtorNumber
+            'ReferenceId' => $ReferenceId,
+            'Reference'   => $Reference
         ));
         $Pipeline->appendEmitter($Emitter);
 
@@ -166,23 +168,23 @@ class ApiDebtor extends Extension implements IApiInterface
     /**
      * @param string     $Identifier
      * @param string     $PersonId
-     * @param int|string $DebtorNumberId
+     * @param int|string $ReferenceId
      *
      * @return Pipeline
      */
-    public static function pipelineSaveEditDebtorNumber($Identifier = '', $PersonId = '', $DebtorNumberId = '')
+    public static function pipelineSaveEditReference($Identifier = '', $PersonId = '', $ReferenceId = '')
     {
 
         $Receiver = self::receiverModal(null, $Identifier);
         $Pipeline = new Pipeline(true);
         $Emitter = new ServerEmitter($Receiver, self::getEndpoint());
         $Emitter->setGetPayload(array(
-            self::API_TARGET => 'saveEditDebtorNumber'
+            self::API_TARGET => 'saveEditReference'
         ));
         $Emitter->setPostPayload(array(
             'Identifier'     => $Identifier,
             'PersonId'       => $PersonId,
-            'DebtorNumberId' => $DebtorNumberId
+            'ReferenceId' => $ReferenceId
         ));
         $Pipeline->appendEmitter($Emitter);
 
@@ -192,23 +194,23 @@ class ApiDebtor extends Extension implements IApiInterface
     /**
      * @param string     $Identifier
      * @param string     $PersonId
-     * @param int|string $DebtorNumberId
+     * @param int|string $ReferenceId
      *
      * @return Pipeline
      */
-    public static function pipelineOpenDeleteDebtorNumberModal($Identifier = '', $PersonId = '', $DebtorNumberId = '')
+    public static function pipelineOpenDeleteReferenceModal($Identifier = '', $PersonId = '', $ReferenceId = '')
     {
 
         $Receiver = self::receiverModal(null, $Identifier);
         $Pipeline = new Pipeline();
         $Emitter = new ServerEmitter($Receiver, self::getEndpoint());
         $Emitter->setGetPayload(array(
-            self::API_TARGET => 'showDeleteDebtorNumber'
+            self::API_TARGET => 'showDeleteReference'
         ));
         $Emitter->setPostPayload(array(
             'Identifier'     => $Identifier,
             'PersonId'       => $PersonId,
-            'DebtorNumberId' => $DebtorNumberId,
+            'ReferenceId' => $ReferenceId,
         ));
         $Pipeline->appendEmitter($Emitter);
 
@@ -218,23 +220,23 @@ class ApiDebtor extends Extension implements IApiInterface
     /**
      * @param string     $Identifier
      * @param string     $PersonId
-     * @param int|string $DebtorNumberId
+     * @param int|string $ReferenceId
      *
      * @return Pipeline
      */
-    public static function pipelineDeleteDebtorNumber($Identifier = '', $PersonId = '', $DebtorNumberId = '')
+    public static function pipelineDeleteReference($Identifier = '', $PersonId = '', $ReferenceId = '')
     {
 
         $Receiver = self::receiverModal(null, $Identifier);
         $Pipeline = new Pipeline();
         $Emitter = new ServerEmitter($Receiver, self::getEndpoint());
         $Emitter->setGetPayload(array(
-            self::API_TARGET => 'deleteDebtorNumber'
+            self::API_TARGET => 'deleteReference'
         ));
         $Emitter->setPostPayload(array(
             'Identifier'     => $Identifier,
             'PersonId'       => $PersonId,
-            'DebtorNumberId' => $DebtorNumberId,
+            'ReferenceId' => $ReferenceId,
         ));
         $Pipeline->appendEmitter($Emitter);
 
@@ -253,7 +255,7 @@ class ApiDebtor extends Extension implements IApiInterface
         // reload the whole Table
         $Emitter = new ServerEmitter(self::receiverPanelContent(''), self::getEndpoint());
         $Emitter->setGetPayload(array(
-            self::API_TARGET => 'getDebtorNumberContent'
+            self::API_TARGET => 'getReferenceContent'
         ));
         $Emitter->setPostPayload(array(
             'PersonId' => $PersonId
@@ -268,38 +270,41 @@ class ApiDebtor extends Extension implements IApiInterface
      *
      * @return string
      */
-    public function getDebtorNumberContent($PersonId)
+    public function getReferenceContent($PersonId)
     {
 
-        return Debtor::useFrontend()->getDebtorNumberContent($PersonId);
+        return Causer::useFrontend()->getReferenceContent($PersonId);
     }
 
     /**
      * @param string     $Identifier
      * @param string     $PersonId
-     * @param int|string $DebtorNumberId
+     * @param int|string $ReferenceId
      *
      * @return IFormInterface $Form
      */
-    public function formDebtorNumber($Identifier = '', $PersonId = '', $DebtorNumberId = '')
+    public function formReference($Identifier = '', $PersonId = '', $ReferenceId = '')
     {
 
         // choose between Add and Edit
         $SaveButton = new Primary('Speichern', self::getEndpoint(), new Save());
-        if('' !== $DebtorNumberId) {
-            $SaveButton->ajaxPipelineOnClick(self::pipelineSaveEditDebtorNumber($Identifier, $PersonId,
-                $DebtorNumberId));
+        if('' !== $ReferenceId) {
+            $SaveButton->ajaxPipelineOnClick(self::pipelineSaveEditReference($Identifier, $PersonId,
+                $ReferenceId));
         } else {
-            $SaveButton->ajaxPipelineOnClick(self::pipelineSaveAddDebtorNumber($Identifier, $PersonId));
+            $SaveButton->ajaxPipelineOnClick(self::pipelineSaveAddReference($Identifier, $PersonId));
         }
 
         return (new Form(
             new FormGroup(array(
-                new FormRow(
+                new FormRow(array(
                     new FormColumn(
-                        (new TextField('DebtorNumber[Number]', 'Debitor-Nummer', 'Debitor-Nummer'))->setRequired()
+                        (new TextField('Reference[Number]', 'Referenznummer', 'Referenznummer'))->setRequired()
+                        , 6),
+                    new FormColumn(
+                        (new DatePicker('Reference[Date]', 'Datum', 'Gültig ab'))->setRequired()
                         , 6)
-                ),
+                )),
                 new FormRow(
                     new FormColumn(
                         $SaveButton
@@ -312,30 +317,34 @@ class ApiDebtor extends Extension implements IApiInterface
     /**
      * @param string $Identifier
      * @param string $PersonId
-     * @param string $DebtorNumberId
-     * @param array  $DebtorNumber
+     * @param string $ReferenceId
+     * @param array  $Reference
      *
      * @return false|string|Form
      */
-    private function checkInputDebtorNumber($Identifier = '', $PersonId = '', $DebtorNumberId = '',
-        $DebtorNumber = array()
+    private function checkInputReference($Identifier = '', $PersonId = '', $ReferenceId = '',
+        $Reference = array()
     ) {
 
         $Error = false;
-        $form = $this->formDebtorNumber($Identifier, $PersonId, $DebtorNumberId);
-        if(isset($DebtorNumber['Number']) && empty($DebtorNumber['Number'])) {
-            $form->setError('DebtorNumber[Number]', 'Bitte geben Sie eine Debitor-Nummer an');
+        $form = $this->formReference($Identifier, $PersonId, $ReferenceId);
+        if(isset($Reference['Number']) && empty($Reference['Number'])) {
+            $form->setError('Reference[Number]', 'Bitte geben Sie eine Referenznummer an');
             $Error = true;
         } else {
-            if(($tblDebtorNumber = Debtor::useService()->getDebtorNumberByNumber($DebtorNumber['Number']))) {
+            if(($tblReference = Debtor::useService()->getBankReferenceByReference($Reference['Number']))) {
                 $tblPerson = Person::useService()->getPersonById($PersonId);
-                if($tblPerson && ($tblPersonCompare = $tblDebtorNumber->getServiceTblPerson())
+                if($tblPerson && ($tblPersonCompare = $tblReference->getServiceTblPerson())
                     && $tblPerson->getId() !== $tblPersonCompare->getId()) {
-                    $form->setError('DebtorNumber[Number]',
-                        'Bitte geben sie eine noch nicht vergebene Debitor-Nummer an');
+                    $form->setError('Reference[Number]',
+                        'Bitte geben sie eine noch nicht vergebene Referenznummer an');
                     $Error = true;
                 }
             }
+        }
+        if(isset($Reference['Date']) && empty($Reference['Date'])) {
+            $form->setError('Reference[Date]', 'Bitte geben Sie ein Datum an');
+            $Error = true;
         }
 
         if($Error) {
@@ -352,112 +361,113 @@ class ApiDebtor extends Extension implements IApiInterface
      *
      * @return string
      */
-    public function showAddDebtorNumber($Identifier = '', $PersonId = '')
+    public function showAddReference($Identifier = '', $PersonId = '')
     {
 
-        return Debtor::useFrontend()->getPersonPanel($PersonId) . new Well($this->formDebtorNumber($Identifier,
+        return Debtor::useFrontend()->getPersonPanel($PersonId) . new Well($this->formReference($Identifier,
                 $PersonId));
     }
 
     /**
      * @param string $Identifier
      * @param string $PersonId
-     * @param array  $DebtorNumber
+     * @param array  $Reference
      *
      * @return string
      */
-    public function saveAddDebtorNumber($Identifier = '', $PersonId = '', $DebtorNumber = array())
+    public function saveAddReference($Identifier = '', $PersonId = '', $Reference = array())
     {
 
         // Handle error's
-        if($form = $this->checkInputDebtorNumber($Identifier, $PersonId, '', $DebtorNumber)) {
+        if($form = $this->checkInputReference($Identifier, $PersonId, '', $Reference)) {
 
             // display Errors on form
             $Global = $this->getGlobal();
-            $Global->POST['DebtorNumber']['Number'] = $DebtorNumber['Number'];
+            $Global->POST['Reference']['Number'] = $Reference['Number'];
             $Global->savePost();
             return Debtor::useFrontend()->getPersonPanel($PersonId) . $form;
         }
 
         if(($tblPerson = Person::useService()->getPersonById($PersonId))) {
-            $tblDebtorNumber = Debtor::useService()->createDebtorNumber($tblPerson, $DebtorNumber['Number']);
-            if($tblDebtorNumber) {
-                return new Success('Debitor-Nummer erfolgreich angelegt') . self::pipelineCloseModal($Identifier,
+            $tblReference = Debtor::useService()->createBankReference($tblPerson, $Reference['Number'], $Reference['Date']);
+            if($tblReference) {
+                return new Success('Referenznummer erfolgreich angelegt') . self::pipelineCloseModal($Identifier,
                         $PersonId);
             } else {
-                return new Danger('Debitor-Nummer konnte nicht gengelegt werden');
+                return new Danger('Referenznummer konnte nicht gengelegt werden');
             }
         } else {
-            return new Danger('Debitor-Nummer konnte nicht gengelegt werden(Person nicht vorhanden)');
+            return new Danger('Referenznummer konnte nicht gengelegt werden(Person nicht vorhanden)');
         }
     }
 
     /**
      * @param string     $Identifier
      * @param string     $PersonId
-     * @param int|string $DebtorNumberId
-     * @param array      $DebtorNumber
+     * @param int|string $ReferenceId
+     * @param array      $Reference
      *
      * @return string
      */
-    public function saveEditDebtorNumber($Identifier = '', $PersonId = '', $DebtorNumberId = '', $DebtorNumber = array()
+    public function saveEditReference($Identifier = '', $PersonId = '', $ReferenceId = '', $Reference = array()
     ) {
 
         // Handle error's
-        if($form = $this->checkInputDebtorNumber($Identifier, $PersonId, $DebtorNumberId, $DebtorNumber)) {
+        if($form = $this->checkInputReference($Identifier, $PersonId, $ReferenceId, $Reference)) {
             // display Errors on form
             $Global = $this->getGlobal();
-            $Global->POST['DebtorNumber']['Number'] = $DebtorNumber['Number'];
+            $Global->POST['Reference']['Number'] = $Reference['Number'];
             $Global->savePost();
             return $form;
         }
 
         $IsChange = false;
-        if(($tblDebtorNumber = Debtor::useService()->getDebtorNumberById($DebtorNumberId))) {
-            $IsChange = Debtor::useService()->changeDebtorNumber($tblDebtorNumber, $DebtorNumber['Number']);
+        if(($tblReference = Debtor::useService()->getBankReferenceById($ReferenceId))) {
+            $IsChange = Debtor::useService()->changeBankReference($tblReference, $Reference['Number'], $Reference['Date']);
         }
 
         return ($IsChange
-            ? new Success('Debitor-Nummer erfolgreich geändert') . self::pipelineCloseModal($Identifier, $PersonId)
-            : new Danger('Debitor-Nummer konnte nicht geändert werden'));
+            ? new Success('Referenznummer erfolgreich geändert') . self::pipelineCloseModal($Identifier, $PersonId)
+            : new Danger('Referenznummer konnte nicht geändert werden'));
     }
 
     /**
      * @param string     $Identifier
      * @param string     $PersonId
-     * @param int|string $DebtorNumberId
+     * @param int|string $ReferenceId
      *
      * @return string
      */
-    public function showEditDebtorNumber($Identifier = '', $PersonId = '', $DebtorNumberId = '')
+    public function showEditReference($Identifier = '', $PersonId = '', $ReferenceId = '')
     {
 
-        if('' !== $DebtorNumberId && ($tblDebtorNumber = Debtor::useService()->getDebtorNumberById($DebtorNumberId))) {
+        if('' !== $ReferenceId && ($tblReference = Debtor::useService()->getBankReferenceById($ReferenceId))) {
             $Global = $this->getGlobal();
-            $Global->POST['DebtorNumber']['Number'] = $tblDebtorNumber->getDebtorNumber();
+            $Global->POST['Reference']['Number'] = $tblReference->getReferenceNumber();
+            $Global->POST['Reference']['Date'] = $tblReference->getReferenceDate();
             $Global->savePost();
         }
 
         return Debtor::useFrontend()->getPersonPanel($PersonId)
-            . new Well(self::formDebtorNumber($Identifier, $PersonId, $DebtorNumberId));
+            . new Well(self::formReference($Identifier, $PersonId, $ReferenceId));
     }
 
     /**
      * @param string $Identifier
      * @param string $PersonId
-     * @param string $DebtorNumberId
+     * @param string $ReferenceId
      *
      * @return string
      */
-    public function showDeleteDebtorNumber($Identifier = '', $PersonId = '', $DebtorNumberId = '')
+    public function showDeleteReference($Identifier = '', $PersonId = '', $ReferenceId = '')
     {
 
-        $tblDebtorNumber = Debtor::useService()->getDebtorNumberById($DebtorNumberId);
+        $tblReference = Debtor::useService()->getBankReferenceById($ReferenceId);
 
 
-        if($tblDebtorNumber) {
+        if($tblReference) {
             $PersonString = 'Person nicht gefunden!';
-            if(($tblPerson = $tblDebtorNumber->getServiceTblPerson())) {
+            if(($tblPerson = $tblReference->getServiceTblPerson())) {
                 $PersonString = $tblPerson->getFullName();
             }
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
@@ -465,21 +475,25 @@ class ApiDebtor extends Extension implements IApiInterface
                 new LayoutColumn(new Bold($PersonString), 10),
             ))));
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn('Debitor-Nummer: ', 2),
-                new LayoutColumn(new Bold($tblDebtorNumber->getDebtorNumber()), 10),
+                new LayoutColumn('Referenznummer: ', 2),
+                new LayoutColumn(new Bold($tblReference->getReferenceNumber()), 10),
+            ))));
+            $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Gültig ab: ', 2),
+                new LayoutColumn(new Bold($tblReference->getReferenceDate()), 10),
             ))));
 
             return new Layout(
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel('Soll die Debitor-Nummer wirklich entfernt werden?'
+                            new Panel('Soll die Referenznummer wirklich entfernt werden?'
                                 , $Content, Panel::PANEL_TYPE_DANGER)
                         ),
                         new LayoutColumn(
                             (new DangerLink('Ja', self::getEndpoint(), new Ok()))
-                                ->ajaxPipelineOnClick(self::pipelineDeleteDebtorNumber($Identifier, $PersonId,
-                                    $DebtorNumberId))
+                                ->ajaxPipelineOnClick(self::pipelineDeleteReference($Identifier, $PersonId,
+                                    $ReferenceId))
                             . new Close('Nein', new Disable())
                         )
                     ))
@@ -487,27 +501,27 @@ class ApiDebtor extends Extension implements IApiInterface
             );
 
         } else {
-            return new Warning('Debitor-Nummer wurde nicht gefunden');
+            return new Warning('Referenznummer wurde nicht gefunden');
         }
     }
 
     /**
      * @param string $Identifier
      * @param string $PersonId
-     * @param string $DebtorNumberId
+     * @param string $ReferenceId
      *
      * @return string
      */
-    public function deleteDebtorNumber($Identifier = '', $PersonId = '', $DebtorNumberId = '')
+    public function deleteReference($Identifier = '', $PersonId = '', $ReferenceId = '')
     {
 
-        if(($tblDebtorNumber = Debtor::useService()->getDebtorNumberById($DebtorNumberId))) {
-            Debtor::useService()->removeDebtorNumber($tblDebtorNumber);
+        if(($tblReference = Debtor::useService()->getBankReferenceById($ReferenceId))) {
+            Debtor::useService()->removeBankReference($tblReference);
 
-            return new Success('Debitor-Nummer wurde erfolgreich entfernt') . self::pipelineCloseModal($Identifier,
+            return new Success('Referenznummer wurde erfolgreich entfernt') . self::pipelineCloseModal($Identifier,
                     $PersonId);
         }
-        return new Danger('Debitor-Nummer konnte nicht entfernt werden');
+        return new Danger('Referenznummer konnte nicht entfernt werden');
     }
 
 }

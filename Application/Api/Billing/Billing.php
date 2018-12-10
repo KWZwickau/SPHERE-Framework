@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Api\Billing;
 
 use SPHERE\Application\Api\Billing\Accounting\ApiBankAccount;
+use SPHERE\Application\Api\Billing\Accounting\ApiBankReference;
 use SPHERE\Application\Api\Billing\Accounting\ApiCreditor;
 use SPHERE\Application\Api\Billing\Accounting\ApiDebtor;
 use SPHERE\Application\Api\Billing\Inventory\ApiItem;
@@ -25,5 +26,6 @@ class Billing implements IApplicationInterface
         ApiCreditor::registerApi();
         ApiDebtor::registerApi();
         ApiBankAccount::registerApi();
+        ApiBankReference::registerApi();
     }
 }

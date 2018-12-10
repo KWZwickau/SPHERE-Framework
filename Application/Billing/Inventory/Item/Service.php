@@ -190,6 +190,35 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblItemVariant $tblItemVariant
+     *
+     * @return bool|TblItemCalculation
+     */
+    public function getItemCalculationNowByItemVariant(TblItemVariant $tblItemVariant)
+    {
+
+        $tblItemCalculationActive = false;
+        $tblItemCalculationList = (new Data($this->getBinding()))->getItemCalculationByItemVariant($tblItemVariant);
+        if($tblItemCalculationList){
+           foreach($tblItemCalculationList as $tblItemCalculation){
+               $now = new \DateTime();
+               $from = new \DateTime($tblItemCalculation->getDateFrom());
+               if(($tblItemCalculation->getDateTo())){
+                   $to = new \DateTime($tblItemCalculation->getDateTo());
+               } else {
+                   $to = false;
+               }
+               if($from <= $now && $to && $to >= $now){
+                   $tblItemCalculationActive = $tblItemCalculation;
+               } elseif($from <= $now && !$to && false === $tblItemCalculationActive){
+                   $tblItemCalculationActive = $tblItemCalculation;
+               }
+           }
+        }
+        return $tblItemCalculationActive;
+    }
+
+    /**
      * @return bool|TblItem[]
      */
     public function getItemAll()

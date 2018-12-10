@@ -64,12 +64,12 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Well(
+                            new Title('Länge der Debitorennummer: '
+                                . (new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
+                                    ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT,
+                                        'Länge der Debitorennummer')))
+                            .new Well(
                                 ApiSetting::receiverModalSetting()
-                                . new Title('Länge der Debitorennummer: '
-                                    . (new Link('', ApiSetting::getEndpoint(), new Pen()))
-                                        ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT,
-                                            'Länge der Debitorennummer')))
                                 . new Layout(new LayoutGroup(new LayoutRow(
                                     new LayoutColumn(
                                         new Listing(array($DebtorCountReceiver))
@@ -78,31 +78,26 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         ),
                         new LayoutColumn(
-                            new Well(
-                                new Title('Gruppen, die zur Auswahl stehen: ' . (new Link('',
-                                        ApiSetting::getEndpoint(), new Pen()))
-                                        ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting('PersonGroup',
-                                            'PersonGroup')))
-                                . new Layout(new LayoutGroup(new LayoutRow(
-                                    new LayoutColumn(
-                                        $PersonGroupAsString
-                                        , 12)
-                                )))
-                            )
+                            new Title('Gruppen, die zur Auswahl stehen: '
+                                . (new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
+                                    ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting('PersonGroup',
+                                        'PersonGroup')))
+                            .new Well($PersonGroupAsString)
                         ),
                         new LayoutColumn(
+                            new Title('Mögliche weitere Einstellungen: '
+                                . (new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
+                                    ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting('Test_anderer_Werte',
+                                        'Mögliche weitere Einstellungen')))
+                            .
                             new Well(
-                                new Title('Mögliche weitere Einstellungen: '
-                                    . (new Link('', ApiSetting::getEndpoint(), new Pen()))
-                                        ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting('Test_anderer_Werte',
-                                            'Mögliche weitere Einstellungen')))
-                                . new Layout(new LayoutGroup(new LayoutRow(
+                                new Layout(new LayoutGroup(new LayoutRow(
                                     new LayoutColumn(
                                         new Listing(array($TestReceiver))
                                         , 4)
                                 )))
                             )
-                        ),
+                        )
                     ))
                 )
             )
@@ -111,6 +106,9 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @return Layout|string
+     */
     public function displayPersonGroupLoad()
     {
         if(($tblSettingGroupPersonList = Setting::useService()->getSettingGroupPersonAll())) {

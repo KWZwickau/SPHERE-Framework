@@ -132,6 +132,28 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblBankReference[]
+     */
+    public function getBankReferenceByPerson(TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->getBankReferenceByPerson($tblPerson);
+    }
+
+    /**
+     * @param $ReferenceNumber
+     *
+     * @return false|TblBankReference
+     */
+    public function getBankReferenceByReference($ReferenceNumber)
+    {
+
+        return (new Data($this->getBinding()))->getBankReferenceByReference($ReferenceNumber);
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblDebtorSelection

@@ -21,8 +21,6 @@ class Data extends AbstractData
         $this->createSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT, '7');
         $this->createSetting('Test_anderer_Werte', 'Mann');
 
-        $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_COMMON);
-        $this->createSettingGroupPerson($tblGroup);
         $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
         $this->createSettingGroupPerson($tblGroup);
         $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_PROSPECT);

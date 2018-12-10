@@ -104,6 +104,34 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblBankReference[]
+     */
+    public function getBankReferenceByPerson(TblPerson $tblPerson)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBankReference',
+            array(
+                TblBankReference::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+    }
+
+    /**
+     * @param $ReferenceNumber
+     *
+     * @return false|TblBankReference
+     */
+    public function getBankReferenceByReference($ReferenceNumber)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBankReference',
+            array(
+                TblBankReference::ATTR_REFERENCE_NUMBER => $ReferenceNumber
+            ));
+    }
+
+    /**
      * @param $Id
      *
      * @return false|TblDebtorSelection

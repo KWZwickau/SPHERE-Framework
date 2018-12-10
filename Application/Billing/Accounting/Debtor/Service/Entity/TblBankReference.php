@@ -26,7 +26,7 @@ class TblBankReference extends Element
      */
     protected $ReferenceNumber;
     /**
-     * @Column(type="date")
+     * @Column(type="datetime")
      */
     protected $ReferenceDate;
     /**

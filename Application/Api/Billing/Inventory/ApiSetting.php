@@ -180,6 +180,13 @@ class ApiSetting extends Extension implements IApiInterface
             }
             $LeftList = $RightList = array();
             if(($tblGroupAll = Group::useService()->getGroupAll())) {
+                foreach ($tblGroupAll as &$tblGroup) {
+                    if($tblGroup->getMetaTable() === 'COMMON') {
+                        $tblGroup = false;
+                    }
+                }
+                $tblGroupAll = array_filter($tblGroupAll);
+
                 $tblGroupAll = $this->getSorter($tblGroupAll)->sortObjectBy('Name');
                 // sort left Standard, right Individual
                 array_walk($tblGroupAll, function (TblGroup $tblGroup) use (&$LeftList, &$RightList) {
