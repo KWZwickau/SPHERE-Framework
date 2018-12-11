@@ -5,7 +5,8 @@ namespace SPHERE\Application\Api\People\Person;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\IApiInterface;
-use SPHERE\Application\People\Person\FrontendReadOnly;
+use SPHERE\Application\People\Person\Frontend\FrontendBasic;
+use SPHERE\Application\People\Person\Frontend\FrontendCommon;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -31,6 +32,7 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
         $Dispatcher = new Dispatcher(__CLASS__);
 
         $Dispatcher->registerMethod('loadBasicContent');
+        $Dispatcher->registerMethod('loadCommonContent');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -69,6 +71,27 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
     }
 
     /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadCommonContent($PersonId)
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'CommonContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'loadCommonContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
      * @param null $PersonId
      *
      * @return string
@@ -76,6 +99,17 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
     public function loadBasicContent($PersonId = null)
     {
 
-        return FrontendReadOnly::getBasicContent($PersonId);
+        return FrontendBasic::getBasicContent($PersonId);
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function loadCommonContent($PersonId = null)
+    {
+
+        return FrontendCommon::getCommonContent($PersonId);
     }
 }

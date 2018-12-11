@@ -68,6 +68,8 @@ class Service extends AbstractService
     public function createMeta(IFormInterface $Form = null, TblPerson $tblPerson, $Meta, $Group = null)
     {
 
+        // todo remove
+
         /**
          * Skip to Frontend
          */
@@ -115,6 +117,56 @@ class Service extends AbstractService
         }
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Daten wurde erfolgreich gespeichert')
         .new Redirect(null, Redirect::TIMEOUT_SUCCESS);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $Meta
+     *
+     * @return bool|TblCommon
+     */
+    public function updateMetaService(TblPerson $tblPerson, $Meta)
+    {
+        $tblCommon = $this->getCommonByPerson($tblPerson, true);
+        if ($tblCommon) {
+            (new Data($this->getBinding()))->updateCommonBirthDates(
+                $tblCommon->getTblCommonBirthDates(),
+                $Meta['BirthDates']['Birthday'],
+                $Meta['BirthDates']['Birthplace'],
+                $Meta['BirthDates']['Gender']
+            );
+            (new Data($this->getBinding()))->updateCommonInformation(
+                $tblCommon->getTblCommonInformation(),
+                $Meta['Information']['Nationality'],
+                $Meta['Information']['Denomination'],
+                $Meta['Information']['IsAssistance'],
+                $Meta['Information']['AssistanceActivity']
+            );
+
+            return (new Data($this->getBinding()))->updateCommon(
+                $tblCommon,
+                $Meta['Remark']
+            );
+        } else {
+            $tblCommonBirthDates = (new Data($this->getBinding()))->createCommonBirthDates(
+                $Meta['BirthDates']['Birthday'],
+                $Meta['BirthDates']['Birthplace'],
+                $Meta['BirthDates']['Gender']
+            );
+            $tblCommonInformation = (new Data($this->getBinding()))->createCommonInformation(
+                $Meta['Information']['Nationality'],
+                $Meta['Information']['Denomination'],
+                $Meta['Information']['IsAssistance'],
+                $Meta['Information']['AssistanceActivity']
+            );
+
+            return (new Data($this->getBinding()))->createCommon(
+                $tblPerson,
+                $tblCommonBirthDates,
+                $tblCommonInformation,
+                $Meta['Remark']
+            );
+        }
     }
 
     /**

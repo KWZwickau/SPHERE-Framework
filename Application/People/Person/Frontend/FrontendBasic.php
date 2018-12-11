@@ -1,11 +1,20 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: Kauschke
+ * Date: 11.12.2018
+ * Time: 12:16
+ */
 
-namespace SPHERE\Application\People\Person;
+namespace SPHERE\Application\People\Person\Frontend;
 
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Person\FrontendReadOnly;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Person\TemplateReadOnly;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
@@ -17,25 +26,93 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\PersonParent;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 
 /**
- * Class FrontendEdit
+ * Class FrontendBasic
  *
- * @package SPHERE\Application\People\Person
+ * @package SPHERE\Application\People\Person\Frontend
  */
-class FrontendEdit extends FrontendReadOnly
+class FrontendBasic extends FrontendReadOnly
 {
+
+    const TITLE = 'Grunddaten';
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public static function getBasicContent($PersonId = null)
+    {
+        if (($tblPerson = Person::useService()->getPersonById($PersonId, true))) {
+            $groups = array();
+            if (($tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson))) {
+                foreach ($tblGroupList as $tblGroup) {
+                    $groups[] = $tblGroup->getName();
+                }
+            }
+
+            $content = new Layout(new LayoutGroup(array(
+                new LayoutRow(array(
+                    self::getLayoutColumnLabel('Anrede'),
+                    self::getLayoutColumnValue($tblPerson->getSalutation()),
+                    self::getLayoutColumnLabel('Vorname'),
+                    self::getLayoutColumnValue($tblPerson->getFirstName()),
+                    self::getLayoutColumnLabel('Nachname'),
+                    self::getLayoutColumnValue($tblPerson->getLastName()),
+                )),
+                new LayoutRow(array(
+                    self::getLayoutColumnLabel('Titel'),
+                    self::getLayoutColumnValue($tblPerson->getTitle()),
+                    self::getLayoutColumnLabel('Zweiter Vorname'),
+                    self::getLayoutColumnValue($tblPerson->getSecondName()),
+                    self::getLayoutColumnLabel('Geburtsname'),
+                    self::getLayoutColumnValue($tblPerson->getBirthName()),
+                )),
+                new LayoutRow(array(
+                    self::getLayoutColumnEmpty(),
+                    self::getLayoutColumnEmpty(),
+                    self::getLayoutColumnLabel('Rufname'),
+                    self::getLayoutColumnValue($tblPerson->getCallName()),
+                    self::getLayoutColumnEmpty(),
+                    self::getLayoutColumnEmpty(),
+                )),
+                new LayoutRow(array(
+                    self::getLayoutColumnLabel('Gruppen'),
+                    self::getLayoutColumnValue(implode(', ', $groups), 10),
+                )),
+            )));
+
+            $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
+                ->ajaxPipelineOnClick(ApiPersonEdit::pipelineEditBasicContent($PersonId));
+
+            return TemplateReadOnly::getContent(
+                self::TITLE,
+                $content,
+                array($editLink),
+                'der Person' . new Bold(new Success($tblPerson->getFullName())),
+                new PersonParent()
+            );
+        }
+
+        return '';
+    }
 
     /**
      * @param null $PersonId
@@ -73,12 +150,22 @@ class FrontendEdit extends FrontendReadOnly
             . new Well($this->getEditBasicForm($tblPerson ? $tblPerson : null));
     }
 
+    /**
+     * @param TblPerson|null $tblPerson
+     *
+     * @return Title
+     */
     private function getEditBasicTitle(TblPerson $tblPerson = null)
     {
-        return new Title(new PersonParent() . ' Grunddaten', 'der Person'
+        return new Title(new PersonParent() . ' ' . self::TITLE, 'der Person'
             . ($tblPerson ? new Bold(new Success($tblPerson->getFullName())) : '') . ' bearbeiten');
     }
 
+    /**
+     * @param TblPerson|null $tblPerson
+     *
+     * @return Form
+     */
     private function getEditBasicForm(TblPerson $tblPerson = null)
     {
         $tblSalutationAll = Person::useService()->getSalutationAll();
