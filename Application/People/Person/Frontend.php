@@ -46,7 +46,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
-use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -73,7 +72,7 @@ use SPHERE\System\Extension\Extension;
  *
  * @package SPHERE\Application\People\Person
  */
-class Frontend extends Extension implements IFrontendInterface
+class Frontend extends FrontendEdit
 {
 
     /**

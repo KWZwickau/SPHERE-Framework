@@ -43,9 +43,13 @@ class Person extends Extension implements IApplicationInterface, IModuleInterfac
     public static function registerModule()
     {
 
+//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+//            __NAMESPACE__, 'Frontend::frontendPerson'
+//        ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, 'Frontend::frontendPerson'
+            __NAMESPACE__, 'FrontendReadOnly::frontendPersonReadOnly'
         ));
+
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy', __NAMESPACE__.'\Frontend::frontendDestroyPerson')
         );

@@ -291,6 +291,7 @@ class Service extends AbstractService
      */
     public function updatePerson(IFormInterface $Form = null, TblPerson $tblPerson, $Person, $Group)
     {
+        // todo remove method
 
         /**
          * Skip to Frontend
@@ -344,6 +345,44 @@ class Service extends AbstractService
         }
 
         return $Form;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $Person
+     *
+     * @return bool
+     */
+    public function updatePersonService(TblPerson $tblPerson, $Person)
+    {
+        if ((new Data($this->getBinding()))->updatePerson($tblPerson, $Person['Salutation'], $Person['Title'],
+            $Person['FirstName'], $Person['SecondName'], $Person['CallName'], $Person['LastName'], $Person['BirthName'])
+        ) {
+            // Change Groups
+            if (isset($Person['Group'])) {
+                // Remove all Groups
+                $tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
+                foreach ($tblGroupList as $tblGroup) {
+                    Group::useService()->removeGroupPerson($tblGroup, $tblPerson);
+                }
+                // Add current Groups
+                foreach ((array)$Person['Group'] as $tblGroup) {
+                    Group::useService()->addGroupPerson(
+                        Group::useService()->getGroupById($tblGroup), $tblPerson
+                    );
+                }
+            } else {
+                // Remove all Groups
+                $tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
+                foreach ($tblGroupList as $tblGroup) {
+                    Group::useService()->removeGroupPerson($tblGroup, $tblPerson);
+                }
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     /**

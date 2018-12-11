@@ -6,6 +6,8 @@ use SPHERE\Application\Api\People\Meta\MedicalRecord\MedicalRecordReadOnly;
 use SPHERE\Application\Api\People\Meta\Student\ApiStudent;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupport;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
+use SPHERE\Application\Api\People\Person\ApiPersonEdit;
+use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
 use SPHERE\Application\IApplicationInterface;
 
 /**
@@ -24,5 +26,7 @@ class Person implements IApplicationInterface
         ApiSupportReadOnly::registerApi();
         MedicalRecordReadOnly::registerApi();
         ApiAgreementReadOnly::registerApi();
+        ApiPersonEdit::registerApi();
+        ApiPersonReadOnly::registerApi();
     }
 }
