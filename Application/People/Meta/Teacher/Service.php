@@ -56,6 +56,8 @@ class Service extends AbstractService
     public function createMeta(IFormInterface $Form = null, TblPerson $tblPerson, $Meta, $Group = null)
     {
 
+        // todo remove
+
         /**
          * Skip to Frontend
          */
@@ -85,6 +87,27 @@ class Service extends AbstractService
         }
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Daten wurde erfolgreich gespeichert')
         . new Redirect(null, Redirect::TIMEOUT_SUCCESS);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $Meta
+     *
+     * @return bool|TblTeacher
+     */
+    public function updateMetaService(TblPerson $tblPerson, $Meta)
+    {
+        if ($tblTeacher = $this->getTeacherByPerson($tblPerson)) {
+            return (new Data($this->getBinding()))->updateTeacher(
+                $tblTeacher,
+                $Meta['Acronym']
+            );
+        } else {
+            return (new Data($this->getBinding()))->createTeacher(
+                $tblPerson,
+                $Meta['Acronym']
+            );
+        }
     }
 
     /**

@@ -242,6 +242,7 @@ class FrontendBasic extends FrontendReadOnly
 
     /**
      * @param TblPerson|null $tblPerson
+     * @param $Person
      *
      * @return bool|string
      */
