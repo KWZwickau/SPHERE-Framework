@@ -52,7 +52,7 @@ class TemplateReadOnly
         }
         $title = new Title($titlePrefix . $titleName, $titleDescription);
 
-        if (self::USE_WELL) {
+        if (self::USE_WELL && $content != '') {
             $content = new Well($content);
         }
 

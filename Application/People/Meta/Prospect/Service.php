@@ -59,6 +59,9 @@ class Service extends AbstractService
     public function createMeta(IFormInterface $Form = null, TblPerson $tblPerson, $Meta, $Group = null)
     {
 
+
+        // todo remove
+
         /**
          * Skip to Frontend
          */
@@ -110,6 +113,59 @@ class Service extends AbstractService
         }
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Daten wurde erfolgreich gespeichert')
         .new Redirect(null, Redirect::TIMEOUT_SUCCESS);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $Meta
+     *
+     * @return bool|TblProspect
+     */
+    public function updateMetaService(TblPerson $tblPerson, $Meta)
+    {
+        if (($tblProspect = $this->getProspectByPerson($tblPerson))) {
+            (new Data($this->getBinding()))->updateProspectAppointment(
+                $tblProspect->getTblProspectAppointment(),
+                $Meta['Appointment']['ReservationDate'],
+                $Meta['Appointment']['InterviewDate'],
+                $Meta['Appointment']['TrialDate']
+            );
+            $OptionA = Type::useService()->getTypeById($Meta['Reservation']['SchoolTypeOptionA']);
+            $OptionB = Type::useService()->getTypeById($Meta['Reservation']['SchoolTypeOptionB']);
+            (new Data($this->getBinding()))->updateProspectReservation(
+                $tblProspect->getTblProspectReservation(),
+                $Meta['Reservation']['Year'],
+                $Meta['Reservation']['Division'],
+                ($OptionA ? $OptionA : null),
+                ($OptionB ? $OptionB : null)
+            );
+
+            return (new Data($this->getBinding()))->updateProspect(
+                $tblProspect,
+                $Meta['Remark']
+            );
+        } else {
+            $tblProspectAppointment = (new Data($this->getBinding()))->createProspectAppointment(
+                $Meta['Appointment']['ReservationDate'],
+                $Meta['Appointment']['InterviewDate'],
+                $Meta['Appointment']['TrialDate']
+            );
+            $OptionA = Type::useService()->getTypeById($Meta['Reservation']['SchoolTypeOptionA']);
+            $OptionB = Type::useService()->getTypeById($Meta['Reservation']['SchoolTypeOptionB']);
+            $tblProspectReservation = (new Data($this->getBinding()))->createProspectReservation(
+                $Meta['Reservation']['Year'],
+                $Meta['Reservation']['Division'],
+                ($OptionA ? $OptionA : null),
+                ($OptionB ? $OptionB : null)
+            );
+
+            return (new Data($this->getBinding()))->createProspect(
+                $tblPerson,
+                $tblProspectAppointment,
+                $tblProspectReservation,
+                $Meta['Remark']
+            );
+        }
     }
 
     /**

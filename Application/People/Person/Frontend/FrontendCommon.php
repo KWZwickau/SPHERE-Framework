@@ -31,7 +31,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
-use SPHERE\Common\Frontend\Icon\Repository\PersonParent;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Sheriff;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
@@ -185,7 +184,7 @@ class FrontendCommon extends FrontendReadOnly
      */
     private function getEditCommonTitle(TblPerson $tblPerson = null)
     {
-        return new Title(new PersonParent() . ' ' . self::TITLE, 'der Person'
+        return new Title(new Tag() . ' ' . self::TITLE, 'der Person'
             . ($tblPerson ? new Bold(new Success($tblPerson->getFullName())) : '') . ' bearbeiten')
             . self::getDataProtectionMessage();
     }

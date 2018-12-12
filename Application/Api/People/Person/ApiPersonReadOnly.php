@@ -7,6 +7,7 @@ use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Frontend\FrontendBasic;
 use SPHERE\Application\People\Person\Frontend\FrontendCommon;
+use SPHERE\Application\People\Person\Frontend\FrontendProspect;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -33,6 +34,8 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('loadBasicContent');
         $Dispatcher->registerMethod('loadCommonContent');
+        $Dispatcher->registerMethod('loadProspectTitle');
+        $Dispatcher->registerMethod('loadProspectContent');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -92,6 +95,48 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
     }
 
     /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadProspectTitle($PersonId)
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'ProspectContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'loadProspectTitle',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadProspectContent($PersonId)
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'ProspectContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'loadProspectContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
      * @param null $PersonId
      *
      * @return string
@@ -111,5 +156,27 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
     {
 
         return FrontendCommon::getCommonContent($PersonId);
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function loadProspectTitle($PersonId = null)
+    {
+
+        return FrontendProspect::getProspectTitle($PersonId);
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function loadProspectContent($PersonId = null)
+    {
+
+        return FrontendProspect::getProspectContent($PersonId);
     }
 }

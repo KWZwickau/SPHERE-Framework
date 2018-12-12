@@ -54,10 +54,15 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                     new SuccessMessage('Die Personendaten der Person werden geladen.'), 'CommonContent'
                 ) . ApiPersonReadOnly::pipelineLoadCommonContent($Id);
 
+            $prospectContent = ApiPersonReadOnly::receiverBlock(
+                    new SuccessMessage('Die Interessent-Daten der Person werden geladen.'), 'ProspectContent'
+                ) . ApiPersonReadOnly::pipelineLoadProspectTitle($Id);
+
             $stage->setContent(
                 ($validationMessage ? $validationMessage : '')
                 . $basicContent
                 . $commonContent
+                . $prospectContent
             );
         }
 

@@ -6,8 +6,10 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Person\Frontend\FrontendBasic;
 use SPHERE\Application\People\Person\Frontend\FrontendCommon;
+use SPHERE\Application\People\Person\Frontend\FrontendProspect;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -41,6 +43,9 @@ class ApiPersonEdit extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('editCommonContent');
         $Dispatcher->registerMethod('saveCommonContent');
+
+        $Dispatcher->registerMethod('editProspectContent');
+        $Dispatcher->registerMethod('saveProspectContent');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -186,6 +191,70 @@ class ApiPersonEdit extends Extension implements IApiInterface
     }
 
     /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineEditProspectContent($PersonId)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'ProspectContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'editProspectContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveProspectContent($PersonId)
+    {
+
+        $pipeline = new Pipeline(true);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'ProspectContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'saveProspectContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineCancelProspectContent($PersonId)
+    {
+        $pipeline = new Pipeline(true);
+
+        // Grunddaten neu laden
+        $emitter = new ServerEmitter(ApiPersonReadOnly::receiverBlock('', 'ProspectContent'), ApiPersonReadOnly::getEndpoint());
+        $emitter->setGetPayload(array(
+            ApiPersonReadOnly::API_TARGET => 'loadProspectContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
      * @param null $PersonId
      *
      * @return string
@@ -217,7 +286,8 @@ class ApiPersonEdit extends Extension implements IApiInterface
         if (Person::useService()->updatePersonService($tblPerson, $Person)) {
             // todo Meta-Daten neu laden
             return new Success('Die Daten wurden erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
-                . ApiPersonReadOnly::pipelineLoadBasicContent($PersonId);
+                . ApiPersonReadOnly::pipelineLoadBasicContent($PersonId)
+                . ApiPersonReadOnly::pipelineLoadProspectTitle($PersonId);
         } else {
             return new Danger('Die Daten konnten nicht gespeichert werden');
         }
@@ -251,6 +321,39 @@ class ApiPersonEdit extends Extension implements IApiInterface
         if (Common::useService()->updateMetaService($tblPerson, $Meta)) {
             return new Success('Die Daten wurden erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
                 . ApiPersonReadOnly::pipelineLoadCommonContent($PersonId);
+        } else {
+            return new Danger('Die Daten konnten nicht gespeichert werden');
+        }
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function editProspectContent($PersonId = null)
+    {
+
+        return (new FrontendProspect())->getEditProspectContent($PersonId);
+    }
+
+    /**
+     * @param $PersonId
+     *
+     * @return bool|Danger|string
+     */
+    public function saveProspectContent($PersonId)
+    {
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Person nicht gefunden', new Exclamation());
+        }
+
+        $Global = $this->getGlobal();
+        $Meta = $Global->POST['Meta'];
+
+        if (Prospect::useService()->updateMetaService($tblPerson, $Meta)) {
+            return new Success('Die Daten wurden erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                . ApiPersonReadOnly::pipelineLoadProspectContent($PersonId);
         } else {
             return new Danger('Die Daten konnten nicht gespeichert werden');
         }
