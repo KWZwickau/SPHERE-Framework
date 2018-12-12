@@ -50,6 +50,9 @@ class Service extends AbstractService
     public function createMeta(IFormInterface $Form = null, TblPerson $tblPerson, $Meta, $Group = null)
     {
 
+
+        // todo remove
+
         /**
          * Skip to Frontend
          */
@@ -77,6 +80,33 @@ class Service extends AbstractService
         }
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Daten wurde erfolgreich gespeichert')
         . new Redirect(null, Redirect::TIMEOUT_SUCCESS);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $Meta
+     *
+     * @return bool|TblClub
+     */
+    public function updateMetaService(TblPerson $tblPerson, $Meta)
+    {
+        if ($tblClub = $this->getClubByPerson($tblPerson)) {
+            return (new Data($this->getBinding()))->updateClub(
+                $tblClub,
+                $Meta['Identifier'],
+                $Meta['EntryDate'],
+                $Meta['ExitDate'],
+                $Meta['Remark']
+            );
+        } else {
+            return (new Data($this->getBinding()))->createClub(
+                $tblPerson,
+                $Meta['Identifier'],
+                $Meta['EntryDate'],
+                $Meta['ExitDate'],
+                $Meta['Remark']
+            );
+        }
     }
 
     /**
