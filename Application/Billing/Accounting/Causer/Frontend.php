@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Billing\Accounting\Causer;
 
 use SPHERE\Application\Api\Billing\Accounting\ApiBankReference;
+use SPHERE\Application\Api\Billing\Accounting\ApiDebtorSelection;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\People\Group\Group;
@@ -17,8 +18,10 @@ use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Listing as ListingIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
+use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -269,6 +272,9 @@ class Frontend extends Extension implements IFrontendInterface
             ApiBankReference::receiverModal('Hinzufügen einer Referenznummer', 'addBankReference')
             . ApiBankReference::receiverModal('Bearbeiten der Referenznummer', 'editBankReference')
             . ApiBankReference::receiverModal('Entfernen der Referenznummer', 'deleteBankReference')
+            . ApiDebtorSelection::receiverModal('Hinzufügen der Zahlungszuweisung', 'addDebtorSelection')
+            . ApiDebtorSelection::receiverModal('Bearbeiten der Zahlungszuweisung', 'editDebtorSelection')
+            . ApiDebtorSelection::receiverModal('Entfernen der Zahlungszuweisung', 'deleteDebtorSelection')
             . Debtor::useFrontend()->getPersonPanel($PersonId)
             . new Layout(
                 new LayoutGroup(
@@ -323,10 +329,10 @@ class Frontend extends Extension implements IFrontendInterface
         $PanelContent = array();
         if(($tblPerson = Person::useService()->getPersonById($PersonId))
         && ($tblItem = Item::useService()->getItemById($ItemId))) {
-            $ItemVariant = (new Link('Bezahlung festlegen', '', new Plus()));
-            $Reference = 'REF: ';
-            $Debtor = 'Bezahler: ';
             if(($tblDebtorSelection = Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPerson, $tblItem))){
+                $ItemVariant = 'Varianten: ';
+                $Reference = 'REF: ';
+                $Debtor = 'Bezahler: ';
                 if(($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())) {
                     $ItemVariant = $tblItemVariant->getName();
                 }
@@ -349,10 +355,17 @@ class Frontend extends Extension implements IFrontendInterface
 //                    }
 //                    $ItemVariant = implode('<br/>', $ItemVariantList);
 //                }
+                $PanelContent[] = $ItemVariant;
+                $PanelContent[] = $Reference;
+                $PanelContent[] = $Debtor;
+            } else {
+                $PanelContent[] = new Warning(
+                    (new Link('Bezahlung festlegen', '', new PersonIcon()))
+                    ->ajaxPipelineOnClick(ApiDebtorSelection::pipelineOpenAddDebtorSelectionModal('addDebtorSelection', $PersonId, $ItemId))
+
+                    .new ToolTip(new Info(), 'Beitragsarten werden ohne Bezahler nicht berücksichtigt')
+                );
             }
-            $PanelContent[] = $ItemVariant;
-            $PanelContent[] = $Reference;
-            $PanelContent[] = $Debtor;
         }
         return $PanelContent;
     }

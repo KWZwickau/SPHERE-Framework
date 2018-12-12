@@ -242,6 +242,30 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblGroup  $tblGroup
+     * @param bool      $IsForced
+     *
+     * @return false|TblMember
+     */
+    public function getMemberByPersonAndGroup(TblPerson $tblPerson, TblGroup $tblGroup, $IsForced = false)
+    {
+        if ($IsForced) {
+            return $this->getForceEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember',
+                array(
+                    TblMember::SERVICE_TBL_PERSON => $tblPerson->getId(),
+                    TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
+                ));
+        } else {
+            return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember',
+                array(
+                    TblMember::SERVICE_TBL_PERSON => $tblPerson->getId(),
+                    TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
+                ));
+        }
+    }
+
+    /**
      * @return bool|TblPerson[]
      */
     public function getPersonAllHavingNoGroup()

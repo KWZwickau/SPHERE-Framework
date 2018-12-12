@@ -75,6 +75,19 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param TblGroup  $tblGroup
+     * @param bool      $IsForced
+     *
+     * @return false|TblMember
+     */
+    public function getMemberByPersonAndGroup(TblPerson $tblPerson, TblGroup $tblGroup, $IsForced = false)
+    {
+
+        return ( new Data($this->getBinding()) )->getMemberByPersonAndGroup($tblPerson, $tblGroup, ( $IsForced ? $IsForced : null ));
+    }
+
+    /**
      * Sortierung erst feste Gruppen, dann individuelle Gruppen
      *
      * @return bool|TblGroup[]
