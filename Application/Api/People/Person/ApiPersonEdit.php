@@ -498,6 +498,7 @@ class ApiPersonEdit extends Extension implements IApiInterface
                 . ApiPersonReadOnly::pipelineLoadTeacherTitle($PersonId)
                 . ApiPersonReadOnly::pipelineLoadCustodyTitle($PersonId)
                 . ApiPersonReadOnly::pipelineLoadClubTitle($PersonId)
+                . ApiPersonReadOnly::pipelineLoadIntegrationTitle($PersonId)
                 ;
         } else {
             return new Danger('Die Daten konnten nicht gespeichert werden');

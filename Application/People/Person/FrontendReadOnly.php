@@ -44,6 +44,8 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
 
             // todo Prüfung ob die Person bereits existiert bei neuen Personen
 
+            // todo test Integration mit nur Readonly
+
             $validationMessage = FilterService::getPersonMessageTable($tblPerson);
 
             $basicContent = ApiPersonReadOnly::receiverBlock(
@@ -70,6 +72,10 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                     new SuccessMessage('Die Vereinsmitglied-Daten der Person werden geladen.'), 'ClubContent'
                 ) . ApiPersonReadOnly::pipelineLoadClubTitle($Id);
 
+            $integrationContent = ApiPersonReadOnly::receiverBlock(
+                    new SuccessMessage('Die Integration-Daten der Person werden geladen.'), 'IntegrationContent'
+                ) . ApiPersonReadOnly::pipelineLoadIntegrationTitle($Id);
+
 
             $stage->setContent(
                 ($validationMessage ? $validationMessage : '')
@@ -79,6 +85,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 . $teacherContent
                 . $custodyContent
                 . $clubContent
+                . $integrationContent
             );
         }
 

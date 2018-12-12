@@ -301,6 +301,9 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendIntegration(TblPerson $tblPerson = null)
     {
 
+        // todo remove aber vorher stage für ClassRegister
+        // todo formulare verschieben
+
         $Stage = new Stage();
 
         $SupportContent = ApiSupport::receiverTableBlock(new SuccessMessage('Lädt'), 'SupportTable');
