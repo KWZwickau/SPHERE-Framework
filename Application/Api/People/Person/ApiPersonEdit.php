@@ -20,9 +20,12 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -43,6 +46,9 @@ class ApiPersonEdit extends Extension implements IApiInterface
     public function exportApi($Method = '')
     {
         $Dispatcher = new Dispatcher(__CLASS__);
+
+        $Dispatcher->registerMethod('createPersonContent');
+        $Dispatcher->registerMethod('saveCreatePersonContent');
 
         $Dispatcher->registerMethod('editBasicContent');
         $Dispatcher->registerMethod('saveBasicContent');
@@ -75,6 +81,36 @@ class ApiPersonEdit extends Extension implements IApiInterface
     {
 
         return (new BlockReceiver($Content))->setIdentifier($Identifier);
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineCreatePersonContent()
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'PersonContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'createPersonContent',
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineSaveCreatePersonContent()
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'PersonContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'saveCreatePersonContent',
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
     }
 
     /**
@@ -459,6 +495,44 @@ class ApiPersonEdit extends Extension implements IApiInterface
         $pipeline->appendEmitter($emitter);
 
         return $pipeline;
+    }
+
+    /**
+     * @return string
+     */
+    public function createPersonContent()
+    {
+
+        return (new FrontendBasic())->getCreatePersonContent();
+    }
+
+    /**
+     * @return bool|Well|string
+     */
+    public function saveCreatePersonContent()
+    {
+
+        $Global = $this->getGlobal();
+        $Person = $Global->POST['Person'];
+        if (($form = (new FrontendBasic())->checkInputCreatePersonContent($Person))) {
+            // display Errors on form
+            return $form;
+        }
+
+        if (($tblPerson = Person::useService()->createPersonService($Person))) {
+            if (isset($Global->POST['Meta'])) {
+                $Meta = $Global->POST['Meta'];
+                Common::useService()->updateMetaService($tblPerson, $Meta);
+            }
+
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Person wurde erfolgreich erstellt')
+                . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
+                    array('Id' => $tblPerson->getId())
+                );
+        } else {
+            return new Danger(new Ban() . ' Die Person konnte nicht erstellt werden')
+                . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR);
+        }
     }
 
     /**

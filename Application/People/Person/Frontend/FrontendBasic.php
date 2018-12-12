@@ -54,6 +54,44 @@ class FrontendBasic extends FrontendReadOnly
     const TITLE = 'Grunddaten';
 
     /**
+     * @return string
+     */
+    public function getCreatePersonContent()
+    {
+
+        return new Well($this->getCreatePersonForm());
+    }
+
+    /**
+     * @return Form
+     */
+    private function getCreatePersonForm()
+    {
+        $frontendCommon = (new FrontendCommon());
+
+        $form = (new Form(array(
+            new FormGroup(array(
+                new FormRow(
+                    new FormColumn($this->getEditBasicTitle(null, true)
+                )),
+                $this->getBasicFormRow()
+            )),
+            new FormGroup(array(
+                new FormRow(new FormColumn(
+                    $frontendCommon->getEditCommonTitle(null, true))
+                ),
+                $frontendCommon->getCommomFormRow(),
+                new FormRow(new FormColumn(
+                    (new Primary(new Save() . ' Speichern', ApiPersonEdit::getEndpoint()))
+                        ->ajaxPipelineOnClick(ApiPersonEdit::pipelineSaveCreatePersonContent())
+                ))
+            )),
+        )))->disableSubmitAction();
+
+        return $form;
+    }
+
+    /**
      * @param null $PersonId
      *
      * @return string
@@ -152,13 +190,15 @@ class FrontendBasic extends FrontendReadOnly
 
     /**
      * @param TblPerson|null $tblPerson
+     * @param bool $isCreatePerson
      *
      * @return Title
      */
-    private function getEditBasicTitle(TblPerson $tblPerson = null)
+    private function getEditBasicTitle(TblPerson $tblPerson = null, $isCreatePerson = false)
     {
         return new Title(new PersonParent() . ' ' . self::TITLE, 'der Person'
-            . ($tblPerson ? new Bold(new Success($tblPerson->getFullName())) : '') . ' bearbeiten');
+            . ($tblPerson ? new Bold(new Success($tblPerson->getFullName())) : '')
+            . ($isCreatePerson ? ' anlegen' : ' bearbeiten'));
     }
 
     /**
@@ -167,6 +207,27 @@ class FrontendBasic extends FrontendReadOnly
      * @return Form
      */
     private function getEditBasicForm(TblPerson $tblPerson = null)
+    {
+
+        return new Form(
+            new FormGroup(array(
+                $this->getBasicFormRow(),
+                new FormRow(array(
+                    new FormColumn(array(
+                        (new Primary('Speichern', ApiPersonEdit::getEndpoint(), new Save()))
+                            ->ajaxPipelineOnClick(ApiPersonEdit::pipelineSaveBasicContent($tblPerson ? $tblPerson->getId() : 0)),
+                        (new Primary('Abbrechen', ApiPersonEdit::getEndpoint(), new Disable()))
+                            ->ajaxPipelineOnClick(ApiPersonEdit::pipelineCancelBasicContent($tblPerson ? $tblPerson->getId() : 0))
+                    ))
+                ))
+            ))
+        );
+    }
+
+    /**
+     * @return FormRow
+     */
+    private function getBasicFormRow()
     {
         $tblSalutationAll = Person::useService()->getSalutationAll();
 
@@ -200,44 +261,32 @@ class FrontendBasic extends FrontendReadOnly
             $tblGroupList = array(new Warning('Keine Gruppen vorhanden'));
         }
 
-        return new Form(
-            new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(
-                        new Panel('Anrede', array(
-                            (new SelectBox('Person[Salutation]', 'Anrede', array('Salutation' => $tblSalutationAll),
-                                new Conversation()))->setTabIndex(1),
-                            (new AutoCompleter('Person[Title]', 'Titel', 'Titel', array('Dipl.- Ing.'),
-                                new Conversation()))->setTabIndex(4),
-                        ), Panel::PANEL_TYPE_INFO), 2),
-                    new FormColumn(
-                        new Panel('Vorname', array(
-                            (new TextField('Person[FirstName]', 'Vorname', 'Vorname'))->setRequired()
-                                ->setTabIndex(2),
-                            (new TextField('Person[SecondName]', 'weitere Vornamen',
-                                'Zweiter Vorname'))->setTabIndex(5),
-                            (new TextField('Person[CallName]', 'Rufname', 'Rufname'))->setTabIndex(6),
-                        ), Panel::PANEL_TYPE_INFO), 3),
-                    new FormColumn(
-                        new Panel('Nachname', array(
-                            (new TextField('Person[LastName]', 'Nachname', 'Nachname'))->setRequired()
-                                ->setTabIndex(3),
-                            (new TextField('Person[BirthName]', 'Geburtsname', 'Geburtsname'))->setTabIndex(7),
-                        ), Panel::PANEL_TYPE_INFO), 3),
-                    new FormColumn(
-                        new Panel('Gruppen', $tblGroupList, Panel::PANEL_TYPE_INFO)
-                        , 4),
-                )),
-                new FormRow(array(
-                    new FormColumn(array(
-                        (new Primary('Speichern', ApiPersonEdit::getEndpoint(), new Save()))
-                            ->ajaxPipelineOnClick(ApiPersonEdit::pipelineSaveBasicContent($tblPerson ? $tblPerson->getId() : 0)),
-                        (new Primary('Abbrechen', ApiPersonEdit::getEndpoint(), new Disable()))
-                            ->ajaxPipelineOnClick(ApiPersonEdit::pipelineCancelBasicContent($tblPerson ? $tblPerson->getId() : 0))
-                    ))
-                ))
-            ))
-        );
+        return new FormRow(array(
+            new FormColumn(
+                new Panel('Anrede', array(
+                    (new SelectBox('Person[Salutation]', 'Anrede', array('Salutation' => $tblSalutationAll),
+                        new Conversation()))->setTabIndex(1),
+                    (new AutoCompleter('Person[Title]', 'Titel', 'Titel', array('Dipl.- Ing.'),
+                        new Conversation()))->setTabIndex(4),
+                ), Panel::PANEL_TYPE_INFO), 2),
+            new FormColumn(
+                new Panel('Vorname', array(
+                    (new TextField('Person[FirstName]', 'Vorname', 'Vorname'))->setRequired()
+                        ->setTabIndex(2),
+                    (new TextField('Person[SecondName]', 'weitere Vornamen',
+                        'Zweiter Vorname'))->setTabIndex(5),
+                    (new TextField('Person[CallName]', 'Rufname', 'Rufname'))->setTabIndex(6),
+                ), Panel::PANEL_TYPE_INFO), 3),
+            new FormColumn(
+                new Panel('Nachname', array(
+                    (new TextField('Person[LastName]', 'Nachname', 'Nachname'))->setRequired()
+                        ->setTabIndex(3),
+                    (new TextField('Person[BirthName]', 'Geburtsname', 'Geburtsname'))->setTabIndex(7),
+                ), Panel::PANEL_TYPE_INFO), 3),
+            new FormColumn(
+                new Panel('Gruppen', $tblGroupList, Panel::PANEL_TYPE_INFO)
+                , 4),
+        ));
     }
 
     /**
@@ -262,6 +311,31 @@ class FrontendBasic extends FrontendReadOnly
         if ($error) {
             return $this->getEditBasicTitle($tblPerson ? $tblPerson : null)
                 . new Well($form);
+        }
+
+        return $error;
+    }
+
+    /**
+     * @param $Person
+     *
+     * @return bool|Well
+     */
+    public function checkInputCreatePersonContent($Person)
+    {
+        $error = false;
+        $form = $this->getCreatePersonForm();
+        if (isset($Person['FirstName'] ) && empty($Person['FirstName'] )) {
+            $form->setError('Person[FirstName]', 'Bitte geben Sie einen Vornamen an');
+            $error = true;
+        }
+        if (isset($Person['LastName'] ) && empty($Person['LastName'] )) {
+            $form->setError('Person[LastName]', 'Bitte geben Sie einen Nachnamen an');
+            $error = true;
+        }
+
+        if ($error) {
+            return new Well($form);
         }
 
         return $error;

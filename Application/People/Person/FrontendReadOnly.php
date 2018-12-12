@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\People\Person;
 
+use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
@@ -50,11 +51,8 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
             new Standard('Zurück', '/People/Search/Group', new ChevronLeft(), array('Id' => $Group))
         );
 
-        //  todo neue Person anlegen, wichtig nur mit ApiPersonEdit
-
+        // Person bearbeiten
         if ($Id != null && ($tblPerson = Person::useService()->getPersonById($Id))) {
-
-            // todo Prüfung ob die Person bereits existiert bei neuen Personen
 
             // todo test Integration mit nur Readonly
 
@@ -99,6 +97,18 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 . $clubContent
                 . $integrationContent
                 . self::getLayoutContact($tblPerson, $Group)
+            );
+        // neue Person anlegen
+        } else {
+            // todo Prüfung ob die Person bereits existiert bei neuen Personen
+            // todo neue Person anlegen, wichtig nur mit ApiPersonEdit
+
+            $createPersonContent = ApiPersonEdit::receiverBlock(
+                new SuccessMessage('Das Formular wird geladen.'), 'PersonContent'
+            ) . ApiPersonEdit::pipelineCreatePersonContent();
+
+            $stage->setContent(
+                $createPersonContent
             );
         }
 

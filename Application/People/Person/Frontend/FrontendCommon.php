@@ -179,14 +179,20 @@ class FrontendCommon extends FrontendReadOnly
 
     /**
      * @param TblPerson|null $tblPerson
+     * @param bool $isCreatePerson
      *
-     * @return string
+     * @return Title|string
      */
-    private function getEditCommonTitle(TblPerson $tblPerson = null)
+    public function getEditCommonTitle(TblPerson $tblPerson = null, $isCreatePerson = false)
     {
-        return new Title(new Tag() . ' ' . self::TITLE, 'der Person'
-            . ($tblPerson ? new Bold(new Success($tblPerson->getFullName())) : '') . ' bearbeiten')
-            . self::getDataProtectionMessage();
+        $title = new Title(new Tag() . ' ' . self::TITLE, 'der Person'
+            . ($tblPerson ? new Bold(new Success($tblPerson->getFullName())) : '')
+            . ($isCreatePerson ? ' anlegen' : ' bearbeiten'));
+        if ($isCreatePerson) {
+            return $title;
+        } else {
+            return $title . self::getDataProtectionMessage();
+        }
     }
 
     /**
@@ -194,9 +200,29 @@ class FrontendCommon extends FrontendReadOnly
      *
      * @return Form
      */
-    private function getEditCommonForm(TblPerson $tblPerson = null)
+    public function getEditCommonForm(TblPerson $tblPerson = null)
     {
 
+        return new Form(array(
+            new FormGroup(array(
+                $this->getCommomFormRow(),
+                new FormRow(array(
+                    new FormColumn(array(
+                        (new Primary('Speichern', ApiPersonEdit::getEndpoint(), new Save()))
+                            ->ajaxPipelineOnClick(ApiPersonEdit::pipelineSaveCommonContent($tblPerson ? $tblPerson->getId() : 0)),
+                        (new Primary('Abbrechen', ApiPersonEdit::getEndpoint(), new Disable()))
+                            ->ajaxPipelineOnClick(ApiPersonEdit::pipelineCancelCommonContent($tblPerson ? $tblPerson->getId() : 0))
+                    ))
+                ))
+            ))
+        ));
+    }
+
+    /**
+     * @return FormRow
+     */
+    public function getCommomFormRow()
+    {
         $tblCommonBirthDatesAll = Common::useService()->getCommonBirthDatesAll();
         $tblBirthplaceAll = array();
         if ($tblCommonBirthDatesAll) {
@@ -249,64 +275,52 @@ class FrontendCommon extends FrontendReadOnly
             });
         }
 
-        return new Form(array(
-            new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(array(
-                        new Panel('Geburtsdaten', array(
-                            new DatePicker('Meta[BirthDates][Birthday]', 'Geburtstag', 'Geburtstag',
-                                new Calendar()),
-                            new AutoCompleter('Meta[BirthDates][Birthplace]', 'Geburtsort', 'Geburtsort',
-                                $tblBirthplaceAll,
-                                new MapMarker()),
-                            new SelectBox('Meta[BirthDates][Gender]', 'Geschlecht', array(
-                                TblCommonBirthDates::VALUE_GENDER_NULL   => '',
-                                TblCommonBirthDates::VALUE_GENDER_MALE   => 'Männlich',
-                                TblCommonBirthDates::VALUE_GENDER_FEMALE => 'Weiblich'
-                            ), new Child()),
-                        ), Panel::PANEL_TYPE_INFO),
-                    ), 3),
-                    new FormColumn(array(
-                        new Panel('Ausweisdaten / Informationen', array(
-                            new AutoCompleter('Meta[Information][Nationality]', 'Staatsangehörigkeit',
-                                'Staatsangehörigkeit',
-                                $tblNationalityAll, new Nameplate()
-                            ),
-                            new AutoCompleter('Meta[Information][Denomination]', 'Konfession',
-                                'Konfession',
-                                $tblDenominationAll, new TempleChurch()
-                            ),
-                        ), Panel::PANEL_TYPE_INFO),
-                    ), 3),
-                    new FormColumn(array(
-                        new Panel('Mitarbeit', array(
-                            new SelectBox('Meta[Information][IsAssistance]', 'Mitarbeitsbereitschaft', array(
-                                TblCommonInformation::VALUE_IS_ASSISTANCE_NULL => '',
-                                TblCommonInformation::VALUE_IS_ASSISTANCE_YES  => 'Ja',
-                                TblCommonInformation::VALUE_IS_ASSISTANCE_NO   => 'Nein'
-                            ), new Sheriff()
-                            ),
-                            new TextArea('Meta[Information][AssistanceActivity]',
-                                'Mitarbeitsbereitschaft - Tätigkeiten',
-                                'Mitarbeitsbereitschaft - Tätigkeiten', new Pencil()
-                            ),
-                        ), Panel::PANEL_TYPE_INFO)
-                    ), 3),
-                    new FormColumn(array(
-                        new Panel('Sonstiges', array(
-                            new TextArea('Meta[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil())
-                        ), Panel::PANEL_TYPE_INFO)
-                    ), 3),
-                )),
-                new FormRow(array(
-                    new FormColumn(array(
-                        (new Primary('Speichern', ApiPersonEdit::getEndpoint(), new Save()))
-                            ->ajaxPipelineOnClick(ApiPersonEdit::pipelineSaveCommonContent($tblPerson ? $tblPerson->getId() : 0)),
-                        (new Primary('Abbrechen', ApiPersonEdit::getEndpoint(), new Disable()))
-                            ->ajaxPipelineOnClick(ApiPersonEdit::pipelineCancelCommonContent($tblPerson ? $tblPerson->getId() : 0))
-                    ))
-                ))
-            ))
+        return new FormRow(array(
+            new FormColumn(array(
+                new Panel('Geburtsdaten', array(
+                    new DatePicker('Meta[BirthDates][Birthday]', 'Geburtstag', 'Geburtstag',
+                        new Calendar()),
+                    new AutoCompleter('Meta[BirthDates][Birthplace]', 'Geburtsort', 'Geburtsort',
+                        $tblBirthplaceAll,
+                        new MapMarker()),
+                    new SelectBox('Meta[BirthDates][Gender]', 'Geschlecht', array(
+                        TblCommonBirthDates::VALUE_GENDER_NULL   => '',
+                        TblCommonBirthDates::VALUE_GENDER_MALE   => 'Männlich',
+                        TblCommonBirthDates::VALUE_GENDER_FEMALE => 'Weiblich'
+                    ), new Child()),
+                ), Panel::PANEL_TYPE_INFO),
+            ), 3),
+            new FormColumn(array(
+                new Panel('Ausweisdaten / Informationen', array(
+                    new AutoCompleter('Meta[Information][Nationality]', 'Staatsangehörigkeit',
+                        'Staatsangehörigkeit',
+                        $tblNationalityAll, new Nameplate()
+                    ),
+                    new AutoCompleter('Meta[Information][Denomination]', 'Konfession',
+                        'Konfession',
+                        $tblDenominationAll, new TempleChurch()
+                    ),
+                ), Panel::PANEL_TYPE_INFO),
+            ), 3),
+            new FormColumn(array(
+                new Panel('Mitarbeit', array(
+                    new SelectBox('Meta[Information][IsAssistance]', 'Mitarbeitsbereitschaft', array(
+                        TblCommonInformation::VALUE_IS_ASSISTANCE_NULL => '',
+                        TblCommonInformation::VALUE_IS_ASSISTANCE_YES  => 'Ja',
+                        TblCommonInformation::VALUE_IS_ASSISTANCE_NO   => 'Nein'
+                    ), new Sheriff()
+                    ),
+                    new TextArea('Meta[Information][AssistanceActivity]',
+                        'Mitarbeitsbereitschaft - Tätigkeiten',
+                        'Mitarbeitsbereitschaft - Tätigkeiten', new Pencil()
+                    ),
+                ), Panel::PANEL_TYPE_INFO)
+            ), 3),
+            new FormColumn(array(
+                new Panel('Sonstiges', array(
+                    new TextArea('Meta[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil())
+                ), Panel::PANEL_TYPE_INFO)
+            ), 3),
         ));
     }
 }

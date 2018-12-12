@@ -119,6 +119,8 @@ class Service extends AbstractService
     public function createPerson(IFormInterface $Form = null, $Person)
     {
 
+        // todo remove
+
         /**
          * Skip to Frontend
          */
@@ -165,6 +167,35 @@ class Service extends AbstractService
         }
 
         return $Form;
+    }
+
+    /**
+     * @param $Person
+     *
+     * @return bool|TblPerson
+     */
+    public function createPersonService($Person)
+    {
+        if (($tblPerson = (new Data($this->getBinding()))->createPerson(
+            $this->getSalutationById($Person['Salutation']), $Person['Title'], $Person['FirstName'],
+            $Person['SecondName'], $Person['CallName'], $Person['LastName'], $Person['BirthName'])
+        )) {
+            // Add to Group
+            if (isset($Person['Group'])) {
+                foreach ((array)$Person['Group'] as $GroupId) {
+                    $tblGroup = Group::useService()->getGroupById($GroupId);
+                    if ($tblGroup) {
+                        Group::useService()->addGroupPerson(
+                            $tblGroup, $tblPerson
+                        );
+                    }
+                }
+            }
+
+            return $tblPerson;
+        } else {
+            return false;
+        }
     }
 
     /**
