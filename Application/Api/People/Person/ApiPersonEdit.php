@@ -6,10 +6,12 @@ use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Frontend\FrontendBasic;
 use SPHERE\Application\People\Person\Frontend\FrontendCommon;
+use SPHERE\Application\People\Person\Frontend\FrontendCustody;
 use SPHERE\Application\People\Person\Frontend\FrontendProspect;
 use SPHERE\Application\People\Person\Frontend\FrontendTeacher;
 use SPHERE\Application\People\Person\Person;
@@ -51,6 +53,10 @@ class ApiPersonEdit extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('editTeacherContent');
         $Dispatcher->registerMethod('saveTeacherContent');
+
+        $Dispatcher->registerMethod('editCustodyContent');
+        $Dispatcher->registerMethod('saveCustodyContent');
+
 
         return $Dispatcher->callMethod($Method);
     }
@@ -324,6 +330,70 @@ class ApiPersonEdit extends Extension implements IApiInterface
     }
 
     /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineEditCustodyContent($PersonId)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'CustodyContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'editCustodyContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveCustodyContent($PersonId)
+    {
+
+        $pipeline = new Pipeline(true);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'CustodyContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'saveCustodyContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineCancelCustodyContent($PersonId)
+    {
+        $pipeline = new Pipeline(true);
+
+        // Grunddaten neu laden
+        $emitter = new ServerEmitter(ApiPersonReadOnly::receiverBlock('', 'CustodyContent'), ApiPersonReadOnly::getEndpoint());
+        $emitter->setGetPayload(array(
+            ApiPersonReadOnly::API_TARGET => 'loadCustodyContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
      * @param null $PersonId
      *
      * @return string
@@ -358,6 +428,7 @@ class ApiPersonEdit extends Extension implements IApiInterface
                 . ApiPersonReadOnly::pipelineLoadBasicContent($PersonId)
                 . ApiPersonReadOnly::pipelineLoadProspectTitle($PersonId)
                 . ApiPersonReadOnly::pipelineLoadTeacherTitle($PersonId)
+                . ApiPersonReadOnly::pipelineLoadCustodyTitle($PersonId)
                 ;
         } else {
             return new Danger('Die Daten konnten nicht gespeichert werden');
@@ -462,6 +533,39 @@ class ApiPersonEdit extends Extension implements IApiInterface
         if (Teacher::useService()->updateMetaService($tblPerson, $Meta)) {
             return new Success('Die Daten wurden erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
                 . ApiPersonReadOnly::pipelineLoadTeacherContent($PersonId);
+        } else {
+            return new Danger('Die Daten konnten nicht gespeichert werden');
+        }
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function editCustodyContent($PersonId = null)
+    {
+
+        return (new FrontendCustody())->getEditCustodyContent($PersonId);
+    }
+
+    /**
+     * @param $PersonId
+     *
+     * @return bool|Danger|string
+     */
+    public function saveCustodyContent($PersonId)
+    {
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Person nicht gefunden', new Exclamation());
+        }
+
+        $Global = $this->getGlobal();
+        $Meta = $Global->POST['Meta'];
+
+        if (Custody::useService()->updateMetaService($tblPerson, $Meta)) {
+            return new Success('Die Daten wurden erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                . ApiPersonReadOnly::pipelineLoadCustodyContent($PersonId);
         } else {
             return new Danger('Die Daten konnten nicht gespeichert werden');
         }

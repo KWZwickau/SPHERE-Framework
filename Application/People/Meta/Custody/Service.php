@@ -55,6 +55,8 @@ class Service extends AbstractService
     public function createMeta(IFormInterface $Form = null, TblPerson $tblPerson, $Meta, $Group = null)
     {
 
+        // todo remove
+
         /**
          * Skip to Frontend
          */
@@ -80,6 +82,31 @@ class Service extends AbstractService
         }
         return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Daten wurde erfolgreich gespeichert')
         .new Redirect(null, Redirect::TIMEOUT_SUCCESS);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $Meta
+     *
+     * @return bool|TblCustody
+     */
+    public function updateMetaService(TblPerson $tblPerson, $Meta)
+    {
+        if (($tblCustody = $this->getCustodyByPerson($tblPerson))) {
+            return (new Data($this->getBinding()))->updateCustody(
+                $tblCustody,
+                $Meta['Remark'],
+                $Meta['Occupation'],
+                $Meta['Employment']
+            );
+        } else {
+            return (new Data($this->getBinding()))->createCustody(
+                $tblPerson,
+                $Meta['Remark'],
+                $Meta['Occupation'],
+                $Meta['Employment']
+            );
+        }
     }
 
     /**

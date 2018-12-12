@@ -62,6 +62,10 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                     new SuccessMessage('Die Lehrer-Daten der Person werden geladen.'), 'TeacherContent'
                 ) . ApiPersonReadOnly::pipelineLoadTeacherTitle($Id);
 
+            $custodyContent = ApiPersonReadOnly::receiverBlock(
+                    new SuccessMessage('Die Sorgerecht-Daten der Person werden geladen.'), 'CustodyContent'
+                ) . ApiPersonReadOnly::pipelineLoadCustodyTitle($Id);
+
 
             $stage->setContent(
                 ($validationMessage ? $validationMessage : '')
@@ -69,6 +73,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 . $commonContent
                 . $prospectContent
                 . $teacherContent
+                . $custodyContent
             );
         }
 
