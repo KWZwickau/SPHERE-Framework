@@ -9,12 +9,14 @@
 namespace SPHERE\Application\People\Person\Frontend;
 
 use SPHERE\Application\Api\People\Meta\Support\ApiSupport;
+use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\TemplateReadOnly;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Common\Frontend\Icon\Repository\EyeMinus;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
@@ -73,7 +75,16 @@ class FrontendStudentIntegration extends FrontendReadOnly
     public static function getIntegrationContent($PersonId = null)
     {
         if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
-            $content = self::getContent($tblPerson);
+            // Schreibrecht für Integration
+            if (Access::useService()->hasAuthorization('/Api/People/Meta/Support/ApiSupport')) {
+                $content = self::getEditContent($tblPerson);
+            }
+            // nur Anzeige
+            elseif (Access::useService()->hasAuthorization('/Api/People/Meta/Support/ApiSupportReadOnly')) {
+                $content = ApiSupportReadOnly::openOverViewModal($PersonId, false);
+            } else {
+                $content = '';
+            }
 
             $hideLink = (new Link(new EyeMinus() . ' Ausblenden', ApiPersonReadOnly::getEndpoint()))
                 ->ajaxPipelineOnClick(ApiPersonReadOnly::pipelineLoadIntegrationTitle($PersonId));
@@ -95,7 +106,7 @@ class FrontendStudentIntegration extends FrontendReadOnly
      *
      * @return string
      */
-    private static function getContent(TblPerson $tblPerson)
+    private static function getEditContent(TblPerson $tblPerson)
     {
         $SupportContent = ApiSupport::receiverTableBlock(new SuccessMessage('Lädt'), 'SupportTable');
         $SpecialContent = ApiSupport::receiverTableBlock(new SuccessMessage('Lädt'), 'SpecialTable');

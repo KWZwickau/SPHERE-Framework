@@ -10,8 +10,10 @@ use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Education\Lesson\Division\Filter\Service as FilterService;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronDown;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -53,8 +55,6 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
 
         // Person bearbeiten
         if ($Id != null && ($tblPerson = Person::useService()->getPersonById($Id))) {
-
-            // todo test Integration mit nur Readonly
 
             $validationMessage = FilterService::getPersonMessageTable($tblPerson);
 
@@ -101,11 +101,14 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
         // neue Person anlegen
         } else {
             // todo Prüfung ob die Person bereits existiert bei neuen Personen
-            // todo neue Person anlegen, wichtig nur mit ApiPersonEdit
 
-            $createPersonContent = ApiPersonEdit::receiverBlock(
-                new SuccessMessage('Das Formular wird geladen.'), 'PersonContent'
-            ) . ApiPersonEdit::pipelineCreatePersonContent();
+            if (Access::useService()->hasAuthorization('/Api/People/Person/ApiPersonEdit')) {
+                $createPersonContent = ApiPersonEdit::receiverBlock(
+                        new SuccessMessage('Das Formular wird geladen.'), 'PersonContent'
+                    ) . ApiPersonEdit::pipelineCreatePersonContent();
+            } else {
+                $createPersonContent = new Danger('Sie haben nicht das Recht neue Personen anzulegen', new Exclamation());
+            }
 
             $stage->setContent(
                 $createPersonContent
