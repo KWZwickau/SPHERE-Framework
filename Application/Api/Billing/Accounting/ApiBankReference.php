@@ -516,6 +516,9 @@ class ApiBankReference extends Extension implements IApiInterface
     {
 
         if(($tblReference = Debtor::useService()->getBankReferenceById($ReferenceId))) {
+            if(($tblDebtorSelection = Debtor::useService()->getDebtorSelectionByBankReference($tblReference))){
+                return new Danger('Referenznummer wird benutzt, diese kann nicht entfernt werden!');
+            }
             Debtor::useService()->removeBankReference($tblReference);
 
             return new Success('Referenznummer wurde erfolgreich entfernt') . self::pipelineCloseModal($Identifier,

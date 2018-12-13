@@ -166,6 +166,17 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPersonCauser
+     *
+     * @return false|TblDebtorSelection[]
+     */
+    public function getDebtorSelectionByPersonCauser(TblPerson $tblPersonCauser)
+    {
+
+        return (new Data($this->getBinding()))->getDebtorSelectionByPersonCauser($tblPersonCauser);
+    }
+
+    /**
+     * @param TblPerson $tblPersonCauser
      * @param TblItem   $tblItem
      *
      * @return false|TblDebtorSelection
@@ -174,6 +185,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getDebtorSelectionByPersonCauserAndItem($tblPersonCauser, $tblItem);
+    }
+
+    /**
+     * @param TblBankReference $tblBankReference
+     *
+     * @return false|TblDebtorSelection[]
+     */
+    public function getDebtorSelectionByBankReference(TblBankReference $tblBankReference)
+    {
+
+        return (new Data($this->getBinding()))->getDebtorSelectionByBankReference($tblBankReference);
     }
 
     /**

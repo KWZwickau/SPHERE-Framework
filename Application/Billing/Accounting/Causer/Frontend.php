@@ -14,12 +14,12 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
-use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Listing as ListingIcon;
+use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
@@ -158,41 +158,58 @@ class Frontend extends Extension implements IFrontendInterface
 //                    $Item['Option'] = new Standard('', '', new Edit());
                     // Herraussuchen aller Beitragsarten die aktuell eingestellt werden müssen
                     $ContentSingleRow = array();
-                    if(($tblItemGroupList = Item::useService()->getItemGroupByGroup($tblGroup))) {
+                    if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionByPersonCauser($tblPerson))) {
                         $ContentSingleRow[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                            new LayoutColumn('Beitragszahler', 4),
-                            new LayoutColumn('Bankdaten', 1),
+                            new LayoutColumn('Beitragszahler', 3),
+                            new LayoutColumn('Zahlart', 2),
+                            new LayoutColumn('Bank Info', 2),
                             new LayoutColumn('Beitragsart', 3),
                             new LayoutColumn('Preis', 2),
-                            new LayoutColumn('', 2),
                         ))));
-                        foreach ($tblItemGroupList as $tblItemGroup) {
-                            if(($tblItem = $tblItemGroup->getTblItem())) {
-                                //ToDO clean up DIRTY Test
-                                //ToDO Korrekte Variante mit Preis ziehen
-                                $tblItemCalculation = false;
-                                if(($tblItemVariantList = Item::useService()->getItemVariantByItem($tblItem))) {
-                                    $tblItemVariant = current($tblItemVariantList);
-                                    if(($tblItemCalculationList = Item::useService()->getItemCalculationByItemVariant($tblItemVariant))) {
-                                        $tblItemCalculation = current($tblItemCalculationList);
-                                    }
-                                }
-                                // ToDO Umbruchtest -> realen Debitor ziehen
-                                $Debitor = 'Klara Kolumna';
-                                if($tblPerson->getFirstName() == 'Charlotte') {
-                                    $Debitor = 'Dr. VanWegenIckeHabNenLangenNamen, NaDirWerdIckeEsNochSoRichtigZeigenWa';
-                                }
+                        foreach ($tblDebtorSelectionList as $tblDebtorSelection) {
+                            $Debtor = '';
+                            $PaymentType = '';
+                            $ItemName = '';
 
-
-                                $ContentSingleRow[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                                    new LayoutColumn($Debitor, 4),
-                                    new LayoutColumn(new SuccessText(new Check()), 1),
-                                    new LayoutColumn($tblItem->getName(), 3),
-                                    new LayoutColumn(($tblItemCalculation ? $tblItemCalculation->getPriceString() : 'Test'),
-                                        2),
-//                                    new LayoutColumn(new Standard('', '', new Edit()). new Standard('', '', new Remove()), 2)
-                                ))));
+                            if(($tblPersonDebtor = $tblDebtorSelection->getServiceTblPerson())){
+                                $Debtor = $tblPersonDebtor->getLastFirstName() ;
                             }
+                            if(($tblPaymentType = $tblDebtorSelection->getServiceTblPaymentType())){
+                                $PaymentType = str_replace('SEPA-', '', $tblPaymentType->getName());
+                            }
+                            if(($tblItem = $tblDebtorSelection->getServiceTblItem())){
+                                $ItemName = $tblItem->getName();
+                            }
+
+                            if($PaymentType == 'Lastschrift'){
+                                $BankStatus = new DangerText(new ToolTip(new Disable(), 'Zahlungszuweisung: Keine Bankdaten hinterlegt'));
+                                if(($tblBankAccount = $tblDebtorSelection->getTblBankAccount())){
+                                    $BankStatus = new ToolTip(new DangerText(new Info()), 'Zahlungszuweisung: Referenznummer fehlt');
+                                }
+                                if(($tblBankReference = $tblDebtorSelection->getTblBankReference())){
+                                    $BankStatus = new ToolTip(new SuccessText(new Info()), 'Zahlungszuweisung OK');
+                                }
+                            } else {
+                                $BankStatus = new WarningText(new ToolTip(new Minus(), 'Zahlungszuweisung: Benötigt keine Bankdaten'));
+                            }
+
+                            $ItemPriceString = 'Nicht verfügbar!';
+                            if(($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())){
+                                if(($tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant))){
+                                    $ItemPriceString = $tblItemCalculation->getPriceString();
+                                }
+                            } elseif($tblDebtorSelection->getValuePriceString() != '0.00 €') {
+                                $ItemPriceString = $tblDebtorSelection->getValuePriceString();
+                            }
+
+                            $ContentSingleRow[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                                new LayoutColumn($Debtor, 3),
+                                new LayoutColumn($PaymentType , 2),
+                                new LayoutColumn($BankStatus , 2),
+                                new LayoutColumn($ItemName, 3),
+                                new LayoutColumn($ItemPriceString, 2),
+//                                    new LayoutColumn(new Standard('', '', new Edit()). new Standard('', '', new Remove()), 2)
+                            ))));
                         }
                         $Item['ContentRow'] = new Listing($ContentSingleRow);
                     }
@@ -336,6 +353,8 @@ class Frontend extends Extension implements IFrontendInterface
         if(($tblPerson = Person::useService()->getPersonById($PersonId))
         && ($tblItem = Item::useService()->getItemById($ItemId))) {
             if(($tblDebtorSelection = Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPerson, $tblItem))){
+                $PaymentType = 'Zahlart: ';
+                $BankAccount = 'Bank: ';
                 $Reference = 'REF: ';
                 $Debtor = 'Bezahler: ';
 
@@ -349,6 +368,9 @@ class Frontend extends Extension implements IFrontendInterface
                             'deleteDebtorSelection', $PersonId, $ItemId, $tblDebtorSelection->getId()))
                 );
 
+                if(($tblPaymentType = $tblDebtorSelection->getServiceTblPaymentType())){
+                    $PaymentType .= new Bold($tblPaymentType->getName());
+                }
                 if(($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())) {
                     $PriceString = new WarningText(new WarningIcon().' kein aktueller Preis');
                     if($tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant)){
@@ -360,11 +382,14 @@ class Frontend extends Extension implements IFrontendInterface
                     $ItemVariant = 'Individueller Preis:'.' - '.new Bold($tblDebtorSelection->getValuePriceString());
                     $ItemVariant .= $OptionButtons;
                 }
+                if(($tblBankAccount = $tblDebtorSelection->getTblBankAccount())){
+                    $BankAccount .= new Bold($tblBankAccount->getBankName());
+                }
                 if(($tblBankReference = $tblDebtorSelection->getTblBankReference())){
-                    $Reference = 'REF: '.new Bold($tblBankReference->getReferenceNumber());
+                    $Reference .= new Bold($tblBankReference->getReferenceNumber());
                 }
                 if(($tblPersonDebtor = $tblDebtorSelection->getServiceTblPerson())){
-                    $Debtor = 'Bezahler: '.new Bold($tblPersonDebtor->getLastFirstName());
+                    $Debtor .= new Bold($tblPersonDebtor->getLastFirstName());
                 }
 //            } else {
 //                if(($tblItemVariantList = Item::useService()->getItemVariantByItem($tblItem))) {
@@ -379,7 +404,9 @@ class Frontend extends Extension implements IFrontendInterface
 //                    }
 //                    $ItemVariant = implode('<br/>', $ItemVariantList);
 //                }
+                $PanelContent[] = $PaymentType;
                 $PanelContent[] = $ItemVariant;
+                $PanelContent[] = $BankAccount;
                 $PanelContent[] = $Reference;
                 $PanelContent[] = $Debtor;
             } else {

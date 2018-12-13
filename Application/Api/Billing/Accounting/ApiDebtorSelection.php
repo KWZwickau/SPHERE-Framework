@@ -395,7 +395,6 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 $SelectBoxDebtorList[$tblPerson->getId()] = $tblPerson->getLastFirstName();
                 $PersonDebtorList[] = $tblPerson;
             }
-
             if (($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
                 $tblRelationshipType))) {
                 foreach ($tblRelationshipList as $tblRelationship) {
@@ -413,11 +412,34 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                         }
                     }
                 }
+                // Bezahler ohne Gruppe (z.B. Sorgeberechtigte, die ohne Konto bezhalen (Bar/Überweisung))
+                if(empty($SelectBoxDebtorList)){
+                    $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CUSTODY);
+                    foreach ($tblRelationshipList as $tblRelationship) {
+                        if (($tblPersonRel = $tblRelationship->getServiceTblPersonFrom()) && $tblPersonRel->getId() !== $tblPerson->getId()) {
+                            // is Person in Group "Sorgeberechtigte"
+                            if (Group::useService()->getMemberByPersonAndGroup($tblPersonRel, $tblGroup)) {
+                                $SelectBoxDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName();
+                            }
+                        } elseif (($tblPersonRel = $tblRelationship->getServiceTblPersonTo()) && $tblPersonRel->getId() !== $tblPerson->getId()) {
+                            // is Person in Group "Sorgeberechtigte"
+                            if (Group::useService()->getMemberByPersonAndGroup($tblPersonRel, $tblGroup)) {
+                                $SelectBoxDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName();
+                            }
+                        }
+                    }
+                }
             }
         }
 
         $PostBankAccountId = false;
         $RadioBoxListBankAccount = array();
+        // no BankAccount available
+        if(!isset($_POST['DebtorSelection']['BankAccount'])){
+            $_POST['DebtorSelection']['BankAccount'] = '-1';
+        }
+        $RadioBoxListBankAccount['-1'] = new RadioBox('DebtorSelection[BankAccount]'
+            , 'kein Konto', -1);
         if(!empty($PersonDebtorList)){
             /** @var TblPerson $PersonDebtor */
             foreach($PersonDebtorList as $PersonDebtor){
@@ -428,9 +450,8 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                             if(isset($_POST['DebtorSelection']['PaymentType'])
                                 && ($tblPaymentType = Balance::useService()->getPaymentTypeById($_POST['DebtorSelection']['PaymentType']))
                                 && $tblPaymentType->getName() == 'SEPA-Lastschrift') {
-                                if(!isset($_POST['DebtorSelection']['BankAccount'])) {
-                                    $_POST['DebtorSelection']['BankAccount'] = $PostBankAccountId;
-                                }
+                                // override Post with first found BankAccount
+                                $_POST['DebtorSelection']['BankAccount'] = $PostBankAccountId;
                             }
                         }
                         $RadioBoxListBankAccount[$tblBankAccount->getId()] = new RadioBox('DebtorSelection[BankAccount]'
@@ -441,9 +462,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 }
             }
         }
-        if(empty($RadioBoxListBankAccount)){
-            $RadioBoxListBankAccount = new Warning('Keine Kontodaten hinterlegt');
-        }
+
 
         $tblBankReferenceList = Debtor::useService()->getBankReferenceByPerson($tblPerson);
         if($tblBankReferenceList){
@@ -451,7 +470,9 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             if(isset($_POST['DebtorSelection']['PaymentType'])
                 && ($tblPaymentType = Balance::useService()->getPaymentTypeById($_POST['DebtorSelection']['PaymentType']))
                 && $tblPaymentType->getName() == 'SEPA-Lastschrift'){
-                $_POST['DebtorSelection']['BankReference'] = $tblBankReferenceList[0]->getId();
+                if(!isset($_POST['DebtorSelection']['BankReference'])){
+                    $_POST['DebtorSelection']['BankReference'] = $tblBankReferenceList[0]->getId();
+                }
             }
         }
 
@@ -535,7 +556,11 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         } elseif(isset($DebtorSelection['Variant']) && $DebtorSelection['Variant'] == '-1') {
             // is price empty (is requiered vor no Variant)
             if (isset($DebtorSelection['Price']) && empty($DebtorSelection['Price'])) {
-                $Warning .= new Warning('Bitte geben Sie einen Individuellen Preis an');
+                $Warning .= new Warning('Bitte geben Sie einen individuellen Preis an');
+//                $form->setError('DebtorSelection[Price]', 'Bitte geben Sie einen Individuellen Preis an');
+                $Error = true;
+            } elseif(isset($DebtorSelection['Price']) && !is_numeric(str_replace(',', '.', $DebtorSelection['Price']))){
+                $Warning .= new Warning('Bitte geben Sie eine '.new Bold('Zahl').' als individuellen Preis an');
 //                $form->setError('DebtorSelection[Price]', 'Bitte geben Sie einen Individuellen Preis an');
                 $Error = true;
             }
@@ -548,7 +573,13 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         if(($tblPaymentType = Balance::useService()->getPaymentTypeById($DebtorSelection['PaymentType']))){
             if($tblPaymentType->getName() == 'SEPA-Lastschrift'){
                 if (isset($DebtorSelection['BankAccount']) && empty($DebtorSelection['BankAccount'])) {
-                    $Warning .= new Warning('Bitte geben sie ein Konto an. (Ein Konto wird benötigt, um ein SEPA-Lastschriftverfahren zu hinterlegen)');
+                    $Warning .= new Warning('Bitte geben sie ein Konto an. (Ein Konto wird benötigt, um ein 
+                    SEPA-Lastschriftverfahren zu hinterlegen) Wahlweise andere Bezahlart auswählen.');
+                    $form->setError('DebtorSelection[BankAccount]', 'Bitte geben Sie eine Konto an');
+                    $Error = true;
+                } elseif( isset($DebtorSelection['BankAccount']) && $DebtorSelection['BankAccount'] == '-1'){
+                    $Warning .= new Warning('Bitte geben sie ein Konto an. (Ein Konto wird benötigt, um ein 
+                    SEPA-Lastschriftverfahren zu hinterlegen) Wahlweise andere Bezahlart auswählen.');
                     $form->setError('DebtorSelection[BankAccount]', 'Bitte geben Sie eine Konto an');
                     $Error = true;
                 }
@@ -688,8 +719,15 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         if($DebtorSelection['Variant'] == '-1'){
             $ItemPrice = $DebtorSelection['Price'];
         }
-        $tblBankAccount = Debtor::useService()->getBankAccountById($DebtorSelection['BankAccount']);
-        $tblBankReference = Debtor::useService()->getBankReferenceById($DebtorSelection['BankReference']);
+
+        if($DebtorSelection['BankAccount'] == '-1'){
+            $tblBankAccount = false;
+            $tblBankReference = false;
+        } else {
+            $tblBankAccount = Debtor::useService()->getBankAccountById($DebtorSelection['BankAccount']);
+            $tblBankReference = Debtor::useService()->getBankReferenceById($DebtorSelection['BankReference']);
+        }
+
 
         $IsChange = false;
         if (($tblDebtorSelection = Debtor::useService()->getDebtorSelectionById($DebtorSelectionId))
@@ -725,11 +763,12 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             $tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant();
             ($tblItemVariant ? $_POST['DebtorSelection']['Variant'] = $tblItemVariant->getId(): '');
             $Value = $tblDebtorSelection->getValue(true);
-            ($Value !== '0.00' ? $Global->POST['DebtorSelection']['Price'] = $Value : '');
+            ($Value !== '0,00' ? $Global->POST['DebtorSelection']['Price'] = $Value : '');
             $tblPerson = $tblDebtorSelection->getServiceTblPerson();
             ($tblPerson ? $Global->POST['DebtorSelection']['Debtor'] = $tblPerson->getId() : '');
             $tblBankAccount = $tblDebtorSelection->getTblBankAccount();
-            ($tblBankAccount ? $Global->POST['DebtorSelection']['BankAccount'] = $tblBankAccount->getId() : '');
+            ($tblBankAccount ? $Global->POST['DebtorSelection']['BankAccount'] = $tblBankAccount->getId()
+                : $Global->POST['DebtorSelection']['BankAccount'] = '-1');
             $tblBankReference = $tblDebtorSelection->getTblBankReference();
             ($tblBankReference ? $Global->POST['DebtorSelection']['BankReference'] = $tblBankReference->getId() : '');
             $Global->savePost();

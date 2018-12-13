@@ -144,6 +144,20 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblPerson $tblPersonCauser
+     *
+     * @return false|TblDebtorSelection[]
+     */
+    public function getDebtorSelectionByPersonCauser(TblPerson $tblPersonCauser)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorSelection',
+            array(
+                TblDebtorSelection::ATTR_SERVICE_TBL_PERSON_CAUSER => $tblPersonCauser->getId()
+            ));
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param TblItem   $tblItem
      *
@@ -156,6 +170,20 @@ class Data extends AbstractData
             array(
                 TblDebtorSelection::ATTR_SERVICE_TBL_PERSON_CAUSER => $tblPerson->getId(),
                 TblDebtorSelection::ATTR_SERVICE_TBL_ITEM          => $tblItem->getId()
+            ));
+    }
+
+    /**
+     * @param TblBankReference $tblBankReference
+     *
+     * @return false|TblDebtorSelection[]
+     */
+    public function getDebtorSelectionByBankReference(TblBankReference $tblBankReference)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorSelection',
+            array(
+                TblDebtorSelection::ATTR_TBL_BANK_REFERENCE => $tblBankReference->getId()
             ));
     }
 

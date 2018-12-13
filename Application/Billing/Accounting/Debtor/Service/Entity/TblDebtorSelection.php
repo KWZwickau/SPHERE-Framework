@@ -190,7 +190,7 @@ class TblDebtorSelection extends Element
     {
 
         if($IsShort) {
-            return number_format($this->Value, 2);
+            return str_replace('.', ',', number_format($this->Value, 2));
         }
         return $this->Value;
     }
