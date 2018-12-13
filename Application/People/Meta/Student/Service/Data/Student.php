@@ -82,6 +82,107 @@ abstract class Student extends AbstractData
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param string $Prefix
+     * @param string $Identifier
+     * @param string $SchoolAttendanceStartDate
+     * @param bool $HasMigrationBackground
+     * @param bool $IsInPreparationDivisionForMigrants
+     *
+     * @return bool|TblStudent
+     */
+    public function createStudentBasic(
+        TblPerson $tblPerson,
+        $Prefix = '',
+        $Identifier = '',
+        $SchoolAttendanceStartDate = '',
+        $HasMigrationBackground = false,
+        $IsInPreparationDivisionForMigrants = false
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $IsIdentifier = true;
+        $IdentifierResult = $Manager->getEntity('TblStudent')
+            ->findOneBy(array(
+                TblStudent::ATTR_TBL_IDENTIFIER => $Identifier,
+            ));
+        if ($IdentifierResult) {
+            $IsIdentifier = false;
+        }
+
+        $Entity = $this->getStudentByPerson($tblPerson, true);
+
+        if (!$Entity) {
+            $Entity = new TblStudent();
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setPrefix($Prefix);
+            if ($IsIdentifier) {
+                $Entity->setIdentifier($Identifier);
+            }
+            $Entity->setSchoolAttendanceStartDate(( $SchoolAttendanceStartDate ? new \DateTime($SchoolAttendanceStartDate) : null ));
+            $Entity->setHasMigrationBackground($HasMigrationBackground);
+            $Entity->setIsInPreparationDivisionForMigrants($IsInPreparationDivisionForMigrants);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param string $Prefix
+     * @param string $Identifier
+     * @param string $SchoolAttendanceStartDate
+     * @param bool $HasMigrationBackground
+     * @param bool $IsInPreparationDivisionForMigrants
+     *
+     * @return bool
+     */
+    public function updateStudentBasic(
+        TblStudent $tblStudent,
+        $Prefix = '',
+        $Identifier = '',
+        $SchoolAttendanceStartDate = '',
+        $HasMigrationBackground = false,
+        $IsInPreparationDivisionForMigrants = false
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $IsIdentifier = true;
+        $IdentifierResult = $Manager->getEntity('TblStudent')
+            ->findOneBy(array(
+                TblStudent::ATTR_TBL_IDENTIFIER => $Identifier,
+            ));
+        if ($IdentifierResult) {
+            $IsIdentifier = false;
+        }
+
+        /** @var null|TblStudent $Entity */
+        $Entity = $Manager->getEntityById('TblStudent', $tblStudent->getId());
+        if (null !== $Entity) {
+            $Protocol = clone $Entity;
+            $Entity->setPrefix($Prefix);
+            if ($IsIdentifier) {
+                $Entity->setIdentifier($Identifier);
+            }
+            $Entity->setSchoolAttendanceStartDate(( $SchoolAttendanceStartDate ? new \DateTime($SchoolAttendanceStartDate) : null ));
+            $Entity->setHasMigrationBackground($HasMigrationBackground);
+            $Entity->setIsInPreparationDivisionForMigrants($IsInPreparationDivisionForMigrants);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param TblStudent $tblStudent
      * @param $Prefix
      * @return bool|TblStudent

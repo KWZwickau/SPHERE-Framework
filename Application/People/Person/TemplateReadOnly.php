@@ -30,6 +30,7 @@ class TemplateReadOnly
      * @param Link[] $linkList
      * @param string $titleDescription
      * @param IIconInterface|null $titleIcon
+     * @param bool $noContentWell
      *
      * @return string
      */
@@ -38,7 +39,8 @@ class TemplateReadOnly
         $content,
         $linkList = array(),
         $titleDescription = '',
-        IIconInterface $titleIcon = null
+        IIconInterface $titleIcon = null,
+        $noContentWell = false
     ) {
 
         $titlePrefix = $titleIcon ? $titleIcon . ' ' : '';
@@ -52,7 +54,7 @@ class TemplateReadOnly
         }
         $title = new Title($titlePrefix . $titleName, $titleDescription);
 
-        if (self::USE_WELL && $content != '') {
+        if (!$noContentWell && self::USE_WELL && $content != '') {
             $content = new Well($content);
         }
 

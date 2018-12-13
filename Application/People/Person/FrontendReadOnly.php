@@ -58,45 +58,50 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
 
             $validationMessage = FilterService::getPersonMessageTable($tblPerson);
 
-            $basicContent = ApiPersonReadOnly::receiverBlock(
-                    new SuccessMessage('Die Grunddaten der Person werden geladen.'), 'BasicContent'
-                ) . ApiPersonReadOnly::pipelineLoadBasicContent($Id);
+//            $basicContent = ApiPersonReadOnly::receiverBlock(
+//                    new SuccessMessage('Die Grunddaten der Person werden geladen.'), 'BasicContent'
+//                ) . ApiPersonReadOnly::pipelineLoadBasicContent($Id);
+//
+//            $commonContent = ApiPersonReadOnly::receiverBlock(
+//                    new SuccessMessage('Die Personendaten der Person werden geladen.'), 'CommonContent'
+//                ) . ApiPersonReadOnly::pipelineLoadCommonContent($Id);
+//
+//            $prospectContent = ApiPersonReadOnly::receiverBlock(
+//                    new SuccessMessage('Die Interessent-Daten der Person werden geladen.'), 'ProspectContent'
+//                ) . ApiPersonReadOnly::pipelineLoadProspectTitle($Id);
+//
+//            $teacherContent = ApiPersonReadOnly::receiverBlock(
+//                    new SuccessMessage('Die Lehrer-Daten der Person werden geladen.'), 'TeacherContent'
+//                ) . ApiPersonReadOnly::pipelineLoadTeacherTitle($Id);
 
-            $commonContent = ApiPersonReadOnly::receiverBlock(
-                    new SuccessMessage('Die Personendaten der Person werden geladen.'), 'CommonContent'
-                ) . ApiPersonReadOnly::pipelineLoadCommonContent($Id);
+            $studentContent = ApiPersonReadOnly::receiverBlock(
+                    new SuccessMessage('Die Schülerakte-Daten der Person werden geladen.'), 'StudentContent'
+                ) . ApiPersonReadOnly::pipelineLoadStudentContent($Id);
 
-            $prospectContent = ApiPersonReadOnly::receiverBlock(
-                    new SuccessMessage('Die Interessent-Daten der Person werden geladen.'), 'ProspectContent'
-                ) . ApiPersonReadOnly::pipelineLoadProspectTitle($Id);
-
-            $teacherContent = ApiPersonReadOnly::receiverBlock(
-                    new SuccessMessage('Die Lehrer-Daten der Person werden geladen.'), 'TeacherContent'
-                ) . ApiPersonReadOnly::pipelineLoadTeacherTitle($Id);
-
-            $custodyContent = ApiPersonReadOnly::receiverBlock(
-                    new SuccessMessage('Die Sorgerecht-Daten der Person werden geladen.'), 'CustodyContent'
-                ) . ApiPersonReadOnly::pipelineLoadCustodyTitle($Id);
-
-            $clubContent = ApiPersonReadOnly::receiverBlock(
-                    new SuccessMessage('Die Vereinsmitglied-Daten der Person werden geladen.'), 'ClubContent'
-                ) . ApiPersonReadOnly::pipelineLoadClubTitle($Id);
-
-            $integrationContent = ApiPersonReadOnly::receiverBlock(
-                    new SuccessMessage('Die Integration-Daten der Person werden geladen.'), 'IntegrationContent'
-                ) . ApiPersonReadOnly::pipelineLoadIntegrationTitle($Id);
+//            $custodyContent = ApiPersonReadOnly::receiverBlock(
+//                    new SuccessMessage('Die Sorgerecht-Daten der Person werden geladen.'), 'CustodyContent'
+//                ) . ApiPersonReadOnly::pipelineLoadCustodyTitle($Id);
+//
+//            $clubContent = ApiPersonReadOnly::receiverBlock(
+//                    new SuccessMessage('Die Vereinsmitglied-Daten der Person werden geladen.'), 'ClubContent'
+//                ) . ApiPersonReadOnly::pipelineLoadClubTitle($Id);
+//
+//            $integrationContent = ApiPersonReadOnly::receiverBlock(
+//                    new SuccessMessage('Die Integration-Daten der Person werden geladen.'), 'IntegrationContent'
+//                ) . ApiPersonReadOnly::pipelineLoadIntegrationTitle($Id);
 
 
             $stage->setContent(
-                ($validationMessage ? $validationMessage : '')
-                . $basicContent
-                . $commonContent
-                . $prospectContent
-                . $teacherContent
-                . $custodyContent
-                . $clubContent
-                . $integrationContent
-                . self::getLayoutContact($tblPerson, $Group)
+//                ($validationMessage ? $validationMessage : '')
+//                . $basicContent
+//                . $commonContent
+//                . $prospectContent
+//                . $teacherContent
+                 $studentContent
+//                . $custodyContent
+//                . $clubContent
+//                . $integrationContent
+//                . self::getLayoutContact($tblPerson, $Group)
             );
         // neue Person anlegen
         } else {

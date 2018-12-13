@@ -379,6 +379,45 @@ class Service extends Support
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param $Meta
+     *
+     * @return bool|TblStudent
+     */
+    public function updateStudentBasic(TblPerson $tblPerson, $Meta)
+    {
+
+        $tblStudent = $tblPerson->getStudent(true);
+
+        $Prefix = $Meta['Student']['Prefix'];
+        $tblSetting = Consumer::useService()->getSetting('People', 'Meta', 'Student', 'Automatic_StudentNumber');
+        if($tblSetting && $tblSetting->getValue()){
+            $biggestIdentifier = Student::useService()->getStudentMaxIdentifier();
+            $Meta['Student']['Identifier'] = $biggestIdentifier + 1;
+        }
+
+        if ($tblStudent) {
+            return (new Data($this->getBinding()))->updateStudentBasic(
+                $tblStudent,
+                $Prefix,
+                $Meta['Student']['Identifier'],
+                $Meta['Student']['SchoolAttendanceStartDate'],
+                isset($Meta['Student']['HasMigrationBackground']),
+                isset($Meta['Student']['IsInPreparationDivisionForMigrants'])
+            );
+        } else {
+            return (new Data($this->getBinding()))->createStudentBasic(
+                $tblPerson,
+                $Prefix,
+                $Meta['Student']['Identifier'],
+                $Meta['Student']['SchoolAttendanceStartDate'],
+                isset($Meta['Student']['HasMigrationBackground']),
+                isset($Meta['Student']['IsInPreparationDivisionForMigrants'])
+            );
+        }
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param TblPerson      $tblPerson
      * @param array          $Meta
