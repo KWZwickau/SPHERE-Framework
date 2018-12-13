@@ -4,6 +4,7 @@ namespace SPHERE\Application\Api\Billing\Accounting;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Billing\Accounting\Causer\Causer;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Inventory\Item\Item;
@@ -60,7 +61,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
         // reload Panel content
-        $Dispatcher->registerMethod('getDebtorSelectionContent');
+        $Dispatcher->registerMethod('getItemPanelContent');
         // DebtorSelection
         $Dispatcher->registerMethod('showAddDebtorSelection');
         $Dispatcher->registerMethod('saveAddDebtorSelection');
@@ -86,13 +87,14 @@ class ApiDebtorSelection extends Extension implements IApiInterface
 
     /**
      * @param string $Content
+     * @param string $Identifier
      *
      * @return BlockReceiver
      */
-    public static function receiverPanelContent($Content = '')
+    public static function receiverPanelContent($Content = '', $Identifier = '')
     {
 
-        return (new BlockReceiver($Content))->setIdentifier('BlockPanelContent');
+        return (new BlockReceiver($Content))->setIdentifier('BlockPanelContent'.$Identifier);
     }
 
     /**
@@ -130,10 +132,11 @@ class ApiDebtorSelection extends Extension implements IApiInterface
     /**
      * @param string $Identifier
      * @param string $PersonId
+     * @param string $ItemId
      *
      * @return Pipeline
      */
-    public static function pipelineSaveAddDebtorSelection($Identifier = '', $PersonId = '')
+    public static function pipelineSaveAddDebtorSelection($Identifier = '', $PersonId = '', $ItemId = '')
     {
 
         $Receiver = self::receiverModal(null, $Identifier);
@@ -144,7 +147,8 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         ));
         $Emitter->setPostPayload(array(
             'Identifier' => $Identifier,
-            'PersonId'   => $PersonId
+            'PersonId'   => $PersonId,
+            'ItemId'   => $ItemId
         ));
         $Pipeline->appendEmitter($Emitter);
 
@@ -154,13 +158,16 @@ class ApiDebtorSelection extends Extension implements IApiInterface
     /**
      * @param string     $Identifier
      * @param string     $PersonId
+     * @param string     $ItemId
      * @param int|string $DebtorSelectionId
+     * @param array      $DebtorSelection
      *
      * @return Pipeline
      */
     public static function pipelineOpenEditDebtorSelectionModal(
         $Identifier = '',
         $PersonId = '',
+        $ItemId = '',
         $DebtorSelectionId = '',
         $DebtorSelection = array()
     ) {
@@ -174,6 +181,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         $Emitter->setPostPayload(array(
             'Identifier'        => $Identifier,
             'PersonId'          => $PersonId,
+            'ItemId'          => $ItemId,
             'DebtorSelectionId' => $DebtorSelectionId,
             'DebtorSelection'   => $DebtorSelection
         ));
@@ -185,11 +193,12 @@ class ApiDebtorSelection extends Extension implements IApiInterface
     /**
      * @param string     $Identifier
      * @param string     $PersonId
+     * @param string     $ItemId
      * @param int|string $DebtorSelectionId
      *
      * @return Pipeline
      */
-    public static function pipelineSaveEditDebtorSelection($Identifier = '', $PersonId = '', $DebtorSelectionId = '')
+    public static function pipelineSaveEditDebtorSelection($Identifier = '', $PersonId = '', $ItemId = '', $DebtorSelectionId = '')
     {
 
         $Receiver = self::receiverModal(null, $Identifier);
@@ -201,6 +210,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         $Emitter->setPostPayload(array(
             'Identifier'        => $Identifier,
             'PersonId'          => $PersonId,
+            'ItemId'          => $ItemId,
             'DebtorSelectionId' => $DebtorSelectionId
         ));
         $Pipeline->appendEmitter($Emitter);
@@ -211,6 +221,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
     /**
      * @param string     $Identifier
      * @param string     $PersonId
+     * @param string     $ItemId
      * @param int|string $DebtorSelectionId
      *
      * @return Pipeline
@@ -218,6 +229,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
     public static function pipelineOpenDeleteDebtorSelectionModal(
         $Identifier = '',
         $PersonId = '',
+        $ItemId = '',
         $DebtorSelectionId = ''
     ) {
 
@@ -230,6 +242,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         $Emitter->setPostPayload(array(
             'Identifier'        => $Identifier,
             'PersonId'          => $PersonId,
+            'ItemId'          => $ItemId,
             'DebtorSelectionId' => $DebtorSelectionId,
         ));
         $Pipeline->appendEmitter($Emitter);
@@ -240,11 +253,12 @@ class ApiDebtorSelection extends Extension implements IApiInterface
     /**
      * @param string     $Identifier
      * @param string     $PersonId
+     * @param string     $ItemId
      * @param int|string $DebtorSelectionId
      *
      * @return Pipeline
      */
-    public static function pipelineDeleteDebtorSelection($Identifier = '', $PersonId = '', $DebtorSelectionId = '')
+    public static function pipelineDeleteDebtorSelection($Identifier = '', $PersonId = '', $ItemId = '', $DebtorSelectionId = '')
     {
 
         $Receiver = self::receiverModal(null, $Identifier);
@@ -256,6 +270,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         $Emitter->setPostPayload(array(
             'Identifier'        => $Identifier,
             'PersonId'          => $PersonId,
+            'ItemId'          => $ItemId,
             'DebtorSelectionId' => $DebtorSelectionId,
         ));
         $Pipeline->appendEmitter($Emitter);
@@ -266,19 +281,21 @@ class ApiDebtorSelection extends Extension implements IApiInterface
     /**
      * @param string $Identifier
      * @param string $PersonId
+     * @param string $ItemId
      *
      * @return Pipeline
      */
-    public static function pipelineCloseModal($Identifier = '', $PersonId = '')
+    public static function pipelineCloseModal($Identifier = '', $PersonId = '', $ItemId = '')
     {
         $Pipeline = new Pipeline();
         // reload the whole Table
-        $Emitter = new ServerEmitter(self::receiverPanelContent(''), self::getEndpoint());
+        $Emitter = new ServerEmitter(self::receiverPanelContent('', $ItemId), self::getEndpoint());
         $Emitter->setGetPayload(array(
-            self::API_TARGET => 'getDebtorSelectionContent'
+            self::API_TARGET => 'getItemPanelContent'
         ));
         $Emitter->setPostPayload(array(
-            'PersonId' => $PersonId
+            'PersonId' => $PersonId,
+            'ItemId' => $ItemId
         ));
         $Pipeline->appendEmitter($Emitter);
         $Pipeline->appendEmitter((new CloseModal(self::receiverModal('', $Identifier)))->getEmitter());
@@ -287,13 +304,14 @@ class ApiDebtorSelection extends Extension implements IApiInterface
 
     /**
      * @param $PersonId
+     * @param $ItemId
      *
      * @return string
      */
-    public function getDebtorSelectionContent($PersonId)
+    public function getItemPanelContent($PersonId, $ItemId)
     {
 
-        return Debtor::useFrontend()->getDebtorSelectionContent($PersonId);
+        return Causer::useFrontend()->getItemContent($PersonId, $ItemId);
     }
 
     /**
@@ -310,29 +328,44 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         // choose between Add and Edit
         $SaveButton = new Primary('Speichern', self::getEndpoint(), new Save());
         if ('' !== $DebtorSelectionId) {
-            $SaveButton->ajaxPipelineOnClick(self::pipelineSaveEditDebtorSelection($Identifier, $PersonId,
+            $SaveButton->ajaxPipelineOnClick(self::pipelineSaveEditDebtorSelection($Identifier, $PersonId, $ItemId,
                 $DebtorSelectionId));
         } else {
-            $SaveButton->ajaxPipelineOnClick(self::pipelineSaveAddDebtorSelection($Identifier, $PersonId));
+            $SaveButton->ajaxPipelineOnClick(self::pipelineSaveAddDebtorSelection($Identifier, $PersonId, $ItemId));
         }
 
-        $List = array();
+        $PaymentTypeList = array();
+        // post Type if not Exist
+
         $tblPaymentTypeAll = Balance::useService()->getPaymentTypeAll();
-        $PostPaymentTypeId = false;
         foreach ($tblPaymentTypeAll as $tblPaymentType) {
-            $List[$tblPaymentType->getId()] = $tblPaymentType->getName();
+            $PaymentTypeList[$tblPaymentType->getId()] = $tblPaymentType->getName();
             if ($tblPaymentType->getName() == 'SEPA-Lastschrift') {
-                $PostPaymentTypeId = $tblPaymentType->getId();
+                if (!isset($_POST['DebtorSelection']['PaymentType'])) {
+                    $_POST['DebtorSelection']['PaymentType'] = $tblPaymentType->getId();
+                }
             }
         }
 
-        if (!isset($_POST['DebtorSelection']['PaymentType'])) {
-            $_POST['DebtorSelection']['PaymentType'] = $PostPaymentTypeId;
-        }
-        if (!isset($_POST['DebtorSelection']['Vairant'])) {
-            $_POST['DebtorSelection']['Vairant'] = 1;
+        //get First Variant to Select
+        $PostVariantId = '';
+        if (($tblItem = Item::useService()->getItemById($ItemId))) {
+            // edit POST
+            if($DebtorSelectionId && ($tblDebtorSelection = Debtor::useService()->getDebtorSelectionById($DebtorSelectionId))){
+                if(($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())){
+                    $PostVariantId = $tblItemVariant->getId();
+                } else {
+                    $PostVariantId = '-1';
+                }
+            } /* new POST */ elseif (($tblItemVariantList = Item::useService()->getItemVariantByItem($tblItem))) {
+                $PostVariantId = $tblItemVariantList[0]->getId();
+            }
         }
 
+
+        if (!isset($_POST['DebtorSelection']['Variant'])) {
+            $_POST['DebtorSelection']['Variant'] = $PostVariantId;
+        }
 
         $RadioBoxListVariant = array();
         if (($tblItem = Item::useService()->getItemById($ItemId))) {
@@ -343,16 +376,15 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                         $PriceString = $tblItemCalculation->getPriceString();
                     }
 
-                    $RadioBoxListVariant[] = new RadioBox('DebtorSelection[Vairant]',
+                    $RadioBoxListVariant[] = new RadioBox('DebtorSelection[Variant]',
                         $tblItemVariant->getName().' - '.$PriceString, $tblItemVariant->getId());
                 }
-                $RadioBoxListVariant[] = new RadioBox('DebtorSelection[Vairant]',
+                $RadioBoxListVariant[] = new RadioBox('DebtorSelection[Variant]',
                    'Individuelle Preiseingabe'.new TextField('DebtorSelection[Price]', '', ''), -1);
             }
         }
 
         $PersonDebtorList = array();
-
         $SelectBoxDebtorList = array();
 
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
@@ -393,8 +425,12 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                     foreach($tblBankAccountList as $tblBankAccount){
                         if(!$PostBankAccountId){
                             $PostBankAccountId = $tblBankAccount->getId();
-                            if (!isset($_POST['DebtorSelection']['BankAccount'])) {
-                                $_POST['DebtorSelection']['BankAccount'] = $PostBankAccountId;
+                            if(isset($_POST['DebtorSelection']['PaymentType'])
+                                && ($tblPaymentType = Balance::useService()->getPaymentTypeById($_POST['DebtorSelection']['PaymentType']))
+                                && $tblPaymentType->getName() == 'SEPA-Lastschrift') {
+                                if(!isset($_POST['DebtorSelection']['BankAccount'])) {
+                                    $_POST['DebtorSelection']['BankAccount'] = $PostBankAccountId;
+                                }
                             }
                         }
                         $RadioBoxListBankAccount[$tblBankAccount->getId()] = new RadioBox('DebtorSelection[BankAccount]'
@@ -409,30 +445,38 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             $RadioBoxListBankAccount = new Warning('Keine Kontodaten hinterlegt');
         }
 
-//        Debugger::screenDump($Global->POST);
+        $tblBankReferenceList = Debtor::useService()->getBankReferenceByPerson($tblPerson);
+        if($tblBankReferenceList){
+            // Post first entry if PaymentType = SEPA-Lastschrift
+            if(isset($_POST['DebtorSelection']['PaymentType'])
+                && ($tblPaymentType = Balance::useService()->getPaymentTypeById($_POST['DebtorSelection']['PaymentType']))
+                && $tblPaymentType->getName() == 'SEPA-Lastschrift'){
+                $_POST['DebtorSelection']['BankReference'] = $tblBankReferenceList[0]->getId();
+            }
+        }
 
         return (new Form(
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
                         (new SelectBox('DebtorSelection[PaymentType]', 'Zahlungsart',
-                            $List /*array('{{ Name }}' => $tblPaymentTypeList)*/))
+                            $PaymentTypeList))
                         //ToDO Change follow Content
 //                        ->ajaxPipelineOnChange()
                         , 6),
-                    new FormColumn(
-                        array(
-                            new Bold('Varianten: '),
-                            new Listing($RadioBoxListVariant)
-                        )
-                        , 6),
-                )),
-                new FormRow(array(
                     new FormColumn(
                         (new SelectBox('DebtorSelection[Debtor]', 'Bezahler',
                             $SelectBoxDebtorList /*array('{{ Name }}' => $tblPaymentTypeList)*/))
                         //ToDO Change follow Content
 //                        ->ajaxPipelineOnChange()
+                        , 6),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        array(
+                            new Bold('Varianten: '),
+                            new Listing($RadioBoxListVariant)
+                        )
                         , 6),
                     new FormColumn(
                         array(
@@ -440,6 +484,16 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                             new Listing($RadioBoxListBankAccount)
                         )
                         , 6),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(''))))
+                        , 6
+                    ),
+                    new FormColumn(
+                        new SelectBox('DebtorSelection[BankReference]', 'Mandatsreferenz', array('ReferenceNumber' => $tblBankReferenceList))
+                        , 6
+                    )
                 )),
                 new FormRow(
                     new FormColumn(
@@ -453,6 +507,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
     /**
      * @param string $Identifier
      * @param string $PersonId
+     * @param string $ItemId
      * @param string $DebtorSelectionId
      * @param array  $DebtorSelection
      *
@@ -461,20 +516,54 @@ class ApiDebtorSelection extends Extension implements IApiInterface
     private function checkInputDebtorSelection(
         $Identifier = '',
         $PersonId = '',
+        $ItemId = '',
         $DebtorSelectionId = '',
         $DebtorSelection = array()
     ) {
 
         $Error = false;
-        $form = $this->formDebtorSelection($Identifier, $PersonId, $DebtorSelectionId);
-        if (isset($DebtorSelection['Number']) && empty($DebtorSelection['Number'])) {
-            $form->setError('DebtorSelection[Number]', 'Bitte geben Sie eine Debitor-Nummer an');
+        $Warning = '';
+        $form = $this->formDebtorSelection($Identifier, $PersonId, $ItemId, $DebtorSelectionId);
+        if (isset($DebtorSelection['PaymentType']) && empty($DebtorSelection['PaymentType'])) {
+            $form->setError('DebtorSelection[PaymentType]', 'Bitte geben Sie eine Zahlungsart an');
+            $Error = true;
+        }
+        if (isset($DebtorSelection['Variant']) && empty($DebtorSelection['Variant'])) {
+            $Warning .= new Warning('Bitte geben Sie eine Bezahlvariante an, steht keine zur Auswahl, stellen Sie bitte eine bei den Beitragsarten ein.');
+            $form->setError('DebtorSelection[Variant]', 'Bitte geben Sie eine Bezahlvariante an');
+            $Error = true;
+        } elseif(isset($DebtorSelection['Variant']) && $DebtorSelection['Variant'] == '-1') {
+            // is price empty (is requiered vor no Variant)
+            if (isset($DebtorSelection['Price']) && empty($DebtorSelection['Price'])) {
+                $Warning .= new Warning('Bitte geben Sie einen Individuellen Preis an');
+//                $form->setError('DebtorSelection[Price]', 'Bitte geben Sie einen Individuellen Preis an');
+                $Error = true;
+            }
+        }
+        if (isset($DebtorSelection['Debtor']) && empty($DebtorSelection['Debtor'])) {
+            $form->setError('DebtorSelection[Debtor]', 'Bitte geben Sie einen Bezahler an');
             $Error = true;
         }
 
+        if(($tblPaymentType = Balance::useService()->getPaymentTypeById($DebtorSelection['PaymentType']))){
+            if($tblPaymentType->getName() == 'SEPA-Lastschrift'){
+                if (isset($DebtorSelection['BankAccount']) && empty($DebtorSelection['BankAccount'])) {
+                    $Warning .= new Warning('Bitte geben sie ein Konto an. (Ein Konto wird benötigt, um ein SEPA-Lastschriftverfahren zu hinterlegen)');
+                    $form->setError('DebtorSelection[BankAccount]', 'Bitte geben Sie eine Konto an');
+                    $Error = true;
+                }
+                if (isset($DebtorSelection['BankReference']) && empty($DebtorSelection['BankReference'])) {
+                    $form->setError('DebtorSelection[BankReference]', 'Bitte geben Sie eine Mandatsreferenz an');
+                    $Error = true;
+                }
+            }
+        }
+
+
+
         if ($Error) {
             // Debtor::useFrontend()->getPersonPanel($PersonId).
-            return new Well($form);
+            return new Well($Warning.$form);
         }
 
         return $Error;
@@ -497,42 +586,73 @@ class ApiDebtorSelection extends Extension implements IApiInterface
     /**
      * @param string $Identifier
      * @param string $PersonId
+     * @param string $ItemId
      * @param array  $DebtorSelection
      *
      * @return string
      */
-    public function saveAddDebtorSelection($Identifier = '', $PersonId = '', $DebtorSelection = array())
+    public function saveAddDebtorSelection($Identifier = '', $PersonId = '', $ItemId = '', $DebtorSelection = array())
     {
 
         // Handle error's
-        if ($form = $this->checkInputDebtorSelection($Identifier, $PersonId, '', $DebtorSelection)) {
+        if ($form = $this->checkInputDebtorSelection($Identifier, $PersonId, $ItemId, '', $DebtorSelection)) {
 
             // display Errors on form
             $Global = $this->getGlobal();
-            $Global->POST['DebtorSelection']['Number'] = $DebtorSelection['Number'];
+            $Global->POST['DebtorSelection']['PaymentType'] = $DebtorSelection['PaymentType'];
+            $Global->POST['DebtorSelection']['Variant'] = $DebtorSelection['Variant'];
+            $Global->POST['DebtorSelection']['Price'] = $DebtorSelection['Price'];
+            $Global->POST['DebtorSelection']['Debtor'] = $DebtorSelection['Debtor'];
+            $Global->POST['DebtorSelection']['BankAccount'] = $DebtorSelection['BankAccount'];
+            $Global->POST['DebtorSelection']['BankReference'] = $DebtorSelection['BankReference'];
             $Global->savePost();
-            return Debtor::useFrontend()->getPersonPanel($PersonId).$form;
+            return $form;
         }
 
-        if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
-            // ToDO delete existing DebtorSelection
-            /////////
+//        return new Success('Zahlungszuweisung erfolgt (Test)').self::pipelineCloseModal($Identifier, $PersonId, $ItemId);
 
-            $tblDebtorSelection = Debtor::useService()->createDebtorSelection($tblPerson, $DebtorSelection['Number']);
+
+        $tblPersonCauser = Person::useService()->getPersonById($PersonId);
+        $tblPerson = Person::useService()->getPersonById($DebtorSelection['Debtor']);
+        $tblPaymentType = Balance::useService()->getPaymentTypeById($DebtorSelection['PaymentType']);
+        $tblItem = Item::useService()->getItemById($ItemId);
+        $tblItemVariant = Item::useService()->getItemVariantById($DebtorSelection['Variant']);
+        $ItemPrice = '';
+        // ItemPrice only if Variant is "-1"
+        if($DebtorSelection['Variant'] == '-1'){
+            $ItemPrice = $DebtorSelection['Price'];
+        }
+        if($tblPaymentType && $tblPaymentType->getName() != 'SEPA-Lastschrift') {
+            $tblBankAccount = false;
+            $tblBankReference = false;
+        } else {
+            $tblBankAccount = Debtor::useService()->getBankAccountById($DebtorSelection['BankAccount']);
+            $tblBankReference = Debtor::useService()->getBankReferenceById($DebtorSelection['BankReference']);
+        }
+
+        if ($tblPersonCauser && $tblPerson && $tblPaymentType && $tblItem) {
+
+            $tblDebtorSelection = Debtor::useService()->createDebtorSelection($tblPersonCauser, $tblPerson,
+                $tblPaymentType, $tblItem,
+                ($tblItemVariant ? $tblItemVariant : null),
+                $ItemPrice,
+                ($tblBankAccount ? $tblBankAccount : null),
+                ($tblBankReference ? $tblBankReference : null));
             if ($tblDebtorSelection) {
-                return new Success('Debitor-Nummer erfolgreich angelegt').self::pipelineCloseModal($Identifier,
-                        $PersonId);
+                return new Success('Zahlungszuweisung erfolgreich angelegt').self::pipelineCloseModal($Identifier,
+                        $PersonId, $ItemId);
             } else {
-                return new Danger('Debitor-Nummer konnte nicht gengelegt werden');
+                return new Danger('Zahlungszuweisung konnte nicht gengelegt werden');
             }
         } else {
-            return new Danger('Debitor-Nummer konnte nicht gengelegt werden(Person nicht vorhanden)');
+            return new Danger('Zahlungszuweisung konnte nicht gengelegt werden (Person/Typ/Item)');
         }
     }
 
     /**
      * @param string     $Identifier
      * @param string     $PersonId
+     * @param string     $ItemId
      * @param int|string $DebtorSelectionId
      * @param array      $DebtorSelection
      *
@@ -541,57 +661,92 @@ class ApiDebtorSelection extends Extension implements IApiInterface
     public function saveEditDebtorSelection(
         $Identifier = '',
         $PersonId = '',
+        $ItemId = '',
         $DebtorSelectionId = '',
         $DebtorSelection = array()
     ) {
 
         // Handle error's
-        if ($form = $this->checkInputDebtorSelection($Identifier, $PersonId, $DebtorSelectionId, $DebtorSelection)) {
+        if ($form = $this->checkInputDebtorSelection($Identifier, $PersonId, $ItemId, $DebtorSelectionId, $DebtorSelection)) {
             // display Errors on form
             $Global = $this->getGlobal();
-            $Global->POST['DebtorSelection']['Number'] = $DebtorSelection['Number'];
+            $Global->POST['DebtorSelection']['PaymentType'] = $DebtorSelection['PaymentType'];
+            $Global->POST['DebtorSelection']['Variant'] = $DebtorSelection['Variant'];
+            $Global->POST['DebtorSelection']['Price'] = $DebtorSelection['Price'];
+            $Global->POST['DebtorSelection']['Debtor'] = $DebtorSelection['Debtor'];
+            $Global->POST['DebtorSelection']['BankAccount'] = $DebtorSelection['BankAccount'];
+            $Global->POST['DebtorSelection']['BankReference'] = $DebtorSelection['BankReference'];
             $Global->savePost();
             return $form;
         }
 
+        $tblPerson = Person::useService()->getPersonById($DebtorSelection['Debtor']);
+        $tblPaymentType = Balance::useService()->getPaymentTypeById($DebtorSelection['PaymentType']);
+        $tblItemVariant = Item::useService()->getItemVariantById($DebtorSelection['Variant']);
+        $ItemPrice = '';
+        // ItemPrice only if Variant is "-1"
+        if($DebtorSelection['Variant'] == '-1'){
+            $ItemPrice = $DebtorSelection['Price'];
+        }
+        $tblBankAccount = Debtor::useService()->getBankAccountById($DebtorSelection['BankAccount']);
+        $tblBankReference = Debtor::useService()->getBankReferenceById($DebtorSelection['BankReference']);
+
         $IsChange = false;
-        if (($tblDebtorSelection = Debtor::useService()->getDebtorSelectionById($DebtorSelectionId))) {
-            $IsChange = Debtor::useService()->changeDebtorSelection($tblDebtorSelection, $DebtorSelection['Number']);
+        if (($tblDebtorSelection = Debtor::useService()->getDebtorSelectionById($DebtorSelectionId))
+        && $tblPerson && $tblPaymentType) {
+            $IsChange = Debtor::useService()->changeDebtorSelection($tblDebtorSelection, $tblPerson, $tblPaymentType,
+                ($tblItemVariant ? $tblItemVariant : null),
+                $ItemPrice,
+                ($tblBankAccount ? $tblBankAccount : null),
+                ($tblBankReference ? $tblBankReference : null)
+            );
         }
 
         return ($IsChange
-            ? new Success('Debitor-Nummer erfolgreich geändert').self::pipelineCloseModal($Identifier, $PersonId)
-            : new Danger('Debitor-Nummer konnte nicht geändert werden'));
+            ? new Success('Zahlungszuweisung erfolgreich geändert').self::pipelineCloseModal($Identifier, $PersonId, $ItemId)
+            : new Danger('Zahlungszuweisung konnte nicht geändert werden'));
     }
 
     /**
      * @param string     $Identifier
      * @param string     $PersonId
+     * @param string     $ItemId
      * @param int|string $DebtorSelectionId
      *
      * @return string
      */
-    public function showEditDebtorSelection($Identifier = '', $PersonId = '', $DebtorSelectionId = '')
+    public function showEditDebtorSelection($Identifier = '', $PersonId = '', $ItemId = '', $DebtorSelectionId = '')
     {
 
         if ('' !== $DebtorSelectionId && ($tblDebtorSelection = Debtor::useService()->getDebtorSelectionById($DebtorSelectionId))) {
             $Global = $this->getGlobal();
-            $Global->POST['DebtorSelection']['Number'] = $tblDebtorSelection->getValue();
+            $tblPaymentType = $tblDebtorSelection->getServiceTblPaymentType();
+            ($tblPaymentType ? $Global->POST['DebtorSelection']['PaymentType'] = $tblPaymentType->getId() : '');
+            $tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant();
+            ($tblItemVariant ? $_POST['DebtorSelection']['Variant'] = $tblItemVariant->getId(): '');
+            $Value = $tblDebtorSelection->getValue(true);
+            ($Value !== '0.00' ? $Global->POST['DebtorSelection']['Price'] = $Value : '');
+            $tblPerson = $tblDebtorSelection->getServiceTblPerson();
+            ($tblPerson ? $Global->POST['DebtorSelection']['Debtor'] = $tblPerson->getId() : '');
+            $tblBankAccount = $tblDebtorSelection->getTblBankAccount();
+            ($tblBankAccount ? $Global->POST['DebtorSelection']['BankAccount'] = $tblBankAccount->getId() : '');
+            $tblBankReference = $tblDebtorSelection->getTblBankReference();
+            ($tblBankReference ? $Global->POST['DebtorSelection']['BankReference'] = $tblBankReference->getId() : '');
             $Global->savePost();
         }
 
-        return Debtor::useFrontend()->getPersonPanel($PersonId)
-            .new Well(self::formDebtorSelection($Identifier, $PersonId, $DebtorSelectionId));
+        return new Well(self::formDebtorSelection($Identifier, $PersonId, $ItemId, $DebtorSelectionId));
     }
 
     /**
      * @param string $Identifier
      * @param string $PersonId
+     * @param string $ItemId
      * @param string $DebtorSelectionId
      *
      * @return string
      */
-    public function showDeleteDebtorSelection($Identifier = '', $PersonId = '', $DebtorSelectionId = '')
+    public function showDeleteDebtorSelection($Identifier = '', $PersonId = '', $ItemId = '', $DebtorSelectionId = '')
     {
 
         $tblDebtorSelection = Debtor::useService()->getDebtorSelectionById($DebtorSelectionId);
@@ -606,21 +761,69 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 new LayoutColumn('Person: ', 2),
                 new LayoutColumn(new Bold($PersonString), 10),
             ))));
+            $ItemString = 'Beitragsart nicht gefunden!';
+            if (($tblItem = $tblDebtorSelection->getServiceTblItem())) {
+                $ItemString = $tblItem->getName();
+            }
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn('Debitor-Nummer: ', 2),
-                new LayoutColumn(new Bold($tblDebtorSelection->getValue()), 10),
+                new LayoutColumn('Beitragsart: ', 2),
+                new LayoutColumn(new Bold($ItemString), 10),
+            ))));
+            $PaymentTypeString = 'Zahlungsart nicht gefunden!';
+            if (($tblPaymentType = $tblDebtorSelection->getServiceTblPaymentType())) {
+                $PaymentTypeString = $tblPaymentType->getName();
+            }
+            $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Zahlungsart: ', 2),
+                new LayoutColumn(new Bold($PaymentTypeString), 10),
+            ))));
+            $PriceString = 'Konditionen nicht gefunden';
+            if (($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())) {
+                $PriceString = new DangerText('Kein aktueller Preis hinterlegt!');
+                if(($tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant))){
+                    $PriceString = $tblItemCalculation->getPriceString();
+                }
+                $PriceString = $tblItemVariant->getName().' - '.$PriceString;
+            } elseif(($Value = $tblDebtorSelection->getValue())) {
+                $PriceString = $Value;
+            }
+            $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Konditionen: ', 2),
+                new LayoutColumn(new Bold($PriceString), 10),
+            ))));
+            $BankAccountString = 'Kontodaten nicht gefunden!';
+            $BankAccountLeftHeadString = '';
+            if (($tblBankAccount = $tblDebtorSelection->getTblBankAccount())) {
+                $BankAccountLeftHeadString = 'Inhaber: <br/> Name der Bank: <br/>IBAN: <br/>BIC: ';
+                $BankAccountString = $tblBankAccount->getOwner()
+                    .'<br/>'.$tblBankAccount->getBankName()
+                    .'<br/>'.$tblBankAccount->getIBANFrontend()
+                    .'<br/>'.$tblBankAccount->getBICFrontend();
+            }
+            $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Konto: ', 2),
+                new LayoutColumn($BankAccountLeftHeadString, 2),
+                new LayoutColumn(new Bold($BankAccountString), 8),
+            ))));
+            $BankReferenceString = 'Mandatsreferenz nicht gefunden!';
+            if (($tblBankReference = $tblDebtorSelection->getTblBankReference())) {
+                $BankReferenceString = $tblBankReference->getReferenceNumber();
+            }
+            $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Mandatsreferenz: ', 2),
+                new LayoutColumn(new Bold($BankReferenceString), 10),
             ))));
 
             return new Layout(
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel('Soll die Debitor-Nummer wirklich entfernt werden?'
+                            new Panel('Soll die Zahlungszuweisung wirklich entfernt werden?'
                                 , $Content, Panel::PANEL_TYPE_DANGER)
                         ),
                         new LayoutColumn(
                             (new DangerLink('Ja', self::getEndpoint(), new Ok()))
-                                ->ajaxPipelineOnClick(self::pipelineDeleteDebtorSelection($Identifier, $PersonId,
+                                ->ajaxPipelineOnClick(self::pipelineDeleteDebtorSelection($Identifier, $PersonId, $ItemId,
                                     $DebtorSelectionId))
                             .new Close('Nein', new Disable())
                         )
@@ -629,25 +832,26 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             );
 
         } else {
-            return new Warning('Debitor-Nummer wurde nicht gefunden');
+            return new Warning('Zahlungszuweisung wurde nicht gefunden');
         }
     }
 
     /**
      * @param string $Identifier
      * @param string $PersonId
+     * @param string $ItemId
      * @param string $DebtorSelectionId
      *
      * @return string
      */
-    public function deleteDebtorSelection($Identifier = '', $PersonId = '', $DebtorSelectionId = '')
+    public function deleteDebtorSelection($Identifier = '', $PersonId = '', $ItemId = '', $DebtorSelectionId = '')
     {
 
         if (($tblDebtorSelection = Debtor::useService()->getDebtorSelectionById($DebtorSelectionId))) {
             Debtor::useService()->removeDebtorSelection($tblDebtorSelection);
 
             return new Success('Zahlungszuweisung wurde erfolgreich entfernt').self::pipelineCloseModal($Identifier,
-                    $PersonId);
+                    $PersonId, $ItemId);
         }
         return new Danger('Zahlungszuweisung konnte nicht entfernt werden');
     }

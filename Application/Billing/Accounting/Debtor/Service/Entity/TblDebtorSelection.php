@@ -196,6 +196,16 @@ class TblDebtorSelection extends Element
     }
 
     /**
+     * @return string
+     */
+    public function getValuePriceString()
+    {
+
+        $result = sprintf("%01.2f", $this->Value);
+        return str_replace('.', ',', $result)." €";
+    }
+
+    /**
      * @param (type="decimal", precision=14, scale=4) $Value
      */
     public function setValue($Value)

@@ -436,6 +436,8 @@ class Data extends AbstractData
 
     /**
      * @param TblDebtorSelection    $tblDebtorSelection
+     * @param TblPerson             $tblPerson
+     * @param TblPaymentType        $tblPaymentType
      * @param TblItemVariant|null   $tblItemVariant
      * @param null                  $Value
      * @param TblBankAccount|null   $tblBankAccount
@@ -443,16 +445,18 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function updateDebtorSelection(TblDebtorSelection $tblDebtorSelection, TblItemVariant $tblItemVariant = null,
-        $Value = null, TblBankAccount $tblBankAccount = null, TblBankReference $tblBankReference = null
+    public function updateDebtorSelection(TblDebtorSelection $tblDebtorSelection, TblPerson $tblPerson, TblPaymentType $tblPaymentType,
+        TblItemVariant $tblItemVariant = null, $Value = null, TblBankAccount $tblBankAccount = null,
+        TblBankReference $tblBankReference = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
         /** @var TblDebtorSelection $Entity */
         $Entity = $Manager->getEntityById('TblDebtorSelection', $tblDebtorSelection->getId());
         $Protocol = clone $Entity;
-        if($Entity === null) {
-            $Entity = new TblDebtorSelection();
+        if($Entity !== null) {
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setServiceTblPaymentType($tblPaymentType);
             $Entity->setServiceTblItemVariant($tblItemVariant);
             $Entity->setValue($Value);
             $Entity->setTblBankAccount($tblBankAccount);

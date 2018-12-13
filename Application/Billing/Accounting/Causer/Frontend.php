@@ -23,10 +23,12 @@ use SPHERE\Common\Frontend\Icon\Repository\Listing as ListingIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -35,10 +37,12 @@ use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
+use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -247,7 +251,9 @@ class Frontend extends Extension implements IFrontendInterface
                 // Panel Color (unchoosen)
                 // ToDO Receiver für den Content
                 $ColumnList[] = new LayoutColumn(new Panel($tblItem->getName(),
-                    $this->getItemContent($PersonId, $tblItem->getId()), Panel::PANEL_TYPE_INFO)
+                    ApiDebtorSelection::receiverPanelContent($this->getItemContent($PersonId, $tblItem->getId())
+                        , $tblItem->getId())
+                    , Panel::PANEL_TYPE_INFO)
                 , 3);
             }
         }
@@ -321,7 +327,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param string $PersonId
      * @param string $ItemId
      *
-     * @return array
+     * @return string
      */
     public function getItemContent($PersonId = '', $ItemId = '')
     {
@@ -330,17 +336,35 @@ class Frontend extends Extension implements IFrontendInterface
         if(($tblPerson = Person::useService()->getPersonById($PersonId))
         && ($tblItem = Item::useService()->getItemById($ItemId))) {
             if(($tblDebtorSelection = Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPerson, $tblItem))){
-                $ItemVariant = 'Varianten: ';
                 $Reference = 'REF: ';
                 $Debtor = 'Bezahler: ';
+
+                $OptionButtons = new PullRight(
+                    (new Link('', '', new Pencil()))
+                        ->ajaxPipelineOnClick(ApiDebtorSelection::pipelineOpenEditDebtorSelectionModal(
+                            'editDebtorSelection', $PersonId, $ItemId, $tblDebtorSelection->getId()))
+                    .' | '
+                    .(new Link(new DangerText(new Disable()), ''))
+                        ->ajaxPipelineOnClick(ApiDebtorSelection::pipelineOpenDeleteDebtorSelectionModal(
+                            'deleteDebtorSelection', $PersonId, $ItemId, $tblDebtorSelection->getId()))
+                );
+
                 if(($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())) {
-                    $ItemVariant = $tblItemVariant->getName();
+                    $PriceString = new WarningText(new WarningIcon().' kein aktueller Preis');
+                    if($tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant)){
+                        $PriceString = $tblItemCalculation->getPriceString();
+                    }
+                    $ItemVariant = $tblItemVariant->getName().' - '.new Bold($PriceString);
+                    $ItemVariant .= $OptionButtons;
+                } else {
+                    $ItemVariant = 'Individueller Preis:'.' - '.new Bold($tblDebtorSelection->getValuePriceString());
+                    $ItemVariant .= $OptionButtons;
                 }
                 if(($tblBankReference = $tblDebtorSelection->getTblBankReference())){
-                    $Reference = 'REF: '.$tblBankReference->getReferenceNumber();
+                    $Reference = 'REF: '.new Bold($tblBankReference->getReferenceNumber());
                 }
                 if(($tblPersonDebtor = $tblDebtorSelection->getServiceTblPerson())){
-                    $Debtor = 'Bezahler: '.$tblPersonDebtor->getLastFirstName();
+                    $Debtor = 'Bezahler: '.new Bold($tblPersonDebtor->getLastFirstName());
                 }
 //            } else {
 //                if(($tblItemVariantList = Item::useService()->getItemVariantByItem($tblItem))) {
@@ -360,13 +384,13 @@ class Frontend extends Extension implements IFrontendInterface
                 $PanelContent[] = $Debtor;
             } else {
                 $PanelContent[] = new Warning(
-                    (new Link('Bezahlung festlegen', '', new PersonIcon()))
+                    (new Link('Zahlungszuweisung festlegen', '', new PersonIcon()))
                     ->ajaxPipelineOnClick(ApiDebtorSelection::pipelineOpenAddDebtorSelectionModal('addDebtorSelection', $PersonId, $ItemId))
 
-                    .new ToolTip(new Info(), 'Beitragsarten werden ohne Bezahler nicht berücksichtigt')
+                    .new ToolTip(new Info(), 'Beitragsarten werden ohne Zahlungszuweisung nicht berücksichtigt')
                 );
             }
         }
-        return $PanelContent;
+        return implode('<br/>', $PanelContent);
     }
 }
