@@ -9,7 +9,6 @@
 namespace SPHERE\Application\People\Person\Frontend;
 
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
-use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
@@ -30,7 +29,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
-use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
@@ -59,35 +57,12 @@ class FrontendProspect  extends FrontendReadOnly
      *
      * @return string
      */
-    public static function getProspectTitle($PersonId = null)
+    public static function getProspectContent($PersonId = null)
     {
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
             && ($tblGroup = Group::useService()->getGroupByMetaTable('PROSPECT'))
             && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
         ) {
-            $showLink = (new Link(new EyeOpen() . ' Anzeigen', ApiPersonReadOnly::getEndpoint()))
-                ->ajaxPipelineOnClick(ApiPersonReadOnly::pipelineLoadProspectContent($PersonId));
-
-            return TemplateReadOnly::getContent(
-                self::TITLE,
-                '',
-                array($showLink),
-                'der Person' . new Bold(new Success($tblPerson->getFullName())),
-                new Tag()
-            );
-        }
-
-        return '';
-    }
-
-    /**
-     * @param null $PersonId
-     *
-     * @return string
-     */
-    public static function getProspectContent($PersonId = null)
-    {
-        if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
             if (($tblProspect = Prospect::useService()->getProspectByPerson($tblPerson))
                 && ($tblProspectAppointment = $tblProspect->getTblProspectAppointment())
                 && ($tblProspectReservation = $tblProspect->getTblProspectReservation())

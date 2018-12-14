@@ -9,7 +9,6 @@
 namespace SPHERE\Application\People\Person\Frontend;
 
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
-use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Person\FrontendReadOnly;
@@ -24,7 +23,6 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
-use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
@@ -55,35 +53,12 @@ class FrontendCustody  extends FrontendReadOnly
      *
      * @return string
      */
-    public static function getCustodyTitle($PersonId = null)
+    public static function getCustodyContent($PersonId = null)
     {
         if (($tblPerson = Person::useService()->getPersonById($PersonId))
             && ($tblGroup = Group::useService()->getGroupByMetaTable('CUSTODY'))
             && Group::useService()->existsGroupPerson($tblGroup, $tblPerson)
         ) {
-            $showLink = (new Link(new EyeOpen() . ' Anzeigen', ApiPersonReadOnly::getEndpoint()))
-                ->ajaxPipelineOnClick(ApiPersonReadOnly::pipelineLoadCustodyContent($PersonId));
-
-            return TemplateReadOnly::getContent(
-                self::TITLE,
-                '',
-                array($showLink),
-                'der Person' . new Bold(new Success($tblPerson->getFullName())),
-                new Tag()
-            );
-        }
-
-        return '';
-    }
-
-    /**
-     * @param null $PersonId
-     *
-     * @return string
-     */
-    public static function getCustodyContent($PersonId = null)
-    {
-        if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
             if (($tblCustody = Custody::useService()->getCustodyByPerson($tblPerson))) {
                 $occupation = $tblCustody->getOccupation();
                 $employment = $tblCustody->getEmployment();

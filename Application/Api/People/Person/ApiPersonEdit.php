@@ -636,10 +636,10 @@ class ApiPersonEdit extends Extension implements IApiInterface
         if (Person::useService()->updatePersonService($tblPerson, $Person)) {
             return new Success('Die Daten wurden erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
                 . ApiPersonReadOnly::pipelineLoadBasicContent($PersonId)
-                . ApiPersonReadOnly::pipelineLoadProspectTitle($PersonId)
-                . ApiPersonReadOnly::pipelineLoadTeacherTitle($PersonId)
-                . ApiPersonReadOnly::pipelineLoadCustodyTitle($PersonId)
-                . ApiPersonReadOnly::pipelineLoadClubTitle($PersonId)
+                . ApiPersonReadOnly::pipelineLoadProspectContent($PersonId)
+                . ApiPersonReadOnly::pipelineLoadTeacherContent($PersonId)
+                . ApiPersonReadOnly::pipelineLoadCustodyContent($PersonId)
+                . ApiPersonReadOnly::pipelineLoadClubContent($PersonId)
                 . ApiPersonReadOnly::pipelineLoadIntegrationTitle($PersonId)
                 . ApiPersonReadOnly::pipelineLoadStudentTitle($PersonId);
         } else {

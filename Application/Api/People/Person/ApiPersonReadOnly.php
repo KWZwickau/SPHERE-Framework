@@ -39,14 +39,11 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('loadBasicContent');
         $Dispatcher->registerMethod('loadCommonContent');
-        $Dispatcher->registerMethod('loadProspectTitle');
         $Dispatcher->registerMethod('loadProspectContent');
-        $Dispatcher->registerMethod('loadTeacherTitle');
         $Dispatcher->registerMethod('loadTeacherContent');
-        $Dispatcher->registerMethod('loadCustodyTitle');
         $Dispatcher->registerMethod('loadCustodyContent');
-        $Dispatcher->registerMethod('loadClubTitle');
         $Dispatcher->registerMethod('loadClubContent');
+
         $Dispatcher->registerMethod('loadIntegrationTitle');
         $Dispatcher->registerMethod('loadIntegrationContent');
 
@@ -117,27 +114,6 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineLoadProspectTitle($PersonId)
-    {
-        $pipeline = new Pipeline(false);
-
-        $emitter = new ServerEmitter(self::receiverBlock('', 'ProspectContent'), self::getEndpoint());
-        $emitter->setGetPayload(array(
-            self::API_TARGET => 'loadProspectTitle',
-        ));
-        $emitter->setPostPayload(array(
-            'PersonId' => $PersonId
-        ));
-        $pipeline->appendEmitter($emitter);
-
-        return $pipeline;
-    }
-
-    /**
-     * @param int $PersonId
-     *
-     * @return Pipeline
-     */
     public static function pipelineLoadProspectContent($PersonId)
     {
         $pipeline = new Pipeline(false);
@@ -145,27 +121,6 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
         $emitter = new ServerEmitter(self::receiverBlock('', 'ProspectContent'), self::getEndpoint());
         $emitter->setGetPayload(array(
             self::API_TARGET => 'loadProspectContent',
-        ));
-        $emitter->setPostPayload(array(
-            'PersonId' => $PersonId
-        ));
-        $pipeline->appendEmitter($emitter);
-
-        return $pipeline;
-    }
-
-    /**
-     * @param int $PersonId
-     *
-     * @return Pipeline
-     */
-    public static function pipelineLoadTeacherTitle($PersonId)
-    {
-        $pipeline = new Pipeline(false);
-
-        $emitter = new ServerEmitter(self::receiverBlock('', 'TeacherContent'), self::getEndpoint());
-        $emitter->setGetPayload(array(
-            self::API_TARGET => 'loadTeacherTitle',
         ));
         $emitter->setPostPayload(array(
             'PersonId' => $PersonId
@@ -201,27 +156,6 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineLoadCustodyTitle($PersonId)
-    {
-        $pipeline = new Pipeline(false);
-
-        $emitter = new ServerEmitter(self::receiverBlock('', 'CustodyContent'), self::getEndpoint());
-        $emitter->setGetPayload(array(
-            self::API_TARGET => 'loadCustodyTitle',
-        ));
-        $emitter->setPostPayload(array(
-            'PersonId' => $PersonId
-        ));
-        $pipeline->appendEmitter($emitter);
-
-        return $pipeline;
-    }
-
-    /**
-     * @param int $PersonId
-     *
-     * @return Pipeline
-     */
     public static function pipelineLoadCustodyContent($PersonId)
     {
         $pipeline = new Pipeline(false);
@@ -229,27 +163,6 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
         $emitter = new ServerEmitter(self::receiverBlock('', 'CustodyContent'), self::getEndpoint());
         $emitter->setGetPayload(array(
             self::API_TARGET => 'loadCustodyContent',
-        ));
-        $emitter->setPostPayload(array(
-            'PersonId' => $PersonId
-        ));
-        $pipeline->appendEmitter($emitter);
-
-        return $pipeline;
-    }
-
-    /**
-     * @param int $PersonId
-     *
-     * @return Pipeline
-     */
-    public static function pipelineLoadClubTitle($PersonId)
-    {
-        $pipeline = new Pipeline(false);
-
-        $emitter = new ServerEmitter(self::receiverBlock('', 'ClubContent'), self::getEndpoint());
-        $emitter->setGetPayload(array(
-            self::API_TARGET => 'loadClubTitle',
         ));
         $emitter->setPostPayload(array(
             'PersonId' => $PersonId
@@ -433,32 +346,10 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
      *
      * @return string
      */
-    public function loadProspectTitle($PersonId = null)
-    {
-
-        return FrontendProspect::getProspectTitle($PersonId);
-    }
-
-    /**
-     * @param null $PersonId
-     *
-     * @return string
-     */
     public function loadProspectContent($PersonId = null)
     {
 
         return FrontendProspect::getProspectContent($PersonId);
-    }
-
-    /**
-     * @param null $PersonId
-     *
-     * @return string
-     */
-    public function loadTeacherTitle($PersonId = null)
-    {
-
-        return FrontendTeacher::getTeacherTitle($PersonId);
     }
 
     /**
@@ -477,32 +368,10 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
      *
      * @return string
      */
-    public function loadCustodyTitle($PersonId = null)
-    {
-
-        return FrontendCustody::getCustodyTitle($PersonId);
-    }
-
-    /**
-     * @param null $PersonId
-     *
-     * @return string
-     */
     public function loadCustodyContent($PersonId = null)
     {
 
         return FrontendCustody::getCustodyContent($PersonId);
-    }
-
-    /**
-     * @param null $PersonId
-     *
-     * @return string
-     */
-    public function loadClubTitle($PersonId = null)
-    {
-
-        return FrontendClub::getClubTitle($PersonId);
     }
 
     /**

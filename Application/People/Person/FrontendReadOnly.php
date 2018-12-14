@@ -8,6 +8,14 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Education\Lesson\Division\Filter\Service as FilterService;
+use SPHERE\Application\People\Person\Frontend\FrontendBasic;
+use SPHERE\Application\People\Person\Frontend\FrontendClub;
+use SPHERE\Application\People\Person\Frontend\FrontendCommon;
+use SPHERE\Application\People\Person\Frontend\FrontendCustody;
+use SPHERE\Application\People\Person\Frontend\FrontendProspect;
+use SPHERE\Application\People\Person\Frontend\FrontendStudent;
+use SPHERE\Application\People\Person\Frontend\FrontendStudentIntegration;
+use SPHERE\Application\People\Person\Frontend\FrontendTeacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
@@ -58,50 +66,50 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
 
             $validationMessage = FilterService::getPersonMessageTable($tblPerson);
 
-//            $basicContent = ApiPersonReadOnly::receiverBlock(
-//                    new SuccessMessage('Die Grunddaten der Person werden geladen.'), 'BasicContent'
-//                ) . ApiPersonReadOnly::pipelineLoadBasicContent($Id);
-//
-//            $commonContent = ApiPersonReadOnly::receiverBlock(
-//                    new SuccessMessage('Die Personendaten der Person werden geladen.'), 'CommonContent'
-//                ) . ApiPersonReadOnly::pipelineLoadCommonContent($Id);
-//
-//            $prospectContent = ApiPersonReadOnly::receiverBlock(
-//                    new SuccessMessage('Die Interessent-Daten der Person werden geladen.'), 'ProspectContent'
-//                ) . ApiPersonReadOnly::pipelineLoadProspectTitle($Id);
-//
-//            $teacherContent = ApiPersonReadOnly::receiverBlock(
-//                    new SuccessMessage('Die Lehrer-Daten der Person werden geladen.'), 'TeacherContent'
-//                ) . ApiPersonReadOnly::pipelineLoadTeacherTitle($Id);
+            $basicContent = ApiPersonReadOnly::receiverBlock(
+                FrontendBasic::getBasicContent($Id), 'BasicContent'
+            );
+
+            $commonContent = ApiPersonReadOnly::receiverBlock(
+                FrontendCommon::getCommonContent($Id), 'CommonContent'
+            );
+
+            $prospectContent = ApiPersonReadOnly::receiverBlock(
+                FrontendProspect::getProspectContent($Id), 'ProspectContent'
+            );
+
+            $teacherContent = ApiPersonReadOnly::receiverBlock(
+                FrontendTeacher::getTeacherContent($Id), 'TeacherContent'
+            );
+
+            $custodyContent = ApiPersonReadOnly::receiverBlock(
+                FrontendCustody::getCustodyContent($Id), 'CustodyContent'
+            );
+
+            $clubContent = ApiPersonReadOnly::receiverBlock(
+                FrontendClub::getClubContent($Id), 'ClubContent'
+            );
+
 
             $studentContent = ApiPersonReadOnly::receiverBlock(
-                    new SuccessMessage('Die Schülerakte-Daten der Person werden geladen.'), 'StudentContent'
-                ) . ApiPersonReadOnly::pipelineLoadStudentContent($Id);
+                FrontendStudent::getStudentTitle($Id), 'StudentContent'
+            );
 
-//            $custodyContent = ApiPersonReadOnly::receiverBlock(
-//                    new SuccessMessage('Die Sorgerecht-Daten der Person werden geladen.'), 'CustodyContent'
-//                ) . ApiPersonReadOnly::pipelineLoadCustodyTitle($Id);
-//
-//            $clubContent = ApiPersonReadOnly::receiverBlock(
-//                    new SuccessMessage('Die Vereinsmitglied-Daten der Person werden geladen.'), 'ClubContent'
-//                ) . ApiPersonReadOnly::pipelineLoadClubTitle($Id);
-//
-//            $integrationContent = ApiPersonReadOnly::receiverBlock(
-//                    new SuccessMessage('Die Integration-Daten der Person werden geladen.'), 'IntegrationContent'
-//                ) . ApiPersonReadOnly::pipelineLoadIntegrationTitle($Id);
-
+            $integrationContent = ApiPersonReadOnly::receiverBlock(
+                FrontendStudentIntegration::getIntegrationTitle($Id), 'IntegrationContent'
+            );
 
             $stage->setContent(
-//                ($validationMessage ? $validationMessage : '')
-//                . $basicContent
-//                . $commonContent
-//                . $prospectContent
-//                . $teacherContent
-                 $studentContent
-//                . $custodyContent
-//                . $clubContent
-//                . $integrationContent
-//                . self::getLayoutContact($tblPerson, $Group)
+                ($validationMessage ? $validationMessage : '')
+                . $basicContent
+                . $commonContent
+                . $prospectContent
+                . $teacherContent
+                . $studentContent
+                . $custodyContent
+                . $clubContent
+                . $integrationContent
+                . self::getLayoutContact($tblPerson, $Group)
             );
         // neue Person anlegen
         } else {
