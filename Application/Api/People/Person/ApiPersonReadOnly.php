@@ -12,6 +12,7 @@ use SPHERE\Application\People\Person\Frontend\FrontendCustody;
 use SPHERE\Application\People\Person\Frontend\FrontendProspect;
 use SPHERE\Application\People\Person\Frontend\FrontendStudent;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentIntegration;
+use SPHERE\Application\People\Person\Frontend\FrontendStudentTransfer;
 use SPHERE\Application\People\Person\Frontend\FrontendTeacher;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
@@ -448,6 +449,6 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
     public function loadStudentTransferContent($PersonId = null)
     {
 
-        return FrontendStudent::getStudentTransferContent($PersonId);
+        return FrontendStudentTransfer::getStudentTransferContent($PersonId);
     }
 }

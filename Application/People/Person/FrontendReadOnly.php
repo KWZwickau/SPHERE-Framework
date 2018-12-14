@@ -34,6 +34,7 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
+use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -91,7 +92,9 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
 
 
             $studentContent = ApiPersonReadOnly::receiverBlock(
-                FrontendStudent::getStudentTitle($Id), 'StudentContent'
+                //  todo tilte verwenden
+//              FrontendStudent::getStudentTitle($Id), 'StudentContent'
+                FrontendStudent::getStudentContent($Id), 'StudentContent'
             );
 
             $integrationContent = ApiPersonReadOnly::receiverBlock(
@@ -230,5 +233,17 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
         return new Danger(
             new Info() . ' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'
         );
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     *
+     * @return string
+     */
+    protected static function getEditTitleDescription(TblPerson $tblPerson = null)
+    {
+        return 'der Person'
+            . ($tblPerson ? new Bold(new Success($tblPerson->getFullName())) : '')
+            . ' bearbeiten';
     }
 }

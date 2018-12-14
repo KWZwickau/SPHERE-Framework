@@ -133,8 +133,7 @@ class FrontendClub  extends FrontendReadOnly
      */
     private function getEditClubTitle(TblPerson $tblPerson = null)
     {
-        return new Title(new Tag() . ' ' . self::TITLE, 'der Person'
-                . ($tblPerson ? new Bold(new Success($tblPerson->getFullName())) : '') . ' bearbeiten')
+        return new Title(new Tag() . ' ' . self::TITLE, self::getEditTitleDescription($tblPerson))
             . self::getDataProtectionMessage();
     }
 
