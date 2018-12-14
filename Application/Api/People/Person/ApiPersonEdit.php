@@ -49,7 +49,6 @@ class ApiPersonEdit extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
 
-        $Dispatcher->registerMethod('createPersonContent');
         $Dispatcher->registerMethod('saveCreatePersonContent');
 
         $Dispatcher->registerMethod('editBasicContent');
@@ -86,21 +85,6 @@ class ApiPersonEdit extends Extension implements IApiInterface
     {
 
         return (new BlockReceiver($Content))->setIdentifier($Identifier);
-    }
-
-    /**
-     * @return Pipeline
-     */
-    public static function pipelineCreatePersonContent()
-    {
-        $Pipeline = new Pipeline(false);
-        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'PersonContent'), self::getEndpoint());
-        $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'createPersonContent',
-        ));
-        $Pipeline->appendEmitter($ModalEmitter);
-
-        return $Pipeline;
     }
 
     /**
@@ -564,15 +548,6 @@ class ApiPersonEdit extends Extension implements IApiInterface
         $pipeline->appendEmitter($emitter);
 
         return $pipeline;
-    }
-
-    /**
-     * @return string
-     */
-    public function createPersonContent()
-    {
-
-        return (new FrontendBasic())->getCreatePersonContent();
     }
 
     /**

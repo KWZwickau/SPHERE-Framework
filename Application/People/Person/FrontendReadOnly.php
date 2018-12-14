@@ -32,7 +32,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Success as SuccessMessage;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Window\Stage;
@@ -117,8 +116,8 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
 
             if (Access::useService()->hasAuthorization('/Api/People/Person/ApiPersonEdit')) {
                 $createPersonContent = ApiPersonEdit::receiverBlock(
-                        new SuccessMessage('Das Formular wird geladen.'), 'PersonContent'
-                    ) . ApiPersonEdit::pipelineCreatePersonContent();
+                    (new FrontendBasic())->getCreatePersonContent(), 'PersonContent'
+                );
             } else {
                 $createPersonContent = new Danger('Sie haben nicht das Recht neue Personen anzulegen', new Exclamation());
             }
