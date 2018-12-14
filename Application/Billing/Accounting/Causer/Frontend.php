@@ -376,10 +376,10 @@ class Frontend extends Extension implements IFrontendInterface
                     if($tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant)){
                         $PriceString = $tblItemCalculation->getPriceString();
                     }
-                    $ItemVariant = $tblItemVariant->getName().' - '.new Bold($PriceString);
+                    $ItemVariant = $tblItemVariant->getName().': '.new Bold($PriceString);
                     $ItemVariant .= $OptionButtons;
                 } else {
-                    $ItemVariant = 'Individueller Preis:'.' - '.new Bold($tblDebtorSelection->getValuePriceString());
+                    $ItemVariant = 'Individueller Preis:'.': '.new Bold($tblDebtorSelection->getValuePriceString());
                     $ItemVariant .= $OptionButtons;
                 }
                 if(($tblBankAccount = $tblDebtorSelection->getTblBankAccount())){

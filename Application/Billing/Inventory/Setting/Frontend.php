@@ -5,6 +5,8 @@ use SPHERE\Application\Api\Billing\Inventory\ApiSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Common\Frontend\Icon\Repository\Check;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Pen;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
@@ -15,6 +17,8 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
+use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
+use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -48,6 +52,19 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
+
+        $IsDebtorNumberNeed = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED);
+        $DebtorNumberNeed = new DangerText(new Disable());
+        if($IsDebtorNumberNeed->getValue() == '1'){
+            $DebtorNumberNeed = new SuccessText(new Check());
+        }
+        $DebtorNumberReceiver = ApiSetting::receiverDisplaySetting($DebtorNumberNeed . ' ', TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED);
+        $IsSepaAccountNeed = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED);
+        $SepaAccountNeed = new DangerText(new Disable());
+        if($IsSepaAccountNeed->getValue() == '1'){
+            $SepaAccountNeed = new SuccessText(new Check());
+        }
+        $SepaAccountReceiver = ApiSetting::receiverDisplaySetting( $SepaAccountNeed. ' ', TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED);
 
         $TestSetting = Setting::useService()->getSettingByIdentifier('Test_anderer_Werte');
         $TestValue = new WarningText('Keine Einstellung vorhanden');
@@ -83,6 +100,34 @@ class Frontend extends Extension implements IFrontendInterface
                                     ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting('PersonGroup',
                                         'PersonGroup')))
                             .new Well($PersonGroupAsString)
+                        ),
+                        new LayoutColumn(
+                            new Title('Debitornummer ist eine pflicht Angabe: '
+                                . (new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
+                                    ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED,
+                                        'Debitornummer ist eine pflicht Angabe')))
+                            .new Well(
+                                ApiSetting::receiverModalSetting()
+                                . new Layout(new LayoutGroup(new LayoutRow(
+                                    new LayoutColumn(
+                                        new Listing(array($DebtorNumberReceiver))
+                                        , 4)
+                                )))
+                            )
+                        ),
+                        new LayoutColumn(
+                            new Title('Konto für SEPA-Lastschrift ist eine pflicht Angabe: '
+                                . (new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
+                                    ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting(TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED,
+                                        'Konto ist bei SEPA-Überweisungen eine pflicht Angabe')))
+                            .new Well(
+                                ApiSetting::receiverModalSetting()
+                                . new Layout(new LayoutGroup(new LayoutRow(
+                                    new LayoutColumn(
+                                        new Listing(array($SepaAccountReceiver))
+                                        , 4)
+                                )))
+                            )
                         ),
                         new LayoutColumn(
                             new Title('Mögliche weitere Einstellungen: '

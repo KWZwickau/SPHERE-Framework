@@ -377,7 +377,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                     }
 
                     $RadioBoxListVariant[] = new RadioBox('DebtorSelection[Variant]',
-                        $tblItemVariant->getName().' - '.$PriceString, $tblItemVariant->getId());
+                        $tblItemVariant->getName().': '.$PriceString, $tblItemVariant->getId());
                 }
                 $RadioBoxListVariant[] = new RadioBox('DebtorSelection[Variant]',
                    'Individuelle Preiseingabe'.new TextField('DebtorSelection[Price]', '', ''), -1);
@@ -822,7 +822,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 if(($tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant))){
                     $PriceString = $tblItemCalculation->getPriceString();
                 }
-                $PriceString = $tblItemVariant->getName().' - '.$PriceString;
+                $PriceString = $tblItemVariant->getName().': '.$PriceString;
             } elseif(($Value = $tblDebtorSelection->getValue())) {
                 $PriceString = $Value;
             }

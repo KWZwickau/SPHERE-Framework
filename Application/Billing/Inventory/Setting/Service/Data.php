@@ -19,7 +19,9 @@ class Data extends AbstractData
     {
 //        //ToDO Vorbefüllung erstellen
         $this->createSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT, '7');
-        $this->createSetting('Test_anderer_Werte', 'Mann');
+        $this->createSetting(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED, '1');
+        $this->createSetting(TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED, '1');
+        $this->createSetting('Test_anderer_Werte', 'Wert');
 
         $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
         $this->createSettingGroupPerson($tblGroup);

@@ -20,6 +20,8 @@ class TblSetting extends Element
 
     const IDENT_DEBTOR_NUMBER_COUNT = 'DebtorNumberCount';
     const IDENT_PERSON_GROUP_ACTIVE_LIST = 'PersonGroupActiveList';
+    const IDENT_IS_DEBTOR_NUMBER_NEED = 'IsDebtorNumberNeed';
+    const IDENT_IS_SEPA_ACCOUNT_NEED = 'IsSepaAccountNeed';
 
     /**
      * @Column(type="string")

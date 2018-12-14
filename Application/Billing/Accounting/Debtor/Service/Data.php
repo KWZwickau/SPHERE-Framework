@@ -178,12 +178,26 @@ class Data extends AbstractData
      *
      * @return false|TblDebtorSelection[]
      */
-    public function getDebtorSelectionByBankReference(TblBankReference $tblBankReference)
+    public function getDebtorSelectionAllByBankReference(TblBankReference $tblBankReference)
     {
 
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorSelection',
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorSelection',
             array(
                 TblDebtorSelection::ATTR_TBL_BANK_REFERENCE => $tblBankReference->getId()
+            ));
+    }
+
+    /**
+     * @param TblBankAccount $tblBankAccount
+     *
+     * @return false|TblDebtorSelection[]
+     */
+    public function getDebtorSelectionAllByBankAccount(TblBankAccount $tblBankAccount)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorSelection',
+            array(
+                TblDebtorSelection::ATTR_TBL_BANK_ACCOUNT => $tblBankAccount->getId()
             ));
     }
 

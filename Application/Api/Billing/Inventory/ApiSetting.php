@@ -3,6 +3,7 @@ namespace SPHERE\Application\Api\Billing\Inventory;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
+use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Group\Group;
@@ -13,18 +14,22 @@ use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Repository\Title as FormTitle;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Check;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
+use SPHERE\Common\Frontend\Text\Repository\Success as SuccessText;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -223,6 +228,27 @@ class ApiSetting extends Extension implements IApiInterface
             $Global->POST[$Identifier] = $tblSetting->getValue();
             $Global->savePost();
         }
+        if($Identifier == TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED
+        || $Identifier == TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED){
+
+            $SelectList[1] = 'Ja';
+            $SelectList[2] = 'Nein';
+
+            return new Well((new Form(
+                new FormGroup(
+                    new FormRow(array(
+                        new FormColumn(
+                            new SelectBox($Identifier, $FieldLabel, $SelectList)
+                        ),
+                        new FormColumn(
+                            (new Primary('Speichern', self::getEndpoint(), new Save()))
+                                ->ajaxPipelineOnClick(ApiSetting::pipelineSaveSetting($Identifier))
+                        )
+                    ))
+                )
+            ))->disableSubmitAction());
+        }
+
         return new Well((new Form(
             new FormGroup(
                 new FormRow(array(
@@ -247,10 +273,23 @@ class ApiSetting extends Extension implements IApiInterface
     {
 
         $Global = $this->getGlobal();
-        if(($Value = $Global->POST[$Identifier])) {
+        if(isset($Global->POST[$Identifier]) && ($Value = $Global->POST[$Identifier])) {
+            if($Identifier == TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED
+                || $Identifier == TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED) {
+                if($Value == '2'){
+                    $Value = '0';
+                }
+            }
+
             Setting::useService()->createSetting($Identifier, $Value);
 
             return new Success('Erfolgreich');
+        } else {
+            if($Identifier == TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED
+                || $Identifier == TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED) {
+                $Value = '0';
+                Setting::useService()->createSetting($Identifier, $Value);
+            }
         }
         return new Danger('Durch einen Fehler konnte die Einstellung nicht gespeichert werden.');
     }
@@ -295,6 +334,14 @@ class ApiSetting extends Extension implements IApiInterface
         $this->refreshWait(400);
 
         if(($tblSetting = Setting::useService()->getSettingByIdentifier($Identifier))) {
+            if($Identifier == TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED
+                || $Identifier == TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED) {
+                $Check = new DangerText(new Disable());
+                if($tblSetting->getValue() == '1'){
+                    $Check = new SuccessText(new Check());
+                }
+                return $Check;
+            }
             return $tblSetting->getValue();
         } else {
             return new DangerText('Einstellung konnte nicht geladen werden!');

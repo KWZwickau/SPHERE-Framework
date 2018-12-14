@@ -192,10 +192,21 @@ class Service extends AbstractService
      *
      * @return false|TblDebtorSelection[]
      */
-    public function getDebtorSelectionByBankReference(TblBankReference $tblBankReference)
+    public function getDebtorSelectionAllByBankReference(TblBankReference $tblBankReference)
     {
 
-        return (new Data($this->getBinding()))->getDebtorSelectionByBankReference($tblBankReference);
+        return (new Data($this->getBinding()))->getDebtorSelectionAllByBankReference($tblBankReference);
+    }
+
+    /**
+     * @param TblBankAccount $tblBankAccount
+     *
+     * @return false|TblDebtorSelection[]
+     */
+    public function getDebtorSelectionAllByBankAccount(TblBankAccount $tblBankAccount)
+    {
+
+        return (new Data($this->getBinding()))->getDebtorSelectionAllByBankAccount($tblBankAccount);
     }
 
     /**

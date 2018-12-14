@@ -21,6 +21,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -524,6 +525,31 @@ class ApiBankAccount extends Extension implements IApiInterface
     {
 
         if(($tblBankAccount = Debtor::useService()->getBankAccountById($BankAccountId))) {
+            if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionAllByBankAccount($tblBankAccount))){
+                $RowContent = array();
+                foreach($tblDebtorSelectionList as $tblDebtorSelection){
+                    $ItemString = '';
+                    if(($tblItem = $tblDebtorSelection->getServiceTblItem())){
+                        $ItemString = $tblItem->getName();
+                    }
+                    $CauserString = '';
+                    if(($tblPersonCauser = $tblDebtorSelection->getServiceTblPersonCauser())){
+                        $CauserString = $tblPersonCauser->getLastFirstName();
+                    }
+                    $RowContent[] = new Layout(
+                        new LayoutGroup(
+                            new LayoutRow(array(
+                                new LayoutColumn('Beitragsart:', 2),
+                                new LayoutColumn(new Bold($ItemString), 4),
+                                new LayoutColumn('Beitragsverursacher:', 2),
+                                new LayoutColumn(new Bold($CauserString), 4),
+                            ))
+                        )
+                    );
+                }
+                return new Danger('Das Konto ist in einer Zahlungszuweisung hinterlegt, löschen nicht möglich!'
+                .new Container(implode('<br/>', $RowContent)));
+            }
             Debtor::useService()->removeBankAccount($tblBankAccount);
 
             return new Success('Konto wurde erfolgreich entfernt') . self::pipelineCloseModal($Identifier,
