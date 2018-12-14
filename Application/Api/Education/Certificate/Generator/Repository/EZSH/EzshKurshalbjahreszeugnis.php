@@ -53,7 +53,7 @@ class EzshKurshalbjahreszeugnis extends Certificate
     {
 
         $personId = $tblPerson ? $tblPerson->getId() : 0;
-        $headerHeight = '120px';
+        $headerHeight = '110px';
 
         if ($this->isSample()) {
             $Header = (new Slice())
@@ -510,7 +510,7 @@ class EzshKurshalbjahreszeugnis extends Certificate
         }
 
         return $slice
-            ->styleHeight('260px');
+            ->styleHeight('270px');
     }
 
     /**
@@ -536,15 +536,26 @@ class EzshKurshalbjahreszeugnis extends Certificate
 
         $width = '36%';
         if ($tblSubject) {
-            $section
-                ->addElementColumn((new Element())
-                    ->setContent($tblSubject->getName() == 'Gemeinschaftskunde/Rechtserziehung/Wirtschaft'
-                        ? 'Gemeinschaftskunde/ Rechtserziehung/Wirtschaft' : $tblSubject->getName())
-                    ->styleBorderBottom($isSubjectUnderlined || $isLanguage ? '1px' : '0px')
-                    ->styleFontFamily(self::FONT_FAMILY)
-                    ->styleTextSize(self::TEXT_SIZE_SUBJECT)
-                    ->styleMarginTop($marginTop)
-                    , $width);
+            if ($tblSubject->getAcronym() == 'GRW') {
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent($tblSubject->getName())
+                        ->styleBorderBottom($isSubjectUnderlined || $isLanguage ? '1px' : '0px')
+                        ->styleFontFamily(self::FONT_FAMILY)
+                        ->styleTextSize(self::TEXT_SIZE_SUBJECT)
+                        ->styleLineHeight(self::LINE_HEIGHT)
+                        ->styleMarginTop('2px')
+                        , $width);
+            } else {
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent($tblSubject->getName())
+                        ->styleBorderBottom($isSubjectUnderlined || $isLanguage ? '1px' : '0px')
+                        ->styleFontFamily(self::FONT_FAMILY)
+                        ->styleTextSize(self::TEXT_SIZE_SUBJECT)
+                        ->styleMarginTop($marginTop)
+                        , $width);
+            }
         } else {
             $section
                 ->addElementColumn((new Element())
