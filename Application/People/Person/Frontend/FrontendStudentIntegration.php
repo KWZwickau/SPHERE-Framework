@@ -57,8 +57,8 @@ class FrontendStudentIntegration extends FrontendReadOnly
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
-                '',
-                array($showLink),
+                $showLink,
+                array(),
                 'der Person' . new Bold(new Success($tblPerson->getFullName())),
                 new Tag()
             );

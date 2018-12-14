@@ -53,6 +53,7 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadStudentTitle');
         $Dispatcher->registerMethod('loadStudentContent');
         $Dispatcher->registerMethod('loadStudentBasicContent');
+        $Dispatcher->registerMethod('loadStudentTransferContent');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -385,6 +386,27 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
     }
 
     /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadStudentTransferContent($PersonId)
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'StudentTransferContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'loadStudentTransferContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
      * @param null $PersonId
      *
      * @return string
@@ -547,5 +569,16 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
     {
 
         return FrontendStudent::getStudentBasicContent($PersonId);
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function loadStudentTransferContent($PersonId = null)
+    {
+
+        return FrontendStudent::getStudentTransferContent($PersonId);
     }
 }
