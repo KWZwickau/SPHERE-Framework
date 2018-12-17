@@ -11,6 +11,7 @@ use SPHERE\Application\People\Person\Frontend\FrontendCommon;
 use SPHERE\Application\People\Person\Frontend\FrontendCustody;
 use SPHERE\Application\People\Person\Frontend\FrontendProspect;
 use SPHERE\Application\People\Person\Frontend\FrontendStudent;
+use SPHERE\Application\People\Person\Frontend\FrontendStudentGeneral;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentIntegration;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentMedicalRecord;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentTransfer;
@@ -54,6 +55,7 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadStudentBasicContent');
         $Dispatcher->registerMethod('loadStudentTransferContent');
         $Dispatcher->registerMethod('loadStudentMedicalRecordContent');
+        $Dispatcher->registerMethod('loadStudentGeneralContent');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -344,6 +346,28 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
     }
 
     /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadStudentGeneralContent($PersonId)
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'StudentGeneralContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'loadStudentGeneralContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+
+    /**
      * @param null $PersonId
      *
      * @return string
@@ -484,5 +508,16 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
     {
 
         return FrontendStudentMedicalRecord::getStudentMedicalRecordContent($PersonId);
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function loadStudentGeneralContent($PersonId = null)
+    {
+
+        return FrontendStudentGeneral::getStudentGeneralContent($PersonId);
     }
 }

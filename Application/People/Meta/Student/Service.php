@@ -659,6 +659,148 @@ class Service extends Support
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param $Meta
+     *
+     * @return bool|TblStudent
+     */
+    public function updateStudentGeneral(TblPerson $tblPerson, $Meta)
+    {
+
+        // Student mit Automatischer Schülernummer anlegen falls noch nicht vorhanden
+        $tblStudent = $tblPerson->getStudent(true);
+        if (!$tblStudent) {
+            $tblStudent = $this->createStudentWithOnlyAutoIdentifier($tblPerson);
+        }
+
+        if ($tblStudent) {
+            if (($tblStudentLocker = $tblStudent->getTblStudentLocker())) {
+                (new Data($this->getBinding()))->updateStudentLocker(
+                    $tblStudent->getTblStudentLocker(),
+                    $Meta['Additional']['Locker']['Number'],
+                    $Meta['Additional']['Locker']['Location'],
+                    $Meta['Additional']['Locker']['Key']
+                );
+            } else {
+                $tblStudentLocker = (new Data($this->getBinding()))->createStudentLocker(
+                    $Meta['Additional']['Locker']['Number'],
+                    $Meta['Additional']['Locker']['Location'],
+                    $Meta['Additional']['Locker']['Key']
+                );
+            }
+
+            if (($tblStudentBaptism = $tblStudent->getTblStudentBaptism())) {
+                (new Data($this->getBinding()))->updateStudentBaptism(
+                    $tblStudent->getTblStudentBaptism(),
+                    $Meta['Additional']['Baptism']['Date'],
+                    $Meta['Additional']['Baptism']['Location']
+                );
+            } else {
+                $tblStudentBaptism = (new Data($this->getBinding()))->createStudentBaptism(
+                    $Meta['Additional']['Baptism']['Date'],
+                    $Meta['Additional']['Baptism']['Location']
+                );
+            }
+
+            if (($tblStudentTransport = $tblStudent->getTblStudentTransport())) {
+                (new Data($this->getBinding()))->updateStudentTransport(
+                    $tblStudent->getTblStudentTransport(),
+                    $Meta['Transport']['Route'],
+                    $Meta['Transport']['Station']['Entrance'],
+                    $Meta['Transport']['Station']['Exit'],
+                    $Meta['Transport']['Remark']
+                );
+            } else {
+                $tblStudentTransport = (new Data($this->getBinding()))->createStudentTransport(
+                    $Meta['Transport']['Route'],
+                    $Meta['Transport']['Station']['Entrance'],
+                    $Meta['Transport']['Station']['Exit'],
+                    $Meta['Transport']['Remark']
+                );
+            }
+
+            $SiblingRank = Relationship::useService()->getSiblingRankById($Meta['Billing']);
+            if ($tblStudentBilling = $tblStudent->getTblStudentBilling()) {
+                (new Data($this->getBinding()))->updateStudentBilling(
+                    $tblStudentBilling,
+                    $SiblingRank ? $SiblingRank : null
+                );
+            } else {
+                $tblStudentBilling = (new Data($this->getBinding()))->createStudentBilling(
+                    $SiblingRank ? $SiblingRank : null
+                );
+            }
+
+            (new Data($this->getBinding()))->updateStudentField(
+                $tblStudent,
+                $tblStudent->getTblStudentMedicalRecord(),
+                $tblStudentTransport ? $tblStudentTransport : null,
+                $tblStudentBilling ? $tblStudentBilling : null,
+                $tblStudentLocker ? $tblStudentLocker : null,
+                $tblStudentBaptism ? $tblStudentBaptism : null,
+                $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null
+            );
+
+            /*
+             * Liberation
+             */
+            $tblStudentLiberationAllByStudent = $this->getStudentLiberationAllByStudent($tblStudent);
+            if ($tblStudentLiberationAllByStudent) {
+                foreach ($tblStudentLiberationAllByStudent as $tblStudentLiberation) {
+                    (new Data($this->getBinding()))->removeStudentLiberation($tblStudentLiberation);
+                }
+            }
+            if (isset( $Meta['Liberation'] )) {
+                foreach ($Meta['Liberation'] as $Category => $Type) {
+                    $tblStudentLiberationCategory = $this->getStudentLiberationTypeById($Category);
+                    if ($tblStudentLiberationCategory) {
+                        $tblStudentLiberationType = $this->getStudentLiberationTypeById($Type);
+                        if ($tblStudentLiberationType) {
+                            (new Data($this->getBinding()))->addStudentLiberation($tblStudent,
+                                $tblStudentLiberationType);
+                        }
+                    }
+                }
+            }
+
+            /*
+             * Agreement
+             */
+            $tblStudentAgreementAllByStudent = $this->getStudentAgreementAllByStudent($tblStudent);
+            if ($tblStudentAgreementAllByStudent) {
+                foreach ($tblStudentAgreementAllByStudent as $tblStudentAgreement) {
+                    if (!isset(
+                        $Meta['Agreement']
+                        [$tblStudentAgreement->getTblStudentAgreementType()->getTblStudentAgreementCategory()->getId()]
+                        [$tblStudentAgreement->getTblStudentAgreementType()->getId()]
+                    )
+                    ) {
+                        (new Data($this->getBinding()))->removeStudentAgreement($tblStudentAgreement);
+                    }
+                }
+            }
+            if (isset( $Meta['Agreement'] )) {
+                foreach ($Meta['Agreement'] as $Category => $Items) {
+                    $tblStudentAgreementCategory = $this->getStudentAgreementTypeById($Category);
+                    if ($tblStudentAgreementCategory) {
+                        foreach ($Items as $Type => $Value) {
+                            $tblStudentAgreementType = $this->getStudentAgreementTypeById($Type);
+                            if ($tblStudentAgreementType) {
+                                (new Data($this->getBinding()))->addStudentAgreement($tblStudent,
+                                    $tblStudentAgreementType);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param TblPerson      $tblPerson
      * @param array          $Meta

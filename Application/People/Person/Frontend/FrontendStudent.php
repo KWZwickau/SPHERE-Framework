@@ -122,6 +122,10 @@ class FrontendStudent extends FrontendReadOnly
                 FrontendStudentMedicalRecord::getStudentMedicalRecordContent($PersonId), 'StudentMedicalRecordContent'
             );
 
+            $listingContent[] = ApiPersonReadOnly::receiverBlock(
+                FrontendStudentGeneral::getStudentGeneralContent($PersonId), 'StudentGeneralContent'
+            );
+
             $content = new Listing($listingContent);
 
             $hideLink = (new Link(new EyeMinus() . ' Ausblenden', ApiPersonReadOnly::getEndpoint()))
