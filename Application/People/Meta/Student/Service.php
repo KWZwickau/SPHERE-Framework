@@ -604,6 +604,61 @@ class Service extends Support
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param $Meta
+     *
+     * @return bool|TblStudent
+     */
+    public function updateStudentMedicalRecord(TblPerson $tblPerson, $Meta)
+    {
+
+        // Student mit Automatischer Schülernummer anlegen falls noch nicht vorhanden
+        $tblStudent = $tblPerson->getStudent(true);
+        if (!$tblStudent) {
+            $tblStudent = $this->createStudentWithOnlyAutoIdentifier($tblPerson);
+        }
+
+        if ($tblStudent) {
+            if (($tblStudentMedicalRecord = $tblStudent->getTblStudentMedicalRecord())) {
+                (new Data($this->getBinding()))->updateStudentMedicalRecord(
+                    $tblStudent->getTblStudentMedicalRecord(),
+                    $Meta['MedicalRecord']['Disease'],
+                    $Meta['MedicalRecord']['Medication'],
+                    $Meta['MedicalRecord']['AttendingDoctor'],
+                    $Meta['MedicalRecord']['Insurance']['State'],
+                    $Meta['MedicalRecord']['Insurance']['Company']
+                );
+            } else {
+                $tblStudentMedicalRecord = (new Data($this->getBinding()))->createStudentMedicalRecord(
+                    $Meta['MedicalRecord']['Disease'],
+                    $Meta['MedicalRecord']['Medication'],
+                    $Meta['MedicalRecord']['AttendingDoctor'],
+                    $Meta['MedicalRecord']['Insurance']['State'],
+                    $Meta['MedicalRecord']['Insurance']['Company']
+                );
+
+                if ($tblStudentMedicalRecord) {
+                    (new Data($this->getBinding()))->updateStudentField(
+                        $tblStudent,
+                        $tblStudentMedicalRecord,
+                        $tblStudent->getTblStudentTransport() ? $tblStudent->getTblStudentTransport() : null,
+                        $tblStudent->getTblStudentBilling() ? $tblStudent->getTblStudentBilling() : null,
+                        $tblStudent->getTblStudentLocker() ? $tblStudent->getTblStudentLocker() : null,
+                        $tblStudent->getTblStudentBaptism() ? $tblStudent->getTblStudentBaptism() : null,
+                        $tblStudent->getTblStudentIntegration() ? $tblStudent->getTblStudentIntegration() : null
+                    );
+                } else {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param TblPerson      $tblPerson
      * @param array          $Meta

@@ -59,6 +59,11 @@ use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 
+/**
+ * Class FrontendStudentTransfer
+ *
+ * @package SPHERE\Application\People\Person\Frontend
+ */
 class FrontendStudentTransfer extends FrontendReadOnly
 {
     const TITLE = 'Schülerakte - Schülertransfer';
@@ -436,7 +441,7 @@ class FrontendStudentTransfer extends FrontendReadOnly
         $tblPerson = false;
         if ($PersonId && ($tblPerson = Person::useService()->getPersonById($PersonId))) {
             $Global = $this->getGlobal();
-            if ($tblStudent = Student::useService()->getStudentByPerson($tblPerson)) {
+            if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
 
                 $TransferTypeEnrollment = Student::useService()->getStudentTransferTypeByIdentifier('Enrollment');
                 $tblStudentTransferEnrollment = Student::useService()->getStudentTransferByType(

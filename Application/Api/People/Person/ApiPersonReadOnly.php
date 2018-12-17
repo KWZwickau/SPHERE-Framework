@@ -12,6 +12,7 @@ use SPHERE\Application\People\Person\Frontend\FrontendCustody;
 use SPHERE\Application\People\Person\Frontend\FrontendProspect;
 use SPHERE\Application\People\Person\Frontend\FrontendStudent;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentIntegration;
+use SPHERE\Application\People\Person\Frontend\FrontendStudentMedicalRecord;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentTransfer;
 use SPHERE\Application\People\Person\Frontend\FrontendTeacher;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -52,6 +53,7 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadStudentContent');
         $Dispatcher->registerMethod('loadStudentBasicContent');
         $Dispatcher->registerMethod('loadStudentTransferContent');
+        $Dispatcher->registerMethod('loadStudentMedicalRecordContent');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -321,6 +323,27 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
     }
 
     /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadStudentMedicalRecordContent($PersonId)
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'StudentMedicalRecordContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'loadStudentMedicalRecordContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
      * @param null $PersonId
      *
      * @return string
@@ -450,5 +473,16 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
     {
 
         return FrontendStudentTransfer::getStudentTransferContent($PersonId);
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function loadStudentMedicalRecordContent($PersonId = null)
+    {
+
+        return FrontendStudentMedicalRecord::getStudentMedicalRecordContent($PersonId);
     }
 }
