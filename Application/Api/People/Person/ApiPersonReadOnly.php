@@ -14,6 +14,7 @@ use SPHERE\Application\People\Person\Frontend\FrontendStudent;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentGeneral;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentIntegration;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentMedicalRecord;
+use SPHERE\Application\People\Person\Frontend\FrontendStudentSubject;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentTransfer;
 use SPHERE\Application\People\Person\Frontend\FrontendTeacher;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
@@ -56,6 +57,7 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadStudentTransferContent');
         $Dispatcher->registerMethod('loadStudentMedicalRecordContent');
         $Dispatcher->registerMethod('loadStudentGeneralContent');
+        $Dispatcher->registerMethod('loadStudentSubjectContent');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -366,6 +368,27 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
         return $pipeline;
     }
 
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadStudentSubjectContent($PersonId)
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'StudentSubjectContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'loadStudentSubjectContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
 
     /**
      * @param null $PersonId
@@ -519,5 +542,16 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
     {
 
         return FrontendStudentGeneral::getStudentGeneralContent($PersonId);
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function loadStudentSubjectContent($PersonId = null)
+    {
+
+        return FrontendStudentSubject::getStudentSubjectContent($PersonId);
     }
 }

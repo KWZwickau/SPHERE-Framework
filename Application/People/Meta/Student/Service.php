@@ -801,6 +801,74 @@ class Service extends Support
     }
 
     /**
+     * @param TblPerson $tblPerson
+     * @param $Meta
+     *
+     * @return bool|TblStudent
+     */
+    public function updateStudentSubject(TblPerson $tblPerson, $Meta)
+    {
+
+        // Student mit Automatischer Schülernummer anlegen falls noch nicht vorhanden
+        $tblStudent = $tblPerson->getStudent(true);
+        if (!$tblStudent) {
+            $tblStudent = $this->createStudentWithOnlyAutoIdentifier($tblPerson);
+        }
+
+        if ($tblStudent) {
+            $tblStudentSubjectAll = $this->getStudentSubjectAllByStudent($tblStudent);
+            if ($tblStudentSubjectAll) {
+                foreach ($tblStudentSubjectAll as $tblStudentSubject) {
+                    if (!Subject::useService()->getSubjectById(
+                        $Meta['Subject'][$tblStudentSubject->getTblStudentSubjectType()->getId()]
+                        [$tblStudentSubject->getTblStudentSubjectRanking()->getId()])
+                    ) {
+                        (new Data($this->getBinding()))->removeStudentSubject($tblStudentSubject);
+                    }
+                }
+            }
+            if (isset( $Meta['Subject'] )) {
+                foreach ($Meta['Subject'] as $Category => $Items) {
+                    $tblStudentSubjectType = $this->getStudentSubjectTypeById($Category);
+                    if ($tblStudentSubjectType) {
+                        foreach ($Items as $Ranking => $Type) {
+                            $tblStudentSubjectRanking = $this->getStudentSubjectRankingById($Ranking);
+                            $tblSubject = Subject::useService()->getSubjectById($Type);
+                            if ($tblSubject) {
+                                // From & Till
+                                $tblLevelFrom = null;
+                                $tblLevelTill = null;
+                                if (isset( $Meta['SubjectLevelFrom'] ) && isset( $Meta['SubjectLevelFrom'][$Category][$Ranking] )) {
+                                    if ($Meta['SubjectLevelFrom'][$Category][$Ranking]) {
+                                        $tblLevelFrom = Division::useService()->getLevelById($Meta['SubjectLevelFrom'][$Category][$Ranking]);
+                                    }
+                                }
+                                if (isset( $Meta['SubjectLevelTill'] ) && isset( $Meta['SubjectLevelTill'][$Category][$Ranking] )) {
+                                    if ($Meta['SubjectLevelTill'][$Category][$Ranking]) {
+                                        $tblLevelTill = Division::useService()->getLevelById($Meta['SubjectLevelTill'][$Category][$Ranking]);
+                                    }
+                                }
+
+                                $this->addStudentSubject(
+                                    $tblStudent,
+                                    $tblStudentSubjectType,
+                                    $tblStudentSubjectRanking ? $tblStudentSubjectRanking : null,
+                                    $tblSubject,
+                                    $tblLevelFrom, $tblLevelTill
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param TblPerson      $tblPerson
      * @param array          $Meta

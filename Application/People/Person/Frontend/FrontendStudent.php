@@ -126,6 +126,10 @@ class FrontendStudent extends FrontendReadOnly
                 FrontendStudentGeneral::getStudentGeneralContent($PersonId), 'StudentGeneralContent'
             );
 
+            $listingContent[] = ApiPersonReadOnly::receiverBlock(
+                FrontendStudentSubject::getStudentSubjectContent($PersonId), 'StudentSubjectContent'
+            );
+
             $content = new Listing($listingContent);
 
             $hideLink = (new Link(new EyeMinus() . ' Ausblenden', ApiPersonReadOnly::getEndpoint()))
