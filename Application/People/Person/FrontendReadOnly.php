@@ -92,9 +92,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
 
 
             $studentContent = ApiPersonReadOnly::receiverBlock(
-                //  todo tilte verwenden
-//              FrontendStudent::getStudentTitle($Id), 'StudentContent'
-                FrontendStudent::getStudentContent($Id), 'StudentContent'
+              FrontendStudent::getStudentTitle($Id), 'StudentContent'
             );
 
             $integrationContent = ApiPersonReadOnly::receiverBlock(

@@ -689,16 +689,17 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblPerson $tblPerson
+     * @param bool $hasEdit
      *
      * @return TableData|Warning
      */
-    public function getSupportTable(TblPerson $tblPerson)
+    public function getSupportTable(TblPerson $tblPerson, $hasEdit = true)
     {
 
         $tblSupportList = Student::useService()->getSupportByPerson($tblPerson);
         $TableContent = array();
         if($tblSupportList){
-            array_walk($tblSupportList, function(TblSupport $tblSupport) use (&$TableContent, $tblPerson){
+            array_walk($tblSupportList, function(TblSupport $tblSupport) use (&$TableContent, $tblPerson, $hasEdit){
                 $Item['RequestDate'] = $tblSupport->getDate();
                 $Item['CoachingRequest'] = ($tblSupport->getTblSupportType() ? $tblSupport->getTblSupportType()->getName() : '');
                 $Item['Focus'] = '';
@@ -707,10 +708,14 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['IntegrationTime'] = $tblSupport->getSupportTime();
                 $Item['IntegrationRemark'] = $tblSupport->getRemark();
                 $Item['Editor'] = $tblSupport->getPersonEditor();
-                $Item['Option'] = (new Standard('', '#', new Edit()))
-                ->ajaxPipelineOnClick(ApiSupport::pipelineOpenEditSupportModal($tblPerson->getId(), $tblSupport->getId()))
-                    .(new Standard('', '#', new Remove()))
-                ->ajaxPipelineOnClick(ApiSupport::pipelineOpenDeleteSupport($tblPerson->getId(), $tblSupport->getId()));
+                if ($hasEdit) {
+                    $Item['Option'] = (new Standard('', '#', new Edit()))
+                            ->ajaxPipelineOnClick(ApiSupport::pipelineOpenEditSupportModal($tblPerson->getId(),
+                                $tblSupport->getId()))
+                        . (new Standard('', '#', new Remove()))
+                            ->ajaxPipelineOnClick(ApiSupport::pipelineOpenDeleteSupport($tblPerson->getId(),
+                                $tblSupport->getId()));
+                }
 
                 $FocusList = array();
                 $PrimaryFocus = Student::useService()->getPrimaryFocusBySupport($tblSupport);
@@ -736,17 +741,21 @@ class Frontend extends Extension implements IFrontendInterface
             return new Warning('Es sind keine Daten vorhanden.');
         }
 
-        return new TableData($TableContent, null,
-            array('RequestDate' => 'Datum',
-                  'CoachingRequest' => 'Vorgang',
-                  'Focus' => 'Förderschwerpunkte '.new Muted(new Small('Primary *')),
-                  'IntegrationCompany' => 'Förderschule',
-                  'PersonSupport' => 'Schulbegleitung',
-                  'IntegrationTime' => 'Stundenbedarf',
-                  'IntegrationRemark' => 'Bemerkung',
-                  'Editor' => 'Bearbeiter',
-                  'Option' => '',
-            ), array(
+        $columns = array('RequestDate' => 'Datum',
+            'CoachingRequest' => 'Vorgang',
+            'Focus' => 'Förderschwerpunkte '.new Muted(new Small('Primary *')),
+            'IntegrationCompany' => 'Förderschule',
+            'PersonSupport' => 'Schulbegleitung',
+            'IntegrationTime' => 'Stundenbedarf',
+            'IntegrationRemark' => 'Bemerkung',
+            'Editor' => 'Bearbeiter',
+        );
+        if ($hasEdit) {
+            $columns['Option'] = '';
+        }
+
+        return new TableData($TableContent, null, $columns,
+            array(
                 'order' => array(
                     array(0, 'desc'),
                 ),
@@ -763,24 +772,29 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblPerson $tblPerson
+     * @param bool $hasEdit
      *
      * @return TableData|Warning
      */
-    public function getSpecialTable(TblPerson $tblPerson)
+    public function getSpecialTable(TblPerson $tblPerson, $hasEdit = true)
     {
 
         $tblSpecialList = Student::useService()->getSpecialByPerson($tblPerson);
         $TableContent = array();
         if($tblSpecialList){
-            array_walk($tblSpecialList, function(TblSpecial $tblSpecial) use (&$TableContent, $tblPerson){
+            array_walk($tblSpecialList, function(TblSpecial $tblSpecial) use (&$TableContent, $tblPerson, $hasEdit){
                 $Item['RequestDate'] = $tblSpecial->getDate();
                 $Item['Disorder'] = '';
                 $Item['Remark'] = $tblSpecial->getRemark();
                 $Item['Editor'] = $tblSpecial->getPersonEditor();
-                $Item['Option'] = (new Standard('', '#', new Edit()))
-                    ->ajaxPipelineOnClick(ApiSupport::pipelineOpenEditSpecialModal($tblPerson->getId(), $tblSpecial->getId(), true))
-                    .(new Standard('', '#', new Remove()))
-                    ->ajaxPipelineOnClick(ApiSupport::pipelineOpenDeleteSpecial($tblPerson->getId(), $tblSpecial->getId()));
+                if ($hasEdit) {
+                    $Item['Option'] = (new Standard('', '#', new Edit()))
+                            ->ajaxPipelineOnClick(ApiSupport::pipelineOpenEditSpecialModal($tblPerson->getId(),
+                                $tblSpecial->getId(), true))
+                        . (new Standard('', '#', new Remove()))
+                            ->ajaxPipelineOnClick(ApiSupport::pipelineOpenDeleteSpecial($tblPerson->getId(),
+                                $tblSpecial->getId()));
+                }
 
                 $DisorderList = array();
                 $tblStudentDisorderTypeList = Student::useService()->getSpecialDisorderTypeAllBySpecial($tblSpecial);
@@ -801,13 +815,17 @@ class Frontend extends Extension implements IFrontendInterface
             return new Warning('Es sind keine Daten vorhanden.');
         }
 
-        return new TableData($TableContent, null,
-            array('RequestDate' => 'Datum',
-                  'Disorder' => 'Entwicklungsbesonderheiten',
-                  'Remark' => 'Bemerkung',
-                  'Editor' => 'Bearbeiter',
-                  'Option' => '',
-            ), array(
+        $columns = array('RequestDate' => 'Datum',
+            'Disorder' => 'Entwicklungsbesonderheiten',
+            'Remark' => 'Bemerkung',
+            'Editor' => 'Bearbeiter',
+        );
+        if ($hasEdit) {
+            $columns['Option'] = '';
+        }
+
+        return new TableData($TableContent, null, $columns,
+            array(
                 'order' => array(
                     array(0, 'desc'),
                 ),
@@ -824,26 +842,31 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblPerson $tblPerson
+     * @param bool $hasEdit
      *
      * @return TableData|Warning
      */
-    public function getHandyCapTable(TblPerson $tblPerson)
+    public function getHandyCapTable(TblPerson $tblPerson, $hasEdit = true)
     {
 
         $tblSpecialList = Student::useService()->getHandyCapByPerson($tblPerson);
         $TableContent = array();
         if($tblSpecialList){
-            array_walk($tblSpecialList, function(TblHandyCap $tblHandyCap) use (&$TableContent, $tblPerson){
+            array_walk($tblSpecialList, function(TblHandyCap $tblHandyCap) use (&$TableContent, $tblPerson, $hasEdit){
                 $Item['RequestDate'] = $tblHandyCap->getDate();
                 $Item['LegalBasis'] = $tblHandyCap->getLegalBasis();
                 $Item['LearnTarget'] = $tblHandyCap->getLearnTarget();
                 $Item['RemarkLesson'] = $tblHandyCap->getRemarkLesson();
                 $Item['RemarkRating'] = $tblHandyCap->getRemarkRating();
                 $Item['Editor'] = $tblHandyCap->getPersonEditor();
-                $Item['Option'] = (new Standard('', '#', new Edit()))
-                    ->ajaxPipelineOnClick(ApiSupport::pipelineOpenEditHandyCapModal($tblPerson->getId(), $tblHandyCap->getId(), true))
-                    .(new Standard('', '#', new Remove()))
-                    ->ajaxPipelineOnClick(ApiSupport::pipelineOpenDeleteHandyCap($tblPerson->getId(), $tblHandyCap->getId()));
+                if ($hasEdit) {
+                    $Item['Option'] = (new Standard('', '#', new Edit()))
+                            ->ajaxPipelineOnClick(ApiSupport::pipelineOpenEditHandyCapModal($tblPerson->getId(),
+                                $tblHandyCap->getId(), true))
+                        . (new Standard('', '#', new Remove()))
+                            ->ajaxPipelineOnClick(ApiSupport::pipelineOpenDeleteHandyCap($tblPerson->getId(),
+                                $tblHandyCap->getId()));
+                }
 
                 array_push($TableContent, $Item);
             });
@@ -853,15 +876,19 @@ class Frontend extends Extension implements IFrontendInterface
             return new Warning('Es sind keine Daten vorhanden.');
         }
 
-        return new TableData($TableContent, null,
-            array('RequestDate' => 'Datum',
-                  'LegalBasis' => 'Rechtliche Grundlage',
-                  'LearnTarget' => 'Lernziel',
-                  'RemarkLesson' => 'Besonderheiten im Unterricht',
-                  'RemarkRating' => 'Besonderheiten bei Leistungsbewertungen',
-                  'Editor' => 'Bearbeiter',
-                  'Option' => '',
-            ), array(
+        $columns = array('RequestDate' => 'Datum',
+            'LegalBasis' => 'Rechtliche Grundlage',
+            'LearnTarget' => 'Lernziel',
+            'RemarkLesson' => 'Besonderheiten im Unterricht',
+            'RemarkRating' => 'Besonderheiten bei Leistungsbewertungen',
+            'Editor' => 'Bearbeiter'
+        );
+        if ($hasEdit) {
+            $columns['Option'] = '';
+        }
+
+        return new TableData($TableContent, null, $columns,
+            array(
                 'order' => array(
                     array(0, 'desc'),
                 ),

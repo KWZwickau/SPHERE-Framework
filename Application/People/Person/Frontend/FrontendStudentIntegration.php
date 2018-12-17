@@ -9,9 +9,9 @@
 namespace SPHERE\Application\People\Person\Frontend;
 
 use SPHERE\Application\Api\People\Meta\Support\ApiSupport;
-use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -81,7 +81,7 @@ class FrontendStudentIntegration extends FrontendReadOnly
             }
             // nur Anzeige
             elseif (Access::useService()->hasAuthorization('/Api/People/Meta/Support/ApiSupportReadOnly')) {
-                $content = ApiSupportReadOnly::openOverViewModal($PersonId, false);
+                $content = self::getReadOnlyContent($tblPerson);
             } else {
                 $content = '';
             }
@@ -149,6 +149,39 @@ class FrontendStudentIntegration extends FrontendReadOnly
                     )
                 ),
             ));
+
+        return $content;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return string
+     */
+    private static function getReadOnlyContent(TblPerson $tblPerson)
+    {
+
+        $Accordion = new Accordion('');
+        $Accordion->addItem('Förderantrag/Förderbescheid', Student::useFrontend()->getSupportTable($tblPerson, false), true);
+        $Accordion->addItem('Entwicklungsbesonderheiten', Student::useFrontend()->getSpecialTable($tblPerson, false), false);
+        $Accordion->addItem('Nachteilsaugleich', Student::useFrontend()->getHandyCapTable($tblPerson, false), false);
+
+        $content = new Layout(array(
+            new LayoutGroup(
+                new LayoutRow(
+                    new LayoutColumn(
+                        new Warning('Für Lehrer sind nur die aktuellsten Einträge sichtbar')
+                        , 6)
+                )
+            ),
+            new LayoutGroup(
+                new LayoutRow(
+                    new LayoutColumn(array(
+                        $Accordion,
+                    ))
+                )
+            ),
+        ));
 
         return $content;
     }
