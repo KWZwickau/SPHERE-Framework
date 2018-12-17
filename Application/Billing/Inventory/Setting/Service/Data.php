@@ -18,10 +18,10 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 //        //ToDO Vorbefüllung erstellen
-        $this->createSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT, '7');
-        $this->createSetting(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED, '1');
-        $this->createSetting(TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED, '1');
-        $this->createSetting('Test_anderer_Werte', 'Wert');
+        $this->createSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT, '7', TblSetting::TYPE_INTEGER);
+        $this->createSetting(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED, '1', TblSetting::TYPE_BOOLEAN);
+        $this->createSetting(TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED, '1', TblSetting::TYPE_BOOLEAN);
+        $this->createSetting('Test_anderer_Werte', 'Wert', TblSetting::TYPE_STRING);
 
         $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_STUDENT);
         $this->createSettingGroupPerson($tblGroup);
@@ -112,10 +112,11 @@ class Data extends AbstractData
     /**
      * @param string $Identifier
      * @param string $Value
+     * @param string $Type
      *
      * @return TblSetting
      */
-    public function createSetting($Identifier, $Value)
+    public function createSetting($Identifier, $Value, $Type = TblSetting::TYPE_STRING)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -130,6 +131,7 @@ class Data extends AbstractData
             $Entity = new TblSetting();
             $Entity->setIdentifier($Identifier);
             $Entity->setValue($Value);
+            $Entity->setType($Type);
             $Manager->saveEntity($Entity);
 
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),

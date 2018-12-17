@@ -14,7 +14,7 @@ use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
-use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Repository\Title as FormTitle;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -22,7 +22,9 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
+use SPHERE\Common\Frontend\Icon\Repository\Comment;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Quantity;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
@@ -228,32 +230,21 @@ class ApiSetting extends Extension implements IApiInterface
             $Global->POST[$Identifier] = $tblSetting->getValue();
             $Global->savePost();
         }
-        if($Identifier == TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED
-        || $Identifier == TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED){
-
-            $SelectList[1] = 'Ja';
-            $SelectList[2] = 'Nein';
-
-            return new Well((new Form(
-                new FormGroup(
-                    new FormRow(array(
-                        new FormColumn(
-                            new SelectBox($Identifier, $FieldLabel, $SelectList)
-                        ),
-                        new FormColumn(
-                            (new Primary('Speichern', self::getEndpoint(), new Save()))
-                                ->ajaxPipelineOnClick(ApiSetting::pipelineSaveSetting($Identifier))
-                        )
-                    ))
-                )
-            ))->disableSubmitAction());
+        $field = false;
+        if ($tblSetting->getType() == TblSetting::TYPE_BOOLEAN) {
+            $field = new CheckBox($Identifier, $FieldLabel, 1);
+        } elseif ($tblSetting->getType() == TblSetting::TYPE_STRING) {
+            $field = new TextField($Identifier, '', $FieldLabel, new Comment());
+        } elseif ($tblSetting->getType() == TblSetting::TYPE_INTEGER) {
+            $field = new NumberField($Identifier, '', $FieldLabel, new Quantity());
         }
+
 
         return new Well((new Form(
             new FormGroup(
                 new FormRow(array(
                     new FormColumn(
-                        new TextField($Identifier, '', $FieldLabel)
+                        $field
                     ),
                     new FormColumn(
                         (new Primary('Speichern', self::getEndpoint(), new Save()))
@@ -274,21 +265,23 @@ class ApiSetting extends Extension implements IApiInterface
 
         $Global = $this->getGlobal();
         if(isset($Global->POST[$Identifier]) && ($Value = $Global->POST[$Identifier])) {
-            if($Identifier == TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED
-                || $Identifier == TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED) {
-                if($Value == '2'){
-                    $Value = '0';
+            Setting::useService()->createSetting($Identifier, $Value);
+            return new Success('Erfolgreich');
+        } elseif(isset($Global->POST[$Identifier]) && ($Value = $Global->POST[$Identifier]) == '0' ) { // POST problem (get Zero by Value)
+            if (($tblSetting = Setting::useService()->getSettingByIdentifier($Identifier))) {
+                if ($tblSetting->getType() == TblSetting::TYPE_BOOLEAN) {
+                    $Value = '1';
+                    Setting::useService()->createSetting($Identifier, $Value);
+                    return new Success('Erfolgreich');
                 }
             }
-
-            Setting::useService()->createSetting($Identifier, $Value);
-
-            return new Success('Erfolgreich');
-        } else {
-            if($Identifier == TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED
-                || $Identifier == TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED) {
-                $Value = '0';
-                Setting::useService()->createSetting($Identifier, $Value);
+        } else { // POST problem unchecked CheckBox doesn't post anything
+            if(($tblSetting = Setting::useService()->getSettingByIdentifier($Identifier))){
+                if($tblSetting->getType() == TblSetting::TYPE_BOOLEAN){
+                    $Value = 0;
+                    Setting::useService()->createSetting($Identifier, $Value);
+                    return new Success('Erfolgreich');
+                }
             }
         }
         return new Danger('Durch einen Fehler konnte die Einstellung nicht gespeichert werden.');
@@ -334,8 +327,7 @@ class ApiSetting extends Extension implements IApiInterface
         $this->refreshWait(400);
 
         if(($tblSetting = Setting::useService()->getSettingByIdentifier($Identifier))) {
-            if($Identifier == TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED
-                || $Identifier == TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED) {
+            if($tblSetting->getType() == TblSetting::TYPE_BOOLEAN) {
                 $Check = new DangerText(new Disable());
                 if($tblSetting->getValue() == '1'){
                     $Check = new SuccessText(new Check());

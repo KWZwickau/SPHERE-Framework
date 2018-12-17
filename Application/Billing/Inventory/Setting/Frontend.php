@@ -10,6 +10,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Pen;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -81,65 +82,53 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Title('Länge der Debitorennummer: '
-                                . (new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
-                                    ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT,
-                                        'Länge der Debitorennummer')))
-                            .new Well(
-                                ApiSetting::receiverModalSetting()
-                                . new Layout(new LayoutGroup(new LayoutRow(
-                                    new LayoutColumn(
-                                        new Listing(array($DebtorCountReceiver))
-                                        , 4)
-                                )))
-                            )
-                        ),
-                        new LayoutColumn(
-                            new Title('Gruppen, die zur Auswahl stehen: '
+                            new Title('Personengruppen, die für Beitragsarten zur Auswahl stehen: '
                                 . (new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
                                     ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting('PersonGroup',
                                         'PersonGroup')))
                             .new Well($PersonGroupAsString)
                         ),
                         new LayoutColumn(
-                            new Title('Debitornummer ist eine pflicht Angabe: '
-                                . (new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
-                                    ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED,
-                                        'Debitornummer ist eine pflicht Angabe')))
+                            new Title('Allgemeine Einstellungen:')
                             .new Well(
                                 ApiSetting::receiverModalSetting()
-                                . new Layout(new LayoutGroup(new LayoutRow(
-                                    new LayoutColumn(
-                                        new Listing(array($DebtorNumberReceiver))
-                                        , 4)
-                                )))
-                            )
-                        ),
-                        new LayoutColumn(
-                            new Title('Konto für SEPA-Lastschrift ist eine pflicht Angabe: '
-                                . (new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
-                                    ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting(TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED,
-                                        'Konto ist bei SEPA-Überweisungen eine pflicht Angabe')))
-                            .new Well(
-                                ApiSetting::receiverModalSetting()
-                                . new Layout(new LayoutGroup(new LayoutRow(
-                                    new LayoutColumn(
-                                        new Listing(array($SepaAccountReceiver))
-                                        , 4)
-                                )))
-                            )
-                        ),
-                        new LayoutColumn(
-                            new Title('Mögliche weitere Einstellungen: '
-                                . (new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
-                                    ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting('Test_anderer_Werte',
-                                        'Mögliche weitere Einstellungen')))
-                            .
-                            new Well(
-                                new Layout(new LayoutGroup(new LayoutRow(
-                                    new LayoutColumn(
-                                        new Listing(array($TestReceiver))
-                                        , 4)
+                                . new Layout(new LayoutGroup(array(
+                                    new LayoutRow(array(
+                                        new LayoutColumn(
+                                            new Listing(array('Länge der Debitorennummer: '.$DebtorCountReceiver.new PullRight(
+                                                    (new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
+                                                        ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT,
+                                                            'Länge der Debitorennummer'))
+                                                )))
+                                            , 6),
+                                        )),
+                                    new LayoutRow(array(
+                                        new LayoutColumn(
+                                            new Listing(array('Mögliche weitere Einstellungen: '.$TestReceiver.new PullRight(
+                                                    (new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
+                                                        ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting('Test_anderer_Werte',
+                                                            'Mögliche weitere Einstellungen'))
+                                                )))
+                                            , 6),
+                                        )),
+                                    new LayoutRow(array(
+                                        new LayoutColumn(
+                                            new Listing(array('Debitornummer ist eine pflicht Angabe: '.$DebtorNumberReceiver.new PullRight(
+                                                    (new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
+                                                        ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED,
+                                                            'Debitornummer ist eine pflicht Angabe'))
+                                                )))
+                                            , 6),
+                                    )),
+                                    new LayoutRow(array(
+                                        new LayoutColumn(
+                                            new Listing(array('Konto für SEPA-Lastschrift ist eine pflicht Angabe: '.$SepaAccountReceiver.new PullRight(
+                                                    (new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
+                                                        ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting(TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED,
+                                                            'Konto für SEPA-Lastschrift ist eine pflicht Angabe: '))
+                                                )))
+                                            , 6),
+                                    )),
                                 )))
                             )
                         )

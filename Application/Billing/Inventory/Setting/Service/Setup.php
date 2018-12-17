@@ -46,6 +46,7 @@ class Setup extends AbstractSetup
         $Table = $this->createTable($Schema, 'tblSetting');
         $this->createColumn($Table, 'Identifier', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Value', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Type', self::FIELD_TYPE_STRING);
 
         return $Table;
     }

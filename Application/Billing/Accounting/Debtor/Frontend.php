@@ -4,6 +4,8 @@ namespace SPHERE\Application\Billing\Accounting\Debtor;
 use SPHERE\Application\Api\Billing\Accounting\ApiBankAccount;
 use SPHERE\Application\Api\Billing\Accounting\ApiDebtor;
 use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankAccount;
+use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
+use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblType;
 use SPHERE\Application\People\Group\Group;
@@ -20,10 +22,12 @@ use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Listing as ListingIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
@@ -40,6 +44,7 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Center;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -150,12 +155,22 @@ class Frontend extends Extension implements IFrontendInterface
         if(($tblGroup = Group::useService()->getGroupById($GroupId))) {
             if(($tblPersonList = Group::useService()->getPersonAllByGroup($tblGroup))) {
                 $i = 0;
-                array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblGroup, &$i) {
+
+                $IsDebtorNumberNeed = false;
+                if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED)){
+                    if($tblSetting->getValue() == 1){
+                        $IsDebtorNumberNeed = true;
+                    }
+                }
+
+                array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblGroup, &$i, $IsDebtorNumberNeed) {
                     $Item['Name'] = $tblPerson->getLastFirstName();
-                    $Item['DebtorNumber'] = '';
+                    $Item['DebtorNumber'] = ($IsDebtorNumberNeed
+                        ? '<span hidden>00000'.$tblPerson->getLastFirstName().'</span>'.new DangerText(new ToolTip(new Info(), 'Debitornummer wird benötigt'))
+                        : '');
                     $Item['Address'] = '';
                     $Item['BankAccount'] = '<div class="alert alert-danger" style="margin-bottom: 0; padding: 10px 15px">'
-                        . new Disable() . ' kein Konto</div>';;
+                        . new Disable() . ' kein Konto</div>';
                     $Item['Option'] = new Standard('', __NAMESPACE__ . '/Edit', new Edit(), array(
                         'GroupId'  => $tblGroup->getId(),
                         'PersonId' => $tblPerson->getId(),
@@ -255,10 +270,24 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         if(($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            $IsDebtorNumberNeed = false;
+            if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED)){
+                if($tblSetting->getValue() == 1){
+                    $IsDebtorNumberNeed = true;
+                }
+            }
+
             // new DebtorNumber
-            $DebtorNumber = (new Link('Debitor-Nummer hinzufügen', ApiDebtor::getEndpoint(), new Plus()))
-                ->ajaxPipelineOnClick(ApiDebtor::pipelineOpenAddDebtorNumberModal('addDebtorNumber',
-                    $tblPerson->getId()));
+            if($IsDebtorNumberNeed){
+                $DebtorNumber = new DangerText(new ToolTip(new WarningIcon(), 'Debotornummer muss angegeben werden')).(new Link('Debitor-Nummer hinzufügen', ApiDebtor::getEndpoint(), new Plus()))
+                    ->ajaxPipelineOnClick(ApiDebtor::pipelineOpenAddDebtorNumberModal('addDebtorNumber',
+                        $tblPerson->getId()));
+            } else {
+                $DebtorNumber = (new Link('Debitor-Nummer hinzufügen', ApiDebtor::getEndpoint(), new Plus()))
+                    ->ajaxPipelineOnClick(ApiDebtor::pipelineOpenAddDebtorNumberModal('addDebtorNumber',
+                        $tblPerson->getId()));
+            }
+
             // DebtorNumber
             if(($tblDebtorNumberList = Debtor::useService()->getDebtorNumberByPerson($tblPerson))) {
                 $DebtorNumber = array();

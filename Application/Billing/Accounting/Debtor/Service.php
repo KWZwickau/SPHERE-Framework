@@ -179,7 +179,7 @@ class Service extends AbstractService
      * @param TblPerson $tblPersonCauser
      * @param TblItem   $tblItem
      *
-     * @return false|TblDebtorSelection
+     * @return false|TblDebtorSelection[]
      */
     public function getDebtorSelectionByPersonCauserAndItem(TblPerson $tblPersonCauser, TblItem $tblItem)
     {

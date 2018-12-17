@@ -97,6 +97,7 @@ class Service extends AbstractService
     /**
      * @param string $Identifier
      * @param string $Value
+     * @param string $Type
      *
      * @return TblSetting
      */

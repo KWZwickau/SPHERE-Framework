@@ -8,6 +8,8 @@ use SPHERE\Application\Billing\Accounting\Causer\Causer;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Inventory\Item\Item;
+use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
+use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
@@ -311,7 +313,8 @@ class ApiDebtorSelection extends Extension implements IApiInterface
     public function getItemPanelContent($PersonId, $ItemId)
     {
 
-        return Causer::useFrontend()->getItemContent($PersonId, $ItemId);
+        $IsOpen = true;
+        return Causer::useFrontend()->getItemContent($PersonId, $ItemId, $IsOpen);
     }
 
     /**
@@ -392,7 +395,8 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR);
             // is Causer Person in Group "Bezahler"
             if (Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroup)) {
-                $SelectBoxDebtorList[$tblPerson->getId()] = $tblPerson->getLastFirstName();
+                $DeborNumber = $this->getDebtorNumberByPerson($tblPerson);
+                $SelectBoxDebtorList[$tblPerson->getId()] = $tblPerson->getLastFirstName().' '.$DeborNumber;
                 $PersonDebtorList[] = $tblPerson;
             }
             if (($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
@@ -401,17 +405,13 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                     if (($tblPersonRel = $tblRelationship->getServiceTblPersonFrom()) && $tblPersonRel->getId() !== $tblPerson->getId()) {
                         // is Person in Group "Bezahler"
                         if (Group::useService()->getMemberByPersonAndGroup($tblPersonRel, $tblGroup)) {
-                            $SelectBoxDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName();
-                            $PersonDebtorList[] = $tblPersonRel;
-                        }
-                    } elseif (($tblPersonRel = $tblRelationship->getServiceTblPersonTo()) && $tblPersonRel->getId() !== $tblPerson->getId()) {
-                        // is Person in Group "Bezahler"
-                        if (Group::useService()->getMemberByPersonAndGroup($tblPersonRel, $tblGroup)) {
-                            $SelectBoxDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName();
+                            $DeborNumber = $this->getDebtorNumberByPerson($tblPersonRel);
+                            $SelectBoxDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName().' '.$DeborNumber;
                             $PersonDebtorList[] = $tblPersonRel;
                         }
                     }
                 }
+                // ToDO Sorgeberechtigte immer anzeigen oder ganz deaktivieren?
                 // Bezahler ohne Gruppe (z.B. Sorgeberechtigte, die ohne Konto bezhalen (Bar/Überweisung))
                 if(empty($SelectBoxDebtorList)){
                     $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CUSTODY);
@@ -419,12 +419,23 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                         if (($tblPersonRel = $tblRelationship->getServiceTblPersonFrom()) && $tblPersonRel->getId() !== $tblPerson->getId()) {
                             // is Person in Group "Sorgeberechtigte"
                             if (Group::useService()->getMemberByPersonAndGroup($tblPersonRel, $tblGroup)) {
-                                $SelectBoxDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName();
+                                $DeborNumber = $this->getDebtorNumberByPerson($tblPersonRel);
+                                $SelectBoxDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName().' '.$DeborNumber;
                             }
-                        } elseif (($tblPersonRel = $tblRelationship->getServiceTblPersonTo()) && $tblPersonRel->getId() !== $tblPerson->getId()) {
-                            // is Person in Group "Sorgeberechtigte"
+                        }
+                    }
+                }
+            }
+            if(($tblRelationshipType = Relationship::useService()->getTypeByName('Beitragszahler'))){
+                if (($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
+                    $tblRelationshipType))) {
+                    foreach ($tblRelationshipList as $tblRelationship) {
+                        if (($tblPersonRel = $tblRelationship->getServiceTblPersonFrom()) && $tblPersonRel->getId() !== $tblPerson->getId()) {
+                            // is Person in Group "Bezahler"
                             if (Group::useService()->getMemberByPersonAndGroup($tblPersonRel, $tblGroup)) {
-                                $SelectBoxDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName();
+                                $DeborNumber = $this->getDebtorNumberByPerson($tblPersonRel);
+                                $SelectBoxDebtorList[$tblPersonRel->getId()] = $tblPersonRel->getLastFirstName().' '.$DeborNumber;
+                                $PersonDebtorList[] = $tblPersonRel;
                             }
                         }
                     }
@@ -448,6 +459,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                         if(!$PostBankAccountId){
                             $PostBankAccountId = $tblBankAccount->getId();
                             if(isset($_POST['DebtorSelection']['PaymentType'])
+                                && !isset($_POST['DebtorSelection']['BankAccount'])
                                 && ($tblPaymentType = Balance::useService()->getPaymentTypeById($_POST['DebtorSelection']['PaymentType']))
                                 && $tblPaymentType->getName() == 'SEPA-Lastschrift') {
                                 // override Post with first found BankAccount
@@ -526,6 +538,35 @@ class ApiDebtorSelection extends Extension implements IApiInterface
     }
 
     /**
+     * @param TblPerson $tblPerson
+     *
+     * @return string
+     */
+    private function getDebtorNumberByPerson(TblPerson $tblPerson)
+    {
+
+        $IsDebtorNumberNeed = false;
+        if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED)){
+            if($tblSetting->getValue() == 1){
+                $IsDebtorNumberNeed = true;
+            }
+        }
+
+        $DeborNumber = ($IsDebtorNumberNeed
+        ? '(keine Debitor-Nr.)'
+        : '');
+        if(($tblDebtorNumberList = Debtor::useService()->getDebtorNumberByPerson($tblPerson))){
+            $DebtorNumberList = array();
+            foreach($tblDebtorNumberList as $tblDebtorNumber){
+                $DebtorNumberList[] = $tblDebtorNumber->getDebtorNumber();
+            }
+            $DeborNumber = implode(', ', $DebtorNumberList);
+            $DeborNumber = '('.$DeborNumber.')';
+        }
+        return $DeborNumber;
+    }
+
+    /**
      * @param string $Identifier
      * @param string $PersonId
      * @param string $ItemId
@@ -571,18 +612,27 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         }
 
         if(($tblPaymentType = Balance::useService()->getPaymentTypeById($DebtorSelection['PaymentType']))){
-            if($tblPaymentType->getName() == 'SEPA-Lastschrift'){
-                if (isset($DebtorSelection['BankAccount']) && empty($DebtorSelection['BankAccount'])) {
-                    $Warning .= new Warning('Bitte geben sie ein Konto an. (Ein Konto wird benötigt, um ein 
-                    SEPA-Lastschriftverfahren zu hinterlegen) Wahlweise andere Bezahlart auswählen.');
-                    $form->setError('DebtorSelection[BankAccount]', 'Bitte geben Sie eine Konto an');
-                    $Error = true;
-                } elseif( isset($DebtorSelection['BankAccount']) && $DebtorSelection['BankAccount'] == '-1'){
-                    $Warning .= new Warning('Bitte geben sie ein Konto an. (Ein Konto wird benötigt, um ein 
-                    SEPA-Lastschriftverfahren zu hinterlegen) Wahlweise andere Bezahlart auswählen.');
-                    $form->setError('DebtorSelection[BankAccount]', 'Bitte geben Sie eine Konto an');
-                    $Error = true;
+            $IsSepaAccountNeed = false;
+            if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED)){
+                if($tblSetting->getValue() == 1){
+                    $IsSepaAccountNeed = true;
                 }
+            }
+            if($tblPaymentType->getName() == 'SEPA-Lastschrift'){
+                if($IsSepaAccountNeed){
+                    if (isset($DebtorSelection['BankAccount']) && empty($DebtorSelection['BankAccount'])) {
+                        $Warning .= new Warning('Bitte geben sie ein Konto an. (Ein Konto wird benötigt, um ein 
+                    SEPA-Lastschriftverfahren zu hinterlegen) Wahlweise andere Bezahlart auswählen.');
+                        $form->setError('DebtorSelection[BankAccount]', 'Bitte geben Sie eine Konto an');
+                        $Error = true;
+                    } elseif( isset($DebtorSelection['BankAccount']) && $DebtorSelection['BankAccount'] == '-1'){
+                        $Warning .= new Warning('Bitte geben sie ein Konto an. (Ein Konto wird benötigt, um ein 
+                    SEPA-Lastschriftverfahren zu hinterlegen) Wahlweise andere Bezahlart auswählen.');
+                        $form->setError('DebtorSelection[BankAccount]', 'Bitte geben Sie eine Konto an');
+                        $Error = true;
+                    }
+                }
+                //ToDO Werden Referenznummern bei SEPA-Lastschriften weiterhin benötigt (auch ohne Konto?)
                 if (isset($DebtorSelection['BankReference']) && empty($DebtorSelection['BankReference'])) {
                     $form->setError('DebtorSelection[BankReference]', 'Bitte geben Sie eine Mandatsreferenz an');
                     $Error = true;
@@ -727,7 +777,6 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             $tblBankAccount = Debtor::useService()->getBankAccountById($DebtorSelection['BankAccount']);
             $tblBankReference = Debtor::useService()->getBankReferenceById($DebtorSelection['BankReference']);
         }
-
 
         $IsChange = false;
         if (($tblDebtorSelection = Debtor::useService()->getDebtorSelectionById($DebtorSelectionId))
