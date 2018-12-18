@@ -54,6 +54,8 @@ class ApiPersonEdit extends Extension implements IApiInterface
         $Dispatcher = new Dispatcher(__CLASS__);
 
         $Dispatcher->registerMethod('saveCreatePersonContent');
+        $Dispatcher->registerMethod('loadSimilarPersonContent');
+        $Dispatcher->registerMethod('loadSimilarPersonMessage');
 
         $Dispatcher->registerMethod('editBasicContent');
         $Dispatcher->registerMethod('saveBasicContent');
@@ -112,6 +114,45 @@ class ApiPersonEdit extends Extension implements IApiInterface
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'PersonContent'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'saveCreatePersonContent',
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineLoadSimilarPersonContent()
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SimilarPersonContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadSimilarPersonContent',
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $countSimilarPerson
+     * @param $name
+     * @param $hash
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadSimilarPersonMessage($countSimilarPerson, $name, $hash)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SimilarPersonMessage'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadSimilarPersonMessage',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'countSimilarPerson' => intval($countSimilarPerson),
+            'name' => $name,
+            'hash' => $hash
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -849,6 +890,31 @@ class ApiPersonEdit extends Extension implements IApiInterface
             return new Danger(new Ban() . ' Die Person konnte nicht erstellt werden')
                 . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR);
         }
+    }
+
+    /**
+     * @return string
+     */
+    public function loadSimilarPersonContent()
+    {
+
+        $Global = $this->getGlobal();
+        $Person = $Global->POST['Person'];
+
+        return (new FrontendBasic())->loadSimilarPersonContent($Person);
+    }
+
+    /**
+     * @param integer $countSimilarPerson
+     * @param string $name
+     * @param $hash
+     *
+     * @return Danger|Success
+     */
+    public function loadSimilarPersonMessage($countSimilarPerson, $name, $hash)
+    {
+
+        return FrontendBasic::getSimilarPersonMessage($countSimilarPerson, $name, $hash);
     }
 
     /**

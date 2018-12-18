@@ -113,8 +113,6 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
             );
         // neue Person anlegen
         } else {
-            // todo Prüfung ob die Person bereits existiert bei neuen Personen
-
             if (Access::useService()->hasAuthorization('/Api/People/Person/ApiPersonEdit')) {
                 $createPersonContent = ApiPersonEdit::receiverBlock(
                     (new FrontendBasic())->getCreatePersonContent(), 'PersonContent'
