@@ -27,7 +27,7 @@ class Setup extends AbstractSetup
          */
         $Schema = clone $this->getConnection()->getSchema();
         $tblBasket = $this->setTableBasket($Schema);
-        $this->setTableBasketPerson($Schema, $tblBasket);
+//        $this->setTableBasketPerson($Schema, $tblBasket);
         $this->setTableBasketItem($Schema, $tblBasket);
         $this->setTblBasketVerification($Schema, $tblBasket);
 
@@ -54,21 +54,21 @@ class Setup extends AbstractSetup
         return $Table;
     }
 
-    /**
-     * @param Schema $Schema
-     * @param Table  $tblBasket
-     *
-     * @return Table
-     */
-    private function setTableBasketPerson(Schema &$Schema, Table $tblBasket)
-    {
-
-        $Table = $this->createTable($Schema, 'tblBasketPerson');
-        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
-        $this->getConnection()->addForeignKey($Table, $tblBasket);
-
-        return $Table;
-    }
+//    /**
+////     * @param Schema $Schema
+////     * @param Table  $tblBasket
+////     *
+////     * @return Table
+////     */
+////    private function setTableBasketPerson(Schema &$Schema, Table $tblBasket)
+////    {
+////
+////        $Table = $this->createTable($Schema, 'tblBasketPerson');
+////        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
+////        $this->getConnection()->addForeignKey($Table, $tblBasket);
+////
+////        return $Table;
+////    }
 
     /**
      * @param Schema $Schema
@@ -94,7 +94,8 @@ class Setup extends AbstractSetup
             $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
         }
         $this->createColumn($Table, 'Quantity', self::FIELD_TYPE_INTEGER);
-        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblPersonCauser', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblPersonDebtor', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblItem', self::FIELD_TYPE_BIGINT, true);
         $this->getConnection()->addForeignKey($Table, $tblBasket);
 

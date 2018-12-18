@@ -14,6 +14,7 @@ use SPHERE\System\Database\Fitting\Element;
  * @Entity
  * @Table(name="tblBasketPerson")
  * @Cache(usage="READ_ONLY")
+ * @deprecated
  */
 class TblBasketPerson extends Element
 {

@@ -21,7 +21,8 @@ class TblBasketVerification extends Element
 {
 
     const ATTR_TBL_BASKET = 'tblBasket';
-    const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const ATTR_SERVICE_TBL_PERSON_CAUSER = 'serviceTblPersonCauser';
+    const ATTR_SERVICE_TBL_PERSON_DEBTOR = 'serviceTblPersonDebtor';
     const ATTR_SERVICE_TBL_ITEM = 'serviceTblItem';
 
     /**
@@ -39,7 +40,11 @@ class TblBasketVerification extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblPerson;
+    protected $serviceTblPersonCauser;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblPersonDebtor;
     /**
      * @Column(type="bigint")
      */
@@ -106,23 +111,45 @@ class TblBasketVerification extends Element
     /**
      * @return bool|TblPerson
      */
-    public function getServiceTblPerson()
+    public function getServiceTblPersonCauser()
     {
 
-        if (null === $this->serviceTblPerson) {
+        if (null === $this->serviceTblPersonCauser) {
             return false;
         } else {
-            return Person::useService()->getPersonById($this->serviceTblPerson);
+            return Person::useService()->getPersonById($this->serviceTblPersonCauser);
         }
     }
 
     /**
      * @param null|TblPerson $tblPerson
      */
-    public function setServiceTblPerson(TblPerson $tblPerson = null)
+    public function setServiceTblPersonCauser(TblPerson $tblPerson = null)
     {
 
-        $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
+        $this->serviceTblPersonCauser = ( null === $tblPerson ? null : $tblPerson->getId() );
+    }
+
+    /**
+     * @return bool|TblPerson
+     */
+    public function getServiceTblPersonDebtor()
+    {
+
+        if (null === $this->serviceTblPersonDebtor) {
+            return false;
+        } else {
+            return Person::useService()->getPersonById($this->serviceTblPersonDebtor);
+        }
+    }
+
+    /**
+     * @param null|TblPerson $tblPerson
+     */
+    public function setServiceTblPersonDebtor(TblPerson $tblPerson = null)
+    {
+
+        $this->serviceTblPersonDebtor = ( null === $tblPerson ? null : $tblPerson->getId() );
     }
 
     /**
