@@ -136,6 +136,32 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $Company
+     *
+     * @return bool|TblCompany
+     */
+    public function createCompanyService($Company)
+    {
+        if (($tblCompany = (new Data($this->getBinding()))->createCompany($Company['Name'],
+            $Company['ExtendedName'],
+            $Company['Description']))
+        ) {
+            // Add to Group
+            if (isset($Company['Group'])) {
+                foreach ((array)$Company['Group'] as $tblGroup) {
+                    Group::useService()->addGroupCompany(
+                        Group::useService()->getGroupById($tblGroup), $tblCompany
+                    );
+                }
+            }
+
+            return $tblCompany;
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * @param string $Name
      * @param string $Description
      * @param string $ExtendedName
@@ -228,6 +254,44 @@ class Service extends AbstractService
         }
 
         return $Form;
+    }
+
+    /**
+     * @param TblCompany $tblCompany
+     * @param $Company
+     *
+     * @return bool
+     */
+    public function updateCompanyService(TblCompany $tblCompany, $Company)
+    {
+        if ((new Data($this->getBinding()))->updateCompany($tblCompany, $Company['Name'],
+            $Company['ExtendedName'], $Company['Description'])
+        ) {
+            // Change Groups
+            if (isset($Company['Group'])) {
+                // Remove all Groups
+                $tblGroupList = Group::useService()->getGroupAllByCompany($tblCompany);
+                foreach ($tblGroupList as $tblGroup) {
+                    Group::useService()->removeGroupCompany($tblGroup, $tblCompany);
+                }
+                // Add current Groups
+                foreach ((array)$Company['Group'] as $tblGroup) {
+                    Group::useService()->addGroupCompany(
+                        Group::useService()->getGroupById($tblGroup), $tblCompany
+                    );
+                }
+            } else {
+                // Remove all Groups
+                $tblGroupList = Group::useService()->getGroupAllByCompany($tblCompany);
+                foreach ($tblGroupList as $tblGroup) {
+                    Group::useService()->removeGroupCompany($tblGroup, $tblCompany);
+                }
+            }
+
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**

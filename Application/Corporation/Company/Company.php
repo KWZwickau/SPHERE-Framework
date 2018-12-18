@@ -45,7 +45,7 @@ class Company extends Extension implements IApplicationInterface, IModuleInterfa
     {
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, 'Frontend::frontendCompany'
+            __NAMESPACE__, 'FrontendReadOnly::frontendCompanyReadOnly'
         ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy', __NAMESPACE__.'\Frontend::frontendDestroyCompany')

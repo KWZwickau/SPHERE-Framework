@@ -197,7 +197,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
      *
      * @return LayoutColumn
      */
-    protected static function getLayoutColumnLabel($label, $size = 2)
+    public static function getLayoutColumnLabel($label, $size = 2)
     {
         return new LayoutColumn(new Bold($label . ':'), $size);
     }
@@ -207,7 +207,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
      * @param int $size
      * @return LayoutColumn
      */
-    protected static function getLayoutColumnValue($value, $size = 2)
+    public static function getLayoutColumnValue($value, $size = 2)
     {
         return new LayoutColumn($value ? $value : '&ndash;', $size);
     }
@@ -217,7 +217,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
      *
      * @return LayoutColumn
      */
-    protected static function getLayoutColumnEmpty($size = 2)
+    public static function getLayoutColumnEmpty($size = 2)
     {
         return new LayoutColumn('&nbsp;', $size);
     }
