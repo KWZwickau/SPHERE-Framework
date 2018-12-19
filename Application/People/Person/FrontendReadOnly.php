@@ -23,13 +23,17 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronDown;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -99,6 +103,21 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 FrontendStudentIntegration::getIntegrationTitle($Id), 'IntegrationContent'
             );
 
+            $addressContent = TemplateReadOnly::getContent(
+                'Adressdaten',
+                Address::useFrontend()->frontendLayoutPersonNew($tblPerson, $Group),
+                array(
+                    new Link(
+                        new Plus() . ' Adresse hinzufügen',
+                        '/People/Person/Address/Create',
+                        null,
+                        array('Id' => $tblPerson->getId(), 'Group' => $Group)
+                    )
+                ),
+                'der Person' . new Bold(new Success($tblPerson->getFullName())),
+                new TagList()
+            );
+
             $stage->setContent(
                 ($validationMessage ? $validationMessage : '')
                 . $basicContent
@@ -109,7 +128,9 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 . $custodyContent
                 . $clubContent
                 . $integrationContent
-                . self::getLayoutContact($tblPerson, $Group)
+
+                . $addressContent
+//                . self::getLayoutContact($tblPerson, $Group)
             );
         // neue Person anlegen
         } else {
@@ -241,5 +262,21 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
         return 'der Person'
             . ($tblPerson ? new Bold(new Success($tblPerson->getFullName())) : '')
             . ' bearbeiten';
+    }
+
+    /**
+     * @param $title
+     * @param $content
+     * @param string $options
+     * @param string $panelType
+     * @return Panel
+     */
+    public static function getContactPanel($title, $content, $options = '', $panelType = Panel::PANEL_TYPE_DEFAULT)
+    {
+        return new Panel(
+            $title . ($options ? new PullRight($options) : ''),
+            $content,
+            $panelType
+        );
     }
 }

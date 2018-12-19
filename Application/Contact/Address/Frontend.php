@@ -6,6 +6,7 @@ use SPHERE\Application\Contact\Address\Service\Entity\TblToCompany;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -23,6 +24,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Map;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -41,6 +43,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -48,6 +51,7 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -695,6 +699,124 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return new Layout(new LayoutGroup($LayoutRowList));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param null $Group
+     *
+     * @return Layout
+     */
+    public function frontendLayoutPersonNew(TblPerson $tblPerson, $Group = null)
+    {
+
+        $addressList = array();
+        if (($tblAddressList = Address::useService()->getAddressAllByPerson($tblPerson))){
+            foreach ($tblAddressList as $tblToPerson) {
+                if (($tblAddress = $tblToPerson->getTblAddress())) {
+                    $addressList[$tblAddress->getId()][$tblToPerson->getTblType()->getId()][$tblPerson->getId()] = $tblToPerson;
+                }
+            }
+        }
+
+        if (($tblRelationshipAll = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson))) {
+            foreach ($tblRelationshipAll as $tblRelationship) {
+                if ($tblRelationship->getServiceTblPersonTo() && $tblRelationship->getServiceTblPersonFrom()) {
+                    if ($tblPerson->getId() != $tblRelationship->getServiceTblPersonFrom()->getId()) {
+                        $tblPersonRelationship = $tblRelationship->getServiceTblPersonFrom();
+                    } else {
+                        $tblPersonRelationship = $tblRelationship->getServiceTblPersonTo();
+                    }
+                    $tblRelationshipAddressAll = Address::useService()->getAddressAllByPerson($tblPersonRelationship);
+                    if ($tblRelationshipAddressAll) {
+                        foreach ($tblRelationshipAddressAll as $tblToPerson) {
+                            if (($tblAddress = $tblToPerson->getTblAddress())) {
+                                $addressList[$tblAddress->getId()][$tblToPerson->getTblType()->getId()][$tblPersonRelationship->getId()] = $tblToPerson;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (empty($addressList)) {
+            return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Warning('Keine Adressen hinterlegt')))));
+        } else {
+            $LayoutRowList = array();
+            $LayoutRowCount = 0;
+            $LayoutRow = null;
+
+            foreach ($addressList as $addressId => $typeArray) {
+                if (($tblAddress = Address::useService()->getAddressById($addressId))) {
+                    foreach ($typeArray as $typeId => $personArray) {
+                        if (($tblType = Address::useService()->getTypeById($typeId))) {
+                            $content = array();
+                            if (isset($personArray[$tblPerson->getId()])) {
+                                /** @var TblToPerson $tblToPerson */
+                                $tblToPerson = $personArray[$tblPerson->getId()];
+                                $panelType = Panel::PANEL_TYPE_SUCCESS;
+                                $options =
+                                    new Link(
+                                        new Edit(),
+                                        '/People/Person/Address/Edit',
+                                        null,
+                                        array('Id' => $tblToPerson->getId(), 'Group' => $Group),
+                                        'Bearbeiten'
+                                    )
+                                    . ' | '
+                                    . new Link(
+                                        new \SPHERE\Common\Frontend\Text\Repository\Warning(new Remove()),
+                                        '/People/Person/Address/Destroy',
+                                        null,
+                                        array('Id' => $tblToPerson->getId(), 'Group' => $Group),
+                                        'Löschen'
+                                    );
+                            } else {
+                                $panelType = Panel::PANEL_TYPE_DEFAULT;
+                                $options = '';
+                            }
+
+                            $content[] = '&nbsp;';
+                            $content[] = $tblAddress->getGuiLayout();
+                            /**
+                             * @var TblToPerson $tblToPerson
+                             */
+                            foreach ($personArray as $personId => $tblToPerson) {
+                                if (($tblPersonAddress = Person::useService()->getPersonById($personId))) {
+                                    $content[] = $tblPersonAddress->getFullName()
+                                        . ($tblPerson->getId() != $tblPersonAddress->getId()
+                                            ? new Link(
+                                                new PersonIcon(),
+                                                '/People/Person',
+                                                null,
+                                                array('Id' => $tblPersonAddress->getId()),
+                                                'Zur Person'
+                                            )
+                                            : '')
+                                        . (($remark = $tblToPerson->getRemark())  ? ' ' . new ToolTip(new Info(), $remark) : '');
+                                }
+                            }
+
+                            $panel = FrontendReadOnly::getContactPanel(
+                                new MapMarker() . ' ' . $tblType->getName(),
+                                $content,
+                                $options,
+                                $panelType
+                            );
+
+                            if ($LayoutRowCount % 4 == 0) {
+                                $LayoutRow = new LayoutRow(array());
+                                $LayoutRowList[] = $LayoutRow;
+                            }
+                            $LayoutRow->addColumn(new LayoutColumn($panel, 3));
+                            $LayoutRowCount++;
+                        }
+                    }
+                }
+            }
+
+            return new Layout(new LayoutGroup($LayoutRowList));
+        }
     }
 
     /**
