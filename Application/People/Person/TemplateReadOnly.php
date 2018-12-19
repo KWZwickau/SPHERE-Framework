@@ -12,6 +12,7 @@ use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
+use SPHERE\Common\Frontend\Layout\Repository\WellReadOnly;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 
 /**
@@ -55,7 +56,7 @@ class TemplateReadOnly
         $title = new Title($titlePrefix . $titleName, $titleDescription);
 
         if (!$noContentWell && self::USE_WELL && $content != '') {
-            $content = new Well($content);
+            $content = new WellReadOnly($content);
         }
 
         return $title . $content;
