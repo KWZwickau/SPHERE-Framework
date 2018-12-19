@@ -343,7 +343,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         $tblPaymentTypeAll = Balance::useService()->getPaymentTypeAll();
         foreach ($tblPaymentTypeAll as $tblPaymentType) {
             $PaymentTypeList[$tblPaymentType->getId()] = $tblPaymentType->getName();
-            if ($tblPaymentType->getName() == 'SEPA-Lastschrift') {
+            if ($tblPaymentType->getName() == 'SEPA-Lastschrift'/*'Bar' // Test*/) {
                 if (!isset($_POST['DebtorSelection']['PaymentType'])) {
                     $_POST['DebtorSelection']['PaymentType'] = $tblPaymentType->getId();
                 }

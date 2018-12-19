@@ -2,14 +2,8 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Basket;
 
+use SPHERE\Application\Api\Billing\Bookkeeping\ApiBasket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
-use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
-use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
-use SPHERE\Common\Frontend\Form\Structure\Form;
-use SPHERE\Common\Frontend\Form\Structure\FormColumn;
-use SPHERE\Common\Frontend\Form\Structure\FormGroup;
-use SPHERE\Common\Frontend\Form\Structure\FormRow;
-use SPHERE\Common\Frontend\Icon\Repository\Conversation;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
@@ -17,7 +11,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -43,10 +36,36 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Abrechnung', 'Übersicht');
         $Stage->setMessage('Zeigt alle vorhandenen Abrechnungen an');
-        $tblBasketAll = Basket::useService()->getBasketAll();
-        //ToDO API
-        $Stage->addButton((new Primary('Abrechnung hinzufügen', '#', new Plus())));
 
+        //ToDO API
+        $Stage->addButton((new Primary('Abrechnung hinzufügen', '#', new Plus()))
+        ->ajaxPipelineOnClick(ApiBasket::pipelineOpenAddBasketModal('addBasket')));
+
+        $Stage->setContent(
+            ApiBasket::receiverModal('Erstellen einer neuen Abrechnung', 'addBasket')
+            .ApiBasket::receiverModal('Bearbeiten der Abrechnung', 'editBasket')
+            .ApiBasket::receiverModal('Entfernen der Abrechnung', 'deleteBasket')
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ApiBasket::receiverContent($this->getBasketTable())
+                        )
+                    )
+                )
+            )
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @return TableData
+     */
+    public function getBasketTable()
+    {
+
+        $tblBasketAll = Basket::useService()->getBasketAll();
         $TableContent = array();
         if (!empty( $tblBasketAll )) {
             array_walk($tblBasketAll, function (TblBasket &$tblBasket) use (&$TableContent) {
@@ -100,50 +119,15 @@ class Frontend extends Extension implements IFrontendInterface
             });
         }
 
-        $Stage->setContent(
-            new Layout(
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new TableData($TableContent, null,
-                                array(
-                                    'Number'               => 'Nummer',
-                                    'Name'                 => 'Name',
-                                    'Description'          => 'Beschreibung',
-                                    'CountDebtorSelection' => 'Anzahl Zahlungszuweisungen',
-                                    'Item'                 => 'Artikel',
-                                    'Option'               => ''
-                                )
-                            )
-                        )
-                    )
-                )
+        return new TableData($TableContent, null,
+            array(
+                'Number'               => 'Nummer',
+                'Name'                 => 'Name',
+                'Description'          => 'Beschreibung',
+                'CountDebtorSelection' => 'Anzahl Zahlungszuweisungen',
+                'Item'                 => 'Artikel',
+                'Option'               => ''
             )
         );
-
-        return $Stage;
-    }
-
-    /**
-     * @return Form
-     */
-    public function formBasket()
-    {
-
-        //ToDO erweitern um ItemList
-        return new Form(array(
-            new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(
-                        new Panel('Warenkorb',
-                            new TextField('Basket[Name]', 'Name', 'Name', new Conversation()),
-                            Panel::PANEL_TYPE_INFO), 6),
-                    new FormColumn(
-                        new Panel('Warenkorb',
-                            new TextArea('Basket[Description]', 'Beschreibung', 'Beschreibung', new Conversation()),
-                            Panel::PANEL_TYPE_INFO), 6),
-                )),
-            ))
-        ));
     }
 }

@@ -3,7 +3,6 @@
 namespace SPHERE\Application\Billing\Bookkeeping\Basket;
 
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
-use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblDebtorSelection;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Data;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketItem;
@@ -46,6 +45,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getBasketById($Id);
+    }
+
+    /**
+     * @param $Name
+     *
+     * @return bool|TblBasket
+     */
+    public function getBasketByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getBasketByName($Name);
     }
 
     /**
@@ -146,94 +156,63 @@ class Service extends AbstractService
 
     /**
      * @param string $Name
-     * @param string $Desctiption
+     * @param string $Description
      *
-     * @return string
+     * @return TblBasket
      */
-    public function createBasket($Name = '', $Desctiption = '')
+    public function createBasket($Name = '', $Description = '')
     {
 
-        return (new Data($this->getBinding()))->createBasket($Name, $Desctiption);
-
-        //ToDO in API
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Basket) {
-            return $this->form();
-        }
-        $Error = false;
-        if (isset( $Basket['Name'] ) && empty( $Basket['Name'] )) {
-            $Stage->setError('Basket[Name]', 'Bitte geben Sie einen Namen an');
-            $Error = true;
-        }
+        return (new Data($this->getBinding()))->createBasket($Name, $Description);
     }
 
     /**
      * @param TblBasket $tblBasket
      * @param TblItem   $tblItem
      *
-     * @return string
+     * @return TblBasketItem
      */
     public function createBasketItem(TblBasket $tblBasket, TblItem $tblItem)
     {
-        //ToDO Kontrolle
         return (new Data($this->getBinding()))->createBasketItem($tblBasket, $tblItem);
     }
 
     /**
-     * @param string $BasketId
+     * @param TblBasket $tblBasket
+     * @param TblItem   $tblItem
      *
      * @return bool
      */
-    public function createBasketVerificationBulk($BasketId = '')
+    public function createBasketVerificationBulk(TblBasket $tblBasket, TblItem $tblItem)
     {
 
-        if(($tblBasket = Basket::useService()->getBasketById($BasketId))){
-            if(($tblItemList = Basket::useService()->getItemAllByBasket($tblBasket))){
-                $PersonList = array();
-                foreach($tblItemList as $tblItem){
-                    // Find all Person who matched on this Item (Debtorselection / Zahlungszuweisung)
-                    if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionByItem($tblItem))){
-                        array_walk($tblDebtorSelectionList, function(TblDebtorSelection $tblDebtorSelection) use(&$PersonList) {
-                            //ToDO create BulkSaveList
-                            $tblDebtorSelection->getServiceTblPerson();
-                        });
-                    }
-
-                }
+        $DebtorDataArray = array();
+        if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionByItem($tblItem))){
+            foreach($tblDebtorSelectionList as $tblDebtorSelection){
+                $Item['Causer'] = $tblDebtorSelection->getServiceTblPersonCauser()->getId();
+                $Item['Debtor'] = $tblDebtorSelection->getServiceTblPerson()->getId();
+                $Item['Price'] = $tblDebtorSelection->getValue();
+                array_push($DebtorDataArray, $Item);
             }
         }
+        if(!empty($DebtorDataArray)){
+            return (new Data($this->getBinding()))->createBasketVerificationBulk($tblBasket, $tblItem, $DebtorDataArray);
+        }
+        return false;
 
-        //ToDO return Boolean from Create
-        return true;
     }
 
     /**
-     * @param TblBasket      $tblBasket
-     * @param                $Basket
+     * @param TblBasket $tblBasket
+     * @param string    $Name
+     * @param string    $Description
      *
      * @return IFormInterface|string
      */
-    public function changeBasket(TblBasket $tblBasket, $Basket)
+    public function changeBasket(TblBasket $tblBasket, $Name, $Description)
     {
 
-        return (new Data($this->getBinding()))->updateBasket($tblBasket, $Basket['Name'], $Basket['Description']);
-        // ToDO move Check to API
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Basket
-        ) {
-            return $Stage;
-        }
-
-        $Error = false;
-
-        if (isset( $Basket['Name'] ) && empty( $Basket['Name'] )) {
-            $Stage->setError('Basket[Name]', 'Bitte geben Sie einen Namen an');
-            $Error = true;
-        }
+        return (new Data($this->getBinding()))->updateBasket($tblBasket, $Name, $Description);
     }
 
     /**

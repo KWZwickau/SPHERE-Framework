@@ -27,7 +27,7 @@ class Bookkeeping implements IApplicationInterface
 
         // Skip Dashboard
         Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/Basket'), new Link\Name('Buchungen'))
+            new Link(new Link\Route(__NAMESPACE__.'/Basket'), new Link\Name('Beitragsfakturierung'))
         );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/Basket'), new Link\Name('Abrechnung'),

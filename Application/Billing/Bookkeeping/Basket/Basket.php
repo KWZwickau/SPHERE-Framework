@@ -4,7 +4,6 @@ namespace SPHERE\Application\Billing\Bookkeeping\Basket;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
-use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 use SPHERE\System\Database\Link\Identifier;
 
@@ -41,7 +40,7 @@ class Basket implements IModuleInterface
     }
 
     /**
-     * @return IFrontendInterface
+     * @return Frontend
      */
     public static function useFrontend()
     {

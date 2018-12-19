@@ -21,34 +21,15 @@ class TblItem extends Element
     /**
      * @Column(type="string")
      */
-    protected $Description;
+    protected $Name;
     /**
      * @Column(type="text")
      */
-    protected $Name;
+    protected $Description;
     /**
      * @Column(type="bigint")
      */
     protected $tblItemType;
-
-
-    /**
-     * @return string
-     */
-    public function getDescription()
-    {
-
-        return $this->Description;
-    }
-
-    /**
-     * @param string $Description
-     */
-    public function setDescription($Description)
-    {
-
-        $this->Description = $Description;
-    }
 
     /**
      * @return string
@@ -66,6 +47,24 @@ class TblItem extends Element
     {
 
         $this->Name = $Name;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDescription()
+    {
+
+        return $this->Description;
+    }
+
+    /**
+     * @param string $Description
+     */
+    public function setDescription($Description)
+    {
+
+        $this->Description = $Description;
     }
 
     /**

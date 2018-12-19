@@ -15,6 +15,8 @@ use SPHERE\System\Database\Fitting\Element;
 class TblBasket extends Element
 {
 
+    const ATTR_NAME = 'Name';
+
     /**
      * @Column(type="string")
      */
