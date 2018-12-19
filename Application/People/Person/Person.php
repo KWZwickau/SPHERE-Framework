@@ -22,19 +22,19 @@ class Person extends Extension implements IApplicationInterface, IModuleInterfac
 
         self::registerModule();
 
-        if (0 === strpos(self::getRequest()->getPathInfo(), (new Link\Route(__NAMESPACE__))->getValue())) {
-            $Parameter = self::getRequest()->getParameterArray();
-            if (isset( $Parameter['Id'] )) {
-                $Name = 'Person bearbeiten';
-            } else {
-                $Name = 'Person anlegen';
-            }
-        } else {
+//        if (0 === strpos(self::getRequest()->getPathInfo(), (new Link\Route(__NAMESPACE__))->getValue())) {
+//            $Parameter = self::getRequest()->getParameterArray();
+//            if (isset( $Parameter['Id'] )) {
+//                $Name = 'Person bearbeiten';
+//            } else {
+//                $Name = 'Person anlegen';
+//            }
+//        } else {
             $Name = 'Person anlegen';
-        }
+//        }
 
         Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name($Name),
+            new Link(new Link\Route(__NAMESPACE__ . '/Create'), new Link\Name($Name),
                 new Link\Icon(new \SPHERE\Common\Frontend\Icon\Repository\Person())
             )
         );
@@ -48,6 +48,9 @@ class Person extends Extension implements IApplicationInterface, IModuleInterfac
 //        ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, 'FrontendReadOnly::frontendPersonReadOnly'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Create', __NAMESPACE__. '\FrontendReadOnly::frontendPersonCreate'
         ));
 
         Main::getDispatcher()->registerRoute(

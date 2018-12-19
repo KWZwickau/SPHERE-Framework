@@ -50,6 +50,24 @@ use SPHERE\System\Extension\Extension;
 class FrontendReadOnly extends Extension implements IFrontendInterface
 {
 
+    public function frontendPersonCreate()
+    {
+        $stage = new Stage('Person', 'Datenblatt anlegen');
+        if (Access::useService()->hasAuthorization('/Api/People/Person/ApiPersonEdit')) {
+            $createPersonContent = ApiPersonEdit::receiverBlock(
+                (new FrontendBasic())->getCreatePersonContent(), 'PersonContent'
+            );
+        } else {
+            $createPersonContent = new Danger('Sie haben nicht das Recht neue Personen anzulegen', new Exclamation());
+        }
+
+        $stage->setContent(
+            $createPersonContent
+        );
+
+        return $stage;
+    }
+
     /**
      *
      * @param null|int $Id
