@@ -34,7 +34,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
-use SPHERE\Common\Frontend\Icon\Repository\TileSmall;
 use SPHERE\Common\Frontend\Icon\Repository\Time;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -189,7 +188,7 @@ class FrontendStudentSubject  extends FrontendReadOnly
                 $content,
                 array($editLink),
                 'der Person' . new Bold(new Success($tblPerson->getFullName())),
-                new TileSmall()
+                new Education()
             );
         }
 
@@ -233,7 +232,7 @@ class FrontendStudentSubject  extends FrontendReadOnly
      */
     private function getEditStudentSubjectTitle(TblPerson $tblPerson = null)
     {
-        return new Title(new TileSmall() . ' ' . self::TITLE, self::getEditTitleDescription($tblPerson))
+        return new Title(new Education() . ' ' . self::TITLE, self::getEditTitleDescription($tblPerson))
             . self::getDataProtectionMessage();
     }
 

@@ -40,7 +40,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
-use SPHERE\Common\Frontend\Icon\Repository\TileSmall;
+use SPHERE\Common\Frontend\Icon\Repository\SizeHorizontal;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -180,7 +180,7 @@ class FrontendStudentTransfer extends FrontendReadOnly
                 $content,
                 array($editLink),
                 'der Person' . new Bold(new Success($tblPerson->getFullName())),
-                new TileSmall()
+                new SizeHorizontal()
             );
         }
 
@@ -555,7 +555,7 @@ class FrontendStudentTransfer extends FrontendReadOnly
      */
     private function getEditStudentTransferTitle(TblPerson $tblPerson = null)
     {
-        return new Title(new Tag() . ' ' . self::TITLE, self::getEditTitleDescription($tblPerson))
+        return new Title(new SizeHorizontal() . ' ' . self::TITLE, self::getEditTitleDescription($tblPerson))
             . self::getDataProtectionMessage();
     }
 

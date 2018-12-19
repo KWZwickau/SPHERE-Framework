@@ -40,7 +40,7 @@ use SPHERE\Common\Frontend\Icon\Repository\EyeMinus;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
-use SPHERE\Common\Frontend\Icon\Repository\TileSmall;
+use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
@@ -197,7 +197,7 @@ class FrontendStudent extends FrontendReadOnly
                 $content,
                 array($editLink),
                 'der Person' . new Bold(new Success($tblPerson->getFullName())),
-                new TileSmall()
+                new Nameplate()
             );
         }
 
@@ -268,7 +268,7 @@ class FrontendStudent extends FrontendReadOnly
      */
     private function getEditStudentBasicTitle(TblPerson $tblPerson = null)
     {
-        return new Title(new Tag() . ' ' . self::TITLE . ' - Grunddaten', self::getEditTitleDescription($tblPerson))
+        return new Title(new Nameplate() . ' ' . self::TITLE . ' - Grunddaten', self::getEditTitleDescription($tblPerson))
             . self::getDataProtectionMessage();
     }
 
