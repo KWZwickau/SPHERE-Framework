@@ -13,7 +13,6 @@ use SPHERE\Application\Api\MassReplace\StudentFilter;
 use SPHERE\Application\Api\People\Meta\Transfer\MassReplaceTransfer;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\Corporation\Group\Group;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\ViewDivisionStudent;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\ViewYear;
 use SPHERE\Application\Education\School\Course\Course;
@@ -21,7 +20,6 @@ use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -51,11 +49,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Muted;
-use SPHERE\Common\Frontend\Text\Repository\Small;
-use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 
@@ -79,85 +73,85 @@ class FrontendStudentTransfer extends FrontendReadOnly
         if (($tblPerson = Person::useService()->getPersonById($PersonId))) {
             $tblStudent = $tblPerson->getStudent();
 
-            $VisitedDivisions = array();
-            $RepeatedLevels = array();
-
-            $tblDivisionStudentAllByPerson = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
-            if ($tblDivisionStudentAllByPerson) {
-                foreach ($tblDivisionStudentAllByPerson as &$tblDivisionStudent) {
-                    $TeacherString = ' | ';
-                    $tblDivision = $tblDivisionStudent->getTblDivision();
-                    if ($tblDivision) {
-                        $tblTeacherPersonList = Division::useService()->getTeacherAllByDivision($tblDivision);
-                        if ($tblTeacherPersonList) {
-                            foreach ($tblTeacherPersonList as $tblTeacherPerson) {
-                                if ($TeacherString !== ' | ') {
-                                    $TeacherString .= ', ';
-                                }
-                                $tblTeacher = Teacher::useService()->getTeacherByPerson($tblTeacherPerson);
-                                if ($tblTeacher) {
-                                    $TeacherString .= new Bold($tblTeacher->getAcronym().' ');
-                                }
-                                $TeacherString .= ($tblTeacherPerson->getTitle() != ''
-                                        ? $tblTeacherPerson->getTitle().' '
-                                        : '').
-                                    $tblTeacherPerson->getFirstName().' '.$tblTeacherPerson->getLastName();
-                                $tblDivisionTeacher = Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblDivision,
-                                    $tblTeacherPerson);
-                                if ($tblDivisionTeacher && $tblDivisionTeacher->getDescription() != '') {
-                                    $TeacherString .= ' ('.$tblDivisionTeacher->getDescription().')';
-                                }
-                            }
-                        }
-                        if ($TeacherString === ' | ') {
-                            $TeacherString = '';
-                        }
-                        $tblLevel = $tblDivision->getTblLevel();
-                        $tblYear = $tblDivision->getServiceTblYear();
-                        if ($tblLevel && $tblYear) {
-                            $text = $tblYear->getDisplayName().' Klasse '.$tblDivision->getDisplayName()
-                                .new Muted(new Small(' '.($tblLevel->getServiceTblType() ? $tblLevel->getServiceTblType()->getName() : '')))
-                                .$TeacherString;
-                            $VisitedDivisions[] = $tblDivisionStudent->isInActive()
-                                ? new Strikethrough($text)
-                                : $text;
-                            foreach ($tblDivisionStudentAllByPerson as &$tblDivisionStudentTemp) {
-                                if ($tblDivisionStudent->getId() !== $tblDivisionStudentTemp->getId()
-                                    && $tblDivisionStudentTemp->getTblDivision()
-                                    && (
-                                        $tblDivisionStudentTemp->getTblDivision()->getTblLevel()
-                                        && $tblDivisionStudent->getTblDivision()->getTblLevel()->getId()
-                                        === $tblDivisionStudentTemp->getTblDivision()->getTblLevel()->getId()
-                                    )
-                                    && $tblDivisionStudentTemp->getTblDivision()->getTblLevel()->getName() != ''
-                                ) {
-                                    $RepeatedLevels[] = $tblYear->getDisplayName().' Klasse '.$tblLevel->getName();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+//            $VisitedDivisions = array();
+//            $RepeatedLevels = array();
+//
+//            $tblDivisionStudentAllByPerson = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
+//            if ($tblDivisionStudentAllByPerson) {
+//                foreach ($tblDivisionStudentAllByPerson as &$tblDivisionStudent) {
+//                    $TeacherString = ' | ';
+//                    $tblDivision = $tblDivisionStudent->getTblDivision();
+//                    if ($tblDivision) {
+//                        $tblTeacherPersonList = Division::useService()->getTeacherAllByDivision($tblDivision);
+//                        if ($tblTeacherPersonList) {
+//                            foreach ($tblTeacherPersonList as $tblTeacherPerson) {
+//                                if ($TeacherString !== ' | ') {
+//                                    $TeacherString .= ', ';
+//                                }
+//                                $tblTeacher = Teacher::useService()->getTeacherByPerson($tblTeacherPerson);
+//                                if ($tblTeacher) {
+//                                    $TeacherString .= new Bold($tblTeacher->getAcronym().' ');
+//                                }
+//                                $TeacherString .= ($tblTeacherPerson->getTitle() != ''
+//                                        ? $tblTeacherPerson->getTitle().' '
+//                                        : '').
+//                                    $tblTeacherPerson->getFirstName().' '.$tblTeacherPerson->getLastName();
+//                                $tblDivisionTeacher = Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblDivision,
+//                                    $tblTeacherPerson);
+//                                if ($tblDivisionTeacher && $tblDivisionTeacher->getDescription() != '') {
+//                                    $TeacherString .= ' ('.$tblDivisionTeacher->getDescription().')';
+//                                }
+//                            }
+//                        }
+//                        if ($TeacherString === ' | ') {
+//                            $TeacherString = '';
+//                        }
+//                        $tblLevel = $tblDivision->getTblLevel();
+//                        $tblYear = $tblDivision->getServiceTblYear();
+//                        if ($tblLevel && $tblYear) {
+//                            $text = $tblYear->getDisplayName().' Klasse '.$tblDivision->getDisplayName()
+//                                .new Muted(new Small(' '.($tblLevel->getServiceTblType() ? $tblLevel->getServiceTblType()->getName() : '')))
+//                                .$TeacherString;
+//                            $VisitedDivisions[] = $tblDivisionStudent->isInActive()
+//                                ? new Strikethrough($text)
+//                                : $text;
+//                            foreach ($tblDivisionStudentAllByPerson as &$tblDivisionStudentTemp) {
+//                                if ($tblDivisionStudent->getId() !== $tblDivisionStudentTemp->getId()
+//                                    && $tblDivisionStudentTemp->getTblDivision()
+//                                    && (
+//                                        $tblDivisionStudentTemp->getTblDivision()->getTblLevel()
+//                                        && $tblDivisionStudent->getTblDivision()->getTblLevel()->getId()
+//                                        === $tblDivisionStudentTemp->getTblDivision()->getTblLevel()->getId()
+//                                    )
+//                                    && $tblDivisionStudentTemp->getTblDivision()->getTblLevel()->getName() != ''
+//                                ) {
+//                                    $RepeatedLevels[] = $tblYear->getDisplayName().' Klasse '.$tblLevel->getName();
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
 
             $enrollmentPanel = self::getStudentTransferEnrollmentPanel($tblStudent ? $tblStudent : null);
             $arrivePanel = self::getStudentTransferArrivePanel($tblStudent ? $tblStudent : null);
             $leavePanel = self::getStudentTransferLeavePanel($tblStudent ? $tblStudent : null);
-            $processPanel = self::getStudentTransferProcessPanel($tblStudent ? $tblStudent : null);
-            $visitedDivisionsPanel = new Panel('Besuchte Schulklassen',
-                $VisitedDivisions,
-                Panel::PANEL_TYPE_DEFAULT,
-                new Warning(
-                    'Vom System erkannte Besuche. Wird bei Klassen&shy;zuordnung in Schuljahren erzeugt'
-                )
-            );
-            $repeatedDivisionsPanel = new Panel('Aktuelle Schuljahrwiederholungen',
-                $RepeatedLevels,
-                Panel::PANEL_TYPE_DEFAULT,
-                new Warning(
-                    'Vom System erkannte Schuljahr&shy;wiederholungen.'
-                    .'Wird bei wiederholter Klassen&shy;zuordnung in verschiedenen Schuljahren erzeugt'
-                )
-            );
+//            $processPanel = self::getStudentTransferProcessPanel($tblStudent ? $tblStudent : null);
+//            $visitedDivisionsPanel = new Panel('Besuchte Schulklassen',
+//                $VisitedDivisions,
+//                Panel::PANEL_TYPE_DEFAULT,
+//                new Warning(
+//                    'Vom System erkannte Besuche. Wird bei Klassen&shy;zuordnung in Schuljahren erzeugt'
+//                )
+//            );
+//            $repeatedDivisionsPanel = new Panel('Aktuelle Schuljahrwiederholungen',
+//                $RepeatedLevels,
+//                Panel::PANEL_TYPE_DEFAULT,
+//                new Warning(
+//                    'Vom System erkannte Schuljahr&shy;wiederholungen.'
+//                    .'Wird bei wiederholter Klassen&shy;zuordnung in verschiedenen Schuljahren erzeugt'
+//                )
+//            );
 
             $content = new Layout(new LayoutGroup(array(
                 new LayoutRow(array(
@@ -169,13 +163,13 @@ class FrontendStudentTransfer extends FrontendReadOnly
                 new LayoutRow(array(
                     new LayoutColumn($leavePanel)
                 )),
-                new LayoutRow(array(
-                    new LayoutColumn($processPanel)
-                )),
-                new LayoutRow(array(
-                    new LayoutColumn($visitedDivisionsPanel, 6),
-                    new LayoutColumn($repeatedDivisionsPanel, 6)
-                )),
+//                new LayoutRow(array(
+//                    new LayoutColumn($processPanel)
+//                )),
+//                new LayoutRow(array(
+//                    new LayoutColumn($visitedDivisionsPanel, 6),
+//                    new LayoutColumn($repeatedDivisionsPanel, 6)
+//                )),
             )));
 
             $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
@@ -388,48 +382,47 @@ class FrontendStudentTransfer extends FrontendReadOnly
      *
      * @return Panel
      */
-    private static function getStudentTransferProcessPanel(TblStudent $tblStudent = null)
-    {
-        $processCompany = '';
-        $processType = '';
-        $processRemark = '';
-
-        if ($tblStudent) {
-            $TransferTypeProcess = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
-            $tblStudentTransferProcess = Student::useService()->getStudentTransferByType(
-                $tblStudent, $TransferTypeProcess
-            );
-
-            if ($tblStudentTransferProcess) {
-                $processCompany = ($tblCompany = $tblStudentTransferProcess->getServiceTblCompany())
-                    ? $tblCompany->getDisplayName() : '';
-                $processType = ($tblType = $tblStudentTransferProcess->getServiceTblType())
-                    ? $tblType->getName() : '';
-                $processRemark = $tblStudentTransferProcess->getRemark();
-            }
-        }
-
-        $contentProcess[] =  '&nbsp;';
-        $contentProcess[] =  new Layout(new LayoutGroup(array(
-            new LayoutRow(array(
-                self::getLayoutColumnLabel('Aktuelle Schule'),
-                self::getLayoutColumnValue($processCompany),
-                self::getLayoutColumnLabel('Aktueller Bildungsgang'),
-                self::getLayoutColumnValue($processType),
-                self::getLayoutColumnLabel('Bemerkungen'),
-                self::getLayoutColumnValue($processRemark),
-            )),
-        )));
-
-        $processPanel = new Panel(
-            'Schulverlauf',
-            $contentProcess,
-            Panel::PANEL_TYPE_INFO
-        );
-
-        return $processPanel;
-    }
-
+//    private static function getStudentTransferProcessPanel(TblStudent $tblStudent = null)
+//    {
+//        $processCompany = '';
+//        $processCourse = '';
+//        $processRemark = '';
+//
+//        if ($tblStudent) {
+//            $TransferTypeProcess = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
+//            $tblStudentTransferProcess = Student::useService()->getStudentTransferByType(
+//                $tblStudent, $TransferTypeProcess
+//            );
+//
+//            if ($tblStudentTransferProcess) {
+//                $processCompany = ($tblCompany = $tblStudentTransferProcess->getServiceTblCompany())
+//                    ? $tblCompany->getDisplayName() : '';
+//                $processCourse = ($tblCourse = $tblStudentTransferProcess->getServiceTblCourse())
+//                    ? $tblCourse->getName() : '';
+//                $processRemark = $tblStudentTransferProcess->getRemark();
+//            }
+//        }
+//
+//        $contentProcess[] =  '&nbsp;';
+//        $contentProcess[] =  new Layout(new LayoutGroup(array(
+//            new LayoutRow(array(
+//                self::getLayoutColumnLabel('Aktuelle Schule'),
+//                self::getLayoutColumnValue($processCompany),
+//                self::getLayoutColumnLabel('Aktueller Bildungsgang'),
+//                self::getLayoutColumnValue($processCourse),
+//                self::getLayoutColumnLabel('Bemerkungen'),
+//                self::getLayoutColumnValue($processRemark),
+//            )),
+//        )));
+//
+//        $processPanel = new Panel(
+//            'Schulverlauf',
+//            $contentProcess,
+//            Panel::PANEL_TYPE_INFO
+//        );
+//
+//        return $processPanel;
+//    }
     /**
      * @param null $PersonId
      *
@@ -524,28 +517,28 @@ class FrontendStudentTransfer extends FrontendReadOnly
                     $Global->POST['Meta']['Transfer'][$TransferTypeLeave->getId()]['Remark'] = $tblStudentTransferLeave->getRemark();
                 }
 
-                $TransferTypeProcess = Student::useService()->getStudentTransferTypeByIdentifier('Process');
-                $tblStudentTransferProcess = Student::useService()->getStudentTransferByType(
-                    $tblStudent, $TransferTypeProcess
-                );
-                if ($tblStudentTransferProcess) {
-                    $Global->POST['Meta']['Transfer'][$TransferTypeProcess->getId()]['School'] = (
-                    $tblStudentTransferProcess->getServiceTblCompany()
-                        ? $tblStudentTransferProcess->getServiceTblCompany()->getId()
-                        : 0
-                    );
-                    $Global->POST['Meta']['Transfer'][$TransferTypeProcess->getId()]['Type'] = (
-                    $tblStudentTransferProcess->getServiceTblType()
-                        ? $tblStudentTransferProcess->getServiceTblType()->getId()
-                        : 0
-                    );
-                    $Global->POST['Meta']['Transfer'][$TransferTypeProcess->getId()]['Course'] = (
-                    $tblStudentTransferProcess->getServiceTblCourse()
-                        ? $tblStudentTransferProcess->getServiceTblCourse()->getId()
-                        : 0
-                    );
-                    $Global->POST['Meta']['Transfer'][$TransferTypeProcess->getId()]['Remark'] = $tblStudentTransferProcess->getRemark();
-                }
+//                $TransferTypeProcess = Student::useService()->getStudentTransferTypeByIdentifier('Process');
+//                $tblStudentTransferProcess = Student::useService()->getStudentTransferByType(
+//                    $tblStudent, $TransferTypeProcess
+//                );
+//                if ($tblStudentTransferProcess) {
+//                    $Global->POST['Meta']['Transfer'][$TransferTypeProcess->getId()]['School'] = (
+//                    $tblStudentTransferProcess->getServiceTblCompany()
+//                        ? $tblStudentTransferProcess->getServiceTblCompany()->getId()
+//                        : 0
+//                    );
+//                    $Global->POST['Meta']['Transfer'][$TransferTypeProcess->getId()]['Type'] = (
+//                    $tblStudentTransferProcess->getServiceTblType()
+//                        ? $tblStudentTransferProcess->getServiceTblType()->getId()
+//                        : 0
+//                    );
+//                    $Global->POST['Meta']['Transfer'][$TransferTypeProcess->getId()]['Course'] = (
+//                    $tblStudentTransferProcess->getServiceTblCourse()
+//                        ? $tblStudentTransferProcess->getServiceTblCourse()->getId()
+//                        : 0
+//                    );
+//                    $Global->POST['Meta']['Transfer'][$TransferTypeProcess->getId()]['Remark'] = $tblStudentTransferProcess->getRemark();
+//                }
 
                 $Global->savePost();
             }
@@ -604,7 +597,7 @@ class FrontendStudentTransfer extends FrontendReadOnly
         $tblStudentTransferTypeEnrollment = Student::useService()->getStudentTransferTypeByIdentifier('Enrollment');
         $tblStudentTransferTypeArrive = Student::useService()->getStudentTransferTypeByIdentifier('Arrive');
         $tblStudentTransferTypeLeave = Student::useService()->getStudentTransferTypeByIdentifier('Leave');
-        $tblStudentTransferTypeProcess = Student::useService()->getStudentTransferTypeByIdentifier('Process');
+//        $tblStudentTransferTypeProcess = Student::useService()->getStudentTransferTypeByIdentifier('Process');
 
         // Normaler Inhalt
         $useCompanyAllSchoolEnrollment = $tblCompanyAllSchool;
@@ -618,11 +611,11 @@ class FrontendStudentTransfer extends FrontendReadOnly
                 }
             }
         }
-        if (empty($tblCompanyAllOwn)) {
-            $useCompanyAllSchoolProcess = $tblCompanyAllSchool;
-        } else {
-            $useCompanyAllSchoolProcess = $tblCompanyAllOwn;
-        }
+//        if (empty($tblCompanyAllOwn)) {
+//            $useCompanyAllSchoolProcess = $tblCompanyAllSchool;
+//        } else {
+//            $useCompanyAllSchoolProcess = $tblCompanyAllOwn;
+//        }
 
 
         // add selected Company if missing in list
@@ -659,20 +652,20 @@ class FrontendStudentTransfer extends FrontendReadOnly
                 }
             }
             // Process
-            $tblStudentTransferTypeProcessEntity = Student::useService()->getStudentTransferByType($tblStudent,
-                $tblStudentTransferTypeProcess);
-            if ($tblStudentTransferTypeProcessEntity && ($TransferCompanyProcess = $tblStudentTransferTypeProcessEntity->getServiceTblCompany())) {
-                if (!array_key_exists($TransferCompanyProcess->getId(), $useCompanyAllSchoolProcess)) {
-                    $TransferCompanyProcessList = array($TransferCompanyProcess->getId() => $TransferCompanyProcess);
-                    $useCompanyAllSchoolProcess = array_merge($useCompanyAllSchoolProcess, $TransferCompanyProcessList);
-                }
-            }
+//            $tblStudentTransferTypeProcessEntity = Student::useService()->getStudentTransferByType($tblStudent,
+//                $tblStudentTransferTypeProcess);
+//            if ($tblStudentTransferTypeProcessEntity && ($TransferCompanyProcess = $tblStudentTransferTypeProcessEntity->getServiceTblCompany())) {
+//                if (!array_key_exists($TransferCompanyProcess->getId(), $useCompanyAllSchoolProcess)) {
+//                    $TransferCompanyProcessList = array($TransferCompanyProcess->getId() => $TransferCompanyProcess);
+//                    $useCompanyAllSchoolProcess = array_merge($useCompanyAllSchoolProcess, $TransferCompanyProcessList);
+//                }
+//            }
         }
 
         $NodeEnrollment = 'Schülertransfer - Ersteinschulung';
         $NodeArrive = 'Schülertransfer - Schüler Aufnahme';
         $NodeLeave = 'Schülertransfer - Schüler Abgabe';
-        $NodeProcess = 'Schülertransfer - Aktueller Schulverlauf';
+//        $NodeProcess = 'Schülertransfer - Aktueller Schulverlauf';
 
         return (new Form(array(
             new FormGroup(array(
@@ -1038,69 +1031,69 @@ class FrontendStudentTransfer extends FrontendReadOnly
                         ), Panel::PANEL_TYPE_INFO),
                     ), 4),
                 )),
-                new FormRow(array(
-                    new FormColumn(array(
-                        new Panel('Schulverlauf', array(
-                            ApiMassReplace::receiverField((
-                            $Field = (new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]',
-                                'Aktuelle Schule', array(
-                                    '{{ Name }} {{ ExtendedName }} {{ Description }}' => $useCompanyAllSchoolProcess
-                                ))
-                            )->configureLibrary(SelectBox::LIBRARY_SELECT2)))
-                            .ApiMassReplace::receiverModal($Field, $NodeProcess)
-                            .new PullRight((new Link('Massen-Änderung',
-                                ApiMassReplace::getEndpoint(), null, array(
-                                    ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
-                                    ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL,
-                                    ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
-                                    'Id'                                                      => $tblPerson->getId(),
-                                    'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
-                                    'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-                                    'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-                                    'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
-                                    'Node'                                                          => $NodeProcess,
-                                )))->ajaxPipelineOnClick(
-                                ApiMassReplace::pipelineOpen($Field, $NodeProcess)
-                            )),
-
-                            ApiMassReplace::receiverField((
-                            $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Course]',
-                                'Aktueller Bildungsgang', array(
-                                    '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
-                                ), new Education())
-                            ))
-                            .ApiMassReplace::receiverModal($Field, $NodeProcess)
-                            .new PullRight((new Link('Massen-Änderung',
-                                ApiMassReplace::getEndpoint(), null, array(
-                                    ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
-                                    ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_CURRENT_COURSE,
-                                    ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
-                                    'Id'                                                      => $tblPerson->getId(),
-                                    'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
-                                    'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
-                                    'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
-                                    'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
-                                    'Node'                                                          => $NodeProcess,
-                                )))->ajaxPipelineOnClick(
-                                ApiMassReplace::pipelineOpen($Field, $NodeProcess)
-                            )),
-//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]',
-//                            'Aktuelle Schule', array(
-//                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll,
-//                            ), new Education()),
-//                        // removed SchoolType
-//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Type]',
-//                            'Aktuelle Schulart', array(
-//                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll,
-//                            ), new Education()),
-//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Course]',
-//                            'Aktueller Bildungsgang', array(
-//                                '{{ Name }} {{ Description }}' => $tblSchoolCourseAll,
-//                            ), new Education()),
-                            new TextArea('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Remark]',
-                                'Bemerkungen', 'Bemerkungen', new Pencil()),
-                        ), Panel::PANEL_TYPE_INFO),
-                    ), 6),
+//                new FormRow(array(
+//                    new FormColumn(array(
+//                        new Panel('Schulverlauf', array(
+//                            ApiMassReplace::receiverField((
+//                            $Field = (new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]',
+//                                'Aktuelle Schule', array(
+//                                    '{{ Name }} {{ ExtendedName }} {{ Description }}' => $useCompanyAllSchoolProcess
+//                                ))
+//                            )->configureLibrary(SelectBox::LIBRARY_SELECT2)))
+//                            .ApiMassReplace::receiverModal($Field, $NodeProcess)
+//                            .new PullRight((new Link('Massen-Änderung',
+//                                ApiMassReplace::getEndpoint(), null, array(
+//                                    ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+//                                    ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_CURRENT_SCHOOL,
+//                                    ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+//                                    'Id'                                                      => $tblPerson->getId(),
+//                                    'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+//                                    'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+//                                    'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+//                                    'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+//                                    'Node'                                                          => $NodeProcess,
+//                                )))->ajaxPipelineOnClick(
+//                                ApiMassReplace::pipelineOpen($Field, $NodeProcess)
+//                            )),
+//
+//                            ApiMassReplace::receiverField((
+//                            $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Course]',
+//                                'Aktueller Bildungsgang', array(
+//                                    '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
+//                                ), new Education())
+//                            ))
+//                            .ApiMassReplace::receiverModal($Field, $NodeProcess)
+//                            .new PullRight((new Link('Massen-Änderung',
+//                                ApiMassReplace::getEndpoint(), null, array(
+//                                    ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+//                                    ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_CURRENT_COURSE,
+//                                    ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+//                                    'Id'                                                      => $tblPerson->getId(),
+//                                    'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+//                                    'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+//                                    'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+//                                    'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+//                                    'Node'                                                          => $NodeProcess,
+//                                )))->ajaxPipelineOnClick(
+//                                ApiMassReplace::pipelineOpen($Field, $NodeProcess)
+//                            )),
+////                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]',
+////                            'Aktuelle Schule', array(
+////                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll,
+////                            ), new Education()),
+////                        // removed SchoolType
+////                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Type]',
+////                            'Aktuelle Schulart', array(
+////                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll,
+////                            ), new Education()),
+////                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Course]',
+////                            'Aktueller Bildungsgang', array(
+////                                '{{ Name }} {{ Description }}' => $tblSchoolCourseAll,
+////                            ), new Education()),
+//                            new TextArea('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Remark]',
+//                                'Bemerkungen', 'Bemerkungen', new Pencil()),
+//                        ), Panel::PANEL_TYPE_INFO),
+//                    ), 6),
 //                    new FormColumn(array(
 //                        new Panel('Besuchte Schulklassen',
 //                            $VisitedDivisions,
@@ -1120,7 +1113,7 @@ class FrontendStudentTransfer extends FrontendReadOnly
 //                            )
 //                        ),
 //                    ), 3),
-                )),
+//                )),
                 new FormRow(array(
                     new FormColumn(array(
                         (new Primary('Speichern', ApiPersonEdit::getEndpoint(), new Save()))

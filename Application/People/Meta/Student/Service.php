@@ -561,6 +561,64 @@ class Service extends Support
                 );
             }
 
+//            $TransferTypeProcess = Student::useService()->getStudentTransferTypeByIdentifier('Process');
+//            $tblStudentTransferByTypeProcess = Student::useService()->getStudentTransferByType(
+//                $tblStudent,
+//                $TransferTypeProcess
+//            );
+//            $tblCompany = Company::useService()->getCompanyById($Meta['Transfer'][$TransferTypeProcess->getId()]['School']);
+//            $tblStateCompany = false;
+//            // removed "Aktuelle Schulart"
+////            $tblType = Type::useService()->getTypeById($Meta['Transfer'][$TransferTypeProcess->getId()]['Type']);
+//            $tblType = false;
+//            $tblCourse = Course::useService()->getCourseById($Meta['Transfer'][$TransferTypeProcess->getId()]['Course']);
+//            if ($tblStudentTransferByTypeProcess) {
+//                (new Data($this->getBinding()))->updateStudentTransfer(
+//                    $tblStudentTransferByTypeProcess,
+//                    $tblStudent,
+//                    $TransferTypeProcess,
+//                    $tblCompany ? $tblCompany : null,
+//                    $tblStateCompany ? $tblStateCompany : null,
+//                    $tblType ? $tblType : null,
+//                    $tblCourse ? $tblCourse : null,
+//                    '',
+//                    $Meta['Transfer'][$TransferTypeProcess->getId()]['Remark']
+//                );
+//            } else {
+//                (new Data($this->getBinding()))->createStudentTransfer(
+//                    $tblStudent,
+//                    $TransferTypeProcess,
+//                    $tblCompany ? $tblCompany : null,
+//                    $tblStateCompany ? $tblStateCompany : null,
+//                    $tblType ? $tblType : null,
+//                    $tblCourse ? $tblCourse : null,
+//                    '',
+//                    $Meta['Transfer'][$TransferTypeProcess->getId()]['Remark']
+//                );
+//            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $Meta
+     *
+     * @return bool|TblStudent
+     */
+    public function updateStudentProcess(TblPerson $tblPerson, $Meta)
+    {
+
+        // Student mit Automatischer Schülernummer anlegen falls noch nicht vorhanden
+        $tblStudent = $tblPerson->getStudent(true);
+        if (!$tblStudent) {
+            $tblStudent = $this->createStudentWithOnlyAutoIdentifier($tblPerson);
+        }
+
+        if ($tblStudent) {
             $TransferTypeProcess = Student::useService()->getStudentTransferTypeByIdentifier('Process');
             $tblStudentTransferByTypeProcess = Student::useService()->getStudentTransferByType(
                 $tblStudent,

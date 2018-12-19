@@ -19,6 +19,7 @@ use SPHERE\Application\People\Person\Frontend\FrontendProspect;
 use SPHERE\Application\People\Person\Frontend\FrontendStudent;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentGeneral;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentMedicalRecord;
+use SPHERE\Application\People\Person\Frontend\FrontendStudentProcess;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentSubject;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentTransfer;
 use SPHERE\Application\People\Person\Frontend\FrontendTeacher;
@@ -80,6 +81,9 @@ class ApiPersonEdit extends Extension implements IApiInterface
 
         $Dispatcher->registerMethod('editStudentTransferContent');
         $Dispatcher->registerMethod('saveStudentTransferContent');
+
+        $Dispatcher->registerMethod('editStudentProcessContent');
+        $Dispatcher->registerMethod('saveStudentProcessContent');
 
         $Dispatcher->registerMethod('editStudentMedicalRecordContent');
         $Dispatcher->registerMethod('saveStudentMedicalRecordContent');
@@ -676,6 +680,70 @@ class ApiPersonEdit extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
+    public static function pipelineEditStudentProcessContent($PersonId)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'StudentProcessContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'editStudentProcessContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineSaveStudentProcessContent($PersonId)
+    {
+
+        $pipeline = new Pipeline(true);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'StudentProcessContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'saveStudentProcessContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineCancelStudentProcessContent($PersonId)
+    {
+        $pipeline = new Pipeline(true);
+
+        // Grunddaten neu laden
+        $emitter = new ServerEmitter(ApiPersonReadOnly::receiverBlock('', 'StudentProcessContent'), ApiPersonReadOnly::getEndpoint());
+        $emitter->setGetPayload(array(
+            ApiPersonReadOnly::API_TARGET => 'loadStudentProcessContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
     public static function pipelineEditStudentMedicalRecordContent($PersonId)
     {
         $Pipeline = new Pipeline(false);
@@ -1190,6 +1258,39 @@ class ApiPersonEdit extends Extension implements IApiInterface
         if (Student::useService()->updateStudentTransfer($tblPerson, $Meta)) {
             return new Success('Die Daten wurden erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
                 . ApiPersonReadOnly::pipelineLoadStudentTransferContent($PersonId);
+        } else {
+            return new Danger('Die Daten konnten nicht gespeichert werden');
+        }
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function editStudentProcessContent($PersonId = null)
+    {
+
+        return (new FrontendStudentProcess())->getEditStudentProcessContent($PersonId);
+    }
+
+    /**
+     * @param $PersonId
+     *
+     * @return bool|Danger|string
+     */
+    public function saveStudentProcessContent($PersonId)
+    {
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Person nicht gefunden', new Exclamation());
+        }
+
+        $Global = $this->getGlobal();
+        $Meta = $Global->POST['Meta'];
+
+        if (Student::useService()->updateStudentProcess($tblPerson, $Meta)) {
+            return new Success('Die Daten wurden erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                . ApiPersonReadOnly::pipelineLoadStudentProcessContent($PersonId);
         } else {
             return new Danger('Die Daten konnten nicht gespeichert werden');
         }

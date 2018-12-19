@@ -14,6 +14,7 @@ use SPHERE\Application\People\Person\Frontend\FrontendStudent;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentGeneral;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentIntegration;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentMedicalRecord;
+use SPHERE\Application\People\Person\Frontend\FrontendStudentProcess;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentSubject;
 use SPHERE\Application\People\Person\Frontend\FrontendStudentTransfer;
 use SPHERE\Application\People\Person\Frontend\FrontendTeacher;
@@ -55,6 +56,7 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadStudentContent');
         $Dispatcher->registerMethod('loadStudentBasicContent');
         $Dispatcher->registerMethod('loadStudentTransferContent');
+        $Dispatcher->registerMethod('loadStudentProcessContent');
         $Dispatcher->registerMethod('loadStudentMedicalRecordContent');
         $Dispatcher->registerMethod('loadStudentGeneralContent');
         $Dispatcher->registerMethod('loadStudentSubjectContent');
@@ -331,6 +333,27 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
+    public static function pipelineLoadStudentProcessContent($PersonId)
+    {
+        $pipeline = new Pipeline(false);
+
+        $emitter = new ServerEmitter(self::receiverBlock('', 'StudentProcessContent'), self::getEndpoint());
+        $emitter->setGetPayload(array(
+            self::API_TARGET => 'loadStudentProcessContent',
+        ));
+        $emitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $pipeline->appendEmitter($emitter);
+
+        return $pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
     public static function pipelineLoadStudentMedicalRecordContent($PersonId)
     {
         $pipeline = new Pipeline(false);
@@ -520,6 +543,17 @@ class ApiPersonReadOnly extends Extension implements IApiInterface
     {
 
         return FrontendStudentTransfer::getStudentTransferContent($PersonId);
+    }
+
+    /**
+     * @param null $PersonId
+     *
+     * @return string
+     */
+    public function loadStudentProcessContent($PersonId = null)
+    {
+
+        return FrontendStudentProcess::getStudentProcessContent($PersonId);
     }
 
     /**

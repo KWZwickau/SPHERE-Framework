@@ -119,6 +119,10 @@ class FrontendStudent extends FrontendReadOnly
             );
 
             $listingContent[] = ApiPersonReadOnly::receiverBlock(
+                FrontendStudentProcess::getStudentProcessContent($PersonId), 'StudentProcessContent'
+            );
+
+            $listingContent[] = ApiPersonReadOnly::receiverBlock(
                 FrontendStudentMedicalRecord::getStudentMedicalRecordContent($PersonId), 'StudentMedicalRecordContent'
             );
 
