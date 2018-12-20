@@ -28,6 +28,7 @@ class ViewProspectCustody extends AbstractView
     const TBL_PERSON_TITLE_S1 = 'TblPerson_Title_S1';
     const TBL_PERSON_FIRST_NAME_S1 = 'TblPerson_FirstName_S1';
     const TBL_PERSON_SECOND_NAME_S1 = 'TblPerson_SecondName_S1';
+    const TBL_PERSON_CALL_NAME_S1 = 'TblPerson_CallName_S1';
     const TBL_PERSON_LAST_NAME_S1 = 'TblPerson_LastName_S1';
     const TBL_PERSON_BIRTH_NAME_S1 = 'TblPerson_BirthName_S1';
     const TBL_PERSON_BIRTH_DAY_S1 = 'TblPerson_Birthday_S1';
@@ -49,6 +50,7 @@ class ViewProspectCustody extends AbstractView
     const TBL_PERSON_TITLE_S2 = 'TblPerson_Title_S2';
     const TBL_PERSON_FIRST_NAME_S2 = 'TblPerson_FirstName_S2';
     const TBL_PERSON_SECOND_NAME_S2 = 'TblPerson_SecondName_S2';
+    const TBL_PERSON_CALL_NAME_S2 = 'TblPerson_CallName_S2';
     const TBL_PERSON_LAST_NAME_S2 = 'TblPerson_LastName_S2';
     const TBL_PERSON_BIRTH_NAME_S2 = 'TblPerson_BirthName_S2';
     const TBL_PERSON_BIRTH_DAY_S2 = 'TblPerson_Birthday_S2';
@@ -70,6 +72,7 @@ class ViewProspectCustody extends AbstractView
     const TBL_PERSON_TITLE_S3 = 'TblPerson_Title_S3';
     const TBL_PERSON_FIRST_NAME_S3 = 'TblPerson_FirstName_S3';
     const TBL_PERSON_SECOND_NAME_S3 = 'TblPerson_SecondName_S3';
+    const TBL_PERSON_CALL_NAME_S3 = 'TblPerson_CallName_S3';
     const TBL_PERSON_LAST_NAME_S3 = 'TblPerson_LastName_S3';
     const TBL_PERSON_BIRTH_NAME_S3 = 'TblPerson_BirthName_S3';
     const TBL_PERSON_BIRTH_DAY_S3 = 'TblPerson_Birthday_S3';
@@ -115,6 +118,10 @@ class ViewProspectCustody extends AbstractView
      * @Column(type="string")
      */
     protected $TblPerson_SecondName_S1;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPerson_CallName_S1;
     /**
      * @Column(type="string")
      */
@@ -195,6 +202,10 @@ class ViewProspectCustody extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblPerson_CallName_S2;
+    /**
+     * @Column(type="string")
+     */
     protected $TblPerson_LastName_S2;
     /**
      * @Column(type="string")
@@ -272,6 +283,10 @@ class ViewProspectCustody extends AbstractView
     /**
      * @Column(type="string")
      */
+    protected $TblPerson_CallName_S3;
+    /**
+     * @Column(type="string")
+     */
     protected $TblPerson_LastName_S3;
     /**
      * @Column(type="string")
@@ -343,6 +358,7 @@ class ViewProspectCustody extends AbstractView
         $this->setNameDefinition(self::TBL_PERSON_TITLE_S1, 'S1: Titel');
         $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME_S1, 'S1: Vorname');
         $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME_S1, 'S1: Zweiter Vorname');
+        $this->setNameDefinition(self::TBL_PERSON_CALL_NAME_S1, 'S1: Rufname');
         $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_S1, 'S1: Nachname');
         $this->setNameDefinition(self::TBL_PERSON_BIRTH_NAME_S1, 'S1: Geburtsname');
         $this->setNameDefinition(self::TBL_PERSON_BIRTH_DAY_S1, 'S1: Geburtstag');
@@ -363,6 +379,7 @@ class ViewProspectCustody extends AbstractView
         $this->setNameDefinition(self::TBL_PERSON_TITLE_S2, 'S2: Titel');
         $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME_S2, 'S2: Vorname');
         $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME_S2, 'S2: Zweiter Vorname');
+        $this->setNameDefinition(self::TBL_PERSON_CALL_NAME_S2, 'S2: Rufname');
         $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_S2, 'S2: Nachname');
         $this->setNameDefinition(self::TBL_PERSON_BIRTH_NAME_S2, 'S2: Geburtsname');
         $this->setNameDefinition(self::TBL_PERSON_BIRTH_DAY_S2, 'S2: Geburtstag');
@@ -383,6 +400,7 @@ class ViewProspectCustody extends AbstractView
         $this->setNameDefinition(self::TBL_PERSON_TITLE_S3, 'S3: Titel');
         $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME_S3, 'S3: Vorname');
         $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME_S3, 'S3: Zweiter Vorname');
+        $this->setNameDefinition(self::TBL_PERSON_CALL_NAME_S3, 'S3: Rufname');
         $this->setNameDefinition(self::TBL_PERSON_LAST_NAME_S3, 'S3: Nachname');
         $this->setNameDefinition(self::TBL_PERSON_BIRTH_NAME_S3, 'S3: Geburtsname');
         $this->setNameDefinition(self::TBL_PERSON_BIRTH_DAY_S3, 'S3: Geburtstag');
@@ -406,6 +424,7 @@ class ViewProspectCustody extends AbstractView
             self::TBL_PERSON_TITLE_S1,
             self::TBL_PERSON_FIRST_NAME_S1,
             self::TBL_PERSON_SECOND_NAME_S1,
+            self::TBL_PERSON_CALL_NAME_S1,
             self::TBL_PERSON_LAST_NAME_S1,
             self::TBL_PERSON_BIRTH_NAME_S1,
             self::TBL_PERSON_BIRTH_DAY_S1,
@@ -427,6 +446,7 @@ class ViewProspectCustody extends AbstractView
             self::TBL_PERSON_TITLE_S2,
             self::TBL_PERSON_FIRST_NAME_S2,
             self::TBL_PERSON_SECOND_NAME_S2,
+            self::TBL_PERSON_CALL_NAME_S2,
             self::TBL_PERSON_LAST_NAME_S2,
             self::TBL_PERSON_BIRTH_NAME_S2,
             self::TBL_PERSON_BIRTH_DAY_S2,
@@ -448,6 +468,7 @@ class ViewProspectCustody extends AbstractView
             self::TBL_PERSON_TITLE_S3,
             self::TBL_PERSON_FIRST_NAME_S3,
             self::TBL_PERSON_SECOND_NAME_S3,
+            self::TBL_PERSON_CALL_NAME_S3,
             self::TBL_PERSON_LAST_NAME_S3,
             self::TBL_PERSON_BIRTH_NAME_S3,
             self::TBL_PERSON_BIRTH_DAY_S3,
@@ -470,6 +491,7 @@ class ViewProspectCustody extends AbstractView
         $this->setDisableDefinition(self::TBL_PERSON_TITLE_S1);
         $this->setDisableDefinition(self::TBL_PERSON_FIRST_NAME_S1);
         $this->setDisableDefinition(self::TBL_PERSON_SECOND_NAME_S1);
+        $this->setDisableDefinition(self::TBL_PERSON_CALL_NAME_S1);
         $this->setDisableDefinition(self::TBL_PERSON_LAST_NAME_S1);
         $this->setDisableDefinition(self::TBL_PERSON_BIRTH_NAME_S1);
         $this->setDisableDefinition(self::TBL_PERSON_BIRTH_DAY_S1);
@@ -489,6 +511,7 @@ class ViewProspectCustody extends AbstractView
         $this->setDisableDefinition(self::TBL_PERSON_TITLE_S2);
         $this->setDisableDefinition(self::TBL_PERSON_FIRST_NAME_S2);
         $this->setDisableDefinition(self::TBL_PERSON_SECOND_NAME_S2);
+        $this->setDisableDefinition(self::TBL_PERSON_CALL_NAME_S2);
         $this->setDisableDefinition(self::TBL_PERSON_LAST_NAME_S2);
         $this->setDisableDefinition(self::TBL_PERSON_BIRTH_NAME_S2);
         $this->setDisableDefinition(self::TBL_PERSON_BIRTH_DAY_S2);
@@ -508,6 +531,7 @@ class ViewProspectCustody extends AbstractView
         $this->setDisableDefinition(self::TBL_PERSON_TITLE_S3);
         $this->setDisableDefinition(self::TBL_PERSON_FIRST_NAME_S3);
         $this->setDisableDefinition(self::TBL_PERSON_SECOND_NAME_S3);
+        $this->setDisableDefinition(self::TBL_PERSON_CALL_NAME_S3);
         $this->setDisableDefinition(self::TBL_PERSON_LAST_NAME_S3);
         $this->setDisableDefinition(self::TBL_PERSON_BIRTH_NAME_S3);
         $this->setDisableDefinition(self::TBL_PERSON_BIRTH_DAY_S3);

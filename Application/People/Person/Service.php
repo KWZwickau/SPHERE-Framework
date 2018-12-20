@@ -141,7 +141,7 @@ class Service extends AbstractService
 
             if (( $tblPerson = (new Data($this->getBinding()))->createPerson(
                 $this->getSalutationById($Person['Salutation']), $Person['Title'], $Person['FirstName'],
-                $Person['SecondName'], $Person['LastName'], $Person['BirthName']) )
+                $Person['SecondName'], $Person['CallName'], $Person['LastName'], $Person['BirthName']) )
             ) {
                 // Add to Group
                 if (isset( $Person['Group'] )) {
@@ -187,14 +187,15 @@ class Service extends AbstractService
      * @param        $GroupList
      * @param string $BirthName
      * @param string $ImportId
+     * @param string $CallName
      *
      * @return bool|TblPerson
      */
-    public function insertPerson($Salutation, $Title, $FirstName, $SecondName, $LastName, $GroupList, $BirthName = '', $ImportId = '')
+    public function insertPerson($Salutation, $Title, $FirstName, $SecondName, $LastName, $GroupList, $BirthName = '', $ImportId = '', $CallName = '')
     {
 
         if (( $tblPerson = (new Data($this->getBinding()))->createPerson(
-            $Salutation, $Title, $FirstName, $SecondName, $LastName, $BirthName, $ImportId) )
+            $Salutation, $Title, $FirstName, $SecondName, $CallName, $LastName, $BirthName, $ImportId) )
         ) {
             // Add to Group
             if (!empty( $GroupList )) {
@@ -312,7 +313,7 @@ class Service extends AbstractService
         if (!$Error) {
 
             if ((new Data($this->getBinding()))->updatePerson($tblPerson, $Person['Salutation'], $Person['Title'],
-                $Person['FirstName'], $Person['SecondName'], $Person['LastName'], $Person['BirthName'])
+                $Person['FirstName'], $Person['SecondName'], $Person['CallName'], $Person['LastName'], $Person['BirthName'])
             ) {
                 // Change Groups
                 if (isset( $Person['Group'] )) {

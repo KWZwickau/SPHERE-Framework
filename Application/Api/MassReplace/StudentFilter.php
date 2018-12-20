@@ -345,6 +345,11 @@ class StudentFilter extends Extension
                                 ) {
                                     $DataPerson['Edit'] = $tblCompany->getName();
                                 }
+                                if (($tblStateCompany = $tblStudentTransfer->getServiceTblStateCompany()) && $Label == 'Staatliche Stammschule'
+                                    && $tblStudentTransferType->getIdentifier() == 'ARRIVE'
+                                ) {
+                                    $DataPerson['Edit'] = $tblStateCompany->getName();
+                                }
                                 if (($tblType = $tblStudentTransfer->getServiceTblType()) && $Label == 'Letzte Schulart'
                                     && $tblStudentTransferType->getIdentifier() == 'ARRIVE'
                                 ) {

@@ -607,6 +607,7 @@ class Service extends Support
                 $TransferTypeEnrollment
             );
             $tblCompany = Company::useService()->getCompanyById($Meta['Transfer'][$TransferTypeEnrollment->getId()]['School']);
+            $tblStateCompany = false;
             $tblType = Type::useService()->getTypeById($Meta['Transfer'][$TransferTypeEnrollment->getId()]['Type']);
             $tblCourse = Course::useService()->getCourseById($Meta['Transfer'][$TransferTypeEnrollment->getId()]['Course']);
             $tblStudentSchoolEnrollmentType = $this->getStudentSchoolEnrollmentTypeById(
@@ -618,6 +619,7 @@ class Service extends Support
                     $tblStudent,
                     $TransferTypeEnrollment,
                     $tblCompany ? $tblCompany : null,
+                    $tblStateCompany ? $tblStateCompany : null,
                     $tblType ? $tblType : null,
                     $tblCourse ? $tblCourse : null,
                     $Meta['Transfer'][$TransferTypeEnrollment->getId()]['Date'],
@@ -629,6 +631,7 @@ class Service extends Support
                     $tblStudent,
                     $TransferTypeEnrollment,
                     $tblCompany ? $tblCompany : null,
+                    $tblStateCompany ? $tblStateCompany : null,
                     $tblType ? $tblType : null,
                     $tblCourse ? $tblCourse : null,
                     $Meta['Transfer'][$TransferTypeEnrollment->getId()]['Date'],
@@ -643,6 +646,11 @@ class Service extends Support
                 $TransferTypeArrive
             );
             $tblCompany = Company::useService()->getCompanyById($Meta['Transfer'][$TransferTypeArrive->getId()]['School']);
+            if (isset($Meta['Transfer'][$TransferTypeArrive->getId()]['StateSchool'])) {
+                $tblStateCompany = Company::useService()->getCompanyById($Meta['Transfer'][$TransferTypeArrive->getId()]['StateSchool']);
+            } else {
+                $tblStateCompany = false;
+            }
             $tblType = Type::useService()->getTypeById($Meta['Transfer'][$TransferTypeArrive->getId()]['Type']);
             $tblCourse = Course::useService()->getCourseById($Meta['Transfer'][$TransferTypeArrive->getId()]['Course']);
             if ($tblStudentTransferByTypeArrive) {
@@ -651,6 +659,7 @@ class Service extends Support
                     $tblStudent,
                     $TransferTypeArrive,
                     $tblCompany ? $tblCompany : null,
+                    $tblStateCompany ? $tblStateCompany : null,
                     $tblType ? $tblType : null,
                     $tblCourse ? $tblCourse : null,
                     $Meta['Transfer'][$TransferTypeArrive->getId()]['Date'],
@@ -661,6 +670,7 @@ class Service extends Support
                     $tblStudent,
                     $TransferTypeArrive,
                     $tblCompany ? $tblCompany : null,
+                    $tblStateCompany ? $tblStateCompany : null,
                     $tblType ? $tblType : null,
                     $tblCourse ? $tblCourse : null,
                     $Meta['Transfer'][$TransferTypeArrive->getId()]['Date'],
@@ -674,6 +684,7 @@ class Service extends Support
                 $TransferTypeLeave
             );
             $tblCompany = Company::useService()->getCompanyById($Meta['Transfer'][$TransferTypeLeave->getId()]['School']);
+            $tblStateCompany = false;
             $tblType = Type::useService()->getTypeById($Meta['Transfer'][$TransferTypeLeave->getId()]['Type']);
             $tblCourse = Course::useService()->getCourseById($Meta['Transfer'][$TransferTypeLeave->getId()]['Course']);
             if ($tblStudentTransferByTypeLeave) {
@@ -682,6 +693,7 @@ class Service extends Support
                     $tblStudent,
                     $TransferTypeLeave,
                     $tblCompany ? $tblCompany : null,
+                    $tblStateCompany ? $tblStateCompany : null,
                     $tblType ? $tblType : null,
                     $tblCourse ? $tblCourse : null,
                     $Meta['Transfer'][$TransferTypeLeave->getId()]['Date'],
@@ -692,6 +704,7 @@ class Service extends Support
                     $tblStudent,
                     $TransferTypeLeave,
                     $tblCompany ? $tblCompany : null,
+                    $tblStateCompany ? $tblStateCompany : null,
                     $tblType ? $tblType : null,
                     $tblCourse ? $tblCourse : null,
                     $Meta['Transfer'][$TransferTypeLeave->getId()]['Date'],
@@ -705,6 +718,7 @@ class Service extends Support
                 $TransferTypeProcess
             );
             $tblCompany = Company::useService()->getCompanyById($Meta['Transfer'][$TransferTypeProcess->getId()]['School']);
+            $tblStateCompany = false;
             // removed "Aktuelle Schulart"
 //            $tblType = Type::useService()->getTypeById($Meta['Transfer'][$TransferTypeProcess->getId()]['Type']);
             $tblType = false;
@@ -715,6 +729,7 @@ class Service extends Support
                     $tblStudent,
                     $TransferTypeProcess,
                     $tblCompany ? $tblCompany : null,
+                    $tblStateCompany ? $tblStateCompany : null,
                     $tblType ? $tblType : null,
                     $tblCourse ? $tblCourse : null,
                     '',
@@ -725,6 +740,7 @@ class Service extends Support
                     $tblStudent,
                     $TransferTypeProcess,
                     $tblCompany ? $tblCompany : null,
+                    $tblStateCompany ? $tblStateCompany : null,
                     $tblType ? $tblType : null,
                     $tblCourse ? $tblCourse : null,
                     '',

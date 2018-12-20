@@ -45,6 +45,10 @@ class TblPerson extends Element
     /**
      * @Column(type="string")
      */
+    protected $CallName;
+    /**
+     * @Column(type="string")
+     */
     protected $LastName;
     /**
      * @Column(type="string")
@@ -299,5 +303,21 @@ class TblPerson extends Element
         }
 
         return false;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCallName()
+    {
+        return $this->CallName;
+    }
+
+    /**
+     * @param string $CallName
+     */
+    public function setCallName($CallName)
+    {
+        $this->CallName = $CallName;
     }
 }

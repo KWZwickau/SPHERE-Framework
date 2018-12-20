@@ -932,6 +932,11 @@ class Frontend extends Extension implements IFrontendInterface
                             ? $tblStudentTransferArrive->getServiceTblCompany()->getId()
                             : 0
                         );
+                        $Global->POST['Meta']['Transfer'][$TransferTypeArrive->getId()]['StateSchool'] = (
+                        $tblStudentTransferArrive->getServiceTblStateCompany()
+                            ? $tblStudentTransferArrive->getServiceTblStateCompany()->getId()
+                            : 0
+                        );
                         $Global->POST['Meta']['Transfer'][$TransferTypeArrive->getId()]['Type'] = (
                         $tblStudentTransferArrive->getServiceTblType()
                             ? $tblStudentTransferArrive->getServiceTblType()->getId()
@@ -1312,7 +1317,27 @@ class Frontend extends Extension implements IFrontendInterface
                             )))->ajaxPipelineOnClick(
                             ApiMassReplace::pipelineOpen($Field, $NodeArrive)
                         )),
-
+                        ApiMassReplace::receiverField((
+                        $Field = (new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][StateSchool]',
+                            'Staatliche Stammschule', array(
+                                '{{ Name }} {{ ExtendedName }} {{ Description }}' => $useCompanyAllSchoolArrive
+                            ))
+                        )->configureLibrary(SelectBox::LIBRARY_SELECT2)))
+                        .ApiMassReplace::receiverModal($Field, $NodeArrive)
+                        .new PullRight((new Link('Massen-Änderung',
+                            ApiMassReplace::getEndpoint(), null, array(
+                                ApiMassReplace::SERVICE_CLASS                                   => MassReplaceTransfer::CLASS_MASS_REPLACE_TRANSFER,
+                                ApiMassReplace::SERVICE_METHOD                                  => MassReplaceTransfer::METHOD_REPLACE_ARRIVE_STATE_SCHOOL,
+                                ApiMassReplace::USE_FILTER                                      => StudentFilter::STUDENT_FILTER,
+                                'Id'                                                      => $tblPerson->getId(),
+                                'Year['.ViewYear::TBL_YEAR_ID.']'                               => $Year[ViewYear::TBL_YEAR_ID],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_ID.']'               => $Division[ViewDivisionStudent::TBL_LEVEL_ID],
+                                'Division['.ViewDivisionStudent::TBL_DIVISION_NAME.']'          => $Division[ViewDivisionStudent::TBL_DIVISION_NAME],
+                                'Division['.ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE.']' => $Division[ViewDivisionStudent::TBL_LEVEL_SERVICE_TBL_TYPE],
+                                'Node'                                                          => $NodeArrive,
+                            )))->ajaxPipelineOnClick(
+                            ApiMassReplace::pipelineOpen($Field, $NodeArrive)
+                        )),
                         ApiMassReplace::receiverField((
                         $Field = new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeArrive->getId().'][Type]',
                             'Letzte Schulart', array(

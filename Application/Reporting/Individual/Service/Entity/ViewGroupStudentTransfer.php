@@ -35,6 +35,7 @@ class ViewGroupStudentTransfer extends AbstractView
     const TBL_STUDENT_TRANSFER_ENROLLMENT_REMARK = 'TblStudentTransferEnrollment_Remark';
     // Schüler Aufnahme
     const TBL_COMPANY_ARRIVE_NAME = 'TblCompanyArrive_Name';
+    const TBL_STATE_COMPANY_ARRIVE_NAME = 'TblStateCompanyArrive_Name';
     const TBL_STUDENT_TRANSFER_ARRIVE_TYPE = 'TblStudentTransferArrive_Type';
     const TBL_STUDENT_TRANSFER_ARRIVE_COURSE = 'TblStudentTransferArrive_Course';
     const TBL_STUDENT_TRANSFER_ARRIVE_TRANSFER_DATE = 'TblStudentTransferArrive_TransferDate';
@@ -87,6 +88,10 @@ class ViewGroupStudentTransfer extends AbstractView
      * @Column(type="string")
      */
     protected $TblCompanyArrive_Name;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblStateCompanyArrive_Name;
     /**
      * @Column(type="string")
      */
@@ -156,6 +161,7 @@ class ViewGroupStudentTransfer extends AbstractView
         $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_PROCESS_REMARK, 'Einschulung: Bemerkungen');
 
         $this->setNameDefinition(self::TBL_COMPANY_ARRIVE_NAME, 'Aufnahme: Abgebende Schule / Kita');
+        $this->setNameDefinition(self::TBL_STATE_COMPANY_ARRIVE_NAME, 'Aufnahme: Staatliche Stammschule');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_ARRIVE_TYPE, 'Aufnahme: Letzte Schulart');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_ARRIVE_COURSE, 'Aufnahme: Letzter Bildungsgang');
         $this->setNameDefinition(self::TBL_STUDENT_TRANSFER_ARRIVE_TRANSFER_DATE, 'Aufnahme: Datum');
@@ -184,6 +190,7 @@ class ViewGroupStudentTransfer extends AbstractView
         $this->setGroupDefinition('Schüler – Aufnahme', array(
 
             self::TBL_COMPANY_ARRIVE_NAME,
+            self::TBL_STATE_COMPANY_ARRIVE_NAME,
             self::TBL_STUDENT_TRANSFER_ARRIVE_TYPE,
             self::TBL_STUDENT_TRANSFER_ARRIVE_COURSE,
             self::TBL_STUDENT_TRANSFER_ARRIVE_TRANSFER_DATE,

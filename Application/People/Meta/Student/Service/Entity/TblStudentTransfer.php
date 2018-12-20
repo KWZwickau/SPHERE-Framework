@@ -48,6 +48,10 @@ class TblStudentTransfer extends Element
     /**
      * @Column(type="bigint")
      */
+    protected $serviceTblStateCompany;
+    /**
+     * @Column(type="bigint")
+     */
     protected $serviceTblType;
     /**
      * @Column(type="bigint")
@@ -171,6 +175,28 @@ class TblStudentTransfer extends Element
     {
 
         $this->serviceTblCompany = ( null === $tblCompany ? null : $tblCompany->getId() );
+    }
+
+    /**
+     * @return bool|TblCompany
+     */
+    public function getServiceTblStateCompany()
+    {
+
+        if (null === $this->serviceTblStateCompany) {
+            return false;
+        } else {
+            return Company::useService()->getCompanyById($this->serviceTblStateCompany);
+        }
+    }
+
+    /**
+     * @param TblCompany|null $tblCompany
+     */
+    public function setServiceTblStateCompany(TblCompany $tblCompany = null)
+    {
+
+        $this->serviceTblStateCompany = ( null === $tblCompany ? null : $tblCompany->getId() );
     }
 
     /**

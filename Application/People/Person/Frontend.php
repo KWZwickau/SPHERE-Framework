@@ -148,6 +148,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Global->POST['Person']['Title'] = $tblPerson->getTitle();
                     $Global->POST['Person']['FirstName'] = $tblPerson->getFirstName();
                     $Global->POST['Person']['SecondName'] = $tblPerson->getSecondName();
+                    $Global->POST['Person']['CallName'] = $tblPerson->getCallName();
                     $Global->POST['Person']['LastName'] = $tblPerson->getLastName();
                     $Global->POST['Person']['BirthName'] = $tblPerson->getBirthName();
                     $tblGroupAll = Group::useService()->getGroupAllByPerson($tblPerson);
@@ -189,6 +190,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(new Panel('Vorname', array(
                                         $tblPerson->getFirstName(),
                                         $tblPerson->getSecondName(),
+                                        $tblPerson->getCallName(),
                                     ), Panel::PANEL_TYPE_INFO)
                                     ,3),
                                 new LayoutColumn(new Panel('Nachname', array(
@@ -472,15 +474,16 @@ class Frontend extends Extension implements IFrontendInterface
                         ), Panel::PANEL_TYPE_INFO), 2),
                     new FormColumn(
                         new Panel('Vorname', array(
-                            ( new TextField('Person[FirstName]', 'Rufname', 'Vorname') )->setRequired()
+                            ( new TextField('Person[FirstName]', 'Vorname', 'Vorname') )->setRequired()
                                 ->setTabIndex(2),
                             ( new TextField('Person[SecondName]', 'weitere Vornamen', 'Zweiter Vorname') )->setTabIndex(5),
+                            ( new TextField('Person[CallName]', 'Rufname', 'Rufname') )->setTabIndex(6),
                         ), Panel::PANEL_TYPE_INFO), 3),
                     new FormColumn(
                         new Panel('Nachname', array(
                             ( new TextField('Person[LastName]', 'Nachname', 'Nachname') )->setRequired()
                                 ->setTabIndex(3),
-                            ( new TextField('Person[BirthName]', 'Geburtsname', 'Geburtsname') )->setTabIndex(6),
+                            ( new TextField('Person[BirthName]', 'Geburtsname', 'Geburtsname') )->setTabIndex(7),
                         ), Panel::PANEL_TYPE_INFO), 3),
                     new FormColumn(
                         new Panel('Gruppen', $tblGroupList, Panel::PANEL_TYPE_INFO), 4),
@@ -548,18 +551,19 @@ class Frontend extends Extension implements IFrontendInterface
                         ), Panel::PANEL_TYPE_INFO), 2),
                     new FormColumn(
                         new Panel('Vorname', array(
-                            ( new TextField('Person[FirstName]', 'Rufname', 'Vorname') )->setRequired()
+                            ( new TextField('Person[FirstName]', 'Vorname', 'Vorname') )->setRequired()
                                 ->ajaxPipelineOnKeyUp($ValidatePersonPipeline)
                                 ->setAutoFocus()
                                 ->setTabIndex(2),
                             ( new TextField('Person[SecondName]', 'weitere Vornamen', 'Zweiter Vorname') )->setTabIndex(5),
+                            ( new TextField('Person[CallName]', 'Rufname', 'Rufname') )->setTabIndex(6),
                         ), Panel::PANEL_TYPE_INFO), 3),
                     new FormColumn(
                         new Panel('Nachname', array(
                             ( new TextField('Person[LastName]', 'Nachname', 'Nachname') )->setRequired()
                                 ->ajaxPipelineOnKeyUp($ValidatePersonPipeline)
                                 ->setTabIndex(3),
-                            ( new TextField('Person[BirthName]', 'Geburtsname', 'Geburtsname') )->setTabIndex(6),
+                            ( new TextField('Person[BirthName]', 'Geburtsname', 'Geburtsname') )->setTabIndex(7),
                         ), Panel::PANEL_TYPE_INFO), 3),
                     new FormColumn(
                         new Panel('Gruppen', $tblGroupList, Panel::PANEL_TYPE_INFO), 4),
