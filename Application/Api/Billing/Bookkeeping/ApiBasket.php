@@ -34,6 +34,7 @@ use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -291,9 +292,16 @@ class ApiBasket extends Extension implements IApiInterface
                         (new TextField('Basket[Name]', 'Name der Abrechnug', 'Name'))->setRequired()
                         , 6),
                     new FormColumn(
-                        (new TextField('Basket[Description]', 'Beschreibung', 'Beschreibung'))->setRequired()
+                        new TextField('Basket[Description]', 'Beschreibung', 'Beschreibung')
                         , 6),
                 )),
+                new FormRow(
+                    new FormColumn(
+                        new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                            new Bold('Beitragsarten:')
+                        ))))
+                    )
+                ),
                 new FormRow(
                     new FormColumn(
                         $CheckboxList
