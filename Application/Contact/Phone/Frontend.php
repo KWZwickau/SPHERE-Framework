@@ -5,6 +5,7 @@ use SPHERE\Application\Contact\Phone\Service\Entity\TblToCompany;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -21,6 +22,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Phone as PhoneIcon;
@@ -39,6 +41,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\PhoneLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -47,6 +50,7 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -542,6 +546,153 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return new Layout(new LayoutGroup($LayoutRowList));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param null $Group
+     *
+     * @return Layout
+     */
+    public function frontendLayoutPersonNew(TblPerson $tblPerson, $Group = null)
+    {
+
+        $phoneList = array();
+        $phoneEmergencyList = array();
+        if (($tblPhoneList = Phone::useService()->getPhoneAllByPerson($tblPerson))){
+            foreach ($tblPhoneList as $tblToPerson) {
+                if (($tblPhone = $tblToPerson->getTblPhone())) {
+                    if ($tblToPerson->getTblType()->getName() == 'Notfall') {
+                        $phoneEmergencyList[$tblPhone->getId()][$tblToPerson->getTblType()->getId()][$tblPerson->getId()] = $tblToPerson;
+                    } else {
+                        $phoneList[$tblPhone->getId()][$tblToPerson->getTblType()->getId()][$tblPerson->getId()] = $tblToPerson;
+                    }
+                }
+            }
+        }
+
+        if (($tblRelationshipAll = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson))) {
+            foreach ($tblRelationshipAll as $tblRelationship) {
+                if ($tblRelationship->getServiceTblPersonTo() && $tblRelationship->getServiceTblPersonFrom()) {
+                    if ($tblPerson->getId() != $tblRelationship->getServiceTblPersonFrom()->getId()) {
+                        $tblPersonRelationship = $tblRelationship->getServiceTblPersonFrom();
+                    } else {
+                        $tblPersonRelationship = $tblRelationship->getServiceTblPersonTo();
+                    }
+                    $tblRelationshipPhoneAll = Phone::useService()->getPhoneAllByPerson($tblPersonRelationship);
+                    if ($tblRelationshipPhoneAll) {
+                        foreach ($tblRelationshipPhoneAll as $tblToPerson) {
+                            if (($tblPhone = $tblToPerson->getTblPhone())) {
+                                if ($tblToPerson->getTblType()->getName() == 'Notfall') {
+                                    $phoneEmergencyList[$tblPhone->getId()][$tblToPerson->getTblType()->getId()][$tblPersonRelationship->getId()] = $tblToPerson;
+                                } else {
+                                    $phoneList[$tblPhone->getId()][$tblToPerson->getTblType()->getId()][$tblPersonRelationship->getId()] = $tblToPerson;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Notfall Kontakte zuerst anzeigen
+        $phoneList = $phoneEmergencyList + $phoneList;
+
+        if (empty($phoneList)) {
+            return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Warning('Keine Telefonnummern hinterlegt')))));
+        } else {
+            $LayoutRowList = array();
+            $LayoutRowCount = 0;
+            $LayoutRow = null;
+
+            foreach ($phoneList as $phoneId => $typeArray) {
+                if (($tblPhone = Phone::useService()->getPhoneById($phoneId))) {
+                    foreach ($typeArray as $typeId => $personArray) {
+                        if (($tblType = Phone::useService()->getTypeById($typeId))) {
+                            $content = array();
+                            if (isset($personArray[$tblPerson->getId()])) {
+                                /** @var TblToPerson $tblToPerson */
+                                $tblToPerson = $personArray[$tblPerson->getId()];
+                                $panelType = (preg_match('!Notfall!is',
+                                    $tblType->getName() . ' ' . $tblType->getDescription())
+                                    ? Panel::PANEL_TYPE_DANGER
+                                    : Panel::PANEL_TYPE_SUCCESS
+                                );
+                                $options =
+                                    new Link(
+                                        new Edit(),
+                                        '/People/Person/Phone/Edit',
+                                        null,
+                                        array('Id' => $tblToPerson->getId(), 'Group' => $Group),
+                                        'Bearbeiten'
+                                    )
+                                    . ' | '
+                                    . new Link(
+                                        new \SPHERE\Common\Frontend\Text\Repository\Warning(new Remove()),
+                                        '/People/Person/Phone/Destroy',
+                                        null,
+                                        array('Id' => $tblToPerson->getId(), 'Group' => $Group),
+                                        'Löschen'
+                                    );
+                            } else {
+                                $panelType = (preg_match('!Notfall!is',
+                                    $tblType->getName() . ' ' . $tblType->getDescription())
+                                    ? Panel::PANEL_TYPE_DANGER
+                                    : Panel::PANEL_TYPE_DEFAULT
+                                );
+                                $options = '';
+                            }
+
+                            $content[] = '&nbsp;';
+                            $content[] = new PhoneLink($tblPhone->getNumber(), $tblPhone->getNumber(), new PhoneIcon());
+                            /**
+                             * @var TblToPerson $tblToPerson
+                             */
+                            foreach ($personArray as $personId => $tblToPerson) {
+                                if (($tblPersonPhone = Person::useService()->getPersonById($personId))) {
+                                    $content[] = $tblPersonPhone->getFullName()
+                                        . ($tblPerson->getId() != $tblPersonPhone->getId()
+                                            ? new Link(
+                                                new PersonIcon(),
+                                                '/People/Person',
+                                                null,
+                                                array('Id' => $tblPersonPhone->getId()),
+                                                'Zur Person'
+                                            )
+                                            : '')
+                                        . (($remark = $tblToPerson->getRemark())  ? ' ' . new ToolTip(new Info(), $remark) : '');
+                                }
+                            }
+
+                            $panel = FrontendReadOnly::getContactPanel(
+                                (preg_match('!Fax!is',
+                                    $tblType->getName() . ' ' . $tblType->getDescription())
+                                    ? new PhoneFax()
+                                    : (preg_match('!Mobil!is',
+                                        $tblType->getName() . ' ' . $tblType->getDescription())
+                                        ? new PhoneMobil()
+                                        : new PhoneIcon()
+                                    )
+                                )
+                                . ' ' . $tblType->getName() . ' ' . $tblType->getDescription(),
+                                $content,
+                                $options,
+                                $panelType
+                            );
+
+                            if ($LayoutRowCount % 4 == 0) {
+                                $LayoutRow = new LayoutRow(array());
+                                $LayoutRowList[] = $LayoutRow;
+                            }
+                            $LayoutRow->addColumn(new LayoutColumn($panel, 3));
+                            $LayoutRowCount++;
+                        }
+                    }
+                }
+            }
+
+            return new Layout(new LayoutGroup($LayoutRowList));
+        }
     }
 
     /**

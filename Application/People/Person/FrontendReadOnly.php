@@ -136,6 +136,27 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 new TagList()
             );
 
+            $contactContent = TemplateReadOnly::getContent(
+                'Kontaktdaten',
+                Phone::useFrontend()->frontendLayoutPersonNew($tblPerson, $Group),
+                array(
+                    new Link(
+                        new Plus() . ' Telefonnummer hinzufügen',
+                        '/People/Person/Phone/Create',
+                        null,
+                        array('Id' => $tblPerson->getId(), 'Group' => $Group)
+                    ),
+                    new Link(
+                        new Plus() . ' E-Mail Adresse hinzufügen',
+                        '/People/Person/Mail/Create',
+                        null,
+                        array('Id' => $tblPerson->getId(), 'Group' => $Group)
+                    )
+                ),
+                'der Person' . new Bold(new Success($tblPerson->getFullName())),
+                new TagList()
+            );
+
             $stage->setContent(
                 ($validationMessage ? $validationMessage : '')
                 . $basicContent
@@ -148,6 +169,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 . $integrationContent
 
                 . $addressContent
+                . $contactContent
 //                . self::getLayoutContact($tblPerson, $Group)
             );
         // neue Person anlegen
