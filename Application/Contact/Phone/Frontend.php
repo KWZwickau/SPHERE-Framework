@@ -643,7 +643,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 $options = '';
                             }
 
-                            $content[] = '&nbsp;';
                             $content[] = new PhoneLink($tblPhone->getNumber(), $tblPhone->getNumber(), new PhoneIcon());
                             /**
                              * @var TblToPerson $tblToPerson

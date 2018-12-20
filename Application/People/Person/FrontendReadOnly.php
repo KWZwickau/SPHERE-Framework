@@ -138,7 +138,8 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
 
             $contactContent = TemplateReadOnly::getContent(
                 'Kontaktdaten',
-                Phone::useFrontend()->frontendLayoutPersonNew($tblPerson, $Group),
+                Phone::useFrontend()->frontendLayoutPersonNew($tblPerson, $Group)
+                . Mail::useFrontend()->frontendLayoutPersonNew($tblPerson, $Group),
                 array(
                     new Link(
                         new Plus() . ' Telefonnummer hinzufügen',
