@@ -692,7 +692,6 @@ class Frontend extends Extension implements IFrontendInterface
                         $sign = ' ' . new ChevronRight() . ' ';
                     }
 
-                    $content[] = '&nbsp;';
                     if (($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId())) {
                         $content[] = $tblPerson->getLastFirstName()
                             . $sign
@@ -711,7 +710,7 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                             . ' | '
                             . new \SPHERE\Common\Frontend\Link\Repository\Link(
-                                new Remove(),
+                                new \SPHERE\Common\Frontend\Text\Repository\Warning(new Remove()),
                                 '/People/Person/Relationship/Destroy',
                                 null,
                                 array('Id' => $tblToPerson->getId(), 'Group' => $Group),
@@ -738,26 +737,6 @@ class Frontend extends Extension implements IFrontendInterface
                             new PersonIcon() . ' ' . new Link() . ' ' . $tblToPerson->getTblType()->getName(),
                             $content,
                             $options,
-//                            ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
-//                                ? new \SPHERE\Common\Frontend\Link\Repository\Link(
-//                                    '', '/People/Person/Relationship/Edit', new Edit(),
-//                                    array('Id' => $tblToPerson->getId(), 'Group' => $Group),
-//                                    'Bearbeiten'
-//                                )
-//                                . new \SPHERE\Common\Frontend\Link\Repository\Link(
-//                                    '', '/People/Person/Relationship/Destroy', new Remove(),
-//                                    array('Id' => $tblToPerson->getId(), 'Group' => $Group), 'Löschen'
-//                                )
-//                                . new \SPHERE\Common\Frontend\Link\Repository\Link(
-//                                    new PersonIcon(), '/People/Person', null,
-//                                    array('Id' => $tblToPerson->getServiceTblPersonTo()->getId()), 'zur Person'
-//                                )
-//                                :
-//                                new \SPHERE\Common\Frontend\Link\Repository\Link(
-//                                    new PersonIcon(), '/People/Person', null,
-//                                    array('Id' => $tblToPerson->getServiceTblPersonFrom()->getId()), 'zur Person'
-//                                )
-//                            ),
                             $panelType
                         )
                         , 3);
@@ -851,6 +830,115 @@ class Frontend extends Extension implements IFrontendInterface
                                     array('Id' => $tblToCompany->getServiceTblPerson()->getId()), 'zur Person'
                                 )
                             )
+                        )
+                        , 3);
+                } else {
+                    $tblToCompany = false;
+                }
+            });
+            $tblRelationshipAll = array_filter($tblRelationshipAll);
+        } else {
+            $tblRelationshipAll = array(
+                new LayoutColumn(
+                    new Warning('Keine Institutionenbeziehungen hinterlegt')
+                )
+            );
+        }
+
+        $LayoutRowList = array();
+        $LayoutRowCount = 0;
+        $LayoutRow = null;
+        /**
+         * @var LayoutColumn $tblRelationship
+         */
+        foreach ($tblRelationshipAll as $tblRelationship) {
+            if ($LayoutRowCount % 4 == 0) {
+                $LayoutRow = new LayoutRow(array());
+                $LayoutRowList[] = $LayoutRow;
+            }
+            $LayoutRow->addColumn($tblRelationship);
+            $LayoutRowCount++;
+        }
+
+        return new Layout(new LayoutGroup($LayoutRowList));
+    }
+
+    /**
+     * @param Element $tblEntity
+     * @param null $Group
+     *
+     * @return Layout
+     */
+    public function frontendLayoutCompanyNew(Element $tblEntity, $Group = null)
+    {
+
+        if ($tblEntity instanceof TblPerson) {
+            $tblRelationshipAll = Relationship::useService()->getCompanyRelationshipAllByPerson($tblEntity);
+        } else {
+            if ($tblEntity instanceof TblCompany) {
+                $tblRelationshipAll = Relationship::useService()->getCompanyRelationshipAllByCompany($tblEntity);
+            } else {
+                $tblRelationshipAll = false;
+            }
+        }
+
+        if ($tblRelationshipAll !== false) {
+            /** @noinspection PhpUnusedParameterInspection */
+            array_walk($tblRelationshipAll, function (TblToCompany &$tblToCompany) use ($tblEntity, $Group) {
+
+                if ($tblToCompany->getServiceTblPerson() && $tblToCompany->getServiceTblCompany()) {
+                    if ($tblEntity instanceof TblPerson) {
+                        $content[] = $tblToCompany->getServiceTblPerson()->getFullName();
+                        $content[] =
+                            new \SPHERE\Common\Frontend\Link\Repository\Link(
+                                new Building(),
+                                '/Corporation/Company',
+                                null,
+                                array('Id' => $tblToCompany->getServiceTblCompany()->getId()),
+                                'zur Institution'
+                            )
+                            . $tblToCompany->getServiceTblCompany()->getName();
+                        $options =
+                            new \SPHERE\Common\Frontend\Link\Repository\Link(
+                                new Edit(),
+                                '/Corporation/Company/Relationship/Edit',
+                                null,
+                                array('Id' => $tblToCompany->getId(), 'Group' => $Group),
+                                'Bearbeiten'
+                            )
+                            . ' | '
+                            . new \SPHERE\Common\Frontend\Link\Repository\Link(
+                                new \SPHERE\Common\Frontend\Text\Repository\Warning(new Remove()),
+                                '/Corporation/Company/Relationship/Destroy',
+                                null,
+                                array('Id' => $tblToCompany->getId(), 'Group' => $Group),
+                                'Löschen'
+                            );
+                        $panelType = Panel::PANEL_TYPE_INFO;
+                    } else {
+                        $content[] =
+                            new \SPHERE\Common\Frontend\Link\Repository\Link(
+                                new PersonIcon(),
+                                '/People/Person',
+                                null,
+                                array('Id' => $tblToCompany->getServiceTblPerson()->getId()), 'zur Person'
+                            )
+                            . $tblToCompany->getServiceTblPerson()->getFullName();
+                        $content[] = $tblToCompany->getServiceTblCompany()->getName();
+                        $options = '';
+                        $panelType = Panel::PANEL_TYPE_DEFAULT;
+                    }
+
+                    if ($tblToCompany->getRemark()) {
+                        $content[] = new Muted(new Small($tblToCompany->getRemark()));
+                    }
+
+                    $tblToCompany = new LayoutColumn(
+                        FrontendReadOnly::getContactPanel(
+                            new Building() . ' ' . new Link() . ' ' . $tblToCompany->getTblType()->getName(),
+                            $content,
+                            $options,
+                            $panelType
                         )
                         , 3);
                 } else {

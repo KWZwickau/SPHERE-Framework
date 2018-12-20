@@ -160,7 +160,8 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
 
             $relationshipContent = TemplateReadOnly::getContent(
                 'Beziehungen',
-                Relationship::useFrontend()->frontendLayoutPersonNew($tblPerson, $Group),
+                Relationship::useFrontend()->frontendLayoutPersonNew($tblPerson, $Group)
+                . Relationship::useFrontend()->frontendLayoutCompanyNew($tblPerson, $Group),
                 array(
                     new Link(
                         new Plus() . ' Personenbeziehung hinzufügen',
