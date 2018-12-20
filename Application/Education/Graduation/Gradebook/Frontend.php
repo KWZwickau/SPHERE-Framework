@@ -467,12 +467,21 @@ class Frontend extends FrontendScoreRule
                 }
             }
 
-            $studentViewLinkButton = new Standard(
+            $studentViewLinkButton[] = new Standard(
                 'Schülerübersichten',
                 '/Education/Graduation/Gradebook/Gradebook/Teacher/Division',
                 null,
                 array(),
                 'Anzeige aller Noten eines Schülers über alle Fächer'
+            );
+            $studentViewLinkButton[] = new Standard(
+                'Mindestnoten-Auswertung',
+                '/Education/Graduation/Gradebook/MinimumGradeCount/Teacher/Reporting',
+                null,
+                array(
+                    'PersonId' => $tblPerson ? $tblPerson->getId() : 0
+                ),
+                'Auswertung über die Erfüllung der Mindesnotenanzahl'
             );
         } else {
             $studentViewLinkButton = false;
@@ -537,11 +546,11 @@ class Frontend extends FrontendScoreRule
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
-                        new LayoutColumn(array(
+                        new LayoutColumn(
                             $studentViewLinkButton
                                 ? $studentViewLinkButton
-                                : null,
-                        ))
+                                : null
+                        )
                     ))
                 )),
                 new LayoutGroup(array(
@@ -708,22 +717,25 @@ class Frontend extends FrontendScoreRule
             }
         }
 
-        $studentViewLinkButton = new Standard(
-            'Schülerübersichten',
-            '/Education/Graduation/Gradebook/Gradebook/Headmaster/Division',
-            null,
-            array(),
-            'Anzeige aller Noten eines Schülers über alle Fächer'
-        );
-
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            $studentViewLinkButton
-                                ? $studentViewLinkButton
-                                : null,
+                            new Standard(
+                                'Schülerübersichten',
+                                '/Education/Graduation/Gradebook/Gradebook/Headmaster/Division',
+                                null,
+                                array(),
+                                'Anzeige aller Noten eines Schülers über alle Fächer'
+                            ),
+                            new Standard(
+                                'Mindestnoten-Auswertung',
+                                '/Education/Graduation/Gradebook/MinimumGradeCount/Headmaster/Reporting',
+                                null,
+                                array(),
+                                'Auswertung über die Erfüllung der Mindesnotenanzahl'
+                            )
                         ))
                     ))
                 )),

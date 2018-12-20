@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Education\Graduation\Evaluation;
 
 use DateTime;
+use SPHERE\Application\Api\Education\Graduation\Evaluation\ApiEvaluation;
 use SPHERE\Application\Api\Education\Graduation\Gradebook\ApiGradebook;
 use SPHERE\Application\Api\People\Meta\Support\ApiSupportReadOnly;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
@@ -24,7 +25,6 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
@@ -51,6 +51,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
+use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
@@ -84,7 +85,6 @@ use SPHERE\Common\Frontend\Table\Structure\TableRow;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
-use SPHERE\Common\Frontend\Text\Repository\NotAvailable;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 use SPHERE\Common\Frontend\Text\Repository\Success;
@@ -161,6 +161,8 @@ class Frontend extends Extension implements IFrontendInterface
         $divisionSubjectTable = array();
         $divisionSubjectList = array();
 
+        $isDivisionTeacher = false;
+
         if ($tblPerson) {
             // Fachlehrer
             $tblSubjectTeacherAllByTeacher = Division::useService()->getSubjectTeacherAllByTeacher($tblPerson);
@@ -213,6 +215,10 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
                 }
+            }
+
+            if (($tblDivisionTeacherAllByTeacher = Division::useService()->getDivisionTeacherAllByTeacher($tblPerson))) {
+                $isDivisionTeacher = true;
             }
 
             // Klassenlehrer
@@ -309,6 +315,19 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage->setContent(
             new Layout(array(
+                // Klassenlehrer
+                $isDivisionTeacher
+                    ? new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(new Standard(
+                            'Planungsübersicht',
+                            '/Education/Graduation/Evaluation/Test/Teacher/HighlightedTestsOverview',
+                            null,
+                            array('PersonId' => $tblPerson ? $tblPerson->getId() : 0)
+                        ))
+                    ))
+                ))
+                    : null,
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         empty($buttonList)
@@ -471,6 +490,14 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage->setContent(
             new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(new Standard(
+                            'Planungsübersicht',
+                            '/Education/Graduation/Evaluation/Test/Headmaster/HighlightedTestsOverview'
+                        ))
+                    ))
+                )),
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         empty($buttonList)
@@ -1139,117 +1166,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $trans = array(
-            'Mon' => 'Mo',
-            'Tue' => 'Di',
-            'Wed' => 'Mi',
-            'Thu' => 'Do',
-            'Fri' => 'Fr',
-            'Sat' => 'Sa',
-            'Sun' => 'So',
-        );
-
-        $preview = array();
-        if (!empty($testArray)) {
-            $columnCount = 0;
-            $row = array();
-            foreach ($testArray as $calendarWeek => $testList) {
-                $panelData = array();
-                $date = new \DateTime();
-                if (!empty($testList)) {
-                    foreach ($testList as $item) {
-                        if ($item->getServiceTblSubject() && $item->getServiceTblDivision() && $item->getServiceTblGradeType()) {
-                            $tblDivisionTemp = $item->getServiceTblDivision();
-                            $tblSubject = $item->getServiceTblSubject();
-                            $tblSubjectGroup = $item->getServiceTblSubjectGroup();
-                            $TeacherAcronymList = array();
-                            $tblDivisionSubjectMain = false;
-                            if (!$tblSubjectGroup) {
-                                $tblSubjectGroup = null;
-                            } else {
-                                $tblDivisionSubjectMain = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivisionTemp,
-                                    $tblSubject, null);
-                            }
-                            $tblDivisionSubjectTeacher = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivisionTemp,
-                                $tblSubject, $tblSubjectGroup);
-                            if ($tblDivisionSubjectTeacher) {
-                                // Teacher Group (if exist) else Teacher Subject
-                                $tblPersonList = Division::useService()->getTeacherAllByDivisionSubject($tblDivisionSubjectTeacher);
-                                if ($tblPersonList) {
-                                    foreach ($tblPersonList as $tblPerson) {
-                                        $TeacherAcronym = new ToolTip(new Small(new NotAvailable())
-                                            , 'Lehrer '.$tblPerson->getLastFirstName().' besitzt kein Lehrerkürzel');
-                                        $tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson);
-                                        if ($tblTeacher) {
-                                            $TeacherAcronym = $tblTeacher->getAcronym();
-                                        }
-                                        $TeacherAcronymList[] = $TeacherAcronym;
-                                    }
-                                }
-                            }
-                            if ($tblDivisionSubjectMain) {
-                                // Teacher Subject (if Group exist)
-                                $tblPersonListMain = Division::useService()->getTeacherAllByDivisionSubject($tblDivisionSubjectMain);
-                                if ($tblPersonListMain) {
-                                    foreach ($tblPersonListMain as $tblPerson) {
-                                        $TeacherAcronym = new ToolTip(new Small(new NotAvailable())
-                                            , 'Lehrer '.$tblPerson->getLastFirstName().' besitzt kein Lehrerkürzel');
-                                        $tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson);
-                                        if ($tblTeacher) {
-                                            $TeacherAcronym = $tblTeacher->getAcronym();
-                                        }
-                                        $TeacherAcronymList[] = $TeacherAcronym;
-                                    }
-                                }
-                            }
-
-                            // create Teacher string
-                            if (!empty($TeacherAcronymList)) {
-                                // remove dublicates
-                                $TeacherAcronymList = array_unique($TeacherAcronymList);
-                                $TeacherAcronym = implode(', ', $TeacherAcronymList);
-                            } else {
-                                $TeacherAcronym = new ToolTip(new Small(new NotAvailable())
-                                    , 'Kein Lehrauftrag vorhanden');
-                            }
-
-                            $content =  $item->getServiceTblDivision()->getDisplayName() . ' '
-                                . $item->getServiceTblSubject()->getAcronym() . ' '
-                                . ($item->getServiceTblSubjectGroup()
-                                    ? '(' . $item->getServiceTblSubjectGroup()->getName() . ') ' : '')
-                                . $item->getServiceTblGradeType()->getCode() . ' '
-                                . $item->getDescription() . ' ('
-                                . strtr(date('D', strtotime($item->getDate())), $trans) . ' ' . date('d.m.y',
-                                    strtotime($item->getDate())).') - '.$TeacherAcronym;
-                            $panelData[] = $item->getServiceTblGradeType()->isHighlighted()
-                                ? new Bold($content) : $content;
-                            $date = new \DateTime($item->getDate());
-                        }
-                    }
-                }
-
-                $year = $date->format('Y');
-                $week = $date->format('W');
-                $monday = date('d.m.y', strtotime("$year-W{$week}"));
-                $friday = date('d.m.y', strtotime("$year-W{$week}-5"));;
-
-                $panel = new Panel(
-                    new Bold('KW: ' . $calendarWeek) . new Muted(' &nbsp;&nbsp;&nbsp;(' . $monday . ' - ' . $friday . ')'),
-                    $panelData,
-                    $calendarWeek == date('W') ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT
-                );
-                $columnCount++;
-                if ($columnCount > 4) {
-                    $preview[] = new LayoutRow($row);
-                    $row = array();
-                    $columnCount = 1;
-                }
-                $row[] = new LayoutColumn($panel, 3);
-            }
-            if (!empty($row)) {
-                $preview[] = new LayoutRow($row);
-            }
-        }
+        $preview = Evaluation::useService()->getLayoutRowsForTestPlanning($testArray);
 
         $Stage->setContent(
             new Layout(array(
@@ -4088,5 +4005,121 @@ class Frontend extends Extension implements IFrontendInterface
         $tableColumns['Comment'] = 'Vermerk Notenänderung';
 
         return $gradeType;
+    }
+
+    /**
+     * @param null $Data
+     * @param null $PersonId
+     *
+     * @return Stage
+     */
+    public function frontendDivisionTeacherHighlightedTestsOverview($Data = null, $PersonId = null)
+    {
+
+        return $this->setHighlightedTestsOverview($Data, true, $PersonId);
+    }
+
+
+    /**
+     * @param null $Data
+     *
+     * @return Stage
+     */
+    public function frontendHeadmasterHighlightedTestsOverview($Data = null)
+    {
+
+        return $this->setHighlightedTestsOverview($Data, false);
+    }
+
+    /**
+     * @param $Data
+     * @param bool $IsDivisionTeacher
+     * @param null $PersonId
+     *
+     * @return Stage
+     */
+    private function setHighlightedTestsOverview($Data, $IsDivisionTeacher, $PersonId = null)
+    {
+        $stage = new Stage('Leistungsüberprüfung', 'Planungsübersicht');
+        $stage->addButton(new Standard(
+            'Zurück',
+            $IsDivisionTeacher ? '/Education/Graduation/Evaluation/Test/Teacher' : '/Education/Graduation/Evaluation/Test/Headmaster',
+            new ChevronLeft()
+        ));
+
+        if ($Data == null && ($tblYearList = Term::useService()->getYearByNow())) {
+            $global = $this->getGlobal();
+
+            $tblYear = reset($tblYearList);
+            $global->POST['Data']['Year'] = $tblYear->getId();
+            $global->POST['Data']['GradeType'] = -SelectBoxItem::HIGHLIGHTED_IS_HIGHLIGHTED;
+            $global->POST['Data']['Option'] = 2;
+
+            $global->savePost();
+        }
+
+        $receiverContent = ApiEvaluation::receiverContent(
+            (new ApiEvaluation())->loadTestPlanning($Data, $IsDivisionTeacher, $PersonId)
+        );
+
+        $yearSelectBox = (new SelectBox('Data[Year]', 'Schuljahr',
+            array('DisplayName' => Term::useService()->getYearAll())))->setRequired();
+        $typeSelectBox = new SelectBox('Data[Type]', 'Schulart', array('Name' => Type::useService()->getTypeAll()));
+        $divisionTextField = new TextField('Data[DivisionName]', '', 'Klasse');
+
+        if (($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST'))) {
+            $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType);
+        } else {
+            $tblGradeTypeList = array();
+        }
+        $tblGradeTypeList[] = new SelectBoxItem(-SelectBoxItem::HIGHLIGHTED_IS_HIGHLIGHTED,
+            'Nur große Zensuren-Typen (Fett marktiert)');
+        $gradeTypeSelectBox = (new SelectBox('Data[GradeType]', 'Zensuren-Typ',
+            array('{{ Code }} - {{ Name }}' => $tblGradeTypeList)))
+            ->setRequired();
+
+        $optionList[] = new SelectBoxItem(1, 'komplettes Schuljahr');
+        $optionList[] = new SelectBoxItem(2, 'ab der aktuellen Woche');
+        $option = (new SelectBox('Data[Option]', 'Option', array('Name' => $optionList)))
+            ->setRequired();
+
+        $button = (new \SPHERE\Common\Frontend\Link\Repository\Primary('Filtern', '', new Filter()))
+            ->ajaxPipelineOnClick(ApiEvaluation::pipelineCreateTestPlanningContent($receiverContent, $Data, $IsDivisionTeacher, $PersonId));
+
+        $form = (new Form(new FormGroup(new FormRow(array(
+            new FormColumn(
+                new Panel(
+                    'Filter',
+                    new Layout (new LayoutGroup(new LayoutRow(array(
+                        new LayoutColumn(
+                            $yearSelectBox, 4
+                        ),
+                        new LayoutColumn(
+                            $typeSelectBox, 4
+                        ),
+                        new LayoutColumn(
+                            $divisionTextField, 4
+                        ),
+                        new LayoutColumn(
+                            $gradeTypeSelectBox, 4
+                        ),
+                        new LayoutColumn(
+                            $option, 4
+                        ),
+                        new LayoutColumn(
+                            $button
+                        ),
+                    )))),
+                    Panel::PANEL_TYPE_INFO
+                )
+            )
+        )))))->disableSubmitAction();
+
+        $stage->setContent(
+            $form
+            . $receiverContent
+        );
+
+        return $stage;
     }
 }

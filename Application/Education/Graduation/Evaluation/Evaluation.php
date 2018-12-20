@@ -78,6 +78,10 @@ class Evaluation implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Task\Teacher\Grades',
                 __NAMESPACE__.'\Frontend::frontendDivisionTeacherTaskGrades')
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Test\Teacher\HighlightedTestsOverview',
+                __NAMESPACE__.'\Frontend::frontendDivisionTeacherHighlightedTestsOverview')
+        );
 
         /*
          * Headmaster
@@ -101,6 +105,10 @@ class Evaluation implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Test\Headmaster\Grade\Edit',
                 __NAMESPACE__.'\Frontend::frontendHeadmasterEditTestGrade')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Test\Headmaster\HighlightedTestsOverview',
+                __NAMESPACE__.'\Frontend::frontendHeadmasterHighlightedTestsOverview')
         );
 
         Main::getDispatcher()->registerRoute(

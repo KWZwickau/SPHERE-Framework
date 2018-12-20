@@ -18,6 +18,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Meta\Teacher\Teacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Setting\Authorization\Account\Account;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -36,7 +37,11 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\NotAvailable;
+use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -126,6 +131,19 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getTestAllByTestTypeAndDivision($tblTestType, $tblDivision);
+    }
+
+    /**
+     * @param TblTestType $tblTestType
+     * @param TblGradeType $tblGradeType
+     * @param TblDivision $tblDivision
+     *
+     * @return bool|TblTest[]
+     */
+    public function getTestAllByTestTypeAndGradeTypeAndDivision(TblTestType $tblTestType, TblGradeType $tblGradeType, TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->getTestAllByTestTypeAndGradeTypeAndDivision($tblTestType, $tblGradeType, $tblDivision);
     }
 
     /**
@@ -1607,5 +1625,172 @@ class Service extends AbstractService
         }
 
         return empty($list) ? false : $list;
+    }
+
+    /**
+     * @param $testArray
+     *
+     * @return array
+     */
+    public function getLayoutRowsForTestPlanning($testArray)
+    {
+        $preview = array();
+        if (!empty($testArray)) {
+            $trans = array(
+                'Mon' => 'Mo',
+                'Tue' => 'Di',
+                'Wed' => 'Mi',
+                'Thu' => 'Do',
+                'Fri' => 'Fr',
+                'Sat' => 'Sa',
+                'Sun' => 'So',
+            );
+            $columnCount = 0;
+            $row = array();
+            foreach ($testArray as $calendarWeek => $testList) {
+                $panelData = array();
+                $date = new \DateTime();
+                if (!empty($testList)) {
+                    /** @var TblTest $tblTest */
+                    foreach ($testList as $tblTest) {
+                        if (($tblSubject = $tblTest->getServiceTblSubject())
+                            && ($tblDivisionTemp = $tblTest->getServiceTblDivision())
+                            && ($tblGradeType = $tblTest->getServiceTblGradeType())
+                        ) {
+                            $tblSubjectGroup = $tblTest->getServiceTblSubjectGroup();
+                            $TeacherAcronymList = array();
+                            $tblDivisionSubjectMain = false;
+                            if (!$tblSubjectGroup) {
+                                $tblSubjectGroup = null;
+                            } else {
+                                $tblDivisionSubjectMain = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivisionTemp,
+                                    $tblSubject, null);
+                            }
+                            $tblDivisionSubjectTeacher = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivisionTemp,
+                                $tblSubject, $tblSubjectGroup);
+                            if ($tblDivisionSubjectTeacher) {
+                                // Teacher Group (if exist) else Teacher Subject
+                                $tblPersonList = Division::useService()->getTeacherAllByDivisionSubject($tblDivisionSubjectTeacher);
+                                if ($tblPersonList) {
+                                    foreach ($tblPersonList as $tblPerson) {
+                                        $TeacherAcronym = new ToolTip(new Small(new NotAvailable())
+                                            ,
+                                            'Lehrer ' . $tblPerson->getLastFirstName() . ' besitzt kein Lehrerkürzel');
+                                        $tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson);
+                                        if ($tblTeacher) {
+                                            $TeacherAcronym = $tblTeacher->getAcronym();
+                                        }
+                                        $TeacherAcronymList[] = $TeacherAcronym;
+                                    }
+                                }
+                            }
+                            if ($tblDivisionSubjectMain) {
+                                // Teacher Subject (if Group exist)
+                                $tblPersonListMain = Division::useService()->getTeacherAllByDivisionSubject($tblDivisionSubjectMain);
+                                if ($tblPersonListMain) {
+                                    foreach ($tblPersonListMain as $tblPerson) {
+                                        $TeacherAcronym = new ToolTip(new Small(new NotAvailable())
+                                            ,
+                                            'Lehrer ' . $tblPerson->getLastFirstName() . ' besitzt kein Lehrerkürzel');
+                                        $tblTeacher = Teacher::useService()->getTeacherByPerson($tblPerson);
+                                        if ($tblTeacher) {
+                                            $TeacherAcronym = $tblTeacher->getAcronym();
+                                        }
+                                        $TeacherAcronymList[] = $TeacherAcronym;
+                                    }
+                                }
+                            }
+
+                            // create Teacher string
+                            if (!empty($TeacherAcronymList)) {
+                                // remove dublicates
+                                $TeacherAcronymList = array_unique($TeacherAcronymList);
+                                $TeacherAcronym = implode(', ', $TeacherAcronymList);
+                            } else {
+                                $TeacherAcronym = new ToolTip(new Small(new NotAvailable())
+                                    , 'Kein Lehrauftrag vorhanden');
+                            }
+
+                            $content = $tblDivisionTemp->getDisplayName() . ' '
+                                . $tblSubject->getAcronym() . ' '
+                                . ($tblSubjectGroup
+                                    ? '(' . $tblSubjectGroup->getName() . ') ' : '')
+                                . $tblGradeType->getCode() . ' '
+                                . $tblTest->getDescription() . ' ('
+                                . strtr(date('D', strtotime($tblTest->getDate())), $trans) . ' ' . date('d.m.y',
+                                    strtotime($tblTest->getDate())) . ') - ' . $TeacherAcronym;
+                            $panelData[] = $tblGradeType->isHighlighted()
+                                ? new Bold($content) : $content;
+                            $date = new \DateTime($tblTest->getDate());
+                        }
+                    }
+                }
+
+                $year = $date->format('Y');
+                $week = $date->format('W');
+                $monday = date('d.m.y', strtotime("$year-W{$week}"));
+                $friday = date('d.m.y', strtotime("$year-W{$week}-5"));;
+
+                $panel = new Panel(
+                    new Bold('KW: ' . $calendarWeek) . new Muted(' &nbsp;&nbsp;&nbsp;(' . $monday . ' - ' . $friday . ')'),
+                    $panelData,
+                    $calendarWeek == date('W') ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT
+                );
+                $columnCount++;
+                if ($columnCount > 4) {
+                    $preview[] = new LayoutRow($row);
+                    $row = array();
+                    $columnCount = 1;
+                }
+                $row[] = new LayoutColumn($panel, 3);
+            }
+            if (!empty($row)) {
+                $preview[] = new LayoutRow($row);
+            }
+        }
+
+        return $preview;
+    }
+
+    /**
+     * @param $tblDivisionList
+     * @param TblGradeType|null $tblGradeType
+     * @param bool $isHighlighted
+     *
+     * @return bool|TblTest[]
+     */
+    public function getTestListForPlanning($tblDivisionList, TblGradeType $tblGradeType = null, $isHighlighted = false)
+    {
+
+        $result = array();
+        $tblGradeTypeList = array();
+
+        if (($tblTestTypeTest = Evaluation::useService()->getTestTypeByIdentifier('TEST'))) {
+            if ($tblGradeType) {
+                $tblGradeTypeList[] = $tblGradeType;
+            } else {
+                if (($tblGradeTypeAll = Gradebook::useService()->getGradeTypeAllByTestType($tblTestTypeTest))) {
+                    foreach ($tblGradeTypeAll as $tblGradeType) {
+                        if ($tblGradeType->isHighlighted() == $isHighlighted) {
+                            $tblGradeTypeList[] = $tblGradeType;
+                        }
+                    }
+                }
+            }
+
+            foreach ($tblGradeTypeList as $item) {
+                foreach ($tblDivisionList as $tblDivision) {
+                    if (($tblTestList = $this->getTestAllByTestTypeAndGradeTypeAndDivision(
+                        $tblTestTypeTest,
+                        $item,
+                        $tblDivision
+                    ))) {
+                        $result = array_merge($result, $tblTestList);
+                    }
+                }
+            }
+        }
+
+        return empty($result) ? false : $result;
     }
 }
