@@ -154,6 +154,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
      * @param int $Trend
      * @param null $Date
      * @param TblGradeText $tblGradeText
+     * @param string $PublicComment
      *
      * @return TblGrade
      */
@@ -171,7 +172,8 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
         $Comment,
         $Trend = 0,
         $Date = null,
-        TblGradeText $tblGradeText = null
+        TblGradeText $tblGradeText = null,
+        $PublicComment = ''
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -198,6 +200,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
             $Entity->setTrend($Trend);
             $Entity->setDate($Date ? new \DateTime($Date) : null);
             $Entity->setTblGradeText($tblGradeText);
+            $Entity->setPublicComment($PublicComment);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -441,6 +444,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
      * @param TblGrade $tblGrade
      * @param $Grade
      * @param string $Comment
+     * @param string $PublicComment
      * @param int $Trend
      * @param null $Date
      * @param TblGradeText $tblGradeText
@@ -452,6 +456,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
         TblGrade $tblGrade,
         $Grade,
         $Comment = '',
+        $PublicComment = '',
         $Trend = 0,
         $Date = null,
         TblGradeText $tblGradeText = null,
@@ -466,6 +471,7 @@ class Data extends \SPHERE\Application\Education\Graduation\Gradebook\ScoreRule\
         if (null !== $Entity) {
             $Entity->setGrade($Grade);
             $Entity->setComment($Comment);
+            $Entity->setPublicComment($PublicComment);
             $Entity->setTrend($Trend);
             $Entity->setDate($Date ? new \DateTime($Date) : null);
             $Entity->setTblGradeText($tblGradeText);
