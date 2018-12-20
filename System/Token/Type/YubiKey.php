@@ -5,7 +5,6 @@ use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 use SPHERE\System\Debugger\Logger\ErrorLogger;
 use SPHERE\System\Debugger\Logger\QueryLogger;
-use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Proxy\Proxy;
 use SPHERE\System\Proxy\Type\Http;
 use SPHERE\System\Token\ITypeInterface;
@@ -85,7 +84,8 @@ class YubiKey implements ITypeInterface
         foreach ((array)$this->YubiApiEndpoint as $YubiApiEndpoint) {
 
             if (( $YubiApiAddress = $this->getHostIpAddress($YubiApiEndpoint) )) {
-                $QueryList[] = 'http://'.$YubiApiAddress.$this->YubiApiLocation."?".$Query;
+//                $QueryList[] = 'http://'.$YubiApiAddress.$this->YubiApiLocation."?".$Query;
+                $QueryList[] = 'https://'.$YubiApiEndpoint.$this->YubiApiLocation."?".$Query;
             }
         }
 
@@ -231,7 +231,7 @@ class YubiKey implements ITypeInterface
         $ErrorMessage = null;
 
         try {
-            $Handler = fsockopen($Host, 80, $ErrorNumber, $ErrorMessage, 10);
+            $Handler = fsockopen($Host, 443, $ErrorNumber, $ErrorMessage, 10);
         } catch (\Exception $Exception) {
             $Handler = false;
         }
@@ -263,9 +263,11 @@ class YubiKey implements ITypeInterface
             $CurlHandleList[$Identifier] = curl_init($UrlRequest);
             curl_setopt($CurlHandleList[$Identifier], CURLOPT_USERAGENT, "YubiKey");
             curl_setopt($CurlHandleList[$Identifier], CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($CurlHandleList[$Identifier], CURLOPT_FOLLOWLOCATION,1);
             curl_setopt($CurlHandleList[$Identifier], CURLOPT_VERBOSE, true);
             curl_setopt($CurlHandleList[$Identifier], CURLOPT_HEADER, false);
             curl_setopt($CurlHandleList[$Identifier], CURLOPT_FAILONERROR, true);
+            curl_setopt($CurlHandleList[$Identifier], CURLOPT_SSL_VERIFYPEER, false);
             if (!empty( $CurlOptionList )) {
                 curl_setopt_array($CurlHandleList[$Identifier], $CurlOptionList);
             }
@@ -277,6 +279,7 @@ class YubiKey implements ITypeInterface
         $IsRunning = null;
         do {
             curl_multi_exec($CurlHandler, $IsRunning);
+            curl_multi_select($CurlHandler);
         } while ($IsRunning > 0);
         /**
          * Collect
