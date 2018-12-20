@@ -132,7 +132,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                         array('Id' => $tblPerson->getId(), 'Group' => $Group)
                     )
                 ),
-                'der Person' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
                 new TagList()
             );
 
@@ -154,7 +154,28 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                         array('Id' => $tblPerson->getId(), 'Group' => $Group)
                     )
                 ),
-                'der Person' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
+                new TagList()
+            );
+
+            $relationshipContent = TemplateReadOnly::getContent(
+                'Beziehungen',
+                Relationship::useFrontend()->frontendLayoutPersonNew($tblPerson, $Group),
+                array(
+                    new Link(
+                        new Plus() . ' Personenbeziehung hinzufügen',
+                        '/People/Person/Relationship/Create',
+                        null,
+                        array('Id' => $tblPerson->getId(), 'Group' => $Group)
+                    ),
+                    new Link(
+                        new Plus() . ' Institutionenbeziehung hinzufügen',
+                        '/Corporation/Company/Relationship/Create',
+                        null,
+                        array('Id' => $tblPerson->getId(), 'Group' => $Group)
+                    )
+                ),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())) . ' zu Personen und Institutionen',
                 new TagList()
             );
 
@@ -171,6 +192,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
 
                 . $addressContent
                 . $contactContent
+                . $relationshipContent
 //                . self::getLayoutContact($tblPerson, $Group)
             );
         // neue Person anlegen

@@ -4,6 +4,7 @@ namespace SPHERE\Application\People\Relationship;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToCompany;
@@ -636,6 +637,128 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
 
                             )
+                        )
+                        , 3);
+                } else {
+                    $tblToPerson = false;
+                }
+            });
+            $tblRelationshipAll = array_filter($tblRelationshipAll);
+        } else {
+            $tblRelationshipAll = array(
+                new LayoutColumn(
+                    new Warning('Keine Personenbeziehungen hinterlegt')
+                )
+            );
+        }
+
+        $LayoutRowList = array();
+        $LayoutRowCount = 0;
+        $LayoutRow = null;
+        /**
+         * @var LayoutColumn $tblRelationship
+         */
+        foreach ($tblRelationshipAll as $tblRelationship) {
+            if ($LayoutRowCount % 4 == 0) {
+                $LayoutRow = new LayoutRow(array());
+                $LayoutRowList[] = $LayoutRow;
+            }
+            $LayoutRow->addColumn($tblRelationship);
+            $LayoutRowCount++;
+        }
+
+        return new Layout(new LayoutGroup($LayoutRowList));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param null $Group
+     *
+     * @return Layout
+     */
+    public function frontendLayoutPersonNew(TblPerson $tblPerson, $Group = null)
+    {
+
+        $tblRelationshipAll = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
+
+        if ($tblRelationshipAll !== false) {
+            /** @noinspection PhpUnusedParameterInspection */
+            array_walk($tblRelationshipAll, function (TblToPerson &$tblToPerson) use ($tblPerson, $Group) {
+
+                if ($tblToPerson->getServiceTblPersonFrom() && $tblToPerson->getServiceTblPersonTo()) {
+                    if ($tblToPerson->getTblType()->isBidirectional()) {
+                        $sign = ' ' . new ChevronLeft() . new ChevronRight() . ' ';
+                    } else {
+                        $sign = ' ' . new ChevronRight() . ' ';
+                    }
+
+                    $content[] = '&nbsp;';
+                    if (($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId())) {
+                        $content[] = $tblPerson->getLastFirstName()
+                            . $sign
+                            . new \SPHERE\Common\Frontend\Link\Repository\Link(
+                                new PersonIcon(), '/People/Person', null,
+                                array('Id' => $tblToPerson->getServiceTblPersonTo()->getId()), 'zur Person'
+                            )
+                            . $tblToPerson->getServiceTblPersonTo()->getLastFirstName();
+                        $panelType = Panel::PANEL_TYPE_SUCCESS;
+                        $options = new \SPHERE\Common\Frontend\Link\Repository\Link(
+                                new Edit(),
+                                '/People/Person/Relationship/Edit',
+                                null,
+                                array('Id' => $tblToPerson->getId(), 'Group' => $Group),
+                                'Bearbeiten'
+                            )
+                            . ' | '
+                            . new \SPHERE\Common\Frontend\Link\Repository\Link(
+                                new Remove(),
+                                '/People/Person/Relationship/Destroy',
+                                null,
+                                array('Id' => $tblToPerson->getId(), 'Group' => $Group),
+                                'Löschen'
+                            );
+                    } else {
+                        $content[] = new \SPHERE\Common\Frontend\Link\Repository\Link(
+                                new PersonIcon(), '/People/Person', null,
+                                array('Id' => $tblToPerson->getServiceTblPersonFrom()->getId()), 'zur Person'
+                            )
+                            . $tblToPerson->getServiceTblPersonFrom()->getLastFirstName()
+                            . $sign
+                            . $tblPerson->getLastFirstName();
+                        $panelType = Panel::PANEL_TYPE_DEFAULT;
+                        $options = '';
+                    }
+
+                    if ($tblToPerson->getRemark()) {
+                        $content[] = new Muted(new Small($tblToPerson->getRemark()));
+                    }
+
+                    $tblToPerson = new LayoutColumn(
+                        FrontendReadOnly::getContactPanel(
+                            new PersonIcon() . ' ' . new Link() . ' ' . $tblToPerson->getTblType()->getName(),
+                            $content,
+                            $options,
+//                            ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
+//                                ? new \SPHERE\Common\Frontend\Link\Repository\Link(
+//                                    '', '/People/Person/Relationship/Edit', new Edit(),
+//                                    array('Id' => $tblToPerson->getId(), 'Group' => $Group),
+//                                    'Bearbeiten'
+//                                )
+//                                . new \SPHERE\Common\Frontend\Link\Repository\Link(
+//                                    '', '/People/Person/Relationship/Destroy', new Remove(),
+//                                    array('Id' => $tblToPerson->getId(), 'Group' => $Group), 'Löschen'
+//                                )
+//                                . new \SPHERE\Common\Frontend\Link\Repository\Link(
+//                                    new PersonIcon(), '/People/Person', null,
+//                                    array('Id' => $tblToPerson->getServiceTblPersonTo()->getId()), 'zur Person'
+//                                )
+//                                :
+//                                new \SPHERE\Common\Frontend\Link\Repository\Link(
+//                                    new PersonIcon(), '/People/Person', null,
+//                                    array('Id' => $tblToPerson->getServiceTblPersonFrom()->getId()), 'zur Person'
+//                                )
+//                            ),
+                            $panelType
                         )
                         , 3);
                 } else {

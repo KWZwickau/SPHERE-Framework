@@ -257,7 +257,7 @@ class FrontendBasic extends FrontendReadOnly
                 self::TITLE,
                 $content,
                 array($editLink),
-                'der Person' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
                 new PersonParent()
             );
         }
@@ -309,7 +309,7 @@ class FrontendBasic extends FrontendReadOnly
      */
     private function getEditBasicTitle(TblPerson $tblPerson = null, $isCreatePerson = false)
     {
-        return new Title(new PersonParent() . ' ' . self::TITLE, 'der Person'
+        return new Title(new PersonParent() . ' ' . self::TITLE, 'der Person '
             . ($tblPerson ? new Bold(new Success($tblPerson->getFullName())) : '')
             . ($isCreatePerson ? ' anlegen' : ' bearbeiten'));
     }

@@ -649,8 +649,7 @@ class Frontend extends Extension implements IFrontendInterface
                              */
                             foreach ($personArray as $personId => $tblToPerson) {
                                 if (($tblPersonPhone = Person::useService()->getPersonById($personId))) {
-                                    $content[] = $tblPersonPhone->getFullName()
-                                        . ($tblPerson->getId() != $tblPersonPhone->getId()
+                                    $content[] = ($tblPerson->getId() != $tblPersonPhone->getId()
                                             ? new Link(
                                                 new PersonIcon(),
                                                 '/People/Person',
@@ -659,6 +658,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                 'Zur Person'
                                             )
                                             : '')
+                                        . $tblPersonPhone->getFullName()
                                         . (($remark = $tblToPerson->getRemark())  ? ' ' . new ToolTip(new Info(), $remark) : '');
                                 }
                             }

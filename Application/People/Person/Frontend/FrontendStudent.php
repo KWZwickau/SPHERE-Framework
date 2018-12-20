@@ -82,7 +82,7 @@ class FrontendStudent extends FrontendReadOnly
                 self::TITLE,
                 $showLink,
                 array(),
-                'der Person' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
                 new Tag()
             );
         }
@@ -143,7 +143,7 @@ class FrontendStudent extends FrontendReadOnly
                 self::TITLE,
                 $content,
                 array($hideLink),
-                'der Person' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
                 new Tag()
                 , true
             );
@@ -196,7 +196,7 @@ class FrontendStudent extends FrontendReadOnly
                 self::TITLE . ' - Grunddaten',
                 $content,
                 array($editLink),
-                'der Person' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
                 new Nameplate()
             );
         }

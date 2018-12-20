@@ -187,7 +187,7 @@ class FrontendStudentSubject  extends FrontendReadOnly
                 self::TITLE,
                 $content,
                 array($editLink),
-                'der Person' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
                 new Education()
             );
         }

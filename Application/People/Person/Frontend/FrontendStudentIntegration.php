@@ -59,7 +59,7 @@ class FrontendStudentIntegration extends FrontendReadOnly
                 self::TITLE,
                 $showLink,
                 array(),
-                'der Person' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
                 new Tag()
             );
         }
@@ -93,7 +93,7 @@ class FrontendStudentIntegration extends FrontendReadOnly
                 self::TITLE,
                 $content,
                 array($hideLink),
-                'der Person' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
                 new Tag()
             );
         }

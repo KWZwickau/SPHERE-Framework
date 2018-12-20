@@ -133,7 +133,7 @@ class FrontendCommon extends FrontendReadOnly
                 self::TITLE,
                 $content,
                 array($editLink),
-                'der Person' . new Bold(new Success($tblPerson->getFullName())),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
                 new Tag()
             );
         }
@@ -185,7 +185,7 @@ class FrontendCommon extends FrontendReadOnly
      */
     public function getEditCommonTitle(TblPerson $tblPerson = null, $isCreatePerson = false)
     {
-        $title = new Title(new Tag() . ' ' . self::TITLE, 'der Person'
+        $title = new Title(new Tag() . ' ' . self::TITLE, 'der Person '
             . ($tblPerson ? new Bold(new Success($tblPerson->getFullName())) : '')
             . ($isCreatePerson ? ' anlegen' : ' bearbeiten'));
         if ($isCreatePerson) {
