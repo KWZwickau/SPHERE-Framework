@@ -2555,7 +2555,8 @@ class Frontend extends FrontendScoreRule
                 foreach ($gradeMirror as $key => $value) {
                     $space = ($value > 9 && $key < 10) ? '&nbsp;&nbsp;&nbsp;' : '&nbsp;';
                     $line[0] .= $space . $key;
-                    $line[1] .= '&nbsp;' . $value;
+                    $space = ($value < 9 && $key > 9) ? '&nbsp;&nbsp;&nbsp;' : '&nbsp;';
+                    $line[1] .= $space . $value;
                 }
                 $toolTip .= $line[0] . '<br />' . $line[1];
             }
@@ -2821,7 +2822,24 @@ class Frontend extends FrontendScoreRule
                                                 ))) {
                                                     /** @var TblTest $tblTestItem */
                                                     foreach ($tblTestList as $tblTestItem) {
-                                                        if (!isset($subTableHeaderList['Test' . $tblTestItem->getId()])) {
+                                                        // Prüfung ob der Schüler in der Fach-Gruppe ist
+                                                        $isAddTest = false;
+                                                        if (($tblSubjectGroup = $tblTestItem->getServiceTblSubjectGroup())) {
+                                                            if (($tblDivisionSubjectTemp = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+                                                                    $tblDivision,
+                                                                    $tblSubject,
+                                                                    $tblSubjectGroup
+                                                                ))
+                                                                && Division::useService()->exitsSubjectStudent($tblDivisionSubjectTemp,
+                                                                    $tblPerson)
+                                                            ) {
+                                                                $isAddTest = true;
+                                                            }
+                                                        } else {
+                                                            $isAddTest = true;
+                                                        }
+
+                                                        if ($isAddTest && !isset($subTableHeaderList['Test' . $tblTestItem->getId()])) {
                                                             $this->addTest(
                                                                 $tblTestItem,
                                                                 null,
