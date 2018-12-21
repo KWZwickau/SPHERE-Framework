@@ -100,8 +100,6 @@ use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Sorter;
-use SPHERE\System\Extension\Repository\Sorter\DateTimeSorter;
 
 /**
  * Class Frontend
@@ -902,11 +900,6 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $tabIndex = 1;
 
-                    if ($tblTaskList) {
-                        $tblTaskList = $this->getSorter($tblTaskList)->sortObjectBy('Date', new DateTimeSorter(),
-                            Sorter::ORDER_DESC);
-                    }
-
                     foreach ($tblPrepareList as $tblPrepareItem) {
                         if (($tblDivisionItem = $tblPrepareItem->getServiceTblDivision())
                             && (($tblStudentList = Division::useService()->getStudentAllByDivision($tblDivisionItem)))
@@ -939,25 +932,21 @@ class Frontend extends Extension implements IFrontendInterface
                                         $gradeList = array();
                                         $gradeListString = '';
                                         $averageStudent = false;
-                                        if ($useMultipleBehaviorTasks && $tblTaskList) {
-                                            /** @var tblTask $tblTaskItem */
-                                            foreach ($tblTaskList as $tblTaskItem) {
-                                                if (($tblTestTaskList = Evaluation::useService()->getTestAllByTask($tblTaskItem, $tblDivisionItem))) {
-                                                    foreach ($tblTestTaskList as $tblTestItem) {
-                                                        if (($tblGradeType = $tblTestItem->getServiceTblGradeType())
-                                                            && $tblGradeType->getId() == $tblCurrentGradeType->getId()
-                                                        ) {
-                                                            if (($tblSubject = $tblTestItem->getServiceTblSubject())
-                                                                && ($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTestItem,
-                                                                    $tblPerson))
+                                        if ($useMultipleBehaviorTasks) {
+                                            if (($tblDivisionList = Division::useService()->getOtherDivisionsByStudent($tblDivisionItem, $tblPerson))) {
+                                                foreach ($tblDivisionList as $item) {
+                                                    if (($tblGradeList = Gradebook::useService()->getGradesByStudentAndGradeType(
+                                                        $tblPerson, $item, $tblGradeType
+                                                    ))
+                                                    ) {
+                                                        foreach ($tblGradeList as $tblGrade) {
+                                                            if (($tblTestItem = $tblGrade->getServiceTblTest())
+                                                                && ($tblTaskItem = $tblTestItem->getTblTask())
+                                                                && ($tblSubject = $tblTestItem->getServiceTblSubject())
                                                             ) {
                                                                 $subjectGradeList[$tblTaskItem->getId()][$tblSubject->getAcronym()] = $tblGrade;
                                                             }
                                                         }
-                                                    }
-
-                                                    if (!empty($subjectGradeList[$tblTaskItem->getId()])) {
-                                                        ksort($subjectGradeList[$tblTaskItem->getId()]);
                                                     }
                                                 }
                                             }
@@ -968,6 +957,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             foreach ($subjectGradeList as $taskId => $subjectTaskGradeList) {
                                                 $subString = '';
                                                 if (($tblTaskItem = Evaluation::useService()->getTaskById($taskId))) {
+                                                    ksort($subjectTaskGradeList);
                                                     foreach ($subjectTaskGradeList as $subjectAcronym => $grade) {
                                                         $tblSubject = Subject::useService()->getSubjectByAcronym($subjectAcronym);
                                                         if ($tblSubject) {
@@ -2614,14 +2604,9 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         $average = Gradebook::useService()->calcStudentGrade(
-            $tblPerson,
-            $tblDivision,
-            $tblSubject,
-            Evaluation::useService()->getTestTypeByIdentifier('TEST'),
+            $tblPerson, $tblDivision, $tblSubject, Evaluation::useService()->getTestTypeByIdentifier('TEST'),
             $tblScoreRule ? $tblScoreRule : null,
-            ($tblTaskPeriod = $tblTask->getServiceTblPeriodByDivision($tblDivision)) ? $tblTaskPeriod : null,
-            null,
-            false,
+            ($tblTaskPeriod = $tblTask->getServiceTblPeriodByDivision($tblDivision)) ? $tblTaskPeriod : null, null,
             $tblTask->getDate() ? $tblTask->getDate() : false
         );
         if (is_array($average)) {
@@ -3959,15 +3944,12 @@ class Frontend extends Extension implements IFrontendInterface
                                                     $tblTestTemp->getServiceTblSubjectGroup() ? $tblTestTemp->getServiceTblSubjectGroup() : null
                                                 );
                                                 $average = Gradebook::useService()->calcStudentGrade(
-                                                    $tblPerson,
-                                                    $tblDivisionItem,
-                                                    $tblCurrentSubject,
+                                                    $tblPerson, $tblDivisionItem, $tblCurrentSubject,
                                                     Evaluation::useService()->getTestTypeByIdentifier('TEST'),
                                                     $tblScoreRule ? $tblScoreRule : null,
                                                     ($tblTaskPeriod = $tblTask->getServiceTblPeriodByDivision($tblDivisionItem))
                                                         ? $tblTaskPeriod : null,
                                                     $tblTestTemp->getServiceTblSubjectGroup() ? $tblTestTemp->getServiceTblSubjectGroup() : null,
-                                                    false,
                                                     $tblTask->getDate() ? $tblTask->getDate() : false
                                                 );
 
@@ -4656,13 +4638,8 @@ class Frontend extends Extension implements IFrontendInterface
                              * Average
                              */
                             $average = Gradebook::useService()->calcStudentGrade(
-                                $tblPerson,
-                                $tblDivisionItem,
-                                $tblSubjectItem,
-                                $tblTestType,
-                                $tblScoreRule ? $tblScoreRule : null,
-                                null,
-                                $tblSubjectGroup ? $tblSubjectGroup : null
+                                $tblPerson, $tblDivisionItem, $tblSubjectItem, $tblTestType,
+                                $tblScoreRule ? $tblScoreRule : null, null, $tblSubjectGroup ? $tblSubjectGroup : null
                             );
                             if (is_array($average)) {
                                 $average = 'Fehler';

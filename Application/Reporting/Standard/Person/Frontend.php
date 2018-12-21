@@ -219,7 +219,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $Stage->setContent(
                 new Layout(array(
-                    new LayoutGroup(
+                    new LayoutGroup(array(
                         new LayoutRow(array(
                             ($tblDivision->getServiceTblYear() ?
                                 new LayoutColumn(
@@ -235,8 +235,11 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Panel('Schulart', $tblDivision->getTypeName(),
                                         Panel::PANEL_TYPE_SUCCESS), 4
                                 ) : ''),
-                        ))
-                    ),
+                        )),
+                        ($inActivePanel = $this->getInActiveStudentPanel($tblDivision))
+                            ? new LayoutRow(new LayoutColumn($inActivePanel))
+                            : null
+                    )),
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(
@@ -397,7 +400,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $Stage->setContent(
                 new Layout(array(
-                    new LayoutGroup(
+                    new LayoutGroup(array(
                         new LayoutRow(array(
                             ($tblDivision->getServiceTblYear() ?
                                 new LayoutColumn(
@@ -413,8 +416,11 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Panel('Schulart', $tblDivision->getTypeName(),
                                         Panel::PANEL_TYPE_SUCCESS), 4
                                 ) : ''),
-                        ))
-                    ),
+                        )),
+                        ($inActivePanel = $this->getInActiveStudentPanel($tblDivision))
+                            ? new LayoutRow(new LayoutColumn($inActivePanel))
+                            : null
+                    )),
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(
@@ -566,7 +572,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $Stage->setContent(
                 new Layout(array(
-                    new LayoutGroup(
+                    new LayoutGroup(array(
                         new LayoutRow(array(
                             ($tblDivision->getServiceTblYear() ?
                                 new LayoutColumn(
@@ -582,8 +588,11 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Panel('Schulart', $tblDivision->getTypeName(),
                                         Panel::PANEL_TYPE_SUCCESS), 4
                                 ) : ''),
-                        ))
-                    ),
+                        )),
+                        ($inActivePanel = $this->getInActiveStudentPanel($tblDivision))
+                            ? new LayoutRow(new LayoutColumn($inActivePanel))
+                            : null
+                    )),
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(
@@ -919,22 +928,27 @@ class Frontend extends Extension implements IFrontendInterface
 
             $Stage->setContent(
                 new Layout(array(
-                    new LayoutGroup(new LayoutRow(array(
-                        ($tblDivision->getServiceTblYear() ?
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            ($tblDivision->getServiceTblYear() ?
+                                new LayoutColumn(
+                                    new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
+                                        Panel::PANEL_TYPE_SUCCESS), 4
+                                ) : ''),
                             new LayoutColumn(
-                                new Panel('Jahr', $tblDivision->getServiceTblYear()->getDisplayName(),
+                                new Panel('Klasse', $tblDivision->getDisplayName(),
                                     Panel::PANEL_TYPE_SUCCESS), 4
-                            ) : ''),
-                        new LayoutColumn(
-                            new Panel('Klasse', $tblDivision->getDisplayName(),
-                                Panel::PANEL_TYPE_SUCCESS), 4
-                        ),
-                        ($tblDivision->getTypeName() ?
-                            new LayoutColumn(
-                                new Panel('Schulart', $tblDivision->getTypeName(),
-                                    Panel::PANEL_TYPE_SUCCESS), 4
-                            ) : ''),
-                    ))),
+                            ),
+                            ($tblDivision->getTypeName() ?
+                                new LayoutColumn(
+                                    new Panel('Schulart', $tblDivision->getTypeName(),
+                                        Panel::PANEL_TYPE_SUCCESS), 4
+                                ) : ''),
+                        )),
+                        ($inActivePanel = $this->getInActiveStudentPanel($tblDivision))
+                            ? new LayoutRow(new LayoutColumn($inActivePanel))
+                            : null
+                    )),
                     new LayoutGroup(new LayoutRow(array(
                         new LayoutColumn(new TableData($PersonList, null,
                             array(
@@ -996,6 +1010,27 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return $Stage;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return bool|Panel
+     */
+    private function getInActiveStudentPanel(TblDivision $tblDivision)
+    {
+        $inActiveStudentList = array();
+        if (($tblDivisionStudentAll = Division::useService()->getDivisionStudentAllByDivision($tblDivision, true))) {
+            foreach ($tblDivisionStudentAll as $tblDivisionStudent) {
+                if ($tblDivisionStudent->isInActive()
+                    && ($tblPerson = $tblDivisionStudent->getServiceTblPerson())
+                ) {
+                    $inActiveStudentList[] = $tblPerson->getLastFirstName() . ' (Deaktivierung: ' . $tblDivisionStudent->getLeaveDate() . ')';
+                }
+            }
+        }
+
+        return empty($inActiveStudentList) ? false : new Panel('Ehemaliger Schüler dieser Klasse', $inActiveStudentList, Panel::PANEL_TYPE_WARNING);
     }
 
     /**
@@ -1183,7 +1218,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $Stage->setContent(
                 new Layout(array(
-                    new LayoutGroup(
+                    new LayoutGroup(array(
                         new LayoutRow(array(
                             ($tblDivision->getServiceTblYear() ?
                                 new LayoutColumn(
@@ -1199,8 +1234,11 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Panel('Schulart', $tblDivision->getTypeName(),
                                         Panel::PANEL_TYPE_SUCCESS), 4
                                 ) : ''),
-                        ))
-                    ),
+                        )),
+                        ($inActivePanel = $this->getInActiveStudentPanel($tblDivision))
+                            ? new LayoutRow(new LayoutColumn($inActivePanel))
+                            : null
+                    )),
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(

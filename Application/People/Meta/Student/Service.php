@@ -987,6 +987,38 @@ class Service extends Support
 
     /**
      * @param TblPerson $tblPerson
+     * @param TblYear $tblYear
+     *
+     * @return false|TblDivision
+     */
+    public function getMainDivisionByPersonAndYear(TblPerson $tblPerson, TblYear $tblYear)
+    {
+
+        $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
+        if ($tblDivisionStudentList) {
+            foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                if ($tblDivisionStudent->getLeaveDateTime() == null
+                    && $tblDivisionStudent->getTblDivision()
+                ) {
+                    $divisionYear = $tblDivisionStudent->getTblDivision()->getServiceTblYear();
+                    if ($divisionYear && $divisionYear->getId() == $tblYear->getId()) {
+                        if (($tblDivision = $tblDivisionStudent->getTblDivision())) {
+                            if (($tblLevel = $tblDivision->getTblLevel())
+                                && !$tblLevel->getIsChecked()
+                            ) {
+                                return $tblDivision;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
      * @param string $Prefix
      *
      * @return string

@@ -152,6 +152,7 @@ class GradebookOverview extends AbstractDocument
                     if (($tblDivisionTemp = $tblDivisionStudent->getTblDivision())
                         && ($tblYearTemp = $tblDivisionTemp->getServiceTblYear())
                         && $tblYear->getId() == $tblYearTemp->getId()
+                        && !$tblDivisionStudent->isInActive()
                     ) {
                         $divisionList[$tblDivisionTemp->getId()] = $tblDivisionTemp;
                     }
@@ -198,11 +199,12 @@ class GradebookOverview extends AbstractDocument
                                         );
 
                                         $hasGrades = false;
+                                        $yearGradeList = array();
                                         foreach ($tblPeriodList as $tblPeriod) {
                                             $maxCount = 0;
-                                            $tblGradeList = Gradebook::useService()->getGradesByStudent(
+                                            $tblGradeList = Gradebook::useService()->getGradesAllByStudentAndYearAndSubject(
                                                 $tblPerson,
-                                                $tblDivision,
+                                                $tblYear,
                                                 $tblDivisionSubject->getServiceTblSubject(),
                                                 $tblTestType,
                                                 $tblPeriod
@@ -212,6 +214,8 @@ class GradebookOverview extends AbstractDocument
                                                 $hasGrades = true;
                                                 // Sortieren der Zensuren
                                                 $gradeListSorted = $this->getSorter($tblGradeList)->sortObjectBy('DateForSorter', new Sorter\DateTimeSorter());
+
+                                                $yearGradeList = array_merge($yearGradeList, $gradeListSorted);
 
                                                 /**@var TblGrade $tblGrade * */
                                                 foreach ($gradeListSorted as $tblGrade) {
@@ -225,14 +229,14 @@ class GradebookOverview extends AbstractDocument
 
                                                 // period Average
                                                 $average = Gradebook::useService()->calcStudentGrade(
-                                                    $tblPerson,
-                                                    $tblDivisionSubject->getTblDivision(),
+                                                    $tblPerson, $tblDivisionSubject->getTblDivision(),
                                                     $tblDivisionSubject->getServiceTblSubject(),
                                                     Evaluation::useService()->getTestTypeByIdentifier('TEST'),
-                                                    $tblScoreRule ? $tblScoreRule : null,
-                                                    $tblPeriod,
+                                                    $tblScoreRule ? $tblScoreRule : null, $tblPeriod,
                                                     $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null,
-                                                    false
+                                                    false,
+                                                    false,
+                                                    $gradeListSorted
                                                 );
                                                 if (is_array($average)) {
                                                     $average = 'Fehler';
@@ -261,14 +265,14 @@ class GradebookOverview extends AbstractDocument
                                         if ($hasGrades) {
                                             // Total average
                                             $average = Gradebook::useService()->calcStudentGrade(
-                                                $tblPerson,
-                                                $tblDivisionSubject->getTblDivision(),
+                                                $tblPerson, $tblDivisionSubject->getTblDivision(),
                                                 $tblDivisionSubject->getServiceTblSubject(),
                                                 Evaluation::useService()->getTestTypeByIdentifier('TEST'),
-                                                $tblScoreRule ? $tblScoreRule : null,
-                                                null,
+                                                $tblScoreRule ? $tblScoreRule : null, null,
                                                 $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null,
-                                                false
+                                                false,
+                                                false,
+                                                $yearGradeList
                                             );
                                             if (is_array($average)) {
                                                 $average = 'Fehler';

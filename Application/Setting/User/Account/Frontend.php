@@ -1008,7 +1008,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $item['Option'] = new External('', '/Api/Setting/UserAccount/Download', new Download()
                             , array('GroupByTime' => $GroupByTime), 'Download als Excel')
-                        .$PdfButton->setScrollDown(10000, 1000)
+                        .($PdfButton ? $PdfButton->setScrollDown(10000, 1000) : '')
                         .new Standard('', '/Setting/User/Account/Clear', new Remove(),
                             array('GroupByTime' => $GroupByTime),
                             'Entfernen der Klartext Passwörter und des damit verbundenem verfügbaren Download');
@@ -1457,12 +1457,16 @@ class Frontend extends Extension implements IFrontendInterface
                 new Standard('Zurück', $Route, new ChevronLeft())
             );
             if (!$Confirm) {
+                $UserName = '';
+                if($tblAccount){
+                    $UserName = $tblAccount->getUserName();
+                }
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
                         new Panel(new PersonIcon().' Benutzerdaten',
                             array(
                                 'Person: '.new Bold($tblPerson->getFullName()),
-                                'Benutzer: '.new Bold($tblAccount->getUserName())
+                                'Benutzer: '.new Bold($UserName)
                             ),
                             Panel::PANEL_TYPE_SUCCESS
                         ),
@@ -1529,7 +1533,7 @@ class Frontend extends Extension implements IFrontendInterface
                     .new Redirect('/Setting/User/Account/Export', Redirect::TIMEOUT_ERROR);
             }
             $Stage->addButton(
-                new Standard('Zurück', '/Setting/User', new ChevronLeft())
+                new Standard('Zurück', '/Setting/User/Account/Export', new ChevronLeft())
             );
             if (!$Confirm) {
 

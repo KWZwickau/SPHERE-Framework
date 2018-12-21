@@ -294,13 +294,20 @@ class Service extends AbstractService
     function getUnexcusedDaysByPerson(TblPerson $tblPerson, TblDivision $tblDivision, \DateTime $tillDate = null)
     {
 
-        $list = $this->getAbsenceAllByPerson($tblPerson, $tblDivision);
-        $days = 0;
-        if ($list) {
-            foreach ($list as $item) {
-                if ($item->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
-                    $days += $item->getDays($tillDate);
+        $list = array();
+        // Fehlzeiten aus alle Klassen des Schuljahrs
+        if (($tblDivisionList = Division::useService()->getOtherDivisionsByStudent($tblDivision, $tblPerson, true))) {
+            foreach ($tblDivisionList as $tblDivisionItem) {
+                if (($absenceList = $this->getAbsenceAllByPerson($tblPerson, $tblDivisionItem))) {
+                    $list = array_merge($list, $absenceList);
                 }
+            }
+        }
+
+        $days = 0;
+        foreach ($list as $item) {
+            if ($item->getStatus() == TblAbsence::VALUE_STATUS_UNEXCUSED) {
+                $days += $item->getDays($tillDate);
             }
         }
 
@@ -317,13 +324,21 @@ class Service extends AbstractService
     public function getExcusedDaysByPerson(TblPerson $tblPerson, TblDivision $tblDivision, \DateTime $tillDate = null)
     {
 
-        $list = $this->getAbsenceAllByPerson($tblPerson, $tblDivision);
-        $days = 0;
-        if ($list) {
-            foreach ($list as $item) {
-                if ($item->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
-                    $days += $item->getDays($tillDate);
+        $list = array();
+        // Fehlzeiten aus alle Klassen des Schuljahrs
+        if (($tblDivisionList = Division::useService()->getOtherDivisionsByStudent($tblDivision, $tblPerson, true))) {
+            foreach ($tblDivisionList as $tblDivisionItem) {
+                if (($absenceList = $this->getAbsenceAllByPerson($tblPerson, $tblDivisionItem))) {
+                    $list = array_merge($list, $absenceList);
                 }
+            }
+        }
+
+        $days = 0;
+        /** @var TblAbsence $item */
+        foreach ($list as $item) {
+            if ($item->getStatus() == TblAbsence::VALUE_STATUS_EXCUSED) {
+                $days += $item->getDays($tillDate);
             }
         }
 

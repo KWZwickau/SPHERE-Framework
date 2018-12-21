@@ -191,7 +191,7 @@ class Service extends AbstractService
                 . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
         }
 
-        if (!$tblDivisionSubject->getTblDivision()) {
+        if (!($tblDivision = $tblDivisionSubject->getTblDivision())) {
             return new Danger(new Ban() . ' Klasse nicht gefunden')
                 . new Redirect($BasicRoute . '/Selected', Redirect::TIMEOUT_ERROR,
                     array('DivisionSubjectId' => $tblDivisionSubject->getId()));
@@ -227,13 +227,51 @@ class Service extends AbstractService
         if (isset($Test['Link']) && $tblTest) {
             $LinkId = $this->getNextLinkId();
             $this->createTestLink($tblTest, $LinkId);
+
+            $tblPeriodOriginList = false;
+            if (($tblLevel = $tblDivision->getTblLevel())
+                && ($tblYear = $tblDivision->getServiceTblYear())
+            ) {
+                $tblPeriodOriginList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel->getName() == '12');
+            }
+
             foreach ($Test['Link'] as $divisionSubjectToLinkId => $value) {
                 if (($tblDivisionSubjectToLink = Division::useService()->getDivisionSubjectById($divisionSubjectToLinkId))) {
+                    $tblPeriodLink = $tblPeriod;
+                    // SSW-389, korrekte Periode ermitteln
+                    if (($tblDivisionToLink = $tblDivisionSubjectToLink->getTblDivision())
+                        && ($tblYear = $tblDivisionToLink->getServiceTblYear())
+                        && ($tblLevel = $tblDivisionToLink->getTblLevel())
+                        && (($tblPeriodLinkList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel->getName() == '12')))
+                    ) {
+                        $hasPeriod = false;
+                        foreach ($tblPeriodLinkList as $tblPeriodItem) {
+                            if ($tblPeriod->getId() == $tblPeriodItem->getId()) {
+                                $hasPeriod = true;
+                                break;
+                            }
+                        }
+
+                        if (!$hasPeriod && $tblPeriodOriginList) {
+                            $periodPosition = 0;
+                            foreach ($tblPeriodOriginList as $tblPeriodOrigin) {
+                                if ($tblPeriod->getId() == $tblPeriodOrigin->getId()) {
+                                    if (isset($tblPeriodLinkList[$periodPosition])) {
+                                        $tblPeriodLink = $tblPeriodLinkList[$periodPosition];
+                                    }
+                                    break;
+                                }
+
+                                $periodPosition++;
+                            }
+                        }
+                    }
+
                     $tblTestAdd = (new Data($this->getBinding()))->createTest(
                         $tblDivisionSubjectToLink->getTblDivision(),
                         $tblDivisionSubjectToLink->getServiceTblSubject(),
                         $tblDivisionSubjectToLink->getTblSubjectGroup() ? $tblDivisionSubjectToLink->getTblSubjectGroup() : null,
-                        $tblPeriod,
+                        $tblPeriodLink,
                         $tblGradeType,
                         $this->getTestTypeByIdentifier('TEST'),
                         null,
@@ -1535,5 +1573,39 @@ class Service extends AbstractService
         }
 
         return $tblTestList;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblPeriod $tblPeriod
+     *
+     * @return array|bool
+     */
+    public function getHighlightedTestList(
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblPeriod $tblPeriod
+    ) {
+
+        $list = array();
+
+        if (($tblTestType = $this->getTestTypeByIdentifier('TEST'))
+            && ($tblTestList = $this->getTestAllByTypeAndDivisionAndSubjectAndPeriodAndSubjectGroup(
+            $tblDivision, $tblSubject, $tblTestType, $tblPeriod
+        ))) {
+            // Sortieren
+            $tblTestList = $this->getSorter($tblTestList)->sortObjectBy('DateForSorter', new DateTimeSorter());
+            /** @var TblTest $tblTest */
+            foreach ($tblTestList as $tblTest) {
+                if (($tblGradeType = $tblTest->getServiceTblGradeType())
+                    && $tblGradeType->isHighlighted()
+                ) {
+                    $list[$tblTest->getId()] = $tblTest;
+                }
+            }
+        }
+
+        return empty($list) ? false : $list;
     }
 }

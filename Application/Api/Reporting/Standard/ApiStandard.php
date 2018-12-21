@@ -79,7 +79,13 @@ class ApiStandard extends Extension implements IApiInterface
      */
     public function reloadAbsenceContent($Data = null)
     {
-        $dateTime = new \DateTime($Data['Date']);
+        if ($Data['Date'] == null) {
+            $date = (new \DateTime('now'))->format('d.m.Y');
+        } else {
+            $date = $Data['Date'];
+        }
+        $dateTime = new \DateTime($date);
+
         if ($Data['Type'] != null) {
             $tblType = Type::useService()->getTypeById($Data['Type']);
         } else {

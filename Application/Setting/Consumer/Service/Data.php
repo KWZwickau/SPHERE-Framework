@@ -94,6 +94,15 @@ class Data extends AbstractData
                 'Für die Standard-Zeugnisse kann ein Bild (Logo) hinterlegt werden. Logo für das Zeugnis darf skalliert 
                 nicht breiter sein als 182px (bei einer höhe von 50px [Bsp.: 546 * 150 ist noch ok]). Höhe des Bildes: [Standard: ]');
         }
+        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Generate', 'PictureAddressForDiplomaCertificate', TblSetting::TYPE_STRING, ''))) {
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Für die Standard-Abschluss-Zeugnisse kann ein Bild (Logo) hinterlegt werden. Adresse des Bildes: []');
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Generate', 'PictureHeightForDiplomaCertificate', TblSetting::TYPE_STRING, ''))) {
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Für die Standard-Abschluss-Zeugnisse kann ein Bild (Logo) hinterlegt werden. Höhe des Bildes: []');
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Certificate', 'Generate', 'PictureDisplayLocationForDiplomaCertificate', TblSetting::TYPE_BOOLEAN, '1'))) {
+            $this->updateSettingDescription($tblSetting, 'Zeugnisse', 'Für die Standard-Abschluss-Zeugnisse wird das Logo auf der 2. Seite unter dem Abschluss angezeigt (ansonsten auf dem Cover oben links): [Ja]');
+        }
         if (($tblSetting = $this->createSetting('Api', 'Education', 'Certificate', 'OrientationAcronym',
             TblSetting::TYPE_STRING, ''))) {
             $this->updateSettingDescription($tblSetting, 'Zeugnisse',
@@ -156,6 +165,10 @@ class Data extends AbstractData
             $this->updateSettingDescription($tblSetting, 'Notenbücher',
                 'Anzeige des Notenspiegels und des Fach-Klassen-Durchschnitts in der Eltern/Schüler-Übersicht. [Standard: Nein]',
                 true);
+        }
+        if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'ShowHighlightedTestsInGradeOverview', TblSetting::TYPE_BOOLEAN, '1'))) {
+            $this->updateSettingDescription($tblSetting, 'Notenbücher',
+                'Anzeige der geplanten Großen Noten (fettmarkiert, z.B. Klassenarbeiten) in der Notenübersicht für Schüler/Eltern und in der Schülerübersicht [Ja]', true);
         }
         if (($tblSetting = $this->createSetting('Education', 'Graduation', 'Gradebook', 'SortHighlighted',
             TblSetting::TYPE_BOOLEAN, '0'))) {
