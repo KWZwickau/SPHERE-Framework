@@ -5,11 +5,8 @@ namespace SPHERE\Application\Billing\Bookkeeping\Basket;
 use SPHERE\Application\Api\Billing\Bookkeeping\ApiBasket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
-use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
-use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
-use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -90,31 +87,12 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Item'] = implode(', ', $ItemArray);
                 }
 
-                $tblBasketVerification = Basket::useService()->getBasketVerificationByBasket($tblBasket);
+//                $tblBasketVerification = Basket::useService()->getBasketVerificationAllByBasket($tblBasket);
 
-                $Item['Option'] =
-                    (new Standard('', '/Billing/Bookkeeping/Basket/Change',
-                        new Edit(), array(
-                            'Id' => $tblBasket->getId()
-                        ), 'Name bearbeiten'))->__toString().
-                    ( !$tblBasketVerification ?
-                        (new Standard('', '/Billing/Bookkeeping/Basket/Content',
-                            new Listing(), array(
-                                'Id' => $tblBasket->getId()
-                            ), 'Warenkorb füllen'))->__toString() :
-
-                        (new Standard('', '/Billing/Bookkeeping/Basket/Verification',
-                            new Equalizer(), array(
-                                'Id' => $tblBasket->getId()
-                            ), 'Berechnung bearbeiten'))->__toString()
-                        .new Standard(''
-                            , '/Billing/Bookkeeping/Basket/Verification/Destroy', new Repeat()
-                            , array('BasketId' => $tblBasket->getId()), 'Berechnung leeren') ).
-                    ( !$tblBasketVerification ?
-                        (new Standard('', '/Billing/Bookkeeping/Basket/Destroy',
-                            new Remove(), array(
-                                'Id' => $tblBasket->getId()
-                            ), 'Löschen'))->__toString() : null );
+                $Item['Option'] =(new Standard('', ApiBasket::getEndpoint(), new Edit(), array(), 'Abrechnung bearbeiten'))
+                    ->ajaxPipelineOnClick(ApiBasket::pipelineOpenEditBasketModal('editBasket', $tblBasket->getId()))
+                    .(new Standard('', ApiBasket::getEndpoint(), new Remove(), array(), 'Abrechnung entfernen'))
+                    ->ajaxPipelineOnClick(ApiBasket::pipelineOpenDeleteBasketModal('deleteBasket', $tblBasket->getId()));
                 array_push($TableContent, $Item);
             });
         }

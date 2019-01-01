@@ -402,7 +402,8 @@ class ApiBasket extends Extension implements IApiInterface
         if(!empty($tblItemList)){
             /** @var TblItem $tblItem */
             foreach($tblItemList as $tblItem){
-                Basket::useService()->createBasketVerificationBulk($tblBasket, $tblItem);
+                Basket::useService()->createBasketPersonBulk($tblBasket, $tblItem);
+//                Basket::useService()->createBasketVerificationBulk($tblBasket, $tblItem);
             }
         }
 

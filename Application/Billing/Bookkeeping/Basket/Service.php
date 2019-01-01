@@ -6,9 +6,12 @@ use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Data;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketItem;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketPerson;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Setup;
+use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -72,6 +75,17 @@ class Service extends AbstractService
     /**
      * @param $Id
      *
+     * @return bool|TblBasketPerson
+     */
+    public function getBasketPersonById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getBasketPersonById($Id);
+    }
+
+    /**
+     * @param $Id
+     *
      * @return bool|TblBasketVerification
      */
     public function getBasketVerificationById($Id)
@@ -124,6 +138,17 @@ class Service extends AbstractService
     /**
      * @param TblBasket $tblBasket
      *
+     * @return bool|TblBasketPerson[]
+     */
+    public function getBasketPersonAllByBasket(TblBasket $tblBasket)
+    {
+
+        return (new Data($this->getBinding()))->getBasketPersonAllByBasket($tblBasket);
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     *
      * @return false|TblBasketItem[]
      */
     public function getBasketItemByBasket(TblBasket $tblBasket)
@@ -137,10 +162,10 @@ class Service extends AbstractService
      *
      * @return false|TblBasketVerification[]
      */
-    public function getBasketVerificationByBasket(TblBasket $tblBasket)
+    public function getBasketVerificationAllByBasket(TblBasket $tblBasket)
     {
 
-        return (new Data($this->getBinding()))->getBasketVerificationByBasket($tblBasket);
+        return (new Data($this->getBinding()))->getBasketVerificationAllByBasket($tblBasket);
     }
 
     /**
@@ -183,6 +208,32 @@ class Service extends AbstractService
      *
      * @return bool
      */
+    public function createBasketPersonBulk(TblBasket $tblBasket, TblItem $tblItem)
+    {
+
+        $PersonIdList = array();
+        if(($tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem))){
+            foreach($tblItemGroupList as $tblItemGroup){
+                if(($tblGroup = $tblItemGroup->getServiceTblGroup())){
+                    if(($PersonList = Group::useService()->getPersonAllByGroup($tblGroup))){
+                        foreach ($PersonList as $tblPerson) {
+                            $PersonIdList[$tblPerson->getId()] = $tblPerson->getId();
+                        }
+                    }
+
+                }
+            }
+        }
+
+        return (new Data($this->getBinding()))->createBasketPersonBulk($tblBasket, $PersonIdList);
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     * @param TblItem   $tblItem
+     *
+     * @return bool
+     */
     public function createBasketVerificationBulk(TblBasket $tblBasket, TblItem $tblItem)
     {
 
@@ -199,7 +250,6 @@ class Service extends AbstractService
             return (new Data($this->getBinding()))->createBasketVerificationBulk($tblBasket, $tblItem, $DebtorDataArray);
         }
         return false;
-
     }
 
     /**
@@ -267,6 +317,13 @@ class Service extends AbstractService
     public function destroyBasket(TblBasket $tblBasket)
     {
 
+        // remove all BasketPerson
+        $this->destroyBasketPersonBulk($tblBasket);
+        // remove all BasketItem
+        $this->destroyBasketItemBulk($tblBasket);
+        // remove all BasketVerification
+        $this->destroyBasketVerificationBulk($tblBasket);
+        
         return (new Data($this->getBinding()))->destroyBasket($tblBasket);
     }
 
@@ -282,6 +339,51 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblBasket $tblBasket
+     *
+     * @return bool
+     */
+    public function destroyBasketItemBulk(TblBasket $tblBasket)
+    {
+
+        $BasketItemIdList = array();
+        if(($tblBasketItemList = Basket::useService()->getBasketItemAllByBasket($tblBasket))){
+            foreach($tblBasketItemList as $tblBasketItem){
+                $BasketItemIdList[$tblBasketItem->getId()] = $tblBasketItem->getId();
+            }
+        }
+        return (new Data($this->getBinding()))->destroyBasketItemBulk($BasketItemIdList);
+    }
+
+    /**
+     * @param TblBasketPerson $tblBasketPerson
+     *
+     * @return bool
+     */
+    public function destroyBasketPerson(TblBasketPerson $tblBasketPerson)
+    {
+
+        return (new Data($this->getBinding()))->destroyBasketPerson($tblBasketPerson);
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     *
+     * @return bool
+     */
+    public function destroyBasketPersonBulk(TblBasket $tblBasket)
+    {
+
+        $BasketPersonIdList = array();
+        if(($tblBasketPersonList = Basket::useService()->getBasketPersonAllByBasket($tblBasket))){
+            foreach($tblBasketPersonList as $tblBasketPerson){
+                $BasketPersonIdList[$tblBasketPerson->getId()] = $tblBasketPerson->getId();
+            }
+        }
+        return (new Data($this->getBinding()))->destroyBasketPersonBulk($BasketPersonIdList);
+    }
+
+    /**
      * @param TblBasketVerification $tblBasketVerification
      *
      * @return string
@@ -290,5 +392,22 @@ class Service extends AbstractService
     {
         //ToDO Kontrolle
         return (new Data($this->getBinding()))->destroyBasketVerification($tblBasketVerification);
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     *
+     * @return bool
+     */
+    public function destroyBasketVerificationBulk(TblBasket $tblBasket)
+    {
+
+        $BasketVerificationIdList = array();
+        if(($tblBasketVerificationList = Basket::useService()->getBasketVerificationAllByBasket($tblBasket))){
+            foreach($tblBasketVerificationList as $tblBasketVerification){
+                $BasketVerificationIdList[$tblBasketVerification->getId()] = $tblBasketVerification->getId();
+            }
+        }
+        return (new Data($this->getBinding()))->destroyBasketVerificationBulk($BasketVerificationIdList);
     }
 }

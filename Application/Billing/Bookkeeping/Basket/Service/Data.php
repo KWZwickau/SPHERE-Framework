@@ -2,8 +2,10 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Basket\Service;
 
+use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketItem;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketPerson;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\People\Person\Person;
@@ -36,16 +38,25 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Name
+     * @param $Id
      *
-     * @return false|TblBasket
+     * @return bool|TblBasketItem
      */
-    public function getBasketByName($Name)
+    public function getBasketItemById($Id)
     {
 
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasket', array(
-            TblBasket::ATTR_NAME => $Name
-        ));
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketItem', $Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblBasketPerson
+     */
+    public function getBasketPersonById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketPerson', $Id);
     }
 
     /**
@@ -58,6 +69,19 @@ class Data extends AbstractData
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblBasketVerification', $Id);
+    }
+
+    /**
+     * @param $Name
+     *
+     * @return false|TblBasket
+     */
+    public function getBasketByName($Name)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasket', array(
+            TblBasket::ATTR_NAME => $Name
+        ));
     }
 
     /**
@@ -82,14 +106,15 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Id
+     * @param TblBasket $tblBasket
      *
-     * @return bool|TblBasketItem
+     * @return bool|TblBasketPerson[]
      */
-    public function getBasketItemById($Id)
+    public function getBasketPersonAllByBasket(TblBasket $tblBasket)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketItem', $Id);
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketPerson',
+            array(TblBasketPerson::ATTR_TBL_BASKET => $tblBasket->getId()));
     }
 
     /**
@@ -111,7 +136,7 @@ class Data extends AbstractData
      *
      * @return false|TblBasketVerification[]
      */
-    public function getBasketVerificationByBasket(TblBasket $tblBasket)
+    public function getBasketVerificationAllByBasket(TblBasket $tblBasket)
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
@@ -133,8 +158,6 @@ class Data extends AbstractData
 
         return $Count;
     }
-
-    //ToDO BulkSave BasketVerification
 
     /**
      * @param TblBasket $tblBasket
@@ -279,6 +302,72 @@ class Data extends AbstractData
 
     /**
      * @param TblBasket $tblBasket
+     * @param TblPerson $tblPerson
+     *
+     * @return TblBasketPerson
+     */
+    public function createBasketPerson(TblBasket $tblBasket, TblPerson $tblPerson)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblBasketPerson')->findOneBy(array(
+            TblBasketPerson::ATTR_TBL_BASKET       => $tblBasket->getId(),
+            TblBasketPerson::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+        ));
+        /** @var TblBasketPerson $Entity */
+        if(null === $Entity) {
+            $Entity = new TblBasketPerson();
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setTblBasket($tblBasket);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+                $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblBasket   $tblBasket
+     * @param array $PersonIdList
+     *
+     * @return bool
+     */
+    public function createBasketPersonBulk(TblBasket $tblBasket, $PersonIdList = array())
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        if(!empty($PersonIdList)){
+            foreach($PersonIdList as $PersonId){
+                if(($tblPerson = Person::useService()->getPersonById($PersonId))){
+                    $Entity = $Manager->getEntity('TblBasketPerson')->findOneBy(array(
+                        TblBasketPerson::ATTR_TBL_BASKET       => $tblBasket->getId(),
+                        TblBasketPerson::ATTR_SERVICE_TBL_PERSON => $PersonId
+                    ));
+
+                    if(null === $Entity) {
+                        $Entity = new TblBasketPerson();
+                        $Entity->setServiceTblPerson($tblPerson);
+                        $Entity->setTblBasket($tblBasket);
+
+                        $Manager->bulkSaveEntity($Entity);
+                        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+                            $Entity, true);
+                    }
+                }
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblBasket $tblBasket
      * @param           $Name
      *
      * @return bool
@@ -335,31 +424,6 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblBasketItem $tblBasketItem
-     *
-     * @return bool
-     */
-    public function destroyBasketItem(
-        TblBasketItem $tblBasketItem
-    ) {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        $Entity = $Manager->getEntity('TblBasketItem')->findOneBy(
-            array(
-                'Id' => $tblBasketItem->getId()
-            ));
-        if(null !== $Entity) {
-            /**@var Element $Entity */
-            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
-                $Entity);
-            $Manager->killEntity($Entity);
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * @param TblBasket $tblBasket
      *
      * @return bool
@@ -390,6 +454,107 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblBasketItem $tblBasketItem
+     *
+     * @return bool
+     */
+    public function destroyBasketItem(
+        TblBasketItem $tblBasketItem
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblBasketItem')->findOneBy(
+            array(
+                'Id' => $tblBasketItem->getId()
+            ));
+        if(null !== $Entity) {
+            /**@var Element $Entity */
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param array $BasketItemIdList
+     *
+     * @return bool
+     */
+    public function destroyBasketItemBulk($BasketItemIdList) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        if(!empty($BasketItemIdList)){
+            foreach($BasketItemIdList as $BasketItemId){
+                if(($tblBasketItem = Basket::useService()->getBasketItemById($BasketItemId))){
+                    $Entity = $Manager->getEntity('TblBasketItem')->findOneBy(array('Id' => $tblBasketItem->getId()));
+                    /**@var TblBasketItem $Entity */
+                    if(null !== $Entity) {
+                        Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                            $Entity, true);
+                        $Manager->bulkKillEntity($Entity);
+                    }
+                }
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblBasketPerson $tblBasketPerson
+     *
+     * @return bool
+     */
+    public function destroyBasketPerson(TblBasketPerson $tblBasketPerson)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntityById('TblBasketPerson', $tblBasketPerson->getId());
+        if(null !== $Entity) {
+            /**@var Element $Entity */
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param array $BasketPersonIdList
+     *
+     * @return bool
+     */
+    public function destroyBasketPersonBulk($BasketPersonIdList = array())
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        if(!empty($BasketPersonIdList)){
+            foreach($BasketPersonIdList as $BasketPersonId){
+                if(($tblBasketPerson = Basket::useService()->getBasketPersonById($BasketPersonId))){
+                    $Entity = $Manager->getEntity('TblBasketPerson')->findOneBy(array('Id' => $tblBasketPerson->getId()));
+                    /**@var TblBasketPerson $Entity */
+                    if(null !== $Entity) {
+                        Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                            $Entity, true);
+                        $Manager->bulkKillEntity($Entity);
+                    }
+                }
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param TblBasketVerification $tblBasketVerification
      *
      * @return bool
@@ -405,6 +570,34 @@ class Data extends AbstractData
                 $Entity);
             $Manager->killEntity($Entity);
 
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param array $BasketVerificationIdList
+     *
+     * @return bool
+     */
+    public function destroyBasketVerificationBulk($BasketVerificationIdList = array())
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        if(!empty($BasketVerificationIdList)){
+            foreach($BasketVerificationIdList as $BasketVerificationId){
+                if(($tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId))){
+                    $Entity = $Manager->getEntity('TblBasketVerification')->findOneBy(array('Id' => $tblBasketVerification->getId()));
+                    /**@var TblBasketVerification $Entity */
+                    if(null !== $Entity) {
+                        Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                            $Entity, true);
+                        $Manager->bulkKillEntity($Entity);
+                    }
+                }
+            }
+            $Manager->flushCache();
+            Protocol::useService()->flushBulkEntries();
             return true;
         }
         return false;
