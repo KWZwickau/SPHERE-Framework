@@ -117,60 +117,99 @@ class B02
                 )
             );
 
-        //ToDo: Zellen befüllen
         for ($i = 0; $i < 10; $i++) {
+            $section = new Section();
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent('
+                            {% if (Content.B02.Y' . $i . '.YearName is not empty) %}
+                                {{ Content.B02.Y' . $i . '.YearName }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                    ->styleAlignCenter()
+                    ->styleBorderRight(), '12%'
+                );
+
+            for ($j = 0; $j < 4; $j++) {
+                switch ($j) {
+                    case 0:
+                        $identifier = 'Leave';
+                        break;
+                    case 1:
+                        $identifier = 'MsAbsHs';
+                        break;
+                    case 2:
+                        $identifier = 'MsAbsHsQ';
+                        break;
+                    case 3:
+                        $identifier = 'MsAbsRs';
+                        break;
+                    default:
+                        $identifier = 'Default';
+                }
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if (Content.B02.Y' . $i . '.' . $identifier . '.m is not empty) %}
+                                {{ Content.B02.Y' . $i . '.' . $identifier . '.m }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleAlignCenter()
+                        ->styleBorderRight(), '8.8%'
+                    );
+                $section
+                    ->addElementColumn((new Element())
+                        ->setContent('
+                            {% if (Content.B02.Y' . $i . '.' . $identifier . '.w is not empty) %}
+                                {{ Content.B02.Y' . $i . '.' . $identifier . '.w }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                        ->styleAlignCenter()
+                        ->styleBorderRight(), '8.8%'
+                    );
+            }
+
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent('
+                            {% if (Content.B02.Y' . $i . '.m is not empty) %}
+                                {{ Content.B02.Y' . $i . '.m }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                    ->styleAlignCenter()
+                    ->styleBackgroundColor('lightgrey')
+                    ->styleTextBold()
+                    ->styleBorderRight(), '8.8%'
+                );
+            $section
+                ->addElementColumn((new Element())
+                    ->setContent('
+                            {% if (Content.B02.Y' . $i . '.w is not empty) %}
+                                {{ Content.B02.Y' . $i . '.w }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        ')
+                    ->styleAlignCenter()
+                    ->styleBackgroundColor('lightgrey')
+                    ->styleTextBold()
+                    , '8.8%'
+                );
+
             $sliceList[] = (new Slice())
                 ->styleAlignCenter()
                 ->styleBorderBottom()
                 ->styleBorderLeft()
                 ->styleBorderRight()
-                ->addSection((new Section())
-                    ->addElementColumn((new Element())
-                        ->setContent('Test')
-                        ->styleBorderRight(), '12%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Test')
-                        ->styleBorderRight(), '8.8%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Test')
-                        ->styleBorderRight(), '8.8%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Test')
-                        ->styleBorderRight(), '8.8%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Test')
-                        ->styleBorderRight(), '8.8%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Test')
-                        ->styleBorderRight(), '8.8%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Test')
-                        ->styleBorderRight(), '8.8%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Test')
-                        ->styleBorderRight(), '8.8%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('Test')
-                        ->styleBorderRight(), '8.8%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        ->styleBackgroundColor('lightgrey')
-                        ->styleBorderRight(), '8.8%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('&nbsp;')
-                        ->styleBackgroundColor('lightgrey'), '8.8%'
-                    )
-                );
+                ->addSection($section);
         }
 
         $sliceList[] = (new Slice())
