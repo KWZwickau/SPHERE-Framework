@@ -239,11 +239,43 @@ class Service extends AbstractService
 
         $DebtorDataArray = array();
         if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionByItem($tblItem))){
-            foreach($tblDebtorSelectionList as $tblDebtorSelection){
-                $Item['Causer'] = $tblDebtorSelection->getServiceTblPersonCauser()->getId();
-                $Item['Debtor'] = $tblDebtorSelection->getServiceTblPerson()->getId();
+            foreach($tblDebtorSelectionList as $tblDebtorSelection) {
+                $Error = false;
+                $Item = array();
+                if (!$tblDebtorSelection->getServiceTblPersonCauser()) {
+                    $Error = true;
+                } else {
+                    $Item['Causer'] = $tblDebtorSelection->getServiceTblPersonCauser()->getId();
+                }
+                if (!$tblDebtorSelection->getServiceTblPerson()) {
+                    $Error = true;
+                } else {
+                    $Item['Debtor'] = $tblDebtorSelection->getServiceTblPerson()->getId();
+                }
+                // insert payment from DebtorSelection
+                if(!$tblDebtorSelection->getTblBankAccount()){
+                    $Item['BankAccount'] = null;
+                } else {
+                    $Item['BankAccount'] = $tblDebtorSelection->getTblBankAccount()->getId();
+                }
+                if(!$tblDebtorSelection->getTblBankReference()){
+                    $Item['BankReference'] = null;
+                } else {
+                    $Item['BankReference'] = $tblDebtorSelection->getTblBankReference()->getId();
+                }
+                $Item['PaymentType'] = $tblDebtorSelection->getServiceTblPaymentType()->getId();
+                // default special price value
                 $Item['Price'] = $tblDebtorSelection->getValue();
-                array_push($DebtorDataArray, $Item);
+                // change to selected variant
+                if (($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())) {
+                    if (($tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant))) {
+                        $Item['Price'] = $tblItemCalculation->getValue();
+                    }
+                }
+                // only existing People to BasketVerification
+                if(!$Error){
+                    array_push($DebtorDataArray, $Item);
+                }
             }
         }
         if(!empty($DebtorDataArray)){

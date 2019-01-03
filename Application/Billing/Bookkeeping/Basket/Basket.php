@@ -25,6 +25,16 @@ class Basket implements IModuleInterface
                 __NAMESPACE__.'\Frontend::frontendBasketList'
             )
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/View',
+                __NAMESPACE__.'\Frontend::frontendBasketView'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/DebtorSelection',
+                __NAMESPACE__.'\Frontend::frontendBasketDebtorSelection'
+            )
+        );
     }
 
     /**

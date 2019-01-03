@@ -355,6 +355,37 @@ class ApiDebtor extends Extension implements IApiInterface
     public function showAddDebtorNumber($Identifier = '', $PersonId = '')
     {
 
+        //ToDO Scülernummer als Debitor voreintragen
+//        if(($tblPerson = Person::useService()->getPersonById($PersonId))){
+//            // Person is Student
+//            if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
+//                $tblStudent->getIdentifierComplete();
+//            } else {
+//
+//                $tblRelationshipType = Relationship::useService()->getTypeByName( TblType::IDENTIFIER_GUARDIAN );
+//                $tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType);
+//                if($tblToPersonList){
+//                    /* @var TblToPerson $tblToPerson */
+//                    $tblToPerson = current($tblToPersonList);
+//                    $tblPersonStudent = $tblToPerson->getServiceTblPersonTo();
+//                    if(($tblStudent = Student::useService()->getStudentByPerson($tblPersonStudent))){
+//                        $tblStudent->getIdentifierComplete();
+//                    }
+//                } else {
+//                    // Person how is Authorized for Student
+//                    $tblRelationshipType = Relationship::useService()->getTypeByName( TblType::IDENTIFIER_AUTHORIZED );$tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType);
+//                    if($tblToPersonList){
+//                        /* @var TblToPerson $tblToPerson */
+//                        $tblToPerson = current($tblToPersonList);
+//                        $tblPersonStudent = $tblToPerson->getServiceTblPersonTo();
+//                        if(($tblStudent = Student::useService()->getStudentByPerson($tblPersonStudent))){
+//                            $tblStudent->getIdentifierComplete();
+//                        }
+//                    }
+//                }
+//            }
+//        }
+
         return Debtor::useFrontend()->getPersonPanel($PersonId) . new Well($this->formDebtorNumber($Identifier,
                 $PersonId));
     }

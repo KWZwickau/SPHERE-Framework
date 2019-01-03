@@ -2,6 +2,8 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Basket\Service;
 
+use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
+use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketItem;
@@ -212,21 +214,27 @@ class Data extends AbstractData
         if(!empty($DebtorDataArray)){
 //            /** @var TblDebtorSelection $tblDebtorSelection */
             foreach($DebtorDataArray as $Item){
-                $tblPersonCauserId = $Item['Causer'];
-                $tblPersonDebtorId = $Item['Debtor'];
+                $PersonCauserId = $Item['Causer'];
+                $PersonDebtorId = $Item['Debtor'];
+                $BankAccountId = $Item['BankAccount'];
+                $BankReferenceId = $Item['BankReference'];
+                $PaymentTypeId = $Item['PaymentType'];
                 $Price = $Item['Price'];
 
                 $Entity = $Manager->getEntity('TblBasketVerification')->findOneBy(array(
                     TblBasketVerification::ATTR_TBL_BASKET                => $tblBasket->getId(),
-                    TblBasketVerification::ATTR_SERVICE_TBL_PERSON_CAUSER => $tblPersonCauserId,
-                    TblBasketVerification::ATTR_SERVICE_TBL_PERSON_DEBTOR => $tblPersonDebtorId,
+                    TblBasketVerification::ATTR_SERVICE_TBL_PERSON_CAUSER => $PersonCauserId,
+                    TblBasketVerification::ATTR_SERVICE_TBL_PERSON_DEBTOR => $PersonDebtorId,
                     TblBasketVerification::ATTR_SERVICE_TBL_ITEM          => $tblItem->getId()
                 ));
                 if(null === $Entity) {
                     $Entity = new TblBasketVerification();
                     $Entity->setTblBasket($tblBasket);
-                    $Entity->setServiceTblPersonCauser(Person::useService()->getPersonById($tblPersonCauserId));
-                    $Entity->setServiceTblPersonDebtor(Person::useService()->getPersonById($tblPersonDebtorId));
+                    $Entity->setServiceTblPersonCauser(Person::useService()->getPersonById($PersonCauserId));
+                    $Entity->setServiceTblPersonDebtor(Person::useService()->getPersonById($PersonDebtorId));
+                    $Entity->setServiceTblBankAccount($BankAccountId === null ? null : Debtor::useService()->getBankAccountById($BankAccountId));
+                    $Entity->setServiceTblBankReference($BankReferenceId === null ? null : Debtor::useService()->getBankReferenceById($BankReferenceId));
+                    $Entity->setServiceTblPaymentType(Balance::useService()->getPaymentTypeById($PaymentTypeId));
                     $Entity->setServiceTblItem($tblItem);
                     $Entity->setValue($Price);
                     $Entity->setQuantity(1);
