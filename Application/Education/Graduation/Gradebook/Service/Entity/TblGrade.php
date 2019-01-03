@@ -56,6 +56,11 @@ class TblGrade extends Element
     protected $Comment;
 
     /**
+     * @Column(type="string")
+     */
+    protected $PublicComment;
+
+    /**
      * @Column(type="smallint")
      */
     protected $Trend;
@@ -485,5 +490,21 @@ class TblGrade extends Element
         }
 
         return false;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPublicComment()
+    {
+        return $this->PublicComment;
+    }
+
+    /**
+     * @param string $PublicComment
+     */
+    public function setPublicComment($PublicComment)
+    {
+        $this->PublicComment = $PublicComment;
     }
 }

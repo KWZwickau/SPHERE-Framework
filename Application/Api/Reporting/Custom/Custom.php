@@ -161,6 +161,14 @@ class Custom implements IModuleInterface
                 __NAMESPACE__.'\Muldental\Common::downloadClassList'
             ));
         }
+
+        // Bad Düben
+        if ($consumerAcronym === 'ESBD' || $consumerAcronym === 'DEMO') {
+            Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/BadDueben/Common/ClassList/Download',
+                __NAMESPACE__.'\BadDueben\Common::downloadClassList'
+            ));
+        }
     }
 
     /**

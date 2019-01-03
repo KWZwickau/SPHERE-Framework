@@ -467,12 +467,21 @@ class Frontend extends FrontendScoreRule
                 }
             }
 
-            $studentViewLinkButton = new Standard(
+            $studentViewLinkButton[] = new Standard(
                 'Schülerübersichten',
                 '/Education/Graduation/Gradebook/Gradebook/Teacher/Division',
                 null,
                 array(),
                 'Anzeige aller Noten eines Schülers über alle Fächer'
+            );
+            $studentViewLinkButton[] = new Standard(
+                'Mindestnoten-Auswertung',
+                '/Education/Graduation/Gradebook/MinimumGradeCount/Teacher/Reporting',
+                null,
+                array(
+                    'PersonId' => $tblPerson ? $tblPerson->getId() : 0
+                ),
+                'Auswertung über die Erfüllung der Mindesnotenanzahl'
             );
         } else {
             $studentViewLinkButton = false;
@@ -537,11 +546,11 @@ class Frontend extends FrontendScoreRule
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
-                        new LayoutColumn(array(
+                        new LayoutColumn(
                             $studentViewLinkButton
                                 ? $studentViewLinkButton
-                                : null,
-                        ))
+                                : null
+                        )
                     ))
                 )),
                 new LayoutGroup(array(
@@ -708,22 +717,25 @@ class Frontend extends FrontendScoreRule
             }
         }
 
-        $studentViewLinkButton = new Standard(
-            'Schülerübersichten',
-            '/Education/Graduation/Gradebook/Gradebook/Headmaster/Division',
-            null,
-            array(),
-            'Anzeige aller Noten eines Schülers über alle Fächer'
-        );
-
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            $studentViewLinkButton
-                                ? $studentViewLinkButton
-                                : null,
+                            new Standard(
+                                'Schülerübersichten',
+                                '/Education/Graduation/Gradebook/Gradebook/Headmaster/Division',
+                                null,
+                                array(),
+                                'Anzeige aller Noten eines Schülers über alle Fächer'
+                            ),
+                            new Standard(
+                                'Mindestnoten-Auswertung',
+                                '/Education/Graduation/Gradebook/MinimumGradeCount/Headmaster/Reporting',
+                                null,
+                                array(),
+                                'Auswertung über die Erfüllung der Mindesnotenanzahl'
+                            )
                         ))
                     ))
                 )),
@@ -1088,14 +1100,19 @@ class Frontend extends FrontendScoreRule
                                         }
                                     }
 
-                                    $data[$column] =
-                                        ($tblTest->getServiceTblGradeType()
-                                            ? ($tblTest->getServiceTblGradeType()->isHighlighted()
-                                                ? new Bold($tblGrade->getDisplayGrade()) : $tblGrade->getDisplayGrade().' ')
-                                            : $tblGrade->getDisplayGrade().' ')
-                                        . ($displayGradeDate
-                                            ? new Small(new Muted(' (' . $displayGradeDate . ')'))
-                                            : '');
+                                    $displayGrade = ($tblTest->getServiceTblGradeType()
+                                        ? ($tblTest->getServiceTblGradeType()->isHighlighted()
+                                            ? new Bold($tblGrade->getDisplayGrade()) : $tblGrade->getDisplayGrade() . ' ')
+                                        : $tblGrade->getDisplayGrade() . ' ');
+
+                                    // öffentlicher Kommentar
+                                    $displayGrade .= ($tblGrade->getPublicComment() != '')
+                                        ? new ToolTip(' ' . new \SPHERE\Common\Frontend\Icon\Repository\Info(), $tblGrade->getPublicComment())
+                                        : '';
+
+                                    $data[$column] = $displayGrade . ($displayGradeDate
+                                        ? new Small(new Muted(' (' . $displayGradeDate . ')'))
+                                        : '');
                                 } else {
                                     $data[$column] = '';
                                 }
@@ -2538,7 +2555,8 @@ class Frontend extends FrontendScoreRule
                 foreach ($gradeMirror as $key => $value) {
                     $space = ($value > 9 && $key < 10) ? '&nbsp;&nbsp;&nbsp;' : '&nbsp;';
                     $line[0] .= $space . $key;
-                    $line[1] .= '&nbsp;' . $value;
+                    $space = ($value < 9 && $key > 9) ? '&nbsp;&nbsp;&nbsp;' : '&nbsp;';
+                    $line[1] .= $space . $value;
                 }
                 $toolTip .= $line[0] . '<br />' . $line[1];
             }
@@ -2572,7 +2590,15 @@ class Frontend extends FrontendScoreRule
             $gradeValue = null;
         }
 
-        $subTableDataList[0]['Test' . $tblTest->getId()] = ($gradeValue !== null && $gradeValue !== '') ? $gradeValue : '&nbsp;';
+        if ($gradeValue !== null && $gradeValue !== '') {
+            $displayGrade = $gradeValue . (($tblGrade && ($tblGrade->getPublicComment() != ''))
+                ? new ToolTip(' ' . new \SPHERE\Common\Frontend\Icon\Repository\Info(), $tblGrade->getPublicComment())
+                : '');
+        } else {
+            $displayGrade = '&nbsp;';
+        }
+
+        $subTableDataList[0]['Test' . $tblTest->getId()] = $displayGrade;
     }
 
     /**
@@ -2796,7 +2822,24 @@ class Frontend extends FrontendScoreRule
                                                 ))) {
                                                     /** @var TblTest $tblTestItem */
                                                     foreach ($tblTestList as $tblTestItem) {
-                                                        if (!isset($subTableHeaderList['Test' . $tblTestItem->getId()])) {
+                                                        // Prüfung ob der Schüler in der Fach-Gruppe ist
+                                                        $isAddTest = false;
+                                                        if (($tblSubjectGroup = $tblTestItem->getServiceTblSubjectGroup())) {
+                                                            if (($tblDivisionSubjectTemp = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+                                                                    $tblDivision,
+                                                                    $tblSubject,
+                                                                    $tblSubjectGroup
+                                                                ))
+                                                                && Division::useService()->exitsSubjectStudent($tblDivisionSubjectTemp,
+                                                                    $tblPerson)
+                                                            ) {
+                                                                $isAddTest = true;
+                                                            }
+                                                        } else {
+                                                            $isAddTest = true;
+                                                        }
+
+                                                        if ($isAddTest && !isset($subTableHeaderList['Test' . $tblTestItem->getId()])) {
                                                             $this->addTest(
                                                                 $tblTestItem,
                                                                 null,

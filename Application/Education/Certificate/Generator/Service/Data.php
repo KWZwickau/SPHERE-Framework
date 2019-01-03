@@ -2006,11 +2006,11 @@ class Data extends AbstractData
                         // Begrenzung des Bemerkungsfelds
                         $FieldName = 'Rating';
                         if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                            $this->createCertificateField($tblCertificate, $FieldName, 750);
+                            $this->createCertificateField($tblCertificate, $FieldName, 820);
                         }
                         $FieldName = 'TechnicalRating';
                         if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                            $this->createCertificateField($tblCertificate, $FieldName, 1050);
+                            $this->createCertificateField($tblCertificate, $FieldName, 1200);
                         }
                     }
                     $tblCertificate = $this->createCertificate(
@@ -2028,11 +2028,11 @@ class Data extends AbstractData
                         // Begrenzung des Bemerkungsfelds
                         $FieldName = 'Rating';
                         if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                            $this->createCertificateField($tblCertificate, $FieldName, 750);
+                            $this->createCertificateField($tblCertificate, $FieldName, 820);
                         }
                         $FieldName = 'TechnicalRating';
                         if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                            $this->createCertificateField($tblCertificate, $FieldName, 950);
+                            $this->createCertificateField($tblCertificate, $FieldName, 1050);
                         }
                     }
                     $tblCertificate = $this->createCertificate(
@@ -2085,11 +2085,11 @@ class Data extends AbstractData
                         // Begrenzung des Bemerkungsfelds
                         $FieldName = 'Rating';
                         if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                            $this->createCertificateField($tblCertificate, $FieldName, 400);
+                            $this->createCertificateField($tblCertificate, $FieldName, 430);
                         }
                         $FieldName = 'TechnicalRating';
                         if (!$this->getCertificateFieldByCertificateAndField($tblCertificate, $FieldName)) {
-                            $this->createCertificateField($tblCertificate, $FieldName, 500);
+                            $this->createCertificateField($tblCertificate, $FieldName, 450);
                         }
 
                         // Kopfnoten Setzen

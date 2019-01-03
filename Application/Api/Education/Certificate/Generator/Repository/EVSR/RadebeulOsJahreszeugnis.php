@@ -139,10 +139,10 @@ class RadebeulOsJahreszeugnis extends Certificate
     {
         // zusammen 100%
         $width1 = '20%';
-        $width2 = '30%';
+        $width2 = '45%';
         $width3 = '4%';
         $width4 = '15%';
-        $width5 = '31%';
+        $width5 = '16%';
 
         $sliceArray = array();
 
@@ -162,7 +162,7 @@ class RadebeulOsJahreszeugnis extends Certificate
                     'Klasse:'
                 ), $width4)
                 ->addElementColumn(self::getBodyElement(
-                    '{{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}'
+                    '{{ Content.P' . $personId . '.Division.Data.Name }} {{ Content.P' . $personId . '.Division.Data.Level.Name }}'
                     , true
                 ), $width5)
             )
