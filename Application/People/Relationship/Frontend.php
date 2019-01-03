@@ -696,10 +696,12 @@ class Frontend extends Extension implements IFrontendInterface
                         $content[] = $tblPerson->getLastFirstName()
                             . $sign
                             . new \SPHERE\Common\Frontend\Link\Repository\Link(
-                                new PersonIcon(), '/People/Person', null,
-                                array('Id' => $tblToPerson->getServiceTblPersonTo()->getId()), 'zur Person'
-                            )
-                            . $tblToPerson->getServiceTblPersonTo()->getLastFirstName();
+                                new PersonIcon() . ' ' . $tblToPerson->getServiceTblPersonTo()->getLastFirstName(),
+                                '/People/Person',
+                                null,
+                                array('Id' => $tblToPerson->getServiceTblPersonTo()->getId()),
+                                'zur Person'
+                            );
                         $panelType = Panel::PANEL_TYPE_SUCCESS;
                         $options = new \SPHERE\Common\Frontend\Link\Repository\Link(
                                 new Edit(),
@@ -718,10 +720,12 @@ class Frontend extends Extension implements IFrontendInterface
                             );
                     } else {
                         $content[] = new \SPHERE\Common\Frontend\Link\Repository\Link(
-                                new PersonIcon(), '/People/Person', null,
-                                array('Id' => $tblToPerson->getServiceTblPersonFrom()->getId()), 'zur Person'
+                                new PersonIcon() . ' ' . $tblToPerson->getServiceTblPersonFrom()->getLastFirstName(),
+                                '/People/Person',
+                                null,
+                                array('Id' => $tblToPerson->getServiceTblPersonFrom()->getId()),
+                                'zur Person'
                             )
-                            . $tblToPerson->getServiceTblPersonFrom()->getLastFirstName()
                             . $sign
                             . $tblPerson->getLastFirstName();
                         $panelType = Panel::PANEL_TYPE_DEFAULT;

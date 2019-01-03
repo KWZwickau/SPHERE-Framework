@@ -22,7 +22,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
-use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Phone as PhoneIcon;
@@ -50,7 +49,6 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
-use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -643,6 +641,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $options = '';
                             }
 
+                            $content[] = '&nbsp;';
                             $content[] = new PhoneLink($tblPhone->getNumber(), $tblPhone->getNumber(), new PhoneIcon());
                             /**
                              * @var TblToPerson $tblToPerson
@@ -651,15 +650,15 @@ class Frontend extends Extension implements IFrontendInterface
                                 if (($tblPersonPhone = Person::useService()->getPersonById($personId))) {
                                     $content[] = ($tblPerson->getId() != $tblPersonPhone->getId()
                                             ? new Link(
-                                                new PersonIcon(),
+                                                new PersonIcon() . ' ' . $tblPersonPhone->getFullName(),
                                                 '/People/Person',
                                                 null,
                                                 array('Id' => $tblPersonPhone->getId()),
                                                 'Zur Person'
                                             )
-                                            : '')
-                                        . $tblPersonPhone->getFullName()
-                                        . (($remark = $tblToPerson->getRemark())  ? ' ' . new ToolTip(new Info(), $remark) : '');
+                                            : $tblPersonPhone->getFullName())
+//                                        . (($remark = $tblToPerson->getRemark())  ? ' ' . new ToolTip(new Info(), $remark) : '');
+                                        . (($remark = $tblToPerson->getRemark())  ? ' ' . new Small(new Muted($remark)) : '');
                                 }
                             }
 

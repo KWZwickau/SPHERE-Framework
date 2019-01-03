@@ -23,6 +23,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronDown;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
+use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -133,13 +134,12 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                     )
                 ),
                 'der Person ' . new Bold(new Success($tblPerson->getFullName())),
-                new TagList()
+                new MapMarker()
             );
 
-            $contactContent = TemplateReadOnly::getContent(
-                'Kontaktdaten',
-                Phone::useFrontend()->frontendLayoutPersonNew($tblPerson, $Group)
-                . Mail::useFrontend()->frontendLayoutPersonNew($tblPerson, $Group),
+            $phoneContent = TemplateReadOnly::getContent(
+                'Telefonnummern',
+                Phone::useFrontend()->frontendLayoutPersonNew($tblPerson, $Group),
                 array(
                     new Link(
                         new Plus() . ' Telefonnummer hinzufügen',
@@ -147,6 +147,15 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                         null,
                         array('Id' => $tblPerson->getId(), 'Group' => $Group)
                     ),
+                ),
+                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
+                new \SPHERE\Common\Frontend\Icon\Repository\Phone()
+            );
+
+            $mailContent = TemplateReadOnly::getContent(
+                'E-Mail Adressen',
+                Mail::useFrontend()->frontendLayoutPersonNew($tblPerson, $Group),
+                array(
                     new Link(
                         new Plus() . ' E-Mail Adresse hinzufügen',
                         '/People/Person/Mail/Create',
@@ -155,7 +164,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                     )
                 ),
                 'der Person ' . new Bold(new Success($tblPerson->getFullName())),
-                new TagList()
+                new \SPHERE\Common\Frontend\Icon\Repository\Mail()
             );
 
             $relationshipContent = TemplateReadOnly::getContent(
@@ -192,7 +201,8 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 . $integrationContent
 
                 . $addressContent
-                . $contactContent
+                . $phoneContent
+                . $mailContent
                 . $relationshipContent
 //                . self::getLayoutContact($tblPerson, $Group)
             );

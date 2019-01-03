@@ -154,12 +154,10 @@ class FrontendStudentProcess extends FrontendReadOnly
 
             $content = new Layout(new LayoutGroup(array(
                 new LayoutRow(array(
-                    new LayoutColumn($processPanel)
-                )),
-                new LayoutRow(array(
-                    new LayoutColumn($visitedDivisionsPanel, 6),
-                    new LayoutColumn($repeatedDivisionsPanel, 6)
-                )),
+                    new LayoutColumn($processPanel, 4),
+                    new LayoutColumn($visitedDivisionsPanel, 4),
+                    new LayoutColumn($repeatedDivisionsPanel, 4)
+                ))
             )));
 
             $editLink = (new Link(new Edit() . ' Bearbeiten', ApiPersonEdit::getEndpoint()))
@@ -204,14 +202,32 @@ class FrontendStudentProcess extends FrontendReadOnly
         }
 
         $contentProcess[] =  '&nbsp;';
+//        $contentProcess[] =  new Layout(new LayoutGroup(array(
+//            new LayoutRow(array(
+//                self::getLayoutColumnLabel('Aktuelle Schule'),
+//                self::getLayoutColumnValue($processCompany),
+//                self::getLayoutColumnLabel('Aktueller Bildungsgang'),
+//                self::getLayoutColumnValue($processCourse),
+//                self::getLayoutColumnLabel('Bemerkungen'),
+//                self::getLayoutColumnValue($processRemark),
+//            )),
+//        )));
         $contentProcess[] =  new Layout(new LayoutGroup(array(
             new LayoutRow(array(
-                self::getLayoutColumnLabel('Aktuelle Schule'),
-                self::getLayoutColumnValue($processCompany),
-                self::getLayoutColumnLabel('Aktueller Bildungsgang'),
-                self::getLayoutColumnValue($processCourse),
-                self::getLayoutColumnLabel('Bemerkungen'),
-                self::getLayoutColumnValue($processRemark),
+                self::getLayoutColumnLabel('Aktuelle Schule', 6),
+                self::getLayoutColumnValue($processCompany, 6),
+            )),
+        )));
+        $contentProcess[] =  new Layout(new LayoutGroup(array(
+            new LayoutRow(array(
+                self::getLayoutColumnLabel('Aktueller Bildungsgang', 6),
+                self::getLayoutColumnValue($processCourse, 6),
+            )),
+        )));
+        $contentProcess[] =  new Layout(new LayoutGroup(array(
+            new LayoutRow(array(
+                self::getLayoutColumnLabel('Bemerkungen', 6),
+                self::getLayoutColumnValue($processRemark, 6),
             )),
         )));
 
@@ -385,42 +401,10 @@ class FrontendStudentProcess extends FrontendReadOnly
                                 )))->ajaxPipelineOnClick(
                                 ApiMassReplace::pipelineOpen($Field, $NodeProcess)
                             )),
-//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][School]',
-//                            'Aktuelle Schule', array(
-//                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll,
-//                            ), new Education()),
-//                        // removed SchoolType
-//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Type]',
-//                            'Aktuelle Schulart', array(
-//                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll,
-//                            ), new Education()),
-//                        new SelectBox('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Course]',
-//                            'Aktueller Bildungsgang', array(
-//                                '{{ Name }} {{ Description }}' => $tblSchoolCourseAll,
-//                            ), new Education()),
                             new TextArea('Meta[Transfer]['.$tblStudentTransferTypeProcess->getId().'][Remark]',
                                 'Bemerkungen', 'Bemerkungen', new Pencil()),
                         ), Panel::PANEL_TYPE_INFO),
                     ), 6),
-//                    new FormColumn(array(
-//                        new Panel('Besuchte Schulklassen',
-//                            $VisitedDivisions,
-//                            Panel::PANEL_TYPE_DEFAULT,
-//                            new Warning(
-//                                'Vom System erkannte Besuche. Wird bei Klassen&shy;zuordnung in Schuljahren erzeugt'
-//                            )
-//                        ),
-//                    ), 6),
-//                    new FormColumn(array(
-//                        new Panel('Aktuelle Schuljahrwiederholungen',
-//                            $RepeatedLevels,
-//                            Panel::PANEL_TYPE_DEFAULT,
-//                            new Warning(
-//                                'Vom System erkannte Schuljahr&shy;wiederholungen.'
-//                                .'Wird bei wiederholter Klassen&shy;zuordnung in verschiedenen Schuljahren erzeugt'
-//                            )
-//                        ),
-//                    ), 3),
                 )),
                 new FormRow(array(
                     new FormColumn(array(
