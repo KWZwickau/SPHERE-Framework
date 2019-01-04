@@ -27,7 +27,6 @@ class Setup extends AbstractSetup
          */
         $Schema = clone $this->getConnection()->getSchema();
         $tblBasket = $this->setTableBasket($Schema);
-        $this->setTableBasketPerson($Schema, $tblBasket);
         $this->setTableBasketItem($Schema, $tblBasket);
         $this->setTblBasketVerification($Schema, $tblBasket);
 
@@ -50,22 +49,6 @@ class Setup extends AbstractSetup
         $Table = $this->createTable($Schema, 'tblBasket');
         $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Description', self::FIELD_TYPE_TEXT);
-
-        return $Table;
-    }
-
-    /**
-     * @param Schema $Schema
-     * @param Table  $tblBasket
-     *
-     * @return Table
-     */
-    private function setTableBasketPerson(Schema &$Schema, Table $tblBasket)
-    {
-
-        $Table = $this->createTable($Schema, 'tblBasketPerson');
-        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
-        $this->getConnection()->addForeignKey($Table, $tblBasket);
 
         return $Table;
     }

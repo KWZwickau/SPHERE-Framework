@@ -39,15 +39,15 @@ class TblItemCalculation extends Element
     protected $tblItemVariant;
 
     /**
-     * @param bool $IsShort
+     * @param bool $IsFormInput
      *
      * @return (type="decimal", precision=14, scale=4)|string
      */
-    public function getValue($IsShort = false)
+    public function getValue($IsFormInput = false)
     {
 
-        if($IsShort){
-            return number_format($this->Value, 2);
+        if($IsFormInput){
+            return str_replace('.', ',', number_format($this->Value, 2));
         }
         return $this->Value;
     }

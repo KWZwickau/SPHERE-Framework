@@ -507,13 +507,13 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 new FormRow(array(
                     new FormColumn(
                         array(
-                            new Bold('Varianten: '),
+                            new Bold('Varianten '),
                             new Listing($RadioBoxListVariant)
                         )
                         , 6),
                     new FormColumn(
                         array(
-                            new Bold('Konten: '),
+                            new Bold('Konten '),
                             new Listing($RadioBoxListBankAccount)
                         )
                         , 6),
@@ -632,11 +632,11 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                         $Error = true;
                     }
                 }
-                //ToDO Werden Referenznummern bei SEPA-Lastschriften weiterhin benötigt (auch ohne Konto?)
-                if (isset($DebtorSelection['BankReference']) && empty($DebtorSelection['BankReference'])) {
-                    $form->setError('DebtorSelection[BankReference]', 'Bitte geben Sie eine Mandatsreferenz an');
-                    $Error = true;
-                }
+                //Referenznummern ohne Konto nicht mehr benötigt
+//                if (isset($DebtorSelection['BankReference']) && empty($DebtorSelection['BankReference'])) {
+//                    $form->setError('DebtorSelection[BankReference]', 'Bitte geben Sie eine Mandatsreferenz an');
+//                    $Error = true;
+//                }
             }
         }
 
@@ -690,9 +690,6 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             return $form;
         }
 
-//        return new Success('Zahlungszuweisung erfolgt (Test)').self::pipelineCloseModal($Identifier, $PersonId, $ItemId);
-
-
         $tblPersonCauser = Person::useService()->getPersonById($PersonId);
         $tblPerson = Person::useService()->getPersonById($DebtorSelection['Debtor']);
         $tblPaymentType = Balance::useService()->getPaymentTypeById($DebtorSelection['PaymentType']);
@@ -720,13 +717,13 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 ($tblBankAccount ? $tblBankAccount : null),
                 ($tblBankReference ? $tblBankReference : null));
             if ($tblDebtorSelection) {
-                return new Success('Zahlungszuweisung erfolgreich angelegt').self::pipelineCloseModal($Identifier,
+                return new Success('Die Zuordnung des Beitragszahlers erfolgreich angelegt').self::pipelineCloseModal($Identifier,
                         $PersonId, $ItemId);
             } else {
-                return new Danger('Zahlungszuweisung konnte nicht gengelegt werden');
+                return new Danger('Die Zuordnung des Beitragszahlers konnte nicht gengelegt werden');
             }
         } else {
-            return new Danger('Zahlungszuweisung konnte nicht gengelegt werden (Person/Typ/Item)');
+            return new Danger('Die Zuordnung des Beitragszahlers konnte nicht gengelegt werden (Person/Typ/Item)');
         }
     }
 
@@ -790,8 +787,8 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         }
 
         return ($IsChange
-            ? new Success('Zahlungszuweisung erfolgreich geändert').self::pipelineCloseModal($Identifier, $PersonId, $ItemId)
-            : new Danger('Zahlungszuweisung konnte nicht geändert werden'));
+            ? new Success('Die Zuordnung des Beitragszahlers erfolgreich geändert').self::pipelineCloseModal($Identifier, $PersonId, $ItemId)
+            : new Danger('Die Zuordnung des Beitragszahlers konnte nicht geändert werden'));
     }
 
     /**
@@ -906,7 +903,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel('Soll die Zahlungszuweisung wirklich entfernt werden?'
+                            new Panel('Soll die Zuordnung des Beitragszahlers wirklich entfernt werden?'
                                 , $Content, Panel::PANEL_TYPE_DANGER)
                         ),
                         new LayoutColumn(
@@ -920,7 +917,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             );
 
         } else {
-            return new Warning('Zahlungszuweisung wurde nicht gefunden');
+            return new Warning('Die Zuordnung des Beitragszahlers wurde nicht gefunden');
         }
     }
 
@@ -938,10 +935,10 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         if (($tblDebtorSelection = Debtor::useService()->getDebtorSelectionById($DebtorSelectionId))) {
             Debtor::useService()->removeDebtorSelection($tblDebtorSelection);
 
-            return new Success('Zahlungszuweisung wurde erfolgreich entfernt').self::pipelineCloseModal($Identifier,
+            return new Success('Die Zuordnung des Beitragszahlers wurde erfolgreich entfernt').self::pipelineCloseModal($Identifier,
                     $PersonId, $ItemId);
         }
-        return new Danger('Zahlungszuweisung konnte nicht entfernt werden');
+        return new Danger('Die Zuordnung des Beitragszahlers konnte nicht entfernt werden');
     }
 
 }

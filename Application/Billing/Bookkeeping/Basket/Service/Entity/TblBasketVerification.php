@@ -71,11 +71,16 @@ class TblBasketVerification extends Element
     protected $serviceTblItem;
 
     /**
+     * @param bool $IsFormInput
+     *
      * @return (type="decimal", precision=14, scale=4)
      */
-    public function getValue()
+    public function getValue($IsFormInput = false)
     {
 
+        if($IsFormInput){
+            return str_replace('.', ',',number_format($this->Value, 2));
+        }
         return $this->Value;
     }
 

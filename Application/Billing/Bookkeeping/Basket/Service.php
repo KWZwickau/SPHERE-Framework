@@ -3,15 +3,18 @@
 namespace SPHERE\Application\Billing\Bookkeeping\Basket;
 
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankAccount;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankReference;
+use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Data;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketItem;
-use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketPerson;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Setup;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -75,17 +78,6 @@ class Service extends AbstractService
     /**
      * @param $Id
      *
-     * @return bool|TblBasketPerson
-     */
-    public function getBasketPersonById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getBasketPersonById($Id);
-    }
-
-    /**
-     * @param $Id
-     *
      * @return bool|TblBasketVerification
      */
     public function getBasketVerificationById($Id)
@@ -133,17 +125,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getBasketItemAllByBasket($tblBasket);
-    }
-
-    /**
-     * @param TblBasket $tblBasket
-     *
-     * @return bool|TblBasketPerson[]
-     */
-    public function getBasketPersonAllByBasket(TblBasket $tblBasket)
-    {
-
-        return (new Data($this->getBinding()))->getBasketPersonAllByBasket($tblBasket);
     }
 
     /**
@@ -208,72 +189,79 @@ class Service extends AbstractService
      *
      * @return bool
      */
-    public function createBasketPersonBulk(TblBasket $tblBasket, TblItem $tblItem)
+    public function createBasketVerificationBulk(TblBasket $tblBasket, TblItem $tblItem)
     {
 
-        $PersonIdList = array();
+        $tblGroupList = array();
         if(($tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem))){
             foreach($tblItemGroupList as $tblItemGroup){
-                if(($tblGroup = $tblItemGroup->getServiceTblGroup())){
-                    if(($PersonList = Group::useService()->getPersonAllByGroup($tblGroup))){
-                        foreach ($PersonList as $tblPerson) {
-                            $PersonIdList[$tblPerson->getId()] = $tblPerson->getId();
-                        }
+                $tblGroupList[] = $tblItemGroup->getServiceTblGroup();
+            }
+        }
+        $tblPersonList = array();
+        if(!empty($tblGroupList)){
+            foreach($tblGroupList as $tblGroup){
+                if($tblPersonFromGroup = Group::useService()->getPersonAllByGroup($tblGroup)){
+                    foreach($tblPersonFromGroup as $tblPersonFrom){
+                        $tblPersonList[] = $tblPersonFrom;
                     }
-
                 }
             }
         }
 
-        return (new Data($this->getBinding()))->createBasketPersonBulk($tblBasket, $PersonIdList);
-    }
-
-    /**
-     * @param TblBasket $tblBasket
-     * @param TblItem   $tblItem
-     *
-     * @return bool
-     */
-    public function createBasketVerificationBulk(TblBasket $tblBasket, TblItem $tblItem)
-    {
-
         $DebtorDataArray = array();
-        if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionByItem($tblItem))){
-            foreach($tblDebtorSelectionList as $tblDebtorSelection) {
-                $Error = false;
-                $Item = array();
-                if (!$tblDebtorSelection->getServiceTblPersonCauser()) {
-                    $Error = true;
-                } else {
-                    $Item['Causer'] = $tblDebtorSelection->getServiceTblPersonCauser()->getId();
-                }
-                if (!$tblDebtorSelection->getServiceTblPerson()) {
-                    $Error = true;
-                } else {
-                    $Item['Debtor'] = $tblDebtorSelection->getServiceTblPerson()->getId();
-                }
-                // insert payment from DebtorSelection
-                if(!$tblDebtorSelection->getTblBankAccount()){
-                    $Item['BankAccount'] = null;
-                } else {
-                    $Item['BankAccount'] = $tblDebtorSelection->getTblBankAccount()->getId();
-                }
-                if(!$tblDebtorSelection->getTblBankReference()){
-                    $Item['BankReference'] = null;
-                } else {
-                    $Item['BankReference'] = $tblDebtorSelection->getTblBankReference()->getId();
-                }
-                $Item['PaymentType'] = $tblDebtorSelection->getServiceTblPaymentType()->getId();
-                // default special price value
-                $Item['Price'] = $tblDebtorSelection->getValue();
-                // change to selected variant
-                if (($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())) {
-                    if (($tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant))) {
-                        $Item['Price'] = $tblItemCalculation->getValue();
+        if(!empty($tblPersonList)){
+            /** @var TblPerson $tblPerson */
+            foreach($tblPersonList as $tblPerson){
+                if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPerson, $tblItem))){
+                    foreach($tblDebtorSelectionList as $tblDebtorSelection) {
+                        $Error = false;
+                        $Item = array();
+                        if (!$tblDebtorSelection->getServiceTblPersonCauser()) {
+                            //BasketVerification doesn't work without Causer
+                            $Item['Causer'] = '';
+                            $Error = true;
+                        } else {
+                            $Item['Causer'] = $tblDebtorSelection->getServiceTblPersonCauser()->getId();
+                        }
+                        if (!$tblDebtorSelection->getServiceTblPerson()) {
+                            $Item['Debtor'] = '';
+                        } else {
+                            $Item['Debtor'] = $tblDebtorSelection->getServiceTblPerson()->getId();
+                        }
+                        // insert payment from DebtorSelection
+                        if(!$tblDebtorSelection->getTblBankAccount()){
+                            $Item['BankAccount'] = null;
+                        } else {
+                            $Item['BankAccount'] = $tblDebtorSelection->getTblBankAccount()->getId();
+                        }
+                        if(!$tblDebtorSelection->getTblBankReference()){
+                            $Item['BankReference'] = null;
+                        } else {
+                            $Item['BankReference'] = $tblDebtorSelection->getTblBankReference()->getId();
+                        }
+                        $Item['PaymentType'] = $tblDebtorSelection->getServiceTblPaymentType()->getId();
+                        // default special price value
+                        $Item['Price'] = $tblDebtorSelection->getValue();
+                        // change to selected variant
+                        if (($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())) {
+                            if (($tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant))) {
+                                $Item['Price'] = $tblItemCalculation->getValue();
+                            }
+                        }
+                        if(!$Error){
+                            array_push($DebtorDataArray, $Item);
+                        }
                     }
-                }
-                // only existing People to BasketVerification
-                if(!$Error){
+                } else {
+                    // entry without DebtorSelection
+                    $Item['Causer'] = $tblPerson->getId();
+                    $Item['Debtor'] = '';
+                    $Item['BankAccount'] = null;
+                    $Item['BankReference'] = null;
+                    $Item['PaymentType'] = null;
+                    // default special price value
+                    $Item['Price'] = '0.00';
                     array_push($DebtorDataArray, $Item);
                 }
             }
@@ -299,46 +287,34 @@ class Service extends AbstractService
 
     /**
      * @param TblBasketVerification $tblBasketVerification
-     * @param array $Varification
+     * @param string                $Price
+     * @param string                $Quantity
      *
      * @return bool
      */
-    public function changeBasketVerification(TblBasketVerification $tblBasketVerification, $Varification)
+    public function changeBasketVerification(TblBasketVerification $tblBasketVerification, $Price, $Quantity)
     {
 
-        return (new Data($this->getBinding()))->updateBasketVerification($tblBasketVerification, $Varification['Price']
-            , $Varification['Quantity']);
-        //ToDO move to API
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Varification
-        ) {
-            return $Stage;
-        }
+        return (new Data($this->getBinding()))->updateBasketVerification($tblBasketVerification, $Price, $Quantity);
+    }
 
-        $Error = false;
+    /**
+     * @param TblBasketVerification $tblBasketVerification
+     * @param TblPerson             $tblPersonDebtor
+     * @param TblPaymentType        $tblPaymentType
+     * @param TblBankAccount|null   $tblBankAccount
+     * @param TblBankReference|null $tblBankReference
+     * @param string                $Value
+     *
+     * @return bool
+     */
+    public function changeBasketVerificationDebtor(TblBasketVerification $tblBasketVerification, TblPerson $tblPersonDebtor,
+        TblPaymentType $tblPaymentType, TblBankAccount $tblBankAccount = null, TblBankReference $tblBankReference = null,
+        $Value = '')
+    {
 
-        if (isset( $Varification['Price'] ) && empty( $Varification['Price'] )) {
-            $Stage->setError('Varification[Price]', 'Bitte geben Sie einen Preis an');
-            $Error = true;
-        } else {
-            $Varification['Price'] = str_replace(',', '.', $Varification['Price']);
-            if (!is_numeric($Varification['Price']) || $Varification['Price'] < 0) {
-                $Stage->setError('Varification[Price]', 'Bitte geben Sie eine Natürliche Zahl an');
-                $Error = true;
-            }
-        }
-        if (isset( $Varification['Quantity'] ) && empty( $Varification['Quantity'] )) {
-            $Stage->setError('Varification[Quantity]', 'Bitte geben Sie eine Anzahl an');
-            $Error = true;
-        } else {
-            $Varification['Quantity'] = round(str_replace(',', '.', $Varification['Quantity']), 0);
-            if (!is_numeric($Varification['Quantity']) || $Varification['Quantity'] < 1) {
-                $Stage->setError('Varification[Quantity]', 'Bitte geben Sie eine Natürliche Zahl an');
-                $Error = true;
-            }
-        }
+        return (new Data($this->getBinding()))->updateBasketVerificationDebtor($tblBasketVerification, $tblPersonDebtor,
+        $tblPaymentType, $tblBankAccount, $tblBankReference, $Value);
     }
 
     /**
@@ -349,8 +325,6 @@ class Service extends AbstractService
     public function destroyBasket(TblBasket $tblBasket)
     {
 
-        // remove all BasketPerson
-        $this->destroyBasketPersonBulk($tblBasket);
         // remove all BasketItem
         $this->destroyBasketItemBulk($tblBasket);
         // remove all BasketVerification
@@ -366,7 +340,7 @@ class Service extends AbstractService
      */
     public function destroyBasketItem(TblBasketItem $tblBasketItem)
     {
-        //ToDO Kontrolle
+
         return (new Data($this->getBinding()))->destroyBasketItem($tblBasketItem);
     }
 
@@ -388,41 +362,13 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblBasketPerson $tblBasketPerson
-     *
-     * @return bool
-     */
-    public function destroyBasketPerson(TblBasketPerson $tblBasketPerson)
-    {
-
-        return (new Data($this->getBinding()))->destroyBasketPerson($tblBasketPerson);
-    }
-
-    /**
-     * @param TblBasket $tblBasket
-     *
-     * @return bool
-     */
-    public function destroyBasketPersonBulk(TblBasket $tblBasket)
-    {
-
-        $BasketPersonIdList = array();
-        if(($tblBasketPersonList = Basket::useService()->getBasketPersonAllByBasket($tblBasket))){
-            foreach($tblBasketPersonList as $tblBasketPerson){
-                $BasketPersonIdList[$tblBasketPerson->getId()] = $tblBasketPerson->getId();
-            }
-        }
-        return (new Data($this->getBinding()))->destroyBasketPersonBulk($BasketPersonIdList);
-    }
-
-    /**
      * @param TblBasketVerification $tblBasketVerification
      *
      * @return string
      */
     public function destroyBasketVerification(TblBasketVerification $tblBasketVerification)
     {
-        //ToDO Kontrolle
+
         return (new Data($this->getBinding()))->destroyBasketVerification($tblBasketVerification);
     }
 

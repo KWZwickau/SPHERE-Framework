@@ -4,8 +4,14 @@ namespace SPHERE\Application\Api\Billing\Accounting;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
+use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
+use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\IApiInterface;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson;
+use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
 use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
@@ -355,36 +361,46 @@ class ApiDebtor extends Extension implements IApiInterface
     public function showAddDebtorNumber($Identifier = '', $PersonId = '')
     {
 
-        //ToDO Scülernummer als Debitor voreintragen
-//        if(($tblPerson = Person::useService()->getPersonById($PersonId))){
-//            // Person is Student
-//            if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
-//                $tblStudent->getIdentifierComplete();
-//            } else {
-//
-//                $tblRelationshipType = Relationship::useService()->getTypeByName( TblType::IDENTIFIER_GUARDIAN );
-//                $tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType);
-//                if($tblToPersonList){
-//                    /* @var TblToPerson $tblToPerson */
-//                    $tblToPerson = current($tblToPersonList);
-//                    $tblPersonStudent = $tblToPerson->getServiceTblPersonTo();
-//                    if(($tblStudent = Student::useService()->getStudentByPerson($tblPersonStudent))){
-//                        $tblStudent->getIdentifierComplete();
-//                    }
-//                } else {
-//                    // Person how is Authorized for Student
-//                    $tblRelationshipType = Relationship::useService()->getTypeByName( TblType::IDENTIFIER_AUTHORIZED );$tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType);
-//                    if($tblToPersonList){
-//                        /* @var TblToPerson $tblToPerson */
-//                        $tblToPerson = current($tblToPersonList);
-//                        $tblPersonStudent = $tblToPerson->getServiceTblPersonTo();
-//                        if(($tblStudent = Student::useService()->getStudentByPerson($tblPersonStudent))){
-//                            $tblStudent->getIdentifierComplete();
-//                        }
-//                    }
-//                }
-//            }
-//        }
+        $PostIdentifier = '';
+        if(($tblPerson = Person::useService()->getPersonById($PersonId))){
+            // Person is Student
+            if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))){
+                $PostIdentifier = $tblStudent->getIdentifierComplete();
+            } else {
+
+                $tblRelationshipType = Relationship::useService()->getTypeByName( TblType::IDENTIFIER_GUARDIAN );
+                $tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType);
+                if($tblToPersonList){
+                    /* @var TblToPerson $tblToPerson */
+                    $tblToPerson = current($tblToPersonList);
+                    $tblPersonStudent = $tblToPerson->getServiceTblPersonTo();
+                    if(($tblStudent = Student::useService()->getStudentByPerson($tblPersonStudent))){
+                        $PostIdentifier = $tblStudent->getIdentifierComplete();
+                    }
+                } else {
+                    // Person how is Authorized for Student
+                    $tblRelationshipType = Relationship::useService()->getTypeByName( TblType::IDENTIFIER_AUTHORIZED );$tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType);
+                    if($tblToPersonList){
+                        /* @var TblToPerson $tblToPerson */
+                        $tblToPerson = current($tblToPersonList);
+                        $tblPersonStudent = $tblToPerson->getServiceTblPersonTo();
+                        if(($tblStudent = Student::useService()->getStudentByPerson($tblPersonStudent))){
+                            $PostIdentifier = $tblStudent->getIdentifierComplete();
+                        }
+                    }
+                }
+            }
+        }
+
+        if($DebtorCountSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DEBTOR_NUMBER_COUNT)){
+            $count = $DebtorCountSetting->getValue();
+            $PostIdentifier = str_pad($PostIdentifier, $count ,'0', STR_PAD_LEFT);
+        }
+        if($PostIdentifier){
+            $Global = $this->getGlobal();
+            $Global->POST['DebtorNumber']['Number'] = $PostIdentifier;
+            $Global->savePost();
+        }
 
         return Debtor::useFrontend()->getPersonPanel($PersonId) . new Well($this->formDebtorNumber($Identifier,
                 $PersonId));

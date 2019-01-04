@@ -113,19 +113,19 @@ class Frontend extends Extension implements IFrontendInterface
                                         )),
                                     new LayoutRow(array(
                                         new LayoutColumn(
-                                            new Listing(array('Debitornummer ist eine pflicht Angabe: '.$DebtorNumberReceiver.new PullRight(
+                                            new Listing(array('Debitornummer ist eine Pflichtangabe: '.$DebtorNumberReceiver.new PullRight(
                                                     (new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
                                                         ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED,
-                                                            'Debitornummer ist eine pflicht Angabe'))
+                                                            'Debitornummer ist eine Pflichtangabe'))
                                                 )))
                                             , 6),
                                     )),
                                     new LayoutRow(array(
                                         new LayoutColumn(
-                                            new Listing(array('Konto für SEPA-Lastschrift ist eine pflicht Angabe: '.$SepaAccountReceiver.new PullRight(
+                                            new Listing(array('Konto für SEPA-Lastschrift ist eine Pflichtangabe: '.$SepaAccountReceiver.new PullRight(
                                                     (new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
                                                         ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting(TblSetting::IDENT_IS_SEPA_ACCOUNT_NEED,
-                                                            'Konto für SEPA-Lastschrift ist eine pflicht Angabe: '))
+                                                            'Konto für SEPA-Lastschrift ist eine Pflichtangabe: '))
                                                 )))
                                             , 6),
                                     )),

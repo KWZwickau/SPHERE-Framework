@@ -230,13 +230,16 @@ class ApiSetting extends Extension implements IApiInterface
             $Global->POST[$Identifier] = $tblSetting->getValue();
             $Global->savePost();
         }
-        $field = false;
+
         if ($tblSetting->getType() == TblSetting::TYPE_BOOLEAN) {
             $field = new CheckBox($Identifier, $FieldLabel, 1);
         } elseif ($tblSetting->getType() == TblSetting::TYPE_STRING) {
             $field = new TextField($Identifier, '', $FieldLabel, new Comment());
         } elseif ($tblSetting->getType() == TblSetting::TYPE_INTEGER) {
             $field = new NumberField($Identifier, '', $FieldLabel, new Quantity());
+        } else {
+            // fallback for missing Type
+            $field = new TextField($Identifier, '', $FieldLabel, new Comment());
         }
 
 

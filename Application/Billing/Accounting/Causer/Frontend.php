@@ -163,7 +163,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $i = 0;
                 array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblGroup, &$i, $IsDebtorNumberNeed) {
                     $Item['Name'] = $tblPerson->getLastFirstName();
-                    $Item['ContentRow'] = ''; // ToDO Anzeige der vorhandenen Zahlungszuweisungen
+                    $Item['ContentRow'] = '';
 //                    $Item['Option'] = new Standard('', '', new Edit());
                     // Herraussuchen aller Beitragsarten die aktuell eingestellt werden müssen
                     $ContentSingleRow = array();
@@ -194,15 +194,15 @@ class Frontend extends Extension implements IFrontendInterface
                             }
 
                             if($PaymentType == 'Lastschrift'){
-                                $BankStatus = new DangerText(new ToolTip(new Disable(), 'Zahlungszuweisung: Keine Bankdaten hinterlegt'));
+                                $BankStatus = new DangerText(new ToolTip(new Disable(), 'Beitragszahler: Keine Bankdaten hinterlegt'));
                                 if(($tblBankAccount = $tblDebtorSelection->getTblBankAccount())){
-                                    $BankStatus = new ToolTip(new DangerText(new Info()), 'Zahlungszuweisung: Referenznummer fehlt');
+                                    $BankStatus = new ToolTip(new DangerText(new Info()), 'Beitragszahler: Referenznummer fehlt');
                                 }
                                 if(($tblBankReference = $tblDebtorSelection->getTblBankReference())){
-                                    $BankStatus = new ToolTip(new SuccessText(new Info()), 'Zahlungszuweisung OK');
+                                    $BankStatus = new ToolTip(new SuccessText(new Info()), 'Beitragszahler OK');
                                 }
                             } else {
-                                $BankStatus = new WarningText(new ToolTip(new Minus(), 'Zahlungszuweisung: Benötigt keine Bankdaten'));
+                                $BankStatus = new WarningText(new ToolTip(new Minus(), 'Beitragszahler: Benötigt keine Bankdaten'));
                             }
 
                             $ItemPriceString = 'Nicht verfügbar!';
@@ -241,7 +241,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         return new TableData($TableContent, null, array(
             'Name'       => 'Person',
-            'ContentRow' => 'Zahlungszuweisungen',
+            'ContentRow' => 'Zuordnung Beitragszahler',
             'Option'     => '',
         ));
     }
@@ -307,9 +307,9 @@ class Frontend extends Extension implements IFrontendInterface
             ApiBankReference::receiverModal('Hinzufügen einer Referenznummer', 'addBankReference')
             . ApiBankReference::receiverModal('Bearbeiten der Referenznummer', 'editBankReference')
             . ApiBankReference::receiverModal('Entfernen der Referenznummer', 'deleteBankReference')
-            . ApiDebtorSelection::receiverModal('Hinzufügen der Zahlungszuweisung', 'addDebtorSelection')
-            . ApiDebtorSelection::receiverModal('Bearbeiten der Zahlungszuweisung', 'editDebtorSelection')
-            . ApiDebtorSelection::receiverModal('Entfernen der Zahlungszuweisung', 'deleteDebtorSelection')
+            . ApiDebtorSelection::receiverModal('Hinzufügen der Beitragszahler', 'addDebtorSelection')
+            . ApiDebtorSelection::receiverModal('Bearbeiten der Beitragszahler', 'editDebtorSelection')
+            . ApiDebtorSelection::receiverModal('Entfernen der Beitragszahler', 'deleteDebtorSelection')
             . Debtor::useFrontend()->getPersonPanel($PersonId)
             . new Layout(
                 new LayoutGroup(
@@ -334,7 +334,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $NumberList = array();
                 foreach ($tblReferenceList as $tblReference) {
                     //ToDO bearbeiten/löschen deaktivieren, wenn sie bereits benutzt werden
-                    $NumberList[] = new ToolTip($tblReference->getReferenceNumber(), 'Gültig ab: '.$tblReference->getReferenceDate()) . ' '
+                    $NumberList[] = $tblReference->getReferenceNumber().' '.new ToolTip(new Info().'&nbsp;&nbsp;'
+                            , 'Gültig ab: '.$tblReference->getReferenceDate()) . ' '
                         . (new Link('', ApiBankReference::getEndpoint(), new Pencil()))
                             ->ajaxPipelineOnClick(ApiBankReference::pipelineOpenEditReferenceModal('editBankReference',
                                 $PersonId, $tblReference->getId()))
@@ -421,14 +422,14 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             } else {
                 $PanelContent[] = new Warning(
-                    (new Link('Zahlungszuweisung festlegen', '', new PersonIcon()))
+                    (new Link('Beitragszahler festlegen', '', new PersonIcon()))
                     ->ajaxPipelineOnClick(ApiDebtorSelection::pipelineOpenAddDebtorSelectionModal('addDebtorSelection', $PersonId, $ItemId))
-                    .new ToolTip(new Info(), 'Beitragsarten werden ohne Zahlungszuweisung nicht berücksichtigt')
+                    .new ToolTip(new Info(), 'Beitragsarten werden ohne Beitragszahler nicht berücksichtigt')
                 );
                 return implode('<br/>', $PanelContent);
             }
             // Add Button at end of DebtorSelection List
-            $Accordion[] = (new Link('Weitere Zahlungszuweisung hinzufügen', '', new PersonIcon()))
+            $Accordion[] = (new Link('Weitere Beitragszahler hinzufügen', '', new PersonIcon()))
                 ->ajaxPipelineOnClick(ApiDebtorSelection::pipelineOpenAddDebtorSelectionModal('addDebtorSelection', $PersonId, $ItemId));
         }
         return implode('', $Accordion);
