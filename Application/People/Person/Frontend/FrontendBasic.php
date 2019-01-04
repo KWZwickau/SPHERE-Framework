@@ -95,7 +95,7 @@ class FrontendBasic extends FrontendReadOnly
                 new FormRow(new FormColumn(
                     $frontendCommon->getEditCommonTitle(null, true))
                 ),
-                $frontendCommon->getCommomFormRow(),
+                $frontendCommon->getCommonFormRow(),
                 new FormRow(new FormColumn(
                     (new Primary(new Save() . ' Speichern', ApiPersonEdit::getEndpoint()))
                         ->ajaxPipelineOnClick(ApiPersonEdit::pipelineSaveCreatePersonContent())
@@ -388,7 +388,7 @@ class FrontendBasic extends FrontendReadOnly
             new FormColumn(
                 new Panel('Anrede', array(
                     (new SelectBox('Person[Salutation]', 'Anrede', array('Salutation' => $tblSalutationAll),
-                        new Conversation()))->setTabIndex(1),
+                        new Conversation()))->setTabIndex(1)->ajaxPipelineOnChange(ApiPersonEdit::pipelineChangeSelectedGender()),
                     (new AutoCompleter('Person[Title]', 'Titel', 'Titel', array('Dipl.- Ing.'),
                         new Conversation()))->setTabIndex(4),
                 ), Panel::PANEL_TYPE_INFO), 2),

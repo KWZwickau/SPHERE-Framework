@@ -7,6 +7,7 @@ use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Meta\Club\Club;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
 use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -55,6 +56,7 @@ class ApiPersonEdit extends Extension implements IApiInterface
         $Dispatcher = new Dispatcher(__CLASS__);
 
         $Dispatcher->registerMethod('saveCreatePersonContent');
+        $Dispatcher->registerMethod('changeSelectedGender');
         $Dispatcher->registerMethod('loadSimilarPersonContent');
         $Dispatcher->registerMethod('loadSimilarPersonMessage');
 
@@ -118,6 +120,21 @@ class ApiPersonEdit extends Extension implements IApiInterface
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'PersonContent'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'saveCreatePersonContent',
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineChangeSelectedGender()
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'SelectedGender'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'changeSelectedGender',
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -958,6 +975,32 @@ class ApiPersonEdit extends Extension implements IApiInterface
             return new Danger(new Ban() . ' Die Person konnte nicht erstellt werden')
                 . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR);
         }
+    }
+
+    /**
+     * @return \SPHERE\Common\Frontend\Form\Repository\Field\SelectBox
+     */
+    public function changeSelectedGender()
+    {
+
+        $Global = $this->getGlobal();
+        $Person = $Global->POST['Person'];
+        $Meta = $Global->POST['Meta'];
+
+        $genderId = 0;
+        if (isset($Person['Salutation'])
+            && isset($Meta['BirthDates']['Gender'])
+        ) {
+            if (($tblSalutation = Person::useService()->getSalutationById($Person['Salutation']))) {
+                if ($tblSalutation->getSalutation() == 'Frau') {
+                    $genderId = TblCommonBirthDates::VALUE_GENDER_FEMALE;
+                } elseif ($tblSalutation->getSalutation() == 'Herr') {
+                    $genderId = TblCommonBirthDates::VALUE_GENDER_MALE;
+                }
+            }
+        }
+
+        return (new FrontendCommon())->getGenderSelectBox($genderId);
     }
 
     /**

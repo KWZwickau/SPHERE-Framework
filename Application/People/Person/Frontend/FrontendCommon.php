@@ -9,6 +9,7 @@
 namespace SPHERE\Application\People\Person\Frontend;
 
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
+use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonInformation;
@@ -205,7 +206,7 @@ class FrontendCommon extends FrontendReadOnly
 
         return new Form(array(
             new FormGroup(array(
-                $this->getCommomFormRow(),
+                $this->getCommonFormRow(),
                 new FormRow(array(
                     new FormColumn(array(
                         (new Primary('Speichern', ApiPersonEdit::getEndpoint(), new Save()))
@@ -221,7 +222,7 @@ class FrontendCommon extends FrontendReadOnly
     /**
      * @return FormRow
      */
-    public function getCommomFormRow()
+    public function getCommonFormRow()
     {
         $tblCommonBirthDatesAll = Common::useService()->getCommonBirthDatesAll();
         $tblBirthplaceAll = array();
@@ -275,6 +276,8 @@ class FrontendCommon extends FrontendReadOnly
             });
         }
 
+        $genderReceiver = ApiPersonReadOnly::receiverBlock($this->getGenderSelectBox(0), 'SelectedGender');
+
         return new FormRow(array(
             new FormColumn(array(
                 new Panel('Geburtsdaten', array(
@@ -283,11 +286,7 @@ class FrontendCommon extends FrontendReadOnly
                     new AutoCompleter('Meta[BirthDates][Birthplace]', 'Geburtsort', 'Geburtsort',
                         $tblBirthplaceAll,
                         new MapMarker()),
-                    new SelectBox('Meta[BirthDates][Gender]', 'Geschlecht', array(
-                        TblCommonBirthDates::VALUE_GENDER_NULL   => '',
-                        TblCommonBirthDates::VALUE_GENDER_MALE   => 'Männlich',
-                        TblCommonBirthDates::VALUE_GENDER_FEMALE => 'Weiblich'
-                    ), new Child()),
+                    $genderReceiver,
                 ), Panel::PANEL_TYPE_INFO),
             ), 3),
             new FormColumn(array(
@@ -322,5 +321,23 @@ class FrontendCommon extends FrontendReadOnly
                 ), Panel::PANEL_TYPE_INFO)
             ), 3),
         ));
+    }
+
+    /**
+     * @param $GenderId
+     *
+     * @return SelectBox
+     */
+    public function getGenderSelectBox($GenderId)
+    {
+        $global = $this->getGlobal();
+        $global->POST['Meta']['BirthDates']['Gender'] = $GenderId;
+        $global->savePost();
+
+        return new SelectBox('Meta[BirthDates][Gender]', 'Geschlecht', array(
+            TblCommonBirthDates::VALUE_GENDER_NULL => '',
+            TblCommonBirthDates::VALUE_GENDER_MALE => 'Männlich',
+            TblCommonBirthDates::VALUE_GENDER_FEMALE => 'Weiblich'
+        ), new Child());
     }
 }
