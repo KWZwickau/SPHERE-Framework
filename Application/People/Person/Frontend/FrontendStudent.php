@@ -196,7 +196,7 @@ class FrontendStudent extends FrontendReadOnly
 
             return TemplateReadOnly::getContent(
                 self::TITLE . ' - Grunddaten',
-                $content,
+                self::getSubContent('Grunddaten', $content),
                 array($editLink),
                 'der Person ' . new Bold(new Success($tblPerson->getFullName())),
                 new Nameplate()

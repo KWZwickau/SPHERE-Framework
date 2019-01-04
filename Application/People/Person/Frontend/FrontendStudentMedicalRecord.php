@@ -100,7 +100,7 @@ class FrontendStudentMedicalRecord extends FrontendReadOnly
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
-                $content,
+                self::getSubContent('Krankenakte', $content),
                 array($editLink),
                 'der Person ' . new Bold(new Success($tblPerson->getFullName())),
                 new Hospital()

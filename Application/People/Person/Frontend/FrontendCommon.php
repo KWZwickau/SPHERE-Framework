@@ -132,7 +132,7 @@ class FrontendCommon extends FrontendReadOnly
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
-                $content,
+                self::getSubContent('Personendaten', $content),
                 array($editLink),
                 'der Person ' . new Bold(new Success($tblPerson->getFullName())),
                 new Tag()

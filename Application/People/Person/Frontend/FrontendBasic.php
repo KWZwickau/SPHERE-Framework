@@ -213,7 +213,7 @@ class FrontendBasic extends FrontendReadOnly
     {
         if (($tblPerson = Person::useService()->getPersonById($PersonId, true))) {
             $groups = array();
-            if (($tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson))) {
+            if (($tblGroupList = Group::useService()->getGroupAllSortedByPerson($tblPerson))) {
                 foreach ($tblGroupList as $tblGroup) {
                     $groups[] = $tblGroup->getName();
                 }
@@ -255,7 +255,7 @@ class FrontendBasic extends FrontendReadOnly
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
-                $content,
+                self::getSubContent('Grunddaten', $content),
                 array($editLink),
                 'der Person ' . new Bold(new Success($tblPerson->getFullName())),
                 new PersonParent()

@@ -102,6 +102,32 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|TblGroup[]
+     */
+    public function getGroupAllSortedByPerson(TblPerson $tblPerson)
+    {
+        $lockedList = array();
+        $customList = array();
+        $tblGroupAll = $this->getGroupAllByPerson($tblPerson);
+        if ($tblGroupAll) {
+            foreach ($tblGroupAll as $tblGroup) {
+                if ($tblGroup->isLocked()) {
+                    $lockedList[$tblGroup->getId()] = $tblGroup;
+                } else {
+                    $customList[$tblGroup->getId()] = $tblGroup;
+                }
+            }
+        }
+
+        $lockedList = $this->getSorter($lockedList)->sortObjectBy('Name', new Sorter\StringNaturalOrderSorter());
+        $customList = $this->getSorter($customList)->sortObjectBy('Name', new Sorter\StringNaturalOrderSorter());
+
+        return array_merge($lockedList, $customList);
+    }
+
+    /**
      * @return bool|TblGroup[]
      */
     public function getGroupAll()

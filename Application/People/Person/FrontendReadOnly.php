@@ -370,7 +370,9 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
             $content = array($content);
         }
 
-        array_unshift($content, new Bold(new \SPHERE\Common\Frontend\Text\Repository\Info($title)));
+        if ($title != '') {
+            array_unshift($content, new Bold(new \SPHERE\Common\Frontend\Text\Repository\Info($title)));
+        }
         array_unshift($content, '&nbsp;');
 
         return new Panel(

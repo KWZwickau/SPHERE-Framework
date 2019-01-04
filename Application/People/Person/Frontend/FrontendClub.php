@@ -91,7 +91,7 @@ class FrontendClub  extends FrontendReadOnly
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
-                $content,
+                self::getSubContent(self::TITLE, $content),
                 array($editLink),
                 'der Person ' . new Bold(new Success($tblPerson->getFullName())),
                 new Tag()
