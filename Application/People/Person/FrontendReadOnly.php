@@ -51,6 +51,9 @@ use SPHERE\System\Extension\Extension;
 class FrontendReadOnly extends Extension implements IFrontendInterface
 {
 
+    /**
+     * @return Stage
+     */
     public function frontendPersonCreate()
     {
         $stage = new Stage('Person', 'Datenblatt anlegen');

@@ -23,19 +23,19 @@ class Company extends Extension implements IApplicationInterface, IModuleInterfa
 
         self::registerModule();
 
-        if (0 === strpos(self::getRequest()->getPathInfo(), (new Link\Route(__NAMESPACE__))->getValue())) {
-            $Parameter = self::getRequest()->getParameterArray();
-            if (isset( $Parameter['Id'] )) {
-                $Name = 'Institution bearbeiten';
-            } else {
-                $Name = 'Institution anlegen';
-            }
-        } else {
+//        if (0 === strpos(self::getRequest()->getPathInfo(), (new Link\Route(__NAMESPACE__))->getValue())) {
+//            $Parameter = self::getRequest()->getParameterArray();
+//            if (isset( $Parameter['Id'] )) {
+//                $Name = 'Institution bearbeiten';
+//            } else {
+//                $Name = 'Institution anlegen';
+//            }
+//        } else {
             $Name = 'Institution anlegen';
-        }
+//        }
 
         Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name($Name),
+            new Link(new Link\Route(__NAMESPACE__ . '/Create'), new Link\Name($Name),
                 new Link\Icon(new Building())
             )
         );
@@ -46,6 +46,9 @@ class Company extends Extension implements IApplicationInterface, IModuleInterfa
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, 'FrontendReadOnly::frontendCompanyReadOnly'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Create', __NAMESPACE__. '\FrontendReadOnly::frontendCompanyCreate'
         ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy', __NAMESPACE__.'\Frontend::frontendDestroyCompany')

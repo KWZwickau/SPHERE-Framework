@@ -66,6 +66,27 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
     const TITLE = 'Grunddaten';
 
     /**
+     * @return Stage
+     */
+    public function frontendCompanyCreate()
+    {
+        $stage = new Stage('Institution', 'Datenblatt anlegen');
+        if (Access::useService()->hasAuthorization('/Api/Corporation/Company/ApiCompanyEdit')) {
+            $createCompanyContent = ApiCompanyEdit::receiverBlock(
+                $this->getCreateCompanyContent(), 'CompanyContent'
+            );
+        } else {
+            $createCompanyContent = new Danger('Sie haben nicht das Recht neue Institutionen anzulegen', new Exclamation());
+        }
+
+        $stage->setContent(
+            $createCompanyContent
+        );
+
+        return $stage;
+    }
+
+    /**
      *
      * @param null|int $Id
      * @param null|int $Group
