@@ -186,7 +186,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                     )
                 ),
                 'der Person ' . new Bold(new Success($tblPerson->getFullName())) . ' zu Personen und Institutionen',
-                new TagList()
+                new \SPHERE\Common\Frontend\Icon\Repository\Link()
             );
 
             $stage->setContent(
@@ -351,6 +351,29 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
             $title . ($options ? new PullRight($options) : ''),
             $content,
             $panelType
+        );
+    }
+
+    /**
+     * @param string $title
+     * @param array|string $content
+     *
+     * @return Panel
+     */
+    public static function getSubContent($title, $content)
+    {
+
+        if (!is_array($content)) {
+            $content = array($content);
+        }
+
+        array_unshift($content, new Bold(new \SPHERE\Common\Frontend\Text\Repository\Info($title)));
+        array_unshift($content, '&nbsp;');
+
+        return new Panel(
+            '',
+            $content,
+            Panel::PANEL_TYPE_INFO
         );
     }
 }

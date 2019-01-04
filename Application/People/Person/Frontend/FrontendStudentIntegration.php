@@ -27,6 +27,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success as SuccessMessage;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -57,10 +58,11 @@ class FrontendStudentIntegration extends FrontendReadOnly
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
-                $showLink,
-                array(),
+                new Info('Die Integrations-Daten sind ausgeblendet. Bitte klicken Sie auf Anzeigen.'),
+                array($showLink),
                 'der Person ' . new Bold(new Success($tblPerson->getFullName())),
-                new Tag()
+                new Tag(),
+                true
             );
         }
 

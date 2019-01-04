@@ -98,35 +98,35 @@ class FrontendStudentSubject  extends FrontendReadOnly
             /**
              * Wahlfächer
              */
-            $electiveContent[] = '&nbsp;';
+            $electiveRows = array();
             for ($i = 1; $i < 4; $i++)
             {
-                $electiveContent[] = new Layout(new LayoutGroup(array(
+                $electiveRows[] =
                     new LayoutRow(array(
                         self::getLayoutColumnLabel($i . '. Wahlfach', 6),
                         self::getLayoutColumnValue(isset($subjects['ELECTIVE'][$i]) ? $subjects['ELECTIVE'][$i] : '&ndash;', 6),
-                    )),
-                )));
+                    ));
             }
+            $electiveContent = new Layout(new LayoutGroup($electiveRows));
 
             /**
              * Arbeitsgemeinschaften
              */
-            $teamContent[] = '&nbsp;';
+            $teamRows = array();
             for ($i = 1; $i < 4; $i++)
             {
-                $teamContent[] = new Layout(new LayoutGroup(array(
+                $teamRows[] =
                     new LayoutRow(array(
                         self::getLayoutColumnLabel($i . '. AG', 6),
                         self::getLayoutColumnValue(isset($subjects['TEAM'][$i]) ? $subjects['TEAM'][$i] : '&ndash;', 6),
-                    )),
-                )));
+                    ));
             }
+            $teamContent = new Layout(new LayoutGroup($teamRows));
 
             /**
              * Fremdsprachen
              */
-            $foreignLanguageContent[] = '&nbsp;';
+            $foreignLanguageContent = array();
             for ($i = 1; $i < 5; $i++)
             {
                 $foreignLanguageContent[] = new Layout(new LayoutGroup(array(
@@ -140,41 +140,35 @@ class FrontendStudentSubject  extends FrontendReadOnly
             $content = new Layout(new LayoutGroup(array(
                 new LayoutRow(array(
                     new LayoutColumn(array(
-                        new Panel(
+                        FrontendReadOnly::getSubContent(
                             'Fremdsprachen',
-                            $foreignLanguageContent,
-                            Panel::PANEL_TYPE_INFO
+                            $foreignLanguageContent
                         ),
                     ), 3),
                     new LayoutColumn(array(
-                        new Panel(
+                        FrontendReadOnly::getSubContent(
                             'Religion',
-                            isset($subjects['RELIGION'][1]) ? $subjects['RELIGION'][1] : '&ndash;',
-                            Panel::PANEL_TYPE_INFO
+                            isset($subjects['RELIGION'][1]) ? $subjects['RELIGION'][1] : '&ndash;'
                         ),
-                        new Panel(
+                        FrontendReadOnly::getSubContent(
                             'Profil',
-                            isset($subjects['PROFILE'][1]) ? $subjects['PROFILE'][1] : '&ndash;',
-                            Panel::PANEL_TYPE_INFO
+                            isset($subjects['PROFILE'][1]) ? $subjects['PROFILE'][1] : '&ndash;'
                         ),
-                        new Panel(
+                        FrontendReadOnly::getSubContent(
                             'Neigungskurs',
-                            isset($subjects['ORIENTATION'][1]) ? $subjects['ORIENTATION'][1] : '&ndash;',
-                            Panel::PANEL_TYPE_INFO
+                            isset($subjects['ORIENTATION'][1]) ? $subjects['ORIENTATION'][1] : '&ndash;'
                         ),
                     ), 3),
                     new LayoutColumn(array(
-                        new Panel(
+                        FrontendReadOnly::getSubContent(
                             'Wahlfächer',
-                            $electiveContent,
-                            Panel::PANEL_TYPE_INFO
+                            $electiveContent
                         ),
                     ), 3),
                     new LayoutColumn(array(
-                        new Panel(
+                        FrontendReadOnly::getSubContent(
                             'Arbeitsgemeinschaften',
-                            $teamContent,
-                            Panel::PANEL_TYPE_INFO
+                            $teamContent
                         ),
                     ), 3),
                 )),

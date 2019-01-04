@@ -112,17 +112,16 @@ class FrontendStudentGeneral extends FrontendReadOnly
             }
 
             $AgreementPanel = array();
-            $AgreementPanel[] = '&nbsp;';
             if(($tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll())){
                 array_walk($tblAgreementCategoryAll,
                     function (TblStudentAgreementCategory $tblStudentAgreementCategory) use (&$AgreementPanel, $tblStudent) {
-                        array_push($AgreementPanel, new Aspect(new Bold($tblStudentAgreementCategory->getName())));
+                        $rows[] = new LayoutRow(new LayoutColumn(new Bold($tblStudentAgreementCategory->getName())));
                         $tblAgreementTypeAll = Student::useService()->getStudentAgreementTypeAllByCategory($tblStudentAgreementCategory);
                         if ($tblAgreementTypeAll) {
                             $tblAgreementTypeAll = (new Extension)->getSorter($tblAgreementTypeAll)->sortObjectBy('Name');
                             array_walk($tblAgreementTypeAll,
                                 function (TblStudentAgreementType $tblStudentAgreementType) use (
-                                    &$AgreementPanel,
+                                    &$rows,
                                     $tblStudentAgreementCategory,
                                     $tblStudent
                                 ) {
@@ -131,16 +130,17 @@ class FrontendStudentGeneral extends FrontendReadOnly
                                     } else {
                                         $isChecked = false;
                                     }
-                                    array_push($AgreementPanel, ($isChecked ? new Check() : new Unchecked()) . ' ' . $tblStudentAgreementType->getName());
+                                    $rows[] = new LayoutRow(new LayoutColumn(($isChecked ? new Check() : new Unchecked()) . ' ' . $tblStudentAgreementType->getName()));
                                 }
                             );
                         }
+
+                        $AgreementPanel[] = new Layout(new LayoutGroup($rows));
                     }
                 );
             }
 
             $LiberationPanel = array();
-            $LiberationPanel[] = '&nbsp;';
             if (($tblLiberationCategoryAll = Student::useService()->getStudentLiberationCategoryAll())) {
                 array_walk($tblLiberationCategoryAll,
                     function (TblStudentLiberationCategory $tblStudentLiberationCategory) use (&$LiberationPanel, $tblStudent) {
@@ -165,17 +165,16 @@ class FrontendStudentGeneral extends FrontendReadOnly
             $content = new Layout(new LayoutGroup(array(
                 new LayoutRow(array(
                     new LayoutColumn(array(
-                        new Panel(
+                        FrontendReadOnly::getSubContent(
                             'Fakturierung',
                             new Layout(new LayoutGroup(array(
                                 new LayoutRow(array(
                                     self::getLayoutColumnLabel('Geschwisterkind', 6),
                                     self::getLayoutColumnValue($billingSiblingRank, 6),
                                 ))
-                            ))),
-                            Panel::PANEL_TYPE_INFO
+                            )))
                         ),
-                        new Panel(
+                        FrontendReadOnly::getSubContent(
                             'Schließfach',
                             new Layout(new LayoutGroup(array(
                                 new LayoutRow(array(
@@ -190,10 +189,9 @@ class FrontendStudentGeneral extends FrontendReadOnly
                                     self::getLayoutColumnLabel('Schlüssel Nummer', 6),
                                     self::getLayoutColumnValue($lockerKeyNumber, 6),
                                 )),
-                            ))),
-                            Panel::PANEL_TYPE_INFO
+                            )))
                         ),
-                        new Panel(
+                        FrontendReadOnly::getSubContent(
                             'Taufe',
                             new Layout(new LayoutGroup(array(
                                 new LayoutRow(array(
@@ -204,12 +202,11 @@ class FrontendStudentGeneral extends FrontendReadOnly
                                     self::getLayoutColumnLabel('Taufort', 6),
                                     self::getLayoutColumnValue($baptismLocation, 6),
                                 )),
-                            ))),
-                            Panel::PANEL_TYPE_INFO
+                            )))
                         ),
                     ), 4),
                     new LayoutColumn(array(
-                        new Panel(
+                        FrontendReadOnly::getSubContent(
                             'Schulbeförderung',
                             new Layout(new LayoutGroup(array(
                                 new LayoutRow(array(
@@ -228,22 +225,13 @@ class FrontendStudentGeneral extends FrontendReadOnly
                                     self::getLayoutColumnLabel('Bemerkungen', 6),
                                     self::getLayoutColumnValue($transportRemark, 6),
                                 )),
-                            ))),
-                            Panel::PANEL_TYPE_INFO
+                            )))
                         ),
-                        new Panel(
-                            'Unterrichtsbefreiung',
-                            $LiberationPanel,
-                            Panel::PANEL_TYPE_INFO
-                        ),
+                        FrontendReadOnly::getSubContent('Unterrichtsbefreiung', $LiberationPanel)
                     ), 4),
-                    new LayoutColumn(array(
-                        new Panel(
-                            'Einverständniserklärung zur Datennutzung',
-                            $AgreementPanel,
-                            Panel::PANEL_TYPE_INFO
-                        ),
-                    ), 4),
+                    new LayoutColumn(
+                        FrontendReadOnly::getSubContent('Einverständniserklärung zur Datennutzung', $AgreementPanel)
+                    , 4),
                 )),
             )));
 

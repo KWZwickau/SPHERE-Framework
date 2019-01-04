@@ -51,6 +51,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Link\Repository\Link;
@@ -80,10 +81,11 @@ class FrontendStudent extends FrontendReadOnly
 
             return TemplateReadOnly::getContent(
                 self::TITLE,
-                $showLink,
-                array(),
+                new Info('Die Schülerakte ist ausgeblendet. Bitte klicken Sie auf Anzeigen.'),
+                array($showLink),
                 'der Person ' . new Bold(new Success($tblPerson->getFullName())),
-                new Tag()
+                new Tag(),
+                true
             );
         }
 

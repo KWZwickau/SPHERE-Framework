@@ -133,7 +133,6 @@ class FrontendStudentTransfer extends FrontendReadOnly
             }
         }
 
-        $contentEnrollment[] =  '&nbsp;';
 //        $contentEnrollment[] =  new Layout(new LayoutGroup(array(
 //            new LayoutRow(array(
 //                self::getLayoutColumnLabel('Schule'),
@@ -159,42 +158,31 @@ class FrontendStudentTransfer extends FrontendReadOnly
                 self::getLayoutColumnLabel('Schule', 6),
                 self::getLayoutColumnValue($enrollmentCompany, 6),
             )),
-        )));
-        $contentEnrollment[] =  new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 self::getLayoutColumnLabel('Schulart', 6),
                 self::getLayoutColumnValue($enrollmentType, 6),
             )),
-        )));
-        $contentEnrollment[] =  new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 self::getLayoutColumnLabel('Einschulungsart', 6),
                 self::getLayoutColumnValue($enrollmentTransferType, 6),
             )),
-        )));
-        $contentEnrollment[] =  new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 self::getLayoutColumnLabel('Bildungsgang', 6),
                 self::getLayoutColumnValue($enrollmentCourse, 6),
             )),
-        )));
-        $contentEnrollment[] =  new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 self::getLayoutColumnLabel('Datum', 6),
                 self::getLayoutColumnValue($enrollmentDate, 6),
             )),
-        )));
-        $contentEnrollment[] =  new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 self::getLayoutColumnLabel('Bemerkungen', 6),
                 self::getLayoutColumnValue($enrollmentRemark, 6),
             )),
         )));
 
-        $enrollmentPanel = new Panel(
+        $enrollmentPanel = FrontendReadOnly::getSubContent(
             'Ersteinschulung',
-            $contentEnrollment,
-            Panel::PANEL_TYPE_INFO
+            $contentEnrollment
         );
 
         return $enrollmentPanel;
@@ -234,7 +222,6 @@ class FrontendStudentTransfer extends FrontendReadOnly
             }
         }
 
-        $contentArrive[] =  '&nbsp;';
 //        $contentArrive[] =  new Layout(new LayoutGroup(array(
 //            new LayoutRow(array(
 //                self::getLayoutColumnLabel('Abgebende Schule / Kita'),
@@ -260,42 +247,31 @@ class FrontendStudentTransfer extends FrontendReadOnly
                 self::getLayoutColumnLabel('Abgebende Schule / Kita', 6),
                 self::getLayoutColumnValue($arriveCompany, 6),
             )),
-        )));
-        $contentArrive[] =  new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 self::getLayoutColumnLabel('Staatliche Stammschule', 6),
                 self::getLayoutColumnValue($arriveStateCompany, 6),
             )),
-        )));
-        $contentArrive[] =  new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 self::getLayoutColumnLabel('Letzte Schulart', 6),
                 self::getLayoutColumnValue($arriveType, 6),
             )),
-        )));
-        $contentArrive[] =  new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 self::getLayoutColumnLabel('Letzter Bildungsgang', 6),
                 self::getLayoutColumnValue($arriveCourse, 6),
             )),
-        )));
-        $contentArrive[] =  new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 self::getLayoutColumnLabel('Datum', 6),
                 self::getLayoutColumnValue($arriveDate, 6),
             )),
-        )));
-        $contentArrive[] =  new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 self::getLayoutColumnLabel('Bemerkungen', 6),
                 self::getLayoutColumnValue($arriveRemark, 6),
             )),
         )));
 
-        $arrivePanel = new Panel(
+        $arrivePanel = FrontendReadOnly::getSubContent(
             'Schüler - Aufnahme',
-            $contentArrive,
-            Panel::PANEL_TYPE_INFO
+            $contentArrive
         );
 
         return $arrivePanel;
@@ -332,7 +308,6 @@ class FrontendStudentTransfer extends FrontendReadOnly
             }
         }
 
-        $contentLeave[] =  '&nbsp;';
 //        $contentLeave[] =  new Layout(new LayoutGroup(array(
 //            new LayoutRow(array(
 //                self::getLayoutColumnLabel('Aufnehmende Schule'),
@@ -356,36 +331,27 @@ class FrontendStudentTransfer extends FrontendReadOnly
                 self::getLayoutColumnLabel('Aufnehmende Schule', 6),
                 self::getLayoutColumnValue($leaveCompany, 6),
             )),
-        )));
-        $contentLeave[] =  new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 self::getLayoutColumnLabel('Letzte Schulart', 6),
                 self::getLayoutColumnValue($leaveType, 6),
             )),
-        )));
-        $contentLeave[] =  new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 self::getLayoutColumnLabel('Letzter Bildungsgang', 6),
                 self::getLayoutColumnValue($leaveCourse, 6),
             )),
-        )));
-        $contentLeave[] =  new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 self::getLayoutColumnLabel('Datum', 6),
                 self::getLayoutColumnValue($leaveDate, 6),
             )),
-        )));
-        $contentLeave[] =  new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 self::getLayoutColumnLabel('Bemerkungen', 6),
                 self::getLayoutColumnValue($leaveRemark, 6),
             )),
         )));
 
-        $leavePanel = new Panel(
+        $leavePanel = FrontendReadOnly::getSubContent(
             'Schüler - Abgabe',
-            $contentLeave,
-            Panel::PANEL_TYPE_INFO
+            $contentLeave
         );
 
         return $leavePanel;

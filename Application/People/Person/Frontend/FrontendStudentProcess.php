@@ -47,13 +47,13 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Link\Repository\Link;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 
 /**
  * Class FrontendStudentProcess
@@ -135,21 +135,37 @@ class FrontendStudentProcess extends FrontendReadOnly
                 }
             }
 
-            $processPanel = self::getStudentTransferProcessPanel($tblStudent ? $tblStudent : null);
-            $visitedDivisionsPanel = new Panel('Besuchte Schulklassen',
-                $VisitedDivisions,
-                Panel::PANEL_TYPE_DEFAULT,
-                new Warning(
-                    'Vom System erkannte Besuche. Wird bei Klassen&shy;zuordnung in Schuljahren erzeugt'
-                )
+            if (!empty($VisitedDivisions)) {
+                $layoutRows = array();
+                foreach ($VisitedDivisions as $visitedDivision) {
+                    $layoutRows[] = new LayoutRow(new LayoutColumn($visitedDivision));
+                }
+                $VisitedDivisions = array(new Layout(new LayoutGroup($layoutRows)));
+            }
+            $VisitedDivisions[] = new Warning(
+                'Vom System erkannte Besuche. Wird bei Klassen&shy;zuordnung in Schuljahren erzeugt.'
             );
-            $repeatedDivisionsPanel = new Panel('Aktuelle Schuljahrwiederholungen',
-                $RepeatedLevels,
-                Panel::PANEL_TYPE_DEFAULT,
-                new Warning(
-                    'Vom System erkannte Schuljahr&shy;wiederholungen.'
-                    .'Wird bei wiederholter Klassen&shy;zuordnung in verschiedenen Schuljahren erzeugt'
-                )
+
+            if (!empty($RepeatedLevels)) {
+                $layoutRows = array();
+                foreach ($RepeatedLevels as $repeatedLevel) {
+                    $layoutRows[] = new LayoutRow(new LayoutColumn($repeatedLevel));
+                }
+                $RepeatedLevels = array(new Layout(new LayoutGroup($layoutRows)));
+            }
+            $RepeatedLevels[] = new Warning(
+                'Vom System erkannte Schuljahr&shy;wiederholungen.'
+                .'Wird bei wiederholter Klassen&shy;zuordnung in verschiedenen Schuljahren erzeugt.'
+            );
+
+            $processPanel = self::getStudentTransferProcessPanel($tblStudent ? $tblStudent : null);
+            $visitedDivisionsPanel = FrontendReadOnly::getSubContent(
+                'Besuchte Schulklassen',
+                $VisitedDivisions
+            );
+            $repeatedDivisionsPanel = FrontendReadOnly::getSubContent(
+                'Aktuelle Schuljahrwiederholungen',
+                $RepeatedLevels
             );
 
             $content = new Layout(new LayoutGroup(array(
@@ -201,7 +217,6 @@ class FrontendStudentProcess extends FrontendReadOnly
             }
         }
 
-        $contentProcess[] =  '&nbsp;';
 //        $contentProcess[] =  new Layout(new LayoutGroup(array(
 //            new LayoutRow(array(
 //                self::getLayoutColumnLabel('Aktuelle Schule'),
@@ -217,24 +232,19 @@ class FrontendStudentProcess extends FrontendReadOnly
                 self::getLayoutColumnLabel('Aktuelle Schule', 6),
                 self::getLayoutColumnValue($processCompany, 6),
             )),
-        )));
-        $contentProcess[] =  new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 self::getLayoutColumnLabel('Aktueller Bildungsgang', 6),
                 self::getLayoutColumnValue($processCourse, 6),
             )),
-        )));
-        $contentProcess[] =  new Layout(new LayoutGroup(array(
             new LayoutRow(array(
                 self::getLayoutColumnLabel('Bemerkungen', 6),
                 self::getLayoutColumnValue($processRemark, 6),
             )),
         )));
 
-        $processPanel = new Panel(
+        $processPanel = FrontendReadOnly::getSubContent(
             'Schulverlauf',
-            $contentProcess,
-            Panel::PANEL_TYPE_INFO
+            $contentProcess
         );
 
         return $processPanel;
