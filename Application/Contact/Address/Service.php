@@ -132,7 +132,8 @@ class Service extends AbstractService
      * @param $Street
      * @param $City
      * @param $Type
-     * @param TblAddress|null $tblAddress
+     * @param TblToPerson|null $tblToPerson
+     *
      * @return bool|\SPHERE\Common\Frontend\Form\Structure\Form
      */
     public function checkFormAddressToPerson(
@@ -140,11 +141,11 @@ class Service extends AbstractService
         $Street,
         $City,
         $Type,
-        TblAddress $tblAddress = null
+        TblToPerson $tblToPerson = null
     ) {
 
         $error = false;
-        $form = Address::useFrontend()->formAddressToPerson($tblPerson->getId());
+        $form = Address::useFrontend()->formAddressToPerson($tblPerson->getId(), $tblToPerson ? $tblToPerson->getId() : null);
         if (isset($Street['Name']) && empty($Street['Name'])) {
             $form->setError('Street[Name]', 'Bitte geben Sie eine Strasse an');
             $error = true;
@@ -175,7 +176,10 @@ class Service extends AbstractService
             $error = true;
         } else {
             // control there is no other MainAddress
-            if ($tblType->getName() == 'Hauptadresse') {
+            if ($tblToPerson
+                && ($tblAddress = $tblToPerson->getTblAddress())
+                && $tblType->getName() == 'Hauptadresse'
+            ) {
                 $tblAddressMain = $tblPerson->fetchMainAddress();
                 if ($tblAddressMain && (($tblAddress && $tblAddress->getId() != $tblAddressMain->getId()) || !$tblAddress)) {
                     $form->setError('Type[Type]', '"' . trim($tblPerson->getFullName())
@@ -193,7 +197,8 @@ class Service extends AbstractService
      * @param $Street
      * @param $City
      * @param $Type
-     * @param TblAddress|null $tblAddress
+     * @param TblToCompany|null $tblToCompany
+     *
      * @return bool|\SPHERE\Common\Frontend\Form\Structure\Form
      */
     public function checkFormAddressToCompany(
@@ -201,11 +206,11 @@ class Service extends AbstractService
         $Street,
         $City,
         $Type,
-        TblAddress $tblAddress = null
+        TblToCompany $tblToCompany = null
     ) {
 
         $error = false;
-        $form = Address::useFrontend()->formAddressToCompany($tblCompany->getId());
+        $form = Address::useFrontend()->formAddressToCompany($tblCompany->getId(), $tblToCompany ? $tblToCompany->getId() : null);
         if (isset($Street['Name']) && empty($Street['Name'])) {
             $form->setError('Street[Name]', 'Bitte geben Sie eine Strasse an');
             $error = true;
@@ -236,7 +241,10 @@ class Service extends AbstractService
             $error = true;
         } else {
             // control there is no other MainAddress
-            if ($tblType->getName() == 'Hauptadresse') {
+            if ($tblToCompany
+                && ($tblAddress = $tblToCompany->getTblAddress())
+                && $tblType->getName() == 'Hauptadresse'
+            ) {
                 $tblAddressMain = $tblCompany->fetchMainAddress();
                 if ($tblAddressMain && (($tblAddress && $tblAddress->getId() != $tblAddressMain->getId()) || !$tblAddress)) {
                     $form->setError('Type[Type]', '"' . trim($tblCompany->getDisplayName())

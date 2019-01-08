@@ -51,15 +51,17 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param $PersonId
      * @param null $ToPersonId
+     * @param bool $setPost
      *
      * @return Form
      */
-    public function formAddressToPerson($PersonId, $ToPersonId = null)
+    public function formAddressToPerson($PersonId, $ToPersonId = null, $setPost = false)
     {
 
         if ($ToPersonId && ($tblToPerson = Address::useService()->getAddressToPersonById($ToPersonId))) {
-            $Global = $this->getGlobal();
-            if (!isset($Global->POST['Type'])) {
+            // beim Checken der Inputfeldern darf der Post nicht gesetzt werden
+            if ($setPost) {
+                $Global = $this->getGlobal();
                 $Global->POST['Type']['Type'] = $tblToPerson->getTblType()->getId();
                 $Global->POST['Type']['Remark'] = $tblToPerson->getRemark();
                 $Global->POST['Street']['Name'] = $tblToPerson->getTblAddress()->getStreetName();
@@ -142,15 +144,16 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param $CompanyId
      * @param null $ToCompanyId
-     *
+     ** @param bool $setPost
      * @return Form
      */
-    public function formAddressToCompany($CompanyId, $ToCompanyId = null)
+    public function formAddressToCompany($CompanyId, $ToCompanyId = null, $setPost = false)
     {
 
         if ($ToCompanyId && ($tblToCompany = Address::useService()->getAddressToCompanyById($ToCompanyId))) {
-            $Global = $this->getGlobal();
-            if (!isset($Global->POST['Type'])) {
+            // beim Checken der Inputfeldern darf der Post nicht gesetzt werden
+            if ($setPost) {
+                $Global = $this->getGlobal();
                 $Global->POST['Type']['Type'] = $tblToCompany->getTblType()->getId();
                 $Global->POST['Type']['Remark'] = $tblToCompany->getRemark();
                 $Global->POST['Street']['Name'] = $tblToCompany->getTblAddress()->getStreetName();

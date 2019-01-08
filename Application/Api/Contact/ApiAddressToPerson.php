@@ -304,7 +304,7 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
             return new Danger('Die Adresse wurde nicht gefunden', new Exclamation());
         }
 
-        return $this->getAddressToPersonModal(Address::useFrontend()->formAddressToPerson($PersonId, $ToPersonId), $tblPerson, $ToPersonId);
+        return $this->getAddressToPersonModal(Address::useFrontend()->formAddressToPerson($PersonId, $ToPersonId, true), $tblPerson, $ToPersonId);
     }
 
     /**
@@ -444,7 +444,7 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
             return new Danger('Die Adresse wurde nicht gefunden', new Exclamation());
         }
 
-        if (($form = Address::useService()->checkFormAddressToPerson($tblPerson, $Street, $City, $Type, $tblToPerson->getTblAddress()))) {
+        if (($form = Address::useService()->checkFormAddressToPerson($tblPerson, $Street, $City, $Type, $tblToPerson))) {
             // display Errors on form
             return $this->getAddressToPersonModal($form, $tblPerson, $ToPersonId);
         }

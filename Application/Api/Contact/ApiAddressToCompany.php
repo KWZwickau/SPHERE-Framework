@@ -302,7 +302,7 @@ class ApiAddressToCompany  extends Extension implements IApiInterface
             return new Danger('Die Adresse wurde nicht gefunden', new Exclamation());
         }
 
-        return $this->getAddressToCompanyModal(Address::useFrontend()->formAddressToCompany($CompanyId, $ToCompanyId), $tblCompany, $ToCompanyId);
+        return $this->getAddressToCompanyModal(Address::useFrontend()->formAddressToCompany($CompanyId, $ToCompanyId, true), $tblCompany, $ToCompanyId);
     }
 
     /**
@@ -442,7 +442,7 @@ class ApiAddressToCompany  extends Extension implements IApiInterface
             return new Danger('Die Adresse wurde nicht gefunden', new Exclamation());
         }
 
-        if (($form = Address::useService()->checkFormAddressToCompany($tblCompany, $Street, $City, $Type, $tblToCompany->getTblAddress()))) {
+        if (($form = Address::useService()->checkFormAddressToCompany($tblCompany, $Street, $City, $Type, $tblToCompany))) {
             // display Errors on form
             return $this->getAddressToCompanyModal($form, $tblCompany, $ToCompanyId);
         }
