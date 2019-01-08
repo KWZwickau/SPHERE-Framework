@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Corporation\Company;
 
+use SPHERE\Application\Api\Contact\ApiAddressToCompany;
 use SPHERE\Application\Api\Corporation\Company\ApiCompanyEdit;
 use SPHERE\Application\Api\Corporation\Company\ApiCompanyReadOnly;
 use SPHERE\Application\Contact\Address\Address;
@@ -34,6 +35,8 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
@@ -50,8 +53,10 @@ use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -87,7 +92,6 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
     }
 
     /**
-     *
      * @param null|int $Id
      * @param null|int $Group
      *
@@ -110,8 +114,25 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 self::getBasicContent($Id), 'BasicContent'
             );
 
+            $addressToCompanyContent = ApiAddressToCompany::receiverBlock(Address::useFrontend()->frontendLayoutCompanyNew($tblCompany),
+                'AddressToCompanyContent');
+            $addressContent = ApiAddressToCompany::receiverModal()
+                . TemplateReadOnly::getContent(
+                    'Adressdaten',
+                    $addressToCompanyContent,
+                    array(
+                        (new Link(
+                            new Plus() . ' Adresse hinzufügen',
+                            ApiAddressToCompany::getEndpoint()
+                        ))->ajaxPipelineOnClick(ApiAddressToCompany::pipelineOpenCreateAddressToCompanyModal($tblCompany->getId()))
+                    ),
+                    'der Institution ' . new Bold(new Success($tblCompany->getDisplayName())),
+                    new MapMarker()
+                );
+
             $stage->setContent(
                 $basicContent
+                . $addressContent
                 . self::getLayoutContact($tblCompany, $Group)
             );
             // neue Institution anlegen
@@ -206,7 +227,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 self::TITLE,
                 $content,
                 array($editLink),
-                'der Institution ', // . new Bold(new Success($tblCompany->getDisplayName())),
+                'der Institution ' . new Bold(new Success($tblCompany->getDisplayName())),
                 new Building()
             );
         }
@@ -304,7 +325,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
     private function getEditBasicTitle(TblCompany $tblCompany = null, $isCreateCompany = false)
     {
         return new Title(new Building() . ' ' . self::TITLE, 'der Institution'
-//            . ($tblCompany ? new Bold(new Success($tblCompany->getFullName())) : '')
+            . ($tblCompany ? new Bold(new Success($tblCompany->getDisplayName())) : '')
             . ($isCreateCompany ? ' anlegen' : ' bearbeiten'));
     }
 

@@ -525,7 +525,10 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToCompany',
             array(
                 TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId()
-            ));
+            ),
+            // Hauptadressen zu erst
+            array(TblToCompany::ATT_TBL_TYPE => self::ORDER_ASC)
+        );
     }
 
     /**
@@ -597,6 +600,40 @@ class Data extends AbstractData
             }
             return true;
         }
+        return false;
+    }
+
+    /**
+     * @param TblToCompany $tblToCompany
+     * @param             $tblAddress
+     * @param             $tblType
+     * @param             $Remark
+     *
+     * @return bool
+     */
+    public function updateAddressToCompany(
+        TblToCompany $tblToCompany,
+        TblAddress $tblAddress,
+        TblType $tblType,
+        $Remark
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblToCompany $Entity */
+        $Entity = $Manager->getEntityById('TblToCompany', $tblToCompany->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setTblAddress($tblAddress);
+            $Entity->setTblType($tblType);
+            $Entity->setRemark($Remark);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+
+            return true;
+        }
+
         return false;
     }
 
