@@ -3,14 +3,14 @@
  * Created by PhpStorm.
  * User: Kauschke
  * Date: 08.01.2019
- * Time: 08:13
+ * Time: 13:28
  */
 
 namespace SPHERE\Application\Api\Contact;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
-use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\IApiInterface;
@@ -44,11 +44,11 @@ use SPHERE\System\Extension\Extension;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 
 /**
- * Class ApiPhoneToCompany
+ * Class ApiMailToCompany
  *
  * @package SPHERE\Application\Api\Contact
  */
-class ApiPhoneToCompany extends Extension implements IApiInterface
+class ApiMailToCompany extends Extension implements IApiInterface
 {
 
     use ApiTrait;
@@ -62,16 +62,16 @@ class ApiPhoneToCompany extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
 
-        $Dispatcher->registerMethod('loadPhoneToCompanyContent');
+        $Dispatcher->registerMethod('loadMailToCompanyContent');
 
-        $Dispatcher->registerMethod('openCreatePhoneToCompanyModal');
-        $Dispatcher->registerMethod('saveCreatePhoneToCompanyModal');
+        $Dispatcher->registerMethod('openCreateMailToCompanyModal');
+        $Dispatcher->registerMethod('saveCreateMailToCompanyModal');
 
-        $Dispatcher->registerMethod('openEditPhoneToCompanyModal');
-        $Dispatcher->registerMethod('saveEditPhoneToCompanyModal');
+        $Dispatcher->registerMethod('openEditMailToCompanyModal');
+        $Dispatcher->registerMethod('saveEditMailToCompanyModal');
 
-        $Dispatcher->registerMethod('openDeletePhoneToCompanyModal');
-        $Dispatcher->registerMethod('saveDeletePhoneToCompanyModal');
+        $Dispatcher->registerMethod('openDeleteMailToCompanyModal');
+        $Dispatcher->registerMethod('saveDeleteMailToCompanyModal');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -113,12 +113,12 @@ class ApiPhoneToCompany extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineLoadPhoneToCompanyContent($CompanyId)
+    public static function pipelineLoadMailToCompanyContent($CompanyId)
     {
         $Pipeline = new Pipeline(false);
-        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'PhoneToCompanyContent'), self::getEndpoint());
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'MailToCompanyContent'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'loadPhoneToCompanyContent',
+            self::API_TARGET => 'loadMailToCompanyContent',
         ));
         $ModalEmitter->setPostPayload(array(
             'CompanyId' => $CompanyId
@@ -133,12 +133,12 @@ class ApiPhoneToCompany extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineOpenCreatePhoneToCompanyModal($CompanyId)
+    public static function pipelineOpenCreateMailToCompanyModal($CompanyId)
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'openCreatePhoneToCompanyModal',
+            self::API_TARGET => 'openCreateMailToCompanyModal',
         ));
         $ModalEmitter->setPostPayload(array(
             'CompanyId' => $CompanyId
@@ -153,13 +153,13 @@ class ApiPhoneToCompany extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineCreatePhoneToCompanySave($CompanyId)
+    public static function pipelineCreateMailToCompanySave($CompanyId)
     {
 
         $Pipeline = new Pipeline();
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'saveCreatePhoneToCompanyModal'
+            self::API_TARGET => 'saveCreateMailToCompanyModal'
         ));
         $ModalEmitter->setPostPayload(array(
             'CompanyId' => $CompanyId
@@ -176,12 +176,12 @@ class ApiPhoneToCompany extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineOpenEditPhoneToCompanyModal($CompanyId, $ToCompanyId)
+    public static function pipelineOpenEditMailToCompanyModal($CompanyId, $ToCompanyId)
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'openEditPhoneToCompanyModal',
+            self::API_TARGET => 'openEditMailToCompanyModal',
         ));
         $ModalEmitter->setPostPayload(array(
             'CompanyId' => $CompanyId,
@@ -198,13 +198,13 @@ class ApiPhoneToCompany extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineEditPhoneToCompanySave($CompanyId, $ToCompanyId)
+    public static function pipelineEditMailToCompanySave($CompanyId, $ToCompanyId)
     {
 
         $Pipeline = new Pipeline();
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'saveEditPhoneToCompanyModal'
+            self::API_TARGET => 'saveEditMailToCompanyModal'
         ));
         $ModalEmitter->setPostPayload(array(
             'CompanyId' => $CompanyId,
@@ -222,12 +222,12 @@ class ApiPhoneToCompany extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineOpenDeletePhoneToCompanyModal($CompanyId, $ToCompanyId)
+    public static function pipelineOpenDeleteMailToCompanyModal($CompanyId, $ToCompanyId)
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'openDeletePhoneToCompanyModal',
+            self::API_TARGET => 'openDeleteMailToCompanyModal',
         ));
         $ModalEmitter->setPostPayload(array(
             'CompanyId' => $CompanyId,
@@ -244,13 +244,13 @@ class ApiPhoneToCompany extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineDeletePhoneToCompanySave($CompanyId, $ToCompanyId)
+    public static function pipelineDeleteMailToCompanySave($CompanyId, $ToCompanyId)
     {
 
         $Pipeline = new Pipeline();
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'saveDeletePhoneToCompanyModal'
+            self::API_TARGET => 'saveDeleteMailToCompanyModal'
         ));
         $ModalEmitter->setPostPayload(array(
             'CompanyId' => $CompanyId,
@@ -262,13 +262,18 @@ class ApiPhoneToCompany extends Extension implements IApiInterface
         return $Pipeline;
     }
 
-    public function loadPhoneToCompanyContent($CompanyId)
+    /**
+     * @param $CompanyId
+     *
+     * @return string
+     */
+    public function loadMailToCompanyContent($CompanyId)
     {
         if (!($tblCompany = Company::useService()->getCompanyById($CompanyId))) {
             return new Danger('Die Institution wurde nicht gefunden', new Exclamation());
         }
 
-        return Phone::useFrontend()->frontendLayoutCompanyNew($tblCompany);
+        return Mail::useFrontend()->frontendLayoutCompanyNew($tblCompany);
     }
 
     /**
@@ -276,14 +281,14 @@ class ApiPhoneToCompany extends Extension implements IApiInterface
      *
      * @return string
      */
-    public function openCreatePhoneToCompanyModal($CompanyId)
+    public function openCreateMailToCompanyModal($CompanyId)
     {
 
         if (!($tblCompany = Company::useService()->getCompanyById($CompanyId))) {
             return new Danger('Die Institution wurde nicht gefunden', new Exclamation());
         }
 
-        return $this->getPhoneToCompanyModal(Phone::useFrontend()->formNumberToCompany($CompanyId), $tblCompany);
+        return $this->getMailToCompanyModal(Mail::useFrontend()->formAddressToCompany($CompanyId), $tblCompany);
     }
 
     /**
@@ -292,18 +297,18 @@ class ApiPhoneToCompany extends Extension implements IApiInterface
      *
      * @return string
      */
-    public function openEditPhoneToCompanyModal($CompanyId, $ToCompanyId)
+    public function openEditMailToCompanyModal($CompanyId, $ToCompanyId)
     {
 
         if (!($tblCompany = Company::useService()->getCompanyById($CompanyId))) {
             return new Danger('Die Institution wurde nicht gefunden', new Exclamation());
         }
 
-        if (!($tblToCompany = Phone::useService()->getPhoneToCompanyById($ToCompanyId))) {
-            return new Danger('Die Telefonnummer wurde nicht gefunden', new Exclamation());
+        if (!($tblToCompany = Mail::useService()->getMailToCompanyById($ToCompanyId))) {
+            return new Danger('Die E-Mail Adresse wurde nicht gefunden', new Exclamation());
         }
 
-        return $this->getPhoneToCompanyModal(Phone::useFrontend()->formNumberToCompany($CompanyId, $ToCompanyId, true), $tblCompany, $ToCompanyId);
+        return $this->getMailToCompanyModal(Mail::useFrontend()->formAddressToCompany($CompanyId, $ToCompanyId, true), $tblCompany, $ToCompanyId);
     }
 
     /**
@@ -313,12 +318,12 @@ class ApiPhoneToCompany extends Extension implements IApiInterface
      *
      * @return string
      */
-    private function getPhoneToCompanyModal($form, TblCompany $tblCompany,  $ToCompanyId = null)
+    private function getMailToCompanyModal($form, TblCompany $tblCompany,  $ToCompanyId = null)
     {
         if ($ToCompanyId) {
-            $title = new Title(new Edit() . ' Telefonnummer bearbeiten');
+            $title = new Title(new Edit() . ' E-Mail Adresse bearbeiten');
         } else {
-            $title = new Title(new Plus() . ' Telefonnummer hinzufügen');
+            $title = new Title(new Plus() . ' E-Mail Adresse hinzufügen');
         }
 
         return $title
@@ -352,18 +357,18 @@ class ApiPhoneToCompany extends Extension implements IApiInterface
      *
      * @return string
      */
-    public function openDeletePhoneToCompanyModal($CompanyId, $ToCompanyId)
+    public function openDeleteMailToCompanyModal($CompanyId, $ToCompanyId)
     {
 
         if (!($tblCompany = Company::useService()->getCompanyById($CompanyId))) {
             return new Danger('Die Institution wurde nicht gefunden', new Exclamation());
         }
 
-        if (!($tblToCompany = Phone::useService()->getPhoneToCompanyById($ToCompanyId))) {
-            return new Danger('Die Telefonnummer wurde nicht gefunden', new Exclamation());
+        if (!($tblToCompany = Mail::useService()->getMailToCompanyById($ToCompanyId))) {
+            return new Danger('Die E-Mail Adresse wurde nicht gefunden', new Exclamation());
         }
 
-        return new Title(new Remove() . ' Telefonnummer löschen')
+        return new Title(new Remove() . ' E-Mail Adresse löschen')
             . new Layout(
                 new LayoutGroup(
                     new LayoutRow(
@@ -372,14 +377,14 @@ class ApiPhoneToCompany extends Extension implements IApiInterface
                                 new Bold($tblCompany->getDisplayName()),
                                 Panel::PANEL_TYPE_SUCCESS
                             )
-                            . new Panel(new Question() . ' Diese Telefonnummer wirklich löschen?', array(
+                            . new Panel(new Question() . ' Diese E-Mail Adresse wirklich löschen?', array(
                                 $tblToCompany->getTblType()->getName() . ' ' . $tblToCompany->getTblType()->getDescription(),
-                                ($tblPhone = $tblToCompany->getTblPhone()) ? $tblPhone->getNumber() : '',
+                                ($tblMail = $tblToCompany->getTblMail()) ? $tblMail->getAddress() : '',
                                 ($tblToCompany->getRemark() ? new Muted(new Small($tblToCompany->getRemark())) : '')
                             ),
                                 Panel::PANEL_TYPE_DANGER)
                             . (new DangerLink('Ja', self::getEndpoint(), new Ok()))
-                                ->ajaxPipelineOnClick(self::pipelineDeletePhoneToCompanySave($CompanyId, $ToCompanyId))
+                                ->ajaxPipelineOnClick(self::pipelineDeleteMailToCompanySave($CompanyId, $ToCompanyId))
                             . (new Standard('Nein', self::getEndpoint(), new Remove()))
                                 ->ajaxPipelineOnClick(self::pipelineClose())
                         )
@@ -390,62 +395,62 @@ class ApiPhoneToCompany extends Extension implements IApiInterface
 
     /**
      * @param $CompanyId
-     * @param $Number
+     * @param $Address
      * @param $Type
      *
      * @return Danger|string
      */
-    public function saveCreatePhoneToCompanyModal($CompanyId, $Number, $Type)
+    public function saveCreateMailToCompanyModal($CompanyId, $Address, $Type)
     {
 
         if (!($tblCompany = Company::useService()->getCompanyById($CompanyId))) {
             return new Danger('Die Institution wurde nicht gefunden', new Exclamation());
         }
 
-        if (($form = Phone::useService()->checkFormPhoneToCompany($tblCompany, $Number, $Type))) {
+        if (($form = Mail::useService()->checkFormMailToCompany($tblCompany, $Address, $Type))) {
             // display Errors on form
-            return $this->getPhoneToCompanyModal($form, $tblCompany);
+            return $this->getMailToCompanyModal($form, $tblCompany);
         }
 
-        if (Phone::useService()->createPhoneToCompany($tblCompany, $Number, $Type)) {
-            return new Success('Die Telefonnummer wurde erfolgreich gespeichert.')
-                . self::pipelineLoadPhoneToCompanyContent($CompanyId)
+        if (Mail::useService()->createMailToCompany($tblCompany, $Address, $Type)) {
+            return new Success('Die E-Mail Adresse wurde erfolgreich gespeichert.')
+                . self::pipelineLoadMailToCompanyContent($CompanyId)
                 . self::pipelineClose();
         } else {
-            return new Danger('Die Telefonnummer konnte nicht gespeichert werden.') . self::pipelineClose();
+            return new Danger('Die E-Mail Adresse konnte nicht gespeichert werden.') . self::pipelineClose();
         }
     }
 
     /**
      * @param $CompanyId
      * @param $ToCompanyId
-     * @param $Number
+     * @param $Address
      * @param $Type
      *
      * @return Danger|string
      */
-    public function saveEditPhoneToCompanyModal($CompanyId, $ToCompanyId, $Number, $Type)
+    public function saveEditMailToCompanyModal($CompanyId, $ToCompanyId, $Address, $Type)
     {
 
         if (!($tblCompany = Company::useService()->getCompanyById($CompanyId))) {
             return new Danger('Die Institution wurde nicht gefunden', new Exclamation());
         }
 
-        if (!($tblToCompany = Phone::useService()->getPhoneToCompanyById($ToCompanyId))) {
-            return new Danger('Die Telefonnummer wurde nicht gefunden', new Exclamation());
+        if (!($tblToCompany = Mail::useService()->getMailToCompanyById($ToCompanyId))) {
+            return new Danger('Die E-Mail Adresse wurde nicht gefunden', new Exclamation());
         }
 
-        if (($form = Phone::useService()->checkFormPhoneToCompany($tblCompany, $Number, $Type, $tblToCompany))) {
+        if (($form = Mail::useService()->checkFormMailToCompany($tblCompany, $Address, $Type, $tblToCompany))) {
             // display Errors on form
-            return $this->getPhoneToCompanyModal($form, $tblCompany, $ToCompanyId);
+            return $this->getMailToCompanyModal($form, $tblCompany, $ToCompanyId);
         }
 
-        if (Phone::useService()->updatePhoneToCompany($tblToCompany, $Number, $Type)) {
-            return new Success('Die Telefonnummer wurde erfolgreich gespeichert.')
-                . self::pipelineLoadPhoneToCompanyContent($CompanyId)
+        if (Mail::useService()->updateMailToCompany($tblToCompany, $Address, $Type)) {
+            return new Success('Die E-Mail Adresse wurde erfolgreich gespeichert.')
+                . self::pipelineLoadMailToCompanyContent($CompanyId)
                 . self::pipelineClose();
         } else {
-            return new Danger('Die Telefonnummer konnte nicht gespeichert werden.') . self::pipelineClose();
+            return new Danger('Die E-Mail Adresse konnte nicht gespeichert werden.') . self::pipelineClose();
         }
     }
 
@@ -455,23 +460,23 @@ class ApiPhoneToCompany extends Extension implements IApiInterface
      *
      * @return Danger|string
      */
-    public function saveDeletePhoneToCompanyModal($CompanyId, $ToCompanyId)
+    public function saveDeleteMailToCompanyModal($CompanyId, $ToCompanyId)
     {
 
         if (!($tblCompany = Company::useService()->getCompanyById($CompanyId))) {
             return new Danger('Die Institution wurde nicht gefunden', new Exclamation());
         }
 
-        if (!($tblToCompany = Phone::useService()->getPhoneToCompanyById($ToCompanyId))) {
-            return new Danger('Die Telefonnummer wurde nicht gefunden', new Exclamation());
+        if (!($tblToCompany = Mail::useService()->getMailToCompanyById($ToCompanyId))) {
+            return new Danger('Die E-Mail Adresse wurde nicht gefunden', new Exclamation());
         }
 
-        if (Phone::useService()->removePhoneToCompany($tblToCompany)) {
-            return new Success('Die Telefonnummer wurde erfolgreich gelöscht.')
-                . self::pipelineLoadPhoneToCompanyContent($CompanyId)
+        if (Mail::useService()->removeMailToCompany($tblToCompany)) {
+            return new Success('Die E-Mail Adresse wurde erfolgreich gelöscht.')
+                . self::pipelineLoadMailToCompanyContent($CompanyId)
                 . self::pipelineClose();
         } else {
-            return new Danger('Die Telefonnummer konnte nicht gelöscht werden.') . self::pipelineClose();
+            return new Danger('Die E-Mail Adresse konnte nicht gelöscht werden.') . self::pipelineClose();
         }
     }
 }

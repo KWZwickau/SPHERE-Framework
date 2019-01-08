@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Corporation\Company;
 
 use SPHERE\Application\Api\Contact\ApiAddressToCompany;
+use SPHERE\Application\Api\Contact\ApiMailToCompany;
 use SPHERE\Application\Api\Contact\ApiPhoneToCompany;
 use SPHERE\Application\Api\Corporation\Company\ApiCompanyEdit;
 use SPHERE\Application\Api\Corporation\Company\ApiCompanyReadOnly;
@@ -147,10 +148,27 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                     new \SPHERE\Common\Frontend\Icon\Repository\Phone()
                 );
 
+            $mailReceiver = ApiMailToCompany::receiverBlock(Mail::useFrontend()->frontendLayoutCompanyNew($tblCompany),
+                'MailToCompanyContent');
+            $mailContent = ApiMailToCompany::receiverModal()
+                . TemplateReadOnly::getContent(
+                    'E-Mail Adressen',
+                    $mailReceiver,
+                    array(
+                        (new Link(
+                            new Plus() . '  E-Mail Adresse hinzufügen',
+                            ApiMailToCompany::getEndpoint()
+                        ))->ajaxPipelineOnClick(ApiMailToCompany::pipelineOpenCreateMailToCompanyModal($tblCompany->getId())),
+                    ),
+                    'der Company ' . new Bold(new Success($tblCompany->getDisplayName())),
+                    new \SPHERE\Common\Frontend\Icon\Repository\Mail()
+                );
+
             $stage->setContent(
                 $basicContent
                 . $addressContent
                 . $phoneContent
+                . $mailContent
                 . self::getLayoutContact($tblCompany, $Group)
             );
             // neue Institution anlegen
@@ -253,6 +271,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
         return '';
     }
 
+    // todo remove
     /**
      * @param TblCompany $tblCompany
      * @param $Group

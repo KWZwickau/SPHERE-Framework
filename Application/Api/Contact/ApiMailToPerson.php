@@ -3,14 +3,14 @@
  * Created by PhpStorm.
  * User: Kauschke
  * Date: 08.01.2019
- * Time: 08:13
+ * Time: 11:43
  */
 
 namespace SPHERE\Application\Api\Contact;
 
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
-use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\IApiInterface;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -44,11 +44,11 @@ use SPHERE\System\Extension\Extension;
 use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 
 /**
- * Class ApiPhoneToPerson
- * 
+ * Class ApiMailToPerson
+ *
  * @package SPHERE\Application\Api\Contact
  */
-class ApiPhoneToPerson extends Extension implements IApiInterface
+class ApiMailToPerson extends Extension implements IApiInterface
 {
 
     use ApiTrait;
@@ -62,16 +62,16 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
     {
         $Dispatcher = new Dispatcher(__CLASS__);
 
-        $Dispatcher->registerMethod('loadPhoneToPersonContent');
+        $Dispatcher->registerMethod('loadMailToPersonContent');
 
-        $Dispatcher->registerMethod('openCreatePhoneToPersonModal');
-        $Dispatcher->registerMethod('saveCreatePhoneToPersonModal');
+        $Dispatcher->registerMethod('openCreateMailToPersonModal');
+        $Dispatcher->registerMethod('saveCreateMailToPersonModal');
 
-        $Dispatcher->registerMethod('openEditPhoneToPersonModal');
-        $Dispatcher->registerMethod('saveEditPhoneToPersonModal');
+        $Dispatcher->registerMethod('openEditMailToPersonModal');
+        $Dispatcher->registerMethod('saveEditMailToPersonModal');
 
-        $Dispatcher->registerMethod('openDeletePhoneToPersonModal');
-        $Dispatcher->registerMethod('saveDeletePhoneToPersonModal');
+        $Dispatcher->registerMethod('openDeleteMailToPersonModal');
+        $Dispatcher->registerMethod('saveDeleteMailToPersonModal');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -113,12 +113,12 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineLoadPhoneToPersonContent($PersonId)
+    public static function pipelineLoadMailToPersonContent($PersonId)
     {
         $Pipeline = new Pipeline(false);
-        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'PhoneToPersonContent'), self::getEndpoint());
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'MailToPersonContent'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'loadPhoneToPersonContent',
+            self::API_TARGET => 'loadMailToPersonContent',
         ));
         $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId
@@ -133,12 +133,12 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineOpenCreatePhoneToPersonModal($PersonId)
+    public static function pipelineOpenCreateMailToPersonModal($PersonId)
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'openCreatePhoneToPersonModal',
+            self::API_TARGET => 'openCreateMailToPersonModal',
         ));
         $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId
@@ -153,13 +153,13 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineCreatePhoneToPersonSave($PersonId)
+    public static function pipelineCreateMailToPersonSave($PersonId)
     {
 
         $Pipeline = new Pipeline();
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'saveCreatePhoneToPersonModal'
+            self::API_TARGET => 'saveCreateMailToPersonModal'
         ));
         $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId
@@ -176,12 +176,12 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineOpenEditPhoneToPersonModal($PersonId, $ToPersonId)
+    public static function pipelineOpenEditMailToPersonModal($PersonId, $ToPersonId)
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'openEditPhoneToPersonModal',
+            self::API_TARGET => 'openEditMailToPersonModal',
         ));
         $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId,
@@ -198,13 +198,13 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineEditPhoneToPersonSave($PersonId, $ToPersonId)
+    public static function pipelineEditMailToPersonSave($PersonId, $ToPersonId)
     {
 
         $Pipeline = new Pipeline();
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'saveEditPhoneToPersonModal'
+            self::API_TARGET => 'saveEditMailToPersonModal'
         ));
         $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId,
@@ -222,12 +222,12 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineOpenDeletePhoneToPersonModal($PersonId, $ToPersonId)
+    public static function pipelineOpenDeleteMailToPersonModal($PersonId, $ToPersonId)
     {
         $Pipeline = new Pipeline(false);
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'openDeletePhoneToPersonModal',
+            self::API_TARGET => 'openDeleteMailToPersonModal',
         ));
         $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId,
@@ -244,13 +244,13 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
      *
      * @return Pipeline
      */
-    public static function pipelineDeletePhoneToPersonSave($PersonId, $ToPersonId)
+    public static function pipelineDeleteMailToPersonSave($PersonId, $ToPersonId)
     {
 
         $Pipeline = new Pipeline();
         $ModalEmitter = new ServerEmitter(self::receiverModal(), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
-            self::API_TARGET => 'saveDeletePhoneToPersonModal'
+            self::API_TARGET => 'saveDeleteMailToPersonModal'
         ));
         $ModalEmitter->setPostPayload(array(
             'PersonId' => $PersonId,
@@ -262,13 +262,13 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
         return $Pipeline;
     }
 
-    public function loadPhoneToPersonContent($PersonId)
+    public function loadMailToPersonContent($PersonId)
     {
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
             return new Danger('Die Person wurde nicht gefunden', new Exclamation());
         }
 
-        return Phone::useFrontend()->frontendLayoutPersonNew($tblPerson);
+        return Mail::useFrontend()->frontendLayoutPersonNew($tblPerson);
     }
 
     /**
@@ -276,14 +276,14 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
      *
      * @return string
      */
-    public function openCreatePhoneToPersonModal($PersonId)
+    public function openCreateMailToPersonModal($PersonId)
     {
 
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
             return new Danger('Die Person wurde nicht gefunden', new Exclamation());
         }
 
-        return $this->getPhoneToPersonModal(Phone::useFrontend()->formNumberToPerson($PersonId), $tblPerson);
+        return $this->getMailToPersonModal(Mail::useFrontend()->formAddressToPerson($PersonId), $tblPerson);
     }
 
     /**
@@ -292,18 +292,18 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
      *
      * @return string
      */
-    public function openEditPhoneToPersonModal($PersonId, $ToPersonId)
+    public function openEditMailToPersonModal($PersonId, $ToPersonId)
     {
 
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
             return new Danger('Die Person wurde nicht gefunden', new Exclamation());
         }
 
-        if (!($tblToPerson = Phone::useService()->getPhoneToPersonById($ToPersonId))) {
-            return new Danger('Die Telefonnummer wurde nicht gefunden', new Exclamation());
+        if (!($tblToPerson = Mail::useService()->getMailToPersonById($ToPersonId))) {
+            return new Danger('Die E-Mail Adresse wurde nicht gefunden', new Exclamation());
         }
 
-        return $this->getPhoneToPersonModal(Phone::useFrontend()->formNumberToPerson($PersonId, $ToPersonId, true), $tblPerson, $ToPersonId);
+        return $this->getMailToPersonModal(Mail::useFrontend()->formAddressToPerson($PersonId, $ToPersonId, true), $tblPerson, $ToPersonId);
     }
 
     /**
@@ -313,12 +313,12 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
      *
      * @return string
      */
-    private function getPhoneToPersonModal($form, TblPerson $tblPerson,  $ToPersonId = null)
+    private function getMailToPersonModal($form, TblPerson $tblPerson,  $ToPersonId = null)
     {
         if ($ToPersonId) {
-            $title = new Title(new Edit() . ' Telefonnummer bearbeiten');
+            $title = new Title(new Edit() . ' E-Mail Adresse bearbeiten');
         } else {
-            $title = new Title(new Plus() . ' Telefonnummer hinzufügen');
+            $title = new Title(new Plus() . ' E-Mail Adresse hinzufügen');
         }
 
         return $title
@@ -352,18 +352,18 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
      *
      * @return string
      */
-    public function openDeletePhoneToPersonModal($PersonId, $ToPersonId)
+    public function openDeleteMailToPersonModal($PersonId, $ToPersonId)
     {
 
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
             return new Danger('Die Person wurde nicht gefunden', new Exclamation());
         }
 
-        if (!($tblToPerson = Phone::useService()->getPhoneToPersonById($ToPersonId))) {
-            return new Danger('Die Telefonnummer wurde nicht gefunden', new Exclamation());
+        if (!($tblToPerson = Mail::useService()->getMailToPersonById($ToPersonId))) {
+            return new Danger('Die E-Mail Adresse wurde nicht gefunden', new Exclamation());
         }
 
-        return new Title(new Remove() . ' Telefonnummer löschen')
+        return new Title(new Remove() . ' E-Mail Adresse löschen')
             . new Layout(
                 new LayoutGroup(
                     new LayoutRow(
@@ -372,14 +372,14 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
                                 new Bold($tblPerson->getFullName()),
                                 Panel::PANEL_TYPE_SUCCESS
                             )
-                            . new Panel(new Question() . ' Diese Telefonnummer wirklich löschen?', array(
+                            . new Panel(new Question() . ' Diese E-Mail Adresse wirklich löschen?', array(
                                 $tblToPerson->getTblType()->getName() . ' ' . $tblToPerson->getTblType()->getDescription(),
-                                ($tblPhone = $tblToPerson->getTblPhone()) ? $tblPhone->getNumber() : '',
+                                ($tblMail = $tblToPerson->getTblMail()) ? $tblMail->getAddress() : '',
                                 ($tblToPerson->getRemark() ? new Muted(new Small($tblToPerson->getRemark())) : '')
                             ),
                                 Panel::PANEL_TYPE_DANGER)
                             . (new DangerLink('Ja', self::getEndpoint(), new Ok()))
-                                ->ajaxPipelineOnClick(self::pipelineDeletePhoneToPersonSave($PersonId, $ToPersonId))
+                                ->ajaxPipelineOnClick(self::pipelineDeleteMailToPersonSave($PersonId, $ToPersonId))
                             . (new Standard('Nein', self::getEndpoint(), new Remove()))
                                 ->ajaxPipelineOnClick(self::pipelineClose())
                         )
@@ -390,62 +390,62 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
 
     /**
      * @param $PersonId
-     * @param $Number
+     * @param $Address
      * @param $Type
      *
      * @return Danger|string
      */
-    public function saveCreatePhoneToPersonModal($PersonId, $Number, $Type)
+    public function saveCreateMailToPersonModal($PersonId, $Address, $Type)
     {
 
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
             return new Danger('Die Person wurde nicht gefunden', new Exclamation());
         }
 
-        if (($form = Phone::useService()->checkFormPhoneToPerson($tblPerson, $Number, $Type))) {
+        if (($form = Mail::useService()->checkFormMailToPerson($tblPerson, $Address, $Type))) {
             // display Errors on form
-            return $this->getPhoneToPersonModal($form, $tblPerson);
+            return $this->getMailToPersonModal($form, $tblPerson);
         }
 
-        if (Phone::useService()->createPhoneToPerson($tblPerson, $Number, $Type)) {
-            return new Success('Die Telefonnummer wurde erfolgreich gespeichert.')
-                . self::pipelineLoadPhoneToPersonContent($PersonId)
+        if (Mail::useService()->createMailToPerson($tblPerson, $Address, $Type)) {
+            return new Success('Die E-Mail Adresse wurde erfolgreich gespeichert.')
+                . self::pipelineLoadMailToPersonContent($PersonId)
                 . self::pipelineClose();
         } else {
-            return new Danger('Die Telefonnummer konnte nicht gespeichert werden.') . self::pipelineClose();
+            return new Danger('Die E-Mail Adresse konnte nicht gespeichert werden.') . self::pipelineClose();
         }
     }
 
     /**
      * @param $PersonId
      * @param $ToPersonId
-     * @param $Number
+     * @param $Address
      * @param $Type
      *
      * @return Danger|string
      */
-    public function saveEditPhoneToPersonModal($PersonId, $ToPersonId, $Number, $Type)
+    public function saveEditMailToPersonModal($PersonId, $ToPersonId, $Address, $Type)
     {
 
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
             return new Danger('Die Person wurde nicht gefunden', new Exclamation());
         }
 
-        if (!($tblToPerson = Phone::useService()->getPhoneToPersonById($ToPersonId))) {
-            return new Danger('Die Telefonnummer wurde nicht gefunden', new Exclamation());
+        if (!($tblToPerson = Mail::useService()->getMailToPersonById($ToPersonId))) {
+            return new Danger('Die E-Mail Adresse wurde nicht gefunden', new Exclamation());
         }
 
-        if (($form = Phone::useService()->checkFormPhoneToPerson($tblPerson, $Number, $Type, $tblToPerson))) {
+        if (($form = Mail::useService()->checkFormMailToPerson($tblPerson, $Address, $Type, $tblToPerson))) {
             // display Errors on form
-            return $this->getPhoneToPersonModal($form, $tblPerson, $ToPersonId);
+            return $this->getMailToPersonModal($form, $tblPerson, $ToPersonId);
         }
 
-        if (Phone::useService()->updatePhoneToPerson($tblToPerson, $Number, $Type)) {
-            return new Success('Die Telefonnummer wurde erfolgreich gespeichert.')
-                . self::pipelineLoadPhoneToPersonContent($PersonId)
+        if (Mail::useService()->updateMailToPerson($tblToPerson, $Address, $Type)) {
+            return new Success('Die E-Mail Adresse wurde erfolgreich gespeichert.')
+                . self::pipelineLoadMailToPersonContent($PersonId)
                 . self::pipelineClose();
         } else {
-            return new Danger('Die Telefonnummer konnte nicht gespeichert werden.') . self::pipelineClose();
+            return new Danger('Die E-Mail Adresse konnte nicht gespeichert werden.') . self::pipelineClose();
         }
     }
 
@@ -455,23 +455,23 @@ class ApiPhoneToPerson extends Extension implements IApiInterface
      *
      * @return Danger|string
      */
-    public function saveDeletePhoneToPersonModal($PersonId, $ToPersonId)
+    public function saveDeleteMailToPersonModal($PersonId, $ToPersonId)
     {
 
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
             return new Danger('Die Person wurde nicht gefunden', new Exclamation());
         }
 
-        if (!($tblToPerson = Phone::useService()->getPhoneToPersonById($ToPersonId))) {
-            return new Danger('Die Telefonnummer wurde nicht gefunden', new Exclamation());
+        if (!($tblToPerson = Mail::useService()->getMailToPersonById($ToPersonId))) {
+            return new Danger('Die E-Mail Adresse wurde nicht gefunden', new Exclamation());
         }
 
-        if (Phone::useService()->removePhoneToPerson($tblToPerson)) {
-            return new Success('Die Telefonnummer wurde erfolgreich gelöscht.')
-                . self::pipelineLoadPhoneToPersonContent($PersonId)
+        if (Mail::useService()->removeMailToPerson($tblToPerson)) {
+            return new Success('Die E-Mail Adresse wurde erfolgreich gelöscht.')
+                . self::pipelineLoadMailToPersonContent($PersonId)
                 . self::pipelineClose();
         } else {
-            return new Danger('Die Telefonnummer konnte nicht gelöscht werden.') . self::pipelineClose();
+            return new Danger('Die E-Mail Adresse konnte nicht gelöscht werden.') . self::pipelineClose();
         }
     }
 }

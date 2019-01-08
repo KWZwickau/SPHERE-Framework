@@ -3,6 +3,7 @@
 namespace SPHERE\Application\People\Person;
 
 use SPHERE\Application\Api\Contact\ApiAddressToPerson;
+use SPHERE\Application\Api\Contact\ApiMailToPerson;
 use SPHERE\Application\Api\Contact\ApiPhoneToPerson;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
@@ -152,16 +153,17 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                     new \SPHERE\Common\Frontend\Icon\Repository\Phone()
                 );
 
-            $mailContent = TemplateReadOnly::getContent(
+            $mailReceiver = ApiMailToPerson::receiverBlock(Mail::useFrontend()->frontendLayoutPersonNew($tblPerson),
+                'MailToPersonContent');
+            $mailContent = ApiMailToPerson::receiverModal()
+                . TemplateReadOnly::getContent(
                 'E-Mail Adressen',
-                Mail::useFrontend()->frontendLayoutPersonNew($tblPerson, $Group),
+                $mailReceiver,
                 array(
-                    new Link(
-                        new Plus() . ' E-Mail Adresse hinzufügen',
-                        '/People/Person/Mail/Create',
-                        null,
-                        array('Id' => $tblPerson->getId(), 'Group' => $Group)
-                    )
+                    (new Link(
+                        new Plus() . '  E-Mail Adresse hinzufügen',
+                        ApiMailToPerson::getEndpoint()
+                    ))->ajaxPipelineOnClick(ApiMailToPerson::pipelineOpenCreateMailToPersonModal($tblPerson->getId())),
                 ),
                 'der Person ' . new Bold(new Success($tblPerson->getFullName())),
                 new \SPHERE\Common\Frontend\Icon\Repository\Mail()
