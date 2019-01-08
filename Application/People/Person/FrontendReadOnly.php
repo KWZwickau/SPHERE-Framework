@@ -3,6 +3,7 @@
 namespace SPHERE\Application\People\Person;
 
 use SPHERE\Application\Api\Contact\ApiAddressToPerson;
+use SPHERE\Application\Api\Contact\ApiPhoneToPerson;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
 use SPHERE\Application\Contact\Address\Address;
@@ -119,12 +120,12 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 FrontendStudentIntegration::getIntegrationTitle($Id), 'IntegrationContent'
             );
 
-            $addressToPersonContent = ApiAddressToPerson::receiverBlock(Address::useFrontend()->frontendLayoutPersonNew($tblPerson),
+            $addressReceiver = ApiAddressToPerson::receiverBlock(Address::useFrontend()->frontendLayoutPersonNew($tblPerson),
                 'AddressToPersonContent');
             $addressContent = ApiAddressToPerson::receiverModal()
                 . TemplateReadOnly::getContent(
                     'Adressdaten',
-                    $addressToPersonContent,
+                    $addressReceiver,
                     array(
                         (new Link(
                             new Plus() . ' Adresse hinzufügen',
@@ -135,20 +136,21 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                     new MapMarker()
                 );
 
-            $phoneContent = TemplateReadOnly::getContent(
-                'Telefonnummern',
-                Phone::useFrontend()->frontendLayoutPersonNew($tblPerson, $Group),
-                array(
-                    new Link(
-                        new Plus() . ' Telefonnummer hinzufügen',
-                        '/People/Person/Phone/Create',
-                        null,
-                        array('Id' => $tblPerson->getId(), 'Group' => $Group)
+            $phoneReceiver = ApiPhoneToPerson::receiverBlock(Phone::useFrontend()->frontendLayoutPersonNew($tblPerson),
+                'PhoneToPersonContent');
+            $phoneContent = ApiPhoneToPerson::receiverModal()
+                . TemplateReadOnly::getContent(
+                    'Telefonnummern',
+                    $phoneReceiver,
+                    array(
+                        (new Link(
+                            new Plus() . ' Telefonnummer hinzufügen',
+                            ApiPhoneToPerson::getEndpoint()
+                        ))->ajaxPipelineOnClick(ApiPhoneToPerson::pipelineOpenCreatePhoneToPersonModal($tblPerson->getId())),
                     ),
-                ),
-                'der Person ' . new Bold(new Success($tblPerson->getFullName())),
-                new \SPHERE\Common\Frontend\Icon\Repository\Phone()
-            );
+                    'der Person ' . new Bold(new Success($tblPerson->getFullName())),
+                    new \SPHERE\Common\Frontend\Icon\Repository\Phone()
+                );
 
             $mailContent = TemplateReadOnly::getContent(
                 'E-Mail Adressen',

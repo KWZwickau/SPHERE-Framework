@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Corporation\Company;
 
 use SPHERE\Application\Api\Contact\ApiAddressToCompany;
+use SPHERE\Application\Api\Contact\ApiPhoneToCompany;
 use SPHERE\Application\Api\Corporation\Company\ApiCompanyEdit;
 use SPHERE\Application\Api\Corporation\Company\ApiCompanyReadOnly;
 use SPHERE\Application\Contact\Address\Address;
@@ -130,9 +131,26 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                     new MapMarker()
                 );
 
+            $phoneReceiver = ApiPhoneToCompany::receiverBlock(Phone::useFrontend()->frontendLayoutCompanyNew($tblCompany),
+                'PhoneToCompanyContent');
+            $phoneContent = ApiPhoneToCompany::receiverModal()
+                . TemplateReadOnly::getContent(
+                    'Telefonnummern',
+                    $phoneReceiver,
+                    array(
+                        (new Link(
+                            new Plus() . ' Telefonnummer hinzufügen',
+                            ApiPhoneToCompany::getEndpoint()
+                        ))->ajaxPipelineOnClick(ApiPhoneToCompany::pipelineOpenCreatePhoneToCompanyModal($tblCompany->getId())),
+                    ),
+                    'der Company ' . new Bold(new Success($tblCompany->getDisplayName())),
+                    new \SPHERE\Common\Frontend\Icon\Repository\Phone()
+                );
+
             $stage->setContent(
                 $basicContent
                 . $addressContent
+                . $phoneContent
                 . self::getLayoutContact($tblCompany, $Group)
             );
             // neue Institution anlegen
