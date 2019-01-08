@@ -11,6 +11,7 @@ namespace SPHERE\Application\Corporation\Company;
 use SPHERE\Application\Api\Contact\ApiAddressToCompany;
 use SPHERE\Application\Api\Contact\ApiMailToCompany;
 use SPHERE\Application\Api\Contact\ApiPhoneToCompany;
+use SPHERE\Application\Api\Contact\ApiWebToCompany;
 use SPHERE\Application\Api\Corporation\Company\ApiCompanyEdit;
 use SPHERE\Application\Api\Corporation\Company\ApiCompanyReadOnly;
 use SPHERE\Application\Contact\Address\Address;
@@ -144,7 +145,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                             ApiPhoneToCompany::getEndpoint()
                         ))->ajaxPipelineOnClick(ApiPhoneToCompany::pipelineOpenCreatePhoneToCompanyModal($tblCompany->getId())),
                     ),
-                    'der Company ' . new Bold(new Success($tblCompany->getDisplayName())),
+                    'der Institution ' . new Bold(new Success($tblCompany->getDisplayName())),
                     new \SPHERE\Common\Frontend\Icon\Repository\Phone()
                 );
 
@@ -160,8 +161,24 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                             ApiMailToCompany::getEndpoint()
                         ))->ajaxPipelineOnClick(ApiMailToCompany::pipelineOpenCreateMailToCompanyModal($tblCompany->getId())),
                     ),
-                    'der Company ' . new Bold(new Success($tblCompany->getDisplayName())),
+                    'der Institution ' . new Bold(new Success($tblCompany->getDisplayName())),
                     new \SPHERE\Common\Frontend\Icon\Repository\Mail()
+                );
+
+            $webReceiver = ApiWebToCompany::receiverBlock(Web::useFrontend()->frontendLayoutCompanyNew($tblCompany),
+                'WebToCompanyContent');
+            $webContent = ApiWebToCompany::receiverModal()
+                . TemplateReadOnly::getContent(
+                    'Internet Adressen',
+                    $webReceiver,
+                    array(
+                        (new Link(
+                            new Plus() . '  Internet Adresse hinzufügen',
+                            ApiWebToCompany::getEndpoint()
+                        ))->ajaxPipelineOnClick(ApiWebToCompany::pipelineOpenCreateWebToCompanyModal($tblCompany->getId())),
+                    ),
+                    'der Institution ' . new Bold(new Success($tblCompany->getDisplayName())),
+                    new \SPHERE\Common\Frontend\Icon\Repository\Globe()
                 );
 
             $stage->setContent(
@@ -169,6 +186,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 . $addressContent
                 . $phoneContent
                 . $mailContent
+                . $webContent
                 . self::getLayoutContact($tblCompany, $Group)
             );
             // neue Institution anlegen

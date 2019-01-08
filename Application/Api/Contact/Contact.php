@@ -21,5 +21,6 @@ class Contact implements IApplicationInterface
         ApiPhoneToCompany::registerApi();
         ApiMailToPerson::registerApi();
         ApiMailToCompany::registerApi();
+        ApiWebToCompany::registerApi();
     }
 }
