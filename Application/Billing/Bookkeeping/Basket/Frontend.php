@@ -4,9 +4,18 @@ namespace SPHERE\Application\Billing\Bookkeeping\Basket;
 
 use SPHERE\Application\Api\Billing\Bookkeeping\ApiBasket;
 use SPHERE\Application\Api\Billing\Bookkeeping\ApiBasketVerification;
+use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
+use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
+use SPHERE\Application\Billing\Inventory\Setting\Setting;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
+use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
@@ -14,6 +23,8 @@ use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -25,6 +36,9 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
+use SPHERE\Common\Frontend\Text\Repository\Info as InfoText;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -75,23 +89,21 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblBasketAll = Basket::useService()->getBasketAll();
         $TableContent = array();
-        if (!empty($tblBasketAll)) {
-            array_walk($tblBasketAll, function (TblBasket &$tblBasket) use (&$TableContent) {
+        if(!empty($tblBasketAll)) {
+            array_walk($tblBasketAll, function(TblBasket &$tblBasket) use (&$TableContent) {
 
                 $Item['Number'] = $tblBasket->getId();
-                $Item['Name'] = $tblBasket->getName();
-                $Item['Description'] = $tblBasket->getDescription();
+                $Item['Name'] = $tblBasket->getName().' '.new Muted(new Small($tblBasket->getDescription()));
 //                $Item['CreateDate'] = $tblBasket->getCreateDate();
-                $Item['CountDebtorSelection'] = '';
-                $Count = Basket::useService()->countDebtorSelectionCountByBasket($tblBasket);
-                if ($Count) {
-                    $Item['CountDebtorSelection'] = $Count;
-                }
+
+                $Item['TimeTarget'] = $tblBasket->getTargetTime();
+                $Item['Time'] = $tblBasket->getMonth(true).'.'.$tblBasket->getYear();
+
                 $Item['Item'] = '';
                 $tblItemList = Basket::useService()->getItemAllByBasket($tblBasket);
                 $ItemArray = array();
-                if ($tblItemList) {
-                    foreach ($tblItemList as $tblItem) {
+                if($tblItemList) {
+                    foreach($tblItemList as $tblItem) {
                         $ItemArray[] = $tblItem->getName();
                     }
                     sort($ItemArray);
@@ -114,12 +126,12 @@ class Frontend extends Extension implements IFrontendInterface
 
         return new TableData($TableContent, null,
             array(
-                'Number'               => 'Nummer',
-                'Name'                 => 'Name',
-                'Description'          => 'Beschreibung',
-                'CountDebtorSelection' => 'Anzahl Zahlungszuweisungen',
-                'Item'                 => 'Artikel',
-                'Option'               => ''
+                'Number'     => 'Nr.',
+                'Name'       => 'Name',
+                'TimeTarget' => 'Fälligkeit',
+                'Time'       => 'Abrechnungsmonat',
+                'Item'       => 'Artikel',
+                'Option'     => ''
             )
         );
     }
@@ -137,21 +149,30 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
 
-        if ($tblBasket = Basket::useService()->getBasketById($BasketId)) {
-            $Stage->setMessage(new Bold($tblBasket->getName()).' '.$tblBasket->getDescription());
+        $PanelHead = $Time = $TargetTime = '';
+        if($tblBasket = Basket::useService()->getBasketById($BasketId)) {
+            $PanelHead = new Bold($tblBasket->getName()).' '.$tblBasket->getDescription();
+            $Time = $tblBasket->getMonth(true).'.'.$tblBasket->getYear();
+            $TargetTime = $tblBasket->getTargetTime();
         }
 
         $Stage->setContent(
             ApiBasketVerification::receiverModal('Bearbeiten')
+            .ApiBasketVerification::receiverQuantityService()
             .new Layout(
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            $this->getBasketVerificationTable($BasketId)
+                            new Panel('', new Layout(new LayoutGroup(new LayoutRow(array(
+                                new LayoutColumn(new InfoText('<span style="font-size: large">'.$PanelHead.'</span>'), 6),
+                                new LayoutColumn('Abrechnungszeitraum: '.$Time, 3),
+                                new LayoutColumn('Fälligkeitsdatum: '.$TargetTime, 3),
+                            )))), Panel::PANEL_TYPE_INFO)
                         )
                     )
                 )
             )
+            .$this->getBasketVerificationLayout($BasketId)
         );
 
         return $Stage;
@@ -160,49 +181,104 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $BasketId
      *
-     * @return array|string
+     * @return Layout|string
      */
-    public function getBasketVerificationTable($BasketId = null)
+    public function getBasketVerificationLayout($BasketId = null)
     {
+
         $tblBasket = Basket::useService()->getBasketById($BasketId);
-        if (!$tblBasket) {
+        if(!$tblBasket) {
             return new Danger('Warenkorb wurde nicht gefunden')
                 .new Redirect('/Billing/Bookkeeping/Basket', Redirect::TIMEOUT_ERROR);
         }
+        $CountArray = array();
         $TableContent = array();
-        if (($tblBasketVerificationList = Basket::useService()->getBasketVerificationAllByBasket($tblBasket))) {
+        $PanelContent = '';
+        $IsDebtorNumberNeed = false;
+        if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED)) {
+            if($tblSetting->getValue() == 1) {
+                $IsDebtorNumberNeed = true;
+            }
+        }
+        if(($tblBasketVerificationList = Basket::useService()->getBasketVerificationAllByBasket($tblBasket))) {
+            $CountArray['AllCount'] = count($tblBasketVerificationList);
+            $DebtorMiss = 0;
+            $DebtorNumberMiss = 0;
             array_walk($tblBasketVerificationList,
-                function (TblBasketVerification $tblBasketVerification) use (&$TableContent, $tblBasket) {
+                function(TblBasketVerification $tblBasketVerification) use (
+                    &$TableContent,
+                    $tblBasket,
+                    &$CountArray,
+                    &$DebtorNumberMiss,
+                    &$DebtorMiss,
+                    $IsDebtorNumberNeed
+                ) {
                     $Item['PersonCauser'] = '';
-                    $Item['PersonDebtor'] = ApiBasketVerification::receiverDebtor(new DangerText(new WarningIcon().' Beitragszahler Fehlt'),
-                        $tblBasketVerification->getId()) ;
+                    $Item['PersonDebtorFail'] = '';
+                    $Item['PersonDebtor'] = '';
                     $Item['Item'] = '';
                     $Item['Price'] = '';
                     $Item['Quantity'] = '';
                     $Item['Summary'] = '';
                     if(($tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser())) {
                         $Item['PersonCauser'] = $tblPersonCauser->getLastFirstName();
-                    }
-                    if(($tblPersonDebtor = $tblBasketVerification->getServiceTblPersonDebtor())) {
-                        $Item['PersonDebtor'] = ApiBasketVerification::receiverDebtor($tblPersonDebtor->getLastFirstName(),
+                        $Item['PersonDebtor'] = ApiBasketVerification::receiverDebtor(
+                            new DangerText($tblPersonCauser->getLastFirstName().' '.
+                                new ToolTip(new WarningIcon(), 'Beitragszahler nicht gefunden')),
                             $tblBasketVerification->getId());
+                        $Item['PersonDebtorFail'] = new DangerText(new WarningIcon());
+                    }
+
+                    $InfoDebtorNumber = '';
+                    // new DebtorNumber
+                    if($IsDebtorNumberNeed) {
+                        $InfoDebtorNumber = new ToolTip(new DangerText(new WarningIcon()), 'Debitor-Nr. wird benötigt!');
+                    }
+
+                    if(($tblPersonDebtor = $tblBasketVerification->getServiceTblPersonDebtor())) {
+                        // ignore FailMessage if not necessary
+                        if(Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor)) {
+                            $Item['PersonDebtor'] = ApiBasketVerification::receiverDebtor($tblPersonDebtor->getLastFirstName(),
+                                $tblBasketVerification->getId());
+                            $Item['PersonDebtorFail'] = '';
+                        } else {
+                            $DebtorNumberMiss++;
+                            $Item['PersonDebtor'] = ApiBasketVerification::receiverDebtor($tblPersonDebtor->getLastFirstName().' '.$InfoDebtorNumber,
+                                $tblBasketVerification->getId());
+                            if(!$IsDebtorNumberNeed) {
+                                $Item['PersonDebtorFail'] = '';
+                            }
+                        }
+                    } else {
+                        $DebtorMiss++;
                     }
                     if(($tblItem = $tblBasketVerification->getServiceTblItem())) {
                         $Item['Item'] = $tblItem->getName();
                     }
                     if(($Price = $tblBasketVerification->getPrice())) {
-                        $Item['Price'] = ApiBasketVerification::receiverItemPrice($Price, $tblBasketVerification->getId());
+                        // Hide Sort by Integer
+                        $StringCount = strlen($Price) - 5;
+                        $SortPrice =  substr(str_replace(',','', $Price), 0, $StringCount);
+                        $Item['Price'] = '<span hidden>'.$SortPrice.'</span>'.ApiBasketVerification::receiverItemPrice($Price,
+                            $tblBasketVerification->getId());
                     }
                     if(($Quantity = $tblBasketVerification->getQuantity())) {
-                        $Item['Quantity'] = ApiBasketVerification::receiverItemQuantity($Quantity, $tblBasketVerification->getId());
+                        $Item['Quantity'] = ApiBasketVerification::receiverItemQuantity(
+                            new Form(new FormGroup(new FormRow(new FormColumn(
+                                    (new TextField('Quantity['.$tblBasketVerification->getId().']', '', ''))
+                                        ->ajaxPipelineOnChange(ApiBasketVerification::pipelineChangeQuantity($tblBasketVerification->getId()))
+                                ))))
+                            , $tblBasketVerification->getId());
+                        // setDefaultValue don't work -> use POST
+                        $_POST['Quantity'][$tblBasketVerification->getId()] = $Quantity;
                     }
                     if(($Summary = $tblBasketVerification->getSummaryPrice())) {
-                        $Item['Summary'] = ApiBasketVerification::receiverItemSummary($Summary, $tblBasketVerification->getId());
+                        // Hide Sort by Integer
+                        $StringCount = strlen($Summary) - 5;
+                        $SortSummary =  substr(str_replace(',','', $Summary), 0, $StringCount);
+                        $Item['Summary'] = '<span hidden>'.$SortSummary.'</span>'.ApiBasketVerification::receiverItemSummary($Summary,
+                            $tblBasketVerification->getId());
                     }
-                    $Item['Price'] .= '&nbsp;'.(new Link('', ApiBasketVerification::getEndpoint(), new Pencil(), array(), 'Preis / Anzahl bearbeiten'))
-                            ->ajaxPipelineOnClick(ApiBasketVerification::pipelineOpenEditPrice($tblBasketVerification->getId()));
-                    $Item['Quantity'] .= '&nbsp;'.(new Link('', ApiBasketVerification::getEndpoint(), new Pencil(), array(), 'Preis / Anzahl bearbeiten'))
-                            ->ajaxPipelineOnClick(ApiBasketVerification::pipelineOpenEditPrice($tblBasketVerification->getId()));
 
                     // Add ChangeButton to PersonDebtor
                     $Item['PersonDebtor'] = $Item['PersonDebtor'].
@@ -210,25 +286,79 @@ class Frontend extends Extension implements IFrontendInterface
                             ->ajaxPipelineOnClick(ApiBasketVerification::pipelineOpenEditDebtorSelectionModal($tblBasketVerification->getId()))
                             , 'Beitragszahler ändern');
 
+                    //ToDO API für's löschen
+                    $Item['Option'] = new Standard(new DangerText(new Disable()), ApiBasketVerification::getEndpoint(), null
+                        , array(),'Eintrag löschen');
+
                     array_push($TableContent, $Item);
                 });
+            $CountArray['DebtorNumberMiss'] = $DebtorNumberMiss;
+            $CountArray['DebtorMiss'] = $DebtorMiss;
+
+            $Title = '';
+            foreach($CountArray as $Key => $Count) {
+                switch($Key) {
+                    case 'AllCount':
+                        $Title = 'Anzahl der Zahlungszuordnungen:';
+                        break;
+                    case 'DebtorNumberMiss':
+                        $Title = 'Anzahl fehlernder Debitor Nummern:';
+                        if($Count > 0 && $IsDebtorNumberNeed) {
+                            $Title = new DangerText($Title);
+                        }
+                        break;
+                    case 'DebtorMiss':
+                        $Title = 'Anzahl fehlender Zahlungszuweisungen:';
+                        if($Count > 0) {
+                            $Title = new DangerText($Title);
+                        }
+                        break;
+                }
+                $PanelContent .= new Container(new Bold($Title).' '.$Count);
+            }
+            $PanelContent = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(
+                    $PanelContent
+                    , 10),
+                new LayoutColumn(
+                    new Standard('Rechnungen erstellen', '')
+                    , 2)
+            ))));
         }
-        return new TableData($TableContent, null,
-            array(
-                'PersonCauser' => 'Beitragsverursacher',
-                'PersonDebtor' => 'Beitragszahler',
-                'Item'   => 'Artikel',
-                'Price'  => 'Einzelpreis',
-                'Quantity'  => 'Anzahl',
-                'Summary'  => 'Gesamtpreis',
-                'Option' => ''
-            ), array(
-                'columnDefs' => array(
-                    array('type' => 'natural', 'targets' => array(3,4,5))
-                ),
-                'order'      => array(
-                    array(1, 'asc')
-                )
-            ));
+        $PanelCount = new Panel('Übersicht', $PanelContent);
+        return new Layout(
+            new LayoutGroup(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        $PanelCount
+                    ),
+                    new LayoutColumn(
+                        new TableData($TableContent, null,
+                            array(
+                                'PersonCauser'     => 'Beitragsverursacher',
+                                'PersonDebtorFail' => 'Fehler',
+                                'PersonDebtor'     => 'Beitragszahler',
+                                'Item'             => 'Artikel',
+                                'Price'            => 'Einzelpreis',
+                                'Quantity'         => 'Anzahl',
+                                'Summary'          => 'Gesamtpreis',
+                                'Option'           => ''
+                            ), array(
+                                'columnDefs' => array(
+                                    array('type' => 'natural', 'targets' => array(4, 6)),
+                                    array("orderable" => false, "targets"   => 5),
+                                ),
+                                'order'      => array(
+                                    array(1, 'desc'),
+                                    array(0, 'asc')
+                                ),
+                                // First column should not be with Tabindex
+                                // solve the problem with responsive false
+                                "responsive" => false,
+                            ))
+                    ),
+                ))
+            )
+        );
     }
 }

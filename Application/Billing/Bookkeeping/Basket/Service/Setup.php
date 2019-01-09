@@ -49,6 +49,9 @@ class Setup extends AbstractSetup
         $Table = $this->createTable($Schema, 'tblBasket');
         $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Description', self::FIELD_TYPE_TEXT);
+        $this->createColumn($Table, 'Year', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Month', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'TargetTime', self::FIELD_TYPE_DATETIME);
 
         return $Table;
     }
@@ -73,7 +76,7 @@ class Setup extends AbstractSetup
     {
 
         $Table = $this->createTable($Schema, 'tblBasketVerification');
-        if (!$this->getConnection()->hasColumn('tblBasketVerification', 'Value')) {
+        if(!$this->getConnection()->hasColumn('tblBasketVerification', 'Value')) {
             $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
         }
         $this->createColumn($Table, 'Quantity', self::FIELD_TYPE_INTEGER);

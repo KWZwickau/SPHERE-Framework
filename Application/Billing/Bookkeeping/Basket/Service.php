@@ -35,7 +35,7 @@ class Service extends AbstractService
     {
 
         $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
-        if (!$doSimulation && $withData) {
+        if(!$doSimulation && $withData) {
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
 
@@ -105,15 +105,15 @@ class Service extends AbstractService
 
         $tblBasketItemList = $this->getBasketItemAllByBasket($tblBasket);
         $tblItemList = array();
-        if ($tblBasketItemList) {
-            foreach ($tblBasketItemList as $tblBasketItem) {
-                if(($tblItem = $tblBasketItem->getServiceTblItem())){
+        if($tblBasketItemList) {
+            foreach($tblBasketItemList as $tblBasketItem) {
+                if(($tblItem = $tblBasketItem->getServiceTblItem())) {
                     $tblItemList[] = $tblItem;
                 }
             }
 
         }
-        return ( empty( $tblItemList ) ? false : $tblItemList );
+        return (empty($tblItemList) ? false : $tblItemList);
     }
 
     /**
@@ -163,13 +163,22 @@ class Service extends AbstractService
     /**
      * @param string $Name
      * @param string $Description
+     * @param string $Year
+     * @param string $Month
+     * @param string $TargetTime
      *
      * @return TblBasket
      */
-    public function createBasket($Name = '', $Description = '')
+    public function createBasket($Name = '', $Description = '', $Year = '', $Month = '', $TargetTime = '')
     {
 
-        return (new Data($this->getBinding()))->createBasket($Name, $Description);
+        if($TargetTime) {
+            $TargetTime = new \DateTime($TargetTime);
+        } else {
+            // now if no input (fallback)
+            $TargetTime = new \DateTime();
+        }
+        return (new Data($this->getBinding()))->createBasket($Name, $Description, $Year, $Month, $TargetTime);
     }
 
     /**
@@ -193,16 +202,16 @@ class Service extends AbstractService
     {
 
         $tblGroupList = array();
-        if(($tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem))){
-            foreach($tblItemGroupList as $tblItemGroup){
+        if(($tblItemGroupList = Item::useService()->getItemGroupByItem($tblItem))) {
+            foreach($tblItemGroupList as $tblItemGroup) {
                 $tblGroupList[] = $tblItemGroup->getServiceTblGroup();
             }
         }
         $tblPersonList = array();
-        if(!empty($tblGroupList)){
-            foreach($tblGroupList as $tblGroup){
-                if($tblPersonFromGroup = Group::useService()->getPersonAllByGroup($tblGroup)){
-                    foreach($tblPersonFromGroup as $tblPersonFrom){
+        if(!empty($tblGroupList)) {
+            foreach($tblGroupList as $tblGroup) {
+                if($tblPersonFromGroup = Group::useService()->getPersonAllByGroup($tblGroup)) {
+                    foreach($tblPersonFromGroup as $tblPersonFrom) {
                         $tblPersonList[] = $tblPersonFrom;
                     }
                 }
@@ -210,32 +219,33 @@ class Service extends AbstractService
         }
 
         $DebtorDataArray = array();
-        if(!empty($tblPersonList)){
+        if(!empty($tblPersonList)) {
             /** @var TblPerson $tblPerson */
-            foreach($tblPersonList as $tblPerson){
-                if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPerson, $tblItem))){
+            foreach($tblPersonList as $tblPerson) {
+                if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPerson,
+                    $tblItem))) {
                     foreach($tblDebtorSelectionList as $tblDebtorSelection) {
                         $Error = false;
                         $Item = array();
-                        if (!$tblDebtorSelection->getServiceTblPersonCauser()) {
+                        if(!$tblDebtorSelection->getServiceTblPersonCauser()) {
                             //BasketVerification doesn't work without Causer
                             $Item['Causer'] = '';
                             $Error = true;
                         } else {
                             $Item['Causer'] = $tblDebtorSelection->getServiceTblPersonCauser()->getId();
                         }
-                        if (!$tblDebtorSelection->getServiceTblPerson()) {
+                        if(!$tblDebtorSelection->getServiceTblPerson()) {
                             $Item['Debtor'] = '';
                         } else {
                             $Item['Debtor'] = $tblDebtorSelection->getServiceTblPerson()->getId();
                         }
                         // insert payment from DebtorSelection
-                        if(!$tblDebtorSelection->getTblBankAccount()){
+                        if(!$tblDebtorSelection->getTblBankAccount()) {
                             $Item['BankAccount'] = null;
                         } else {
                             $Item['BankAccount'] = $tblDebtorSelection->getTblBankAccount()->getId();
                         }
-                        if(!$tblDebtorSelection->getTblBankReference()){
+                        if(!$tblDebtorSelection->getTblBankReference()) {
                             $Item['BankReference'] = null;
                         } else {
                             $Item['BankReference'] = $tblDebtorSelection->getTblBankReference()->getId();
@@ -244,12 +254,12 @@ class Service extends AbstractService
                         // default special price value
                         $Item['Price'] = $tblDebtorSelection->getValue();
                         // change to selected variant
-                        if (($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())) {
-                            if (($tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant))) {
+                        if(($tblItemVariant = $tblDebtorSelection->getServiceTblItemVariant())) {
+                            if(($tblItemCalculation = Item::useService()->getItemCalculationNowByItemVariant($tblItemVariant))) {
                                 $Item['Price'] = $tblItemCalculation->getValue();
                             }
                         }
-                        if(!$Error){
+                        if(!$Error) {
                             array_push($DebtorDataArray, $Item);
                         }
                     }
@@ -266,8 +276,9 @@ class Service extends AbstractService
                 }
             }
         }
-        if(!empty($DebtorDataArray)){
-            return (new Data($this->getBinding()))->createBasketVerificationBulk($tblBasket, $tblItem, $DebtorDataArray);
+        if(!empty($DebtorDataArray)) {
+            return (new Data($this->getBinding()))->createBasketVerificationBulk($tblBasket, $tblItem,
+                $DebtorDataArray);
         }
         return false;
     }
@@ -276,26 +287,32 @@ class Service extends AbstractService
      * @param TblBasket $tblBasket
      * @param string    $Name
      * @param string    $Description
+     * @param string    $Year
+     * @param string    $Month
+     * @param string    $TargetTime
      *
      * @return IFormInterface|string
      */
-    public function changeBasket(TblBasket $tblBasket, $Name, $Description)
+    public function changeBasket(TblBasket $tblBasket, $Name, $Description, $Year, $Month, $TargetTime)
     {
 
-        return (new Data($this->getBinding()))->updateBasket($tblBasket, $Name, $Description);
+        // String to DateTime object
+        $TargetTime = new \DateTime($TargetTime);
+
+        return (new Data($this->getBinding()))->updateBasket($tblBasket, $Name, $Description, $Year, $Month,
+            $TargetTime);
     }
 
     /**
      * @param TblBasketVerification $tblBasketVerification
-     * @param string                $Price
      * @param string                $Quantity
      *
      * @return bool
      */
-    public function changeBasketVerification(TblBasketVerification $tblBasketVerification, $Price, $Quantity)
+    public function changeBasketVerification(TblBasketVerification $tblBasketVerification, $Quantity)
     {
 
-        return (new Data($this->getBinding()))->updateBasketVerification($tblBasketVerification, $Price, $Quantity);
+        return (new Data($this->getBinding()))->updateBasketVerification($tblBasketVerification, $Quantity);
     }
 
     /**
@@ -308,13 +325,18 @@ class Service extends AbstractService
      *
      * @return bool
      */
-    public function changeBasketVerificationDebtor(TblBasketVerification $tblBasketVerification, TblPerson $tblPersonDebtor,
-        TblPaymentType $tblPaymentType, TblBankAccount $tblBankAccount = null, TblBankReference $tblBankReference = null,
-        $Value = '')
-    {
+    public function changeBasketVerificationDebtor(
+        TblBasketVerification $tblBasketVerification,
+        TblPerson $tblPersonDebtor,
+        TblPaymentType $tblPaymentType,
+        TblBankAccount $tblBankAccount = null,
+        TblBankReference $tblBankReference = null,
+        $Value = ''
+    ) {
 
+        $Value = str_replace(',', '.', $Value);
         return (new Data($this->getBinding()))->updateBasketVerificationDebtor($tblBasketVerification, $tblPersonDebtor,
-        $tblPaymentType, $tblBankAccount, $tblBankReference, $Value);
+            $tblPaymentType, $tblBankAccount, $tblBankReference, $Value);
     }
 
     /**
@@ -329,7 +351,7 @@ class Service extends AbstractService
         $this->destroyBasketItemBulk($tblBasket);
         // remove all BasketVerification
         $this->destroyBasketVerificationBulk($tblBasket);
-        
+
         return (new Data($this->getBinding()))->destroyBasket($tblBasket);
     }
 
@@ -353,8 +375,8 @@ class Service extends AbstractService
     {
 
         $BasketItemIdList = array();
-        if(($tblBasketItemList = Basket::useService()->getBasketItemAllByBasket($tblBasket))){
-            foreach($tblBasketItemList as $tblBasketItem){
+        if(($tblBasketItemList = Basket::useService()->getBasketItemAllByBasket($tblBasket))) {
+            foreach($tblBasketItemList as $tblBasketItem) {
                 $BasketItemIdList[$tblBasketItem->getId()] = $tblBasketItem->getId();
             }
         }
@@ -381,8 +403,8 @@ class Service extends AbstractService
     {
 
         $BasketVerificationIdList = array();
-        if(($tblBasketVerificationList = Basket::useService()->getBasketVerificationAllByBasket($tblBasket))){
-            foreach($tblBasketVerificationList as $tblBasketVerification){
+        if(($tblBasketVerificationList = Basket::useService()->getBasketVerificationAllByBasket($tblBasket))) {
+            foreach($tblBasketVerificationList as $tblBasketVerification) {
                 $BasketVerificationIdList[$tblBasketVerification->getId()] = $tblBasketVerification->getId();
             }
         }

@@ -1,4 +1,5 @@
 <?php
+
 namespace SPHERE\Application\Billing\Accounting\Debtor;
 
 use SPHERE\Application\Api\Billing\Accounting\ApiBankAccount;
@@ -68,18 +69,18 @@ class Frontend extends Extension implements IFrontendInterface
         $Content = array();
 
         if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR))) {
-            $Content[] = new Center('Auswahl für ' . $tblGroup->getName()
-                . new Container(new Standard('', __NAMESPACE__ . '/View', new ListingIcon(),
+            $Content[] = new Center('Auswahl für '.$tblGroup->getName()
+                .new Container(new Standard('', __NAMESPACE__.'/View', new ListingIcon(),
                     array('GroupId' => $tblGroup->getId()))));
         }
         if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CUSTODY))) {
-            $Content[] = new Center('Auswahl für ' . $tblGroup->getName()
-                . new Container(new Standard('', __NAMESPACE__ . '/View', new ListingIcon(),
+            $Content[] = new Center('Auswahl für '.$tblGroup->getName()
+                .new Container(new Standard('', __NAMESPACE__.'/View', new ListingIcon(),
                     array('GroupId' => $tblGroup->getId()))));
         }
 
         if(($tblGroupList = Group::useService()->getGroupAll())) {
-            foreach ($tblGroupList as &$tblGroup) {
+            foreach($tblGroupList as &$tblGroup) {
                 if($tblGroup->getMetaTable() === TblGroup::META_TABLE_CUSTODY
                     || $tblGroup->getMetaTable() === TblGroup::META_TABLE_DEBTOR
                 ) {
@@ -94,7 +95,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Content[] = new Center('Auswahl für Personen'
-            . new Container(
+            .new Container(
                 new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn('', 2),
                     new LayoutColumn(Debtor::useService()->directRoute(
@@ -131,7 +132,7 @@ class Frontend extends Extension implements IFrontendInterface
         if(($tblGroup = Group::useService()->getGroupById($GroupId))) {
             $GroupName = $tblGroup->getName();
         }
-        $Stage = new Stage('Beitragszahler ', 'Gruppe: ' . $GroupName);
+        $Stage = new Stage('Beitragszahler ', 'Gruppe: '.$GroupName);
         $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
 
         $Stage->setContent(
@@ -157,56 +158,58 @@ class Frontend extends Extension implements IFrontendInterface
                 $i = 0;
 
                 $IsDebtorNumberNeed = false;
-                if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED)){
-                    if($tblSetting->getValue() == 1){
+                if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED)) {
+                    if($tblSetting->getValue() == 1) {
                         $IsDebtorNumberNeed = true;
                     }
                 }
 
-                array_walk($tblPersonList, function (TblPerson $tblPerson) use (&$TableContent, $tblGroup, &$i, $IsDebtorNumberNeed) {
-                    $Item['Name'] = $tblPerson->getLastFirstName();
-                    $Item['DebtorNumber'] = ($IsDebtorNumberNeed
-                        ? '<span hidden>00000'.$tblPerson->getLastFirstName().'</span>'.new DangerText(new ToolTip(new Info(), 'Debitornummer wird benötigt'))
-                        : '');
-                    $Item['Address'] = '';
-                    $Item['BankAccount'] = '<div class="alert alert-danger" style="margin-bottom: 0; padding: 10px 15px">'
-                        . new Disable() . ' kein Konto</div>';
-                    $Item['Option'] = new Standard('', __NAMESPACE__ . '/Edit', new Edit(), array(
-                        'GroupId'  => $tblGroup->getId(),
-                        'PersonId' => $tblPerson->getId(),
-                    ));
-                    // get Debtor edit / delete options
-                    if($tblDebtorNumberList = Debtor::useService()->getDebtorNumberByPerson($tblPerson)) {
-                        $NumberList = array();
-                        foreach ($tblDebtorNumberList as $tblDebtorNumber) {
-                            $NumberList[] = $tblDebtorNumber->getDebtorNumber();
+                array_walk($tblPersonList,
+                    function(TblPerson $tblPerson) use (&$TableContent, $tblGroup, &$i, $IsDebtorNumberNeed) {
+                        $Item['Name'] = $tblPerson->getLastFirstName();
+                        $Item['DebtorNumber'] = ($IsDebtorNumberNeed
+                            ? '<span hidden>00000'.$tblPerson->getLastFirstName().'</span>'.new DangerText(new ToolTip(new Info(),
+                                'Debitor-Nr. wird benötigt'))
+                            : '');
+                        $Item['Address'] = '';
+                        $Item['BankAccount'] = '<div class="alert alert-danger" style="margin-bottom: 0; padding: 10px 15px">'
+                            .new Disable().' kein Konto</div>';
+                        $Item['Option'] = new Standard('', __NAMESPACE__.'/Edit', new Edit(), array(
+                            'GroupId'  => $tblGroup->getId(),
+                            'PersonId' => $tblPerson->getId(),
+                        ));
+                        // get Debtor edit / delete options
+                        if($tblDebtorNumberList = Debtor::useService()->getDebtorNumberByPerson($tblPerson)) {
+                            $NumberList = array();
+                            foreach($tblDebtorNumberList as $tblDebtorNumber) {
+                                $NumberList[] = $tblDebtorNumber->getDebtorNumber();
+                            }
+                            $Item['DebtorNumber'] = implode('<br/>', $NumberList);
                         }
-                        $Item['DebtorNumber'] = implode('<br/>', $NumberList);
-                    }
-                    // fill Address if exist
-                    $tblAddress = false;
-                    $tblType = Address::useService()->getTypeByName(TblType::META_INVOICE_ADDRESS);
-                    if($tblType) {
-                        $tblAddressList = Address::useService()->getAddressAllByPersonAndType($tblPerson, $tblType);
-                        if($tblAddressList) {
-                            $tblAddress = current($tblAddressList);
+                        // fill Address if exist
+                        $tblAddress = false;
+                        $tblType = Address::useService()->getTypeByName(TblType::META_INVOICE_ADDRESS);
+                        if($tblType) {
+                            $tblAddressList = Address::useService()->getAddressAllByPersonAndType($tblPerson, $tblType);
+                            if($tblAddressList) {
+                                $tblAddress = current($tblAddressList);
+                            }
                         }
-                    }
-                    if(!$tblAddress) {
-                        $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
-                    }
-                    if($tblAddress) {
-                        $Item['Address'] = $tblAddress->getGuiLayout();
-                    }
+                        if(!$tblAddress) {
+                            $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+                        }
+                        if($tblAddress) {
+                            $Item['Address'] = $tblAddress->getGuiLayout();
+                        }
 
-                    if(Debtor::useService()->getBankAccountAllByPerson($tblPerson)) {
-                        $Item['BankAccount'] = '<div class="alert alert-success" style="margin-bottom: 0; padding: 10px 15px">'
-                            . new Check() . ' Konto vorhanden</div>';
-                    }
+                        if(Debtor::useService()->getBankAccountAllByPerson($tblPerson)) {
+                            $Item['BankAccount'] = '<div class="alert alert-success" style="margin-bottom: 0; padding: 10px 15px">'
+                                .new Check().' Konto vorhanden</div>';
+                        }
 
 
-                    array_push($TableContent, $Item);
-                });
+                        array_push($TableContent, $Item);
+                    });
             }
         }
 
@@ -234,7 +237,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Beitragszahler', 'Informationen');
 
-        $Stage->addButton(new Standard('Zurück', __NAMESPACE__ . '/View', new ChevronLeft(),
+        $Stage->addButton(new Standard('Zurück', __NAMESPACE__.'/View', new ChevronLeft(),
             array('GroupId' => $GroupId)));
         $DebtorNumber = ApiDebtor::receiverPanelContent($this->getDebtorNumberContent($PersonId));
         $BankAccount = ApiBankAccount::receiverBankAccountPanel($this->getBankAccountPanel($PersonId));
@@ -242,12 +245,12 @@ class Frontend extends Extension implements IFrontendInterface
 
 
         $Stage->setContent(ApiDebtor::receiverModal('Hinzufügen einer Debitor-Nummer', 'addDebtorNumber')
-            . ApiDebtor::receiverModal('Bearbeiten einer Debitor-Nummer', 'editDebtorNumber')
-            . ApiDebtor::receiverModal('Entfernen einer Debitor-Nummer', 'deleteDebtorNumber')
-            . ApiBankAccount::receiverModal('Hinzufügen eines Konto\'s', 'addBankAccount')
-            . ApiBankAccount::receiverModal('Bearbeiten eines Konto\'s', 'editBankAccount')
-            . ApiBankAccount::receiverModal('Entfernen eines Konto\'s', 'deleteBankAccount')
-            . new Layout(
+            .ApiDebtor::receiverModal('Bearbeiten einer Debitor-Nummer', 'editDebtorNumber')
+            .ApiDebtor::receiverModal('Entfernen einer Debitor-Nummer', 'deleteDebtorNumber')
+            .ApiBankAccount::receiverModal('Hinzufügen eines Konto\'s', 'addBankAccount')
+            .ApiBankAccount::receiverModal('Bearbeiten eines Konto\'s', 'editBankAccount')
+            .ApiBankAccount::receiverModal('Entfernen eines Konto\'s', 'deleteBankAccount')
+            .new Layout(
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn($this->getPersonPanel($PersonId)),
@@ -271,17 +274,19 @@ class Frontend extends Extension implements IFrontendInterface
 
         if(($tblPerson = Person::useService()->getPersonById($PersonId))) {
             $IsDebtorNumberNeed = false;
-            if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED)){
-                if($tblSetting->getValue() == 1){
+            if($tblSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED)) {
+                if($tblSetting->getValue() == 1) {
                     $IsDebtorNumberNeed = true;
                 }
             }
 
             // new DebtorNumber
-            if($IsDebtorNumberNeed){
-                $DebtorNumber = new DangerText(new ToolTip(new WarningIcon(), 'Debotornummer muss angegeben werden')).(new Link('Debitor-Nummer hinzufügen', ApiDebtor::getEndpoint(), new Plus()))
-                    ->ajaxPipelineOnClick(ApiDebtor::pipelineOpenAddDebtorNumberModal('addDebtorNumber',
-                        $tblPerson->getId()));
+            if($IsDebtorNumberNeed) {
+                $DebtorNumber = new DangerText(new ToolTip(new WarningIcon(),
+                        'Debotornummer muss angegeben werden')).(new Link('Debitor-Nummer hinzufügen',
+                        ApiDebtor::getEndpoint(), new Plus()))
+                        ->ajaxPipelineOnClick(ApiDebtor::pipelineOpenAddDebtorNumberModal('addDebtorNumber',
+                            $tblPerson->getId()));
             } else {
                 $DebtorNumber = (new Link('Debitor-Nummer hinzufügen', ApiDebtor::getEndpoint(), new Plus()))
                     ->ajaxPipelineOnClick(ApiDebtor::pipelineOpenAddDebtorNumberModal('addDebtorNumber',
@@ -291,13 +296,13 @@ class Frontend extends Extension implements IFrontendInterface
             // DebtorNumber
             if(($tblDebtorNumberList = Debtor::useService()->getDebtorNumberByPerson($tblPerson))) {
                 $DebtorNumber = array();
-                foreach ($tblDebtorNumberList as $tblDebtorNumber) {
-                    $DebtorNumber[] = $tblDebtorNumber->getDebtorNumber() . ' '
-                        . (new Link('', ApiDebtor::getEndpoint(), new Pencil(), array(), 'Debitor-Nummer bearbeiten'))
+                foreach($tblDebtorNumberList as $tblDebtorNumber) {
+                    $DebtorNumber[] = $tblDebtorNumber->getDebtorNumber().' '
+                        .(new Link('', ApiDebtor::getEndpoint(), new Pencil(), array(), 'Debitor-Nummer bearbeiten'))
                             ->ajaxPipelineOnClick(ApiDebtor::pipelineOpenEditDebtorNumberModal('editDebtorNumber'
                                 , $tblPerson->getId(), $tblDebtorNumber->getId()))
-                        . ' | '
-                        . (new Link(new DangerText(new Remove()), ApiDebtor::getEndpoint(), null, array(),
+                        .' | '
+                        .(new Link(new DangerText(new Remove()), ApiDebtor::getEndpoint(), null, array(),
                             'Debitor-Nummer entfernen'))
                             ->ajaxPipelineOnClick(ApiDebtor::pipelineOpenDeleteDebtorNumberModal('deleteDebtorNumber'
                                 , $tblPerson->getId(), $tblDebtorNumber->getId()));
@@ -326,9 +331,12 @@ class Frontend extends Extension implements IFrontendInterface
             $ColumnBankAccountList = '';
             if(($tblBankAccountList = Debtor::useService()->getBankAccountAllByPerson($tblPerson))) {
                 array_walk($tblBankAccountList,
-                    function (TblBankAccount $tblBankAccount) use (
-                        &$tableContent, &$ColumnBankAccountList, $PersonId,
-                        $FirstColumn, $SecondColumn
+                    function(TblBankAccount $tblBankAccount) use (
+                        &$tableContent,
+                        &$ColumnBankAccountList,
+                        $PersonId,
+                        $FirstColumn,
+                        $SecondColumn
                     ) {
 
                         $ContentArray[] = new Layout(new LayoutGroup(new LayoutRow(array(
@@ -348,8 +356,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Konto bearbeiten'))
                                     ->ajaxPipelineOnClick(ApiBankAccount::pipelineOpenEditBankAccountModal('editBankAccount'
                                         , $PersonId, $tblBankAccount->getId()))
-                                . ' | '
-                                . (new Link(new DangerText(new Remove()), ApiDebtor::getEndpoint(), null, array(),
+                                .' | '
+                                .(new Link(new DangerText(new Remove()), ApiDebtor::getEndpoint(), null, array(),
                                     'Konto entfernen'))
                                     ->ajaxPipelineOnClick(ApiBankAccount::pipelineOpenDeleteBankAccountModal('deleteBankAccount'
                                         , $PersonId, $tblBankAccount->getId())))
