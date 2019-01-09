@@ -7,6 +7,7 @@ use SPHERE\Application\Api\Billing\Bookkeeping\ApiBasketVerification;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -158,7 +159,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage->setContent(
             ApiBasketVerification::receiverModal('Bearbeiten')
-            .ApiBasketVerification::receiverQuantityService()
+            .ApiBasketVerification::receiverService()
             .new Layout(
                 new LayoutGroup(
                     new LayoutRow(
@@ -172,7 +173,7 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 )
             )
-            .$this->getBasketVerificationLayout($BasketId)
+            .ApiBasketVerification::receiverTableLayout($this->getBasketVerificationLayout($BasketId))
         );
 
         return $Stage;
@@ -287,8 +288,9 @@ class Frontend extends Extension implements IFrontendInterface
                             , 'Beitragszahler ändern');
 
                     //ToDO API für's löschen
-                    $Item['Option'] = new Standard(new DangerText(new Disable()), ApiBasketVerification::getEndpoint(), null
-                        , array(),'Eintrag löschen');
+                    $Item['Option'] = (new Standard(new DangerText(new Disable()), ApiBasketVerification::getEndpoint(), null
+                        /*, array(),'Eintrag löschen'*/))
+                        ->ajaxPipelineOnClick(ApiBasketVerification::pipelineDeleteDebtorSelection($tblBasketVerification->getId()));
 
                     array_push($TableContent, $Item);
                 });
@@ -360,5 +362,17 @@ class Frontend extends Extension implements IFrontendInterface
                 ))
             )
         );
+    }
+
+    /**
+     * @param string $BasketId
+     */
+    public function frontendDoInvoice($BasketId = '')
+    {
+
+        if(($tblBasket = Basket::useService()->getBasketById($BasketId))){
+            //ToDO überarbeitung Invoice
+            Invoice::useService()->createInvoice($tblBasket);
+        }
     }
 }

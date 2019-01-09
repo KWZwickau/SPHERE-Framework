@@ -2,8 +2,6 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice;
 
-use SPHERE\Application\Billing\Accounting\Banking\Banking;
-use SPHERE\Application\Billing\Accounting\SchoolAccount\SchoolAccount;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Data;
@@ -378,54 +376,36 @@ class Service extends AbstractService
 
     /**
      * @param TblBasket $tblBasket
-     * @param           $Date
-     * @param null      $SchoolAccount
      *
      * @return bool
      */
-    public function createInvoice(TblBasket $tblBasket, $Date, $SchoolAccount = null)
+    public function createInvoice(TblBasket $tblBasket)
     {
         /** Shopping Content */
-        $tblBasketVerificationList = Basket::useService()->getBasketVerificationByBasket($tblBasket);
+        $tblBasketVerificationList = Basket::useService()->getBasketVerificationAllByBasket($tblBasket);
         if (!$tblBasketVerificationList) {
             return false;
         }
         $DebtorItemList = array();
         foreach ($tblBasketVerificationList as $tblBasketVerification) {
-
-
-            $tblPerson = $tblBasketVerification->getServiceTblPerson();
+            $tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser();
+            $tblPersonDebtor = $tblBasketVerification->getServiceTblPersonDebtor();
             $tblItem = $tblBasketVerification->getServiceTblItem();
             $Quantity = $tblBasketVerification->getQuantity();
             $Price = $tblBasketVerification->getValue();
+            $Summary = $Quantity * $Price;
+            $tblBankReference = $tblBasketVerification->getServiceTblBankReference();
+            $tblBankAccount = $tblBasketVerification->getServiceTblBankAccount();
+            $tblPaymentType = $tblBasketVerification->getServiceTblPaymentType();
 
-            /** search Customer */
-            $tblDebtorSelect = Banking::useService()->getDebtorSelectionByPersonAndItem($tblPerson, $tblItem);
-            if ($tblDebtorSelect) {
-                $tblBankReference = $tblDebtorSelect->getTblBankReference();
-                $tblDebtor = $tblDebtorSelect->getTblDebtor();
-                $tblPaymentType = $tblDebtorSelect->getServiceTblPaymentType();
-
-                if ($tblBankReference && $tblDebtor) {
-                    /** fill Invoice/tblDebtor */
-                    $DebtorId = $tblDebtor->getId();
-                    /** fill Invoice/tblItem */
-                    $DebtorItemList[$DebtorId]['DebtorInvoice'][] = (new Data($this->getBinding()))->createDebtor($tblDebtor, $tblPaymentType, $tblBankReference)->getId();
-                    $DebtorItemList[$DebtorId]['Item'][] = (new Data($this->getBinding()))->createItem($tblBasketVerification)->getId();
-                    $DebtorItemList[$DebtorId]['Quantity'][] = $Quantity;
-                    $DebtorItemList[$DebtorId]['Value'][] = $Price;
-                    $DebtorItemList[$DebtorId]['PersonId'][] = $tblPerson->getId();
-                } elseif ($tblDebtor) {
-                    /** fill Invoice/tblDebtor */
-                    $DebtorId = $tblDebtor->getId();
-                    /** fill Invoice/tblItem */
-                    $DebtorItemList[$DebtorId]['DebtorInvoice'][] = (new Data($this->getBinding()))->createDebtor($tblDebtor, $tblPaymentType, null)->getId();
-                    $DebtorItemList[$DebtorId]['Item'][] = (new Data($this->getBinding()))->createItem($tblBasketVerification)->getId();
-                    $DebtorItemList[$DebtorId]['Quantity'][] = $Quantity;
-                    $DebtorItemList[$DebtorId]['Value'][] = $Price;
-                    $DebtorItemList[$DebtorId]['PersonId'][] = $tblPerson->getId();
-                }
-            }
+            /** fill Invoice/tblDebtor */
+            $PersonDebtorId = $tblPersonDebtor->getId();
+            /** fill Invoice/tblItem */
+            $DebtorItemList[$PersonDebtorId]['DebtorInvoice'][] = (new Data($this->getBinding()))->createDebtor($tblDebtor, $tblPaymentType, $tblBankReference)->getId();
+            $DebtorItemList[$PersonDebtorId]['Item'][] = (new Data($this->getBinding()))->createItem($tblBasketVerification)->getId();
+            $DebtorItemList[$PersonDebtorId]['Quantity'][] = $Quantity;
+            $DebtorItemList[$PersonDebtorId]['Value'][] = $Price;
+            $DebtorItemList[$PersonDebtorId]['PersonId'][] = $tblPerson->getId();
         }
 
         $tblInvoiceList = Invoice::useService()->getInvoiceAllByYearAndMonth((new \DateTime($Date)));

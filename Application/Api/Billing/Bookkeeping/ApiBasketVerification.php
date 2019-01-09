@@ -18,6 +18,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Ajax\Emitter\ServerEmitter;
 use SPHERE\Common\Frontend\Ajax\Pipeline;
+use SPHERE\Common\Frontend\Ajax\Receiver\BlockReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\InlineReceiver;
 use SPHERE\Common\Frontend\Ajax\Receiver\ModalReceiver;
 use SPHERE\Common\Frontend\Ajax\Template\CloseModal;
@@ -63,15 +64,16 @@ class ApiBasketVerification extends Extension implements IApiInterface
         $Dispatcher = new Dispatcher(__CLASS__);
         // reload ColumnContent
         $Dispatcher->registerMethod('getItemPrice');
-//        $Dispatcher->registerMethod('getItemQuantity');
         $Dispatcher->registerMethod('getItemSummary');
         $Dispatcher->registerMethod('getDebtor');
+        $Dispatcher->registerMethod('getTableLayout');
 
-        //Price
+        //Quantity
         $Dispatcher->registerMethod('changeQuantity');
         // DebtorSelection
         $Dispatcher->registerMethod('showEditDebtorSelection');
         $Dispatcher->registerMethod('saveEditDebtorSelection');
+        $Dispatcher->registerMethod('deleteDebtorSelection');
 
         return $Dispatcher->callMethod($Method);
     }
@@ -89,12 +91,23 @@ class ApiBasketVerification extends Extension implements IApiInterface
     }
 
     /**
-     * @return InlineReceiver
+     * @param string $Content
+     *
+     * @return BlockReceiver
      */
-    public static function receiverQuantityService()
+    public static function receiverTableLayout($Content = '')
     {
 
-        return (new InlineReceiver())->setIdentifier('QuantityService');
+        return (new BlockReceiver($Content))->setIdentifier('BasketVerificationLayout');
+    }
+
+    /**
+     * @return InlineReceiver
+     */
+    public static function receiverService()
+    {
+
+        return (new InlineReceiver())->setIdentifier('Service');
     }
 
     /**
@@ -141,7 +154,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
     public static function pipelineChangeQuantity($BasketVerificationId = '')
     {
 
-        $Receiver = self::receiverQuantityService();
+        $Receiver = self::receiverService();
         $Pipeline = new Pipeline(false);
         $Emitter = new ServerEmitter($Receiver, self::getEndpoint());
         $Emitter->setGetPayload(array(
@@ -192,6 +205,37 @@ class ApiBasketVerification extends Extension implements IApiInterface
         ));
         $Pipeline->appendEmitter($Emitter);
         return $Pipeline;
+    }
+
+    /**
+     * @param string $BasketVerificationId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineReloadTable($BasketId = '')
+    {
+        $Pipeline = new Pipeline(false);
+        // reload columns
+        // reload Summary column
+        $Emitter = new ServerEmitter(self::receiverTableLayout(), self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'getTableLayout'
+        ));
+        $Emitter->setPostPayload(array(
+            'BasketId' => $BasketId
+        ));
+        $Pipeline->appendEmitter($Emitter);
+        return $Pipeline;
+    }
+
+    public function getTableLayout($BasketId = '')
+    {
+
+
+        if($BasketId){
+            return Basket::useFrontend()->getBasketVerificationLayout($BasketId);
+        }
+        return 'Fehler';
     }
 
     /**
@@ -302,6 +346,29 @@ class ApiBasketVerification extends Extension implements IApiInterface
         $Emitter = new ServerEmitter($Receiver, self::getEndpoint());
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'saveEditDebtorSelection'
+        ));
+        $Emitter->setPostPayload(array(
+            'BasketVerificationId' => $BasketVerificationId
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string $BasketVerificationId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineDeleteDebtorSelection(
+        $BasketVerificationId = ''
+    ) {
+
+        $Receiver = self::receiverService();
+        $Pipeline = new Pipeline(false);
+        $Emitter = new ServerEmitter($Receiver, self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'deleteDebtorSelection'
         ));
         $Emitter->setPostPayload(array(
             'BasketVerificationId' => $BasketVerificationId
@@ -759,6 +826,19 @@ class ApiBasketVerification extends Extension implements IApiInterface
         } else {
             return new Danger('Die Zuordnung des Beitragszahlers konnte nicht gengelegt werden');
         }
+    }
+
+    public function deleteDebtorSelection($BasketVerificationId = '')
+    {
+
+        if(($tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId))){
+            $tblBasket = $tblBasketVerification->getTblBasket();
+            Basket::useService()->destroyBasketVerification($tblBasketVerification);
+            if($tblBasket){
+                return self::pipelineReloadTable($tblBasket->getId());
+            }
+        }
+        return '';
     }
 
     /**
