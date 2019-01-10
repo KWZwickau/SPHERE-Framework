@@ -3,7 +3,6 @@ namespace SPHERE\Application\Contact\Mail;
 
 use SPHERE\Application\Api\Contact\ApiMailToCompany;
 use SPHERE\Application\Api\Contact\ApiMailToPerson;
-use SPHERE\Application\Contact\Mail\Service\Entity\TblToCompany;
 use SPHERE\Application\Contact\Mail\Service\Entity\TblToPerson;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\FrontendReadOnly;
@@ -32,7 +31,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Mailto;
-use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
@@ -161,170 +159,6 @@ class Frontend extends Extension implements IFrontendInterface
         ))->disableSubmitAction();
     }
 
-    // todo remove
-    /**
-     * @param TblPerson $tblPerson
-     * @param null $Group
-     *
-     * @return Layout
-     */
-    public function frontendLayoutPerson(TblPerson $tblPerson, $Group = null)
-    {
-
-        $mailExistsList = array();
-        $tblMailAll = Mail::useService()->getMailAllByPerson($tblPerson);
-        if ($tblMailAll !== false) {
-            array_walk($tblMailAll, function (TblToPerson &$tblToPerson) use ($mailExistsList, $Group) {
-
-                if (array_key_exists($tblToPerson->getId(), $mailExistsList)){
-                    $tblToPerson = false;
-                } else {
-                    $mailExistsList[$tblToPerson->getId()] = $tblToPerson;
-
-                    $Panel = array(
-                        new Mailto($tblToPerson->getTblMail()->getAddress()
-                            , $tblToPerson->getTblMail()->getAddress(), new Envelope())
-                    );
-                    if ($tblToPerson->getRemark()) {
-                        array_push($Panel, new Muted(new Small($tblToPerson->getRemark())));
-                    }
-
-                    $tblToPerson = new LayoutColumn(
-                        new Panel(
-                            new MailIcon() . ' ' . $tblToPerson->getTblType()->getName(), $Panel,
-                            Panel::PANEL_TYPE_SUCCESS,
-
-                            new Standard(
-                                '', '/People/Person/Mail/Edit', new Edit(),
-                                array('Id' => $tblToPerson->getId(), 'Group' => $Group),
-                                'Bearbeiten'
-                            )
-                            . new Standard(
-                                '', '/People/Person/Mail/Destroy', new Remove(),
-                                array('Id' => $tblToPerson->getId(), 'Group' => $Group), 'Löschen'
-                            )
-                        )
-                        , 3);
-                }
-            });
-
-            $tblMailAll = array_filter($tblMailAll);
-        }
-
-        $tblRelationshipAll = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
-        if ($tblRelationshipAll) {
-            foreach ($tblRelationshipAll as $tblRelationship) {
-                if ($tblRelationship->getServiceTblPersonTo() && $tblRelationship->getServiceTblPersonFrom()) {
-
-                    if ($tblPerson->getId() != $tblRelationship->getServiceTblPersonFrom()->getId()) {
-                        $tblRelationshipMailAll = Mail::useService()->getMailAllByPerson($tblRelationship->getServiceTblPersonFrom());
-                        if ($tblRelationshipMailAll) {
-                            foreach ($tblRelationshipMailAll as $tblMail) {
-                                if (!array_key_exists($tblMail->getId(), $mailExistsList)) {
-                                    $mailExistsList[$tblMail->getId()] = $tblMail;
-
-                                    $Panel = array(
-                                        new Mailto($tblMail->getTblMail()->getAddress()
-                                            , $tblMail->getTblMail()->getAddress(), new Envelope())
-                                    );
-                                    if ($tblMail->getRemark()) {
-                                        array_push($Panel, new Muted(new Small($tblMail->getRemark())));
-                                    }
-
-                                    $tblMail = new LayoutColumn(
-                                        new Panel(
-                                            new MailIcon() . ' ' . $tblMail->getTblType()->getName(), $Panel,
-                                            Panel::PANEL_TYPE_DEFAULT,
-                                            new Standard(
-                                                '', '/People/Person', new PersonIcon(),
-                                                array('Id' => $tblRelationship->getServiceTblPersonFrom()->getId()),
-                                                'Zur Person'
-                                            )
-                                            . '&nbsp;' . $tblRelationship->getServiceTblPersonFrom()->getFullName()
-                                        )
-                                        , 3);
-
-                                    if ($tblMailAll !== false) {
-                                        $tblMailAll[] = $tblMail;
-                                    } else {
-                                        $tblMailAll = array();
-                                        $tblMailAll[] = $tblMail;
-                                    }
-
-                                }
-                            }
-                        }
-                    }
-
-                    if ($tblPerson->getId() != $tblRelationship->getServiceTblPersonTo()->getId()) {
-                        $tblRelationshipMailAll = Mail::useService()->getMailAllByPerson($tblRelationship->getServiceTblPersonTo());
-                        if ($tblRelationshipMailAll) {
-                            foreach ($tblRelationshipMailAll as $tblMail) {
-                                if (!array_key_exists($tblMail->getId(), $mailExistsList)) {
-                                    $mailExistsList[$tblMail->getId()] = $tblMail;
-
-                                    $Panel = array(
-                                        new Mailto($tblMail->getTblMail()->getAddress()
-                                            , $tblMail->getTblMail()->getAddress(), new Envelope())
-                                    );
-                                    if ($tblMail->getRemark()) {
-                                        array_push($Panel, new Muted(new Small($tblMail->getRemark())));
-                                    }
-
-                                    $tblMail = new LayoutColumn(
-                                        new Panel(
-                                            new MailIcon() . ' ' . $tblMail->getTblType()->getName(), $Panel,
-                                            Panel::PANEL_TYPE_DEFAULT,
-                                            new Standard(
-                                                '', '/People/Person', new PersonIcon(),
-                                                array('Id' => $tblRelationship->getServiceTblPersonTo()->getId()),
-                                                'Zur Person'
-                                            )
-                                            . '&nbsp;' . $tblRelationship->getServiceTblPersonTo()->getFullName()
-                                        )
-                                        , 3);
-
-                                    if ($tblMailAll !== false) {
-                                        $tblMailAll[] = $tblMail;
-                                    } else {
-                                        $tblMailAll = array();
-                                        $tblMailAll[] = $tblMail;
-                                    }
-
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if ($tblMailAll === false) {
-            $tblMailAll = array(
-                new LayoutColumn(
-                    new Warning('Keine E-Mail Adressen hinterlegt')
-                )
-            );
-        }
-
-        $LayoutRowList = array();
-        $LayoutRowCount = 0;
-        $LayoutRow = null;
-        /**
-         * @var LayoutColumn $tblMail
-         */
-        foreach ($tblMailAll as $tblMail) {
-            if ($LayoutRowCount % 4 == 0) {
-                $LayoutRow = new LayoutRow(array());
-                $LayoutRowList[] = $LayoutRow;
-            }
-            $LayoutRow->addColumn($tblMail);
-            $LayoutRowCount++;
-        }
-
-        return new Layout(new LayoutGroup($LayoutRowList));
-    }
-
     /**
      * @param TblPerson $tblPerson
      *
@@ -445,69 +279,6 @@ class Frontend extends Extension implements IFrontendInterface
 
             return (string) (new Layout(new LayoutGroup($LayoutRowList)));
         }
-    }
-
-    // todo remove
-    /**
-     * @param TblCompany $tblCompany
-     * @param null $Group
-     *
-     * @return Layout
-     */
-    public function frontendLayoutCompany(TblCompany $tblCompany, $Group = null)
-    {
-
-        $tblMailAll = Mail::useService()->getMailAllByCompany($tblCompany);
-        if ($tblMailAll !== false) {
-            array_walk($tblMailAll, function (TblToCompany &$tblToCompany) use ($Group) {
-
-                $Panel = array(new Mailto($tblToCompany->getTblMail()->getAddress()
-                    , $tblToCompany->getTblMail()->getAddress(), new Envelope()));
-                if ($tblToCompany->getRemark()) {
-                    array_push($Panel, new Muted(new Small($tblToCompany->getRemark())));
-                }
-
-                $tblToCompany = new LayoutColumn(
-                    new Panel(
-                        new MailIcon() . ' ' . $tblToCompany->getTblType()->getName(), $Panel,
-                        Panel::PANEL_TYPE_SUCCESS,
-
-                        new Standard(
-                            '', '/Corporation/Company/Mail/Edit', new Edit(),
-                            array('Id' => $tblToCompany->getId(), 'Group' => $Group),
-                            'Bearbeiten'
-                        )
-                        . new Standard(
-                            '', '/Corporation/Company/Mail/Destroy', new Remove(),
-                            array('Id' => $tblToCompany->getId(), 'Group' => $Group), 'Löschen'
-                        )
-                    )
-                    , 3);
-            });
-        } else {
-            $tblMailAll = array(
-                new LayoutColumn(
-                    new Warning('Keine E-Mail Adressen hinterlegt')
-                )
-            );
-        }
-
-        $LayoutRowList = array();
-        $LayoutRowCount = 0;
-        $LayoutRow = null;
-        /**
-         * @var LayoutColumn $tblMail
-         */
-        foreach ($tblMailAll as $tblMail) {
-            if ($LayoutRowCount % 4 == 0) {
-                $LayoutRow = new LayoutRow(array());
-                $LayoutRowList[] = $LayoutRow;
-            }
-            $LayoutRow->addColumn($tblMail);
-            $LayoutRowCount++;
-        }
-
-        return new Layout(new LayoutGroup($LayoutRowList));
     }
 
     /**

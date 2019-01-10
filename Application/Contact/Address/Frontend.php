@@ -4,7 +4,6 @@ namespace SPHERE\Application\Contact\Address;
 use SPHERE\Application\Api\Contact\ApiAddressToCompany;
 use SPHERE\Application\Api\Contact\ApiAddressToPerson;
 use SPHERE\Application\Contact\Address\Service\Entity\TblState;
-use SPHERE\Application\Contact\Address\Service\Entity\TblToCompany;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\FrontendReadOnly;
@@ -34,7 +33,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
-use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
@@ -233,158 +231,6 @@ class Frontend extends Extension implements IFrontendInterface
         ))->disableSubmitAction();
     }
 
-    // todo remove
-    /**
-     * @param TblPerson $tblPerson
-     * @param null $Group
-     *
-     * @return Layout
-     */
-    public function frontendLayoutPerson(TblPerson $tblPerson, $Group = null)
-    {
-
-        $addressExistsList = array();
-        $tblAddressAll = Address::useService()->getAddressAllByPerson($tblPerson);
-        if ($tblAddressAll !== false) {
-            array_walk($tblAddressAll, function (TblToPerson &$tblToPerson) use ($addressExistsList, $Group) {
-
-                if (array_key_exists($tblToPerson->getId(), $addressExistsList)){
-                    $tblToPerson = false;
-                } else {
-                    $addressExistsList[$tblToPerson->getId()] = $tblToPerson;
-
-                    $Panel = array($tblToPerson->getTblAddress()->getGuiLayout());
-                    if ($tblToPerson->getRemark()) {
-                        array_push($Panel, new Muted(new Small($tblToPerson->getRemark())));
-                    }
-
-                    $tblToPerson = new LayoutColumn(
-                        new Panel(
-                            new MapMarker() . ' ' . $tblToPerson->getTblType()->getName(), $Panel,
-                            Panel::PANEL_TYPE_SUCCESS,
-                            new Standard(
-                                '', '/People/Person/Address/Edit', new Edit(),
-                                array('Id' => $tblToPerson->getId(), 'Group' => $Group),
-                                'Bearbeiten'
-                            )
-                            . new Standard(
-                                '', '/People/Person/Address/Destroy', new Remove(),
-                                array('Id' => $tblToPerson->getId(), 'Group' => $Group), 'Löschen'
-                            )
-                        )
-                        , 3);
-                }
-            });
-
-            $tblAddressAll = array_filter($tblAddressAll);
-        }
-
-        $tblRelationshipAll = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
-        if ($tblRelationshipAll) {
-            foreach ($tblRelationshipAll as $tblRelationship) {
-                if ($tblRelationship->getServiceTblPersonTo() && $tblRelationship->getServiceTblPersonFrom()) {
-                    if ($tblPerson->getId() != $tblRelationship->getServiceTblPersonFrom()->getId()) {
-                        $tblRelationshipAddressAll = Address::useService()->getAddressAllByPerson($tblRelationship->getServiceTblPersonFrom());
-                        if ($tblRelationshipAddressAll) {
-                            foreach ($tblRelationshipAddressAll as $tblAddress) {
-                                if (!array_key_exists($tblAddress->getId(), $addressExistsList)) {
-                                    $addressExistsList[$tblAddress->getId()] = $tblAddress;
-
-                                    $Panel = array($tblAddress->getTblAddress()->getGuiLayout());
-                                    if ($tblAddress->getRemark()) {
-                                        array_push($Panel, new Muted(new Small($tblAddress->getRemark())));
-                                    }
-
-                                    $tblAddress = new LayoutColumn(
-                                        new Panel(
-                                            new MapMarker() . ' ' . $tblAddress->getTblType()->getName(), $Panel,
-                                            Panel::PANEL_TYPE_DEFAULT,
-                                            new Standard(
-                                                '', '/People/Person', new PersonIcon(),
-                                                array('Id' => $tblRelationship->getServiceTblPersonFrom()->getId()),
-                                                'Zur Person'
-                                            )
-                                            . '&nbsp;' . $tblRelationship->getServiceTblPersonFrom()->getFullName()
-                                        )
-                                        , 3);
-
-                                    if ($tblAddressAll !== false) {
-                                        $tblAddressAll[] = $tblAddress;
-                                    } else {
-                                        $tblAddressAll = array();
-                                        $tblAddressAll[] = $tblAddress;
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if ($tblPerson->getId() != $tblRelationship->getServiceTblPersonTo()->getId()) {
-                        $tblRelationshipAddressAll = Address::useService()->getAddressAllByPerson($tblRelationship->getServiceTblPersonTo());
-                        if ($tblRelationshipAddressAll) {
-                            foreach ($tblRelationshipAddressAll as $tblAddress) {
-                                if (!array_key_exists($tblAddress->getId(), $addressExistsList)) {
-                                    $addressExistsList[$tblAddress->getId()] = $tblAddress;
-
-                                    $Panel = array($tblAddress->getTblAddress()->getGuiLayout());
-                                    if ($tblAddress->getRemark()) {
-                                        array_push($Panel, new Muted(new Small($tblAddress->getRemark())));
-                                    }
-
-                                    $tblAddress = new LayoutColumn(
-                                        new Panel(
-                                            new MapMarker() . ' ' . $tblAddress->getTblType()->getName(), $Panel,
-                                            Panel::PANEL_TYPE_DEFAULT,
-                                            new Standard(
-                                                '', '/People/Person', new PersonIcon(),
-                                                array('Id' => $tblRelationship->getServiceTblPersonTo()->getId()),
-                                                'Zur Person'
-                                            )
-                                            . '&nbsp;' . $tblRelationship->getServiceTblPersonTo()->getFullName()
-                                        )
-                                        , 3);
-
-                                    if ($tblAddressAll !== false) {
-                                        $tblAddressAll[] = $tblAddress;
-                                    } else {
-                                        $tblAddressAll = array();
-                                        $tblAddressAll[] = $tblAddress;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if ($tblAddressAll === false) {
-            $tblAddressAll = array(
-                new LayoutColumn(
-                    new Warning('Keine Adressen hinterlegt')
-                )
-            );
-        }
-
-
-        $LayoutRowList = array();
-        $LayoutRowCount = 0;
-        $LayoutRow = null;
-        /**
-         * @var LayoutColumn $tblAddress
-         */
-        foreach ($tblAddressAll as $tblAddress) {
-            if ($LayoutRowCount % 4 == 0) {
-                $LayoutRow = new LayoutRow(array());
-                $LayoutRowList[] = $LayoutRow;
-            }
-            $LayoutRow->addColumn($tblAddress);
-            $LayoutRowCount++;
-        }
-
-        return new Layout(new LayoutGroup($LayoutRowList));
-    }
-
     /**
      * @param TblPerson $tblPerson
      *
@@ -574,66 +420,5 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Warning('Keine Adressen hinterlegt')))));
         }
-    }
-
-    // todo remove
-    /**
-     * @param TblCompany $tblCompany
-     * @param null $Group
-     *
-     * @return Layout
-     */
-    public function frontendLayoutCompany(TblCompany $tblCompany, $Group = null)
-    {
-
-        $tblAddressAll = Address::useService()->getAddressAllByCompany($tblCompany);
-        if ($tblAddressAll !== false) {
-            array_walk($tblAddressAll, function (TblToCompany &$tblToCompany) use ($Group) {
-
-                $Panel = array($tblToCompany->getTblAddress()->getGuiLayout());
-                if ($tblToCompany->getRemark()) {
-                    array_push($Panel, new Muted(new Small($tblToCompany->getRemark())));
-                }
-
-                $tblToCompany = new LayoutColumn(
-                    new Panel(
-                        new MapMarker() . ' ' . $tblToCompany->getTblType()->getName(), $Panel,
-                        Panel::PANEL_TYPE_SUCCESS,
-                        new Standard(
-                            '', '/Corporation/Company/Address/Edit', new Edit(),
-                            array('Id' => $tblToCompany->getId(), 'Group' => $Group),
-                            'Bearbeiten'
-                        )
-                        . new Standard(
-                            '', '/Corporation/Company/Address/Destroy', new Remove(),
-                            array('Id' => $tblToCompany->getId(), 'Group' => $Group), 'Löschen'
-                        )
-                    )
-                    , 3);
-            });
-        } else {
-            $tblAddressAll = array(
-                new LayoutColumn(
-                    new Warning('Keine Adressen hinterlegt')
-                )
-            );
-        }
-
-        $LayoutRowList = array();
-        $LayoutRowCount = 0;
-        $LayoutRow = null;
-        /**
-         * @var LayoutColumn $tblAddress
-         */
-        foreach ($tblAddressAll as $tblAddress) {
-            if ($LayoutRowCount % 4 == 0) {
-                $LayoutRow = new LayoutRow(array());
-                $LayoutRowList[] = $LayoutRow;
-            }
-            $LayoutRow->addColumn($tblAddress);
-            $LayoutRowCount++;
-        }
-
-        return new Layout(new LayoutGroup($LayoutRowList));
     }
 }

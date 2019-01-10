@@ -2,7 +2,6 @@
 namespace SPHERE\Application\Contact\Web;
 
 use SPHERE\Application\Api\Contact\ApiWebToCompany;
-use SPHERE\Application\Contact\Web\Service\Entity\TblToCompany;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\FrontendReadOnly;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -24,10 +23,8 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
-use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
-use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\System\Extension\Extension;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
 
@@ -93,70 +90,6 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
             ))
         ))->disableSubmitAction();
-    }
-
-    // todo remove
-    /**
-     * @param TblCompany $tblCompany
-     * @param null $Group
-     *
-     * @return Layout
-     */
-    public function frontendLayoutCompany(TblCompany $tblCompany, $Group = null)
-    {
-
-        $tblWebAll = Web::useService()->getWebAllByCompany($tblCompany);
-        if ($tblWebAll !== false) {
-            array_walk($tblWebAll, function (TblToCompany &$tblToCompany) use ($Group) {
-
-                $Panel = array(
-                    $tblToCompany->getTblWeb()->getAddress()
-                );
-                if ($tblToCompany->getRemark()) {
-                    array_push($Panel, new Muted(new Small($tblToCompany->getRemark())));
-                }
-
-                $tblToCompany = new LayoutColumn(
-                    new Panel(
-                        new Globe() . ' ' . $tblToCompany->getTblType()->getName(), $Panel,
-                        Panel::PANEL_TYPE_SUCCESS,
-
-                        new Standard(
-                            '', '/Corporation/Company/Web/Edit', new Edit(),
-                            array('Id' => $tblToCompany->getId(), 'Group' => $Group),
-                            'Bearbeiten'
-                        )
-                        . new Standard(
-                            '', '/Corporation/Company/Web/Destroy', new Remove(),
-                            array('Id' => $tblToCompany->getId(), 'Group' => $Group), 'Löschen'
-                        )
-                    )
-                    , 3);
-            });
-        } else {
-            $tblWebAll = array(
-                new LayoutColumn(
-                    new Warning('Keine Internet Adressen hinterlegt')
-                )
-            );
-        }
-
-        $LayoutRowList = array();
-        $LayoutRowCount = 0;
-        $LayoutRow = null;
-        /**
-         * @var LayoutColumn $tblWeb
-         */
-        foreach ($tblWebAll as $tblWeb) {
-            if ($LayoutRowCount % 4 == 0) {
-                $LayoutRow = new LayoutRow(array());
-                $LayoutRowList[] = $LayoutRow;
-            }
-            $LayoutRow->addColumn($tblWeb);
-            $LayoutRowCount++;
-        }
-
-        return new Layout(new LayoutGroup($LayoutRowList));
     }
 
     /**

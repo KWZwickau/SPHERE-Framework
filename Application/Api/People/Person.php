@@ -20,7 +20,6 @@ class Person implements IApplicationInterface
 
     public static function registerApplication()
     {
-        ApiPerson::registerApi();
         ApiStudent::registerApi();
         ApiSupport::registerApi();
         ApiSupportReadOnly::registerApi();

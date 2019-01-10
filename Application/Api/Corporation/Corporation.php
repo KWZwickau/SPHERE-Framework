@@ -15,7 +15,6 @@ class Corporation implements IApplicationInterface
 
     public static function registerApplication()
     {
-        ContactPerson::registerApi();
         ApiCompanyEdit::registerApi();
         ApiCompanyReadOnly::registerApi();
     }
