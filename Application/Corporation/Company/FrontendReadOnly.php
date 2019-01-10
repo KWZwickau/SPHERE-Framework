@@ -33,22 +33,20 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Building;
-use SPHERE\Common\Frontend\Icon\Repository\ChevronDown;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Globe;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
-use SPHERE\Common\Frontend\Icon\Repository\TagList;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
@@ -178,8 +176,16 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                         ))->ajaxPipelineOnClick(ApiWebToCompany::pipelineOpenCreateWebToCompanyModal($tblCompany->getId())),
                     ),
                     'der Institution ' . new Bold(new Success($tblCompany->getDisplayName())),
-                    new \SPHERE\Common\Frontend\Icon\Repository\Globe()
+                    new Globe()
                 );
+
+            $relationshipContent = TemplateReadOnly::getContent(
+                'Beziehungen',
+                Relationship::useFrontend()->frontendLayoutCompanyNew($tblCompany),
+                array(),
+                'der Institution ' . new Bold(new Success($tblCompany->getDisplayName())),
+                new \SPHERE\Common\Frontend\Icon\Repository\Link()
+            );
 
             $stage->setContent(
                 $basicContent
@@ -187,7 +193,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 . $phoneContent
                 . $mailContent
                 . $webContent
-                . self::getLayoutContact($tblCompany, $Group)
+                . $relationshipContent
             );
             // neue Institution anlegen
         } else {
@@ -287,60 +293,6 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
         }
 
         return '';
-    }
-
-    // todo remove
-    /**
-     * @param TblCompany $tblCompany
-     * @param $Group
-     *
-     * @return Layout
-     */
-    private static function getLayoutContact(TblCompany $tblCompany, $Group)
-    {
-
-        return new Layout(array(
-            new LayoutGroup(array(
-                new LayoutRow(new LayoutColumn(
-                    Address::useFrontend()->frontendLayoutCompany($tblCompany, $Group)
-                )),
-            ), ( new Title(new TagList().' Adressdaten', 'der Institution') )
-                ->addButton(
-                    new Standard('Adresse hinzufügen', '/Corporation/Company/Address/Create',
-                        new ChevronDown(), array('Id' => $tblCompany->getId(), 'Group' => $Group)
-                    )
-                )
-            ),
-            new LayoutGroup(array(
-                new LayoutRow(new LayoutColumn(
-                    Phone::useFrontend()->frontendLayoutCompany($tblCompany, $Group)
-                    . Mail::useFrontend()->frontendLayoutCompany($tblCompany, $Group)
-                    . Web::useFrontend()->frontendLayoutCompany($tblCompany, $Group)
-                )),
-            ), ( new Title(new TagList().' Kontaktdaten', 'der Institution') )
-                ->addButton(
-                    new Standard('Telefonnummer hinzufügen', '/Corporation/Company/Phone/Create',
-                        new ChevronDown(), array('Id' => $tblCompany->getId(), 'Group' => $Group)
-                    )
-                )
-                ->addButton(
-                    new Standard('E-Mail Adresse hinzufügen', '/Corporation/Company/Mail/Create',
-                        new ChevronDown(), array('Id' => $tblCompany->getId(), 'Group' => $Group)
-                    )
-                )
-                ->addButton(
-                    new Standard('Internet Adresse hinzufügen', '/Corporation/Company/Web/Create',
-                        new ChevronDown(), array('Id' => $tblCompany->getId(), 'Group' => $Group)
-                    )
-                )
-            ),
-            new LayoutGroup(array(
-                new LayoutRow(new LayoutColumn(array(
-                    Relationship::useFrontend()->frontendLayoutCompany($tblCompany)
-                ))),
-            ), (new Title(new TagList() . ' Beziehungen', 'zu Personen'))
-            ),
-        ));
     }
 
     /**

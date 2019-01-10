@@ -355,8 +355,6 @@ class Service extends AbstractService
 
     /**
      * @param TblCompany $tblCompany
-     * @param $Name
-     * @param $ExtendedName
      * @param $Description
      *
      * @return bool
@@ -365,5 +363,16 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->updateCompanyDescriptionWithoutForm($tblCompany, $Description);
+    }
+
+    /**
+     * @param $Name
+     *
+     * @return false|TblCompany[]
+     */
+    public function getCompanyListLike($Name)
+    {
+
+        return (new Data($this->getBinding()))->getCompanyListLike($Name);
     }
 }

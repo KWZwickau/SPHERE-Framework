@@ -5,6 +5,8 @@ namespace SPHERE\Application\People\Person;
 use SPHERE\Application\Api\Contact\ApiAddressToPerson;
 use SPHERE\Application\Api\Contact\ApiMailToPerson;
 use SPHERE\Application\Api\Contact\ApiPhoneToPerson;
+use SPHERE\Application\Api\Contact\ApiRelationshipToCompany;
+use SPHERE\Application\Api\Contact\ApiRelationshipToPerson;
 use SPHERE\Application\Api\People\Person\ApiPersonEdit;
 use SPHERE\Application\Api\People\Person\ApiPersonReadOnly;
 use SPHERE\Application\Contact\Address\Address;
@@ -169,23 +171,23 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
                 new \SPHERE\Common\Frontend\Icon\Repository\Mail()
             );
 
+            $relationshipToPersonReceiver = ApiRelationshipToPerson::receiverBlock(Relationship::useFrontend()->frontendLayoutPersonNew($tblPerson),
+                'RelationshipToPersonContent');
+            $relationshipToCompanyReceiver = ApiRelationshipToCompany::receiverBlock(Relationship::useFrontend()->frontendLayoutCompanyNew($tblPerson),
+                'RelationshipToCompanyContent');
             $relationshipContent = TemplateReadOnly::getContent(
                 'Beziehungen',
-                Relationship::useFrontend()->frontendLayoutPersonNew($tblPerson, $Group)
-                . Relationship::useFrontend()->frontendLayoutCompanyNew($tblPerson, $Group),
+                $relationshipToPersonReceiver
+                . $relationshipToCompanyReceiver,
                 array(
-                    new Link(
-                        new Plus() . ' Personenbeziehung hinzufügen',
-                        '/People/Person/Relationship/Create',
-                        null,
-                        array('Id' => $tblPerson->getId(), 'Group' => $Group)
-                    ),
-                    new Link(
-                        new Plus() . ' Institutionenbeziehung hinzufügen',
-                        '/Corporation/Company/Relationship/Create',
-                        null,
-                        array('Id' => $tblPerson->getId(), 'Group' => $Group)
-                    )
+                    (new Link(
+                        new Plus() . '  Personenbeziehung hinzufügen',
+                        ApiRelationshipToPerson::getEndpoint()
+                    ))->ajaxPipelineOnClick(ApiRelationshipToPerson::pipelineOpenCreateRelationshipToPersonModal($tblPerson->getId())),
+                    (new Link(
+                        new Plus() . '  Institutionenbeziehung hinzufügen',
+                        ApiRelationshipToCompany::getEndpoint()
+                    ))->ajaxPipelineOnClick(ApiRelationshipToCompany::pipelineOpenCreateRelationshipToCompanyModal($tblPerson->getId())),
                 ),
                 'der Person ' . new Bold(new Success($tblPerson->getFullName())) . ' zu Personen und Institutionen',
                 new \SPHERE\Common\Frontend\Icon\Repository\Link()
@@ -259,7 +261,7 @@ class FrontendReadOnly extends Extension implements IFrontendInterface
     /**
      * @return Danger
      */
-    protected static function getDataProtectionMessage()
+    public static function getDataProtectionMessage()
     {
 
         return new Danger(

@@ -22,5 +22,7 @@ class Contact implements IApplicationInterface
         ApiMailToPerson::registerApi();
         ApiMailToCompany::registerApi();
         ApiWebToCompany::registerApi();
+        ApiRelationshipToPerson::registerApi();
+        ApiRelationshipToCompany::registerApi();
     }
 }

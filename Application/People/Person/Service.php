@@ -313,6 +313,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $Name
+     *
+     * @return false|TblPerson[]
+     */
+    public function getPersonListLike($Name)
+    {
+
+        return (new Data($this->getBinding()))->getPersonListLike($Name);
+    }
+
+    /**
      * @param IFormInterface|null $Form
      * @param TblPerson $tblPerson
      * @param $Person
