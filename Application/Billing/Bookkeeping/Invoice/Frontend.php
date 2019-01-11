@@ -5,7 +5,7 @@ namespace SPHERE\Application\Billing\Bookkeeping\Invoice;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPayment;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
-use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblItemValue;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemValue;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
@@ -182,7 +182,7 @@ class Frontend extends Extension implements IFrontendInterface
         $TableContent = array();
         $SumPrice = 0;
         if ($tblItemList) {
-            array_walk($tblItemList, function (TblItemValue $tblItem) use (&$TableContent, &$SumPrice, $tblInvoice) {
+            array_walk($tblItemList, function (TblInvoiceItemValue $tblItem) use (&$TableContent, &$SumPrice, $tblInvoice) {
                 $Item['Name'] = $tblItem->getName();
                 $Item['Quantity'] = $tblItem->getQuantity();
                 $Item['SinglePrice'] = $tblItem->getPriceString();

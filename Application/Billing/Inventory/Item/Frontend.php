@@ -186,6 +186,9 @@ class Frontend extends Extension implements IFrontendInterface
                 'Variant'     => 'Preis-Varianten',
 //                'Option'      => ''
             ), array(
+                'columnDefs' => array(
+                    array("orderable" => false, "targets"   => array(-1, -2)),
+                ),
                 "paging"         => false, // Deaktivieren Blättern
                 "iDisplayLength" => -1,    // Alle Einträge zeigen
 //                "searching"      => false, // Deaktivieren Suchen

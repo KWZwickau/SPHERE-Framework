@@ -5,25 +5,27 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Billing\Accounting\Banking\Banking;
-use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblBankReference;
-use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor as BankingDebtor;
+use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
+use SPHERE\Application\Billing\Accounting\Debtor\Service\Entity\TblBankReference;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity
- * @Table(name="tblDebtor")
+ * @Table(name="tblInvoiceDebtor")
  * @Cache(usage="READ_ONLY")
  */
 class TblInvoiceDebtor extends Element
 {
 
-    const ATTR_SERVICE_TBL_DEBTOR = 'serviceTblDebtor';
+    const ATTR_SERVICE_TBL_PERSON_DEBTOR = 'serviceTblPersonDebtor';
     const ATTR_SERVICE_TBL_BANKING_REFERENCE = 'serviceTblBankReference';
     const ATTR_SERVICE_TBL_PAYMENT_TYPE = 'serviceTblPaymentType';
+    const ATTR_TBL_INVOICE = 'tblInvoice';
 
     /**
      * @Column(type="string")
@@ -56,7 +58,7 @@ class TblInvoiceDebtor extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblDebtor;
+    protected $serviceTblPersonDebtor;
     /**
      * @Column(type="bigint")
      */
@@ -65,6 +67,10 @@ class TblInvoiceDebtor extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblPaymentType;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblInvoice;
 
     /**
      * @return string
@@ -193,25 +199,25 @@ class TblInvoiceDebtor extends Element
     }
 
     /**
-     * @return bool|BankingDebtor
+     * @return bool|TblPerson
      */
-    public function getServiceTblDebtor()
+    public function getServiceTblPersonDebtor()
     {
 
-        if (null === $this->serviceTblDebtor) {
+        if (null === $this->serviceTblPersonDebtor) {
             return false;
         } else {
-            return Banking::useService()->getDebtorById($this->serviceTblDebtor);
+            return Person::useService()->getPersonById($this->serviceTblPersonDebtor);
         }
     }
 
     /**
-     * @param BankingDebtor|null $tblDebtor
+     * @param TblPerson|null $tblPerson
      */
-    public function setServiceTblDebtor(BankingDebtor $tblDebtor = null)
+    public function setServiceTblPersonDebtor(TblPerson $tblPerson = null)
     {
 
-        $this->serviceTblDebtor = ( null === $tblDebtor ? null : $tblDebtor->getId() );
+        $this->serviceTblPersonDebtor = ( null === $tblPerson ? null : $tblPerson->getId() );
     }
 
     /**
@@ -232,7 +238,7 @@ class TblInvoiceDebtor extends Element
         if (null === $this->serviceTblBankReference) {
             return false;
         } else {
-            return Banking::useService()->getBankReferenceById($this->serviceTblBankReference);
+            return Debtor::useService()->getBankReferenceById($this->serviceTblBankReference);
         }
     }
 
@@ -256,5 +262,27 @@ class TblInvoiceDebtor extends Element
         } else {
             return Balance::useService()->getPaymentTypeById($this->serviceTblPaymentType);
         }
+    }
+
+    /**
+     * @return bool|TblInvoice
+     */
+    public function getTblInvoice()
+    {
+
+        if (null === $this->tblInvoice) {
+            return false;
+        } else {
+            return Invoice::useService()->getInvoiceById($this->tblInvoice);
+        }
+    }
+
+    /**
+     * @param null|TblInvoice $tblInvoice
+     */
+    public function setTblInvoice(TblInvoice $tblInvoice = null)
+    {
+
+        $this->tblInvoice = ( null === $tblInvoice ? null : $tblInvoice->getId() );
     }
 }

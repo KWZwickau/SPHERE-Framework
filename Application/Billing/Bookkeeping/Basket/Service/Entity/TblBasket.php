@@ -17,6 +17,8 @@ class TblBasket extends Element
 {
 
     const ATTR_NAME = 'Name';
+    const ATTR_MONTH = 'Month';
+    const ATTR_YEAR = 'Year';
 
     /**
      * @Column(type="string")

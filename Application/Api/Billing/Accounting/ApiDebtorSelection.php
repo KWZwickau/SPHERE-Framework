@@ -413,7 +413,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 }
                 // ToDO Sorgeberechtigte immer anzeigen oder ganz deaktivieren?
                 // Bezahler ohne Gruppe (z.B. Sorgeberechtigte, die ohne Konto bezhalen (Bar/Überweisung))
-                if(empty($SelectBoxDebtorList)){
+//                if(empty($SelectBoxDebtorList)){
                     $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CUSTODY);
                     foreach ($tblRelationshipList as $tblRelationship) {
                         if (($tblPersonRel = $tblRelationship->getServiceTblPersonFrom()) && $tblPersonRel->getId() !== $tblPerson->getId()) {
@@ -424,7 +424,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                             }
                         }
                     }
-                }
+//                }
             }
             if(($tblRelationshipType = Relationship::useService()->getTypeByName('Beitragszahler'))){
                 if (($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson,
@@ -551,10 +551,16 @@ class ApiDebtorSelection extends Extension implements IApiInterface
                 $IsDebtorNumberNeed = true;
             }
         }
-
-        $DeborNumber = ($IsDebtorNumberNeed
-        ? '(keine Debitor-Nr.)'
-        : '');
+        $DeborNumber = '';
+        if($IsDebtorNumberNeed){
+            $DeborNumber = '(keine Debitor-Nr.)';
+        }
+        // change warning if necessary to "not in PaymentGroup"
+        if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR))){
+            if(!Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroup)){
+                $DeborNumber = '(kein Bezahler)';
+            }
+        }
         if(($tblDebtorNumberList = Debtor::useService()->getDebtorNumberByPerson($tblPerson))){
             $DebtorNumberList = array();
             foreach($tblDebtorNumberList as $tblDebtorNumber){
@@ -710,6 +716,10 @@ class ApiDebtorSelection extends Extension implements IApiInterface
 
         if ($tblPersonCauser && $tblPerson && $tblPaymentType && $tblItem) {
 
+            // Add Person to PaymentGroup
+            if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR))){
+                Group::useService()->addGroupPerson($tblGroup, $tblPerson);
+            }
             $tblDebtorSelection = Debtor::useService()->createDebtorSelection($tblPersonCauser, $tblPerson,
                 $tblPaymentType, $tblItem,
                 ($tblItemVariant ? $tblItemVariant : null),
@@ -778,6 +788,10 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         $IsChange = false;
         if (($tblDebtorSelection = Debtor::useService()->getDebtorSelectionById($DebtorSelectionId))
         && $tblPerson && $tblPaymentType) {
+            // Add Person to PaymentGroup
+            if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR))){
+                Group::useService()->addGroupPerson($tblGroup, $tblPerson);
+            }
             $IsChange = Debtor::useService()->changeDebtorSelection($tblDebtorSelection, $tblPerson, $tblPaymentType,
                 ($tblItemVariant ? $tblItemVariant : null),
                 $ItemPrice,

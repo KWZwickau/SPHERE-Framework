@@ -10,6 +10,7 @@ use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerifi
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -98,7 +99,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                $Item['CreateDate'] = $tblBasket->getCreateDate();
 
                 $Item['TimeTarget'] = $tblBasket->getTargetTime();
-                $Item['Time'] = $tblBasket->getMonth(true).'.'.$tblBasket->getYear();
+                $Item['Time'] = $tblBasket->getYear().'.'.$tblBasket->getMonth(true);
 
                 $Item['Item'] = '';
                 $tblItemList = Basket::useService()->getItemAllByBasket($tblBasket);
@@ -133,6 +134,16 @@ class Frontend extends Extension implements IFrontendInterface
                 'Time'       => 'Abrechnungsmonat',
                 'Item'       => 'Artikel',
                 'Option'     => ''
+            ), array(
+                'columnDefs' => array(
+                    array('type' => 'natural', 'targets' => array(0)),
+                    array('type' => 'de_date', 'targets' => array(2)),
+                    array("orderable" => false, "targets"   => -1),
+                ),
+                'order'      => array(
+                    array(1, 'desc'),
+                    array(0, 'asc')
+                ),
             )
         );
     }
@@ -146,6 +157,8 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendBasketView($BasketId = null)
     {
 
+        // out of memory (Test with 3300 entrys)
+        ini_set('memory_limit', '-1');
         $Stage = new Stage('Abrechnung', 'Inhalt');
 
         $Stage->addButton(new Standard('Zurück', __NAMESPACE__, new ChevronLeft()));
@@ -347,8 +360,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Option'           => ''
                             ), array(
                                 'columnDefs' => array(
+                                    array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => array(0, 2)),
                                     array('type' => 'natural', 'targets' => array(4, 6)),
-                                    array("orderable" => false, "targets"   => 5),
+                                    array("orderable" => false, "targets"   => array(5, -1)),
                                 ),
                                 'order'      => array(
                                     array(1, 'desc'),
@@ -357,7 +371,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 // First column should not be with Tabindex
                                 // solve the problem with responsive false
                                 "responsive" => false,
-                            ))
+                            )
+                        )
                     ),
                 ))
             )

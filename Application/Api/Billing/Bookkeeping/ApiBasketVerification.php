@@ -505,7 +505,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
                     }
                     // ToDO Sorgeberechtigte ohne vorhandene Beitragszahler anzeigen oder ganz deaktivieren / ergänzen?
                     // Bezahler ohne Gruppe (z.B. Sorgeberechtigte, die ohne Konto bezahlen (Bar/Überweisung))
-                    if(empty($SelectBoxDebtorList)) {
+//                    if(empty($SelectBoxDebtorList)) {
                         $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CUSTODY);
                         foreach($tblRelationshipList as $tblRelationship) {
                             if(($tblPersonRel = $tblRelationship->getServiceTblPersonFrom()) && $tblPersonRel->getId() !== $tblPersonCauser->getId()) {
@@ -516,7 +516,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
                                 }
                             }
                         }
-                    }
+//                    }
                 }
                 if(($tblRelationshipType = Relationship::useService()->getTypeByName('Beitragszahler'))) {
                     if(($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPersonCauser,
@@ -646,10 +646,16 @@ class ApiBasketVerification extends Extension implements IApiInterface
                 $IsDebtorNumberNeed = true;
             }
         }
-
-        $DeborNumber = ($IsDebtorNumberNeed
-            ? '(keine Debitor-Nr.)'
-            : '');
+        $DeborNumber = '';
+        if($IsDebtorNumberNeed){
+            $DeborNumber = '(keine Debitor-Nr.)';
+        }
+        // change warning if necessary to "not in PaymentGroup"
+        if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR))){
+            if(!Group::useService()->getMemberByPersonAndGroup($tblPerson, $tblGroup)){
+                $DeborNumber = '(kein Bezahler)';
+            }
+        }
         if(($tblDebtorNumberList = Debtor::useService()->getDebtorNumberByPerson($tblPerson))) {
             $DebtorNumberList = array();
             foreach($tblDebtorNumberList as $tblDebtorNumber) {
@@ -805,11 +811,16 @@ class ApiBasketVerification extends Extension implements IApiInterface
             ($tblBankReference === false ? $tblBankReference = null : '');
             if(Basket::useService()->changeBasketVerificationDebtor($tblBasketVerification, $tblPersonDebtor,
                 $tblPaymentType, $tblBankAccount, $tblBankReference, $Value)) {
+                // Add Person to PaymentGroup
+                if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR))){
+                    Group::useService()->addGroupPerson($tblGroup, $tblPersonDebtor);
+                }
                 $IsChange = true;
             }
 
             // Add DebtorSelection if not already exist
-            if(!Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPersonCauser, $tblItem)) {
+            if(!Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPersonCauser, $tblItem)
+            && $IsChange) {
                 Debtor::useService()->createDebtorSelection($tblPersonCauser, $tblPersonDebtor,
                     $tblPaymentType, $tblItem,
                     ($tblItemVariant ? $tblItemVariant : null),

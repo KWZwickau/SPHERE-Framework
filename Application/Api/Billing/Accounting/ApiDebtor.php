@@ -299,13 +299,57 @@ class ApiDebtor extends Extension implements IApiInterface
             $SaveButton->ajaxPipelineOnClick(self::pipelineSaveAddDebtorNumber($Identifier, $PersonId));
         }
 
+        // find Student's with DebtorNumber
+        $StudentList = array();
+        if(($tblPerson = Person::useService()->getPersonById($PersonId))){
+            // Person is Student
+            if(($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
+                $StudentList[] = 'Schülernummer: ' . $tblStudent->getIdentifierComplete() . ' (' . $tblPerson->getLastFirstName() . ')';
+            }
+            // find Student by Person how is Guardian for Student
+            $tblRelationshipType = Relationship::useService()->getTypeByName( TblType::IDENTIFIER_GUARDIAN );
+            $tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType);
+            if($tblToPersonList) {
+                /* @var TblToPerson $tblToPerson */
+                foreach($tblToPersonList as $tblToPerson){
+                    $tblPersonStudent = $tblToPerson->getServiceTblPersonTo();
+                    if(($tblStudent = Student::useService()->getStudentByPerson($tblPersonStudent))) {
+                        $StudentList[] = 'Schülernummer: ' . $tblStudent->getIdentifierComplete() . ' (' . $tblPersonStudent->getLastFirstName() . ')';
+                    }
+                }
+            }
+            // find Student by Person how is Authorized for Student
+            $tblRelationshipType = Relationship::useService()->getTypeByName( TblType::IDENTIFIER_AUTHORIZED );$tblToPersonList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson, $tblRelationshipType);
+            if($tblToPersonList){
+                /* @var TblToPerson $tblToPerson */
+                foreach($tblToPersonList as $tblToPerson) {
+                    $tblPersonStudent = $tblToPerson->getServiceTblPersonTo();
+                    if(($tblStudent = Student::useService()->getStudentByPerson($tblPersonStudent))) {
+                        $StudentList[] = 'Schülernummer: ' . new Bold($tblStudent->getIdentifierComplete()) . ' (' . $tblPersonStudent->getLastFirstName() . ')';
+                    }
+                }
+            }
+        }
+        if(!empty($StudentList)){
+            $StudentList = implode('<br/>', $StudentList);
+        } else {
+            $StudentList = '';
+        }
+
         return (new Form(
             new FormGroup(array(
-                new FormRow(
+                new FormRow(array(
                     new FormColumn(
                         (new TextField('DebtorNumber[Number]', 'Debitor-Nummer', 'Debitor-Nummer'))->setRequired()
+                        , 6),
+                    new FormColumn(
+                        new Layout(new LayoutGroup(new LayoutRow(
+                            new LayoutColumn(
+                                $StudentList
+                            )
+                        )))
                         , 6)
-                ),
+                )),
                 new FormRow(
                     new FormColumn(
                         $SaveButton

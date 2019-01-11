@@ -65,13 +65,22 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Name
+     * @param string     $Name
+     * @param string|bool $Month
+     * @param string|bool $Year
      *
      * @return false|TblBasket
      */
-    public function getBasketByName($Name)
+    public function getBasketByName($Name, $Month = false, $Year = false)
     {
 
+        if($Month && $Year){
+            return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasket', array(
+                TblBasket::ATTR_NAME => $Name,
+                TblBasket::ATTR_MONTH => $Month,
+                TblBasket::ATTR_YEAR => $Year,
+            ));
+        }
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasket', array(
             TblBasket::ATTR_NAME => $Name
         ));
@@ -238,8 +247,8 @@ class Data extends AbstractData
                     if($PersonDebtorId) {
                         $Entity->setServiceTblPersonDebtor(Person::useService()->getPersonById($PersonDebtorId));
                     }
-                    $Entity->setServiceTblBankAccount($BankAccountId === null ? null : Debtor::useService()->getBankAccountById($BankAccountId));
-                    $Entity->setServiceTblBankReference($BankReferenceId === null ? null : Debtor::useService()->getBankReferenceById($BankReferenceId));
+                    $Entity->setServiceTblBankAccount(null === $BankAccountId ? null : Debtor::useService()->getBankAccountById($BankAccountId));
+                    $Entity->setServiceTblBankReference(null === $BankReferenceId ? null : Debtor::useService()->getBankReferenceById($BankReferenceId));
                     if($PaymentTypeId) {
                         $Entity->setServiceTblPaymentType(Balance::useService()->getPaymentTypeById($PaymentTypeId));
                     }
@@ -277,9 +286,18 @@ class Data extends AbstractData
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
-        $Entity = $Manager->getEntity('TblBasket')->findOneBy(array(
-            TblBasket::ATTR_NAME => $Name,
-        ));
+        if($Month && $Year){
+            $Entity = $Manager->getEntity('TblBasket')->findOneBy(array(
+                TblBasket::ATTR_NAME => $Name,
+                TblBasket::ATTR_MONTH => $Month,
+                TblBasket::ATTR_YEAR => $Year,
+            ));
+        } else {
+            $Entity = $Manager->getEntity('TblBasket')->findOneBy(array(
+                TblBasket::ATTR_NAME => $Name
+            ));
+        }
+
 
         if(null === $Entity) {
             $Entity = new TblBasket();

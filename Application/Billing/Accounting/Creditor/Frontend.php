@@ -3,6 +3,7 @@ namespace SPHERE\Application\Billing\Accounting\Creditor;
 
 use SPHERE\Application\Api\Billing\Accounting\ApiCreditor;
 use SPHERE\Application\Billing\Accounting\Creditor\Service\Entity\TblCreditor;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
@@ -87,6 +88,11 @@ class Frontend extends Extension implements IFrontendInterface
             'IBAN' => 'IBAN',
             'BIC' => 'BIC',
             'Option' => '',
+        ), array(
+            'columnDefs' => array(
+                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                array("orderable" => false, "targets"   => -1),
+            ),
         ));
     }
 }

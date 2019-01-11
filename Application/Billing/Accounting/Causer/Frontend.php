@@ -10,6 +10,7 @@ use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Setting\Consumer\Consumer;
 use SPHERE\Common\Frontend\Form\Repository\Button\Standard as StandardForm;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -243,6 +244,11 @@ class Frontend extends Extension implements IFrontendInterface
             'Name'       => 'Person',
             'ContentRow' => 'Zuordnung Beitragszahler',
             'Option'     => '',
+        ), array(
+            'columnDefs' => array(
+                array('type' => Consumer::useService()->getGermanSortBySetting(), 'targets' => 0),
+                array("orderable" => false, "targets"   => -1),
+            ),
         ));
     }
 

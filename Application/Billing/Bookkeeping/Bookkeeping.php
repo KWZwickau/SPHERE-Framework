@@ -4,6 +4,7 @@ namespace SPHERE\Application\Billing\Bookkeeping;
 
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -22,7 +23,7 @@ class Bookkeeping implements IApplicationInterface
          * Register Module
          */
         Basket::registerModule();
-//        Invoice::registerModule();
+        Invoice::registerModule();
         Balance::registerModule();
 
         // Skip Dashboard

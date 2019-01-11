@@ -403,13 +403,27 @@ class ApiBasket extends Extension implements IApiInterface
             $Warning[] = 'Bitte geben Sie einen Namen der Abrechnung an';
             $Error = true;
         } else {
-            if(($tblBasket = Basket::useService()->getBasketByName($Basket['Name']))) {
-                if($BasketId !== $tblBasket->getId()) {
-                    $form->setError('Basket[Name]',
-                        'Bitte geben sie eine noch nicht vergebenen Name für die Abrechnung an');
-                    // ToDO setError don't work
-                    $Warning[] = 'Bitte geben sie eine noch nicht vergebenen Name für die Abrechnung an';
-                    $Error = true;
+            if(isset($Basket['Month']) && isset($Basket['Year'])){
+                // Filtern doppelter Namen Mit Zeitangabe (Namen sind mit anderem Datum wiederverwendbar)
+                if(($tblBasket = Basket::useService()->getBasketByName($Basket['Name'], $Basket['Month'], $Basket['Year']))) {
+                    if($BasketId !== $tblBasket->getId()) {
+                        $form->setError('Basket[Name]',
+                            'Bitte geben sie einen noch nicht vergebenen Name für die Abrechnung '.$Basket['Month'].'.'.$Basket['Year'].' an');
+                        // ToDO setError don't work
+                        $Warning[] = 'Bitte geben sie einen noch nicht vergebenen Name für die Abrechnung '.$Basket['Month'].'.'.$Basket['Year'].' an';
+                        $Error = true;
+                    }
+                }
+            } else {
+                // Filtern doppelter Namen ohne Zeitangabe
+                if(($tblBasket = Basket::useService()->getBasketByName($Basket['Name']))) {
+                    if($BasketId !== $tblBasket->getId()) {
+                        $form->setError('Basket[Name]',
+                            'Bitte geben sie einen noch nicht vergebenen Name für die Abrechnung an');
+                        // ToDO setError don't work
+                        $Warning[] = 'Bitte geben sie einen noch nicht vergebenen Name für die Abrechnung an';
+                        $Error = true;
+                    }
                 }
             }
         }

@@ -54,14 +54,16 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Name
+     * @param string     $Name
+     * @param string|bool $Month
+     * @param string|bool $Year
      *
      * @return bool|TblBasket
      */
-    public function getBasketByName($Name)
+    public function getBasketByName($Name, $Month = false, $Year = false)
     {
 
-        return (new Data($this->getBinding()))->getBasketByName($Name);
+        return (new Data($this->getBinding()))->getBasketByName($Name, $Month, $Year);
     }
 
     /**

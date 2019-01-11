@@ -6,8 +6,8 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
-use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Billing\Inventory\Item\Item;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem as InventoryTblItem;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -18,27 +18,131 @@ use SPHERE\System\Database\Fitting\Element;
 class TblInvoiceItemValue extends Element
 {
 
+    const ATTR_SERVICE_TBL_ITEM = 'serviceTblItem';
+    const ATTR_NAME = 'Name';
+    const ATTR_DESCRIPTION = 'Description';
+    const ATTR_VALUE = 'Value';
+    const ATTR_QUANTITY = 'Quantity';
     const ATTR_TBL_INVOICE = 'tblInvoice';
-    const ATTR_TBL_ITEM_VALUE = 'tblItemValue';
-    const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
-    const ATTR_TBL_INVOICE_DEBTOR = 'tblInvoiceDebtor';
 
+    /**
+     * @Column(type="string")
+     */
+    protected $Name;
+    /**
+     * @Column(type="string")
+     */
+    protected $Description;
+    /**
+     * @Column(type="text")
+     */
+    protected $Value;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $Quantity;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblItem;
     /**
      * @Column(type="bigint")
      */
     protected $tblInvoice;
+
     /**
-     * @Column(type="bigint")
+     * @return string
      */
-    protected $tblItemValue;
+    public function getName()
+    {
+
+        return $this->Name;
+    }
+
     /**
-     * @Column(type="bigint")
+     * @param string $Name
      */
-    protected $serviceTblPerson;
+    public function setName($Name)
+    {
+
+        $this->Name = $Name;
+    }
+
     /**
-     * @Column(type="bigint")
+     * @return string
      */
-    protected $tblInvoiceDebtor;
+    public function getDescription()
+    {
+
+        return $this->Description;
+    }
+
+    /**
+     * @param string $Description
+     */
+    public function setDescription($Description)
+    {
+
+        $this->Description = $Description;
+    }
+
+    /**
+     * @return (type="decimal", precision=14, scale=4)
+     */
+    public function getValue()
+    {
+
+        return $this->Value;
+    }
+
+    /**
+     * @param (type="decimal", precision=14, scale=4) $Value
+     */
+    public function setValue($Value)
+    {
+
+        $this->Value = $Value;
+    }
+
+    /**
+     * @return integer
+     */
+    public function getQuantity()
+    {
+
+        return $this->Quantity;
+    }
+
+    /**
+     * @param integer $Quantity
+     */
+    public function setQuantity($Quantity)
+    {
+
+        $this->Quantity = $Quantity;
+    }
+
+    /**
+     * @return bool|InventoryTblItem
+     */
+    public function getServiceTblItem()
+    {
+
+        if (null === $this->serviceTblItem) {
+            return false;
+        } else {
+            return Item::useService()->getItemById($this->serviceTblItem);
+        }
+    }
+
+    /**
+     * @param InventoryTblItem|null $tblItem
+     */
+    public function setServiceTblItem(InventoryTblItem $tblItem = null)
+    {
+
+        $this->serviceTblItem = ( null === $tblItem ? null : $tblItem->getId() );
+    }
 
     /**
      * @return bool|TblInvoice
@@ -63,68 +167,39 @@ class TblInvoiceItemValue extends Element
     }
 
     /**
-     * @return bool|TblItemValue
+     * @return string
+     * single ItemPrice with " €"
      */
-    public function getTblItem()
+    public function getPriceString()
     {
 
-        if (null === $this->tblItemValue) {
-            return false;
+        return number_format($this->Value, 2).' €';
+    }
+
+    /**
+     * @return string
+     * with " €"
+     */
+    public function getSummaryPrice()
+    {
+        if ($this->Quantity !== 0) {
+            $result = $this->Value * $this->Quantity;
         } else {
-            return Invoice::useService()->getItemById($this->tblItemValue);
+            $result = $this->Value;
         }
+        return number_format($result, 2).' €';
     }
 
     /**
-     * @param null|TblItemValue $tblItemValue
+     * @return int
      */
-    public function setTblItem(TblItemValue $tblItemValue = null)
+    public function getSummaryPriceInt()
     {
-
-        $this->tblItemValue = ( null === $tblItemValue ? null : $tblItemValue->getId() );
-    }
-
-    /**
-     * @return bool|TblPerson
-     */
-    public function getServiceTblPerson()
-    {
-
-        if (null === $this->serviceTblPerson) {
-            return false;
+        if ($this->Quantity !== 0) {
+            $result = $this->Value * $this->Quantity;
         } else {
-            return Person::useService()->getPersonById($this->serviceTblPerson);
+            $result = $this->Value;
         }
-    }
-
-    /**
-     * @param null|TblPerson $tblPerson
-     */
-    public function setServiceTblPerson(TblPerson $tblPerson = null)
-    {
-
-        $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
-    }
-
-    /**
-     * @return bool|TblInvoiceDebtor
-     */
-    public function getInvoiceDebtor()
-    {
-
-        if (null === $this->tblInvoiceDebtor) {
-            return false;
-        } else {
-            return Invoice::useService()->getInvoiceDebtorById($this->tblInvoiceDebtor);
-        }
-    }
-
-    /**
-     * @param null|TblInvoiceDebtor $tblInvoiceDebtor
-     */
-    public function setInvoiceDebtor(TblInvoiceDebtor $tblInvoiceDebtor = null)
-    {
-
-        $this->tblInvoiceDebtor = ( null === $tblInvoiceDebtor ? null : $tblInvoiceDebtor->getId() );
+        return number_format($result, 2);
     }
 }
