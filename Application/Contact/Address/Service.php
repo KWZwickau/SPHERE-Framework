@@ -145,7 +145,15 @@ class Service extends AbstractService
     ) {
 
         $error = false;
-        $form = Address::useFrontend()->formAddressToPerson($tblPerson->getId(), $tblToPerson ? $tblToPerson->getId() : null);
+        if (($tblType = $this->getTypeById($Type['Type']))
+            && $tblType->getName() == 'Hauptadresse'
+        ) {
+            $showRelationships = true;
+        } else {
+            $showRelationships = false;
+        }
+
+        $form = Address::useFrontend()->formAddressToPerson($tblPerson->getId(), $tblToPerson ? $tblToPerson->getId() : null, false, $showRelationships);
         if (isset($Street['Name']) && empty($Street['Name'])) {
             $form->setError('Street[Name]', 'Bitte geben Sie eine Strasse an');
             $error = true;
@@ -171,20 +179,25 @@ class Service extends AbstractService
         } else {
             $form->setSuccess('City[Name]');
         }
-        if (!($tblType = $this->getTypeById($Type['Type']))) {
+        if (!$tblType) {
             $form->setError('Type[Type]', 'Bitte geben Sie einen Typ ein');
             $error = true;
         } else {
             // control there is no other MainAddress
-            if ($tblToPerson
-                && ($tblAddress = $tblToPerson->getTblAddress())
-                && $tblType->getName() == 'Hauptadresse'
-            ) {
-                $tblAddressMain = $tblPerson->fetchMainAddress();
-                if ($tblAddressMain && (($tblAddress && $tblAddress->getId() != $tblAddressMain->getId()) || !$tblAddress)) {
-                    $form->setError('Type[Type]', '"' . trim($tblPerson->getFullName())
-                        . '" besitzt bereits eine Hauptadresse');
-                    $error = true;
+            if ($tblType->getName() == 'Hauptadresse') {
+                if ($tblToPerson && ($tblAddress = $tblToPerson->getTblAddress())) {
+                    $tblAddressMain = $tblPerson->fetchMainAddress();
+                    if ($tblAddressMain && (($tblAddress && $tblAddress->getId() != $tblAddressMain->getId()) || !$tblAddress)) {
+                        $form->setError('Type[Type]', '"' . trim($tblPerson->getFullName())
+                            . '" besitzt bereits eine Hauptadresse');
+                        $error = true;
+                    }
+                } else {
+                    if (($tblAddressMain = $tblPerson->fetchMainAddress())) {
+                        $form->setError('Type[Type]', '"' . trim($tblPerson->getFullName())
+                            . '" besitzt bereits eine Hauptadresse');
+                        $error = true;
+                    }
                 }
             }
         }
@@ -241,15 +254,20 @@ class Service extends AbstractService
             $error = true;
         } else {
             // control there is no other MainAddress
-            if ($tblToCompany
-                && ($tblAddress = $tblToCompany->getTblAddress())
-                && $tblType->getName() == 'Hauptadresse'
-            ) {
-                $tblAddressMain = $tblCompany->fetchMainAddress();
-                if ($tblAddressMain && (($tblAddress && $tblAddress->getId() != $tblAddressMain->getId()) || !$tblAddress)) {
-                    $form->setError('Type[Type]', '"' . trim($tblCompany->getDisplayName())
-                        . '" besitzt bereits eine Hauptadresse');
-                    $error = true;
+            if ($tblType->getName() == 'Hauptadresse') {
+                if ($tblToCompany && ($tblAddress = $tblToCompany->getTblAddress())) {
+                    $tblAddressMain = $tblCompany->fetchMainAddress();
+                    if ($tblAddressMain && (($tblAddress && $tblAddress->getId() != $tblAddressMain->getId()) || !$tblAddress)) {
+                        $form->setError('Type[Type]', '"' . trim($tblCompany->getDisplayName())
+                            . '" besitzt bereits eine Hauptadresse');
+                        $error = true;
+                    }
+                } else {
+                    if (($tblAddressMain = $tblCompany->fetchMainAddress())) {
+                        $form->setError('Type[Type]', '"' . trim($tblCompany->getDisplayName())
+                            . '" besitzt bereits eine Hauptadresse');
+                        $error = true;
+                    }
                 }
             }
         }

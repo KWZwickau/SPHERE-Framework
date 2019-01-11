@@ -11,6 +11,7 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -18,7 +19,9 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Map;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
@@ -33,6 +36,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
@@ -50,11 +54,25 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $PersonId
      * @param null $ToPersonId
      * @param bool $setPost
+     * @param bool $showRelationships
      *
-     * @return Form
+     * @return Form|Danger
      */
-    public function formAddressToPerson($PersonId, $ToPersonId = null, $setPost = false)
+    public function formAddressToPerson($PersonId, $ToPersonId = null, $setPost = false, $showRelationships = false)
     {
+
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Die Person wurde nicht gefunden', new Exclamation());
+        }
+
+        // meldung nach der Überprüfung der Input-Felder (Pflichtfelder) weiterhin anzeigen
+        $Relationship = null;
+        if ($showRelationships) {
+            $global = $this->getGlobal();
+            if (isset($global->POST['Relationship'])) {
+                $Relationship = $global->POST['Relationship'];
+            }
+        }
 
         if ($ToPersonId && ($tblToPerson = Address::useService()->getAddressToPersonById($ToPersonId))) {
             // beim Checken der Inputfeldern darf der Post nicht gesetzt werden
@@ -97,7 +115,9 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Anschrift', array(
                             (new SelectBox('Type[Type]', 'Typ', array('{{ Name }} {{ Description }}' => $tblType),
-                                new TileBig(), true))->setRequired(),
+                                new TileBig(), true))
+                                ->setRequired()
+                                ->ajaxPipelineOnChange(ApiAddressToPerson::pipelineLoadRelationshipsContent($PersonId)),
                             (new AutoCompleter('Street[Name]', 'Straße', 'Straße',
                                 array('StreetName' => $tblAddress), new MapMarker()
                             ))->setRequired(),
@@ -131,10 +151,30 @@ class Frontend extends Extension implements IFrontendInterface
                             new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Edit())
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        ApiAddressToPerson::receiverBlock(
+                            $showRelationships
+                                ? Address::useFrontend()->getRelationshipsContent($tblPerson)
+                                : ''
+                            , 'RelationshipsContent'
+                        )
+                    )
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        ApiAddressToPerson::receiverBlock(
+                            (new ApiAddressToPerson())->loadRelationshipsMessage($Relationship),
+                            'RelationshipsMessage'
+                        )
+                    )
+                )),
+                new FormRow(array(
                     new FormColumn(
                         $saveButton
                     )
-                )),
+                ))
             ))
         ))->disableSubmitAction();
     }
@@ -309,6 +349,7 @@ class Frontend extends Extension implements IFrontendInterface
                             } else {
                                 $panelType = Panel::PANEL_TYPE_DEFAULT;
                                 $options = '';
+                                // todo Adresse hinzufügen
                             }
 
                             $content[] = $tblAddress->getGuiLayout();
@@ -420,5 +461,101 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Warning('Keine Adressen hinterlegt')))));
         }
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return string
+     */
+    public function getRelationshipsContent(TblPerson $tblPerson)
+    {
+        $list = array();
+        $list = $this->getRelationshipList($tblPerson, $list, true);
+        // eigene Person, falls diese über die Drei-Ecks-Beziehung kommt wieder entfernen
+        if (isset($list[$tblPerson->getId()])) {
+            unset($list[$tblPerson->getId()]);
+        }
+
+        if (empty($list)) {
+            return '';
+        } else {
+            return new Panel(
+                'Übernehmen für aktuelle Hauptadresse ' . new Small('in Beziehung stehen'),
+                $list,
+                Panel::PANEL_TYPE_INFO
+            );
+        }
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param array $list
+     * @param bool $isDeepSearch
+     *
+     * @return array
+     */
+    private function getRelationshipList(TblPerson $tblPerson, $list, $isDeepSearch)
+    {
+        if (($tblRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson))) {
+            foreach ($tblRelationshipList as $tblToPerson) {
+                if (($tblType = $tblToPerson->getTblType())
+                    && ($tblType->getName() == 'Sorgeberechtigt'
+                        || $tblType->getName() == 'Bevollmächtigt'
+                        || $tblType->getName() == 'Geschwisterkind'
+                        || $tblType->getName() == 'Ehepartner'
+                        || $tblType->getName() == 'Lebenspartner'
+                    )
+                ) {
+                    if (($tblPersonFrom = $tblToPerson->getServiceTblPersonFrom())
+                        && ($tblPersonTo = $tblToPerson->getServiceTblPersonTo())
+                    ) {
+                        if ($tblPersonFrom->getId() == $tblPerson->getId()) {
+                            $tblPersonShow = $tblPersonTo;
+                        } else {
+                            $tblPersonShow = $tblPersonFrom;
+                        }
+
+                        if ($isDeepSearch) {
+                            // todo Richtung der Bezeihung anzeigen
+                            $type = $tblType->getName();
+                        } else {
+                            $type = 'Drei-Ecks-Beziehung';
+                        }
+
+//                        if ($tblAddress
+//                            && ($tblAddressMain = $tblPersonShow->fetchMainAddress())
+//                            && $tblAddress->getId() == $tblAddressMain->getId()
+//                        ) {
+//                            $global = $this->getGlobal();
+//                            $global->POST['Relationship'][$tblPersonShow->getId()] = $tblPersonShow->getId();
+//                            $global->savePost();
+//                        }
+
+                        $list[$tblPersonShow->getId()] =
+                            new Layout(new LayoutGroup(new LayoutRow(array(
+                                new LayoutColumn(
+                                    (new CheckBox(
+                                        'Relationship[' . $tblPersonShow->getId() . ']',
+                                        $tblPersonShow->getFullName() . ' (' . $type . ')',
+                                        $tblPersonShow->getId()
+                                    ))->ajaxPipelineOnClick(ApiAddressToPerson::pipelineLoadRelationshipsMessage())
+                                    , 6),
+                                new LayoutColumn(
+                                    ($tblAddressPerson = $tblPersonShow->fetchMainAddress())
+                                        ? $tblAddressPerson->getGuiString()
+                                        : new \SPHERE\Common\Frontend\Text\Repository\Warning(new Ban() . ' Keine Hauptadresse vorhanden')
+                                    , 6)
+                            ))));
+
+                        if ($isDeepSearch) {
+                            $list = $this->getRelationshipList($tblPersonShow, $list, false);
+                        }
+                    }
+                }
+            }
+        }
+
+        return $list;
     }
 }

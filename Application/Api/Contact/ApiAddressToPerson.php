@@ -74,6 +74,9 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
         $Dispatcher->registerMethod('openDeleteAddressToPersonModal');
         $Dispatcher->registerMethod('saveDeleteAddressToPersonModal');
 
+        $Dispatcher->registerMethod('loadRelationshipsContent');
+        $Dispatcher->registerMethod('loadRelationshipsMessage');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -263,6 +266,46 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
         return $Pipeline;
     }
 
+    /**
+     * @param int $PersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineLoadRelationshipsContent($PersonId)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'RelationshipsContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadRelationshipsContent',
+        ));
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @return Pipeline
+     */
+    public static function pipelineLoadRelationshipsMessage()
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'RelationshipsMessage'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'loadRelationshipsMessage',
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param $PersonId
+     *
+     * @return Danger|string
+     */
     public function loadAddressToPersonContent($PersonId)
     {
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
@@ -304,7 +347,15 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
             return new Danger('Die Adresse wurde nicht gefunden', new Exclamation());
         }
 
-        return $this->getAddressToPersonModal(Address::useFrontend()->formAddressToPerson($PersonId, $ToPersonId, true), $tblPerson, $ToPersonId);
+        if (($tblType = $tblToPerson->getTblType())
+            && $tblType->getName() == 'Hauptadresse'
+        ) {
+            $showRelationships = true;
+        } else {
+            $showRelationships = false;
+        }
+
+        return $this->getAddressToPersonModal(Address::useFrontend()->formAddressToPerson($PersonId, $ToPersonId, true, $showRelationships), $tblPerson, $ToPersonId);
     }
 
     /**
@@ -397,10 +448,11 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
      * @param $Type
      * @param $County
      * @param $Nation
+     * @param $Relationship
      *
      * @return bool|\SPHERE\Common\Frontend\Form\Structure\Form|Danger|string
      */
-    public function saveCreateAddressToPersonModal($PersonId, $Street, $City, $State, $Type, $County, $Nation)
+    public function saveCreateAddressToPersonModal($PersonId, $Street, $City, $State, $Type, $County, $Nation, $Relationship)
     {
 
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
@@ -413,6 +465,37 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
         }
 
         if (Address::useService()->createAddressToPersonByApi($tblPerson, $Street, $City, $State, $Type, $County, $Nation)) {
+            // Adresse für die ausgewählten Beziehungen speichern
+            if (isset($Relationship)) {
+                foreach ($Relationship as $personId => $value) {
+                    if (($tblPersonRelationship = Person::useService()->getPersonById($personId))) {
+                        // vorhandene Hauptadresse überschreiben
+                        if (($tblToPerson = Address::useService()->getAddressToPersonByPerson($tblPersonRelationship))) {
+                            Address::useService()->updateAddressToPersonByApi(
+                                $tblToPerson,
+                                $Street,
+                                $City,
+                                $State,
+                                $Type,
+                                $County,
+                                $Nation
+                            );
+                        // neue Hauptadresse anlegen
+                        } else {
+                            Address::useService()->createAddressToPersonByApi(
+                                $tblPersonRelationship,
+                                $Street,
+                                $City,
+                                $State,
+                                $Type,
+                                $County,
+                                $Nation
+                            );
+                        }
+                    }
+                }
+            }
+
             return new Success('Die Adresse wurde erfolgreich gespeichert.')
                 . self::pipelineLoadAddressToPersonContent($PersonId)
                 . self::pipelineClose();
@@ -430,10 +513,11 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
      * @param $Type
      * @param $County
      * @param $Nation
+     * @param $Relationship
      *
      * @return Danger|string
      */
-    public function saveEditAddressToPersonModal($PersonId, $ToPersonId, $Street, $City, $State, $Type, $County, $Nation)
+    public function saveEditAddressToPersonModal($PersonId, $ToPersonId, $Street, $City, $State, $Type, $County, $Nation, $Relationship)
     {
 
         if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
@@ -450,6 +534,37 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
         }
 
         if (Address::useService()->updateAddressToPersonByApi($tblToPerson, $Street, $City, $State, $Type, $County, $Nation)) {
+            // Adresse für die ausgewählten Beziehungen speichern
+            if (isset($Relationship)) {
+                foreach ($Relationship as $personId => $value) {
+                    if (($tblPersonRelationship = Person::useService()->getPersonById($personId))) {
+                        // vorhandene Hauptadresse überschreiben
+                        if (($tblToPersonRelationship = Address::useService()->getAddressToPersonByPerson($tblPersonRelationship))) {
+                            Address::useService()->updateAddressToPersonByApi(
+                                $tblToPersonRelationship,
+                                $Street,
+                                $City,
+                                $State,
+                                $Type,
+                                $County,
+                                $Nation
+                            );
+                            // neue Hauptadresse anlegen
+                        } else {
+                            Address::useService()->createAddressToPersonByApi(
+                                $tblPersonRelationship,
+                                $Street,
+                                $City,
+                                $State,
+                                $Type,
+                                $County,
+                                $Nation
+                            );
+                        }
+                    }
+                }
+            }
+
             return new Success('Die Adresse wurde erfolgreich gespeichert.')
                 . self::pipelineLoadAddressToPersonContent($PersonId)
                 . self::pipelineClose();
@@ -482,5 +597,50 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
         } else {
             return new Danger('Die Adresse konnte nicht gelöscht werden.') . self::pipelineClose();
         }
+    }
+
+    /**
+     * @param $PersonId
+     * @param $Type
+     *
+     * @return string
+     */
+    public function loadRelationshipsContent($PersonId, $Type)
+    {
+
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Die Person wurde nicht gefunden', new Exclamation());
+        }
+
+        if (($tblType = Address::useService()->getTypeById($Type['Type']))
+            && $tblType->getName() == 'Hauptadresse'
+        ) {
+
+            return Address::useFrontend()->getRelationshipsContent($tblPerson) . self::pipelineLoadRelationshipsMessage();
+        } else {
+            return '' . self::pipelineLoadRelationshipsMessage();
+        }
+    }
+
+    /**
+     * @param $Relationship
+     *
+     * @return string
+     */
+    public function loadRelationshipsMessage($Relationship)
+    {
+
+        if ($Relationship) {
+            foreach ($Relationship as $personId => $value) {
+                if (($tblPerson = Person::useService()->getPersonById($personId))
+                    && $tblPerson->fetchMainAddress()
+                ) {
+                    return new Danger('Möchten Sie die bestehende Hauptadresse von der in beziehungstehender Person überschreiben!',
+                        new Exclamation());
+                }
+            }
+        }
+
+        return '';
     }
 }
