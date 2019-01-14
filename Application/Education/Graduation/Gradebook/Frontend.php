@@ -476,7 +476,7 @@ class Frontend extends FrontendScoreRule
             );
             $studentViewLinkButton[] = new Standard(
                 'Mindestnoten-Auswertung',
-                '/Education/Graduation/Gradebook/MinimumGradeCount/Teacher/Reporting',
+                '/Education/Graduation/Gradebook/Gradebook/MinimumGradeCount/Teacher/Reporting',
                 null,
                 array(
                     'PersonId' => $tblPerson ? $tblPerson->getId() : 0
@@ -731,7 +731,7 @@ class Frontend extends FrontendScoreRule
                             ),
                             new Standard(
                                 'Mindestnoten-Auswertung',
-                                '/Education/Graduation/Gradebook/MinimumGradeCount/Headmaster/Reporting',
+                                '/Education/Graduation/Gradebook/Gradebook/MinimumGradeCount/Headmaster/Reporting',
                                 null,
                                 array(),
                                 'Auswertung über die Erfüllung der Mindesnotenanzahl'
