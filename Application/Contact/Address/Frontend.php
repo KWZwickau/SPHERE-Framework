@@ -25,6 +25,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Map;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
@@ -348,8 +349,23 @@ class Frontend extends Extension implements IFrontendInterface
                                     ));
                             } else {
                                 $panelType = Panel::PANEL_TYPE_DEFAULT;
-                                $options = '';
-                                // todo Adresse hinzufügen
+
+                                // Adresse einer anderen Person hinzufügen
+                                $tblToPerson = current($personArray);
+                                if ($tblType->getName() != 'Hauptadresse' || !$tblPerson->fetchMainAddress()) {
+                                    $options = (new Link(
+                                        new Plus(),
+                                        ApiAddressToPerson::getEndpoint(),
+                                        null,
+                                        array(),
+                                        'Diese Adresse der aktuellen Person hinzufügen'
+                                    ))->ajaxPipelineOnClick(ApiAddressToPerson::pipelineAddAddressToPerson(
+                                        $tblPerson->getId(),
+                                        $tblToPerson->getId()
+                                    ));
+                                } else {
+                                    $options = '';
+                                }
                             }
 
                             $content[] = $tblAddress->getGuiLayout();
@@ -517,7 +533,6 @@ class Frontend extends Extension implements IFrontendInterface
                         }
 
                         if ($isDeepSearch) {
-                            // todo Richtung der Bezeihung anzeigen
                             $type = $tblType->getName();
                         } else {
                             $type = 'Drei-Ecks-Beziehung';

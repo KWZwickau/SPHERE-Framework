@@ -77,6 +77,8 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
         $Dispatcher->registerMethod('loadRelationshipsContent');
         $Dispatcher->registerMethod('loadRelationshipsMessage');
 
+        $Dispatcher->registerMethod('addAddressToPerson');
+
         return $Dispatcher->callMethod($Method);
     }
 
@@ -295,6 +297,29 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
         $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'RelationshipsMessage'), self::getEndpoint());
         $ModalEmitter->setGetPayload(array(
             self::API_TARGET => 'loadRelationshipsMessage',
+        ));
+        $Pipeline->appendEmitter($ModalEmitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param int $PersonId
+     * @param int $ToPersonId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineAddAddressToPerson($PersonId, $ToPersonId)
+    {
+        $Pipeline = new Pipeline(false);
+        $ModalEmitter = new ServerEmitter(self::receiverBlock('', 'AddressToPersonContent'), self::getEndpoint());
+        $ModalEmitter->setGetPayload(array(
+            self::API_TARGET => 'addAddressToPerson',
+        ));
+        $ModalEmitter->setLoadingMessage('Die Adresse wird hinzugefügt.');
+        $ModalEmitter->setPostPayload(array(
+            'PersonId' => $PersonId,
+            'ToPersonId' => $ToPersonId
         ));
         $Pipeline->appendEmitter($ModalEmitter);
 
@@ -642,5 +667,32 @@ class ApiAddressToPerson  extends Extension implements IApiInterface
         }
 
         return '';
+    }
+
+    /**
+     * @param $PersonId
+     * @param $ToPersonId
+     *
+     * @return string
+     */
+    public function addAddressToPerson($PersonId, $ToPersonId)
+    {
+
+        if (!($tblPerson = Person::useService()->getPersonById($PersonId))) {
+            return new Danger('Die Person wurde nicht gefunden', new Exclamation());
+        }
+
+        if (!($tblToPerson = Address::useService()->getAddressToPersonById($ToPersonId))) {
+            return new Danger('Die Adresse wurde nicht gefunden', new Exclamation());
+        }
+
+        if (Address::useService()->addAddressToPerson(
+            $tblPerson, $tblToPerson->getTblAddress(), $tblToPerson->getTblType(), $tblToPerson->getRemark()
+        )) {
+            return new Success('Die Adresse wurde erfolgreich gespeichert.')
+              . self::pipelineLoadAddressToPersonContent($PersonId);
+        } else {
+            return new Danger('Die Adresse konnte nicht gespeichert werden.');
+        }
     }
 }

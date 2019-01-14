@@ -579,6 +579,25 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson  $tblPerson
+     * @param TblAddress $tblAddress
+     * @param TblType    $tblType
+     * @param string     $Remark
+     *
+     * @return TblToPerson
+     */
+    public function addAddressToPerson(TblPerson $tblPerson, TblAddress $tblAddress, TblType $tblType, $Remark)
+    {
+
+        return (new Data($this->getBinding()))->addAddressToPerson(
+            $tblPerson,
+            $tblAddress,
+            $tblType,
+            $Remark
+        );
+    }
+
+    /**
      * @param TblCompany $tblCompany
      * @param $StreetName
      * @param $StreetNumber
