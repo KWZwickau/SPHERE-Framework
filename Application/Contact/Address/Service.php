@@ -119,6 +119,24 @@ class Service extends AbstractService
     }
 
     /**
+     * @return false|ViewAddressToPerson[]
+     */
+    public function getViewAddressToPersonAll()
+    {
+
+        return (new Data($this->getBinding()))->getViewAddressToPersonAll();
+    }
+
+    /**
+     * @return false|ViewAddressToCompany[]
+     */
+    public function getViewAddressToCompanyAll()
+    {
+
+        return (new Data($this->getBinding()))->getViewAddressToCompanyAll();
+    }
+
+    /**
      * @return bool|TblType[]
      */
     public function getTypeAll()

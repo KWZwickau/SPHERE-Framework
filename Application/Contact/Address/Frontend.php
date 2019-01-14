@@ -96,8 +96,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $tblAddress = Address::useService()->getAddressAll();
-        $tblCity = Address::useService()->getCityAll();
+        $tblViewAddressToPersonAll = Address::useService()->getViewAddressToPersonAll();
         $tblState = Address::useService()->getStateAll();
         array_push($tblState, new TblState(''));
         $tblType = Address::useService()->getTypeAll();
@@ -120,7 +119,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ->setRequired()
                                 ->ajaxPipelineOnChange(ApiAddressToPerson::pipelineLoadRelationshipsContent($PersonId)),
                             (new AutoCompleter('Street[Name]', 'Straße', 'Straße',
-                                array('StreetName' => $tblAddress), new MapMarker()
+                                array('AddressStreetName' => $tblViewAddressToPersonAll), new MapMarker()
                             ))->setRequired(),
                                 (new TextField('Street[Number]', 'Hausnummer', 'Hausnummer', new MapMarker()))->setRequired()
                         ), Panel::PANEL_TYPE_INFO)
@@ -128,22 +127,22 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Stadt', array(
                             (new AutoCompleter('City[Code]', 'Postleitzahl', 'Postleitzahl',
-                                array('Code' => $tblCity), new MapMarker()
+                                array('CityCode' => $tblViewAddressToPersonAll), new MapMarker()
                             ))->setRequired(),
                             (new AutoCompleter('City[Name]', 'Ort', 'Ort',
-                                array('Name' => $tblCity), new MapMarker()
+                                array('CityName' => $tblViewAddressToPersonAll), new MapMarker()
                             ))->setRequired(),
                             new AutoCompleter('City[District]', 'Ortsteil', 'Ortsteil',
-                                array('District' => $tblCity), new MapMarker()
+                                array('CityDistrict' => $tblViewAddressToPersonAll), new MapMarker()
                             ),
                             new AutoCompleter('County', 'Landkreis', 'Landkreis',
-                                array('County' => $tblAddress), new Map()
+                                array('AddressCounty' => $tblViewAddressToPersonAll), new Map()
                             ),
                             new SelectBox('State', 'Bundesland',
                                 array('Name' => $tblState), new Map()
                             ),
                             new AutoCompleter('Nation', 'Land', 'Land',
-                                array('Nation' => $tblAddress), new Map()
+                                array('AddressNation' => $tblViewAddressToPersonAll), new Map()
                             ),
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
@@ -210,8 +209,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $tblAddress = Address::useService()->getAddressAll();
-        $tblCity = Address::useService()->getCityAll();
+        $tblViewAddressToCompanyAll = Address::useService()->getViewAddressToCompanyAll();
         $tblState = Address::useService()->getStateAll();
         array_push($tblState, new TblState(''));
         $tblType = Address::useService()->getTypeAll();
@@ -232,7 +230,7 @@ class Frontend extends Extension implements IFrontendInterface
                             (new SelectBox('Type[Type]', 'Typ', array('{{ Name }} {{ Description }}' => $tblType),
                                 new TileBig(), true))->setRequired(),
                             (new AutoCompleter('Street[Name]', 'Straße', 'Straße',
-                                array('StreetName' => $tblAddress), new MapMarker()
+                                array('AddressStreetName' => $tblViewAddressToCompanyAll), new MapMarker()
                             ))->setRequired(),
                             (new TextField('Street[Number]', 'Hausnummer', 'Hausnummer', new MapMarker()))->setRequired()
                         ), Panel::PANEL_TYPE_INFO)
@@ -240,22 +238,22 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Stadt', array(
                             (new AutoCompleter('City[Code]', 'Postleitzahl', 'Postleitzahl',
-                                array('Code' => $tblCity), new MapMarker()
+                                array('CityCode' => $tblViewAddressToCompanyAll), new MapMarker()
                             ))->setRequired(),
                             (new AutoCompleter('City[Name]', 'Ort', 'Ort',
-                                array('Name' => $tblCity), new MapMarker()
+                                array('CityName' => $tblViewAddressToCompanyAll), new MapMarker()
                             ))->setRequired(),
                             new AutoCompleter('City[District]', 'Ortsteil', 'Ortsteil',
-                                array('District' => $tblCity), new MapMarker()
+                                array('CityDistrict' => $tblViewAddressToCompanyAll), new MapMarker()
                             ),
                             new AutoCompleter('County', 'Landkreis', 'Landkreis',
-                                array('County' => $tblAddress), new Map()
+                                array('AddressCounty' => $tblViewAddressToCompanyAll), new Map()
                             ),
                             new SelectBox('State', 'Bundesland',
                                 array('Name' => $tblState), new Map()
                             ),
                             new AutoCompleter('Nation', 'Land', 'Land',
-                                array('Nation' => $tblAddress), new Map()
+                                array('AddressNation' => $tblViewAddressToCompanyAll), new Map()
                             ),
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),

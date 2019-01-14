@@ -185,4 +185,58 @@ class ViewAddressToPerson extends AbstractView
 
         return Address::useService();
     }
+
+    /**
+     * @return string
+     */
+    public function getAddressStreetName()
+    {
+
+        return $this->TblAddress_StreetName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAddressCounty()
+    {
+
+        return $this->TblAddress_County;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAddressNation()
+    {
+
+        return $this->TblAddress_Nation;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCityCode()
+    {
+
+        return $this->TblCity_Code;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCityName()
+    {
+
+        return $this->TblCity_Name;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCityDistrict()
+    {
+
+        return $this->TblCity_District;
+    }
 }

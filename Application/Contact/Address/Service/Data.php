@@ -203,6 +203,24 @@ class Data extends AbstractData
     }
 
     /**
+     * @return false|ViewAddressToPerson[]
+     */
+    public function getViewAddressToPersonAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'ViewAddressToPerson');
+    }
+
+    /**
+     * @return false|ViewAddressToCompany[]
+     */
+    public function getViewAddressToCompanyAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getEntityManager(), 'ViewAddressToCompany');
+    }
+
+    /**
      * @param string $Code
      * @param string $Name
      * @param string $District
