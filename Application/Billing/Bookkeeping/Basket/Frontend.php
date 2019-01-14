@@ -8,6 +8,8 @@ use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -27,6 +29,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -336,7 +339,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $PanelContent
                     , 10),
                 new LayoutColumn(
-                    new Standard('Rechnungen erstellen', '')
+                    new Standard('Rechnungen erstellen', '/Billing/Bookkeeping/Basket/DoInvoice', null, array('BasketId' => $BasketId))
                     , 2)
             ))));
         }
@@ -381,13 +384,85 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param string $BasketId
+     *
+     * @return Stage|string
      */
     public function frontendDoInvoice($BasketId = '')
     {
 
-        if(($tblBasket = Basket::useService()->getBasketById($BasketId))){
-            //ToDO überarbeitung Invoice
-            Invoice::useService()->createInvoice($tblBasket);
+        $Stage = new Stage('Rechnungen', 'in Arbeit');
+
+        if(!($tblBasket = Basket::useService()->getBasketById($BasketId))){
+            return $Stage->setContent(new Danger('Der Warenkorb wird nicht mehr gefunden.'))
+                . new Redirect('/Billing/Bookkeeping/Basket', Redirect::TIMEOUT_ERROR);
         }
+        $Stage->setContent(new Layout(
+            new LayoutGroup(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        (new ProgressBar(0, 100, 0, 10))
+                            ->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS)
+                    ),
+                    new LayoutColumn(
+                        //ToDO überarbeitung Invoice
+                        new Container(Invoice::useService()->createInvoice($tblBasket))
+                    ),
+                ))
+            )
+        ));
+        return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendInvoiceView()
+    {
+
+        $Stage = new Stage('Rechnungsliste', 'Sicht Beitragszahler');
+        $tblInvoiceAll = Invoice::useService()->getInvoiceAll();
+        $TableContent = array();
+        array_walk($tblInvoiceAll, function(TblInvoice $tblInvoice) use (&$TableContent){
+            $item['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
+            $item['Time'] = $tblInvoice->getYear().'.'.$tblInvoice->getMonth(true);
+            $item['TargetTime'] = $tblInvoice->getTargetTime();
+            $item['DebtorPerson'] = '';
+            $item['DebtorNumber'] = '';
+            $item['Item'] = '';
+            if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
+                /** @var TblInvoiceItemDebtor $tblInvoiceItemDebtor */
+                $tblInvoiceItemDebtor = current($tblInvoiceItemDebtorList);
+                $item['DebtorPerson'] = $tblInvoiceItemDebtor->getDebtorPerson();
+                $item['DebtorNumber'] = $tblInvoiceItemDebtor->getDebtorNumber();
+                $ItemList = array();
+                foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor){
+                    $ItemList[] = $tblInvoiceItemDebtor->getName();
+                }
+                $item['Item'] = implode(', ', $ItemList);
+            }
+            $item['Option'] = '';
+
+            array_push($TableContent, $item);
+        });
+
+        $Stage->setContent(new Layout(
+            new LayoutGroup(
+                new LayoutRow(
+                    new LayoutColumn(
+                        new TableData($TableContent, null, array(
+                            'InvoiceNumber' => 'Abr.-Nr.',
+                            'Time' => 'Abrechnungszeitraum',
+                            'TargetTime' => 'Fälligkeitsdatum',
+                            'DebtorPerson' => 'Debitor',
+                            'DebtorNumber' => 'Debitor Nr.',
+                            'Item' => 'Beitragsarten',
+                            'Option' => '',
+                        ))
+                    )
+                )
+            )
+        ));
+
+        return $Stage;
     }
 }

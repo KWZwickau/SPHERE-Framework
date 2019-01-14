@@ -3,14 +3,11 @@
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice;
 
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
-use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPayment;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
-use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemValue;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
-use SPHERE\Common\Frontend\Icon\Repository\Money;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -156,102 +153,6 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 )
             )
-        );
-
-        return $Stage;
-    }
-
-    /**
-     * @param null $Id
-     *
-     * @return Stage|string
-     */
-    public function frontendInvoiceView($Id = null)
-    {
-
-        $Stage = new Stage('Rechung', '');
-        $tblInvoice = ( $Id == null ? false : Invoice::useService()->getInvoiceById($Id) );
-        if (!$tblInvoice) {
-            $Stage->setContent(new Warning('Rechnung nicht gefunden'));
-            return $Stage.new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_ERROR);
-        } else {
-            $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Invoice', new ChevronLeft()));
-        }
-        $tblItemList = Invoice::useService()->getItemAllByInvoice($tblInvoice);
-
-        $TableContent = array();
-        $SumPrice = 0;
-        if ($tblItemList) {
-            array_walk($tblItemList, function (TblInvoiceItemValue $tblItem) use (&$TableContent, &$SumPrice, $tblInvoice) {
-                $Item['Name'] = $tblItem->getName();
-                $Item['Quantity'] = $tblItem->getQuantity();
-                $Item['SinglePrice'] = $tblItem->getPriceString();
-                $Item['SumPrice'] = $tblItem->getSummaryPrice();
-
-                $tblDebtor = Invoice::useService()->getDebtorByInvoiceAndItem($tblInvoice, $tblItem);
-                if ($tblDebtor) {
-                    $tblPaymentType = $tblDebtor->getServiceTblPaymentType();
-                    if ($tblPaymentType) {
-                        $Item['Payment'] = $tblDebtor->getServiceTblPaymentType()->getName();
-                    }
-                }
-                $SumPrice += $tblItem->getValue() * $tblItem->getQuantity();
-
-                array_push($TableContent, $Item);
-            });
-        }
-
-        // Sortierung nach Name && Preis aufsteigend
-        foreach ($TableContent as $key => $row) {
-            $Name[$key] = strtoupper($row['Name']);
-            $SummaryPrice[$key] = ( $row['SumPrice'] );
-        }
-        array_multisort($Name, SORT_ASC, $SummaryPrice, SORT_ASC, $TableContent);
-
-        $TablePaid = array();
-        $tblPaymentList = Balance::useService()->getPaymentAllByInvoice($tblInvoice);
-        if ($tblPaymentList) {
-            array_walk($tblPaymentList, function (TblPayment $tblPayment) use (&$TablePaid, $tblInvoice) {
-                $Item['Time'] = $tblPayment->getLastDate();
-                $Item['Purpose'] = $tblPayment->getPurpose();
-                $Item['Value'] = $tblPayment->getValueString();
-                $Item['PaymentType'] = $tblPayment->getTblPaymentType()->getName();
-                array_push($TablePaid, $Item);
-            });
-        }
-
-        $Stage->setContent(
-            new Layout(
-                new LayoutGroup(array(
-                        new LayoutRow(
-                            new LayoutColumn($this->layoutInvoice($tblInvoice, $SumPrice)
-                                , 12)
-                        ),
-                        new LayoutRow(array(
-                                new LayoutColumn(array(
-                                    new Title(new ListingTable().' Übersicht der Artikel'),
-                                    new TableData($TableContent, null,
-                                        array('Name'        => 'Artikel',
-                                              'SinglePrice' => 'Einzelpreis',
-                                              'Quantity'    => 'Anzahl',
-                                              'SumPrice'    => 'Gesamtpreis',
-                                              'Payment'     => 'Bezahlart',
-                                        )
-                                        , false)
-                                ), 6),
-                                new LayoutColumn(array(
-                                        new Title(new Money().' Teilzahlung'),
-                                        ( empty( $TablePaid ) ? new Warning('Keine Teilzahlungen vorhanden') :
-                                            new TableData($TablePaid, null,
-                                                array('Time'        => 'Datum',
-                                                      'Purpose'     => 'Verwendungszweck',
-                                                      'Value'       => 'Betrag',
-                                                      'PaymentType' => 'Bezahlart',),
-                                                false) ))
-                                    , 6)
-                            )
-                        ))
-                ))
         );
 
         return $Stage;

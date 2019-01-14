@@ -28,10 +28,18 @@ class Bookkeeping implements IApplicationInterface
 
         // Skip Dashboard
         Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/Basket'), new Link\Name('Beitragsfakturierung'))
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Beitragsfakturierung'))
         );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/Basket'), new Link\Name('Abrechnung'),
+                new Link\Icon(new \SPHERE\Common\Frontend\Icon\Repository\Basket()))
+        );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route('/Billing/Bookkeeping/InvoiceView'), new Link\Name('Rechnungsliste Beitragszahler'),
+                new Link\Icon(new \SPHERE\Common\Frontend\Icon\Repository\Basket()))
+        );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route('/Billing/Bookkeeping/InvoiceCauserView'), new Link\Name('Rechnungsliste Beitragsverursacher'),
                 new Link\Icon(new \SPHERE\Common\Frontend\Icon\Repository\Basket()))
         );
 //        Main::getDisplay()->addModuleNavigation(

@@ -26,10 +26,9 @@ class Setup extends AbstractSetup
          */
         $Schema = clone $this->getConnection()->getSchema();
         $tblInvoice = $this->setTableInvoice($Schema);
-        $this->setTableInvoiceDebtor($Schema, $tblInvoice);
+        $this->setTableInvoiceItemDebtor($Schema, $tblInvoice);
         $this->setTableInvoiceCreditor($Schema, $tblInvoice);
         $this->setTableInvoiceCauser($Schema, $tblInvoice);
-        $this->setTableInvoiceItemValue($Schema, $tblInvoice);
 
         /**
          * Migration & Protocol
@@ -69,35 +68,11 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTableInvoiceDebtor(Schema $Schema, Table $tblInvoice)
-    {
-
-        $Table = $this->createTable($Schema, 'tblInvoiceDebtor');
-        $this->createColumn($Table, 'DebtorNumber', self::FIELD_TYPE_STRING);
-        $this->createColumn($Table, 'DebtorPerson', self::FIELD_TYPE_STRING);
-        $this->createColumn($Table, 'BankReference', self::FIELD_TYPE_STRING);
-        $this->createColumn($Table, 'Owner', self::FIELD_TYPE_STRING);
-        $this->createColumn($Table, 'BankName', self::FIELD_TYPE_STRING);
-        $this->createColumn($Table, 'IBAN', self::FIELD_TYPE_STRING);
-        $this->createColumn($Table, 'BIC', self::FIELD_TYPE_STRING);
-        $this->createColumn($Table, 'serviceTblPersonDebtor', self::FIELD_TYPE_BIGINT, true);
-        $this->createColumn($Table, 'serviceTblBankReference', self::FIELD_TYPE_BIGINT, true);
-        $this->createColumn($Table, 'serviceTblPaymentType', self::FIELD_TYPE_BIGINT, true);
-        $this->getConnection()->addForeignKey($Table, $tblInvoice);
-
-        return $Table;
-    }
-
-    /**
-     * @param Schema $Schema
-     * @param Table  $tblInvoice
-     *
-     * @return Table
-     */
     private function setTableInvoiceCreditor(Schema $Schema, Table $tblInvoice)
     {
 
         $Table = $this->createTable($Schema, 'tblInvoiceCreditor');
+        $this->createColumn($Table, 'CreditorId', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'SchoolName', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Owner', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'BankName', self::FIELD_TYPE_STRING);
@@ -118,8 +93,8 @@ class Setup extends AbstractSetup
     private function setTableInvoiceCauser(Schema $Schema, Table $tblInvoice)
     {
 
-        $Table = $this->createTable($Schema, 'tblInvoiceItem');
-        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
+        $Table = $this->createTable($Schema, 'tblInvoiceCauser');
+        $this->createColumn($Table, 'serviceTblPersonCauser', self::FIELD_TYPE_BIGINT, true);
         $this->getConnection()->addForeignKey($Table, $tblInvoice);
 
         return $Table;
@@ -131,17 +106,28 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTableInvoiceItemValue(Schema $Schema, Table $tblInvoice)
+    private function setTableInvoiceItemDebtor(Schema $Schema, Table $tblInvoice)
     {
 
-        $Table = $this->createTable($Schema, 'tblInvoiceItemValue');
+        $Table = $this->createTable($Schema, 'tblInvoiceItemDebtor');
         $this->createColumn($Table, 'Name', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Description', self::FIELD_TYPE_TEXT);
-        if (!$this->getConnection()->hasColumn('tblInvoiceItemValue', 'Value')) {
+        if (!$this->getConnection()->hasColumn('tblInvoiceItemDebtor', 'Value')) {
             $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
         }
         $this->createColumn($Table, 'Quantity', self::FIELD_TYPE_INTEGER);
+        $this->createColumn($Table, 'DebtorNumber', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'DebtorPerson', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'BankReference', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Owner', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'BankName', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'IBAN', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'BIC', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'serviceTblItem', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblPersonDebtor', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblBankReference', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblBankAccount', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblPaymentType', self::FIELD_TYPE_BIGINT, true);
         $this->getConnection()->addForeignKey($Table, $tblInvoice);
 
         return $Table;
