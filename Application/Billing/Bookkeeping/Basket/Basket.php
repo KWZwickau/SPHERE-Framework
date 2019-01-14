@@ -35,6 +35,21 @@ class Basket implements IModuleInterface
                 __NAMESPACE__.'\Frontend::frontendBasketDebtorSelection'
             )
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/DoInvoice',
+                __NAMESPACE__.'\Frontend::frontendDoInvoice'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute('/Billing/Bookkeeping/InvoiceView',
+                __NAMESPACE__.'\Frontend::frontendInvoiceView'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute('/Billing/Bookkeeping/InvoiceCauserView',
+                __NAMESPACE__.'\Frontend::frontendInvoiceCauserView'
+            )
+        );
     }
 
     /**
