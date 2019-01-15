@@ -45,12 +45,14 @@ class MsJ extends Certificate
                 $Header
             )
             ->addSlice($this->getSchoolName($personId))
-            ->addSlice($this->getCertificateHead('Jahreszeugnis'))
+            ->addSlice($this->getCertificateHead('Jahreszeugnis der Oberschule'))
             ->addSlice($this->getDivisionAndYear($personId, '20px'))
             ->addSlice($this->getStudentName($personId))
             ->addSlice((new Slice())
                 ->addElement((new Element())
-                    ->setContent('nahm am Unterricht der Schulart Mittelschule teil.')
+                    // entfällt, die Schulart steht jetzt im Titel
+//                    ->setContent('nahm am Unterricht der Schulart Mittelschule teil.')
+                    ->setContent('&nbsp;')
                     ->styleTextSize('12px')
                     ->styleMarginTop('8px')
                 )
@@ -76,16 +78,23 @@ class MsJ extends Certificate
                     ->styleTextBold()
                 )
             )
-            ->addSlice($this->getSubjectLanes($personId)
-                ->styleHeight('270px'))
-            ->addSlice($this->getOrientationStandard($personId))
+            ->addSlice($this->getSubjectLanes(
+                $personId,
+                true,
+                array(),
+                '14px',
+                false,
+                false,
+                true
+            )->styleHeight('290px'))
+//            ->addSlice($this->getOrientationStandard($personId))
             ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '55px', '8px'))
+            ->addSlice($this->getDescriptionContent($personId, '70px', '8px'))
             ->addSlice($this->getTransfer($personId, '13px'))
-            ->addSlice($this->getDateLine($personId, '10px'))
+            ->addSlice($this->getDateLine($personId, '15px'))
             ->addSlice($this->getSignPart($personId, true, '15px'))
             ->addSlice($this->getParentSign('15px'))
-            ->addSlice($this->getInfo('5px',
+            ->addSlice($this->getInfo('15px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend 
                 (6 = ungenügend nur bei der Bewertung der Leistungen)')
