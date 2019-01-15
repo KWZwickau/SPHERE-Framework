@@ -41,15 +41,15 @@ class Service
 
         $tblPersonList = false;
         $tblYear = false;
-        $isMentor = true;
+        $isMentor = false;
         if (!empty($tblDivisionList)) {
             $tblPersonList = Division::useService()->getPersonAllByDivisionList($tblDivisionList);
             foreach ($tblDivisionList as $tblDivision) {
                 if ($tblDivision->getServiceTblYear()) {
                     $tblYear = $tblDivision->getServiceTblYear();
-                    if($tblDivision->getTypeName() == 'Grundschule'){
-                        $isMentor = false;
-                    }
+//                    if($tblDivision->getTypeName() == 'Grundschule'){
+//                        $isMentor = false;
+//                    }
                     break;
                 }
             }
@@ -160,27 +160,25 @@ class Service
                     }
                     $Item['Division'] = implode(', ', $DivisionArray);
                 }
-                // Student
-                if (( $tblStudent = Student::useService()->getStudentByPerson($tblPerson) )) {
-                    $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
-                    $tblTransfer = Student::useService()->getStudentTransferByType($tblStudent, $tblTransferType);
-                    if ($tblTransfer) {
-                        if (( $tblType = $tblTransfer->getServiceTblType() )) {
-                            $Item['Type'] = $tblType->getName();
-                            switch ($Item['Type']) {
-                                case "Mittelschule / Oberschule":
-                                    $Item['TypeExcel'] = "OS";
-                                    break;
-                                case "Gymnasium":
-                                    $Item['TypeExcel'] = "Gym";
-                                    break;
-                                case "Grundschule":
-                                    $Item['TypeExcel'] = "GS";
-                                    break;
-                                default:
-                                    $Item['TypeExcel'] = $Item['Type'];
-                            }
-                        }
+
+                if ($tblYear
+                    && ($tblMainDivision = Student::useService()->getMainDivisionByPersonAndYear($tblPerson, $tblYear))
+                    && ($tblMainLevel = $tblMainDivision->getTblLevel())
+                    && ($tblMainType = $tblMainLevel->getServiceTblType())
+                ) {
+                    $Item['Type'] = $tblMainType->getName();
+                    switch ($Item['Type']) {
+                        case "Mittelschule / Oberschule":
+                            $Item['TypeExcel'] = "OS";
+                            break;
+                        case "Gymnasium":
+                            $Item['TypeExcel'] = "Gym";
+                            break;
+                        case "Grundschule":
+                            $Item['TypeExcel'] = "GS";
+                            break;
+                        default:
+                            $Item['TypeExcel'] = $Item['Type'];
                     }
                 }
 
