@@ -2870,10 +2870,19 @@ class Frontend extends FrontendScoreRule
                                                     $bodyColumns = array();
                                                     foreach ($subTableHeaderList as $key => $item) {
                                                         $headerColumns[] = new TableColumn($item, 1, $key == 'Average' ? '1%' : 'auto');
+
+                                                        if (isset($subTableDataList[0][$key])) {
+                                                            $displayValue = $subTableDataList[0][$key];
+                                                        } else {
+                                                            $displayValue = '&nbsp;';
+                                                        }
+
+                                                        $bodyColumns[] = new TableColumn($displayValue, 1, $key == 'Average' ? '1%' : 'auto');
                                                     }
-                                                    foreach ($subTableDataList[0] as $key => $item) {
-                                                        $bodyColumns[] = new TableColumn($item, 1, $key == 'Average' ? '1%' : 'auto');
-                                                    }
+                                                    // durch die Nachträgliche Sortierung der Tests nach Datum -> stimmt dann die Zuordnung des Inhalts nicht mehr
+//                                                    foreach ($subTableDataList[0] as $key => $item) {
+//                                                        $bodyColumns[] = new TableColumn($item, 1, $key == 'Average' ? '1%' : 'auto');
+//                                                    }
                                                     $table = new Table(new TableHead(new TableRow($headerColumns)), new TableBody(new TableRow($bodyColumns)));
 
                                                     $tableDataList[$tblSubject->getId()]['Period' . $tblPeriod->getId()] = $table;
