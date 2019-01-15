@@ -75,24 +75,42 @@ class Service extends Extension
         if (!$Error) {
 
             try {
+                $mailAddress = $Ticket['Mail'];
+
+                $subject = utf8_decode($Ticket['Subject']);
+
+                $body = '';
+                if (($tblAccount = Account::useService()->getAccountBySession())) {
+                    $body .= 'Account-Id: ' . $tblAccount->getId() . '<br/>';
+                    $body .= 'Account-Benutzername: ' . htmlentities($tblAccount->getUsername()) . '<br/>';
+                    if (($tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount))) {
+                        $tblPerson = $tblPersonAllByAccount[0];
+                        if ($tblPerson) {
+                            $body .= 'Person-Name: ' . htmlentities($tblPerson->getFullName()) . '<br/>';
+                        }
+                    }
+                }
+                // johannes.kauschke@haus-der-edv.de
+                $body .= 'Absender-Mailadresse: ' . $mailAddress . '<br/><br/>';
+                $body .= 'Inhalt der Nachricht: ' . '<br/>'
+                    . nl2br(htmlentities($Ticket['Body']));
+                if (!empty( $Ticket['CallBackNumber'] )) {
+                    $body .= '<br/><br/>' . htmlentities('Rückrufnummer: ') . $Ticket['CallBackNumber'];
+                }
+
                 /** @var YouTrackMail $Config */
                 $Config = (new \SPHERE\System\Support\Support(new YouTrackMail()))->getSupport();
                 /** @var EdenPhpSmtp $Mail */
                 $Mail = Mail::getSmtpMail()->connectServer(
                     $Config->getHost(), $Config->getUsername(), $Config->getPassword(), 465, true
                 );
-                $Mail->setMailSubject(utf8_decode($Ticket['Subject']).' - Account: '.Account::useService()->getAccountBySession()->getId().' ('.$Ticket['Mail'].')');
-                if (!empty( $Ticket['CallBackNumber'] )) {
-                    $Mail->setMailBody($Ticket['Body'].'<br/>'.
-                        'Rückrufnummer: '.$Ticket['CallBackNumber']);
-                } else {
-                    $Mail->setMailBody($Ticket['Body']);
-                }
+                $Mail->setMailSubject($subject);
+                $Mail->setMailBody($body);
                 $Mail->addRecipientTO($Config->getMail());
                 if (isset( $Upload )) {
                     $Mail->addAttachment(new FileParameter($Upload->getLocation().DIRECTORY_SEPARATOR.$Upload->getFilename()));
                 }
-                $Mail->setFromHeader($Config->getMail());
+                $Mail->setReplyHeader($mailAddress);
                 $Mail->sendMail();
                 $Mail->disconnectServer();
             } catch (\Exception $Exception) {
