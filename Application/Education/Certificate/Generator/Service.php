@@ -342,6 +342,22 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getCertificateAllBy($tblConsumer, $tblCertificateType, $tblSchoolType);
     }
 
+    /**
+     * @param null|TblConsumer $tblConsumer
+     * @param TblCertificateType $tblCertificateType
+     * @param TblType $tblSchoolType
+     *
+     * @return bool|TblCertificate[]
+     */
+    public function getCertificateAllForAutoSelect(
+        TblConsumer $tblConsumer = null,
+        TblCertificateType $tblCertificateType = null,
+        TblType $tblSchoolType = null
+    ) {
+
+        return (new Data($this->getBinding()))->getCertificateAllForAutoSelect($tblConsumer, $tblCertificateType, $tblSchoolType);
+    }
+
 
     /**
      * @param TblCertificate $tblCertificate

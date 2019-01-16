@@ -1720,6 +1720,28 @@ class Frontend extends Extension implements IFrontendInterface
                                 }
                             });
                     }
+
+                    // für Förderzeugnisse extra Spalte Inklusive Unterrichtung
+                    $isSupportCertificate = false;
+                    if (strpos($tblCertificate->getCertificate(), 'FsLernen') !== false) {
+                        $isSupportCertificate = true;
+                    }
+                    if (strpos($tblCertificate->getCertificate(), 'FsGeistigeEntwicklung') !== false) {
+                        $isSupportCertificate = true;
+                    }
+
+                    if ($isSupportCertificate && $tblPrepareStudent) {
+                        if (!isset($columnTable['Support'])) {
+                            $columnTable['Support'] = 'Inklusive Unterrichtung';
+                        }
+
+                        $textArea = new TextArea('Data[' . $tblPrepareStudent->getId() . '][Support]', '', '');
+                        if ($tblPrepareStudent->isApproved()) {
+                            $textArea->setDisabled();
+                        }
+
+                        $studentTable[$tblPerson->getId()]['Support'] = $textArea;
+                    }
                 }
             }
         }
