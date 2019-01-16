@@ -284,7 +284,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
             }
             // new DebtorNumber
             if($IsDebtorNumberNeed) {
-                $InfoDebtorNumber = new ToolTip(new DangerText(new Disable()), 'Debitor-Nr. wird benötigt!');
+                $InfoDebtorNumber = new ToolTip(new DangerText(new Disable()), 'Debit.-Nr. wird benötigt!');
             }
 
             if(($tblPerson = $tblBasketVerification->getServiceTblPersonDebtor())) {
@@ -648,7 +648,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
         }
         $DeborNumber = '';
         if($IsDebtorNumberNeed){
-            $DeborNumber = '(keine Debitor-Nr.)';
+            $DeborNumber = '(keine Debit.-Nr.)';
         }
         // change warning if necessary to "not in PaymentGroup"
         if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR))){

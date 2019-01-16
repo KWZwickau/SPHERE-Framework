@@ -95,10 +95,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 . new Layout(new LayoutGroup(array(
                                     new LayoutRow(array(
                                         new LayoutColumn(
-                                            new Listing(array('Länge der Debitorennummer: '.$DebtorCountReceiver.new PullRight(
+                                            new Listing(array('Länge der Debit.-Nr.: '.$DebtorCountReceiver.new PullRight(
                                                     (new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
                                                         ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting(TblSetting::IDENT_DEBTOR_NUMBER_COUNT,
-                                                            'Länge der Debitorennummer'))
+                                                            'Länge der Debit.-Nr.'))
                                                 )))
                                             , 6),
                                         )),
@@ -113,10 +113,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         )),
                                     new LayoutRow(array(
                                         new LayoutColumn(
-                                            new Listing(array('Debitornummer ist eine Pflichtangabe: '.$DebtorNumberReceiver.new PullRight(
+                                            new Listing(array('Debit.-Nr. ist eine Pflichtangabe: '.$DebtorNumberReceiver.new PullRight(
                                                     (new Link('Bearbeiten', ApiSetting::getEndpoint(), new Pen()))
                                                         ->ajaxPipelineOnClick(ApiSetting::pipelineOpenSetting(TblSetting::IDENT_IS_DEBTOR_NUMBER_NEED,
-                                                            'Debitornummer ist eine Pflichtangabe'))
+                                                            'Debit.-Nr. ist eine Pflichtangabe'))
                                                 )))
                                             , 6),
                                     )),

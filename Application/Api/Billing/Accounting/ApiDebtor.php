@@ -340,7 +340,7 @@ class ApiDebtor extends Extension implements IApiInterface
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        (new TextField('DebtorNumber[Number]', 'Debitor-Nummer', 'Debitor-Nummer'))->setRequired()
+                        (new TextField('DebtorNumber[Number]', 'Debitorennummer', 'Debitorennummer'))->setRequired()
                         , 6),
                     new FormColumn(
                         new Layout(new LayoutGroup(new LayoutRow(
@@ -374,7 +374,7 @@ class ApiDebtor extends Extension implements IApiInterface
         $Error = false;
         $form = $this->formDebtorNumber($Identifier, $PersonId, $DebtorNumberId);
         if(isset($DebtorNumber['Number']) && empty($DebtorNumber['Number'])) {
-            $form->setError('DebtorNumber[Number]', 'Bitte geben Sie eine Debitor-Nummer an');
+            $form->setError('DebtorNumber[Number]', 'Bitte geben Sie eine Debitorennummer an');
             $Error = true;
         } else {
             if(($tblDebtorNumber = Debtor::useService()->getDebtorNumberByNumber($DebtorNumber['Number']))) {
@@ -382,7 +382,7 @@ class ApiDebtor extends Extension implements IApiInterface
                 if($tblPerson && ($tblPersonCompare = $tblDebtorNumber->getServiceTblPerson())
                     && $tblPerson->getId() !== $tblPersonCompare->getId()) {
                     $form->setError('DebtorNumber[Number]',
-                        'Bitte geben sie eine noch nicht vergebene Debitor-Nummer an');
+                        'Bitte geben sie eine noch nicht vergebene Debitorennummer an');
                     $Error = true;
                 }
             }
@@ -473,13 +473,13 @@ class ApiDebtor extends Extension implements IApiInterface
         if(($tblPerson = Person::useService()->getPersonById($PersonId))) {
             $tblDebtorNumber = Debtor::useService()->createDebtorNumber($tblPerson, $DebtorNumber['Number']);
             if($tblDebtorNumber) {
-                return new Success('Debitor-Nummer erfolgreich angelegt') . self::pipelineCloseModal($Identifier,
+                return new Success('Debitorennummer erfolgreich angelegt') . self::pipelineCloseModal($Identifier,
                         $PersonId);
             } else {
-                return new Danger('Debitor-Nummer konnte nicht gengelegt werden');
+                return new Danger('Debitorennummer konnte nicht gengelegt werden');
             }
         } else {
-            return new Danger('Debitor-Nummer konnte nicht gengelegt werden(Person nicht vorhanden)');
+            return new Danger('Debitorennummer konnte nicht gengelegt werden(Person nicht vorhanden)');
         }
     }
 
@@ -509,8 +509,8 @@ class ApiDebtor extends Extension implements IApiInterface
         }
 
         return ($IsChange
-            ? new Success('Debitor-Nummer erfolgreich geändert') . self::pipelineCloseModal($Identifier, $PersonId)
-            : new Danger('Debitor-Nummer konnte nicht geändert werden'));
+            ? new Success('Debitorennummer erfolgreich geändert') . self::pipelineCloseModal($Identifier, $PersonId)
+            : new Danger('Debitorennummer konnte nicht geändert werden'));
     }
 
     /**
@@ -556,7 +556,7 @@ class ApiDebtor extends Extension implements IApiInterface
                 new LayoutColumn(new Bold($PersonString), 10),
             ))));
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn('Debitor-Nummer: ', 2),
+                new LayoutColumn('Debit.-Nr.: ', 2),
                 new LayoutColumn(new Bold($tblDebtorNumber->getDebtorNumber()), 10),
             ))));
 
@@ -564,7 +564,7 @@ class ApiDebtor extends Extension implements IApiInterface
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel('Soll die Debitor-Nummer wirklich entfernt werden?'
+                            new Panel('Soll die Debitorennummer wirklich entfernt werden?'
                                 , $Content, Panel::PANEL_TYPE_DANGER)
                         ),
                         new LayoutColumn(
@@ -578,7 +578,7 @@ class ApiDebtor extends Extension implements IApiInterface
             );
 
         } else {
-            return new Warning('Debitor-Nummer wurde nicht gefunden');
+            return new Warning('Debitorennummer wurde nicht gefunden');
         }
     }
 
@@ -595,10 +595,10 @@ class ApiDebtor extends Extension implements IApiInterface
         if(($tblDebtorNumber = Debtor::useService()->getDebtorNumberById($DebtorNumberId))) {
             Debtor::useService()->removeDebtorNumber($tblDebtorNumber);
 
-            return new Success('Debitor-Nummer wurde erfolgreich entfernt') . self::pipelineCloseModal($Identifier,
+            return new Success('Debitorennummer wurde erfolgreich entfernt') . self::pipelineCloseModal($Identifier,
                     $PersonId);
         }
-        return new Danger('Debitor-Nummer konnte nicht entfernt werden');
+        return new Danger('Debitorennummer konnte nicht entfernt werden');
     }
 
 }

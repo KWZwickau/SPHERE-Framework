@@ -25,10 +25,9 @@ class Setup extends AbstractSetup
          * Table
          */
         $Schema = clone $this->getConnection()->getSchema();
-        $tblInvoice = $this->setTableInvoice($Schema);
+        $tblInvoiceCreditor = $this->setTableInvoiceCreditor($Schema);
+        $tblInvoice = $this->setTableInvoice($Schema, $tblInvoiceCreditor);
         $this->setTableInvoiceItemDebtor($Schema, $tblInvoice);
-        $this->setTableInvoiceCreditor($Schema, $tblInvoice);
-        $this->setTableInvoiceCauser($Schema, $tblInvoice);
 
         /**
          * Migration & Protocol
@@ -43,32 +42,7 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTableInvoice(Schema &$Schema)
-    {
-
-        $Table = $this->createTable($Schema, 'tblInvoice');
-        $this->createColumn($Table, 'InvoiceNumber', self::FIELD_TYPE_STRING);
-        $this->createColumn($Table, 'IntegerNumber', self::FIELD_TYPE_BIGINT);
-        $this->createColumn($Table, 'Year', self::FIELD_TYPE_STRING);
-        $this->createColumn($Table, 'Month', self::FIELD_TYPE_STRING);
-        $this->createColumn($Table, 'TargetTime', self::FIELD_TYPE_DATETIME);
-        $this->createColumn($Table, 'IsPaid', self::FIELD_TYPE_BOOLEAN);
-//        $this->createColumn($Table, 'IsReversal', self::FIELD_TYPE_BOOLEAN);
-//        $this->createColumn($Table, 'serviceTblAddress', self::FIELD_TYPE_BIGINT, true);
-//        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
-//        $this->createColumn($Table, 'serviceTblMail', self::FIELD_TYPE_BIGINT, true);
-//        $this->createColumn($Table, 'serviceTblPhone', self::FIELD_TYPE_BIGINT, true);
-
-        return $Table;
-    }
-
-    /**
-     * @param Schema $Schema
-     * @param Table  $tblInvoice
-     *
-     * @return Table
-     */
-    private function setTableInvoiceCreditor(Schema $Schema, Table $tblInvoice)
+    private function setTableInvoiceCreditor(Schema $Schema)
     {
 
         $Table = $this->createTable($Schema, 'tblInvoiceCreditor');
@@ -79,23 +53,28 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'IBAN', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'BIC', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'serviceTblCreditor', self::FIELD_TYPE_BIGINT, true);
-        $this->getConnection()->addForeignKey($Table, $tblInvoice);
 
         return $Table;
     }
 
     /**
      * @param Schema $Schema
-     * @param Table  $tblInvoice
+     * @param Table  $tblInvoiceCreditor
      *
      * @return Table
      */
-    private function setTableInvoiceCauser(Schema $Schema, Table $tblInvoice)
+    private function setTableInvoice(Schema &$Schema, Table $tblInvoiceCreditor)
     {
 
-        $Table = $this->createTable($Schema, 'tblInvoiceCauser');
+        $Table = $this->createTable($Schema, 'tblInvoice');
+        $this->createColumn($Table, 'InvoiceNumber', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'IntegerNumber', self::FIELD_TYPE_BIGINT);
+        $this->createColumn($Table, 'Year', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'Month', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'TargetTime', self::FIELD_TYPE_DATETIME);
+        $this->createColumn($Table, 'IsPaid', self::FIELD_TYPE_BOOLEAN);
+        $this->getConnection()->addForeignKey($Table, $tblInvoiceCreditor);
         $this->createColumn($Table, 'serviceTblPersonCauser', self::FIELD_TYPE_BIGINT, true);
-        $this->getConnection()->addForeignKey($Table, $tblInvoice);
 
         return $Table;
     }

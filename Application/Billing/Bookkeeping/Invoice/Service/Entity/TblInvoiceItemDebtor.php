@@ -231,7 +231,7 @@ class TblInvoiceItemDebtor extends Element
     public function setDebtorPerson(TblPerson $tblPerson)
     {
 
-        $this->DebtorPerson = ( $tblPerson !== false ? $tblPerson->getFullName() : '' );
+        $this->DebtorPerson = ( $tblPerson !== false ? $tblPerson->getLastFirstName() : '' );
     }
 
     /**

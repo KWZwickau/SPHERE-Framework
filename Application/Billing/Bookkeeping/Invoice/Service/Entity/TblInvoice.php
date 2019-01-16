@@ -5,6 +5,9 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -21,6 +24,8 @@ class TblInvoice extends Element
     const ATTR_MONTH = 'Month';
     const ATTR_TARGET_TIME = 'TargetTime';
     const ATTR_IS_PAID = 'IsPaid';
+    const ATTR_SERVICE_TBL_PERSON_CAUSER = 'serviceTblPersonCauser';
+    const ATTR_TBL_INVOICE_CREDITOR = 'tblInvoiceCreditor';
 
     /**
      * @Column(type="string")
@@ -50,6 +55,14 @@ class TblInvoice extends Element
      * @Column(type="boolean")
      */
     protected $IsPaid;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblPersonCauser;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblInvoiceCreditor;
 
     /**
      * @return string
@@ -190,5 +203,47 @@ class TblInvoice extends Element
     {
 
         $this->IsPaid = $isPaid;
+    }
+
+    /**
+     * @return bool|TblPerson
+     */
+    public function getServiceTblPersonCauser()
+    {
+
+        if (null === $this->serviceTblPersonCauser) {
+            return false;
+        } else {
+            return Person::useService()->getPersonById($this->serviceTblPersonCauser);
+        }
+    }
+
+    /**
+     * @param TblPerson|null $tblPersonCauser
+     */
+    public function setServiceTblPersonCauser(TblPerson $tblPersonCauser = null)
+    {
+
+        $this->serviceTblPersonCauser = ( null === $tblPersonCauser ? null : $tblPersonCauser->getId() );
+    }
+
+    /**
+     * @return TblInvoiceCreditor|false
+     */
+    public function getTblInvoiceCreditor()
+    {
+        if (null === $this->tblInvoiceCreditor) {
+            return false;
+        } else {
+            return Invoice::useService()->getInvoiceCreditorById($this->tblInvoiceCreditor);
+        }
+    }
+
+    /**
+     * @param TblInvoiceCreditor $tblInvoiceCreditor
+     */
+    public function setTblInvoiceCreditor(TblInvoiceCreditor $tblInvoiceCreditor)
+    {
+        $this->tblInvoiceCreditor = $tblInvoiceCreditor->getId();
     }
 }

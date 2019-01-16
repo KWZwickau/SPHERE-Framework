@@ -40,6 +40,10 @@ class TblBasket extends Element
      * @Column(type="datetime")
      */
     protected $TargetTime;
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsDone;
 
     /**
      * @return string
@@ -143,5 +147,21 @@ class TblBasket extends Element
     public function setTargetTime(\DateTime $TargetTime = null)
     {
         $this->TargetTime = $TargetTime;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getIsDone()
+    {
+        return $this->IsDone;
+    }
+
+    /**
+     * @param boolean $IsDone
+     */
+    public function setIsDone($IsDone)
+    {
+        $this->IsDone = $IsDone;
     }
 }

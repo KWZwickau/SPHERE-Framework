@@ -19,39 +19,22 @@ class Invoice implements IModuleInterface
     {
 
         /**
-         * Register Module
-         */
-//        Error::registerModule();
-        /**
          * Register Navigation
          */
 //        Main::getDisplay()->addApplicationNavigation(
 //            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Rechnungen' ), new Link\Icon( new Info() ) )
 //        );
-//        Main::getDisplay()->addModuleNavigation(
-//            new Link( new Link\Route( __NAMESPACE__.'/Order' ), new Link\Name( 'Freigeben' ), new Link\Icon( new Info() ) )
-//        );
         /**
          * Register Route
          */
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__,
-                __NAMESPACE__.'\Frontend::frontendInvoiceList'
-            )
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/View',
+            Main::getDispatcher()->createRoute('/Billing/Bookkeeping/InvoiceView',
                 __NAMESPACE__.'\Frontend::frontendInvoiceView'
             )
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/View/Remove/Paid',
-                __NAMESPACE__.'\Frontend::frontendRemovePaid'
-            )
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/View/Remove/Storno',
-                __NAMESPACE__.'\Frontend::frontendRemoveStorno'
+            Main::getDispatcher()->createRoute('/Billing/Bookkeeping/InvoiceCauserView',
+                __NAMESPACE__.'\Frontend::frontendInvoiceCauserView'
             )
         );
     }

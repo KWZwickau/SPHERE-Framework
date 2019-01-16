@@ -2,29 +2,24 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice;
 
-use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
-use SPHERE\Common\Frontend\Icon\Repository\Check;
-use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
-use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
-use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
-use SPHERE\Common\Frontend\Icon\Repository\Repeat;
-use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor;
+use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Title;
+use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\PullRight;
-use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Standard;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
-use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Danger;
-use SPHERE\Common\Frontend\Text\Repository\Success;
-use SPHERE\Common\Window\Redirect;
+use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -36,233 +31,228 @@ class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
+     * @param array $Invoice
+     *
      * @return Stage
      */
-    public function frontendInvoiceList()
+    public function frontendInvoiceView($Invoice = array())
     {
+        if(empty($Invoice)){
+            $Now = new \DateTime();
+            $Invoice['Year'] = $Now->format('Y');
+            $Invoice['Month'] = (int)$Now->format('m');
+        }
+        if(isset($Invoice['Year'])){
+            $_POST['Invoice']['Year'] = $Invoice['Year'];
+        }
+        if(isset($Invoice['Month'])){
+            $_POST['Invoice']['Month'] = $Invoice['Month'];
+        }
 
-        $Stage = new Stage();
-        $Stage->setTitle('Rechnungen');
-        $Stage->setDescription('Übersicht');
-//        $Stage->addButton(new Standard('Aufträge', '/Billing/Bookkeeping/Invoice/Control', new Ok(), null, 'Freigeben von Rechnungen'));
-
-        $tblInvoiceAll = Invoice::useService()->getInvoiceAll();
+        $Stage = new Stage('Rechnungsliste', 'Sicht Beitragszahler');
+        $tblInvoiceList = Invoice::useService()->getInvoiceByYearAndMonth($Invoice['Year'], $Invoice['Month']);
         $TableContent = array();
-        if ($tblInvoiceAll) {
-
-            array_walk($tblInvoiceAll, function (TblInvoice $tblInvoice) use (&$TableContent) {
-                $Content['CreateDate'] = $tblInvoice->getEntityCreate()->format('d.m.Y');
-                $Content['TargetDate'] = $tblInvoice->getTargetTime();
-                $Content['FullName'] = $tblInvoice->getServiceTblPerson()->getFullName();
-                $Content['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
-                $Content['DebtorNumber'] = '';
-                $Content['Reference'] = '';
-
-                $tblDebtorList = Invoice::useService()->getDebtorAllByInvoice($tblInvoice);
-                $DebtorNumberArray = array();
-                $DebtorReferenceArray = array();
-                if ($tblDebtorList) {
-                    foreach ($tblDebtorList as $tblDebtor) {
-                        $DebtorNumberArray[] = $tblDebtor->getDebtorNumber();
-                        $DebtorReferenceArray[] = $tblDebtor->getBankReference();
+        if($tblInvoiceList){
+            array_walk($tblInvoiceList, function(TblInvoice $tblInvoice) use (&$TableContent){
+                $item['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
+                $item['Time'] = $tblInvoice->getYear().'.'.$tblInvoice->getMonth(true);
+                $item['TargetTime'] = $tblInvoice->getTargetTime();
+                $item['CauserPerson'] = '';
+                if($tblPersonCauser = $tblInvoice->getServiceTblPersonCauser()){
+                    $item['CauserPerson'] = $tblPersonCauser->getLastFirstName();
+                }
+                $item['DebtorPerson'] = '';
+                $item['DebtorNumber'] = '';
+                if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
+                    /** @var TblInvoiceItemDebtor $tblInvoiceItemDebtor */
+                    $tblInvoiceItemDebtor = current($tblInvoiceItemDebtorList);
+                    $item['DebtorPerson'] = $tblInvoiceItemDebtor->getDebtorPerson();
+                    $item['DebtorNumber'] = $tblInvoiceItemDebtor->getDebtorNumber();
+                    $ItemList = array();
+                    $ItemPrice = 0;
+                    foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor){
+                        $ItemList[] = $tblInvoiceItemDebtor->getName();
+                        $ItemPrice += $tblInvoiceItemDebtor->getQuantity() * $tblInvoiceItemDebtor->getValue();
                     }
-                    $DebtorNumberArray = array_filter(array_unique($DebtorNumberArray));
-                    $DebtorReferenceArray = array_filter(array_unique($DebtorReferenceArray));
-                    $DebtorNumberString = implode(', ', $DebtorNumberArray);
-                    $DebtorReferenceString = implode(', ', $DebtorReferenceArray);
-                    $Content['DebtorNumber'] = $DebtorNumberString;
-                    $Content['Reference'] = $DebtorReferenceString;
+                    $ItemString = implode(', ', $ItemList);
+                    // convert to Frontend
+                    $item['SumPrice'] = new ToolTip(number_format($ItemPrice, 2).' €', $ItemString);
                 }
+                $item['Option'] = '';
 
-                $tblItemList = Invoice::useService()->getItemAllByInvoice($tblInvoice);
-                $Price = 0.00;
-                $ItemCount = array();
-                if (!empty( $tblItemList )) {
-                    foreach ($tblItemList as &$tblItem) {
-                        $Price += $tblItem->getSummaryPriceInt();
-                        if (!empty( $ItemCount[$tblItem->getName()] )) {
-                            $ItemCount[$tblItem->getName()] += $tblItem->getQuantity();
-                        } else {
-                            $ItemCount[$tblItem->getName()] = $tblItem->getQuantity();
-                        }
-                        $tblItem = $tblItem->getName();
-                    }
-                    $tblItemList = array_unique($tblItemList);
-                    foreach ($tblItemList as &$Item) {
-                        foreach ($ItemCount as $ItemName => $value) {
-                            if ($Item === $ItemName) {
-                                $Item = $value.'x '.$Item;
-                            }
-                        }
-                    }
-
-                    $ItemString = implode(', ', $tblItemList);
-                    $Content['ItemList'] = $ItemString;
-                } else {
-                    $Content['ItemList'] = '';
-                }
-                $Content['Price'] = Invoice::useService()->getPriceString($Price);
-                if ($tblInvoice->getIsPaid()) {
-                    $Content['Paid'] = new Success(new Check());
-                } else {
-                    $Content['Paid'] = new Danger(new Unchecked());
-                }
-                if ($tblInvoice->getIsReversal()) {
-                    $Content['Reversal'] = new Danger(new Check());
-                } else {
-                    $Content['Reversal'] = '';
-                }
-                $Content['Option'] = new Standard('', '/Billing/Bookkeeping/Invoice/View', new EyeOpen(),
-                    array('Id' => $tblInvoice->getId()), 'Auswahl');
-
-                array_push($TableContent, $Content);
+                array_push($TableContent, $item);
             });
         }
 
-
-        $Stage->setContent(
-            new Layout(
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(array(
-                            new Title(new ListingTable().' Übersicht', 'aller vorhandenen Rechnungen'),
-                            ( empty( $TableContent ) ? new Warning('Keine Rechnungen vorhanden') :
-                                new TableData($TableContent, null,
-                                    array('InvoiceNumber' => 'Rechnungsnummer',
-                                          'CreateDate'    => 'Erstellungsdatum',
-                                          'TargetDate'    => 'Fälligkeitsdatum',
-                                          'DebtorNumber'  => 'Debitorennummer',
-                                          'FullName'      => 'Debitor',
-                                          'Reference'     => 'Mandatsreferenz(en)',
-                                          'ItemList'      => 'Artikel',
-                                          'Price'         => 'Gesamtpreis',
-                                          'Paid'          => 'Bezahlt',
-                                          'Reversal'      => 'Storniert',
-                                          'Option'        => ''),
-                                    array(
-                                        'order'      => array(
-                                            array(0, 'desc')
-                                        ),
-                                        'columnDefs' => array(
-                                            array('type' => 'de_date', 'targets' => 1),
-                                            array('type' => 'de_date', 'targets' => 2),
-                                        )
-                                    ))
-                            )
+        $Stage->setContent(new Layout(
+            new LayoutGroup(array(
+                new LayoutRow(
+                    new LayoutColumn($this->formInvoiceFilter())
+                ),
+                new LayoutRow(
+                    new LayoutColumn(
+                        new TableData($TableContent, null, array(
+                            'InvoiceNumber' => 'Abr.-Nr.',
+                            'Time' => 'Abrechnungszeitraum',
+                            'TargetTime' => 'Fälligkeitsdatum',
+                            'CauserPerson' => 'Beitragsverursacher',
+                            'DebtorPerson' => 'Beitragszahler',
+                            'DebtorNumber' => 'Debit.-Nr.',
+                            'SumPrice' => 'Gesamtbetrag',
+                            'Option' => '',
+                        ), array(
+                            'columnDefs' => array(
+                                array('type' => 'natural', 'targets' => array(0)),
+                                array('type' => 'de_date', 'targets' => array(2)),
+                                array("orderable" => false, "targets"   => -1),
+                            ),
+                            'order'      => array(
+//                            array(1, 'desc'),
+                                array(0, 'desc')
+                            ),
                         ))
                     )
                 )
-            )
-        );
+            ))
+        ));
 
         return $Stage;
     }
 
     /**
-     * @param TblInvoice $tblInvoice
-     * @param            $SummaryPrice
+     * @param array $Invoice
      *
-     * @return string
+     * @return Stage
      */
-    public function layoutInvoice(TblInvoice $tblInvoice, $SummaryPrice)
+    public function frontendInvoiceCauserView($Invoice = array())
+    {
+        if(empty($Invoice)){
+            $Now = new \DateTime();
+            $Invoice['Year'] = $Now->format('Y');
+            $Invoice['Month'] = (int)$Now->format('m');
+        }
+        if(isset($Invoice['Year'])){
+            $_POST['Invoice']['Year'] = $Invoice['Year'];
+        }
+        if(isset($Invoice['Month'])){
+            $_POST['Invoice']['Month'] = $Invoice['Month'];
+        }
+
+        $Stage = new Stage('Rechnungsliste', 'Sicht Beitragsverursacher');
+        $tblInvoiceList = Invoice::useService()->getInvoiceByYearAndMonth($Invoice['Year'], $Invoice['Month']);
+        $TableContent = array();
+        if($tblInvoiceList){
+            array_walk($tblInvoiceList, function(TblInvoice $tblInvoice) use (&$TableContent){
+                $item['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
+                $item['Time'] = $tblInvoice->getYear().'.'.$tblInvoice->getMonth(true);
+//                $item['TargetTime'] = $tblInvoice->getTargetTime();
+                $item['CauserPerson'] = '';
+                //ToDO neue Funktion erstellen!
+//                if(($tblInvoiceCauser = Invoice::useService()->getPersonCauserByInvoice($tblInvoice))){
+//                    $item['CauserPerson'] = $tblInvoiceCauser->getLastFirstName();
+//                }
+
+
+                if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
+                    /** @var TblInvoiceItemDebtor $tblInvoiceItemDebtor */
+                    foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor){
+                        $item['DebtorPerson'] = '';
+                        $item['Item'] = '';
+                        $item['ItemQuantity'] = '';
+                        $item['ItemPrice'] = 0;
+                        $item['ItemSumPrice'] = 0;
+
+                        $item['DebtorPerson'] = $tblInvoiceItemDebtor->getDebtorPerson();
+                        $item['Item'] = $tblInvoiceItemDebtor->getName();
+                        $item['ItemQuantity'] = $tblInvoiceItemDebtor->getQuantity();
+                        $item['ItemPrice'] = $tblInvoiceItemDebtor->getValue();
+                        $item['ItemSumPrice'] = $tblInvoiceItemDebtor->getQuantity() * $tblInvoiceItemDebtor->getValue();
+                        $item['Option'] = '';
+                        // convert to Frontend
+                        $item['ItemPrice'] = number_format($item['ItemPrice'], 2).' €';
+                        $item['ItemSumPrice'] = number_format($item['ItemSumPrice'], 2).' €';
+                        array_push($TableContent, $item);
+                    }
+                }
+            });
+        }
+
+        $Stage->setContent(new Layout(
+            new LayoutGroup(array(
+                new LayoutRow(
+                    new LayoutColumn($this->formInvoiceFilter())
+                ),
+                new LayoutRow(
+                    new LayoutColumn(
+                        new TableData($TableContent, null, array(
+                            'Item' => 'Beitragsarten',
+                            'ItemQuantity' => 'Menge',
+                            'ItemPrice' => new ToolTip('EP', 'Einzelpreis'),
+                            'ItemSumPrice' => new ToolTip('GP', 'Gesamtpreis'),
+                            'CauserPerson' => 'Beitragsverursacher',
+                            'Time' => 'Abrechnungszeitraum',
+                            'DebtorPerson' => 'Debitor',
+                            'InvoiceNumber' => 'Abr.-Nr.',
+                            'Option' => '',
+                        ))
+                    )
+                )
+            ))
+        ));
+
+        return $Stage;
+    }
+
+    public function formInvoiceFilter()
     {
 
-        $Content = array();
-        $Content[] = 'Gesamtbetrag: '.new PullRight(Balance::useService()->getPriceString($SummaryPrice));
-        if (( $PaidMoney = Balance::useService()->getPaidFromInvoice($tblInvoice) ) > 0) {
-            $result = $SummaryPrice - $PaidMoney;
-            if ($result >= 0) {
-                $Content[] = new Bold('Fehlender Betrag: '.new PullRight(Balance::useService()->getPriceString($result)));
-            } else {
-                $Content[] = new \SPHERE\Common\Frontend\Message\Repository\Danger(new Bold('Betrag überschritten: '.new PullRight(Balance::useService()->getPriceString($result))));
-            }
-        }
-        $Button = false;
-        if ($tblInvoice->getIsPaid()) {
-            $Button = new Standard('', '/Billing/Bookkeeping/Invoice/View/Remove/Paid', new Repeat(),
-                array('Id' => $tblInvoice->getId()), 'Bezahlt aufheben');
-        }
-        if ($tblInvoice->getIsReversal()) {
-            $Button = new Standard('', '/Billing/Bookkeeping/Invoice/View/Remove/Storno', new Repeat(),
-                array('Id' => $tblInvoice->getId()), 'Storno aufheben');
-        }
-
-        $tblPersonFrom = $tblInvoice->getServiceTblPerson();
-        return new Title('Eckdaten der Rechnung')
-        .new Layout(
-            new LayoutGroup(
-                new LayoutRow(array(
-                    new LayoutColumn(
-                        new Panel('Rechnungsnummer:', $tblInvoice->getInvoiceNumber(), Panel::PANEL_TYPE_SUCCESS)
-                        , 4),
-                    new LayoutColumn(
-                        new Panel('Rechnungsempfänger:', $tblPersonFrom->getFullName(), Panel::PANEL_TYPE_SUCCESS)
-                        , 4),
-                    new LayoutColumn(
-                        new Panel('Gesamtbetrag:', $Content, Panel::PANEL_TYPE_SUCCESS,
-                            ( $Button ? new PullRight($Button) : '' )
-                        )
-                        , 4),
+        $YearList = $this->getYearList();
+        $MonthList = $this->getMonthList();
+        return new Well(new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(new Title('Rechnungen filtern'), 2),
+                    new FormColumn(new SelectBox('Invoice[Year]', 'Jahr', $YearList), 4),
+                    new FormColumn(new SelectBox('Invoice[Month]', 'Monat', $MonthList, null, true, null), 4),
+                )),
+                new FormRow(array(
+                    new FormColumn(new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn('')))), 2),
+                    new FormColumn(new Primary('Filter', new Filter()), 10),
                 ))
-            )
-        );
+            ))
+        ));
     }
 
-    /**
-     * @param null $Id
-     *
-     * @return string
-     */
-    public function frontendRemovePaid($Id = null)
+    private function getYearList()
     {
 
-        $Stage = new Stage('Rechnung', 'den Offenen Posten hinzufügen');
-        $tblInvoice = ( $Id == null ? false : Invoice::useService()->getInvoiceById($Id) );
-        if (!$tblInvoice) {
-            $Stage->setContent(new Warning('Rechnung nicht gefunden'));
-            return $Stage.new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_ERROR);
-        } else {
-            $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Invoice/View', new ChevronLeft(),
-                array('Id' => $tblInvoice->getId())));
-        }
-        if (Invoice::useService()->changeInvoiceIsPaid($tblInvoice, false)) {
-            return $Stage
-            .new \SPHERE\Common\Frontend\Message\Repository\Success('Rechnung wurde wieder geöffnet')
-            .new Redirect('/Billing/Bookkeeping/Balance/View', Redirect::TIMEOUT_SUCCESS,
-                array('Id' => $tblInvoice->getId()));
-        }
-        return $Stage
-        .new Warning('Rechnung kann nicht wieder geöffnet werden')
-        .new Redirect('/Billing/Bookkeeping/Invoice/View', Redirect::TIMEOUT_SUCCESS,
-            array('Id' => $tblInvoice->getId()));
+        $Now = new \DateTime();
+        $Year = $Now->format('Y');
+        $YearList[(int)$Year - 3] = (int)$Year - 3;
+        $YearList[(int)$Year - 2] = (int)$Year - 2;
+        $YearList[(int)$Year - 1] = (int)$Year - 1;
+        $YearList[(int)$Year] = (int)$Year;
+        $YearList[(int)$Year + 1] = (int)$Year + 1;
+
+        return $YearList;
     }
 
-    /**
-     * @param null $Id
-     *
-     * @return string
-     */
-    public function frontendRemoveStorno($Id = null)
+    private function getMonthList()
     {
 
-        $Stage = new Stage('Rechnung', 'den Offenen Posten hinzufügen');
-        $tblInvoice = ( $Id == null ? false : Invoice::useService()->getInvoiceById($Id) );
-        if (!$tblInvoice) {
-            $Stage->setContent(new Warning('Rechnung nicht gefunden'));
-            return $Stage.new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_ERROR);
-        } else {
-            $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Invoice/View', new ChevronLeft(),
-                array('Id' => $tblInvoice->getId())));
-        }
-        if (Invoice::useService()->changeInvoiceIsReversal($tblInvoice, false)) {
-            return $Stage
-            .new \SPHERE\Common\Frontend\Message\Repository\Success('Rechnung wurde wieder geöffnet')
-            .new Redirect('/Billing/Bookkeeping/Balance/View', Redirect::TIMEOUT_SUCCESS,
-                array('Id' => $tblInvoice->getId()));
-        }
-        return $Stage
-        .new Warning('Rechnung kann nicht wieder geöffnet werden')
-        .new Redirect('/Billing/Bookkeeping/Invoice/View', Redirect::TIMEOUT_SUCCESS,
-            array('Id' => $tblInvoice->getId()));
+        $MonthList[1] = 'Januar';
+        $MonthList[2] = 'Februar';
+        $MonthList[3] = 'März';
+        $MonthList[4] = 'April';
+        $MonthList[5] = 'Mai';
+        $MonthList[6] = 'Juni';
+        $MonthList[7] = 'Juli';
+        $MonthList[8] = 'August';
+        $MonthList[9] = 'September';
+        $MonthList[10] = 'Oktober';
+        $MonthList[11] = 'November';
+        $MonthList[12] = 'Dezember';
+
+        return $MonthList;
     }
 }

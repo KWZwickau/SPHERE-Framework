@@ -306,6 +306,7 @@ class Data extends AbstractData
             $Entity->setYear($Year);
             $Entity->setMonth($Month);
             $Entity->setTargetTime($TargetTime);
+            $Entity->setIsDone(false);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);
@@ -373,6 +374,33 @@ class Data extends AbstractData
             $Entity->setYear($Year);
             $Entity->setMonth($Month);
             $Entity->setTargetTime($TargetTime);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     * @param bool      $IsDone
+     *
+     * @return bool
+     */
+    public function updateBasketDone(TblBasket $tblBasket, $IsDone = true)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblBasket $Entity */
+        $Entity = $Manager->getEntityById('TblBasket', $tblBasket->getId());
+        $Protocol = clone $Entity;
+        if(null !== $Entity) {
+            $Entity->setName($tblBasket->getName());
+            $Entity->setIsDone($IsDone);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),

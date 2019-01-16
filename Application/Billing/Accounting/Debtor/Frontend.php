@@ -170,7 +170,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['Name'] = $tblPerson->getLastFirstName();
                         $Item['DebtorNumber'] = ($IsDebtorNumberNeed
                             ? '<span hidden>00000'.$tblPerson->getLastFirstName().'</span>'.new DangerText(new ToolTip(new Info(),
-                                'Debitor-Nr. wird benötigt'))
+                                'Debit.-Nr. wird benötigt'))
                             : '');
                         $Item['Address'] = '';
                         $Item['BankAccount'] = '<div class="alert alert-danger" style="margin-bottom: 0; padding: 10px 15px">'
@@ -216,7 +216,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         return new TableData($TableContent, null, array(
             'Name'         => 'Person',
-            'DebtorNumber' => 'Debitor Nr.',
+            'DebtorNumber' => 'Debit.-Nr.',
             'Address'      => 'Adresse',
             'BankAccount'  => 'Bankdaten',
             'Option'       => '',
@@ -247,12 +247,12 @@ class Frontend extends Extension implements IFrontendInterface
             array('GroupId' => $GroupId)));
         $DebtorNumber = ApiDebtor::receiverPanelContent($this->getDebtorNumberContent($PersonId));
         $BankAccount = ApiBankAccount::receiverBankAccountPanel($this->getBankAccountPanel($PersonId));
-        $PanelDebtorNumber = new Panel('Debitoren Nummer', $DebtorNumber);
+        $PanelDebtorNumber = new Panel('Debit.-Nr.', $DebtorNumber);
 
 
-        $Stage->setContent(ApiDebtor::receiverModal('Hinzufügen einer Debitor-Nummer', 'addDebtorNumber')
-            .ApiDebtor::receiverModal('Bearbeiten einer Debitor-Nummer', 'editDebtorNumber')
-            .ApiDebtor::receiverModal('Entfernen einer Debitor-Nummer', 'deleteDebtorNumber')
+        $Stage->setContent(ApiDebtor::receiverModal('Hinzufügen einer Debitorennummer', 'addDebtorNumber')
+            .ApiDebtor::receiverModal('Bearbeiten einer Debitorennummer', 'editDebtorNumber')
+            .ApiDebtor::receiverModal('Entfernen einer Debitorennummer', 'deleteDebtorNumber')
             .ApiBankAccount::receiverModal('Hinzufügen eines Konto\'s', 'addBankAccount')
             .ApiBankAccount::receiverModal('Bearbeiten eines Konto\'s', 'editBankAccount')
             .ApiBankAccount::receiverModal('Entfernen eines Konto\'s', 'deleteBankAccount')
@@ -289,12 +289,12 @@ class Frontend extends Extension implements IFrontendInterface
             // new DebtorNumber
             if($IsDebtorNumberNeed) {
                 $DebtorNumber = new DangerText(new ToolTip(new WarningIcon(),
-                        'Debotornummer muss angegeben werden')).(new Link('Debitor-Nummer hinzufügen',
+                        'Debotornummer muss angegeben werden')).(new Link('Debitorennummer hinzufügen',
                         ApiDebtor::getEndpoint(), new Plus()))
                         ->ajaxPipelineOnClick(ApiDebtor::pipelineOpenAddDebtorNumberModal('addDebtorNumber',
                             $tblPerson->getId()));
             } else {
-                $DebtorNumber = (new Link('Debitor-Nummer hinzufügen', ApiDebtor::getEndpoint(), new Plus()))
+                $DebtorNumber = (new Link('Debitorennummer hinzufügen', ApiDebtor::getEndpoint(), new Plus()))
                     ->ajaxPipelineOnClick(ApiDebtor::pipelineOpenAddDebtorNumberModal('addDebtorNumber',
                         $tblPerson->getId()));
             }
@@ -304,12 +304,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $DebtorNumber = array();
                 foreach($tblDebtorNumberList as $tblDebtorNumber) {
                     $DebtorNumber[] = $tblDebtorNumber->getDebtorNumber().' '
-                        .(new Link('', ApiDebtor::getEndpoint(), new Pencil(), array(), 'Debitor-Nummer bearbeiten'))
+                        .(new Link('', ApiDebtor::getEndpoint(), new Pencil(), array(), 'Debitorennummer bearbeiten'))
                             ->ajaxPipelineOnClick(ApiDebtor::pipelineOpenEditDebtorNumberModal('editDebtorNumber'
                                 , $tblPerson->getId(), $tblDebtorNumber->getId()))
                         .' | '
                         .(new Link(new DangerText(new Remove()), ApiDebtor::getEndpoint(), null, array(),
-                            'Debitor-Nummer entfernen'))
+                            'Debitorennummer entfernen'))
                             ->ajaxPipelineOnClick(ApiDebtor::pipelineOpenDeleteDebtorNumberModal('deleteDebtorNumber'
                                 , $tblPerson->getId(), $tblDebtorNumber->getId()));
                 }

@@ -7,7 +7,6 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Accounting\Creditor\Creditor;
 use SPHERE\Application\Billing\Accounting\Creditor\Service\Entity\TblCreditor;
-use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -19,7 +18,11 @@ class TblInvoiceCreditor extends Element
 {
 
     const ATTR_SERVICE_TBL_CREDITOR = 'serviceTblCreditor';
-    const ATTR_TBL_INVOICE = 'tblInvoice';
+    const ATTR_CREDITOR_ID = 'CreditorId';
+    const ATTR_OWNER = 'Owner';
+    const ATTR_BANK_NAME = 'BankName';
+    const ATTR_IBAN = 'IBAN';
+    const ATTR_BIC = 'BIC';
 
     /**
      * @Column(type="string")
@@ -45,10 +48,6 @@ class TblInvoiceCreditor extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblCreditor;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $tblInvoice;
 
     /**
      * @return string
@@ -158,27 +157,5 @@ class TblInvoiceCreditor extends Element
     {
 
         $this->serviceTblCreditor = ( null === $tblCreditor ? null : $tblCreditor->getId() );
-    }
-
-    /**
-     * @return bool|TblInvoice
-     */
-    public function getTblInvoice()
-    {
-
-        if (null === $this->tblInvoice) {
-            return false;
-        } else {
-            return Invoice::useService()->getInvoiceById($this->tblInvoice);
-        }
-    }
-
-    /**
-     * @param null|TblInvoice $tblInvoice
-     */
-    public function setTblInvoice(TblInvoice $tblInvoice = null)
-    {
-
-        $this->tblInvoice = ( null === $tblInvoice ? null : $tblInvoice->getId() );
     }
 }

@@ -287,8 +287,8 @@ class ApiBasket extends Extension implements IApiInterface
                     new Form(new FormGroup(new FormRow(array(
                         new FormColumn((new TextField('Basket[Name]', 'Name der Abrechnug', 'Name'))->setRequired()),
                         new FormColumn(new TextField('Basket[Description]', 'Beschreibung', 'Beschreibung')),
-                        new FormColumn(new SelectBox('Basket[Year]', 'Jahr', $YearList)),
-                        new FormColumn(new SelectBox('Basket[Month]', 'Monat', $MonthList, null, true, null)),
+//                        new FormColumn(new SelectBox('Basket[Year]', 'Jahr', $YearList)),
+//                        new FormColumn(new SelectBox('Basket[Month]', 'Monat', $MonthList, null, true, null)),
                         new FormColumn((new DatePicker('Basket[TargetTime]', '', 'Fälligkeitsdatum'))->setRequired()),
                     ))))
                     , 6),
@@ -489,6 +489,15 @@ class ApiBasket extends Extension implements IApiInterface
             return $form;
         }
 
+        //ToDO Prüfung einbauen
+//        // entfernen aller DebtorSelection zu welchen es schon in der aktuellen Rechnungsphase Rechnungen gibt.
+//        if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblPerson, $tblItem,
+//            $tblBasket->getYear(), $tblBasket->getMonth())){
+//
+//            // vorhandene Rechnung -> keine Zahlungszuweisung erstellen!
+//            $Error = true;
+//        }
+
         $tblBasket = Basket::useService()->createBasket($Basket['Name'], $Basket['Description'], $Basket['Year']
             , $Basket['Month'], $Basket['TargetTime']);
         $tblItemList = array();
@@ -498,11 +507,19 @@ class ApiBasket extends Extension implements IApiInterface
                 $tblBasketItemList[] = Basket::useService()->createBasketItem($tblBasket, $tblItem);
             }
         }
+        $VerificationResult = array();
         if(!empty($tblItemList)) {
             /** @var TblItem $tblItem */
             foreach($tblItemList as $tblItem) {
-                Basket::useService()->createBasketVerificationBulk($tblBasket, $tblItem);
+                $VerificationResult[] = Basket::useService()->createBasketVerificationBulk($tblBasket, $tblItem);
             }
+        }
+        $VerificationResult = array_filter($VerificationResult);
+        // Warenkorb nicht gefüllt
+        if(empty($VerificationResult)){
+            Basket::useService()->destroyBasket($tblBasket);
+            return new Warning('Abrechnung enthält keine Werte d.h. es wurden im Abrechnungsmonat bereits für alle
+            ausgewählten Beitragsarten für alle zutreffenden Personen eine Rechnung erstellt.');
         }
 
         if($tblBasket) {

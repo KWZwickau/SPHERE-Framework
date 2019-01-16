@@ -102,7 +102,7 @@ class Setup extends AbstractSetup
 
         $Table = $this->createTable($Schema, 'tblDebtorSelection');
         $this->createColumn($Table, 'serviceTblPersonCauser', self::FIELD_TYPE_BIGINT, true);
-        $this->createColumn($Table, 'serviceTblPerson', self::FIELD_TYPE_BIGINT, true);
+        $this->createColumn($Table, 'serviceTblPersonDebtor', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblItem', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblItemVariant', self::FIELD_TYPE_BIGINT, true);
         if(!$this->getConnection()->hasColumn('tblDebtorSelection', 'Value')) {

@@ -6,10 +6,13 @@ use SPHERE\Application\Billing\Accounting\Creditor\Creditor;
 use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
+use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Data;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Setup;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -57,6 +60,48 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getInvoiceByIsPaid($Check);
     }
 
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|TblInvoice[]
+     */
+    public function getInvoiceAllByPerson(TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->getInvoiceByPersonCauser($tblPerson);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblItem   $tblItem
+     * @param string    $Year
+     * @param string    $Month
+     *
+     * @return TblInvoice[]|bool
+     */
+    public function getInvoiceByPersonCauserAndItemAndYearAndMonth(TblPerson $tblPerson, TblItem $tblItem, $Year, $Month)
+    {
+        $isInvoice = false;
+        if(($tblInvoiceList = $this->getInvoiceAllByPerson($tblPerson))){
+            foreach($tblInvoiceList as $tblInvoice){
+                if($tblInvoice->getYear() == $Year && $tblInvoice->getMonth() == $Month){
+                    if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
+                        foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor){
+                            if(($tblInvoiceItem = $tblInvoiceItemDebtor->getServiceTblItem())){
+                                if($tblInvoiceItem->getId() == $tblItem->getId()){
+                                    $isInvoice = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return $isInvoice;
+    }
+
     /**
      * @param TblInvoice $tblInvoice
      *
@@ -89,6 +134,40 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getInvoiceById($Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblInvoice
+     */
+    public function getInvoiceCreditorById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getInvoiceCreditorById($Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblInvoice
+     */
+    public function getInvoiceItemDebtorById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getInvoiceItemDebtorById($Id);
+    }
+
+    /**
+     * @param $Year
+     * @param $Month
+     *
+     * @return bool|TblInvoice[]
+     */
+    public function getInvoiceByYearAndMonth($Year, $Month)
+    {
+
+        return (new Data($this->getBinding()))->getInvoiceByYearAndMonth($Year, $Month);
     }
 
     /**
@@ -128,11 +207,52 @@ class Service extends AbstractService
         if (!$tblBasketVerificationList) {
             return false;
         }
+
+        // Set Basket to Done
+        Basket::useService()->changeBasketDone($tblBasket);
+
         $DebtorInvoiceList = array();
         $Month = $tblBasket->getMonth();
         $Year = $tblBasket->getYear();
         $TargetTime = $tblBasket->getTargetTime();
         $MaxInvoiceNumber = Invoice::useService()->getMaxInvoiceNumberByYearAndMonth($Year, $Month);
+
+        // First Look and remove existing Invoice
+        // entfernen aller DebtorSelection zu welchen es schon in der aktuellen Rechnungsphase Rechnungen gibt.
+        foreach($tblBasketVerificationList as &$tblBasketVerification){
+            $tblPerson = $tblBasketVerification->getServiceTblPersonCauser();
+            $tblItem = $tblBasketVerification->getServiceTblItem();
+            if($tblPerson && $tblItem){
+                if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblPerson, $tblItem, $Year, $Month)) {
+                    // Rechnung vorhanden -> keine neue anlegen!
+                    $tblBasketVerification = false;
+                }
+            }
+        }
+        /** @var TblBasketVerification[] $tblBasketVerificationList */
+        $tblBasketVerificationList = array_filter($tblBasketVerificationList);
+
+        /** fill Invoice/Creditor */
+        //ToDO choose Creditor
+        if(($tblCreditorList = Creditor::useService()->getCreditorAll())){
+            $tblCreditor = current($tblCreditorList);
+            $CreditorId = $tblCreditor->getCreditorId();
+            $Owner = $tblCreditor->getOwner();
+            $BankName = $tblCreditor->getBankName();
+            $IBAN = $tblCreditor->getIBAN();
+            $BIC = $tblCreditor->getBIC();
+        } else {
+            $tblCreditor = null;
+            $CreditorId = $Owner = $BankName = $IBAN = $BIC = '';
+        }
+        $InvoiceCreditorList['CreditorId'] = $CreditorId;
+        $InvoiceCreditorList['Owner'] = $Owner;
+        $InvoiceCreditorList['BankName'] = $BankName;
+        $InvoiceCreditorList['IBAN'] = $IBAN;
+        $InvoiceCreditorList['BIC'] = $BIC;
+        $InvoiceCreditorList['serviceTblCreditor'] = $tblCreditor;
+
+        $tblInvoiceCreditor = (new Data($this->getBinding()))->createInvoiceCreditorList($InvoiceCreditorList);
 
         // Vorbereiten aller Rechnugen
         foreach($tblBasketVerificationList as $tblBasketVerification){
@@ -145,7 +265,9 @@ class Service extends AbstractService
             /** Fill InvoiceList */
             if(!isset($DebtorInvoiceList[$GroupString])){
                 $MaxInvoiceNumber++;
-                $DebtorInvoiceList[$GroupString] = $MaxInvoiceNumber;
+                $DebtorInvoiceList[$GroupString]['Identifier'] = $MaxInvoiceNumber;
+                $DebtorInvoiceList[$GroupString]['servicePersonCauser'] = $tblPersonCauser;
+                $DebtorInvoiceList[$GroupString]['InvoiceCreditor'] = $tblInvoiceCreditor;
             }
         }
         if(!empty($DebtorInvoiceList)){
@@ -153,9 +275,7 @@ class Service extends AbstractService
             (new Data($this->getBinding()))->createInvoiceList($DebtorInvoiceList, $Month, $Year, $TargetTime);
         }
 
-        $InvoiceCauserList = array();
         $InvoiceItemDebtorList = array();
-        $InvoiceCreditorList = array();
         $i = 0;
         foreach ($tblBasketVerificationList as $tblBasketVerification) {
             $i++;
@@ -165,13 +285,7 @@ class Service extends AbstractService
             $PersonDebtorId = $tblPersonDebtor->getId();
             $PersonCauserId = $tblPersonCauser->getId();
             $GroupString = $PersonDebtorId.'-'.$PersonCauserId;
-            $tblInvoice = $this->getInvoiceByIntegerAndYearAndMonth($DebtorInvoiceList[$GroupString], $Year, $Month);
-            /** fill Invoice/Causer */
-            if(!($tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser())){
-                $tblPersonCauser = null;
-            }
-            $InvoiceCauserList[$GroupString]['Invoice'] = $tblInvoice;
-            $InvoiceCauserList[$GroupString]['servicePersonCauser'] = $tblPersonCauser;
+            $tblInvoice = $this->getInvoiceByIntegerAndYearAndMonth($DebtorInvoiceList[$GroupString]['Identifier'], $Year, $Month);
             /** fill Invoice/ItemDebtor */
             if(($tblItem = $tblBasketVerification->getServiceTblItem())){
                 $Name = $tblItem->getName();
@@ -183,7 +297,7 @@ class Service extends AbstractService
             $tblPersonDebtor = $tblBasketVerification->getServiceTblPersonDebtor();
             $DebtorNumber = Debtor::useService()->getDebtorNumberByPerson($tblPersonDebtor);
             if($DebtorNumber && !empty($DebtorNumber)){
-                // ToDO mehrere Debitor-Nummern?
+                // ToDO mehrere Debit.-Nr.?
                 // erste Debtitor Nummer wird gezogen
                 $DebtorNumber = current($DebtorNumber);
             } else {
@@ -224,36 +338,11 @@ class Service extends AbstractService
             $InvoiceItemDebtorList[$GroupString][$i]['serviceTblBankReference'] = $tblBankReference;
             $InvoiceItemDebtorList[$GroupString][$i]['serviceTblBankAccount'] = $tblBankAccount;
             $InvoiceItemDebtorList[$GroupString][$i]['serviceTblPaymentType'] = $tblPaymentType;
-            /** fill Invoice/Creditor */
-            //ToDO choose Creditor
-            if(($tblCreditor = Creditor::useService()->getCreditorById(1))){
-                $CreditorId = $tblCreditor->getCreditorId();
-                $Owner = $tblCreditor->getOwner();
-                $BankName = $tblCreditor->getBankName();
-                $IBAN = $tblCreditor->getIBAN();
-                $BIC = $tblCreditor->getBIC();
-            } else {
-                $tblCreditor = null;
-                $CreditorId = $Owner = $BankName = $IBAN = $BIC = '';
-            }
-            $InvoiceCreditorList[$GroupString]['Invoice'] = $tblInvoice;
-            $InvoiceCreditorList[$GroupString]['CreditorId'] = $CreditorId;
-            $InvoiceCreditorList[$GroupString]['Owner'] = $Owner;
-            $InvoiceCreditorList[$GroupString]['BankName'] = $BankName;
-            $InvoiceCreditorList[$GroupString]['IBAN'] = $IBAN;
-            $InvoiceCreditorList[$GroupString]['BIC'] = $BIC;
-            $InvoiceCreditorList[$GroupString]['serviceTblCreditor'] = $tblCreditor;
         }
 
         // create
-        if(!empty($InvoiceCauserList)){
-            (new Data($this->getBinding()))->createInvoiceCauserList($InvoiceCauserList);
-        }
         if(!empty($InvoiceItemDebtorList)){
             (new Data($this->getBinding()))->createInvoiceItemDebtorList($InvoiceItemDebtorList);
-        }
-        if(!empty($InvoiceCreditorList)){
-            (new Data($this->getBinding()))->createInvoiceCreditorList($InvoiceCreditorList);
         }
 
         // ToDO Warenkorb deaktivieren nicht leeren
@@ -262,6 +351,9 @@ class Service extends AbstractService
 //            Basket::useService()->destroyBasketVerification($tblBasketVerification);
 //        }
 
-        return new Redirect('/Billing/Bookkeeping/Basket', Redirect::TIMEOUT_SUCCESS);
+        $Invoice = array('Year' => $tblBasket->getYear(), 'Month' => $tblBasket->getMonth());
+        return new Redirect('/Billing/Bookkeeping/InvoiceView', Redirect::TIMEOUT_SUCCESS, array(
+            'Invoice' => $Invoice
+        ));
     }
 }

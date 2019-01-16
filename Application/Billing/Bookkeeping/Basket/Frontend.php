@@ -8,8 +8,6 @@ use SPHERE\Application\Billing\Accounting\Debtor\Debtor;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
-use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
-use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor;
 use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
 use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\Setting\Consumer\Consumer;
@@ -25,6 +23,7 @@ use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\Icon\Repository\Warning as WarningIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -38,6 +37,7 @@ use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger as DangerText;
@@ -46,6 +46,7 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\ToolTip;
 use SPHERE\Common\Window\Redirect;
+use SPHERE\Common\Window\RedirectScript;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -117,14 +118,20 @@ class Frontend extends Extension implements IFrontendInterface
 
 //                $tblBasketVerification = Basket::useService()->getBasketVerificationAllByBasket($tblBasket);
 
-                $Item['Option'] = (new Standard('', ApiBasket::getEndpoint(), new Edit(), array(),
-                        'Abrechnung bearbeiten'))
-                        ->ajaxPipelineOnClick(ApiBasket::pipelineOpenEditBasketModal('editBasket', $tblBasket->getId()))
-                    .new Standard('', __NAMESPACE__.'/View', new EyeOpen(), array('BasketId' => $tblBasket->getId()),
-                        'Inhalt der Abrechnung')
-                    .(new Standard('', ApiBasket::getEndpoint(), new Remove(), array(), 'Abrechnung entfernen'))
-                        ->ajaxPipelineOnClick(ApiBasket::pipelineOpenDeleteBasketModal('deleteBasket',
-                            $tblBasket->getId()));
+                if($tblBasket->getIsDone()){
+                    $Item['Option'] = new Standard('', __NAMESPACE__.'/View', new EyeOpen(), array('BasketId' => $tblBasket->getId()),
+                            'Inhalt der Abrechnung');
+                } else {
+                    $Item['Option'] = (new Standard('', ApiBasket::getEndpoint(), new Edit(), array(),
+                            'Abrechnung bearbeiten'))
+                            ->ajaxPipelineOnClick(ApiBasket::pipelineOpenEditBasketModal('editBasket', $tblBasket->getId()))
+                        .new Standard('', __NAMESPACE__.'/View', new EyeOpen(), array('BasketId' => $tblBasket->getId()),
+                            'Inhalt der Abrechnung')
+                        .(new Standard('', ApiBasket::getEndpoint(), new Remove(), array(), 'Abrechnung entfernen'))
+                            ->ajaxPipelineOnClick(ApiBasket::pipelineOpenDeleteBasketModal('deleteBasket',
+                                $tblBasket->getId()));
+                }
+
                 array_push($TableContent, $Item);
             });
         }
@@ -144,8 +151,8 @@ class Frontend extends Extension implements IFrontendInterface
                     array("orderable" => false, "targets"   => -1),
                 ),
                 'order'      => array(
-                    array(1, 'desc'),
-                    array(0, 'asc')
+//                    array(1, 'desc'),
+                    array(0, 'desc')
                 ),
             )
         );
@@ -239,17 +246,21 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Summary'] = '';
                     if(($tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser())) {
                         $Item['PersonCauser'] = $tblPersonCauser->getLastFirstName();
-                        $Item['PersonDebtor'] = ApiBasketVerification::receiverDebtor(
-                            new DangerText($tblPersonCauser->getLastFirstName().' '.
-                                new ToolTip(new WarningIcon(), 'Beitragszahler nicht gefunden')),
-                            $tblBasketVerification->getId());
+                        if($tblBasket->getIsDone()) {
+                            $Item['PersonDebtor'] = '';
+                        } else {
+                            $Item['PersonDebtor'] = ApiBasketVerification::receiverDebtor(
+                                new DangerText($tblPersonCauser->getLastFirstName().' '.
+                                    new ToolTip(new WarningIcon(), 'Beitragszahler nicht gefunden')),
+                                $tblBasketVerification->getId());
+                        }
                         $Item['PersonDebtorFail'] = new DangerText(new WarningIcon());
                     }
 
                     $InfoDebtorNumber = '';
                     // new DebtorNumber
                     if($IsDebtorNumberNeed) {
-                        $InfoDebtorNumber = new ToolTip(new DangerText(new WarningIcon()), 'Debitor-Nr. wird benötigt!');
+                        $InfoDebtorNumber = new ToolTip(new DangerText(new WarningIcon()), 'Debit.-Nr. wird benötigt!');
                     }
 
                     if(($tblPersonDebtor = $tblBasketVerification->getServiceTblPersonDebtor())) {
@@ -266,6 +277,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $Item['PersonDebtorFail'] = '';
                             }
                         }
+
                     } else {
                         $DebtorMiss++;
                     }
@@ -280,14 +292,18 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblBasketVerification->getId());
                     }
                     if(($Quantity = $tblBasketVerification->getQuantity())) {
-                        $Item['Quantity'] = ApiBasketVerification::receiverItemQuantity(
-                            new Form(new FormGroup(new FormRow(new FormColumn(
+                        if($tblBasket->getIsDone()) {
+                            $Item['Quantity'] = $Quantity;
+                        } else {
+                            $Item['Quantity'] = ApiBasketVerification::receiverItemQuantity(
+                                new Form(new FormGroup(new FormRow(new FormColumn(
                                     (new TextField('Quantity['.$tblBasketVerification->getId().']', '', ''))
                                         ->ajaxPipelineOnChange(ApiBasketVerification::pipelineChangeQuantity($tblBasketVerification->getId()))
                                 ))))
-                            , $tblBasketVerification->getId());
-                        // setDefaultValue don't work -> use POST
-                        $_POST['Quantity'][$tblBasketVerification->getId()] = $Quantity;
+                                , $tblBasketVerification->getId());
+                            // setDefaultValue don't work -> use POST
+                            $_POST['Quantity'][$tblBasketVerification->getId()] = $Quantity;
+                        }
                     }
                     if(($Summary = $tblBasketVerification->getSummaryPrice())) {
                         // Hide Sort by Integer
@@ -298,15 +314,21 @@ class Frontend extends Extension implements IFrontendInterface
                     }
 
                     // Add ChangeButton to PersonDebtor
-                    $Item['PersonDebtor'] = $Item['PersonDebtor'].
-                        '&nbsp;'.new ToolTip((new Link('', ApiBasketVerification::getEndpoint(), new Pencil()))
-                            ->ajaxPipelineOnClick(ApiBasketVerification::pipelineOpenEditDebtorSelectionModal($tblBasketVerification->getId()))
-                            , 'Beitragszahler ändern');
+                    if(!$tblBasket->getIsDone()) {
+                        $Item['PersonDebtor'] = $Item['PersonDebtor'].
+                            '&nbsp;'.new ToolTip((new Link('', ApiBasketVerification::getEndpoint(), new Pencil()))
+                                ->ajaxPipelineOnClick(ApiBasketVerification::pipelineOpenEditDebtorSelectionModal($tblBasketVerification->getId()))
+                                , 'Beitragszahler ändern');
+                    }
 
                     //ToDO API für's löschen
-                    $Item['Option'] = (new Standard(new DangerText(new Disable()), ApiBasketVerification::getEndpoint(), null
+                    if($tblBasket->getIsDone()) {
+                        $Item['Option'] = '';
+                    } else {
+                        $Item['Option'] = (new Standard(new DangerText(new Disable()), ApiBasketVerification::getEndpoint(), null
                         /*, array(),'Eintrag löschen'*/))
-                        ->ajaxPipelineOnClick(ApiBasketVerification::pipelineDeleteDebtorSelection($tblBasketVerification->getId()));
+                            ->ajaxPipelineOnClick(ApiBasketVerification::pipelineDeleteDebtorSelection($tblBasketVerification->getId()));
+                    }
 
                     array_push($TableContent, $Item);
                 });
@@ -314,33 +336,59 @@ class Frontend extends Extension implements IFrontendInterface
             $CountArray['DebtorMiss'] = $DebtorMiss;
 
             $Title = '';
+            $DebtorNumberMissCount = 0;
+            $DebtorMissCount = 0;
             foreach($CountArray as $Key => $Count) {
                 switch($Key) {
                     case 'AllCount':
                         $Title = 'Anzahl der Zahlungszuordnungen:';
                         break;
                     case 'DebtorNumberMiss':
-                        $Title = 'Anzahl fehlernder Debitor Nummern:';
+                        $Title = 'Anzahl fehlernder Debit.-Nr.:';
                         if($Count > 0 && $IsDebtorNumberNeed) {
                             $Title = new DangerText($Title);
+                            $DebtorNumberMissCount = $Count;
                         }
                         break;
                     case 'DebtorMiss':
                         $Title = 'Anzahl fehlender Zahlungszuweisungen:';
                         if($Count > 0) {
                             $Title = new DangerText($Title);
+                            $DebtorMissCount = $Count;
                         }
                         break;
                 }
                 $PanelContent .= new Container(new Bold($Title).' '.$Count);
             }
+            if($tblBasket->getIsDone()){
+                $ButtonInvoice = '';
+            } else {
+                if($IsDebtorNumberNeed){
+                    if($DebtorMissCount || $DebtorNumberMissCount){
+                        $ButtonInvoice = (new Standard('Rechnungen erstellen', '/Billing/Bookkeeping/Basket/InvoiceLoad'
+                            , null, array('BasketId' => $BasketId)))->setDisabled(). new Standard('', '', new Repeat());
+                    } else {
+                        $ButtonInvoice = (new Standard('Rechnungen erstellen', '/Billing/Bookkeeping/Basket/InvoiceLoad'
+                            , null, array('BasketId' => $BasketId)));
+                    }
+                } else {
+                    if($DebtorMissCount){
+                        $ButtonInvoice = (new Standard('Rechnungen erstellen', '/Billing/Bookkeeping/Basket/InvoiceLoad'
+                            , null, array('BasketId' => $BasketId)))->setDisabled(). new Standard('', '', new Repeat());
+                    } else {
+                        $ButtonInvoice = (new Standard('Rechnungen erstellen', '/Billing/Bookkeeping/Basket/InvoiceLoad'
+                            , null, array('BasketId' => $BasketId)));
+                    }
+                }
+
+            }
+
             $PanelContent = new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn(
                     $PanelContent
                     , 10),
                 new LayoutColumn(
-                    new Standard('Rechnungen erstellen', '/Billing/Bookkeeping/Basket/DoInvoice', null, array('BasketId' => $BasketId))
-                    , 2)
+                    $ButtonInvoice, 2)
             ))));
         }
         $PanelCount = new Panel('Übersicht', $PanelContent);
@@ -387,7 +435,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage|string
      */
-    public function frontendDoInvoice($BasketId = '')
+    public function frontendInvoiceLoad($BasketId = '')
     {
 
         $Stage = new Stage('Rechnungen', 'in Arbeit');
@@ -404,8 +452,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_SUCCESS)
                     ),
                     new LayoutColumn(
-                        //ToDO überarbeitung Invoice
-                        new Container(Invoice::useService()->createInvoice($tblBasket))
+                        new RedirectScript('/Billing/Bookkeeping/Basket/DoInvoice', 0, array('BasketId' => $BasketId))
                     ),
                 ))
             )
@@ -414,55 +461,31 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @return Stage
+     * @param string $BasketId
+     *
+     * @return Stage|string
      */
-    public function frontendInvoiceView()
+    public function frontendDoInvoice($BasketId = '')
     {
 
-        $Stage = new Stage('Rechnungsliste', 'Sicht Beitragszahler');
-        $tblInvoiceAll = Invoice::useService()->getInvoiceAll();
-        $TableContent = array();
-        array_walk($tblInvoiceAll, function(TblInvoice $tblInvoice) use (&$TableContent){
-            $item['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
-            $item['Time'] = $tblInvoice->getYear().'.'.$tblInvoice->getMonth(true);
-            $item['TargetTime'] = $tblInvoice->getTargetTime();
-            $item['DebtorPerson'] = '';
-            $item['DebtorNumber'] = '';
-            $item['Item'] = '';
-            if(($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByInvoice($tblInvoice))){
-                /** @var TblInvoiceItemDebtor $tblInvoiceItemDebtor */
-                $tblInvoiceItemDebtor = current($tblInvoiceItemDebtorList);
-                $item['DebtorPerson'] = $tblInvoiceItemDebtor->getDebtorPerson();
-                $item['DebtorNumber'] = $tblInvoiceItemDebtor->getDebtorNumber();
-                $ItemList = array();
-                foreach($tblInvoiceItemDebtorList as $tblInvoiceItemDebtor){
-                    $ItemList[] = $tblInvoiceItemDebtor->getName();
-                }
-                $item['Item'] = implode(', ', $ItemList);
-            }
-            $item['Option'] = '';
+        $Stage = new Stage('Rechnungen', 'in Arbeit');
 
-            array_push($TableContent, $item);
-        });
-
+        if(!($tblBasket = Basket::useService()->getBasketById($BasketId))){
+            return $Stage->setContent(new Danger('Der Warenkorb wird nicht mehr gefunden.'))
+                . new Redirect('/Billing/Bookkeeping/Basket', Redirect::TIMEOUT_ERROR);
+        }
         $Stage->setContent(new Layout(
             new LayoutGroup(
-                new LayoutRow(
+                new LayoutRow(array(
                     new LayoutColumn(
-                        new TableData($TableContent, null, array(
-                            'InvoiceNumber' => 'Abr.-Nr.',
-                            'Time' => 'Abrechnungszeitraum',
-                            'TargetTime' => 'Fälligkeitsdatum',
-                            'DebtorPerson' => 'Debitor',
-                            'DebtorNumber' => 'Debitor Nr.',
-                            'Item' => 'Beitragsarten',
-                            'Option' => '',
-                        ))
-                    )
-                )
+                        new Success('Rechnungen erstellt')
+                    ),
+                    new LayoutColumn(
+                        new Container(Invoice::useService()->createInvoice($tblBasket))
+                    ),
+                ))
             )
         ));
-
         return $Stage;
     }
 }

@@ -24,7 +24,7 @@ class TblDebtorSelection extends Element
 {
 
     const ATTR_SERVICE_TBL_PERSON_CAUSER = 'serviceTblPersonCauser';
-    const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const ATTR_SERVICE_TBL_PERSON = 'serviceTblPersonDebtor';
     const ATTR_SERVICE_TBL_PAYMENT_TYPE = 'serviceTblPaymentType';
     const ATTR_SERVICE_TBL_ITEM = 'serviceTblItem';
     const ATTR_SERVICE_TBL_ITEM_VARIANT = 'serviceTblItemVariant';
@@ -41,7 +41,7 @@ class TblDebtorSelection extends Element
      * @Column(type="bigint")
      * Beitragszahler (Sorgeberechtigte etc.)
      */
-    protected $serviceTblPerson;
+    protected $serviceTblPersonDebtor;
     /**
      * @Column(type="bigint")
      */
@@ -95,13 +95,13 @@ class TblDebtorSelection extends Element
      * @return bool|TblPerson
      * Beitragszahler (Sorgeberechtigte etc.)
      */
-    public function getServiceTblPerson()
+    public function getserviceTblPersonDebtor()
     {
 
-        if(null === $this->serviceTblPerson) {
+        if(null === $this->serviceTblPersonDebtor) {
             return false;
         } else {
-            return Person::useService()->getPersonById($this->serviceTblPerson);
+            return Person::useService()->getPersonById($this->serviceTblPersonDebtor);
         }
     }
 
@@ -109,10 +109,10 @@ class TblDebtorSelection extends Element
      * @param TblPerson|null $tblPerson
      * Beitragszahler (Sorgeberechtigte etc.)
      */
-    public function setServiceTblPerson(TblPerson $tblPerson = null)
+    public function setserviceTblPersonDebtor(TblPerson $tblPerson = null)
     {
 
-        $this->serviceTblPerson = (null === $tblPerson ? null : $tblPerson->getId());
+        $this->serviceTblPersonDebtor = (null === $tblPerson ? null : $tblPerson->getId());
     }
 
     /**

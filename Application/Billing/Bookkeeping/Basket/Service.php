@@ -11,9 +11,11 @@ use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketItem;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Entity\TblBasketVerification;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Service\Setup;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -195,12 +197,11 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblBasket $tblBasket
-     * @param TblItem   $tblItem
+     * @param $tblItem
      *
-     * @return bool
+     * @return TblGroup[]|bool
      */
-    public function createBasketVerificationBulk(TblBasket $tblBasket, TblItem $tblItem)
+    public function getGroupListByItem($tblItem)
     {
 
         $tblGroupList = array();
@@ -209,8 +210,20 @@ class Service extends AbstractService
                 $tblGroupList[] = $tblItemGroup->getServiceTblGroup();
             }
         }
+
+        return (!empty($tblGroupList) ? $tblGroupList : false);
+    }
+
+    /**
+     * @param TblGroup[]|bool $tblGroupList
+     *
+     * @return array|bool
+     */
+    public function getPersonListByGroupList($tblGroupList)
+    {
+
         $tblPersonList = array();
-        if(!empty($tblGroupList)) {
+        if($tblGroupList) {
             foreach($tblGroupList as $tblGroup) {
                 if($tblPersonFromGroup = Group::useService()->getPersonAllByGroup($tblGroup)) {
                     foreach($tblPersonFromGroup as $tblPersonFrom) {
@@ -219,15 +232,36 @@ class Service extends AbstractService
                 }
             }
         }
+        return (!empty($tblPersonList) ? $tblPersonList : false);
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     * @param TblItem   $tblItem
+     *
+     * @return bool
+     */
+    public function createBasketVerificationBulk(TblBasket $tblBasket, TblItem $tblItem)
+    {
+
+        $tblGroupList = $this->getGroupListByItem($tblItem);
+
+        $tblPersonList = $this->getPersonListByGroupList($tblGroupList);
 
         $DebtorDataArray = array();
-        if(!empty($tblPersonList)) {
+        if($tblPersonList){
             /** @var TblPerson $tblPerson */
             foreach($tblPersonList as $tblPerson) {
                 if(($tblDebtorSelectionList = Debtor::useService()->getDebtorSelectionByPersonCauserAndItem($tblPerson,
                     $tblItem))) {
                     foreach($tblDebtorSelectionList as $tblDebtorSelection) {
                         $Error = false;
+                        // entfernen aller DebtorSelection zu welchen es schon in der aktuellen Rechnungsphase Rechnungen gibt.
+                        if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblPerson, $tblItem,
+                            $tblBasket->getYear(), $tblBasket->getMonth())){
+                            // vorhandene Rechnung -> keine Zahlungszuweisung erstellen!
+                            $Error = true;
+                        }
                         $Item = array();
                         if(!$tblDebtorSelection->getServiceTblPersonCauser()) {
                             //BasketVerification doesn't work without Causer
@@ -236,10 +270,10 @@ class Service extends AbstractService
                         } else {
                             $Item['Causer'] = $tblDebtorSelection->getServiceTblPersonCauser()->getId();
                         }
-                        if(!$tblDebtorSelection->getServiceTblPerson()) {
+                        if(!$tblDebtorSelection->getserviceTblPersonDebtor()) {
                             $Item['Debtor'] = '';
                         } else {
-                            $Item['Debtor'] = $tblDebtorSelection->getServiceTblPerson()->getId();
+                            $Item['Debtor'] = $tblDebtorSelection->getserviceTblPersonDebtor()->getId();
                         }
                         // insert payment from DebtorSelection
                         if(!$tblDebtorSelection->getTblBankAccount()) {
@@ -266,6 +300,13 @@ class Service extends AbstractService
                         }
                     }
                 } else {
+                    $Error = false;
+                    // entfernen aller DebtorSelection zu welchen es schon in der aktuellen Rechnungsphase Rechnungen gibt.
+                    if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblPerson, $tblItem,
+                        $tblBasket->getYear(), $tblBasket->getMonth())){
+                        // vorhandene Rechnung -> keine Zahlungszuweisung erstellen!
+                        $Error = true;
+                    }
                     // entry without DebtorSelection
                     $Item['Causer'] = $tblPerson->getId();
                     $Item['Debtor'] = '';
@@ -274,7 +315,9 @@ class Service extends AbstractService
                     $Item['PaymentType'] = null;
                     // default special price value
                     $Item['Price'] = '0.00';
-                    array_push($DebtorDataArray, $Item);
+                    if(!$Error) {
+                        array_push($DebtorDataArray, $Item);
+                    }
                 }
             }
         }
@@ -303,6 +346,18 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->updateBasket($tblBasket, $Name, $Description, $Year, $Month,
             $TargetTime);
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     * @param bool      $IsDone
+     *
+     * @return bool
+     */
+    public function changeBasketDone(TblBasket $tblBasket, $IsDone = true)
+    {
+
+        return (new Data($this->getBinding()))->updateBasketDone($tblBasket, $IsDone);
     }
 
     /**

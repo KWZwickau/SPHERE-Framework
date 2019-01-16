@@ -553,7 +553,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
         }
         $DeborNumber = '';
         if($IsDebtorNumberNeed){
-            $DeborNumber = '(keine Debitor-Nr.)';
+            $DeborNumber = '(keine Debit.-Nr.)';
         }
         // change warning if necessary to "not in PaymentGroup"
         if(($tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_DEBTOR))){
@@ -824,7 +824,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
             ($tblItemVariant ? $_POST['DebtorSelection']['Variant'] = $tblItemVariant->getId(): '');
             $Value = $tblDebtorSelection->getValue(true);
             ($Value !== '0,00' ? $Global->POST['DebtorSelection']['Price'] = $Value : '');
-            $tblPerson = $tblDebtorSelection->getServiceTblPerson();
+            $tblPerson = $tblDebtorSelection->getserviceTblPersonDebtor();
             ($tblPerson ? $Global->POST['DebtorSelection']['Debtor'] = $tblPerson->getId() : '');
             $tblBankAccount = $tblDebtorSelection->getTblBankAccount();
             ($tblBankAccount ? $Global->POST['DebtorSelection']['BankAccount'] = $tblBankAccount->getId()
@@ -853,7 +853,7 @@ class ApiDebtorSelection extends Extension implements IApiInterface
 
         if ($tblDebtorSelection) {
             $PersonString = 'Person nicht gefunden!';
-            if (($tblPerson = $tblDebtorSelection->getServiceTblPerson())) {
+            if (($tblPerson = $tblDebtorSelection->getserviceTblPersonDebtor())) {
                 $PersonString = $tblPerson->getFullName();
             }
             $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(

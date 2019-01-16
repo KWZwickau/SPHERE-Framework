@@ -36,18 +36,13 @@ class Basket implements IModuleInterface
             )
         );
         Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/InvoiceLoad',
+                __NAMESPACE__.'\Frontend::frontendInvoiceLoad'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/DoInvoice',
                 __NAMESPACE__.'\Frontend::frontendDoInvoice'
-            )
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/Billing/Bookkeeping/InvoiceView',
-                __NAMESPACE__.'\Frontend::frontendInvoiceView'
-            )
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/Billing/Bookkeeping/InvoiceCauserView',
-                __NAMESPACE__.'\Frontend::frontendInvoiceCauserView'
             )
         );
     }
