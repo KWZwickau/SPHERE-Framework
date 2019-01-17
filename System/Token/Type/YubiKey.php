@@ -263,7 +263,7 @@ class YubiKey implements ITypeInterface
             $CurlHandleList[$Identifier] = curl_init($UrlRequest);
             curl_setopt($CurlHandleList[$Identifier], CURLOPT_USERAGENT, "YubiKey");
             curl_setopt($CurlHandleList[$Identifier], CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($CurlHandleList[$Identifier], CURLOPT_FOLLOWLOCATION,1);
+//            curl_setopt($CurlHandleList[$Identifier], CURLOPT_FOLLOWLOCATION,1);
             curl_setopt($CurlHandleList[$Identifier], CURLOPT_VERBOSE, true);
             curl_setopt($CurlHandleList[$Identifier], CURLOPT_HEADER, false);
             curl_setopt($CurlHandleList[$Identifier], CURLOPT_FAILONERROR, true);

@@ -8,7 +8,6 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
-use SPHERE\System\Debugger\DebuggerFactory;
 
 /**
  * Class BenchmarkLogger
@@ -67,11 +66,7 @@ class BenchmarkLogger extends AbstractLogger implements LoggerInterface
         if (strpos($Content, 'Query') === 0) {
             $Content = new Danger($Content);
         }
-        $return = parent::addLog(new Label($this->getTimer()).' '.$Content.new PullRight( new Small(new Muted('#'.(count($this->getLog()) +1)))));
-
-        (new DebuggerFactory())->createLogger(new FileLogger())->addLog($Content);
-
-        return $return;
+        return parent::addLog(new Label($this->getTimer()).' '.$Content.new PullRight( new Small(new Muted('#'.(count($this->getLog()) +1)))));
     }
 
     /**
@@ -94,8 +89,8 @@ class BenchmarkLogger extends AbstractLogger implements LoggerInterface
     public function stopTimer()
     {
 
-        $this->addLog('- Stop Timer -');
         if ($this->TimerRunning) {
+            $this->addLog('- Stop Timer -');
             $this->TimerStop = microtime(true);
         }
         $this->TimerRunning = false;
