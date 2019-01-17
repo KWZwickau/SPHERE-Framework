@@ -694,6 +694,30 @@ class Data extends AbstractData
             $this->setCertificateSubject($tblCertificate, 'IN', 2, 8);
         }
 
+        $tblCertificate = $this->createCertificate('Mittelschule Halbjahresinformation', 'Förderschwerpunkt geistige Entwicklung', 'MsHjInfoFsGeistigeEntwicklung');
+        if ($tblCertificate) {
+            if ($tblSchoolTypeSecondary) {
+                $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary,
+                    null, true, true);
+            }
+        }
+
+        $tblCertificate = $this->createCertificate('Mittelschule Halbjahreszeugnis', 'Förderschwerpunkt geistige Entwicklung', 'MsHjFsGeistigeEntwicklung');
+        if ($tblCertificate) {
+            if ($tblSchoolTypeSecondary) {
+                $this->updateCertificate($tblCertificate, $tblCertificateTypeHalfYear, $tblSchoolTypeSecondary,
+                    null, false, true);
+            }
+        }
+
+        $tblCertificate = $this->createCertificate('Mittelschule Jahreszeugnis', 'Förderschwerpunkt geistige Entwicklung', 'MsJFsGeistigeEntwicklung');
+        if ($tblCertificate) {
+            if ($tblSchoolTypeSecondary) {
+                $this->updateCertificate($tblCertificate, $tblCertificateTypeYear, $tblSchoolTypeSecondary,
+                    null, false, true);
+            }
+        }
+
         $tblCertificate = $this->createCertificate('Mittelschule Halbjahreszeugnis', 'Hauptschule', 'MsHjHs');
         if ($tblCertificate) {
             if ($tblSchoolTypeSecondary && $tblCourseMain) {

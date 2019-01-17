@@ -816,14 +816,11 @@ class Service extends AbstractService
             $tblPrepareInformationList = Prepare::useService()->getPrepareInformationAllByPerson($tblPrepare,
                 $tblPerson);
 
-            // Spezialfall für Förderzeugnisse
-            $isSupportCertificate = false;
+            // Spezialfall für Förderzeugnisse Lernen
+            $isSupportLearningCertificate = false;
             if (($tblPrepareStudent && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate()))) {
                 if (strpos($tblCertificate->getCertificate(), 'FsLernen') !== false) {
-                    $isSupportCertificate = true;
-                }
-                if (strpos($tblCertificate->getCertificate(), 'FsGeistigeEntwicklung') !== false) {
-                    $isSupportCertificate = true;
+                    $isSupportLearningCertificate = true;
                 }
             }
 
@@ -848,14 +845,15 @@ class Service extends AbstractService
                     } elseif ($tblPrepareInformation->getField() == 'IndividualTransfer') {
                         $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $tblPerson->getFirstSecondName()
                             . ' ' . $tblPrepareInformation->getValue();
-                    } elseif ($tblPrepareInformation->getField() == 'Support') {
+                    } elseif ($isSupportLearningCertificate && $tblPrepareInformation->getField() == 'Support') {
                         $support = $tblPrepareInformation->getValue();
                     } else {
                         $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $tblPrepareInformation->getValue();
                     }
                 }
 
-                if ($isSupportCertificate) {
+                // Spezialfall für Förderzeugnisse Lernen
+                if ($isSupportLearningCertificate) {
                     $remark = ($team ? $team . " \n " : '')
                         . ($support ? 'Inklusive Unterrichtung¹: ' . $support : 'Inklusive Unterrichtung¹: ' . '---' )
                         . " \n " . ($remark ? 'Bemerkung: ' . $remark : '');
@@ -887,7 +885,7 @@ class Service extends AbstractService
 
                 $Content['P' . $personId]['Input']['Remark'] = $remark;
             } else {
-                if ($isSupportCertificate) {
+                if ($isSupportLearningCertificate) {
                     $Content['P' . $personId]['Input']['Remark'] = 'Inklusive Unterrichtung¹: ---';
                 } else {
                     $Content['P' . $personId]['Input']['Remark'] = '---';

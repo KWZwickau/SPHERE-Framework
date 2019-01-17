@@ -1721,16 +1721,13 @@ class Frontend extends Extension implements IFrontendInterface
                             });
                     }
 
-                    // für Förderzeugnisse extra Spalte Inklusive Unterrichtung
-                    $isSupportCertificate = false;
+                    // für Förderzeugnisse Lernen extra Spalte Inklusive Unterrichtung
+                    $isSupportLearningCertificate = false;
                     if (strpos($tblCertificate->getCertificate(), 'FsLernen') !== false) {
-                        $isSupportCertificate = true;
-                    }
-                    if (strpos($tblCertificate->getCertificate(), 'FsGeistigeEntwicklung') !== false) {
-                        $isSupportCertificate = true;
+                        $isSupportLearningCertificate = true;
                     }
 
-                    if ($isSupportCertificate && $tblPrepareStudent) {
+                    if ($isSupportLearningCertificate && $tblPrepareStudent) {
                         if (!isset($columnTable['Support'])) {
                             $columnTable['Support'] = 'Inklusive Unterrichtung';
                         }
