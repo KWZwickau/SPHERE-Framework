@@ -599,26 +599,35 @@ class ApiBasket extends Extension implements IApiInterface
 
         $tblBasket = Basket::useService()->getBasketById($BasketId);
         if($tblBasket) {
-            // ToDO Nachricht für das Löschen einer Abrechnung
-//            $PersonString = 'Person nicht gefunden!';
-//            if(($tblPerson = $tblBasket->getServiceTblPerson())) {
-//                $PersonString = $tblPerson->getFullName();
-//            }
-//            $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
-//                new LayoutColumn('Person: ', 2),
-//                new LayoutColumn(new Bold($PersonString), 10),
-//            ))));
-//            $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
-//                new LayoutColumn('Abrechnung: ', 2),
-//                new LayoutColumn(new Bold($tblBasket->getBasket()), 10),
-//            ))));
-            $Content[] = 'leer';
+
+            $BasketVericationCount = 0;
+            if(($tblBasketVerificationList = Basket::useService()->getBasketVerificationAllByBasket($tblBasket))){
+                $BasketVericationCount = count($tblBasketVerificationList);
+            }
+            $ItemList = array();
+            if(($tblBasketItemList = Basket::useService()->getBasketItemAllByBasket($tblBasket))){
+                foreach($tblBasketItemList as $tblBasketItem){
+                    if(($tblItem = $tblBasketItem->getServiceTblItem())){
+                        $ItemList[] = $tblItem->getName();
+                    }
+                }
+            }
+            $ItemString = implode(', ', $ItemList);
+
+            $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Anzahl der zu Fakturierende Beiträge: ', 4),
+                new LayoutColumn(new Bold($BasketVericationCount), 8),
+            ))));
+            $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('zu Fakturierende Beitragsarten: ', 4),
+                new LayoutColumn(new Bold($ItemString), 8),
+            ))));
 
             return new Layout(
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel('Soll die Abrechnung wirklich entfernt werden?'
+                            new Panel('Soll die Abrechnung '.new Bold($tblBasket->getName()).' wirklich entfernt werden?'
                                 , $Content, Panel::PANEL_TYPE_DANGER)
                         ),
                         new LayoutColumn(
