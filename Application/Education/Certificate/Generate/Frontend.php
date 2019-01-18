@@ -778,8 +778,8 @@ class Frontend extends Extension
 
                     $tblCourse = false;
                     $tblCompany = false;
-                    if (($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
-                        && ($tblStudent = $tblPerson->getStudent())
+                    if (($tblStudent = $tblPerson->getStudent())
+                        && ($tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS'))
                     ) {
                         $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
                             $tblTransferType);
@@ -806,6 +806,14 @@ class Frontend extends Extension
 
                     $courseName = $tblCourse ? $tblCourse->getName() : '';
 
+                    // Primärer Förderschwerpunkt -> zur Hilfe für Auswahl des Zeugnisses
+                    $primaryFocus = '';
+                    if (($tblSupport = Student::useService()->getSupportForReportingByPerson($tblPerson))
+                        && ($tblPrimaryFocus = Student::useService()->getPrimaryFocusBySupport($tblSupport))
+                    ) {
+                        $primaryFocus = $tblPrimaryFocus->getName();
+                    }
+
                     $count++;
                     $tableData[$tblPerson->getId()] = array(
                         'Number' => $isMuted ? new Muted($count) : $count,
@@ -814,6 +822,7 @@ class Frontend extends Extension
                         'School' => $isMuted ? '' : ($tblCompany ? $tblCompany->getName() : new Warning(
                             new Exclamation() . ' Keine aktuelle Schule in der Schülerakte gepflegt'
                         )),
+                        'PrimaryFocus' => $isMuted ? new Muted($primaryFocus) : $primaryFocus,
                         'CheckSubjects' => $checkSubjectsString,
                     );
 
@@ -870,6 +879,7 @@ class Frontend extends Extension
                                 'Student' => 'Schüler',
                                 'Course' => 'Bildungsgang',
                                 'School' => 'Aktuelle Schule',
+                                'PrimaryFocus' => 'primärer FS',
                                 'Template' => 'Zeugnisvorlage',
                                 'CheckSubjects' => 'Prüfung Fächer/Zeugnis'
                             ), null
