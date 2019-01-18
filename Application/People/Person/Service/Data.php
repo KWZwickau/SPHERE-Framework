@@ -257,6 +257,42 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $Name
+     *
+     * @return false|TblPerson[]
+     */
+    public function getPersonListLike($Name)
+    {
+        $queryBuilder = $this->getConnection()->getEntityManager()->getQueryBuilder();
+
+        $split = explode(' ', $Name);
+
+        $and = $queryBuilder->expr()->andX();
+        $count = 0;
+        foreach ($split as $item) {
+            $count++;
+            $or = $queryBuilder->expr()->orX();
+            $or->add($queryBuilder->expr()->like('t.LastName', '?' . $count));
+            $or->add($queryBuilder->expr()->like('t.FirstName', '?' . $count));
+            $or->add($queryBuilder->expr()->like('t.SecondName', '?' . $count));
+            $or->add($queryBuilder->expr()->like('t.CallName', '?' . $count));
+
+            $and->add($or);
+
+            $queryBuilder->setParameter($count, '%' . $item . '%');
+        }
+
+        $queryBuilder->select('t')
+            ->from(__NAMESPACE__ . '\Entity\TblPerson', 't')
+            ->where($and);
+
+        $query = $queryBuilder->getQuery();
+        $result = $query->getResult();
+
+        return $result;
+    }
+
+    /**
      * @return int
      */
     public function countPersonAll()

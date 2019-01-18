@@ -15,5 +15,14 @@ class Contact implements IApplicationInterface
     public static function registerApplication()
     {
         ApiContactAddress::registerApi();
+        ApiAddressToPerson::registerApi();
+        ApiAddressToCompany::registerApi();
+        ApiPhoneToPerson::registerApi();
+        ApiPhoneToCompany::registerApi();
+        ApiMailToPerson::registerApi();
+        ApiMailToCompany::registerApi();
+        ApiWebToCompany::registerApi();
+        ApiRelationshipToPerson::registerApi();
+        ApiRelationshipToCompany::registerApi();
     }
 }

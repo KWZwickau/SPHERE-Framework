@@ -7,11 +7,6 @@ use SPHERE\Application\Corporation\Company\Service\Entity\ViewCompany;
 use SPHERE\Application\Corporation\Company\Service\Setup;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
-use SPHERE\Common\Frontend\Form\IFormInterface;
-use SPHERE\Common\Frontend\Icon\Repository\Ban;
-use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -76,63 +71,29 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface $Form
-     * @param array $Company
+     * @param $Company
      *
-     * @return IFormInterface|Redirect|string
+     * @return bool|TblCompany
      */
-    public function createCompany(IFormInterface $Form = null, $Company)
+    public function createCompanyService($Company)
     {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Company) {
-            return $Form;
-        }
-
-        $Error = false;
-
-        if (isset($Company['Name']) && empty($Company['Name'])) {
-            $Form->setError('Company[Name]', 'Bitte geben Sie einen Namen an');
-            $Error = true;
-        }
-
-        // company name with extend have to be unique
-        if (isset($Company['Name']) && !empty($Company['Name'])) {
-            $tblCompanyCatch = $this->getCompanyByName($Company['Name'], $Company['ExtendedName']);
-            if ($tblCompanyCatch) {
-                $Form->setError('Company[Name]', 'Name der Firma (mit Zusatz) bereits vorhanden!');
-                $Form->setError('Company[ExtendedName]', 'Name der Firma (mit Zusatz) bereits vorhanden!');
-                $Error = true;
-            }
-        }
-
-        if (!$Error) {
-
-            if (($tblCompany = (new Data($this->getBinding()))->createCompany($Company['Name'],
-                $Company['ExtendedName'],
-                $Company['Description']))
-            ) {
-                // Add to Group
-                if (isset($Company['Group'])) {
-                    foreach ((array)$Company['Group'] as $tblGroup) {
-                        Group::useService()->addGroupCompany(
-                            Group::useService()->getGroupById($tblGroup), $tblCompany
-                        );
-                    }
+        if (($tblCompany = (new Data($this->getBinding()))->createCompany($Company['Name'],
+            $Company['ExtendedName'],
+            $Company['Description']))
+        ) {
+            // Add to Group
+            if (isset($Company['Group'])) {
+                foreach ((array)$Company['Group'] as $tblGroup) {
+                    Group::useService()->addGroupCompany(
+                        Group::useService()->getGroupById($tblGroup), $tblCompany
+                    );
                 }
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Institution wurde erfolgreich erstellt')
-                . new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS,
-                    array('Id' => $tblCompany->getId())
-                );
-            } else {
-                return new Danger(new Ban().' Die Institution konnte nicht erstellt werden')
-                . new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR);
             }
-        }
 
-        return $Form;
+            return $tblCompany;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -160,74 +121,41 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface $Form
      * @param TblCompany $tblCompany
-     * @param array $Company
-     * @param null|int $Group
+     * @param $Company
      *
-     * @return IFormInterface|Redirect|string
+     * @return bool
      */
-    public function updateCompany(IFormInterface $Form = null, TblCompany $tblCompany, $Company, $Group)
+    public function updateCompanyService(TblCompany $tblCompany, $Company)
     {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Company) {
-            return $Form;
-        }
-
-        $Error = false;
-
-        if (isset($Company['Name']) && empty($Company['Name'])) {
-            $Form->setError('Company[Name]', 'Bitte geben Sie einen Namen an');
-            $Error = true;
-        }
-
-        // company name with extend have to be unique
-        if (isset($Company['Name']) && !empty($Company['Name'])) {
-            $tblCompanyCatch = $this->getCompanyByName($Company['Name'], $Company['ExtendedName']);
-            if ($tblCompanyCatch && $tblCompanyCatch->getId() != $tblCompany->getId()) {
-                $Form->setError('Company[Name]', 'Name der Firma (mit Zusatz) bereits vorhanden!');
-                $Form->setError('Company[ExtendedName]', 'Name der Firma (mit Zusatz) bereits vorhanden!');
-                $Error = true;
-            }
-        }
-
-        if (!$Error) {
-
-            if ((new Data($this->getBinding()))->updateCompany($tblCompany, $Company['Name'],
-                $Company['ExtendedName'], $Company['Description'])
-            ) {
-                // Change Groups
-                if (isset($Company['Group'])) {
-                    // Remove all Groups
-                    $tblGroupList = Group::useService()->getGroupAllByCompany($tblCompany);
-                    foreach ($tblGroupList as $tblGroup) {
-                        Group::useService()->removeGroupCompany($tblGroup, $tblCompany);
-                    }
-                    // Add current Groups
-                    foreach ((array)$Company['Group'] as $tblGroup) {
-                        Group::useService()->addGroupCompany(
-                            Group::useService()->getGroupById($tblGroup), $tblCompany
-                        );
-                    }
-                } else {
-                    // Remove all Groups
-                    $tblGroupList = Group::useService()->getGroupAllByCompany($tblCompany);
-                    foreach ($tblGroupList as $tblGroup) {
-                        Group::useService()->removeGroupCompany($tblGroup, $tblCompany);
-                    }
+        if ((new Data($this->getBinding()))->updateCompany($tblCompany, $Company['Name'],
+            $Company['ExtendedName'], $Company['Description'])
+        ) {
+            // Change Groups
+            if (isset($Company['Group'])) {
+                // Remove all Groups
+                $tblGroupList = Group::useService()->getGroupAllByCompany($tblCompany);
+                foreach ($tblGroupList as $tblGroup) {
+                    Group::useService()->removeGroupCompany($tblGroup, $tblCompany);
                 }
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success().' Die Institution wurde erfolgreich aktualisiert')
-                . new Redirect(null, Redirect::TIMEOUT_SUCCESS);
+                // Add current Groups
+                foreach ((array)$Company['Group'] as $tblGroup) {
+                    Group::useService()->addGroupCompany(
+                        Group::useService()->getGroupById($tblGroup), $tblCompany
+                    );
+                }
             } else {
-                return new Danger(new Ban().' Die Institution konnte nicht aktualisiert werden')
-                . new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR);
+                // Remove all Groups
+                $tblGroupList = Group::useService()->getGroupAllByCompany($tblCompany);
+                foreach ($tblGroupList as $tblGroup) {
+                    Group::useService()->removeGroupCompany($tblGroup, $tblCompany);
+                }
             }
-        }
 
-        return $Form;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -291,8 +219,6 @@ class Service extends AbstractService
 
     /**
      * @param TblCompany $tblCompany
-     * @param $Name
-     * @param $ExtendedName
      * @param $Description
      *
      * @return bool
@@ -301,5 +227,16 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->updateCompanyDescriptionWithoutForm($tblCompany, $Description);
+    }
+
+    /**
+     * @param $Name
+     *
+     * @return false|TblCompany[]
+     */
+    public function getCompanyListLike($Name)
+    {
+
+        return (new Data($this->getBinding()))->getCompanyListLike($Name);
     }
 }
