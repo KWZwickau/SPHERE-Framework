@@ -41,8 +41,8 @@ class BenchmarkLogger extends AbstractLogger implements LoggerInterface
     public function startTimer()
     {
 
-        $this->addLog('- Start Timer -');
         if (!$this->TimerRunning) {
+            $this->addLog('- Start Timer -');
             $this->TimerStart = microtime(true);
         }
         $this->TimerRunning = true;
@@ -89,8 +89,8 @@ class BenchmarkLogger extends AbstractLogger implements LoggerInterface
     public function stopTimer()
     {
 
-        $this->addLog('- Stop Timer -');
         if ($this->TimerRunning) {
+            $this->addLog('- Stop Timer -');
             $this->TimerStop = microtime(true);
         }
         $this->TimerRunning = false;
