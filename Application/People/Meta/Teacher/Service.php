@@ -13,9 +13,6 @@ use SPHERE\Application\People\Meta\Teacher\Service\Entity\ViewPeopleMetaTeacher;
 use SPHERE\Application\People\Meta\Teacher\Service\Setup;
 use SPHERE\Application\People\Meta\Teacher\Service\Entity\TblTeacher;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Common\Frontend\Form\IFormInterface;
-use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
 class Service extends AbstractService
@@ -43,50 +40,6 @@ class Service extends AbstractService
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
-    }
-
-    /**
-     * @param IFormInterface $Form
-     * @param TblPerson $tblPerson
-     * @param array $Meta
-     * @param null $Group
-     *
-     * @return IFormInterface|string
-     */
-    public function createMeta(IFormInterface $Form = null, TblPerson $tblPerson, $Meta, $Group = null)
-    {
-
-        // todo remove
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Meta) {
-            return $Form;
-        }
-
-        if (isset($Meta['Acronym']) && !empty($Meta['Acronym'])) {
-            if ($this->getTeacherByAcronym($Meta['Acronym'])) {
-                $Form->setError('Meta[Acronym]', 'Dieses Kürzel wird bereits verwendet');
-
-                return $Form;
-            }
-        }
-
-        $tblTeacher = $this->getTeacherByPerson($tblPerson);
-        if ($tblTeacher) {
-            (new Data($this->getBinding()))->updateTeacher(
-                $tblTeacher,
-                $Meta['Acronym']
-            );
-        } else {
-            (new Data($this->getBinding()))->createTeacher(
-                $tblPerson,
-                $Meta['Acronym']
-            );
-        }
-        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Daten wurde erfolgreich gespeichert')
-        . new Redirect(null, Redirect::TIMEOUT_SUCCESS);
     }
 
     /**

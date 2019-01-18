@@ -6,9 +6,6 @@ use SPHERE\Application\People\Meta\Custody\Service\Entity\TblCustody;
 use SPHERE\Application\People\Meta\Custody\Service\Entity\ViewPeopleMetaCustody;
 use SPHERE\Application\People\Meta\Custody\Service\Setup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Common\Frontend\Form\IFormInterface;
-use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -42,46 +39,6 @@ class Service extends AbstractService
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
-    }
-
-    /**
-     * @param IFormInterface $Form
-     * @param TblPerson      $tblPerson
-     * @param array          $Meta
-     * @param null           $Group
-     *
-     * @return IFormInterface|string
-     */
-    public function createMeta(IFormInterface $Form = null, TblPerson $tblPerson, $Meta, $Group = null)
-    {
-
-        // todo remove
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Meta) {
-            return $Form;
-        }
-
-        $tblCustody = $this->getCustodyByPerson($tblPerson);
-        if ($tblCustody) {
-            (new Data($this->getBinding()))->updateCustody(
-                $tblCustody,
-                $Meta['Remark'],
-                $Meta['Occupation'],
-                $Meta['Employment']
-            );
-        } else {
-            (new Data($this->getBinding()))->createCustody(
-                $tblPerson,
-                $Meta['Remark'],
-                $Meta['Occupation'],
-                $Meta['Employment']
-            );
-        }
-        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Daten wurde erfolgreich gespeichert')
-        .new Redirect(null, Redirect::TIMEOUT_SUCCESS);
     }
 
     /**

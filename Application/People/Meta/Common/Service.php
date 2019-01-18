@@ -9,9 +9,6 @@ use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonInformation;
 use SPHERE\Application\People\Meta\Common\Service\Entity\ViewPeopleMetaCommon;
 use SPHERE\Application\People\Meta\Common\Service\Setup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Common\Frontend\Form\IFormInterface;
-use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -55,68 +52,6 @@ class Service extends AbstractService
     public function createCommonGender($Name)
     {
         return (new Data($this->getBinding()))->createCommonGender($Name);
-    }
-
-    /**
-     * @param IFormInterface $Form
-     * @param TblPerson      $tblPerson
-     * @param array          $Meta
-     * @param null           $Group
-     *
-     * @return IFormInterface|string
-     */
-    public function createMeta(IFormInterface $Form = null, TblPerson $tblPerson, $Meta, $Group = null)
-    {
-
-        // todo remove
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Meta) {
-            return $Form;
-        }
-
-        $tblCommon = $this->getCommonByPerson($tblPerson, true);
-        if ($tblCommon) {
-            (new Data($this->getBinding()))->updateCommonBirthDates(
-                $tblCommon->getTblCommonBirthDates(),
-                $Meta['BirthDates']['Birthday'],
-                $Meta['BirthDates']['Birthplace'],
-                $Meta['BirthDates']['Gender']
-            );
-            (new Data($this->getBinding()))->updateCommonInformation(
-                $tblCommon->getTblCommonInformation(),
-                $Meta['Information']['Nationality'],
-                $Meta['Information']['Denomination'],
-                $Meta['Information']['IsAssistance'],
-                $Meta['Information']['AssistanceActivity']
-            );
-            (new Data($this->getBinding()))->updateCommon(
-                $tblCommon,
-                $Meta['Remark']
-            );
-        } else {
-            $tblCommonBirthDates = (new Data($this->getBinding()))->createCommonBirthDates(
-                $Meta['BirthDates']['Birthday'],
-                $Meta['BirthDates']['Birthplace'],
-                $Meta['BirthDates']['Gender']
-            );
-            $tblCommonInformation = (new Data($this->getBinding()))->createCommonInformation(
-                $Meta['Information']['Nationality'],
-                $Meta['Information']['Denomination'],
-                $Meta['Information']['IsAssistance'],
-                $Meta['Information']['AssistanceActivity']
-            );
-            (new Data($this->getBinding()))->createCommon(
-                $tblPerson,
-                $tblCommonBirthDates,
-                $tblCommonInformation,
-                $Meta['Remark']
-            );
-        }
-        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Daten wurde erfolgreich gespeichert')
-        .new Redirect(null, Redirect::TIMEOUT_SUCCESS);
     }
 
     /**
