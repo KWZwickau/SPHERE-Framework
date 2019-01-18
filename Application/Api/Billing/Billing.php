@@ -10,6 +10,7 @@ use SPHERE\Application\Api\Billing\Bookkeeping\ApiBasket;
 use SPHERE\Application\Api\Billing\Bookkeeping\ApiBasketVerification;
 use SPHERE\Application\Api\Billing\Inventory\ApiItem;
 use SPHERE\Application\Api\Billing\Inventory\ApiSetting;
+use SPHERE\Application\Api\Billing\Invoice\ApiInvoiceIsPaid;
 use SPHERE\Application\IApplicationInterface;
 
 /**
@@ -33,5 +34,6 @@ class Billing implements IApplicationInterface
         ApiBankReference::registerApi();
         ApiBasket::registerApi();
         ApiBasketVerification::registerApi();
+        ApiInvoiceIsPaid::registerApi();
     }
 }

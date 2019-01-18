@@ -80,6 +80,10 @@ class TblInvoiceItemDebtor extends Element
      */
     protected $BIC;
     /**
+     * @Column(type="boolean")
+     */
+    protected $IsPaid;
+    /**
      * @Column(type="bigint")
      */
     protected $serviceTblItem;
@@ -322,6 +326,24 @@ class TblInvoiceItemDebtor extends Element
     {
 
         $this->BIC = $BIC;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getIsPaid()
+    {
+
+        return $this->IsPaid;
+    }
+
+    /**
+     * @param boolean $isPaid
+     */
+    public function setIsPaid($isPaid)
+    {
+
+        $this->IsPaid = $isPaid;
     }
 
     /**

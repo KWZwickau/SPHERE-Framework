@@ -72,7 +72,8 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'Year', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'Month', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'TargetTime', self::FIELD_TYPE_DATETIME);
-        $this->createColumn($Table, 'IsPaid', self::FIELD_TYPE_BOOLEAN);
+        $this->createColumn($Table, 'FirstName', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'LastName', self::FIELD_TYPE_STRING);
         $this->getConnection()->addForeignKey($Table, $tblInvoiceCreditor);
         $this->createColumn($Table, 'serviceTblPersonCauser', self::FIELD_TYPE_BIGINT, true);
 
@@ -102,6 +103,7 @@ class Setup extends AbstractSetup
         $this->createColumn($Table, 'BankName', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'IBAN', self::FIELD_TYPE_STRING);
         $this->createColumn($Table, 'BIC', self::FIELD_TYPE_STRING);
+        $this->createColumn($Table, 'IsPaid', self::FIELD_TYPE_BOOLEAN);
         $this->createColumn($Table, 'serviceTblItem', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblPersonDebtor', self::FIELD_TYPE_BIGINT, true);
         $this->createColumn($Table, 'serviceTblBankReference', self::FIELD_TYPE_BIGINT, true);

@@ -49,17 +49,6 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getInvoiceAll();
     }
 
-    /**
-     * @param bool $Check
-     *
-     * @return bool|TblInvoice[]
-     */
-    public function getInvoiceByIsPaid($Check = true)
-    {
-
-        return (new Data($this->getBinding()))->getInvoiceByIsPaid($Check);
-    }
-
 
     /**
      * @param TblPerson $tblPerson
@@ -114,15 +103,15 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblInvoice $tblInvoice
-     * @param bool       $IsPaid
+     * @param TblInvoiceItemDebtor $tblInvoiceItemDebtor
+     * @param bool                 $IsPaid
      *
      * @return bool
      */
-    public function changeInvoiceIsPaid(TblInvoice $tblInvoice, $IsPaid = true)
+    public function changeInvoiceItemDebtorIsPaid(TblInvoiceItemDebtor $tblInvoiceItemDebtor, $IsPaid = false)
     {
 
-        return (new Data($this->getBinding()))->changeInvoiceIsPaid($tblInvoice, $IsPaid);
+        return (new Data($this->getBinding()))->changeInvoiceItemDebtorIsPaid($tblInvoiceItemDebtor, $IsPaid);
     }
 
     /**
@@ -150,7 +139,7 @@ class Service extends AbstractService
     /**
      * @param $Id
      *
-     * @return bool|TblInvoice
+     * @return false|TblInvoiceItemDebtor
      */
     public function getInvoiceItemDebtorById($Id)
     {
@@ -224,7 +213,9 @@ class Service extends AbstractService
             $tblItem = $tblBasketVerification->getServiceTblItem();
             if($tblPerson && $tblItem){
                 if(Invoice::useService()->getInvoiceByPersonCauserAndItemAndYearAndMonth($tblPerson, $tblItem, $Year, $Month)) {
-                    // Rechnung vorhanden -> keine neue anlegen!
+                    // Entfernen des Beitrag's aus der Abrechnung
+                    Basket::useService()->destroyBasketVerification($tblBasketVerification);
+                    // Rechnung vorhanden -> keine neue Rechnung anlegen!
                     $tblBasketVerification = false;
                 }
             }

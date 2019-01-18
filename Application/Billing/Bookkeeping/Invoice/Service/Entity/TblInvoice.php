@@ -23,7 +23,8 @@ class TblInvoice extends Element
     const ATTR_YEAR = 'Year';
     const ATTR_MONTH = 'Month';
     const ATTR_TARGET_TIME = 'TargetTime';
-    const ATTR_IS_PAID = 'IsPaid';
+    const ATTR_FIRST_NAME = 'FirstName';
+    const ATTR_LAST_NAME = 'LastName';
     const ATTR_SERVICE_TBL_PERSON_CAUSER = 'serviceTblPersonCauser';
     const ATTR_TBL_INVOICE_CREDITOR = 'tblInvoiceCreditor';
 
@@ -47,14 +48,18 @@ class TblInvoice extends Element
      * @Column(type="datetime")
      */
     protected $TargetTime;
+    /**
+     * @Column(type="string")
+     */
+    protected $FirstName;
+    /**
+     * @Column(type="string")
+     */
+    protected $LastName;
 //    /**
 //     * @Column(type="decimal", precision=14, scale=4)
 //     */
 //    protected $Discount;
-    /**
-     * @Column(type="boolean")
-     */
-    protected $IsPaid;
     /**
      * @Column(type="bigint")
      */
@@ -169,6 +174,40 @@ class TblInvoice extends Element
         $this->TargetTime = $Date;
     }
 
+    /**
+     * @return string
+     */
+    public function getFirstName()
+    {
+        return $this->FirstName;
+    }
+
+    /**
+     * @param string $FirstName
+     */
+    public function setFirstName($FirstName)
+    {
+        $this->FirstName = $FirstName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLastName()
+    {
+        return $this->LastName;
+    }
+
+    /**
+     * @param string $LastName
+     */
+    public function setLastName($LastName)
+    {
+        $this->LastName = $LastName;
+    }
+
+
+
 //    /**
 //     * @return (type="decimal", precision=14, scale=4)
 //     */
@@ -187,23 +226,7 @@ class TblInvoice extends Element
 //        $this->Discount = $Discount;
 //    }
 
-    /**
-     * @return boolean
-     */
-    public function getIsPaid()
-    {
 
-        return $this->IsPaid;
-    }
-
-    /**
-     * @param boolean $isPaid
-     */
-    public function setIsPaid($isPaid)
-    {
-
-        $this->IsPaid = $isPaid;
-    }
 
     /**
      * @return bool|TblPerson

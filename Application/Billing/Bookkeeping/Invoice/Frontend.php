@@ -2,9 +2,11 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice;
 
+use SPHERE\Application\Api\Billing\Invoice\ApiInvoiceIsPaid;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItemDebtor;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Title;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -167,6 +169,14 @@ class Frontend extends Extension implements IFrontendInterface
                         $item['ItemQuantity'] = $tblInvoiceItemDebtor->getQuantity();
                         $item['ItemPrice'] = $tblInvoiceItemDebtor->getValue();
                         $item['ItemSumPrice'] = $tblInvoiceItemDebtor->getQuantity() * $tblInvoiceItemDebtor->getValue();
+
+                        $CheckBox = (new CheckBox('IsPaid', ' ', $tblInvoiceItemDebtor->getId()))->ajaxPipelineOnClick(
+                            ApiInvoiceIsPaid::pipelineChangeIsPaid($tblInvoiceItemDebtor->getId()));
+                        if(!$tblInvoiceItemDebtor->getIsPaid()){
+                            $CheckBox->setChecked();
+                        }
+
+                        $item['IsPaid'] = ApiInvoiceIsPaid::receiverIsPaid($CheckBox , $tblInvoiceItemDebtor->getId());
                         $item['Option'] = '';
                         // convert to Frontend
                         $item['ItemPrice'] = number_format($item['ItemPrice'], 2).' €';
@@ -177,28 +187,32 @@ class Frontend extends Extension implements IFrontendInterface
             });
         }
 
-        $Stage->setContent(new Layout(
-            new LayoutGroup(array(
-                new LayoutRow(
-                    new LayoutColumn($this->formInvoiceFilter())
-                ),
-                new LayoutRow(
-                    new LayoutColumn(
-                        new TableData($TableContent, null, array(
-                            'Item' => 'Beitragsarten',
-                            'ItemQuantity' => 'Menge',
-                            'ItemPrice' => new ToolTip('EP', 'Einzelpreis'),
-                            'ItemSumPrice' => new ToolTip('GP', 'Gesamtpreis'),
-                            'CauserPerson' => 'Beitragsverursacher',
-                            'Time' => 'Abrechnungszeitraum',
-                            'DebtorPerson' => 'Debitor',
-                            'InvoiceNumber' => 'Abr.-Nr.',
-                            'Option' => '',
-                        ))
+        $Stage->setContent(
+            ApiInvoiceIsPaid::receiverService()
+            .new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn($this->formInvoiceFilter())
+                    ),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TableData($TableContent, null, array(
+                                'Item' => 'Beitragsarten',
+                                'ItemQuantity' => 'Menge',
+                                'ItemPrice' => new ToolTip('EP', 'Einzelpreis'),
+                                'ItemSumPrice' => new ToolTip('GP', 'Gesamtpreis'),
+                                'CauserPerson' => 'Beitragsverursacher',
+                                'Time' => 'Abrechnungszeitraum',
+                                'DebtorPerson' => 'Debitor',
+                                'InvoiceNumber' => 'Abr.-Nr.',
+                                'IsPaid' => 'Offene Posten',
+                                'Option' => '',
+                            ))
+                        )
                     )
-                )
-            ))
-        ));
+                ))
+            )
+        );
 
         return $Stage;
     }

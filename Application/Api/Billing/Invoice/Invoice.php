@@ -13,7 +13,8 @@ use SPHERE\Common\Main;
  *
  * @package SPHERE\Application\Api\Billing\Invoice
  */
-class Invoice implements IModuleInterface
+// Namenskonflikt ... vorerst abgeändert
+class InvoiceChange implements IModuleInterface
 {
 
     public static function registerModule()

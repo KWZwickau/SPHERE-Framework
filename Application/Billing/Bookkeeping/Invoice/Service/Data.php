@@ -88,22 +88,6 @@ class Data extends AbstractData
     }
 
     /**
-     * IsReversal = false
-     *
-     * @param bool $Check
-     *
-     * @return bool|TblInvoice[]
-     */
-    public function getInvoiceByIsPaid($Check = true)
-    {
-        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoice',
-            array(
-                TblInvoice::ATTR_IS_PAID => $Check,
-            ));
-        return $EntityList;
-    }
-
-    /**
      * @param $InvoiceNumber
      *
      * @return TblInvoice|bool
@@ -204,39 +188,44 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $InvoiceNumber
-     * @param $IntegerNumber
-     * @param $Month
-     * @param $Year
-     * @param $TargetTime
-     * @param $IsPaid
+     * @param string             $IntegerNumber
+     * @param string             $Month
+     * @param string             $Year
+     * @param string             $TargetTime
+     * @param TblPerson          $tblPerson
+     * @param TblInvoiceCreditor $tblInvoiceCreditor
      *
      * @return object|TblInvoice|null
-     * @throws \Exception
      */
     public function createInvoice(
-        $InvoiceNumber,
         $IntegerNumber,
         $Month,
         $Year,
         $TargetTime,
-        $IsPaid
+        TblPerson $tblPerson,
+        TblInvoiceCreditor $tblInvoiceCreditor
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
+        //ToDO $InvoiceNumberLength from Setting?
+        $InvoiceNumberLength = 5;
+        $InvoiceNumber = $Year.str_pad($Month, 2, '0', STR_PAD_LEFT).str_pad($IntegerNumber,
+                $InvoiceNumberLength, '0', STR_PAD_LEFT);
 
-        $Entity = null;
         $Entity = $Manager->getEntity('TblInvoice')->findOneBy(
             array(TblInvoice::ATTR_INVOICE_NUMBER => $InvoiceNumber));
 
         if($Entity === null) {
             $Entity = new TblInvoice();
-            $Entity->setInvoiceNumber($Year.$Month.$IntegerNumber);
+            $Entity->setInvoiceNumber($InvoiceNumber);
             $Entity->setIntegerNumber($IntegerNumber);
             $Entity->setMonth($Month);
             $Entity->setYear($Year);
             $Entity->setTargetTime(($TargetTime ? new \DateTime($TargetTime) : null));
-            $Entity->setIsPaid($IsPaid);
+            $Entity->setFirstName($tblPerson->getFirstName());
+            $Entity->setLastName($tblPerson->getLastName());
+            $Entity->setServiceTblPersonCauser($tblPerson);
+            $Entity->setTblInvoiceCreditor($tblInvoiceCreditor);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
@@ -256,7 +245,7 @@ class Data extends AbstractData
      */
     public function createInvoiceList($InvoiceList, $Month, $Year, $TargetTime)
     {
-        //ToDO From Setting?
+        //ToDO $InvoiceNumberLength from Setting?
         $InvoiceNumberLength = 5;
         if(!empty($InvoiceList)) {
             $Manager = $this->getConnection()->getEntityManager();
@@ -278,7 +267,8 @@ class Data extends AbstractData
                     $Entity->setMonth($Month);
                     $Entity->setYear($Year);
                     $Entity->setTargetTime(($TargetTime ? new \DateTime($TargetTime) : null));
-                    $Entity->setIsPaid(true);
+                    $Entity->setFirstName($tblPerson->getFirstName());
+                    $Entity->setLastName($tblPerson->getLastName());
                     $Entity->setServiceTblPersonCauser($tblPerson);
                     $Entity->setTblInvoiceCreditor($tblInvoiceCreditor);
 
@@ -294,6 +284,11 @@ class Data extends AbstractData
         return false;
     }
 
+    /**
+     * @param $InvoiceCauserList
+     *
+     * @return bool
+     */
     public function createInvoiceItemDebtorList($InvoiceCauserList)
     {
 
@@ -324,6 +319,7 @@ class Data extends AbstractData
                     $Description = $Item['Description'];
                     $Value = $Item['Value'];
                     $Quantity = $Item['Quantity'];
+
                     $Entity = $Manager->getEntity('TblInvoiceItemDebtor')->findOneBy(
                         array(
                             TblInvoiceItemDebtor::ATTR_TBL_INVOICE                   => $tblInvoice->getId(),
@@ -348,6 +344,7 @@ class Data extends AbstractData
                         $Entity->setBankName($BankName);
                         $Entity->setIBAN($IBAN);
                         $Entity->setBIC($BIC);
+                        $Entity->setIsPaid(true);
                         $Entity->setServiceTblItem($tblItem);
                         $Entity->setServiceTblPersonDebtor($tblPerson);
                         $Entity->setServiceTblBankAccount($tblBankAccount);
@@ -410,17 +407,17 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblInvoice $tblInvoice
-     * @param bool       $isPaid
+     * @param TblInvoiceItemDebtor $tblInvoiceItemDebtor
+     * @param bool                 $isPaid
      *
      * @return bool
      */
-    public function changeInvoiceIsPaid(TblInvoice $tblInvoice, $isPaid = true)
+    public function changeInvoiceItemDebtorIsPaid(TblInvoiceItemDebtor $tblInvoiceItemDebtor, $isPaid = true)
     {
         $Manager = $this->getConnection()->getEntityManager();
 
-        /** @var TblInvoice $Entity */
-        $Entity = $Manager->getEntityById('TblInvoice', $tblInvoice->getId());
+        /** @var TblInvoiceItemDebtor $Entity */
+        $Entity = $Manager->getEntityById('TblInvoiceItemDebtor', $tblInvoiceItemDebtor->getId());
         $Protocol = clone $Entity;
         if(null !== $Entity) {
             $Entity->setIsPaid($isPaid);
