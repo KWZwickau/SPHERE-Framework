@@ -10,6 +10,8 @@ use SPHERE\Application\Billing\Accounting\Debtor\Service\Setup;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemVariant;
+use SPHERE\Application\Billing\Inventory\Setting\Service\Entity\TblSetting;
+use SPHERE\Application\Billing\Inventory\Setting\Setting;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
@@ -255,14 +257,21 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
-     * @param string    $DebtorNumber
+     * @param string    $Number
      *
      * @return null|TblDebtorNumber
      */
-    public function createDebtorNumber(TblPerson $tblPerson, $DebtorNumber)
+    public function createDebtorNumber(TblPerson $tblPerson, $Number)
     {
 
-        return (new Data($this->getBinding()))->createDebtorNumber($tblPerson, $DebtorNumber);
+        if($DebtorCountSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DEBTOR_NUMBER_COUNT)){
+            $count = $DebtorCountSetting->getValue();
+            // get the right length of DebtorNumber
+            substr($Number, 0, $count);
+            $Number = str_pad($Number, $count ,'0', STR_PAD_LEFT);
+        }
+
+        return (new Data($this->getBinding()))->createDebtorNumber($tblPerson, $Number);
     }
 
     /**
@@ -323,6 +332,13 @@ class Service extends AbstractService
      */
     public function changeDebtorNumber(TblDebtorNumber $tblDebtorNumber, $Number = '')
     {
+
+        if($DebtorCountSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DEBTOR_NUMBER_COUNT)){
+            $count = $DebtorCountSetting->getValue();
+            // get the right length of DebtorNumber
+            substr($Number, 0, $count);
+            $Number = str_pad($Number, $count ,'0', STR_PAD_LEFT);
+        }
 
         return (new Data($this->getBinding()))->updateDebtorNumber($tblDebtorNumber, $Number);
     }

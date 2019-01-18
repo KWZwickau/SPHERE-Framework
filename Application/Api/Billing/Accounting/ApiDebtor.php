@@ -386,10 +386,17 @@ class ApiDebtor extends Extension implements IApiInterface
                     $Error = true;
                 }
             }
+            if($DebtorCountSetting = Setting::useService()->getSettingByIdentifier(TblSetting::IDENT_DEBTOR_NUMBER_COUNT)) {
+                $count = $DebtorCountSetting->getValue();
+                if(strlen($DebtorNumber['Number']) > $count){
+                    $form->setError('DebtorNumber[Number]',
+                        'Debitorennummer ist zu Lang, bitte geben Sie maximal '.$count.' Zeichen ein');
+                    $Error = true;
+                }
+            }
         }
 
         if($Error) {
-            // Debtor::useFrontend()->getPersonPanel($PersonId).
             return new Well($form);
         }
 
@@ -446,7 +453,8 @@ class ApiDebtor extends Extension implements IApiInterface
             $Global->savePost();
         }
 
-        return Debtor::useFrontend()->getPersonPanel($PersonId) . new Well($this->formDebtorNumber($Identifier,
+        return Debtor::useFrontend()->getPersonPanel($PersonId)
+            . new Well($this->formDebtorNumber($Identifier,
                 $PersonId));
     }
 
@@ -500,7 +508,7 @@ class ApiDebtor extends Extension implements IApiInterface
             $Global = $this->getGlobal();
             $Global->POST['DebtorNumber']['Number'] = $DebtorNumber['Number'];
             $Global->savePost();
-            return $form;
+            return Debtor::useFrontend()->getPersonPanel($PersonId) . $form;
         }
 
         $IsChange = false;
