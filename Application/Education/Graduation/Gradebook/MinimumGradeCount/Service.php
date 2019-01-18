@@ -228,55 +228,7 @@ abstract class Service extends AbstractService
         TblMinimumGradeCount $tblMinimumGradeCount
     ) {
 
-        $count = 0;
-
-        if (($tblDivision = $tblDivisionSubject->getTblDivision())
-            && ($tblSubject = $tblDivisionSubject->getServiceTblSubject())
-            && ($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST'))
-        ) {
-
-            $tblGradeType = $tblMinimumGradeCount->getTblGradeType();
-            $tblPeriod = false;
-            if ($tblMinimumGradeCount->getPeriod() != SelectBoxItem::PERIOD_FULL_YEAR) {
-                $index = $tblMinimumGradeCount->getPeriod() - 1;
-                $tblLevel = $tblDivision->getTblLevel();
-                if (($tblYear = $tblDivision->getServiceTblYear())
-                    && ($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear, $tblLevel && $tblLevel->getName() == '12'))
-                    && isset($tblPeriodList[$index])
-                ) {
-                    $tblPeriod = $tblPeriodList[$index];
-                }
-            }
-
-            $tblGradeList = Gradebook::useService()->getGradesByStudent($tblPerson, $tblDivision, $tblSubject, $tblTestType,
-                $tblPeriod ? $tblPeriod : null);
-            if ($tblGradeList){
-                /** @var TblGrade $tblGrade */
-                foreach ($tblGradeList as $tblGrade){
-                   if ($tblGrade->getGrade()
-                       && $tblGrade->getServiceTblTest()
-                       && ($tblGradeTypeItem = $tblGrade->getTblGradeType())
-                   ){
-                       if ($tblGradeType){
-                           if ($tblGradeType->getId() == $tblGradeTypeItem->getId()){
-                               $count++;
-                           }
-                       } elseif ($tblMinimumGradeCount->getHighlighted() == SelectBoxItem::HIGHLIGHTED_IS_HIGHLIGHTED) {
-                           if ($tblGradeTypeItem->isHighlighted()) {
-                               $count++;
-                           }
-                       } elseif ($tblMinimumGradeCount->getHighlighted() == SelectBoxItem::HIGHLIGHTED_IS_NOT_HIGHLIGHTED) {
-                           if (!$tblGradeTypeItem->isHighlighted()) {
-                               $count++;
-                           }
-                       } else {
-                           // Alle Zensuren-Typen
-                           $count++;
-                       }
-                   }
-                }
-            }
-        }
+        $count = $this->getMinimumGradeCountNumber($tblDivisionSubject, $tblPerson, $tblMinimumGradeCount);
 
         if ($count < $tblMinimumGradeCount->getCount()){
             return new Warning(new Disable() . ' '. $count);
@@ -335,5 +287,73 @@ abstract class Service extends AbstractService
             $Highlighted,
             $Course
         );
+    }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     * @param TblPerson $tblPerson
+     * @param TblMinimumGradeCount $tblMinimumGradeCount
+     *
+     * @return int
+     */
+    public function getMinimumGradeCountNumber(
+        TblDivisionSubject $tblDivisionSubject,
+        TblPerson $tblPerson,
+        TblMinimumGradeCount $tblMinimumGradeCount
+    ) {
+
+        $count = 0;
+
+        if (($tblDivision = $tblDivisionSubject->getTblDivision())
+            && ($tblSubject = $tblDivisionSubject->getServiceTblSubject())
+            && ($tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST'))
+        ) {
+
+            $tblGradeType = $tblMinimumGradeCount->getTblGradeType();
+            $tblPeriod = false;
+            if ($tblMinimumGradeCount->getPeriod() != SelectBoxItem::PERIOD_FULL_YEAR) {
+                $index = $tblMinimumGradeCount->getPeriod() - 1;
+                $tblLevel = $tblDivision->getTblLevel();
+                if (($tblYear = $tblDivision->getServiceTblYear())
+                    && ($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear,
+                        $tblLevel && $tblLevel->getName() == '12'))
+                    && isset($tblPeriodList[$index])
+                ) {
+                    $tblPeriod = $tblPeriodList[$index];
+                }
+            }
+
+            $tblGradeList = Gradebook::useService()->getGradesByStudent($tblPerson, $tblDivision, $tblSubject,
+                $tblTestType,
+                $tblPeriod ? $tblPeriod : null);
+            if ($tblGradeList) {
+                /** @var TblGrade $tblGrade */
+                foreach ($tblGradeList as $tblGrade) {
+                    if ($tblGrade->getGrade()
+                        && $tblGrade->getServiceTblTest()
+                        && ($tblGradeTypeItem = $tblGrade->getTblGradeType())
+                    ) {
+                        if ($tblGradeType) {
+                            if ($tblGradeType->getId() == $tblGradeTypeItem->getId()) {
+                                $count++;
+                            }
+                        } elseif ($tblMinimumGradeCount->getHighlighted() == SelectBoxItem::HIGHLIGHTED_IS_HIGHLIGHTED) {
+                            if ($tblGradeTypeItem->isHighlighted()) {
+                                $count++;
+                            }
+                        } elseif ($tblMinimumGradeCount->getHighlighted() == SelectBoxItem::HIGHLIGHTED_IS_NOT_HIGHLIGHTED) {
+                            if (!$tblGradeTypeItem->isHighlighted()) {
+                                $count++;
+                            }
+                        } else {
+                            // Alle Zensuren-Typen
+                            $count++;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $count;
     }
 }

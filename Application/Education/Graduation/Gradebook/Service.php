@@ -544,7 +544,8 @@ class Service extends ServiceScoreRule
                                 0,
                                 null,
                                 isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
-                                    ? $tblGradeText : null
+                                    ? $tblGradeText : null,
+                                isset($value['PublicComment']) ? trim($value['PublicComment']) : ''
                             );
                         } elseif ($grade !== '' && $grade != -1) {
                             $hasCreatedGrade = true;
@@ -563,7 +564,8 @@ class Service extends ServiceScoreRule
                                 $trend,
                                 isset($value['Date']) ? $value['Date'] : null,
                                 isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
-                                    ? $tblGradeText : null
+                                    ? $tblGradeText : null,
+                                isset($value['PublicComment']) ? trim($value['PublicComment']) : ''
                             );
                         } elseif (isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))) {
                             $hasCreatedGrade = true;
@@ -581,7 +583,8 @@ class Service extends ServiceScoreRule
                                 trim($value['Comment']),
                                 $trend,
                                 isset($value['Date']) ? $value['Date'] : null,
-                                $tblGradeText
+                                $tblGradeText,
+                                isset($value['PublicComment']) ? trim($value['PublicComment']) : ''
                             );
                         }
 
@@ -601,6 +604,7 @@ class Service extends ServiceScoreRule
                                     $tblGrade,
                                     null,
                                     trim($value['Comment']),
+                                    isset($value['PublicComment']) ? trim($value['PublicComment']) : '',
                                     0,
                                     null,
                                     isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))
@@ -612,6 +616,7 @@ class Service extends ServiceScoreRule
                                     $tblGrade,
                                     $grade == -1 ? '': $grade,
                                     trim($value['Comment']),
+                                    isset($value['PublicComment']) ? trim($value['PublicComment']) : '',
                                     $trend,
                                     isset($value['Date']) ? $value['Date'] : null,
                                     isset($value['Text']) && ($tblGradeText = $this->getGradeTextById($value['Text']))

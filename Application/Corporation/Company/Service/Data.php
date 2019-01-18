@@ -207,4 +207,39 @@ class Data extends AbstractData
         }
         return false;
     }
+
+    /**
+     * @param $Name
+     *
+     * @return false|TblCompany[]
+     */
+    public function getCompanyListLike($Name)
+    {
+        $queryBuilder = $this->getConnection()->getEntityManager()->getQueryBuilder();
+
+        $split = explode(' ', $Name);
+
+        $and = $queryBuilder->expr()->andX();
+        $count = 0;
+        foreach ($split as $item) {
+            $count++;
+            $or = $queryBuilder->expr()->orX();
+            $or->add($queryBuilder->expr()->like('t.Name', '?' . $count));
+            $or->add($queryBuilder->expr()->like('t.ExtendedName', '?' . $count));
+            $or->add($queryBuilder->expr()->like('t.Description', '?' . $count));
+
+            $and->add($or);
+
+            $queryBuilder->setParameter($count, '%' . $item . '%');
+        }
+
+        $queryBuilder->select('t')
+            ->from(__NAMESPACE__ . '\Entity\TblCompany', 't')
+            ->where($and);
+
+        $query = $queryBuilder->getQuery();
+        $result = $query->getResult();
+
+        return $result;
+    }
 }

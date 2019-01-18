@@ -22,12 +22,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\People\Person\Service\Entity\ViewPerson;
 use SPHERE\Application\People\Person\Service\Setup;
 use SPHERE\Application\People\Relationship\Relationship;
-use SPHERE\Common\Frontend\Form\IFormInterface;
-use SPHERE\Common\Frontend\Icon\Repository\Ban;
-use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -111,60 +106,32 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface|null $Form
      * @param $Person
      *
-     * @return IFormInterface|string
+     * @return bool|TblPerson
      */
-    public function createPerson(IFormInterface $Form = null, $Person)
+    public function createPersonService($Person)
     {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Person) {
-            return $Form;
-        }
-
-        $Error = false;
-
-        if (isset( $Person['FirstName'] ) && empty( $Person['FirstName'] )) {
-            $Form->setError('Person[FirstName]', 'Bitte geben Sie einen Vornamen an');
-            $Error = true;
-        }
-        if (isset( $Person['LastName'] ) && empty( $Person['LastName'] )) {
-            $Form->setError('Person[LastName]', 'Bitte geben Sie einen Nachnamen an');
-            $Error = true;
-        }
-
-        if (!$Error) {
-
-            if (( $tblPerson = (new Data($this->getBinding()))->createPerson(
-                $this->getSalutationById($Person['Salutation']), $Person['Title'], $Person['FirstName'],
-                $Person['SecondName'], $Person['LastName'], $Person['BirthName']) )
-            ) {
-                // Add to Group
-                if (isset( $Person['Group'] )) {
-                    foreach ((array)$Person['Group'] as $GroupId) {
-                        $tblGroup = Group::useService()->getGroupById($GroupId);
-                        if($tblGroup){
-                            Group::useService()->addGroupPerson(
-                                $tblGroup, $tblPerson
-                            );
-                        }
+        if (($tblPerson = (new Data($this->getBinding()))->createPerson(
+            $this->getSalutationById($Person['Salutation']), $Person['Title'], $Person['FirstName'],
+            $Person['SecondName'], $Person['CallName'], $Person['LastName'], $Person['BirthName'])
+        )) {
+            // Add to Group
+            if (isset($Person['Group'])) {
+                foreach ((array)$Person['Group'] as $GroupId) {
+                    $tblGroup = Group::useService()->getGroupById($GroupId);
+                    if ($tblGroup) {
+                        Group::useService()->addGroupPerson(
+                            $tblGroup, $tblPerson
+                        );
                     }
                 }
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Person wurde erfolgreich erstellt')
-                .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
-                    array('Id' => $tblPerson->getId())
-                );
-            } else {
-                return new Danger(new Ban() . ' Die Person konnte nicht erstellt werden')
-                .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR);
             }
-        }
 
-        return $Form;
+            return $tblPerson;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -187,14 +154,15 @@ class Service extends AbstractService
      * @param        $GroupList
      * @param string $BirthName
      * @param string $ImportId
+     * @param string $CallName
      *
      * @return bool|TblPerson
      */
-    public function insertPerson($Salutation, $Title, $FirstName, $SecondName, $LastName, $GroupList, $BirthName = '', $ImportId = '')
+    public function insertPerson($Salutation, $Title, $FirstName, $SecondName, $LastName, $GroupList, $BirthName = '', $ImportId = '', $CallName = '')
     {
 
         if (( $tblPerson = (new Data($this->getBinding()))->createPerson(
-            $Salutation, $Title, $FirstName, $SecondName, $LastName, $BirthName, $ImportId) )
+            $Salutation, $Title, $FirstName, $SecondName, $CallName, $LastName, $BirthName, $ImportId) )
         ) {
             // Add to Group
             if (!empty( $GroupList )) {
@@ -281,68 +249,52 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface|null $Form
-     * @param TblPerson $tblPerson
-     * @param $Person
-     * @param $Group
+     * @param $Name
      *
-     * @return IFormInterface|string
+     * @return false|TblPerson[]
      */
-    public function updatePerson(IFormInterface $Form = null, TblPerson $tblPerson, $Person, $Group)
+    public function getPersonListLike($Name)
     {
 
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Person) {
-            return $Form;
-        }
+        return (new Data($this->getBinding()))->getPersonListLike($Name);
+    }
 
-        $Error = false;
-
-        if (isset( $Person['FirstName'] ) && empty( $Person['FirstName'] )) {
-            $Form->setError('Person[FirstName]', 'Bitte geben Sie einen Vornamen an');
-            $Error = true;
-        }
-        if (isset( $Person['LastName'] ) && empty( $Person['LastName'] )) {
-            $Form->setError('Person[LastName]', 'Bitte geben Sie einen Nachnamen an');
-            $Error = true;
-        }
-
-        if (!$Error) {
-
-            if ((new Data($this->getBinding()))->updatePerson($tblPerson, $Person['Salutation'], $Person['Title'],
-                $Person['FirstName'], $Person['SecondName'], $Person['LastName'], $Person['BirthName'])
-            ) {
-                // Change Groups
-                if (isset( $Person['Group'] )) {
-                    // Remove all Groups
-                    $tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
-                    foreach ($tblGroupList as $tblGroup) {
-                        Group::useService()->removeGroupPerson($tblGroup, $tblPerson);
-                    }
-                    // Add current Groups
-                    foreach ((array)$Person['Group'] as $tblGroup) {
-                        Group::useService()->addGroupPerson(
-                            Group::useService()->getGroupById($tblGroup), $tblPerson
-                        );
-                    }
-                } else {
-                    // Remove all Groups
-                    $tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
-                    foreach ($tblGroupList as $tblGroup) {
-                        Group::useService()->removeGroupPerson($tblGroup, $tblPerson);
-                    }
+    /**
+     * @param TblPerson $tblPerson
+     * @param $Person
+     *
+     * @return bool
+     */
+    public function updatePersonService(TblPerson $tblPerson, $Person)
+    {
+        if ((new Data($this->getBinding()))->updatePerson($tblPerson, $Person['Salutation'], $Person['Title'],
+            $Person['FirstName'], $Person['SecondName'], $Person['CallName'], $Person['LastName'], $Person['BirthName'])
+        ) {
+            // Change Groups
+            if (isset($Person['Group'])) {
+                // Remove all Groups
+                $tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
+                foreach ($tblGroupList as $tblGroup) {
+                    Group::useService()->removeGroupPerson($tblGroup, $tblPerson);
                 }
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Person wurde erfolgreich aktualisiert')
-                .new Redirect(null, Redirect::TIMEOUT_SUCCESS);
+                // Add current Groups
+                foreach ((array)$Person['Group'] as $tblGroup) {
+                    Group::useService()->addGroupPerson(
+                        Group::useService()->getGroupById($tblGroup), $tblPerson
+                    );
+                }
             } else {
-                return new Danger(new Ban() . 'Die Person konnte nicht aktualisiert werden')
-                .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR);
+                // Remove all Groups
+                $tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
+                foreach ($tblGroupList as $tblGroup) {
+                    Group::useService()->removeGroupPerson($tblGroup, $tblPerson);
+                }
             }
+
+            return true;
         }
 
-        return $Form;
+        return false;
     }
 
     /**

@@ -34,6 +34,7 @@ class ViewPerson extends AbstractView
     const TBL_PERSON_TITLE = 'TblPerson_Title';
     const TBL_PERSON_FIRST_NAME = 'TblPerson_FirstName';
     const TBL_PERSON_SECOND_NAME = 'TblPerson_SecondName';
+    const TBL_PERSON_CALL_NAME = 'TblPerson_CallName';
     const TBL_PERSON_LAST_NAME = 'TblPerson_LastName';
     const TBL_PERSON_BIRTH_NAME = 'TblPerson_BirthName';
 
@@ -79,6 +80,10 @@ class ViewPerson extends AbstractView
      * @Column(type="string")
      */
     protected $TblPerson_SecondName;
+    /**
+     * @Column(type="string")
+     */
+    protected $TblPerson_CallName;
     /**
      * @Column(type="string")
      */
@@ -129,6 +134,7 @@ class ViewPerson extends AbstractView
         $this->setNameDefinition(self::TBL_PERSON_TITLE, 'Person: Titel');
         $this->setNameDefinition(self::TBL_PERSON_FIRST_NAME, 'Person: Vorname');
         $this->setNameDefinition(self::TBL_PERSON_SECOND_NAME, 'Person: Zweiter Vorname');
+        $this->setNameDefinition(self::TBL_PERSON_CALL_NAME, 'Person: Rufname');
         $this->setNameDefinition(self::TBL_PERSON_LAST_NAME, 'Person: Nachname');
         $this->setNameDefinition(self::TBL_PERSON_BIRTH_NAME, 'Person: Geburtsname');
 
@@ -147,6 +153,7 @@ class ViewPerson extends AbstractView
             self::TBL_PERSON_TITLE,
             self::TBL_PERSON_FIRST_NAME,
             self::TBL_PERSON_SECOND_NAME,
+            self::TBL_PERSON_CALL_NAME,
             self::TBL_PERSON_LAST_NAME,
 //            self::TBL_PERSON_BIRTH_NAME,
         ));

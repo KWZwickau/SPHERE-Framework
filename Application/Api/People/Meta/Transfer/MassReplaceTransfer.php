@@ -27,6 +27,7 @@ class MassReplaceTransfer extends Extension
     const METHOD_REPLACE_ENROLLMENT_TYPE = 'replaceEnrollmentType';
     const METHOD_REPLACE_ENROLLMENT_TRANSFER_DATE = 'replaceEnrollmentTransferDate';
     const METHOD_REPLACE_ARRIVE_SCHOOL = 'replaceArriveSchool';
+    const METHOD_REPLACE_ARRIVE_STATE_SCHOOL = 'replaceArriveStateSchool';
     const METHOD_REPLACE_ARRIVE_SCHOOL_TYPE = 'replaceArriveSchoolType';
     const METHOD_REPLACE_ARRIVE_COURSE = 'replaceArriveCourse';
     const METHOD_REPLACE_ARRIVE_TRANSFER_DATE = 'replaceArriveTransferDate';
@@ -321,6 +322,43 @@ class MassReplaceTransfer extends Extension
             if(array_search($Id, $PersonIdArray)){
                 $IsChange = true;
             } 
+        }
+        return ApiMassReplace::pipelineClose($Field, $CloneField, $IsChange);
+    }
+
+    /**
+     * @param string $modalField
+     * @param int    $CloneField
+     * @param array  $PersonIdArray
+     * @param null   $Id
+     *
+     * @return \SPHERE\Common\Frontend\Ajax\Pipeline
+     */
+    public function replaceArriveStateSchool($modalField, $CloneField, $PersonIdArray = array(), $Id = null)
+    {
+
+        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('ARRIVE');
+
+        // get selected Company
+        $tblStateCompany = Company::useService()->getCompanyById($CloneField);
+
+        // change miss matched to null
+        if (!$tblStateCompany && null !== $tblStateCompany) {
+            $tblStateCompany = null;
+        }
+
+        $this->useStudentService()->createTransferStateCompany($PersonIdArray, $tblStudentTransferType->getIdentifier(),
+            $tblStateCompany);
+
+        /** @var AbstractField $Field */
+        $Field = unserialize(base64_decode($modalField));
+
+        // Success!
+        $IsChange = false;
+        if($Id != null && !empty($PersonIdArray)){
+            if(array_search($Id, $PersonIdArray)){
+                $IsChange = true;
+            }
         }
         return ApiMassReplace::pipelineClose($Field, $CloneField, $IsChange);
     }

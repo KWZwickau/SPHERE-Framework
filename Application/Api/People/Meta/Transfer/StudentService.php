@@ -68,6 +68,60 @@ class StudentService
     }
 
     /**
+     * @param array      $PersonIdArray
+     * @param string     $StudentTransferTypeIdentifier
+     * @param TblCompany $tblStateCompany
+     *
+     * @return bool|ServiceAPP\Entity\TblStudentTransfer|AbstractField
+     */
+    public function createTransferStateCompany(
+        $PersonIdArray = array(),
+        $StudentTransferTypeIdentifier,
+        $tblStateCompany = null
+    ) {
+
+        $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier($StudentTransferTypeIdentifier);
+        $BulkSave = array();
+        $BulkProtocol = array();
+
+        if (!empty($PersonIdArray)) {
+            foreach ($PersonIdArray as $PersonIdList) {
+                $tblStudent = false;
+                $tblPerson = Person::useService()->getPersonById($PersonIdList);
+                if ($tblPerson) {
+                    if ($tblPerson && $tblStudentTransferType) {
+                        $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                        if (!$tblStudent) {
+                            $tblStudent = Student::useService()->createStudent($tblPerson);
+                        }
+                    }
+                }
+                if ($tblStudent) {
+                    $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                        $tblStudentTransferType);
+                    if (!$tblStudentTransfer) {
+                        $tblStudentTransfer = new ServiceAPP\Entity\TblStudentTransfer();
+                        $BulkProtocol[] = false;
+                        $tblStudentTransfer->setTblStudent($tblStudent);
+                        $tblStudentTransfer->setTblStudentTransferType($tblStudentTransferType);
+                        $tblStudentTransfer->setRemark('');
+                    } else {
+                        $BulkProtocol[] = clone $tblStudentTransfer;
+                    }
+                    $tblStudentTransfer->setServiceTblStateCompany($tblStateCompany);
+
+                    $BulkSave[] = $tblStudentTransfer;
+                }
+            }
+            if (!empty($BulkSave)) {
+                return Student::useService()->bulkSaveEntityList($BulkSave, $BulkProtocol);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param array   $PersonIdArray
      * @param string  $StudentTransferTypeIdentifier
      * @param TblType $tblSchoolType

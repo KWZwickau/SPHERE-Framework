@@ -10,9 +10,6 @@ use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspectReservatio
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\ViewPeopleMetaProspect;
 use SPHERE\Application\People\Meta\Prospect\Service\Setup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Common\Frontend\Form\IFormInterface;
-use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -49,25 +46,14 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface $Form
      * @param TblPerson $tblPerson
-     * @param array $Meta
-     * @param null $Group
+     * @param $Meta
      *
-     * @return IFormInterface|string
+     * @return bool|TblProspect
      */
-    public function createMeta(IFormInterface $Form = null, TblPerson $tblPerson, $Meta, $Group = null)
+    public function updateMetaService(TblPerson $tblPerson, $Meta)
     {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Meta) {
-            return $Form;
-        }
-
-        $tblProspect = $this->getProspectByPerson($tblPerson);
-        if ($tblProspect) {
+        if (($tblProspect = $this->getProspectByPerson($tblPerson))) {
             (new Data($this->getBinding()))->updateProspectAppointment(
                 $tblProspect->getTblProspectAppointment(),
                 $Meta['Appointment']['ReservationDate'],
@@ -83,7 +69,8 @@ class Service extends AbstractService
                 ($OptionA ? $OptionA : null),
                 ($OptionB ? $OptionB : null)
             );
-            (new Data($this->getBinding()))->updateProspect(
+
+            return (new Data($this->getBinding()))->updateProspect(
                 $tblProspect,
                 $Meta['Remark']
             );
@@ -101,15 +88,14 @@ class Service extends AbstractService
                 ($OptionA ? $OptionA : null),
                 ($OptionB ? $OptionB : null)
             );
-            (new Data($this->getBinding()))->createProspect(
+
+            return (new Data($this->getBinding()))->createProspect(
                 $tblPerson,
                 $tblProspectAppointment,
                 $tblProspectReservation,
                 $Meta['Remark']
             );
         }
-        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Daten wurde erfolgreich gespeichert')
-        .new Redirect(null, Redirect::TIMEOUT_SUCCESS);
     }
 
     /**

@@ -165,11 +165,18 @@ class Data extends AbstractData
             return $this->getForceEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
                 array(
                     TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId()
-                ));
+                ),
+                array(
+                    TblToPerson::ATT_TBL_TYPE => self::ORDER_ASC
+                )
+            );
         } else {
             return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
                 array(
                     TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId()
+                ),
+                array(
+                    TblToPerson::ATT_TBL_TYPE => self::ORDER_ASC
                 ));
         }
     }

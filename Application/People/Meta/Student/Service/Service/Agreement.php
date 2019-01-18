@@ -27,6 +27,20 @@ abstract class Agreement extends Liberation
     }
 
     /**
+     * @param TblStudentAgreementType $tblStudentAgreementType
+     * @param TblStudent $tblStudent
+     *
+     * @return false|TblStudentAgreement
+     */
+    public function getStudentAgreementByTypeAndStudent(
+        TblStudentAgreementType $tblStudentAgreementType,
+        TblStudent $tblStudent
+    ) {
+
+        return (new Data($this->getBinding()))->getStudentAgreementByTypeAndStudent($tblStudentAgreementType, $tblStudent);
+    }
+
+    /**
      * @param int $Id
      *
      * @return bool|TblStudentAgreement

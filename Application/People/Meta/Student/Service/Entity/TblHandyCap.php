@@ -20,7 +20,7 @@ class TblHandyCap extends Element
     const LEGAL_BASES_SCHOOL_VIEW = 'Schulaufsicht';
     const LEGAL_BASES_INTERN = 'Schulintern';
     const LEARN_TARGET_EQUAL = 'lernzielgleich';
-    const LEARN_TARGET_DIFFERENT = 'lernzieldifferneziert';
+    const LEARN_TARGET_DIFFERENT = 'lernzieldifferenziert';
 
     const SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_DATE = 'Date';

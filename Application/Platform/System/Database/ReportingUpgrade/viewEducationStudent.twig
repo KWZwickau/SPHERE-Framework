@@ -13,3 +13,6 @@ SELECT distinct
     FROM EducationLessonDivision_{{ ConsumerAcronym }}.viewDivisionStudent vDS
         LEFT JOIN EducationSchoolType_{{ ConsumerAcronym }}.viewSchoolType vST ON vST.TblType_Id = vDS.TblLevel_serviceTblType
         LEFT JOIN EducationLessonTerm_{{ ConsumerAcronym }}.viewYearPeriod vYP ON vYP.TblYearPeriod_tblYear = vDS.TblDivision_serviceTblYear
+    WHERE
+        vDS.TblDivisionStudent_LeaveDate is null
+        or (vDS.TblDivisionStudent_LeaveDate is not null and CURRENT_TIMESTAMP() <= vDS.TblDivisionStudent_LeaveDate)

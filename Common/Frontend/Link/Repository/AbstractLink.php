@@ -127,6 +127,8 @@ abstract class AbstractLink extends Extension implements ILinkInterface
             }
         }
         $this->Template->setVariable('PageHeight', 1);
+            // set ScrollDelay to 0 to avoid syntax error in IE 11
+        $this->Template->setVariable('ScrollDelay', 0);
 
         $this->Template->setVariable('ElementHash', $this->getHash());
     }

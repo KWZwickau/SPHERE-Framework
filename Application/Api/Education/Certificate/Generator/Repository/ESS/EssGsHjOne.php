@@ -60,6 +60,22 @@ class EssGsHjOne extends Certificate
                 )
             )
             ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('&nbsp;')
+                        , '25%'
+                    )
+                    ->addElementColumn((new Element())
+                        ->setContent('HALBJAHRESINFORMATION')
+                        ->styleLineHeight('105%')
+                        ->styleFontFamily(self::TEXT_FAMILY)
+                        ->styleTextSize(self::TEXT_SIZE_BIG)
+                        ->styleMarginTop('25px')
+                        , '75%'
+                    )
+                )
+            )
+            ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('&nbsp;')
                     ->stylePaddingTop('8px')
@@ -70,25 +86,18 @@ class EssGsHjOne extends Certificate
                         , '0%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('{{ Content.P' . $personId . '.Division.Data.Level.Name }}{{ Content.P' . $personId . '.Division.Data.Name }}')
+                        ->setContent('Klasse {{ Content.P' . $personId . '.Division.Data.Level.Name }}')
                         ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
-                        , '18%'
+                        , '25%'
                     )
                     ->addElementColumn((new Element())
-                        ->setContent('1. Schulhalbjahr der Klasse {{ Content.P' . $personId . '.Division.Data.Level.Name }}')
+                        ->setContent('1. Schulhalbjahr {{ Content.P' . $personId . '.Division.Data.Year }}')
                         ->styleTextSize(self::TEXT_SIZE)
                         ->styleLineHeight('105%')
                         ->styleFontFamily(self::TEXT_FAMILY)
-                        , '30%'
-                    )
-                    ->addElementColumn((new Element())
-                        ->setContent('{{ Content.P' . $personId . '.Division.Data.Year }}')
-                        ->styleTextSize(self::TEXT_SIZE)
-                        ->styleLineHeight('105%')
-                        ->styleFontFamily(self::TEXT_FAMILY)
-                        , '22%'
+                        , '45%'
                     )
                     ->addElementColumn((new Element())
                         ->setContent('Schneeberg, den 
@@ -169,7 +178,7 @@ class EssGsHjOne extends Certificate
                         ->styleAlignJustify()
                         ->stylePaddingTop('25px')
                         ->stylePaddingBottom('20px')
-                        ->styleHeight('440px')
+                        ->styleHeight('402px')
                     )
                     ->addElementColumn((new Element())
                         ->setContent('&nbsp;')
