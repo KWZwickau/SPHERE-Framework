@@ -92,7 +92,7 @@ class E04
                 )
             );
 
-        for ($i = 0; $i < 6; $i++) {
+        for ($i = 0; $i < 8; $i++) {
             $section = new Section();
             $section
                 ->addElementColumn((new Element())
@@ -115,6 +115,7 @@ class E04
                                 &nbsp;
                             {% endif %}
                         ')
+                        ->styleBackgroundColor($level < 11 ? 'white' : 'lightgrey')
                         ->styleBorderRight(), '8%'
                     );
             }
