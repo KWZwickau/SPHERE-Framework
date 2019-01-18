@@ -259,11 +259,11 @@ class Gradebook implements IModuleInterface
         );
 
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\MinimumGradeCount\Teacher\Reporting',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Gradebook\MinimumGradeCount\Teacher\Reporting',
                 __NAMESPACE__.'\Frontend::frontendTeacherMinimumGradeCountReporting')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\MinimumGradeCount\Headmaster\Reporting',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Gradebook\MinimumGradeCount\Headmaster\Reporting',
                 __NAMESPACE__.'\Frontend::frontendHeadmasterMinimumGradeCountReporting')
         );
     }
