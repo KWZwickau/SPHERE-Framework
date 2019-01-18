@@ -63,6 +63,9 @@ use SPHERE\Common\Frontend\Text\Repository\Warning as WarningText;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Debugger\DebuggerFactory;
+use SPHERE\System\Debugger\Logger\ErrorLogger;
+use SPHERE\System\Debugger\Logger\FileLogger;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -411,6 +414,10 @@ class Frontend extends Extension implements IFrontendInterface
                         $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));
                     }
                 } catch (\Exception $Exception) {
+
+                    (new DebuggerFactory())->createLogger(new ErrorLogger())->addLog('YubiKey-Api Error: '.$Exception->getMessage());
+                    (new DebuggerFactory())->createLogger(new FileLogger())->addLog('YubiKey-Api Error: '.$Exception->getMessage());
+
                     // Error Token API Error
                     $CredentialKeyField->setError('');
                     $FormError = new Listing(array(new Danger(new Exclamation() . ' Die eingegebenen Zugangsdaten sind nicht gültig')));

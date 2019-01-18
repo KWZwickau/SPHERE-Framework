@@ -24,16 +24,34 @@ class FilePointer extends DummyFile
     /** @var bool $Destruct */
     private $Destruct = true;
 
+    const TYPE_UNIQUE = 0;
+    const TYPE_DATE = 1;
+
     /**
      * @param string $Extension
      * @param string $Prefix
-     * @param bool   $Destruct
+     * @param bool $Destruct
+     * @param int $Type FilePointer::TYPE_UNIQUE
      */
-    public function __construct($Extension = 'document-storage', $Prefix = 'SPHERE-Temporary', $Destruct = true)
-    {
+    public function __construct(
+        $Extension = 'document-storage',
+        $Prefix = 'SPHERE-Temporary',
+        $Destruct = true,
+        $Type = FilePointer::TYPE_UNIQUE
+    ) {
 
         $this->FileDirectory = sys_get_temp_dir();
-        $this->FileName = $Prefix.'-'.md5(uniqid($Prefix, true)).'.'.$Extension;
+        switch( $Type ) {
+            case FilePointer::TYPE_UNIQUE:
+                $this->FileName = $Prefix . '-' . md5(uniqid($Prefix, true)) . '.' . $Extension;
+                break;
+            case FilePointer::TYPE_DATE:
+                $this->FileName = $Prefix . '-' . date('dmy') . '.' . $Extension;
+                break;
+            default:
+                $this->FileName = $Prefix . '-' . md5(uniqid($Prefix, true)) . '.' . $Extension;
+                break;
+        }
         $Location = $this->FileDirectory.DIRECTORY_SEPARATOR.$this->FileName;
         $this->setFileLocation($Location);
         $this->Destruct = (bool)$Destruct;
