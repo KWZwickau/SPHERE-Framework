@@ -8,11 +8,11 @@ use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 
 /**
- * Class GymHjInfo
+ * Class MsHjInfoFsLernen
  *
  * @package SPHERE\Application\Api\Education\Certificate\Certificate\Repository
  */
-class GymHjInfo extends Certificate
+class MsHjInfoFsLernen extends Certificate
 {
 
     /**
@@ -33,10 +33,17 @@ class GymHjInfo extends Certificate
                 $Header
             )
             ->addSlice($this->getSchoolName($personId))
-            ->addSlice($this->getCertificateHead('Halbjahresinformation des Gymnasiums'))
+            ->addSlice($this->getCertificateHead('Halbjahresinformation der Oberschule'))
             ->addSlice($this->getDivisionAndYear($personId, '20px', '1. Schulhalbjahr'))
             ->addSlice($this->getStudentName($personId))
-            ->addSlice($this->getGradeLanes($personId, '14px', false, '5px'))
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('nahm am Unterricht mit dem Ziel des Abschlusses im Förderschwerpunkt Lernen teil.')
+                    ->styleTextSize('12px')
+                    ->styleMarginTop('8px')
+                )
+            )
+            ->addSlice($this->getGradeLanes($personId))
             ->addSlice((new Slice())
                 ->addElement((new Element())
                     ->setContent('Leistungen in den einzelnen Fächern:')
@@ -44,19 +51,25 @@ class GymHjInfo extends Certificate
                     ->styleTextBold()
                 )
             )
-            ->addSlice($this->getSubjectLanes($personId, true, array('Lane' => 1, 'Rank' => 3))->styleHeight('270px'))
-            ->addSlice($this->getProfileStandardNew($personId))
+            ->addSlice($this->getSubjectLanes(
+                $personId,
+                true,
+                array(),
+                '14px',
+                false,
+                false,
+                true
+            )->styleHeight('290px'))
             ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '110px', '15px'))
+            ->addSlice($this->getDescriptionContent($personId, '100px', '15px'))
             ->addSlice($this->getDateLine($personId))
             ->addSlice($this->getSignPart($personId, false))
             ->addSlice($this->getParentSign())
-            ->addSlice($this->getInfo('10px',
+            ->addSlice($this->getInfo('45px',
                 'Notenerläuterung:',
-                '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft;
-                                          6 = ungenügend (6 = ungenügend nur bei der Bewertung der Leistungen)',
-                    '¹ &nbsp;&nbsp;&nbsp; Die Bezeichnung des besuchten schulspezifischen Profils ist anzugeben. Beim Erlernen einer 
-                    dritten Fremdsprache ist anstelle des Profils die Fremdsprache anzugeben.'
-                ));
+                '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend 
+                    (6 = ungenügend nur bei der Bewertung der Leistungen)',
+                '¹ &nbsp;&nbsp;&nbsp; gemäß § 27 Absatz 6 der Schulordnung Ober- und Abendoberschulen'
+            ));
     }
 }

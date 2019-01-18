@@ -342,6 +342,22 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getCertificateAllBy($tblConsumer, $tblCertificateType, $tblSchoolType);
     }
 
+    /**
+     * @param null|TblConsumer $tblConsumer
+     * @param TblCertificateType $tblCertificateType
+     * @param TblType $tblSchoolType
+     *
+     * @return bool|TblCertificate[]
+     */
+    public function getCertificateAllForAutoSelect(
+        TblConsumer $tblConsumer = null,
+        TblCertificateType $tblCertificateType = null,
+        TblType $tblSchoolType = null
+    ) {
+
+        return (new Data($this->getBinding()))->getCertificateAllForAutoSelect($tblConsumer, $tblCertificateType, $tblSchoolType);
+    }
+
 
     /**
      * @param TblCertificate $tblCertificate
@@ -403,7 +419,8 @@ class Service extends AbstractService
             'Content.Input.TeamExtra'          => 'TextField',
             'Content.Input.BellSubject'        => 'TextField',
             'Content.Input.PerformanceGroup'   => 'TextField',
-            'Content.Input.Arrangement'        => 'TextArea'
+            'Content.Input.Arrangement'        => 'TextArea',
+            'Content.Input.Support'        => 'TextArea'
         );
     }
 
@@ -431,7 +448,8 @@ class Service extends AbstractService
             'Content.Input.TeamExtra'          => 'Arbeitsgemeinschaften',
             'Content.Input.BellSubject'        => 'Thema BELL',
             'Content.Input.PerformanceGroup'   => 'Leistungsgruppe',
-            'Content.Input.Arrangement'        => 'Besonderes Engagement'
+            'Content.Input.Arrangement'        => 'Besonderes Engagement',
+            'Content.Input.Support'        => 'Inklusive Unterrichtung'
         );
     }
 

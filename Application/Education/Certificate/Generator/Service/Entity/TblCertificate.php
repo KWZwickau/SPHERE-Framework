@@ -34,6 +34,7 @@ class TblCertificate extends Element
     const ATTR_TBL_CERTIFICATE_TYPE = 'tblCertificateType';
     const ATTR_IS_INFORMATION = 'IsInformation';
     const ATTR_IS_CHOSEN_DEFAULT = 'IsChosenDefault';
+    const ATTR_IS_IGNORED_FOR_AUTO_SELECT = 'IsIgnoredForAutoSelect';
 
     /**
      * @Column(type="string")
@@ -82,6 +83,11 @@ class TblCertificate extends Element
      * @Column(type="boolean")
      */
     protected $IsChosenDefault;
+
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsIgnoredForAutoSelect;
 
     /**
      * @return bool|TblConsumer
@@ -298,5 +304,21 @@ class TblCertificate extends Element
     public function setIsChosenDefault($IsChosenDefault)
     {
         $this->IsChosenDefault = $IsChosenDefault;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getIsIgnoredForAutoSelect()
+    {
+        return $this->IsIgnoredForAutoSelect;
+    }
+
+    /**
+     * @param boolean $IsIgnoredForAutoSelect
+     */
+    public function setIsIgnoredForAutoSelect($IsIgnoredForAutoSelect)
+    {
+        $this->IsIgnoredForAutoSelect = $IsIgnoredForAutoSelect;
     }
 }

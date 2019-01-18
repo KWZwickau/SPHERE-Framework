@@ -1,0 +1,89 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: Kauschke
+ * Date: 17.01.2019
+ * Time: 10:57
+ */
+
+namespace SPHERE\Application\Api\Education\Certificate\Generator\Repository;
+
+use SPHERE\Application\Api\Education\Certificate\Generator\Certificate;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Element;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Page;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Section;
+use SPHERE\Application\Education\Certificate\Generator\Repository\Slice;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+
+/**
+ * Class MsJFsGeistigeEntwicklung
+ *
+ * @package SPHERE\Application\Api\Education\Certificate\Generator\Repository
+ */
+class MsJFsGeistigeEntwicklung extends Certificate
+{
+
+    /**
+     * @param TblPerson|null $tblPerson
+     * @return Page
+     * @internal param bool $IsSample
+     *
+     */
+    public function buildPages(TblPerson $tblPerson = null)
+    {
+
+        $personId = $tblPerson ? $tblPerson->getId() : 0;
+
+        $Header = $this->getHead($this->isSample(), true, 'auto', '50px');
+
+        return (new Page())
+            ->addSlice(
+                $Header
+            )
+            ->addSlice($this->getSchoolName($personId))
+            ->addSlice($this->getCertificateHead('Jahreszeugnis der Oberschule'))
+            ->addSlice($this->getDivisionAndYear($personId))
+            ->addSlice($this->getStudentName($personId))
+            ->addSlice((new Slice())
+                ->addElement((new Element())
+                    ->setContent('Inklusive Unterrichtung¹: {% if(Content.P' . $personId . '.Input.Support is not empty) %}
+                            {{ Content.P' . $personId . '.Input.Support|nl2br }}
+                        {% else %}
+                            ---
+                        {% endif %}')
+                    ->styleHeight('540px')
+                    ->styleMarginTop('20px')
+                ))
+            ->addSlice((new Slice())
+                ->addSection((new Section())
+                    ->addElementColumn((new Element())
+                        ->setContent('Fehltage entschuldigt:')
+                        , '22%')
+                    ->addElementColumn((new Element())
+                        ->setContent('{% if(Content.P' . $personId . '.Input.Missing is not empty) %}
+                                            {{ Content.P' . $personId . '.Input.Missing }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}')
+                        , '20%')
+                    ->addElementColumn((new Element())
+                        ->setContent('Fehltage unentschuldigt:')
+                        , '25%')
+                    ->addElementColumn((new Element())
+                        ->setContent('{% if(Content.P' . $personId . '.Input.Bad.Missing is not empty) %}
+                                            {{ Content.P' . $personId . '.Input.Bad.Missing }}
+                                        {% else %}
+                                            &nbsp;
+                                        {% endif %}')
+                    )
+                )
+                ->styleMarginTop('15px')
+            )
+            ->addSlice($this->getDateLine($personId))
+            ->addSlice($this->getSignPart($personId, true))
+            ->addSlice($this->getParentSign())
+            ->addSlice($this->getInfo('45px',
+                '¹ &nbsp;&nbsp;&nbsp; gemäß § 27 Absatz 6 der Schulordnung Ober- und Abendoberschulen'
+            ));
+    }
+}

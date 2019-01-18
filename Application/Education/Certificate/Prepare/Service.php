@@ -815,11 +815,21 @@ class Service extends AbstractService
         if ($tblPrepare) {
             $tblPrepareInformationList = Prepare::useService()->getPrepareInformationAllByPerson($tblPrepare,
                 $tblPerson);
+
+            // Spezialfall für Förderzeugnisse Lernen
+            $isSupportLearningCertificate = false;
+            if (($tblPrepareStudent && ($tblCertificate = $tblPrepareStudent->getServiceTblCertificate()))) {
+                if (strpos($tblCertificate->getCertificate(), 'FsLernen') !== false) {
+                    $isSupportLearningCertificate = true;
+                }
+            }
+
             if ($tblPrepareInformationList) {
                 // Spezialfall Arbeitsgemeinschaften im Bemerkungsfeld
                 $team = '';
                 $teamChange = '';
                 $remark = '';
+                $support = '';
 
                 foreach ($tblPrepareInformationList as $tblPrepareInformation) {
                     if ($tblPrepareInformation->getField() == 'Team') {
@@ -835,37 +845,51 @@ class Service extends AbstractService
                     } elseif ($tblPrepareInformation->getField() == 'IndividualTransfer') {
                         $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $tblPerson->getFirstSecondName()
                             . ' ' . $tblPrepareInformation->getValue();
+                    } elseif ($isSupportLearningCertificate && $tblPrepareInformation->getField() == 'Support') {
+                        $support = $tblPrepareInformation->getValue();
                     } else {
                         $Content['P' . $personId]['Input'][$tblPrepareInformation->getField()] = $tblPrepareInformation->getValue();
                     }
                 }
 
-                // Streichung leeres Bemerkungsfeld
-                if ($remark == '') {
-                    $remark = '---';
-                }
+                // Spezialfall für Förderzeugnisse Lernen
+                if ($isSupportLearningCertificate) {
+                    $remark = ($team ? $team . " \n " : '')
+                        . ($support ? 'Inklusive Unterrichtung¹: ' . $support : 'Inklusive Unterrichtung¹: ' . '---' )
+                        . " \n " . ($remark ? 'Bemerkung: ' . $remark : '');
+                } else {
+                    // Streichung leeres Bemerkungsfeld
+                    if ($remark == '') {
+                        $remark = '---';
+                    }
 
-                if ($team || $remark) {
-                    if ($team) {
+                    if ($team || $remark) {
+                        if ($team) {
 
-                        if (($tblConsumer = Consumer::useService()->getConsumerBySession())
-                            && $tblConsumer->getAcronym() == 'EVSR'
-                        ) {
-                            // Arbeitsgemeinschaften am Ende der Bemerkungnen
-                            $remark = $remark . " \n\n " . $team;
-                        }  elseif(($tblConsumer = Consumer::useService()->getConsumerBySession())
-                            && $tblConsumer->getAcronym() == 'ESZC'
-                            && $tblLevel && intval($tblLevel->getName()) <= 4
-                        ) {
-                            $remark = $teamChange . " \n " . $remark;
-                        }else{
-                            $remark = $team . " \n\n " . $remark;
+                            if (($tblConsumer = Consumer::useService()->getConsumerBySession())
+                                && $tblConsumer->getAcronym() == 'EVSR'
+                            ) {
+                                // Arbeitsgemeinschaften am Ende der Bemerkungnen
+                                $remark = $remark . " \n\n " . $team;
+                            } elseif (($tblConsumer = Consumer::useService()->getConsumerBySession())
+                                && $tblConsumer->getAcronym() == 'ESZC'
+                                && $tblLevel && intval($tblLevel->getName()) <= 4
+                            ) {
+                                $remark = $teamChange . " \n " . $remark;
+                            } else {
+                                $remark = $team . " \n\n " . $remark;
+                            }
                         }
                     }
                 }
+
                 $Content['P' . $personId]['Input']['Remark'] = $remark;
             } else {
-                $Content['P' . $personId]['Input']['Remark'] = '---';
+                if ($isSupportLearningCertificate) {
+                    $Content['P' . $personId]['Input']['Remark'] = 'Inklusive Unterrichtung¹: ---';
+                } else {
+                    $Content['P' . $personId]['Input']['Remark'] = '---';
+                }
             }
         }
 
