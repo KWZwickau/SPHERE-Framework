@@ -31,11 +31,6 @@ class Basket implements IModuleInterface
             )
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/DebtorSelection',
-                __NAMESPACE__.'\Frontend::frontendBasketDebtorSelection'
-            )
-        );
-        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/InvoiceLoad',
                 __NAMESPACE__.'\Frontend::frontendInvoiceLoad'
             )
