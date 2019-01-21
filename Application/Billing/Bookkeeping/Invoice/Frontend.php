@@ -216,6 +216,16 @@ class Frontend extends Extension implements IFrontendInterface
                                 'BasketName' => 'Name der Abrechnung',
                                 'IsPaid' => 'Offene Posten',
 //                                'Option' => '',
+                            ), array(
+                                'columnDefs' => array(
+                                    array('type' => 'natural', 'targets' => array(1,2,3,7)),
+//                                    array('type' => 'de_date', 'targets' => array(2)),
+                                array("orderable" => false, "targets"   => -1),
+                                ),
+                                'order'      => array(
+//                            array(1, 'desc'),
+                                    array(7, 'desc')
+                                ),
                             ))
                         )
                     )
@@ -290,5 +300,68 @@ class Frontend extends Extension implements IFrontendInterface
         $MonthList[12] = 'Dezember';
 
         return $MonthList;
+    }
+
+    public function frontendUnPaid()
+    {
+
+        $Stage = new Stage('Offene Posten', 'Übersicht');
+        $TableContent = array();
+        if($tblInvoiceItemDebtorList = Invoice::useService()->getInvoiceItemDebtorByIsPaid()){
+            array_walk($tblInvoiceItemDebtorList, function(TblInvoiceItemDebtor $tblInvoiceItemDebtor) use (&$TableContent){
+                $item['DebtorPerson'] = '';
+                $item['Item'] = $tblInvoiceItemDebtor->getName();
+                $item['ItemQuantity'] = $tblInvoiceItemDebtor->getQuantity();
+                $item['ItemPrice'] = $tblInvoiceItemDebtor->getPriceString();
+                $item['ItemSumPrice'] = $tblInvoiceItemDebtor->getSummaryPrice();
+                $item['InvoiceNumber'] = '';
+                $item['CauserPerson'] = '';
+                $item['Time'] = '';
+                $item['BasketName'] = '';
+                if($tblInvoiceItemDebtor->getDebtorPerson()){
+                    $item['DebtorPerson'] = $tblInvoiceItemDebtor->getDebtorPerson();
+                }
+                if($tblInvoice = $tblInvoiceItemDebtor->getTblInvoice()){
+                    $item['InvoiceNumber'] = $tblInvoice->getInvoiceNumber();
+                    $item['CauserPerson'] = $tblInvoice->getLastName().', '.$tblInvoice->getFirstName();
+                    $item['Time'] = $tblInvoice->getYear().'.'.$tblInvoice->getMonth(true);
+                    $item['BasketName'] = $tblInvoice->getBasketName();
+                }
+
+                array_push($TableContent, $item);
+            });
+        }
+
+        $Stage->setContent(new Layout(
+            new LayoutGroup(
+                new LayoutRow(
+                    new LayoutColumn(
+                        new TableData($TableContent, null, array(
+                            'InvoiceNumber' => 'Rechnungsnummer',
+                            'Time' => 'Abrechnungszeitraum',
+                            'BasketName' => 'Name der Abrechnung',
+                            'CauserPerson' => 'Beitragsverursacher',
+                            'DebtorPerson' => 'Beitragszahler',
+                            'Item' => 'Beitragsart',
+                            'ItemQuantity' => 'Anzahl',
+                            'ItemPrice' => 'Einzelpreis',
+                            'ItemSumPrice' => 'Gesamtpreis'
+                        ), array(
+                            'columnDefs' => array(
+                                array('type' => 'natural', 'targets' => array(0,6,7,8)),
+//                                array('type' => 'de_date', 'targets' => array(2)),
+//                                array("orderable" => false, "targets"   => -1),
+                            ),
+                            'order'      => array(
+//                            array(1, 'desc'),
+                                array(0, 'desc')
+                            ),
+                        ))
+                    )
+                )
+            )
+        ));
+
+        return $Stage;
     }
 }

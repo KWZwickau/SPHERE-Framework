@@ -49,7 +49,6 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getInvoiceAll();
     }
 
-
     /**
      * @param TblPerson $tblPerson
      *
@@ -145,6 +144,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getInvoiceItemDebtorById($Id);
+    }
+
+    /**
+     * @param bool $IsPaid
+     *
+     * @return false|TblInvoiceItemDebtor[]
+     */
+    public function getInvoiceItemDebtorByIsPaid($IsPaid = false)
+    {
+
+        return (new Data($this->getBinding()))->getInvoiceItemDebtorByIsPaid($IsPaid);
     }
 
     /**

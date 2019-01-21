@@ -37,6 +37,11 @@ class Invoice implements IModuleInterface
                 __NAMESPACE__.'\Frontend::frontendInvoiceCauserView'
             )
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute('/Billing/Bookkeeping/UnPaid',
+                __NAMESPACE__.'\Frontend::frontendUnPaid'
+            )
+        );
     }
 
     /**

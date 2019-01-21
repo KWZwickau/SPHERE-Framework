@@ -51,6 +51,20 @@ class Data extends AbstractData
     }
 
     /**
+     * @param bool $IsPaid
+     *
+     * @return false|TblInvoiceItemDebtor[]
+     */
+    public function getInvoiceItemDebtorByIsPaid($IsPaid = false)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblInvoiceItemDebtor',array(
+                TblInvoiceItemDebtor::ATTR_IS_PAID => $IsPaid
+            ));
+    }
+
+    /**
      * @param TblInvoice $tblInvoice
      *
      * @return false|TblInvoiceItemDebtor[]

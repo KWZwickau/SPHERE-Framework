@@ -30,6 +30,7 @@ class TblInvoiceItemDebtor extends Element
     const ATTR_DESCRIPTION = 'Description';
     const ATTR_VALUE = 'Value';
     const ATTR_QUANTITY = 'Quantity';
+    const ATTR_IS_PAID = 'IsPaid';
     const ATTR_SERVICE_TBL_PERSON_DEBTOR = 'serviceTblPersonDebtor';
     const ATTR_SERVICE_TBL_BANKING_REFERENCE = 'serviceTblBankReference';
     const ATTR_SERVICE_TBL_PAYMENT_TYPE = 'serviceTblPaymentType';

@@ -6,6 +6,8 @@ use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\IApplicationInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 
@@ -36,11 +38,15 @@ class Bookkeeping implements IApplicationInterface
         );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route('/Billing/Bookkeeping/InvoiceView'), new Link\Name('Rechnungsliste Beitragszahler'),
-                new Link\Icon(new \SPHERE\Common\Frontend\Icon\Repository\Basket()))
+                new Link\Icon(new ListingTable()))
         );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route('/Billing/Bookkeeping/InvoiceCauserView'), new Link\Name('Rechnungsliste Beitragsverursacher'),
-                new Link\Icon(new \SPHERE\Common\Frontend\Icon\Repository\Basket()))
+                new Link\Icon(new ListingTable()))
+        );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route('/Billing/Bookkeeping/UnPaid'), new Link\Name('Offene Posten'),
+                new Link\Icon(new Listing()))
         );
 //        Main::getDisplay()->addModuleNavigation(
 //            new Link(new Link\Route(__NAMESPACE__.'/Export'), new Link\Name('Export'),
