@@ -32,13 +32,16 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Info as InfoIcon;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Danger as DangerLink;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Info;
@@ -73,7 +76,10 @@ class ApiBasketVerification extends Extension implements IApiInterface
         // DebtorSelection
         $Dispatcher->registerMethod('showEditDebtorSelection');
         $Dispatcher->registerMethod('saveEditDebtorSelection');
+
+        $Dispatcher->registerMethod('showDeleteBasketSelection');
         $Dispatcher->registerMethod('deleteDebtorSelection');
+
 
         return $Dispatcher->callMethod($Method);
     }
@@ -208,11 +214,12 @@ class ApiBasketVerification extends Extension implements IApiInterface
     }
 
     /**
-     * @param string $BasketVerificationId
+     * @param string $BasketId
+     * @param string $Identifier
      *
      * @return Pipeline
      */
-    public static function pipelineReloadTable($BasketId = '')
+    public static function pipelineReloadTable($BasketId = '', $Identifier = '')
     {
         $Pipeline = new Pipeline(false);
         // reload columns
@@ -225,6 +232,9 @@ class ApiBasketVerification extends Extension implements IApiInterface
             'BasketId' => $BasketId
         ));
         $Pipeline->appendEmitter($Emitter);
+        if($Identifier){
+            $Pipeline->appendEmitter((new CloseModal(self::receiverModal('', $Identifier)))->getEmitter());
+        }
         return $Pipeline;
     }
 
@@ -356,21 +366,46 @@ class ApiBasketVerification extends Extension implements IApiInterface
     }
 
     /**
+     * @param string $Identifier
      * @param string $BasketVerificationId
      *
      * @return Pipeline
      */
-    public static function pipelineDeleteDebtorSelection(
-        $BasketVerificationId = ''
-    ) {
+    public static function pipelineOpenDeleteDebtorSelectionModal($Identifier = '', $BasketVerificationId = '')
+    {
 
-        $Receiver = self::receiverService();
+        $Receiver = self::receiverModal(null, $Identifier);
+        $Pipeline = new Pipeline();
+        $Emitter = new ServerEmitter($Receiver, self::getEndpoint());
+        $Emitter->setGetPayload(array(
+            self::API_TARGET => 'showDeleteBasketSelection'
+        ));
+        $Emitter->setPostPayload(array(
+            'Identifier' => $Identifier,
+            'BasketVerificationId'   => $BasketVerificationId,
+        ));
+        $Pipeline->appendEmitter($Emitter);
+
+        return $Pipeline;
+    }
+
+    /**
+     * @param string $Identifier
+     * @param string $BasketVerificationId
+     *
+     * @return Pipeline
+     */
+    public static function pipelineDeleteDebtorSelection($Identifier = '', $BasketVerificationId = '')
+    {
+
+        $Receiver = self::receiverModal(null, $Identifier);
         $Pipeline = new Pipeline(false);
         $Emitter = new ServerEmitter($Receiver, self::getEndpoint());
         $Emitter->setGetPayload(array(
             self::API_TARGET => 'deleteDebtorSelection'
         ));
         $Emitter->setPostPayload(array(
+            'Identifier' => $Identifier,
             'BasketVerificationId' => $BasketVerificationId
         ));
         $Pipeline->appendEmitter($Emitter);
@@ -503,7 +538,6 @@ class ApiBasketVerification extends Extension implements IApiInterface
                             }
                         }
                     }
-                    // ToDO Sorgeberechtigte ohne vorhandene Beitragszahler anzeigen oder ganz deaktivieren / ergänzen?
                     // Bezahler ohne Gruppe (z.B. Sorgeberechtigte, die ohne Konto bezahlen (Bar/Überweisung))
 //                    if(empty($SelectBoxDebtorList)) {
                         $tblGroup = Group::useService()->getGroupByMetaTable(TblGroup::META_TABLE_CUSTODY);
@@ -839,17 +873,94 @@ class ApiBasketVerification extends Extension implements IApiInterface
         }
     }
 
-    public function deleteDebtorSelection($BasketVerificationId = '')
+    /**
+     * @param string $Identifier
+     * @param string $BasketVerificationId
+     *
+     * @return string
+     */
+    public function showDeleteBasketSelection($Identifier = '', $BasketVerificationId = '')
+    {
+
+        $tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId);
+        if($tblBasketVerification) {
+
+            $ItemName = '';
+            $PersonCauser = '';
+            $PersonDebtor = '';
+            $Price = $tblBasketVerification->getPrice();
+            $Quantity = $tblBasketVerification->getQuantity();
+            $Summary = $tblBasketVerification->getSummaryPrice();
+            if(($tblItem = $tblBasketVerification->getServiceTblItem())){
+                $ItemName = $tblItem->getName();
+            }
+            if(($tblPersonCauser = $tblBasketVerification->getServiceTblPersonCauser())){
+                $PersonCauser = $tblPersonCauser->getLastFirstName();
+            }
+            if(($tblPersonDebtor = $tblBasketVerification->getServiceTblPersonDebtor())){
+                $PersonDebtor = $tblPersonDebtor->getLastFirstName();
+            }
+            //column width
+            $left = 4;
+            $right = 8;
+
+            $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Beitragsart: ', $left),
+                new LayoutColumn(new Bold($ItemName), $right),
+            ))));
+            $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Beitragsverursacher: ', $left),
+                new LayoutColumn(new Bold($PersonCauser), $right),
+            ))));
+            $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Beitragszahler: ', $left),
+                new LayoutColumn(new Bold($PersonDebtor), $right),
+            ))));
+            $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Einzelpreis: ', $left),
+                new LayoutColumn(new Bold($Price), $right),
+            ))));
+            $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Anzahl: ', $left),
+                new LayoutColumn(new Bold($Quantity), $right),
+            ))));
+            $Content[] = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn('Gesamtpreis: ', $left),
+                new LayoutColumn(new Bold($Summary), $right),
+            ))));
+
+            return new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Soll die Zahlung wirklich entfernt werden?'
+                                , $Content, Panel::PANEL_TYPE_DANGER)
+                        ),
+                        new LayoutColumn(
+                            (new DangerLink('Ja', self::getEndpoint(), new Ok()))
+                                ->ajaxPipelineOnClick(self::pipelineDeleteDebtorSelection($Identifier, $BasketVerificationId))
+                            .new Close('Nein', new Disable())
+                        )
+                    ))
+                )
+            );
+
+        } else {
+            return new Warning('Zahlungszuweisung wurde nicht gefunden');
+        }
+    }
+
+    public function deleteDebtorSelection($Identifier = '', $BasketVerificationId = '')
     {
 
         if(($tblBasketVerification = Basket::useService()->getBasketVerificationById($BasketVerificationId))){
             $tblBasket = $tblBasketVerification->getTblBasket();
             Basket::useService()->destroyBasketVerification($tblBasketVerification);
             if($tblBasket){
-                return self::pipelineReloadTable($tblBasket->getId());
+                return new Success('Abrechnung wurde erfolgreich entfernt'). self::pipelineReloadTable($tblBasket->getId(), $Identifier);
             }
         }
-        return '';
+        return new Danger('Zahlung konnte nicht entfernt werden');
     }
 
     /**
@@ -864,7 +975,7 @@ class ApiBasketVerification extends Extension implements IApiInterface
             $Global = $this->getGlobal();
             $tblPaymentType = $tblBasketVerification->getServiceTblPaymentType();
             ($tblPaymentType ? $Global->POST['DebtorSelection']['PaymentType'] = $tblPaymentType->getId() : '');
-            //ToDO Preis ermitteln oder als Individuell eintragen
+            // Preis als Individuell eintragen
 //            $tblItemVariant = $tblBasketVerification->getServiceTblItemVariant();
 //            ($tblItemVariant ? $_POST['DebtorSelection']['Variant'] = $tblItemVariant->getId() : '');
             $Value = $tblBasketVerification->getValue(true);

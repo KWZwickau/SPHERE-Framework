@@ -182,6 +182,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage->setContent(
             ApiBasketVerification::receiverModal('Bearbeiten')
+            .ApiBasketVerification::receiverModal('Entfernen einer Zahlung', 'deleteDebtorSelection')
             .ApiBasketVerification::receiverService()
             .new Layout(
                 new LayoutGroup(
@@ -327,7 +328,7 @@ class Frontend extends Extension implements IFrontendInterface
                     } else {
                         $Item['Option'] = (new Standard(new DangerText(new Disable()), ApiBasketVerification::getEndpoint(), null
                         /*, array(),'Eintrag löschen'*/))
-                            ->ajaxPipelineOnClick(ApiBasketVerification::pipelineDeleteDebtorSelection($tblBasketVerification->getId()));
+                            ->ajaxPipelineOnClick(ApiBasketVerification::pipelineOpenDeleteDebtorSelectionModal('deleteDebtorSelection', $tblBasketVerification->getId()));
                     }
 
                     array_push($TableContent, $Item);
@@ -363,21 +364,24 @@ class Frontend extends Extension implements IFrontendInterface
             if($tblBasket->getIsDone()){
                 $ButtonInvoice = '';
             } else {
+                $ButtonInvoice = new Primary('Abrechnung starten', '/Billing/Bookkeeping/Basket/InvoiceLoad'
+                    , null, array('BasketId' => $BasketId));
+                $reloadButton = new Standard('', '', new Repeat(), array(), 'Kontrolle erneut starten');
                 if($IsDebtorNumberNeed){
                     if($DebtorMissCount || $DebtorNumberMissCount){
-                        $ButtonInvoice = (new Standard('Rechnungen erstellen', '/Billing/Bookkeeping/Basket/InvoiceLoad'
-                            , null, array('BasketId' => $BasketId)))->setDisabled(). new Standard('', '', new Repeat());
-                    } else {
-                        $ButtonInvoice = (new Standard('Rechnungen erstellen', '/Billing/Bookkeeping/Basket/InvoiceLoad'
-                            , null, array('BasketId' => $BasketId)));
+                        $ButtonInvoice->setDisabled();
+                        $ButtonInvoice .= $reloadButton;
+//                    } else {
+//                        $ButtonInvoice = (new Primary('Rechnungen erstellen', '/Billing/Bookkeeping/Basket/InvoiceLoad'
+//                            , null, array('BasketId' => $BasketId)));
                     }
                 } else {
                     if($DebtorMissCount){
-                        $ButtonInvoice = (new Standard('Rechnungen erstellen', '/Billing/Bookkeeping/Basket/InvoiceLoad'
-                            , null, array('BasketId' => $BasketId)))->setDisabled(). new Standard('', '', new Repeat());
-                    } else {
-                        $ButtonInvoice = (new Standard('Rechnungen erstellen', '/Billing/Bookkeeping/Basket/InvoiceLoad'
-                            , null, array('BasketId' => $BasketId)));
+                        $ButtonInvoice->setDisabled();
+                        $ButtonInvoice .= $reloadButton;
+//                    } else {
+//                        $ButtonInvoice = (new Primary('Rechnungen erstellen', '/Billing/Bookkeeping/Basket/InvoiceLoad'
+//                            , null, array('BasketId' => $BasketId)));
                     }
                 }
 
