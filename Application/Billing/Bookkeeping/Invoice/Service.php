@@ -61,6 +61,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $Year
+     *
+     * @return bool|TblInvoice[]
+     */
+    public function getInvoiceAllByYear($Year = '')
+    {
+
+        return (new Data($this->getBinding()))->getInvoiceAllByYear($Year);
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param TblItem   $tblItem
      * @param string    $Year
@@ -99,6 +110,18 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getInvoiceItemDebtorByInvoice($tblInvoice);
+    }
+
+    /**
+     * @param TblInvoice $tblInvoice
+     * @param TblItem    $tblItem
+     *
+     * @return TblInvoiceItemDebtor[]
+     */
+    public function getInvoiceItemDebtorByInvoiceAndItem(TblInvoice $tblInvoice, TblItem $tblItem)
+    {
+
+        return (new Data($this->getBinding()))->getInvoiceItemDebtorByInvoiceAndItem($tblInvoice, $tblItem);
     }
 
     /**
@@ -193,6 +216,48 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getMaxInvoiceNumberByYearAndMonth($Year, $Month);
+    }
+
+    /**
+     * @param int $YearsAgo
+     * @param int $YearFuture
+     *
+     * @return array
+     */
+    public function getYearList($YearsAgo = 3, $YearFuture = 1)
+    {
+
+        $Now = new \DateTime();
+        $Year = $Now->format('Y');
+        $YearList= array();
+        for($i = $YearsAgo; $i > 0; $i--){
+            $YearList[(int)$Year - $i] = (int)$Year - $i;
+        }
+        for($j = 0;$j <= $YearFuture; $j++){
+            $YearList[(int)$Year + $j] = (int)$Year + $j;
+        }
+
+
+        return $YearList;
+    }
+
+    public function getMonthList()
+    {
+
+        $MonthList[1] = 'Januar';
+        $MonthList[2] = 'Februar';
+        $MonthList[3] = 'März';
+        $MonthList[4] = 'April';
+        $MonthList[5] = 'Mai';
+        $MonthList[6] = 'Juni';
+        $MonthList[7] = 'Juli';
+        $MonthList[8] = 'August';
+        $MonthList[9] = 'September';
+        $MonthList[10] = 'Oktober';
+        $MonthList[11] = 'November';
+        $MonthList[12] = 'Dezember';
+
+        return $MonthList;
     }
 
     /**
@@ -355,7 +420,7 @@ class Service extends AbstractService
 //        }
 
         $Invoice = array('Year' => $tblBasket->getYear(), 'Month' => $tblBasket->getMonth());
-        return new Redirect('/Billing/Bookkeeping/InvoiceView', Redirect::TIMEOUT_SUCCESS, array(
+        return new Redirect('/Billing/Bookkeeping/Invoice/View', Redirect::TIMEOUT_SUCCESS, array(
             'Invoice' => $Invoice
         ));
     }

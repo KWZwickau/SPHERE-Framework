@@ -239,8 +239,8 @@ class Frontend extends Extension implements IFrontendInterface
     public function formInvoiceFilter()
     {
 
-        $YearList = $this->getYearList();
-        $MonthList = $this->getMonthList();
+        $YearList = Invoice::useService()->getYearList(3, 1);
+        $MonthList = Invoice::useService()->getMonthList();
 
         $BasketNameList = array();
         if(($tblBasketList = Basket::useService()->getBasketAll())){
@@ -267,39 +267,6 @@ class Frontend extends Extension implements IFrontendInterface
                 ))
             ))
         ));
-    }
-
-    private function getYearList()
-    {
-
-        $Now = new \DateTime();
-        $Year = $Now->format('Y');
-        $YearList[(int)$Year - 3] = (int)$Year - 3;
-        $YearList[(int)$Year - 2] = (int)$Year - 2;
-        $YearList[(int)$Year - 1] = (int)$Year - 1;
-        $YearList[(int)$Year] = (int)$Year;
-        $YearList[(int)$Year + 1] = (int)$Year + 1;
-
-        return $YearList;
-    }
-
-    private function getMonthList()
-    {
-
-        $MonthList[1] = 'Januar';
-        $MonthList[2] = 'Februar';
-        $MonthList[3] = 'März';
-        $MonthList[4] = 'April';
-        $MonthList[5] = 'Mai';
-        $MonthList[6] = 'Juni';
-        $MonthList[7] = 'Juli';
-        $MonthList[8] = 'August';
-        $MonthList[9] = 'September';
-        $MonthList[10] = 'Oktober';
-        $MonthList[11] = 'November';
-        $MonthList[12] = 'Dezember';
-
-        return $MonthList;
     }
 
     public function frontendUnPaid()

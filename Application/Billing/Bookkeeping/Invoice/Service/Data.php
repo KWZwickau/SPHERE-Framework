@@ -80,6 +80,23 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblInvoice $tblInvoice
+     * @param TblItem    $tblItem
+     *
+     * @return false|TblInvoiceItemDebtor[]
+     */
+    public function getInvoiceItemDebtorByInvoiceAndItem(TblInvoice $tblInvoice, TblItem $tblItem)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblInvoiceItemDebtor',
+            array(
+                TblInvoiceItemDebtor::ATTR_TBL_INVOICE => $tblInvoice->getId(),
+                TblInvoiceItemDebtor::ATTR_SERVICE_TBL_ITEM => $tblItem->getId()
+            ));
+    }
+
+    /**
      * @param int $Id
      *
      * @return false|TblInvoiceCreditor
@@ -130,6 +147,22 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $Manager, 'TblInvoice',
             array(
                 TblInvoice::ATTR_SERVICE_TBL_PERSON_CAUSER => $tblPersonCauser->getId()
+            ));
+    }
+
+    /**
+     * @param $Year
+     *
+     * @return bool|TblInvoice[]
+     */
+    public function getInvoiceAllByYear($Year = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblInvoice|null $Entity */
+        return $this->getCachedEntityListBy(__METHOD__, $Manager, 'TblInvoice',
+            array(
+                TblInvoice::ATTR_YEAR => $Year
             ));
     }
 

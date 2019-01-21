@@ -5,6 +5,7 @@ namespace SPHERE\Application\Api\Billing\Bookkeeping;
 use SPHERE\Application\Api\ApiTrait;
 use SPHERE\Application\Api\Dispatcher;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\IApiInterface;
@@ -274,8 +275,8 @@ class ApiBasket extends Extension implements IApiInterface
     {
 
         // SelectBox content
-        $YearList = $this->getYearList();
-        $MonthList = $this->getMonthList();
+        $YearList = Invoice::useService()->getYearList(1,1);
+        $MonthList = Invoice::useService()->getMonthList();
 
         // choose between Add and Edit
         $SaveButton = new Primary('Speichern', self::getEndpoint(), new Save());
@@ -348,37 +349,6 @@ class ApiBasket extends Extension implements IApiInterface
         }
         /* @var Form $Content */
         return $Content;
-    }
-
-    private function getYearList()
-    {
-
-        $Now = new \DateTime();
-        $Year = $Now->format('Y');
-        $YearList[(int)$Year - 1] = (int)$Year - 1;
-        $YearList[(int)$Year] = (int)$Year;
-        $YearList[(int)$Year + 1] = (int)$Year + 1;
-
-        return $YearList;
-    }
-
-    private function getMonthList()
-    {
-
-        $MonthList[1] = 'Januar';
-        $MonthList[2] = 'Februar';
-        $MonthList[3] = 'März';
-        $MonthList[4] = 'April';
-        $MonthList[5] = 'Mai';
-        $MonthList[6] = 'Juni';
-        $MonthList[7] = 'Juli';
-        $MonthList[8] = 'August';
-        $MonthList[9] = 'September';
-        $MonthList[10] = 'Oktober';
-        $MonthList[11] = 'November';
-        $MonthList[12] = 'Dezember';
-
-        return $MonthList;
     }
 
     /**
