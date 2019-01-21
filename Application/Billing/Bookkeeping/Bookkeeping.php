@@ -6,8 +6,6 @@ use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Basket\Basket;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\IApplicationInterface;
-use SPHERE\Common\Frontend\Icon\Repository\Listing;
-use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 
@@ -22,44 +20,19 @@ class Bookkeeping implements IApplicationInterface
     {
 
         /**
+         * Register Navigation
+         */
+        // Skip Dashboard
+        Main::getDisplay()->addApplicationNavigation(
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Beitragsfakturierung'))
+        );
+
+        /**
          * Register Module
          */
         Basket::registerModule();
         Invoice::registerModule();
         Balance::registerModule();
-
-        // Skip Dashboard
-        Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Beitragsfakturierung'))
-        );
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/Basket'), new Link\Name('Abrechnung'),
-                new Link\Icon(new \SPHERE\Common\Frontend\Icon\Repository\Basket()))
-        );
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route('/Billing/Bookkeeping/InvoiceView'), new Link\Name('Rechnungsliste Beitragszahler'),
-                new Link\Icon(new ListingTable()))
-        );
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route('/Billing/Bookkeeping/InvoiceCauserView'), new Link\Name('Rechnungsliste Beitragsverursacher'),
-                new Link\Icon(new ListingTable()))
-        );
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route('/Billing/Bookkeeping/UnPaid'), new Link\Name('Offene Posten'),
-                new Link\Icon(new Listing()))
-        );
-//        Main::getDisplay()->addModuleNavigation(
-//            new Link(new Link\Route(__NAMESPACE__.'/Export'), new Link\Name('Export'),
-//                new Link\Icon(new Download()))
-//        );
-//        Main::getDisplay()->addModuleNavigation(
-//            new Link(new Link\Route(__NAMESPACE__.'/Balance'), new Link\Name('Offene Posten'),
-//                new Link\Icon(new Document()))
-//        );
-//        Main::getDisplay()->addModuleNavigation(
-//            new Link(new Link\Route(__NAMESPACE__.'/Invoice'), new Link\Name('Rechnungen'),
-//                new Link\Icon(new MoreItems()))
-//        );
 
     }
 }

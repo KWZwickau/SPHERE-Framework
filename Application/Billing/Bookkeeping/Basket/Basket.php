@@ -5,6 +5,7 @@ namespace SPHERE\Application\Billing\Bookkeeping\Basket;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Main;
+use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
 
 /**
@@ -17,6 +18,13 @@ class Basket implements IModuleInterface
     public static function registerModule()
     {
 
+        /**
+         * Register Navigation
+         */
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Abrechnung'),
+                new Link\Icon(new \SPHERE\Common\Frontend\Icon\Repository\Basket()))
+        );
         /**
          * Register Route
          */
