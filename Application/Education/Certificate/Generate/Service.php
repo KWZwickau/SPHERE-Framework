@@ -22,6 +22,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -200,6 +201,12 @@ class Service extends AbstractService
                     ) {
 
                         if (($tblPersonList = Division::useService()->getStudentAllByDivision($tblDivision))) {
+                            if (($tblLevel = $tblDivision->getTblLevel())) {
+                                $tblType = $tblLevel->getServiceTblType();
+                            } else {
+                                $tblType = false;
+                            }
+
                             foreach ($tblPersonList as $tblPerson) {
                                 // Template bereits gesetzt
                                 if (($tblPrepareStudent = Prepare::useService()->getPrepareStudentBy($tblPrepare,
@@ -208,6 +215,12 @@ class Service extends AbstractService
                                     if (($tblCertificate = $tblPrepareStudent->getServiceTblCertificate())) {
                                         continue;
                                     }
+                                }
+
+                                // bei Mittelschule und Primärer Förderschwerpunkt Lernen oder geistige Entwicklung soll keine
+                                // Zeugnisvorlage vorausgewählt werden
+                                if ($tblType && !$this->checkAutoSelect($tblPerson, $tblType)) {
+                                    continue;
                                 }
 
                                 if ($tblConsumerBySession) {
@@ -281,6 +294,35 @@ class Service extends AbstractService
                 new \SPHERE\Common\Frontend\Icon\Repository\Success())
             . new Redirect('/Education/Certificate/Generate/Division', Redirect::TIMEOUT_SUCCESS,
                 array('GenerateCertificateId' => $tblGenerateCertificate->getId()));
+    }
+
+
+    /**
+     * Prüft ob für die Person automatisch eine Zeugnisvorlage zugewiesen wird
+     *
+     * @param TblPerson $tblPerson
+     * @param TblType $tblType
+     *
+     * @return bool
+     */
+    private function checkAutoSelect(TblPerson $tblPerson, TblType $tblType)
+    {
+
+        if ($tblType->getName() == 'Mittelschule / Oberschule') {
+            if (($tblSupport = Student::useService()->getSupportForReportingByPerson($tblPerson))
+                && ($tblPrimaryFocus = Student::useService()->getPrimaryFocusBySupport($tblSupport))
+            ) {
+                if ($tblPrimaryFocus->getName() == 'Lernen') {
+                    return false;
+                }
+
+                if ($tblPrimaryFocus->getName() == 'Geistige Entwicklung') {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -367,7 +409,7 @@ class Service extends AbstractService
             && ($tblSchoolType = $tblLevel->getServiceTblType())
             && $tblPrepare->getServiceTblGenerateCertificate()
             && ($tblCertificateType = $tblPrepare->getServiceTblGenerateCertificate()->getServiceTblCertificateType())
-            && ($tblCertificateList = Generator::useService()->getCertificateAllBy(
+            && ($tblCertificateList = Generator::useService()->getCertificateAllForAutoSelect(
                 $tblConsumer ? $tblConsumer : null,
                 $tblCertificateType ? $tblCertificateType : null,
                 $tblSchoolType

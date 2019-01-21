@@ -33,12 +33,12 @@ class MsHjInfoRs extends Certificate
                 $Header
             )
             ->addSlice($this->getSchoolName($personId))
-            ->addSlice($this->getCertificateHead('Halbjahresinformation'))
+            ->addSlice($this->getCertificateHead('Halbjahresinformation der Oberschule'))
             ->addSlice($this->getDivisionAndYear($personId, '20px', '1. Schulhalbjahr'))
             ->addSlice($this->getStudentName($personId))
             ->addSlice((new Slice())
                 ->addElement((new Element())
-                    ->setContent('nahm am Unterricht der Schulart Mittelschule mit dem Ziel des Realschulabschlusses teil.')
+                    ->setContent('nahm am Unterricht mit dem Ziel des Realschulabschlusses teil.')
                     ->styleTextSize('12px')
                 )
                 ->styleMarginTop('8px')
@@ -51,14 +51,22 @@ class MsHjInfoRs extends Certificate
                     ->styleTextBold()
                 )
             )
-            ->addSlice($this->getSubjectLanes($personId)->styleHeight('270px'))
-            ->addSlice($this->getOrientationStandard($personId))
+            ->addSlice($this->getSubjectLanes(
+                $personId,
+                true,
+                array(),
+                '14px',
+                false,
+                false,
+                true
+            )->styleHeight('290px'))
+//            ->addSlice($this->getOrientationStandard($personId))
             ->addSlice($this->getDescriptionHead($personId, true))
-            ->addSlice($this->getDescriptionContent($personId, '85px', '15px'))
+            ->addSlice($this->getDescriptionContent($personId, '100px', '15px'))
             ->addSlice($this->getDateLine($personId))
             ->addSlice($this->getSignPart($personId, false))
             ->addSlice($this->getParentSign())
-            ->addSlice($this->getInfo('25px',
+            ->addSlice($this->getInfo('45px',
                 'Notenerläuterung:',
                 '1 = sehr gut; 2 = gut; 3 = befriedigend; 4 = ausreichend; 5 = mangelhaft; 6 = ungenügend 
                     (6 = ungenügend nur bei der Bewertung der Leistungen)')
