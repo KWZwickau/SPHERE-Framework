@@ -362,7 +362,17 @@ class Frontend extends Extension implements IFrontendInterface
                                         $tblToPerson->getId()
                                     ));
                                 } else {
-                                    $options = '';
+                                    // das Überschreiben der Hauptadresse muss per Modal bestätigt werden
+                                    $options = (new Link(
+                                        new Plus(),
+                                        ApiAddressToPerson::getEndpoint(),
+                                        null,
+                                        array(),
+                                        'Diese Adresse der aktuellen Person hinzufügen'
+                                    ))->ajaxPipelineOnClick(ApiAddressToPerson::pipelineOpenAddAddressToPersonModal(
+                                        $tblPerson->getId(),
+                                        $tblToPerson->getId()
+                                    ));
                                 }
                             }
 
